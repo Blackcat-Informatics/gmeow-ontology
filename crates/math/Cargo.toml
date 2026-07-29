@@ -25,3 +25,12 @@ gmeow-errors = { path = "../errors" }
 # the GTS snapshot codec, so its bytes are production GTS bytes and must carry
 # `zstd-rsyncable` @ L12 like every other GMEOW-authored frame.
 gmeow-gts-profile = { path = "../gts-profile" }
+# gmeow-math-lift: the executable R / ONNX / proof ingestion front-ends. The three
+# lift producers in `src/producers.rs` call the SAME `r::lift` / `onnx::lift` /
+# `proof::lift` entrypoints the shipped CLI calls, over the crate's real committed
+# fixtures embedded at COMPILE TIME (`include_str!` / `include_bytes!`), so the
+# in-bundle producer stays pure (no disk read, no arguments, no clock) while the
+# bundle carries the output of the ACTUAL parsers rather than a hand-typed
+# imitation of them. One implementation, two byte sources. Acyclic: math-lift
+# depends on purrdf + gmeow-errors + gmeow-term-arena and never on gmeow-math.
+gmeow-math-lift = { path = "../math-lift" }

@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: citations, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citationIntent is functional"
+msgstr "citationIntent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citationIntent is functional: a gmeow:CitationAct is made with exactly one intent — a second intent means minting a second CitationAct, not overloading one relator with two values."
+msgstr "Affirme sur le porteur canonique que gmeow:citationIntent est fonctionnelle : un gmeow:CitationAct est effectué avec exactement une intention — une seconde intention signifie la création d'un second CitationAct, et non la surcharge d'un relateur unique avec deux valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citedEntity is functional"
+msgstr "citedEntity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:citedEntity est fonctionnelle : chaque relateur gmeow:CitationAct pointe vers exactement une œuvre créative citée — l'unique cible de niveau WEMI vers laquelle la citation est dirigée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citingEntity is functional"
+msgstr "citingEntity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:citingEntity est fonctionnelle : chaque relateur gmeow:CitationAct possède exactement un acteur citant — l'unique revendication, œuvre, module ou jeu de données qui effectue la citation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:citationIntent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:citationIntent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:citationIntent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:citationIntent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:citationIntentFunctionality logic:characterizes gmeow:citationIntent ."
+msgstr "gmeow:citationIntentFunctionality logic:characterizes gmeow:citationIntent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:citedEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:citedEntity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:citedEntity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:citedEntity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:citedEntityFunctionality logic:characterizes gmeow:citedEntity ."
+msgstr "gmeow:citedEntityFunctionality logic:characterizes gmeow:citedEntity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:citingEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:citingEntity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:citingEntity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:citingEntity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:citingEntityFunctionality logic:characterizes gmeow:citingEntity ."
+msgstr "gmeow:citingEntityFunctionality logic:characterizes gmeow:citingEntity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citationIntent and nothing else. It is not a definition of gmeow:citationIntent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:citationIntent, et rien d'autre. Ce n'est pas une définition de gmeow:citationIntent (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citedEntity and nothing else. It is not a definition of gmeow:citedEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:citedEntity, et rien d'autre. Ce n'est pas une définition de gmeow:citedEntity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citingEntity and nothing else. It is not a definition of gmeow:citingEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:citingEntity, et rien d'autre. Ce n'est pas une définition de gmeow:citingEntity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

@@ -74,6 +74,12 @@ span could not express) — the Galois-connection shape of a super-ontology earn
 ## Capability use versus delegation (CQ5)
 
 Resolved without minting a wrapper class: a `gmeow:usedCapability` edge from an invocation / execution
-to a `gmeow:ActionSchema` is **passive** use; a `gmeow:ToolCall` whose `gmeow:usedTool` points to a
-distinct `gmeow:SoftwareAgent` is **delegation** (the agentic slice, reused as instance data — never a
-TBox dependency, which would be an illegal extension → extension edge).
+to a `logic:ActionSchema` is **passive** use; a `gmeow:ToolCall` whose `gmeow:usedTool` points to a
+distinct `gmeow:SoftwareAgent` is **delegation**.
+
+This slice owns only the passive half. `gmeow:ToolCall` / `gmeow:usedTool` belong to
+`extensions/agentic`, a SIBLING extension, and Principle 16 forbids a dependency in either direction —
+a competency query naming them would BE that dependency, whichever lane it runs in. The executable CQ5
+therefore lives in the profile that selects both extensions and mints nothing:
+`slices/profile/agent-runtime/queries/competency/tool-usage.rq` over its `examples/tool-usage.ttl`,
+alongside the end-to-end query that is there for the same reason.

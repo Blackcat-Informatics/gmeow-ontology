@@ -23,7 +23,7 @@ use crate::error::{
 use crate::i18n::translation_integrity_issue;
 
 const ENGLISH_TAG: &str = "x-gmeow-english";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
@@ -898,10 +898,7 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
 }
 
 fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
-    let catalog = SliceCatalog::discover(
-        &root.join("slices"),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -973,10 +970,7 @@ pub fn extract_catalog(
     lang: Option<&str>,
     terms_only: bool,
 ) -> Result<ExtractReport> {
-    let catalog = SliceCatalog::discover(
-        &root.join("slices"),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()
         .iter()

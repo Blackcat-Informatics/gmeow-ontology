@@ -1,0 +1,194 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: accounts, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountService is functional"
+msgstr "accountService est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountService is functional: an online account is held with exactly one service, so the account-to-service edge that places a handle on its network, forge, or federated instance carries a single value, and a moved account is modelled as a distinct OnlineAccount rather than a second service."
+msgstr "Affirme sur le porteur canonique que gmeow:accountService est fonctionnelle : un compte en ligne est détenu auprès d'exactement un service, de sorte que l'arête compte-vers-service qui situe un identifiant sur son réseau, sa forge ou son instance fédérée porte une valeur unique, et un compte déplacé est modélisé comme un OnlineAccount distinct plutôt que comme un second service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountServiceHomepage is functional"
+msgstr "accountServiceHomepage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountServiceHomepage is functional: an account is held with a single service, so the homepage of that one held-with service — the FOAF accountServiceHomepage idiom — resolves to a single IRI per account rather than a set of competing homepages."
+msgstr "Affirme sur le porteur canonique que gmeow:accountServiceHomepage est fonctionnelle : un compte est détenu auprès d'un service unique, de sorte que la page d'accueil de ce service unique — l'idiome FOAF accountServiceHomepage — se résout en un seul IRI par compte plutôt qu'en un ensemble de pages d'accueil concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "serviceShutdownDate is functional"
+msgstr "serviceShutdownDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:serviceShutdownDate is functional: a historical online service ceases operation once, so the flat shutdown date that projects to schema:dissolutionDate is a single dissolution timestamp per service, with any evidence- or standpoint-bearing dispute promoted to a destruction LifeEvent instead of a rival flat date."
+msgstr "Affirme sur le porteur canonique que gmeow:serviceShutdownDate est fonctionnelle: un service en ligne historique cesse ses activités une seule fois, de sorte que la date de fermeture plate qui se projette sur schema:dissolutionDate est un horodatage de dissolution unique par service, tout litige porteur de preuves ou de points de vue étant promu en un LifeEvent de destruction plutôt qu'en une date plate concurrente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:accountService names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:accountService nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountService, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:accountService, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:accountServiceFunctionality logic:characterizes gmeow:accountService ."
+msgstr "gmeow:accountServiceFunctionality logic:characterizes gmeow:accountService ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:accountServiceHomepage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:accountServiceHomepage nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountServiceHomepage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:accountServiceHomepage, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:accountServiceHomepageFunctionality logic:characterizes gmeow:accountServiceHomepage ."
+msgstr "gmeow:accountServiceHomepageFunctionality logic:characterizes gmeow:accountServiceHomepage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:serviceShutdownDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:serviceShutdownDate nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:serviceShutdownDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:serviceShutdownDate, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:serviceShutdownDateFunctionality logic:characterizes gmeow:serviceShutdownDate ."
+msgstr "gmeow:serviceShutdownDateFunctionality logic:characterizes gmeow:serviceShutdownDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:accountService and nothing else. It is not a definition of gmeow:accountService (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:accountService, et rien d'autre. Ce n'est pas une définition de gmeow:accountService (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:accountServiceHomepage and nothing else. It is not a definition of gmeow:accountServiceHomepage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:accountServiceHomepage, et rien d'autre. Ce n'est pas une définition de gmeow:accountServiceHomepage (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:serviceShutdownDate and nothing else. It is not a definition of gmeow:serviceShutdownDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:serviceShutdownDate, et rien d'autre. Ce n'est pas une définition de gmeow:serviceShutdownDate (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say HOW a payment was made, as a value on the payment."
+msgstr "À utiliser pour indiquer COMMENT un paiement a été effectué, en tant que valeur portée par le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing it or minting a slice-local rival vocabulary; it is an open VALUE type, so add a new individual instead."
+msgstr "Évitez d'en dériver des sous-classes ou de créer un vocabulaire rival local à une tranche ; c'est un type de VALEUR ouvert, ajoutez donc plutôt un nouvel individu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one of the gmeow:paymentMethod* individuals with gmeow:paymentMethod; the set is open, so consumers must tolerate values they do not know."
+msgstr "Attachez l'un des individus gmeow:paymentMethod* via gmeow:paymentMethod ; l'ensemble est ouvert, les consommateurs doivent donc tolérer des valeurs inconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bank transfer or wire settles the payment."
+msgstr "À utiliser lorsque un virement bancaire règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when physical currency changes hands."
+msgstr "À utiliser lorsque des espèces changent de mains."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a cheque is the instrument."
+msgstr "À utiliser lorsque un chèque est l'instrument."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a credit card settles the payment."
+msgstr "À utiliser lorsque une carte de crédit règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a cryptocurrency transfer settles the payment."
+msgstr "À utiliser lorsque un transfert de cryptomonnaie règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."
+msgstr "Exemple : gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."

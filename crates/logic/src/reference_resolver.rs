@@ -791,6 +791,7 @@ mod tests {
     use crate::query_ir::parse_query_program;
     use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
+    use gmeow_term_arena::engine::StructNodeParts;
 
     const W: &str = "http://logic.test/world/resolver";
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -1186,9 +1187,9 @@ mod tests {
     /// supposed to reject the term BEFORE any lookup), so the arena's contents are
     /// irrelevant; only the term's variant matters for this guard.
     fn struct_term() -> QTerm {
-        let mut dag = crate::physical::term_dag::TermDag::new();
+        let mut dag = gmeow_term_arena::engine::TermDag::new();
         let node = dag.intern_leaf(TermValue::iri("https://example.org/opaque"));
-        QTerm::Struct(crate::query_ir::StructNode::new(node, dag.arena()))
+        QTerm::Struct(crate::query_ir::StructNode::wrap(node, dag.arena()))
     }
 
     #[test]

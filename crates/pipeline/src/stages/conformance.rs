@@ -449,7 +449,7 @@ fn fired_disciplines_in_golden(
     materialized: &Path,
 ) -> Result<std::collections::BTreeSet<String>, gmeow_errors::Diag> {
     const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    use gmeow_ns::LOGIC_NS;
     let text = std::fs::read_to_string(materialized)
         .map_err(|e| stage_err(&format!("read {}: {e}", materialized.display())))?;
     let mut fired = std::collections::BTreeSet::new();

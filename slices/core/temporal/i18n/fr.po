@@ -1,0 +1,434 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: temporal, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "duringInterval is functional"
+msgstr "duringInterval est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:duringInterval is functional: a gmeow:TimeScopedRelation is delimited by exactly one gmeow:TimeInterval, since a relation true across two disjoint spans is two distinct scoped situations rather than one situation bearing two scopes."
+msgstr "Affirme sur le porteur canonique que gmeow:duringInterval est fonctionnelle : une gmeow:TimeScopedRelation est délimitée par exactement un gmeow:TimeInterval, puisqu'une relation vraie sur deux plages disjointes constitue deux situations délimitées distinctes plutôt qu'une seule situation portant deux délimitations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "edtfValue is functional"
+msgstr "edtfValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:edtfValue is functional: an instant or interval has at most one EDTF expression of its own value, since a second EDTF string would state a competing value for the same point rather than an alternate label for it."
+msgstr "Affirme sur le porteur canonique que gmeow:edtfValue est fonctionnelle : un instant ou un intervalle possède au plus une expression EDTF de sa propre valeur, puisqu'une seconde chaîne EDTF énoncerait une valeur concurrente pour le même point plutôt qu'une étiquette alternative pour celui-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "endedAtTime is functional"
+msgstr "endedAtTime est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:endedAtTime is functional: a gmeow:TimeInterval closes at a single instant, since two distinct end timestamps would describe two different intervals and an open interval omits the value entirely rather than carrying several."
+msgstr "Affirme sur le porteur canonique que gmeow:endedAtTime est fonctionnelle : un gmeow:TimeInterval se termine à un instant unique, puisque deux horodatages de fin distincts décriraient deux intervalles différents, et un intervalle ouvert omet entièrement la valeur plutôt que d'en porter plusieurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameCalendarSystem is functional"
+msgstr "frameCalendarSystem est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameCalendarSystem is functional: a gmeow:TemporalFrame reckons its dates in at most one gmeow:CalendarSystem, since a frame that mixed Gregorian and Hebrew reckoning would be two frames rather than one (the property is optional for scale-only frames but never multi-valued)."
+msgstr "Affirme sur le porteur canonique que gmeow:frameCalendarSystem est fonctionnelle : un gmeow:TemporalFrame calcule ses dates dans au plus un gmeow:CalendarSystem, car un cadre mêlant les décomptes grégorien et hébraïque constituerait deux cadres plutôt qu'un seul (la propriété est optionnelle pour les cadres à échelle seule, mais jamais multivaluée)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameReferencePosition is functional"
+msgstr "frameReferencePosition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameReferencePosition is functional: a gmeow:TemporalFrame is anchored to at most one gmeow:ReferencePosition, since a single frame cannot fix its time to two timezones or observatories at once, so a second locus makes a second frame (the property is optional for position-independent frames but never multi-valued)."
+msgstr "Affirme sur le porteur canonique que gmeow:frameReferencePosition est fonctionnelle : un gmeow:TemporalFrame est ancré à au plus un gmeow:ReferencePosition, car un seul cadre ne peut fixer son temps sur deux fuseaux horaires ou observatoires à la fois, de sorte qu'un second lieu produit un second cadre (la propriété est optionnelle pour les cadres indépendants de la position, mais jamais multivaluée)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameTimeScale is functional"
+msgstr "frameTimeScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:frameTimeScale est fonctionnelle : un gmeow:TemporalFrame fonctionne sur exactement un gmeow:TimeScale, car la composante obligatoire « quelle horloge » est singulière, et un cadre battant à la fois sur TAI et UT1 constituerait deux cadres. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasEndInstant is functional"
+msgstr "hasEndInstant est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasEndInstant is functional: a gmeow:TimeInterval terminates at a single reified gmeow:Instant, mirroring the singular gmeow:endedAtTime it reifies, and an open-ended interval omits it rather than naming two ends."
+msgstr "Affirme sur le porteur canonique que gmeow:hasEndInstant est fonctionnelle : un gmeow:TimeInterval se termine en un unique gmeow:Instant réifié, reflétant le gmeow:endedAtTime singulier qu'il réifie, et un intervalle ouvert l'omet plutôt que de nommer deux fins."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasStartInstant is functional"
+msgstr "hasStartInstant est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasStartInstant is functional: a gmeow:TimeInterval begins at a single reified gmeow:Instant, since an interval bearing two distinct start instants would be two intervals sharing an end rather than one."
+msgstr "Affirme sur le porteur canonique que gmeow:hasStartInstant est fonctionnelle : un gmeow:TimeInterval commence en un unique gmeow:Instant réifié, car un intervalle portant deux instants de début distincts serait en réalité deux intervalles partageant une fin plutôt qu'un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "instantValue is functional"
+msgstr "instantValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:instantValue is functional: a gmeow:Instant carries at most one crisp xsd:dateTime value, since a zero-duration point has a single machine-computable value and any approximate alternative belongs on gmeow:edtfValue rather than as a second crisp value."
+msgstr "Affirme sur le porteur canonique que gmeow:instantValue est fonctionnelle : un gmeow:Instant porte au plus une valeur xsd:dateTime précise, car un point de durée nulle possède une unique valeur calculable par machine, et toute alternative approximative relève de gmeow:edtfValue plutôt que d'une seconde valeur précise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredAge is functional"
+msgstr "measuredAge est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:measuredAge est fonctionnelle : une seule gmeow:TemporalMeasurement produit un âge numérique unique dans son unité déclarée, puisqu'un acte de datation effectué sous un seul point de vue produit un seul résultat, et qu'un second chiffre d'âge constituerait une mesure distincte indexée sur un autre point de vue. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredDate is functional"
+msgstr "measuredDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredDate is functional: a single gmeow:TemporalMeasurement resolves to one absolute date gmeow:Instant, since one dating act yields one result and a competing date is a separate standpoint-indexed measurement rather than a second date on this one."
+msgstr "Affirme sur le porteur canonique que gmeow:measuredDate est fonctionnelle : une seule gmeow:TemporalMeasurement se résout en une seule date absolue gmeow:Instant, puisqu'un acte de datation produit un seul résultat, et qu'une date concurrente constitue une mesure distincte indexée sur un autre point de vue plutôt qu'une seconde date sur celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementMethod is functional"
+msgstr "measurementMethod est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:measurementMethod est fonctionnelle : une gmeow:TemporalMeasurement est produite par exactement une gmeow:DatingMethod, puisque la technique derrière un âge est singulière et qu'un résultat obtenu par une méthode différente constitue une mesure différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementUncertainty is functional"
+msgstr "measurementUncertainty est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementUncertainty is functional: a gmeow:TemporalMeasurement carries one uncertainty figure paired with its single measured age, since a second error bar would describe a different measurement rather than the same one twice."
+msgstr "Affirme sur le porteur canonique que gmeow:measurementUncertainty est fonctionnelle : une gmeow:TemporalMeasurement porte un seul chiffre d'incertitude associé à son âge mesuré unique, puisqu'une seconde marge d'erreur décrirait une mesure différente plutôt que la même mesure deux fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "periodEnd is functional"
+msgstr "periodEnd est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:periodEnd is functional: a gmeow:NamedPeriod closes at a single boundary gmeow:Instant, since an era with two distinct end instants would be two periods and a still-ongoing period omits it rather than naming several."
+msgstr "Affirme sur le porteur canonique que gmeow:periodEnd est fonctionnelle : un gmeow:NamedPeriod se termine à un seul gmeow:Instant frontière, puisqu'une ère avec deux instants de fin distincts constituerait deux périodes, et une période toujours en cours l'omet plutôt que d'en nommer plusieurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "startedAtTime is functional"
+msgstr "startedAtTime est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:startedAtTime est fonctionnelle: un gmeow:TimeInterval s'ouvre à une seule dateTime précise, puisqu'un intervalle avec deux horodatages de début serait en réalité deux intervalles, ce qui rend la borne de début en ligne à valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:duringInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:duringInterval nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:duringInterval, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:duringInterval, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:duringIntervalFunctionality logic:characterizes gmeow:duringInterval ."
+msgstr "gmeow:duringIntervalFunctionality logic:characterizes gmeow:duringInterval ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:edtfValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:edtfValue nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:edtfValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:edtfValue, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:edtfValueFunctionality logic:characterizes gmeow:edtfValue ."
+msgstr "gmeow:edtfValueFunctionality logic:characterizes gmeow:edtfValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:endedAtTime names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:endedAtTime nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:endedAtTime, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:endedAtTime, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:endedAtTimeFunctionality logic:characterizes gmeow:endedAtTime ."
+msgstr "gmeow:endedAtTimeFunctionality logic:characterizes gmeow:endedAtTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:frameCalendarSystem names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:frameCalendarSystem nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:frameCalendarSystem, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:frameCalendarSystem, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:frameCalendarSystemFunctionality logic:characterizes gmeow:frameCalendarSystem ."
+msgstr "gmeow:frameCalendarSystemFunctionality logic:characterizes gmeow:frameCalendarSystem ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:frameReferencePosition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:frameReferencePosition nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:frameReferencePosition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:frameReferencePosition, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:frameReferencePositionFunctionality logic:characterizes gmeow:frameReferencePosition ."
+msgstr "gmeow:frameReferencePositionFunctionality logic:characterizes gmeow:frameReferencePosition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:frameTimeScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:frameTimeScale nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:frameTimeScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:frameTimeScale, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:frameTimeScaleFunctionality logic:characterizes gmeow:frameTimeScale ."
+msgstr "gmeow:frameTimeScaleFunctionality logic:characterizes gmeow:frameTimeScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hasEndInstant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:hasEndInstant nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasEndInstant, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:hasEndInstant, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hasEndInstantFunctionality logic:characterizes gmeow:hasEndInstant ."
+msgstr "gmeow:hasEndInstantFunctionality logic:characterizes gmeow:hasEndInstant ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hasStartInstant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:hasStartInstant nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasStartInstant, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:hasStartInstant, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hasStartInstantFunctionality logic:characterizes gmeow:hasStartInstant ."
+msgstr "gmeow:hasStartInstantFunctionality logic:characterizes gmeow:hasStartInstant ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:instantValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:instantValue nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:instantValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:instantValue, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:instantValueFunctionality logic:characterizes gmeow:instantValue ."
+msgstr "gmeow:instantValueFunctionality logic:characterizes gmeow:instantValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:measuredAge names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:measuredAge nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:measuredAge, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:measuredAge, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:measuredAgeFunctionality logic:characterizes gmeow:measuredAge ."
+msgstr "gmeow:measuredAgeFunctionality logic:characterizes gmeow:measuredAge ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:measuredDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:measuredDate nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:measuredDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:measuredDate, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:measuredDateFunctionality logic:characterizes gmeow:measuredDate ."
+msgstr "gmeow:measuredDateFunctionality logic:characterizes gmeow:measuredDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:measurementMethod names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:measurementMethod nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:measurementMethod, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:measurementMethod, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:measurementMethodFunctionality logic:characterizes gmeow:measurementMethod ."
+msgstr "gmeow:measurementMethodFunctionality logic:characterizes gmeow:measurementMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:measurementUncertainty names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:measurementUncertainty nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:measurementUncertainty, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:measurementUncertainty, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:measurementUncertaintyFunctionality logic:characterizes gmeow:measurementUncertainty ."
+msgstr "gmeow:measurementUncertaintyFunctionality logic:characterizes gmeow:measurementUncertainty ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:periodEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:periodEnd nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:periodEnd, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:periodEnd, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:periodEndFunctionality logic:characterizes gmeow:periodEnd ."
+msgstr "gmeow:periodEndFunctionality logic:characterizes gmeow:periodEnd ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:startedAtTime names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:startedAtTime nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:startedAtTime, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:startedAtTime, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:startedAtTimeFunctionality logic:characterizes gmeow:startedAtTime ."
+msgstr "gmeow:startedAtTimeFunctionality logic:characterizes gmeow:startedAtTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:duringInterval and nothing else. It is not a definition of gmeow:duringInterval (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:duringInterval, et rien d'autre. Ce n'est pas une définition de gmeow:duringInterval (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:edtfValue and nothing else. It is not a definition of gmeow:edtfValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:edtfValue, et rien d'autre. Ce n'est pas une définition de gmeow:edtfValue (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:endedAtTime and nothing else. It is not a definition of gmeow:endedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:endedAtTime, et rien d'autre. Ce n'est pas une définition de gmeow:endedAtTime (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:frameCalendarSystem and nothing else. It is not a definition of gmeow:frameCalendarSystem (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:frameCalendarSystem, et rien d'autre. Ce n'est pas une définition de gmeow:frameCalendarSystem (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:frameReferencePosition and nothing else. It is not a definition of gmeow:frameReferencePosition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:frameReferencePosition, et rien d'autre. Ce n'est pas une définition de gmeow:frameReferencePosition (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:frameTimeScale and nothing else. It is not a definition of gmeow:frameTimeScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:frameTimeScale, et rien d'autre. Ce n'est pas une définition de gmeow:frameTimeScale (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasEndInstant and nothing else. It is not a definition of gmeow:hasEndInstant (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:hasEndInstant, et rien d'autre. Ce n'est pas une définition de gmeow:hasEndInstant (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasStartInstant and nothing else. It is not a definition of gmeow:hasStartInstant (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:hasStartInstant, et rien d'autre. Ce n'est pas une définition de gmeow:hasStartInstant (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:instantValue and nothing else. It is not a definition of gmeow:instantValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:instantValue, et rien d'autre. Ce n'est pas une définition de gmeow:instantValue (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:measuredAge and nothing else. It is not a definition of gmeow:measuredAge (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:measuredAge, et rien d'autre. Ce n'est pas une définition de gmeow:measuredAge (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:measuredDate and nothing else. It is not a definition of gmeow:measuredDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:measuredDate, et rien d'autre. Ce n'est pas une définition de gmeow:measuredDate (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:measurementMethod and nothing else. It is not a definition of gmeow:measurementMethod (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:measurementMethod, et rien d'autre. Ce n'est pas une définition de gmeow:measurementMethod (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:measurementUncertainty and nothing else. It is not a definition of gmeow:measurementUncertainty (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:measurementUncertainty, et rien d'autre. Ce n'est pas une définition de gmeow:measurementUncertainty (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:periodEnd and nothing else. It is not a definition of gmeow:periodEnd (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:periodEnd, et rien d'autre. Ce n'est pas une définition de gmeow:periodEnd (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:startedAtTime and nothing else. It is not a definition of gmeow:startedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:startedAtTime, et rien d'autre. Ce n'est pas une définition de gmeow:startedAtTime (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

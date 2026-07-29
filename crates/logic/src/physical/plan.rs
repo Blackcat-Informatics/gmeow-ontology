@@ -325,7 +325,7 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             // exclusively `Var`/`Num` — arithmetic never carries a compound
             // (function-symbol) term. No `TermDag` is threaded through
             // `canonical_rule_hash`/`EvalRule`/`EvalTerm` at all (that pipeline is the
-            // flat rule-IR, distinct from the structured-term `physical::term_dag`
+            // flat rule-IR, distinct from the structured-term `gmeow_term_arena` term DAG
             // arena), so there is no content key (`TermDag::key`) available here to hash
             // instead — a genuinely-reachable `Struct` would need the caller to plumb a
             // `dag` through this entire module. Provably dead under every current
@@ -1177,8 +1177,9 @@ impl Executable {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::physical::term_dag::TermDag;
     use crate::query_ir::StructNode;
+    use gmeow_term_arena::engine::StructNodeParts;
+    use gmeow_term_arena::engine::TermDag;
 
     /// A minimal single-fact `EvalRule` (`rule_iri` "r") carrying one `QBuiltin::Compare`
     /// whose `lhs` operand is `term` — the shape `canonical_rule_hash`'s `hash_qterm`
@@ -1202,7 +1203,7 @@ mod tests {
     }
 
     /// G13 lock: `canonical_rule_hash`'s flat rule-IR pipeline never threads a `TermDag` (it
-    /// is a distinct, arena-free pipeline from the structured-term `physical::term_dag`
+    /// is a distinct, arena-free pipeline from the structured-term `gmeow_term_arena` term DAG
     /// world), so a `QTerm::Struct` reaching `hash_qterm` cannot be content-hashed by
     /// `TermDag::key` here — hashing its arena-local `NodeId::index()` instead would risk a
     /// false collision between two DIFFERENT structured terms from unrelated arenas that
@@ -1232,8 +1233,8 @@ mod tests {
              — exactly the collision NodeId::index() hashing would silently forge"
         );
 
-        let struct_a = QTerm::Struct(StructNode::new(leaf_a, dag_a.arena()));
-        let struct_b = QTerm::Struct(StructNode::new(leaf_b, dag_b.arena()));
+        let struct_a = QTerm::Struct(StructNode::wrap(leaf_a, dag_a.arena()));
+        let struct_b = QTerm::Struct(StructNode::wrap(leaf_b, dag_b.arena()));
 
         let rule_a = rule_with_builtin_operand(struct_a);
         let rule_b = rule_with_builtin_operand(struct_b);

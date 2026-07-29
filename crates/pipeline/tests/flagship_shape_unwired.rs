@@ -25,7 +25,7 @@ use gmeow_validate::store::shacl_validate_dataset;
 use purrdf::shapes::engine::parse_shapes;
 
 /// The `gmeow:` namespace (the manifest/annotation vocabulary and the unwired failure class).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// A minimal `gmeow:FlagshipScenario` wiring EVERY shared-shape-required link except
 /// `gmeow:demonstratedByProducer`, so exactly the producer MinCount constraint bites. The

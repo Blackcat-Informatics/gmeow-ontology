@@ -902,3 +902,374 @@ gmeow:SupportNotSelfConstraint
     logic:crossMode "differ" ;
     logic:formalizes gmeow:Support ;
     logic:message "A Support must not support itself (gmeow:supportSource = gmeow:supportTarget) — support is irreflexive." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
+#   logic:ConditionalRangeAssertion — a named logic:conditionalRangeSelector value forces the constrained relatum's type.
+#   logic:RoleCompositionExclusionAssertion — the two named roles must not stand in a whole/part composition.
+
+gmeow:acceptanceStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "acceptanceStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:acceptanceStatus is functional: a gmeow:ArgumentEvaluation assigns its argument exactly one Dung label (in, out, or undecided), since one evaluation under one semantics settles on a single status and credulous multiplicity is carried by separate evaluations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:acceptanceStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:acceptanceStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:acceptanceStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:acceptanceStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:acceptanceStatus and nothing else. It is not a definition of gmeow:acceptanceStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:acceptanceStatusFunctionality logic:characterizes gmeow:acceptanceStatus ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:appliedRuleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "appliedRule is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:appliedRule is functional: a gmeow:InferenceApplication invokes exactly one rule as its licence, since an application drawing on a second rule is a second inference step rather than one step with two warrants."@x-gmeow-english ;
+    logic:characterizes gmeow:appliedRule ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:appliedRule ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:appliedRule names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:appliedRule, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:appliedRule and nothing else. It is not a definition of gmeow:appliedRule (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:appliedRuleFunctionality logic:characterizes gmeow:appliedRule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:argumentConclusionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "argumentConclusion is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:argumentConclusion is functional: a gmeow:Argument establishes exactly one conclusion, since an argument concluding two claims is two arguments and the whole premise-to-conclusion structure is indexed to a single established claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:argumentConclusion ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:argumentConclusion ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:argumentConclusion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:argumentConclusion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:argumentConclusion and nothing else. It is not a definition of gmeow:argumentConclusion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:argumentConclusionFunctionality logic:characterizes gmeow:argumentConclusion ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:argumentInferenceStepFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "argumentInferenceStep is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:argumentInferenceStep is functional: a gmeow:Argument wraps at most one Toulmin gmeow:InferenceCommitment, since a multi-step chain is modelled as several Arguments linked by gmeow:Support and each Argument therefore owns a single step. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:argumentInferenceStep ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:argumentInferenceStep ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:argumentInferenceStep names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:argumentInferenceStep, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:argumentInferenceStep and nothing else. It is not a definition of gmeow:argumentInferenceStep (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:argumentInferenceStepFunctionality logic:characterizes gmeow:argumentInferenceStep ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "attackKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attackKind is functional: a typed gmeow:Attack has exactly one kind (undermine, undercut, or rebut), since that kind must agree with the target's type and a single attack cannot be two kinds at once."@x-gmeow-english ;
+    logic:characterizes gmeow:attackKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attackKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attackKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attackKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attackKind and nothing else. It is not a definition of gmeow:attackKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackKindFunctionality logic:characterizes gmeow:attackKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "attackTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attackTarget is functional: a typed gmeow:Attack names exactly one target — a premise-use, an inference-application, or a conclusion — matching its single kind, so an attack on two things is two attacks. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:attackTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attackTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attackTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attackTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attackTarget and nothing else. It is not a definition of gmeow:attackTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackTargetFunctionality logic:characterizes gmeow:attackTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:conclusionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "conclusion is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conclusion is functional: a gmeow:InferenceCommitment establishes one gmeow:StandpointClaim as its conclusion, since a commitment with two conclusions is two commitments and SHACL derived from this record enforces exactly one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:conclusion ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conclusion ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:conclusion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conclusion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:conclusion and nothing else. It is not a definition of gmeow:conclusion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:conclusionFunctionality logic:characterizes gmeow:conclusion ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:correspondingSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "correspondingSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:correspondingSource is functional: a gmeow:Correspondence maps exactly one source-domain element, since the source half of a mapped pair is singular and a second source element constitutes a distinct correspondence. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:correspondingSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:correspondingSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:correspondingSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:correspondingSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:correspondingSource and nothing else. It is not a definition of gmeow:correspondingSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:correspondingSourceFunctionality logic:characterizes gmeow:correspondingSource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:correspondingTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "correspondingTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:correspondingTarget is functional: a gmeow:Correspondence maps to exactly one target-domain element, since the target half of a mapped pair is singular just as its source is, and a second target constitutes a distinct correspondence. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:correspondingTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:correspondingTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:correspondingTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:correspondingTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:correspondingTarget and nothing else. It is not a definition of gmeow:correspondingTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:correspondingTargetFunctionality logic:characterizes gmeow:correspondingTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:evaluatesArgumentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "evaluatesArgument is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluatesArgument is functional: a gmeow:ArgumentEvaluation assesses exactly one gmeow:Argument under one semantics, since evaluating a second argument, or the same argument in another extension, is a separate evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluatesArgument ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluatesArgument ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:evaluatesArgument names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:evaluatesArgument, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:evaluatesArgument and nothing else. It is not a definition of gmeow:evaluatesArgument (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:evaluatesArgumentFunctionality logic:characterizes gmeow:evaluatesArgument ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inferenceModeOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "inferenceModeOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inferenceModeOf is functional: a gmeow:InferenceCommitment has exactly one Peircean mode, since a step that were both inductive and abductive is two commitments and the single mode scopes which SHACL shapes apply. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:inferenceModeOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inferenceModeOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:inferenceModeOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inferenceModeOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:inferenceModeOf and nothing else. It is not a definition of gmeow:inferenceModeOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inferenceModeOfFunctionality logic:characterizes gmeow:inferenceModeOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:premiseUsedFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "premiseUsed is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:premiseUsed is functional: a gmeow:PremiseUse rests on exactly one premise, since the basing relation ties one use to the single fact it actually leans on and drawing on a second premise is a second premise-use. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:premiseUsed ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:premiseUsed ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:premiseUsed names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:premiseUsed, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:premiseUsed and nothing else. It is not a definition of gmeow:premiseUsed (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:premiseUsedFunctionality logic:characterizes gmeow:premiseUsed ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:supportTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "supportTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportTarget is functional: a gmeow:Support instance backs exactly one gmeow:Argument, since keeping support singular lets independent supports for the same argument accrue as separate Support instances (Principle 9). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:supportTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:supportTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:supportTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:supportTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:supportTarget and nothing else. It is not a definition of gmeow:supportTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:supportTargetFunctionality logic:characterizes gmeow:supportTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tenureOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "tenureOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureOf is functional: a gmeow:InferenceTenure time-scopes exactly one gmeow:InferenceCommitment, since one tenure opens and later closes the acceptance of a single commitment's conclusion and a second commitment gets its own tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tenureOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureOf and nothing else. It is not a definition of gmeow:tenureOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tenureOfFunctionality logic:characterizes gmeow:tenureOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:underSemanticsFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "underSemantics is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:underSemantics ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:underSemantics ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:underSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:underSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:underSemantics and nothing else. It is not a definition of gmeow:underSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:underSemanticsFunctionality logic:characterizes gmeow:underSemantics ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:competesWithIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "competesWith is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (owl:SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:competesWith ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:competesWith ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:competesWith never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:competesWith, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:competesWith and nothing else. It is not a definition of gmeow:competesWith (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:competesWithIrreflexivity logic:characterizes gmeow:competesWith ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inferencePremiseConclusionDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "an inference commitment's premise and conclusion are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:InferenceCommitment's gmeow:premise and gmeow:conclusion must be distinct: an argument cannot assume what it proves — no premise is also the conclusion. The native coherence gate raises a violation when a premise coincides with the conclusion; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:InferenceCommitment ;
+    logic:distinctnessRole gmeow:premise , gmeow:conclusion ;
+    logic:formalizes gmeow:premise ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InferenceCommitment; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:InferenceCommitment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:InferenceCommitment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:InferenceCommitment and nothing else. It is not a definition of gmeow:InferenceCommitment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inferencePremiseConclusionDistinctness logic:characterizes gmeow:InferenceCommitment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackSelfAttackExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "a typed attack's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget must be distinct: conflict is irreflexive — nothing attacks itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Attack ;
+    logic:distinctnessRole gmeow:attackSource , gmeow:attackTarget ;
+    logic:formalizes gmeow:attackSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Attack and nothing else. It is not a definition of gmeow:Attack (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackSelfAttackExclusion logic:characterizes gmeow:Attack ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:supportSelfSupportExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "a support's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Support's gmeow:supportSource and gmeow:supportTarget must be distinct: support is irreflexive — a structure does not support itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Support ;
+    logic:distinctnessRole gmeow:supportSource , gmeow:supportTarget ;
+    logic:formalizes gmeow:supportSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Support; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Support no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Support and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Support and nothing else. It is not a definition of gmeow:Support (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:supportSelfSupportExclusion logic:characterizes gmeow:Support ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackUndermineTargetsPremiseUse
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "an undermining attack targets a premise use"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndermine must aim its gmeow:attackTarget at a gmeow:PremiseUse — undermining is premise-directed. The native coherence gate raises a violation when the kind is undermine but the target is not a premise use."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndermine ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:PremiseUse ;
+    logic:formalizes gmeow:attackKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Attack and nothing else. It is not a definition of gmeow:Attack (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackUndermineTargetsPremiseUse logic:characterizes gmeow:Attack ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackUndercutTargetsInferenceApplication
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "an undercutting attack targets an inference application"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndercut must aim its gmeow:attackTarget at a gmeow:InferenceApplication — undercutting attacks the warrant / inferential link. The native coherence gate raises a violation when the kind is undercut but the target is not an inference application."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndercut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:InferenceApplication ;
+    logic:formalizes gmeow:attackKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Attack and nothing else. It is not a definition of gmeow:Attack (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackUndercutTargetsInferenceApplication logic:characterizes gmeow:Attack ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackRebutTargetsStandpointClaim
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "a rebutting attack targets a standpoint claim"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackRebut must aim its gmeow:attackTarget at a conclusion gmeow:StandpointClaim — rebutting attacks the conclusion. The native coherence gate raises a violation when the kind is rebut but the target is not a standpoint claim."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackRebut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:StandpointClaim ;
+    logic:formalizes gmeow:attackKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Attack and nothing else. It is not a definition of gmeow:Attack (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackRebutTargetsStandpointClaim logic:characterizes gmeow:Attack ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attackComponentSelfExclusion
+    a owl:NamedIndividual ,
+        logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "an argument does not attack its own component"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource (a gmeow:Argument) must not aim its gmeow:attackTarget at one of its own components — its conclusion (gmeow:argumentConclusion), a premise use (gmeow:hasPremiseUse), or an inference application (gmeow:hasInferenceApplication): an argument does not attack a part of itself. The native coherence gate raises a violation when the target is a component of the source."@x-gmeow-english ;
+    logic:compositionExclusionTarget gmeow:Attack ;
+    logic:compositionExclusionWhole gmeow:attackSource ;
+    logic:compositionExclusionPart gmeow:attackTarget ;
+    logic:compositionExclusionVia gmeow:argumentConclusion , gmeow:hasPremiseUse , gmeow:hasInferenceApplication ;
+    logic:formalizes gmeow:attackSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Attack and nothing else. It is not a definition of gmeow:Attack (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attackComponentSelfExclusion logic:characterizes gmeow:Attack ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

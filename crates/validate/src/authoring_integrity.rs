@@ -20,7 +20,7 @@
 //! over already-parsed [`Dataset`]s, so the synthetic negatives can drive the
 //! detection logic without a full repository layout.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
@@ -36,6 +36,9 @@ const TOOL: &str = "authoring-integrity";
 const SH_NODE_SHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 const SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
+use crate::slice_peerage::{GMEOW_CO_FOUNDATIONAL_WITH, GMEOW_GROUNDING_SLICE};
+/// The `slices/` subdirectory every grounding slice's manifest must live under.
+const GROUNDING_GROUP_PREFIX: &str = "grounding/";
 
 /// The core `rights` module, parsed in isolation for the graft-isolation gate.
 const CORE_RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
@@ -191,6 +194,22 @@ fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
         }));
     }
 
+    // The R7 seam-registry drift floor: a comparison against ZERO `gmeow:Seam`
+    // individuals certifies nothing, so a corpus whose grounding manifests declare
+    // no seam at all is refused rather than passed. Read off `project_root`'s own
+    // slice tree (like every other floor here), independently of the `slices_dir`
+    // the detectors are pointed at.
+    let seams = seam_registry_of_slices(&project_root.join("slices"))?;
+    if seams.is_empty() {
+        return Err(Diag::of_kind(crate::error::Io {
+            detail: format!(
+                "authoring-integrity: gmeow:Seam registry floor 1 not met (got 0) under {} — \
+                 the seam-registry drift comparison would be vacuous, refusing to pass",
+                project_root.join("slices").display(),
+            ),
+        }));
+    }
+
     Ok(())
 }
 
@@ -203,12 +222,15 @@ pub fn authoring_integrity_findings(
     let mut findings = shape_iri_collision_findings(project_root)?;
     findings.extend(graft_isolation_findings(project_root)?);
     findings.extend(slice_discipline_findings(slices_dir)?);
+    findings.extend(peerage_discipline_findings(slices_dir)?);
+    findings.extend(registered_minting_namespace_findings(slices_dir)?);
     findings.extend(profile_closure_findings(project_root)?);
     findings.extend(catalog_closure_findings(project_root)?);
     findings.extend(module_iri_findings(project_root)?);
     findings.extend(example_undeclared_term_findings(project_root, &declared)?);
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
+    findings.extend(seam_registry_drift_findings(project_root, slices_dir)?);
     Ok(findings)
 }
 
@@ -389,12 +411,126 @@ fn detect_slice_discipline(manifests: &[(PathBuf, Dataset)], root: &Path) -> Res
     Ok(findings)
 }
 
+// ── R8: grounding-peerage discipline ─────────────────────────────────────────
+
+/// Grounding-peerage discipline: three independent gates over the manifest
+/// corpus, none of which the loader or the R6 slice-discipline gate above
+/// checks:
+///
+/// * **non-grounding peerage** — a manifest declares
+///   `gmeow:sliceCoFoundationalWith` but its own slice node is not typed
+///   `gmeow:GroundingSlice`; the peerage grant (Principle 19) is reserved to
+///   the three co-foundational grounding layers.
+/// * **asymmetric peerage** — `gmeow:sliceCoFoundationalWith` is a symmetric
+///   relation; slice A declaring peerage with B requires B to declare it back.
+/// * **grounding-marker drift** — a slice's `gmeow:GroundingSlice` typing must
+///   agree with its physical location under `slices/grounding/*` in BOTH
+///   directions (typed-but-elsewhere, or under `grounding/`-but-untyped).
+pub fn peerage_discipline_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+    let manifests = all_manifests(slices_dir)?;
+    let mut loaded: Vec<(PathBuf, Dataset)> = Vec::with_capacity(manifests.len());
+    for m in manifests {
+        let ds = parse_ttl(&m)?;
+        loaded.push((m, ds));
+    }
+    detect_peerage_discipline(&loaded, slices_dir)
+}
+
+/// The pure peerage-discipline logic over already-parsed manifests.
+fn detect_peerage_discipline(
+    manifests: &[(PathBuf, Dataset)],
+    root: &Path,
+) -> Result<Vec<Finding>> {
+    use std::collections::BTreeSet;
+
+    let mut findings = Vec::new();
+    // (declaring_iri -> to_iri) pairs, for the symmetry check, plus the
+    // declaring manifest path (for a stable, deterministic message).
+    let mut pairs: BTreeSet<(String, String)> = BTreeSet::new();
+
+    for (path, ds) in manifests {
+        let group = rel(path, root);
+        let under_grounding = group.starts_with(GROUNDING_GROUP_PREFIX);
+        let slices = ds
+            .subjects_of_type(SLICE_CLASS)
+            .map_err(|e| parse_err(path, &e.to_string()))?;
+        for iri in slices {
+            let is_grounding = ds
+                .has_type(&iri, GMEOW_GROUNDING_SLICE)
+                .map_err(|e| parse_err(path, &e.to_string()))?;
+            let peers = ds
+                .object_iris(&iri, GMEOW_CO_FOUNDATIONAL_WITH)
+                .map_err(|e| parse_err(path, &e.to_string()))?;
+
+            if !peers.is_empty() && !is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+                    format!(
+                        "slice {iri} in {file} declares gmeow:sliceCoFoundationalWith but is not \
+                         typed gmeow:GroundingSlice — the peerage grant (Principle 19) is reserved \
+                         to the three co-foundational grounding layers",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            }
+
+            if under_grounding && !is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+                    format!(
+                        "slice {iri} lives under {file}, under slices/grounding/, but is not typed \
+                         gmeow:GroundingSlice",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            } else if !under_grounding && is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+                    format!(
+                        "slice {iri} in {file} is typed gmeow:GroundingSlice but does not live \
+                         under slices/grounding/",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            }
+
+            for peer in peers {
+                pairs.insert((iri.clone(), peer));
+            }
+        }
+    }
+
+    for (from, to) in &pairs {
+        if !pairs.contains(&(to.clone(), from.clone())) {
+            findings.push(finding(
+                Severity::Error,
+                codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+                format!(
+                    "slice {from} declares gmeow:sliceCoFoundationalWith {to}, but {to} does not \
+                     declare the relation back — gmeow:sliceCoFoundationalWith is symmetric and \
+                     must be authored on both manifests"
+                ),
+                Some(from.clone()),
+            ));
+        }
+    }
+
+    findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
+    Ok(findings)
+}
+
 // ── R2: imports / profile / catalog closure + module-IRI ─────────────────────
 
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const TIER_CORE: &str = "https://blackcatinformatics.ca/gmeow/tierCore";
 const TIER_EXTENSION: &str = "https://blackcatinformatics.ca/gmeow/tierExtension";
 const TIER_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/tierProfile";
@@ -698,8 +834,6 @@ pub fn module_iri_findings(repo_root: &Path) -> Result<Vec<Finding>> {
 }
 
 // ── R3: term-declaration + language-tag discipline ───────────────────────────
-
-use std::collections::BTreeSet;
 
 /// A minimal [`crate::lint::LintConfig`] for declared-term collection — only
 /// `namespace` is read by `collect_typed_terms_dataset` (it filters GMEOW terms).
@@ -1144,6 +1278,787 @@ pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     Ok(findings)
 }
 
+// ── R9: registered minting namespaces ────────────────────────────────────────
+//
+// purrdf's ownership analyzer decides "which slice owns this term" by testing the
+// TERM's own IRI against the namespaces the consumer declared
+// (`purrdf::SliceVocab::owns_term`, fed from `gmeow_ns::TERM_NAMESPACES`). A slice
+// that mints into a namespace GMEOW never registered is therefore INVISIBLE to
+// ownership analysis: its `rdfs:isDefinedBy` claims and its typed vocabulary terms
+// are dropped, every cross-slice reference to those terms resolves to no owner, and
+// no dependency edge is ever computable. Nothing reports it — the analysis simply
+// reports that the slice has no dependents, which is indistinguishable from a slice
+// nothing uses.
+//
+// This gate closes that hole at authoring time, on the SAME predicate the analyzer
+// uses, so "a slice may mint here" and "the analyzer can see terms minted here" are
+// one fact rather than two that can drift apart.
+//
+// **What counts as a MINTED TERM.** The gate keys on a VOCABULARY-TERM subject —
+// the exact trigger `inspect_rdf_dataset` uses for its `declared_terms` set — and
+// then requires that the term be GMEOW's own:
+//
+//   1. TERM: the subject is typed by one of purrdf's vocabulary-term types
+//      ([`VOCAB_TERM_TYPES`]). This is the T-Box mint, and it is the only kind of
+//      subject the owner-of-term join resolves a cross-slice reference against.
+//   2. GMEOW's: the IRI is under [`gmeow_ns::GMEOW_AUTHORITY`], OR the subject
+//      asserts `rdfs:isDefinedBy` at a GMEOW slice IRI.
+//
+// Both conditions keep the gate honest in the other direction:
+//
+// * a module that redeclares a FOREIGN term so it validates locally
+//   (`dcterms:created a owl:AnnotationProperty`, `ontolex:LexicalEntry a
+//   owl:Class`) is describing someone else's vocabulary, not minting: purrdf
+//   never treats those as owned either, so flagging them would be a false report
+//   about a term GMEOW does not own;
+// * a subject that merely APPEARS in a module (a `bfo:` IRI carried by a
+//   grounding correspondence) claims nothing and is likewise not gated;
+// * an A-BOX INDIVIDUAL is not a term. `slices/core/affect` deliberately mints
+//   external classifier-label identities under a separate authority path
+//   (`gmeow-registry/…`) so they never occupy the canonical `gmeow:` emotion
+//   namespace; they are typed `gmeow:AffectLabelSet`, not `owl:Class`, so purrdf
+//   never records them as declared vocabulary and neither does this gate. The
+//   ontology-term namespace discipline is about the vocabulary, not about
+//   instance identity.
+
+/// The `rdf:type` objects purrdf treats as a vocabulary-term declaration
+/// (`purrdf::slice::ownership`'s private `VOCAB_TERM_TYPES`). Mirrored here
+/// because the gate must key on EXACTLY the analyzer's notion of a declared term;
+/// a divergence in either direction would make the gate lie.
+const VOCAB_TERM_TYPES: &[&str] = &[
+    "http://www.w3.org/2002/07/owl#Class",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2000/01/rdf-schema#Class",
+    "http://www.w3.org/2000/01/rdf-schema#Datatype",
+];
+
+/// `rdf:type`.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:isDefinedBy` — the explicit ownership claim.
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+
+/// The IRI prefix every GMEOW slice IRI carries (`gmeow:slices/<group>/<name>`).
+/// An `rdfs:isDefinedBy` whose object starts here is a claim of GMEOW ownership.
+fn slice_iri_prefix() -> String {
+    format!("{GMEOW_NS}slices/")
+}
+
+/// R9: every term a slice CLAIMS in its `module.ttl` / `shapes.ttl` must be minted
+/// into one of the registered term namespaces ([`gmeow_ns::TERM_NAMESPACES`]).
+///
+/// Discovered by MANIFEST, so a slice's authored surface is covered whether or not
+/// it ships a `module.ttl` (a pure-shape slice is gated too).
+pub fn registered_minting_namespace_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+    let mut paths = Vec::new();
+    for manifest in all_manifests(slices_dir)? {
+        let Some(dir) = manifest.parent() else {
+            continue;
+        };
+        for authored in ["module.ttl", "shapes.ttl"] {
+            let p = dir.join(authored);
+            if p.is_file() {
+                paths.push(p);
+            }
+        }
+    }
+    paths.sort();
+    let files = load_ttl_files(&paths)?;
+    Ok(detect_unregistered_minting(&files, slices_dir))
+}
+
+/// The pure R9 logic over already-parsed authored files.
+///
+/// Each offending subject is reported ONCE per file with the reason it was
+/// treated as a claimed term, so the message says what to do: register the
+/// namespace in `gmeow_ns::TERM_NAMESPACES`, or mint the term inside an existing
+/// registered namespace.
+fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec<Finding> {
+    let slice_prefix = slice_iri_prefix();
+    let term_types: BTreeSet<&str> = VOCAB_TERM_TYPES.iter().copied().collect();
+    let mut findings = Vec::new();
+
+    for (path, ds) in files {
+        // Subjects typed as a vocabulary term — the trigger, mirroring purrdf's
+        // `declared_terms`. Only these can be a mint.
+        let mut declared_terms: BTreeSet<String> = BTreeSet::new();
+        // Subjects asserting GMEOW ownership: qualifies a foreign-authority IRI
+        // as GMEOW's own, and is named in the message when present.
+        let mut gmeow_owned: BTreeSet<String> = BTreeSet::new();
+        ds.for_each_quad(|s, p, o, _g| {
+            let Subject::Named(subject) = &s else {
+                return;
+            };
+            if gmeow_ns::registered_term_namespace(subject).is_some() {
+                return;
+            }
+            match (p, &o) {
+                (RDF_TYPE, Object::Named(class)) if term_types.contains(class.as_str()) => {
+                    declared_terms.insert(subject.clone());
+                }
+                (RDFS_IS_DEFINED_BY, Object::Named(owner)) if owner.starts_with(&slice_prefix) => {
+                    gmeow_owned.insert(subject.clone());
+                }
+                _ => {}
+            }
+        });
+
+        // Keep only GMEOW's OWN terms: minted under GMEOW's IRI authority, or
+        // claiming GMEOW ownership outright. A foreign term redeclared locally is
+        // neither, and purrdf never treats it as owned either.
+        let claimed: BTreeMap<String, BTreeSet<&'static str>> = declared_terms
+            .into_iter()
+            .filter(|subject| {
+                subject.starts_with(gmeow_ns::GMEOW_AUTHORITY) || gmeow_owned.contains(subject)
+            })
+            .map(|subject| {
+                let mut reasons = BTreeSet::from(["declared as a vocabulary term"]);
+                if gmeow_owned.contains(&subject) {
+                    reasons.insert("claims rdfs:isDefinedBy a GMEOW slice");
+                }
+                (subject, reasons)
+            })
+            .collect();
+
+        for (subject, reasons) in claimed {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE,
+                format!(
+                    "{file} mints {subject} outside every registered term namespace ({reason}) — \
+                     purrdf's ownership analyzer only sees terms in [{registered}], so this term \
+                     has no owning slice and no dependency edge into it is computable; mint it \
+                     inside a registered namespace or register its namespace in \
+                     gmeow_ns::TERM_NAMESPACES",
+                    file = rel(path, root),
+                    reason = reasons.iter().copied().collect::<Vec<_>>().join(" and "),
+                    registered = gmeow_ns::TERM_NAMESPACES.join(", "),
+                ),
+                Some(subject),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings
+}
+
+// ── R7: grounding seam-registry drift ────────────────────────────────────────
+//
+// The generated seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
+// rendered as `seams/index.md` and materialized at `ontology-docs/seams/index.md`
+// by `make sync SYNC_OUTPUTS=docs`) is a pure projection of the `gmeow:Seam`
+// individuals authored in the grounding slices' manifests (docs/GROUNDING.md,
+// "The seam registry"). This gate is a SECOND, INDEPENDENT reader of that same
+// governance data — `gmeow-validate` cannot depend on `gmeow-docs` (which itself
+// depends on `gmeow-validate`), so drift is caught by comparing the canonical data
+// straight off the manifests against the rendered page text, never by re-running
+// the renderer.
+//
+// **The comparison is PER SEAM, never a unioned bag.** The page is parsed back
+// into one row per seam — that seam's own direction legs, carrying terms, and
+// owning doc — and each field is compared against THAT seam's authored record.
+// Unioning every seam's terms before comparing (the shape this gate used to have)
+// is blind to exactly the drift that matters: a page that assigns the right terms
+// to the wrong seams, or that inverts a `gmeow:seamFromSlice` → `gmeow:seamToSlice`
+// leg, unions to the identical set and passes. Direction is the field the peerage
+// coverage predicate keys on (`crate::slice_peerage::classify` matches
+// `peer ∧ direction-leg(from → to) ∧ exact-term ∈ THAT seam`), so a projection that
+// renders it wrong misdocuments precisely the authorization a reader is consulting.
+//
+// **Exact identity, never substring.** Every comparison in this section is set
+// membership over exactly-parsed tokens — a seam NAME parsed out of its own table
+// cell, a carrying term parsed as a whole backticked CURIE, a direction leg parsed
+// as an ordered pair of slice slugs. The file's standing discipline (see
+// `NORMS_EXTENSION_TERMS`: `normIssuer` must never match `normIssuerRole`) applies
+// verbatim here; the retired `page_text.contains(&seam.name)` scan violated it.
+//
+// **Where the comparison actually runs — and why absence is not silence.**
+// `ontology-docs/` is written only by a docs-selected sync
+// (`crate::dev_sync`'s `SyncOutput::All | SyncOutput::Docs`); the `make check` DAG
+// synchronizes with `--outputs generated` and `make validate` runs no sync at all,
+// so the materialized page is genuinely absent on the gate path. The gate therefore
+// does NOT pretend to have compared anything it did not:
+//
+//   * seam data that is empty  → HARD FAIL (a vacuous comparison is refused, the
+//     same posture as `require_non_vacuous_corpus`);
+//   * page present             → the full per-seam comparison, Error on any drift;
+//   * `ontology-docs/` present but the seam page missing → Error (a materialized
+//     docs tree that dropped the page is a renderer regression, not a cache miss);
+//   * `ontology-docs/` absent  → a Warning that says NOT COMPARED and names the
+//     command that materializes the page. Never `Ok(vec![])`: this detector cannot
+//     return an empty (i.e. "clean") verdict without having compared a real page.
+//
+// The judgment itself is not left to that on-demand tree: `gmeow-dev doc-lint` — a
+// `make check` DAG task — renders the seam page IN MEMORY and drives
+// [`detect_seam_registry_drift`] over it on every run, so the per-seam comparison is
+// unconditional on-gate and the on-disk leg above is purely an additional check that
+// a *materialized* tree agrees.
+
+/// The site-relative path of the generated seam-registry page.
+const SEAM_REGISTRY_PAGE_PATH: &str = "ontology-docs/seams/index.md";
+
+/// The materialized docs tree a docs-selected `make sync` reconciles. Its presence
+/// is the evidence that a docs render happened in this checkout.
+const ONTOLOGY_DOCS_DIR: &str = "ontology-docs";
+
+/// The seam table's header row, emitted verbatim by
+/// `gmeow_docs::render::md_seam_registry`. Also the marker that the page carries a
+/// table at all.
+const SEAM_TABLE_HEADER: &str = "| Seam | Direction | Carrying terms | Owning doc |";
+
+/// The heading that closes the seam table region on the rendered page.
+const SEAM_DEFINITIONS_HEADING: &str = "## Definitions";
+
+/// Backtick-wrapped CURIE in one of the four grounding term families
+/// (`gmeow:`/`logic:`/`lang:`/`math:`) — generalizes [`GMEOW_INLINE_TERM`] to
+/// every family a `gmeow:seamCarryingTerm` may name. Applied to ONE table cell at
+/// a time, so a CURIE mentioned in a neighbouring column can never be misread as
+/// this seam's carrying term.
+static SEAM_PAGE_CARRYING_TERM: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"`(gmeow|logic|lang|math):([A-Za-z][A-Za-z0-9_]*)`").expect("valid static regex")
+});
+/// Backtick-wrapped `NAME.md` design-doc filename (a `gmeow:seamOwningDoc` value).
+static SEAM_PAGE_OWNING_DOC: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"`([A-Za-z0-9_-]+\.md)`").expect("valid static regex"));
+/// A whole markdown inline link `[text](href)` — the form
+/// `gmeow_docs::render::seam_slice_link` emits for a resolvable grounding slice.
+static SEAM_PAGE_SLICE_LINK: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\[(?P<text>[^\]]*)\]\((?P<href>[^)]*)\)$").expect("valid static regex")
+});
+
+// `SeamRecord` + `seam_records_of` — the single reader of the `gmeow:Seam`
+// governance data — live in `crate::slice_peerage` (which the peerage-coverage
+// engine also needs, extended with the directed `(from, to)` legs and raw
+// carrying-term IRIs this text-comparison drift gate never needed). Sharing
+// one reader here keeps this drift gate and the coverage engine from ever
+// reading the same governance data two different ways.
+use crate::slice_peerage::{SeamRecord, seam_records_of};
+
+/// Every `gmeow:Seam` individual authored under `slices_dir`, read through the one
+/// shared [`seam_records_of`] reader. Public so the in-memory `gmeow-dev doc-lint`
+/// leg drives EXACTLY this discovery rather than re-walking the tree itself.
+///
+/// # Errors
+///
+/// Propagates any manifest read/parse failure (no-optionality: an unreadable
+/// manifest is a hard fail, never a silently shorter registry).
+pub fn seam_registry_of_slices(slices_dir: &Path) -> Result<Vec<SeamRecord>> {
+    let mut seams: Vec<SeamRecord> = Vec::new();
+    for manifest in all_manifests(slices_dir)? {
+        let ds = parse_ttl(&manifest)?;
+        seams.extend(seam_records_of(&ds, &manifest)?);
+    }
+    Ok(seams)
+}
+
+/// The seam-table region of the rendered page: from the table header through (but
+/// excluding) the `## Definitions` heading. `None` when the page carries no table
+/// header at all — an honest "there is nothing here to compare", which the caller
+/// turns into a finding rather than into silence.
+fn seam_table_region(page_text: &str) -> Option<&str> {
+    let start = page_text.find(SEAM_TABLE_HEADER)?;
+    let region = &page_text[start..];
+    let end = region
+        .find(SEAM_DEFINITIONS_HEADING)
+        .unwrap_or(region.len());
+    Some(&region[..end])
+}
+
+/// The characters `gmeow_docs::render::md_escape` backslash-escapes (plus the `|`
+/// both it and `code_escape` escape inside a table cell).
+const MD_ESCAPED_CHARS: &[char] = &[
+    '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '<', '>', '|',
+];
+
+/// Undo `gmeow_docs::render::md_escape`: drop a backslash that introduces one of
+/// the escaped metacharacters, leave every other character alone.
+fn md_unescape(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut chars = text.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '\\'
+            && chars
+                .peek()
+                .is_some_and(|next| MD_ESCAPED_CHARS.contains(next))
+        {
+            out.push(chars.next().expect("peeked character is present"));
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+/// Split a markdown table row on its UNESCAPED `|` separators. A cell's own pipe is
+/// rendered `\|` (both `md_escape` and `code_escape` do this), so splitting on a raw
+/// `|` would shear such a cell in half and silently shift every later column.
+/// `| a | b | c | d |` yields six parts: a leading empty, the four cells, a trailing
+/// empty.
+fn split_row_cells(line: &str) -> Vec<String> {
+    let mut cells = Vec::new();
+    let mut current = String::new();
+    let mut escaped = false;
+    for ch in line.chars() {
+        if escaped {
+            current.push(ch);
+            escaped = false;
+        } else if ch == '\\' {
+            current.push(ch);
+            escaped = true;
+        } else if ch == '|' {
+            cells.push(std::mem::take(&mut current));
+        } else {
+            current.push(ch);
+        }
+    }
+    cells.push(current);
+    cells
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`. A per-module copy
+/// of `gmeow_docs::render::local_name` — this crate cannot depend on `gmeow-docs`,
+/// and the file's standing posture is a local copy of the shared constant/helper
+/// rather than a new cross-crate coupling.
+fn iri_local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
+}
+
+/// Lowercase, collapse every non-alphanumeric run to a single `-`, trim the edges;
+/// empty input becomes `unnamed`. A per-module copy of
+/// `gmeow_docs::render::slugify` (see [`iri_local_name`] for why it is copied), and
+/// the reason a direction leg can be compared at all: the page renders a slice as a
+/// link into `slices/<slug>/`, so the slug is the one token both sides share.
+fn slugify(name: &str) -> String {
+    let mut out = String::with_capacity(name.len());
+    let mut prev_dash = false;
+    for ch in name.chars() {
+        let lc = ch.to_ascii_lowercase();
+        if lc.is_ascii_alphanumeric() {
+            out.push(lc);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    let trimmed = out.trim_matches('-');
+    if trimmed.is_empty() {
+        "unnamed".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+/// The comparison token for the DATA side of a direction leg: a
+/// `gmeow:seamFromSlice`/`seamToSlice` IRI reduced to the slug the page links by.
+fn slice_token_of_iri(iri: &str) -> String {
+    slugify(iri_local_name(iri))
+}
+
+/// The comparison token for the PAGE side of a direction leg. A resolvable slice
+/// renders as `[Display](../slices/<slug>/index.md)` — the slug in the href is the
+/// identity, not the (possibly retitled, possibly translated) link text. An
+/// unresolvable slice renders as the bare escaped local name, which slugifies to the
+/// same token.
+fn slice_token_of_cell(side: &str) -> String {
+    let side = side.trim();
+    if let Some(caps) = SEAM_PAGE_SLICE_LINK.captures(side) {
+        let href = caps.name("href").map_or("", |m| m.as_str());
+        let trimmed = href
+            .trim_end_matches("index.md")
+            .trim_end_matches('/')
+            .trim();
+        if let Some(last) = trimmed.rsplit('/').find(|segment| !segment.is_empty()) {
+            return slugify(last);
+        }
+        let text = caps.name("text").map_or("", |m| m.as_str());
+        return slugify(&md_unescape(text));
+    }
+    slugify(&md_unescape(side))
+}
+
+/// One seam row exactly as the generated page claims it — the page-side counterpart
+/// of a [`SeamRecord`], carrying that seam's OWN fields and nothing unioned in from
+/// its neighbours.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+struct PageSeamRow {
+    /// `(from-slug, to-slug)` pairs read off the Direction column, in the order the
+    /// arrow renders them — so an inverted leg is a different element, not the same.
+    directions: BTreeSet<(String, String)>,
+    /// Whole backticked `family:Local` CURIEs read off the Carrying terms column.
+    carrying_terms: BTreeSet<String>,
+    /// Backticked `NAME.md` filenames read off the Owning doc column.
+    owning_docs: BTreeSet<String>,
+}
+
+/// Parse the rendered seam table into one [`PageSeamRow`] per seam name.
+///
+/// Returns the rows keyed by seam name (a name rendered more than once keeps every
+/// row so the caller can report the ambiguity rather than silently picking one) plus
+/// a complaint per structurally unparsable row — a row whose column count is wrong,
+/// whose name cell is empty, or whose Direction cell holds a leg with no `→`. A
+/// malformed row is never skipped quietly: the whole point of this gate is that an
+/// unreadable projection is drift, not a pass.
+fn parse_seam_table(region: &str) -> (BTreeMap<String, Vec<PageSeamRow>>, Vec<String>) {
+    let mut rows: BTreeMap<String, Vec<PageSeamRow>> = BTreeMap::new();
+    let mut complaints: Vec<String> = Vec::new();
+    for line in region.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with('|') || trimmed == SEAM_TABLE_HEADER {
+            continue;
+        }
+        let cells = split_row_cells(trimmed);
+        if cells.len() != 6 {
+            complaints.push(format!(
+                "row {trimmed:?} has {n} columns, not the four the seam table declares",
+                n = cells.len().saturating_sub(2),
+            ));
+            continue;
+        }
+        let body = &cells[1..5];
+        // The `| --- | --- | --- | --- |` alignment row.
+        if body.iter().all(|cell| {
+            let t = cell.trim();
+            !t.is_empty() && t.chars().all(|ch| ch == '-' || ch == ':')
+        }) {
+            continue;
+        }
+        let name = md_unescape(
+            body[0]
+                .trim()
+                .trim_start_matches("**")
+                .trim_end_matches("**")
+                .trim(),
+        );
+        if name.is_empty() {
+            complaints.push(format!("row {trimmed:?} names no seam"));
+            continue;
+        }
+        let mut directions: BTreeSet<(String, String)> = BTreeSet::new();
+        for leg in body[1].split(';') {
+            let leg = leg.trim();
+            if leg.is_empty() {
+                continue;
+            }
+            match leg.split_once('→') {
+                Some((from, to)) => {
+                    directions.insert((slice_token_of_cell(from), slice_token_of_cell(to)));
+                }
+                None => complaints.push(format!(
+                    "seam \"{name}\"'s Direction cell holds {leg:?}, which is not a \
+                     `from → to` leg"
+                )),
+            }
+        }
+        let carrying_terms: BTreeSet<String> = SEAM_PAGE_CARRYING_TERM
+            .captures_iter(&body[2])
+            .map(|caps| format!("{}:{}", &caps[1], &caps[2]))
+            .collect();
+        let owning_docs: BTreeSet<String> = SEAM_PAGE_OWNING_DOC
+            .captures_iter(&body[3])
+            .map(|caps| caps[1].to_string())
+            .collect();
+        rows.entry(name).or_default().push(PageSeamRow {
+            directions,
+            carrying_terms,
+            owning_docs,
+        });
+    }
+    (rows, complaints)
+}
+
+/// Shorthand for one seam-registry drift Error, hung off the seam's IRI.
+fn drift(message: String, seam_iri: Option<String>) -> Finding {
+    finding(
+        Severity::Error,
+        codes::AUTHORING_SEAM_REGISTRY_DRIFT,
+        message,
+        seam_iri,
+    )
+}
+
+/// R7: the generated seam-registry page carries exactly the `gmeow:Seam` data
+/// authored in the grounding slices' manifests, **seam by seam** — for every seam,
+/// that seam's own direction legs, carrying terms, and owning docs, with drift in
+/// either direction (data → page and page → data) a distinct Error naming the seam
+/// and the field.
+///
+/// Public so `gmeow-dev doc-lint` can drive it over the page it renders IN MEMORY,
+/// which is the leg that makes this comparison unconditional on the `make check`
+/// DAG (see the section header: the materialized `ontology-docs/` tree does not
+/// exist on that path).
+pub fn detect_seam_registry_drift(seams: &[SeamRecord], page_text: &str) -> Vec<Finding> {
+    let mut findings = Vec::new();
+
+    let Some(region) = seam_table_region(page_text) else {
+        if !seams.is_empty() {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH}) carries no seam table, but {n} gmeow:Seam \
+                     individual(s) are declared in the grounding manifests",
+                    n = seams.len(),
+                ),
+                None,
+            ));
+        }
+        return findings;
+    };
+
+    let (page_rows, complaints) = parse_seam_table(region);
+    for complaint in complaints {
+        findings.push(drift(
+            format!(
+                "seam-registry drift: the generated seam-registry page \
+                 ({SEAM_REGISTRY_PAGE_PATH}) is unparsable — {complaint}"
+            ),
+            None,
+        ));
+    }
+
+    // A seam name is the join key both sides use (the page's own row label), so a
+    // name carried twice on either side makes the projection ambiguous rather than
+    // merely wrong — report it and refuse to guess which row pairs with which record.
+    for (name, rows) in &page_rows {
+        if rows.len() > 1 {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH}) renders {n} rows for seam \"{name}\" — the \
+                     registry projection must render each seam exactly once",
+                    n = rows.len(),
+                ),
+                None,
+            ));
+        }
+    }
+
+    let mut by_name: BTreeMap<&str, Vec<&SeamRecord>> = BTreeMap::new();
+    for seam in seams {
+        by_name.entry(seam.name.as_str()).or_default().push(seam);
+    }
+
+    for (name, records) in &by_name {
+        if records.len() > 1 {
+            let iris = records
+                .iter()
+                .map(|record| record.iri.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: {n} gmeow:Seam individuals ({iris}) share the label \
+                     \"{name}\" — the generated seam-registry page keys its rows by label, so \
+                     the projection cannot be checked per seam",
+                    n = records.len(),
+                ),
+                None,
+            ));
+            continue;
+        }
+        let seam = records[0];
+        let iri = Some(seam.iri.clone());
+        let Some(rows) = page_rows.get(*name) else {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: seam \"{name}\" is declared in the grounding manifests \
+                     but does not appear on the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH})"
+                ),
+                iri,
+            ));
+            continue;
+        };
+        if rows.len() > 1 {
+            // Already reported as ambiguous above; comparing against an arbitrary
+            // one of the duplicate rows would invent a verdict.
+            continue;
+        }
+        let row = &rows[0];
+
+        // Carrying terms — THIS seam's own set, exact CURIE identity both ways.
+        for term in seam.carrying_terms.difference(&row.carrying_terms) {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: seam \"{name}\" declares carrying term {term}, which is \
+                     missing from that seam's row on the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH})"
+                ),
+                iri.clone(),
+            ));
+        }
+        for term in row.carrying_terms.difference(&seam.carrying_terms) {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the row for seam \"{name}\" on the generated \
+                     seam-registry page ({SEAM_REGISTRY_PAGE_PATH}) lists carrying term {term}, \
+                     which that seam does not declare"
+                ),
+                iri.clone(),
+            ));
+        }
+
+        // Owning docs — THIS seam's own set, both ways.
+        for doc in seam.owning_docs.difference(&row.owning_docs) {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: seam \"{name}\" declares owning doc {doc}, which is \
+                     missing from that seam's row on the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH})"
+                ),
+                iri.clone(),
+            ));
+        }
+        for doc in row.owning_docs.difference(&seam.owning_docs) {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the row for seam \"{name}\" on the generated \
+                     seam-registry page ({SEAM_REGISTRY_PAGE_PATH}) lists owning doc {doc}, which \
+                     that seam does not declare"
+                ),
+                iri.clone(),
+            ));
+        }
+
+        // Direction legs — ORDERED pairs, so an inverted leg is drift, not a match.
+        let data_legs: BTreeSet<(String, String)> = seam
+            .directions
+            .iter()
+            .map(|(from, to)| (slice_token_of_iri(from), slice_token_of_iri(to)))
+            .collect();
+        for leg in data_legs.difference(&row.directions) {
+            let inverted = (leg.1.clone(), leg.0.clone());
+            let message = if row.directions.contains(&inverted) {
+                format!(
+                    "seam-registry drift: seam \"{name}\" declares direction leg {from} → {to} \
+                     (gmeow:seamFromSlice → gmeow:seamToSlice), but the generated seam-registry \
+                     page ({SEAM_REGISTRY_PAGE_PATH}) renders it INVERTED as {to} → {from}",
+                    from = leg.0,
+                    to = leg.1,
+                )
+            } else {
+                format!(
+                    "seam-registry drift: seam \"{name}\" declares direction leg {from} → {to} \
+                     (gmeow:seamFromSlice → gmeow:seamToSlice), which is missing from that seam's \
+                     row on the generated seam-registry page ({SEAM_REGISTRY_PAGE_PATH})",
+                    from = leg.0,
+                    to = leg.1,
+                )
+            };
+            findings.push(drift(message, iri.clone()));
+        }
+        for leg in row.directions.difference(&data_legs) {
+            if data_legs.contains(&(leg.1.clone(), leg.0.clone())) {
+                // Already reported, once, as the inversion of the authored leg.
+                continue;
+            }
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the row for seam \"{name}\" on the generated \
+                     seam-registry page ({SEAM_REGISTRY_PAGE_PATH}) renders direction leg \
+                     {from} → {to}, which that seam does not declare",
+                    from = leg.0,
+                    to = leg.1,
+                ),
+                iri.clone(),
+            ));
+        }
+    }
+
+    for name in page_rows.keys() {
+        if !by_name.contains_key(name.as_str()) {
+            findings.push(drift(
+                format!(
+                    "seam-registry drift: the generated seam-registry page \
+                     ({SEAM_REGISTRY_PAGE_PATH}) lists seam \"{name}\", which no gmeow:Seam \
+                     individual declares"
+                ),
+                None,
+            ));
+        }
+    }
+
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings.dedup_by(|a, b| a.message == b.message);
+    findings
+}
+
+/// R7 over the on-disk corpus: read the authored `gmeow:Seam` registry out of
+/// `slices_dir` and compare it, per seam, against the materialized seam-registry
+/// page under `project_root`.
+///
+/// A `slices_dir` that declares no seam at all yields a single Error finding
+/// naming the vacuity — never a clean (empty) verdict. On the aggregator path
+/// [`require_non_vacuous_corpus`] additionally refuses such a corpus outright; this
+/// detector reports rather than aborts so a direct caller pointed at a synthetic
+/// slice tree still gets every other finding.
+///
+/// # Errors
+///
+/// Hard-fails when a manifest cannot be read or parsed, or when the page exists but
+/// cannot be read (no-optionality: an unreadable gate input is never a skip).
+pub fn seam_registry_drift_findings(
+    project_root: &Path,
+    slices_dir: &Path,
+) -> Result<Vec<Finding>> {
+    let seams = seam_registry_of_slices(slices_dir)?;
+    if seams.is_empty() {
+        return Ok(vec![drift(
+            format!(
+                "seam-registry drift: no gmeow:Seam individuals are declared under {dir} — a \
+                 drift comparison against an empty registry certifies nothing",
+                dir = slices_dir.display(),
+            ),
+            None,
+        )]);
+    }
+
+    let page_path = project_root.join(SEAM_REGISTRY_PAGE_PATH);
+    match std::fs::read_to_string(&page_path) {
+        Ok(text) => Ok(detect_seam_registry_drift(&seams, &text)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            if project_root.join(ONTOLOGY_DOCS_DIR).is_dir() {
+                // A docs render DID happen in this tree and produced no seam page:
+                // the projection lost a page the renderer unconditionally emits.
+                Ok(vec![drift(
+                    format!(
+                        "seam-registry drift: the materialized docs tree \
+                         ({ONTOLOGY_DOCS_DIR}/) carries no seam-registry page at \
+                         {SEAM_REGISTRY_PAGE_PATH}, but {n} gmeow:Seam individual(s) are declared \
+                         in the grounding manifests — the docs projection dropped a page it \
+                         always renders",
+                        n = seams.len(),
+                    ),
+                    None,
+                )])
+            } else {
+                // No docs tree at all. Report NOT COMPARED — never an empty
+                // ("clean") verdict — and name the command that materializes the
+                // page. The unconditional leg is `gmeow-dev doc-lint`, which renders
+                // the page in memory and drives `detect_seam_registry_drift` on it.
+                Ok(vec![finding(
+                    Severity::Warning,
+                    codes::AUTHORING_SEAM_REGISTRY_DRIFT,
+                    format!(
+                        "seam-registry drift NOT COMPARED against a materialized page: no \
+                         {ONTOLOGY_DOCS_DIR}/ tree in this checkout, so \
+                         {SEAM_REGISTRY_PAGE_PATH} does not exist (materialize it with `make \
+                         sync SYNC_OUTPUTS=docs`). The {n} declared gmeow:Seam individual(s) are \
+                         compared unconditionally against the in-memory render by `gmeow-dev \
+                         doc-lint`.",
+                        n = seams.len(),
+                    ),
+                    None,
+                )])
+            }
+        }
+        Err(e) => Err(io_err(&page_path, &e)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1251,6 +2166,131 @@ mod tests {
                 &[
                     (PathBuf::from("slices/core/one/manifest.ttl"), a),
                     (PathBuf::from("slices/extensions/two/manifest.ttl"), b),
+                ],
+                Path::new(""),
+            )
+            .unwrap()
+            .is_empty()
+        );
+    }
+
+    // ── R8: grounding-peerage discipline ─────────────────────────────────────
+    //
+    // `detect_peerage_discipline` computes manifest paths relative to
+    // `slices_dir` itself (the live call passes `slices_dir` as `root`), so
+    // these tests pass manifest paths WITHOUT a leading `slices/` (unlike the
+    // R6 tests above, which pass `root = ""` and full `slices/...` paths) —
+    // `grounding/x/manifest.ttl`, matching the real `rel(path, slices_dir)`
+    // shape the grounding-marker-drift check keys on.
+
+    #[test]
+    fn peerage_discipline_flags_non_grounding_slice_declaring_peerage() {
+        let a = ds("ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:two .");
+        let b = ds("ex:two a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:one .");
+        let findings = detect_peerage_discipline(
+            &[
+                (PathBuf::from("core/one/manifest.ttl"), a),
+                (PathBuf::from("core/two/manifest.ttl"), b),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        let non_grounding: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE)
+            .collect();
+        // Neither `one` nor `two` is typed gmeow:GroundingSlice, and the
+        // relation IS mutually symmetric — only the non-grounding-peerage gate
+        // fires (twice, once per non-grounding declarer), never the asymmetry
+        // gate.
+        assert_eq!(
+            non_grounding.len(),
+            2,
+            "both non-grounding peers flagged: {findings:?}"
+        );
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.code != codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE),
+            "a mutually-declared pair must not ALSO fire asymmetric-peerage: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn peerage_discipline_flags_asymmetric_peerage() {
+        let a = ds(
+            "ex:one a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:two .",
+        );
+        // `two` never declares the relation back to `one`.
+        let b = ds("ex:two a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore .");
+        let findings = detect_peerage_discipline(
+            &[
+                (PathBuf::from("grounding/one/manifest.ttl"), a),
+                (PathBuf::from("grounding/two/manifest.ttl"), b),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE);
+        assert!(findings[0].message.contains("one"));
+        assert!(findings[0].message.contains("two"));
+    }
+
+    #[test]
+    fn peerage_discipline_flags_grounding_marker_drift_both_directions() {
+        // Under grounding/ but NOT typed gmeow:GroundingSlice.
+        let untyped_under_grounding = ds("ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore .");
+        // Typed gmeow:GroundingSlice but NOT under grounding/.
+        let typed_elsewhere =
+            ds("ex:two a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore .");
+        let findings = detect_peerage_discipline(
+            &[
+                (
+                    PathBuf::from("grounding/one/manifest.ttl"),
+                    untyped_under_grounding,
+                ),
+                (PathBuf::from("core/two/manifest.ttl"), typed_elsewhere),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        let drift: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT)
+            .collect();
+        assert_eq!(drift.len(), 2, "{findings:?}");
+        assert!(drift.iter().any(|f| f.message.contains("one")));
+        assert!(drift.iter().any(|f| f.message.contains("two")));
+    }
+
+    #[test]
+    fn peerage_discipline_clean_on_the_real_corpus_shape() {
+        // Mirrors the real grounding trio: three GroundingSlice manifests under
+        // grounding/, mutually peered.
+        let logic = ds(
+            "ex:logic a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:lang, ex:math .",
+        );
+        let lang = ds(
+            "ex:lang a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:logic, ex:math .",
+        );
+        let math = ds(
+            "ex:math a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:logic, ex:lang .",
+        );
+        let core = ds("ex:core a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore .");
+        assert!(
+            detect_peerage_discipline(
+                &[
+                    (PathBuf::from("grounding/logic/manifest.ttl"), logic),
+                    (PathBuf::from("grounding/lang/manifest.ttl"), lang),
+                    (PathBuf::from("grounding/math/manifest.ttl"), math),
+                    (PathBuf::from("core/core/manifest.ttl"), core),
                 ],
                 Path::new(""),
             )
@@ -1479,6 +2519,258 @@ mod tests {
         );
     }
 
+    // ── R9: registered minting namespaces ────────────────────────────────────
+
+    /// Build a one-slice fixture tree: `manifest.ttl` plus the given authored
+    /// `module.ttl` / `shapes.ttl` bodies, prefixed with the standard header.
+    fn temp_minting_slice(
+        name: &str,
+        module_body: &str,
+        shapes_body: Option<&str>,
+    ) -> tempfile::TempDir {
+        let tmp = tempfile::tempdir().expect("temp slices dir");
+        let slice_dir = tmp.path().join("core").join(name);
+        std::fs::create_dir_all(&slice_dir).unwrap();
+        let header = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n";
+        std::fs::write(
+            slice_dir.join("manifest.ttl"),
+            format!(
+                "{header}<https://blackcatinformatics.ca/gmeow/slices/{name}> a gmeow:Slice ;\n  \
+                 gmeow:sliceTier gmeow:tierCore ;\n  rdfs:label \"{name}\"@x-gmeow-english .\n"
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            slice_dir.join("module.ttl"),
+            format!("{header}{module_body}"),
+        )
+        .unwrap();
+        if let Some(body) = shapes_body {
+            std::fs::write(slice_dir.join("shapes.ttl"), format!("{header}{body}")).unwrap();
+        }
+        tmp
+    }
+
+    /// R9 FIRES: a slice minting its whole vocabulary into an unregistered
+    /// GMEOW-authority namespace — the `math`-shaped slice that was invisible to
+    /// ownership analysis. Both the T-Box typing and the `rdfs:isDefinedBy`
+    /// ownership claim are reported, and the fixture proves the gate is capable
+    /// of failing rather than being vacuously green.
+    #[test]
+    fn unregistered_minting_fires_on_a_slice_minting_into_its_own_namespace() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "<https://blackcatinformatics.ca/chem/Molecule>\n  a owl:Class ;\n  \
+             rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chem> ;\n  \
+             rdfs:label \"molecule\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(
+            findings.len(),
+            1,
+            "the unregistered mint must be flagged exactly once: {findings:?}"
+        );
+        assert_eq!(
+            findings[0].code,
+            codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE
+        );
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert!(
+            findings[0]
+                .message
+                .contains("https://blackcatinformatics.ca/chem/Molecule"),
+            "{}",
+            findings[0].message
+        );
+        // Both claim kinds are named, so the message says WHY it was gated.
+        assert!(
+            findings[0]
+                .message
+                .contains("declared as a vocabulary term")
+                && findings[0]
+                    .message
+                    .contains("claims rdfs:isDefinedBy a GMEOW slice"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// R9 fires on `shapes.ttl` too, not only `module.ttl`.
+    #[test]
+    fn unregistered_minting_fires_on_the_shape_surface() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "gmeow:Fine a owl:Class ; rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/chem> .\n",
+            Some(
+                "<https://blackcatinformatics.ca/chem/BondShape> a owl:Class ;\n  \
+                 rdfs:label \"bond shape\"@x-gmeow-english .\n",
+            ),
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0].message.contains("shapes.ttl")
+                && findings[0].message.contains("chem/BondShape"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// R9 is CLEAN for every registered namespace — the mutation control for the
+    /// firing test above. Minting the identical shapes into `gmeow:`, `logic:`,
+    /// `lang:` and `math:` produces zero findings, so the gate discriminates on
+    /// the namespace and not on the triple pattern.
+    #[test]
+    fn unregistered_minting_is_clean_for_every_registered_namespace() {
+        for (prefix, ns) in gmeow_ns::TERM_NAMESPACE_PREFIXES {
+            let tmp = temp_minting_slice(
+                "registered",
+                &format!(
+                    "{prefix}:Molecule\n  a owl:Class ;\n  rdfs:isDefinedBy \
+                     <https://blackcatinformatics.ca/gmeow/slices/registered> ;\n  \
+                     rdfs:label \"molecule\"@x-gmeow-english .\n"
+                ),
+                None,
+            );
+            let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+            assert!(
+                findings.is_empty(),
+                "{ns} is registered, so minting into it must be clean: {findings:?}"
+            );
+        }
+    }
+
+    /// R9 does NOT fire on a FOREIGN term redeclared locally so it validates
+    /// (`skos:definition a owl:AnnotationProperty`). GMEOW does not mint it,
+    /// purrdf never treats it as owned, and reporting it would be a false claim
+    /// about someone else's vocabulary.
+    #[test]
+    fn unregistered_minting_ignores_a_locally_redeclared_foreign_term() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "skos:definition a owl:AnnotationProperty .\n\
+             <http://purl.org/dc/terms/created> a owl:AnnotationProperty .\n\
+             <http://www.w3.org/ns/lemon/ontolex#LexicalEntry> a owl:Class .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a redeclared foreign term is described, not minted: {findings:?}"
+        );
+    }
+
+    /// A foreign-authority IRI that nonetheless claims `rdfs:isDefinedBy` a GMEOW
+    /// slice IS gated: the ownership claim is exactly what purrdf drops, whatever
+    /// the authority.
+    #[test]
+    fn unregistered_minting_fires_on_a_foreign_iri_claiming_gmeow_ownership() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "<http://example.org/borrowed/Term> a owl:Class ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/kernel> .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0]
+                .message
+                .contains("http://example.org/borrowed/Term"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// An A-BOX INDIVIDUAL minted under a separate GMEOW authority path is NOT a
+    /// vocabulary term and is not gated, even though it claims
+    /// `rdfs:isDefinedBy` a GMEOW slice. This is the live `slices/core/affect`
+    /// shape (`gmeow-registry/…` classifier-label identities); purrdf's
+    /// `declared_terms` trigger is the vocabulary typing, and this gate mirrors
+    /// it exactly rather than inventing a stricter rule about instance identity.
+    #[test]
+    fn unregistered_minting_ignores_an_abox_individual_under_a_registry_path() {
+        let tmp = temp_minting_slice(
+            "affect",
+            "gmeow:AffectLabelSet a owl:Class ; rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> .\n\
+             <https://blackcatinformatics.ca/gmeow-registry/labelset/GoEmotions>\n  \
+             a gmeow:AffectLabelSet ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> ;\n  \
+             rdfs:label \"GoEmotions\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "an A-Box individual is instance identity, not a minted term: {findings:?}"
+        );
+
+        // …but the SAME IRI typed as a vocabulary term IS gated, so the
+        // discrimination is on the typing and not on the namespace path.
+        let tmp = temp_minting_slice(
+            "affect",
+            "<https://blackcatinformatics.ca/gmeow-registry/labelset/GoEmotions>\n  \
+             a owl:Class ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0]
+                .message
+                .contains("gmeow-registry/labelset/GoEmotions"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// A subject that merely APPEARS in a module — no vocabulary typing, no
+    /// ownership claim — is not a mint and is not gated.
+    #[test]
+    fn unregistered_minting_ignores_a_merely_referenced_iri() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "gmeow:Thing a owl:Class ; rdfs:seeAlso <http://purl.obolibrary.org/obo/BFO_0000001> .\n\
+             <http://purl.obolibrary.org/obo/BFO_0000001> rdfs:label \"entity\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a referenced/annotated external IRI is not a mint: {findings:?}"
+        );
+    }
+
+    /// The gate's namespace set is [`gmeow_ns::TERM_NAMESPACES`] itself, not a
+    /// second copy — so registering a namespace there is the ONE edit that makes
+    /// the gate accept mints into it.
+    #[test]
+    fn unregistered_minting_reports_the_registered_set_it_keyed_on() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "<https://blackcatinformatics.ca/chem/Molecule> a owl:Class .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        for ns in gmeow_ns::TERM_NAMESPACES {
+            assert!(
+                findings[0].message.contains(ns),
+                "the message must name every registered namespace; missing {ns}"
+            );
+        }
+    }
+
     #[test]
     fn docs_term_absent_from_every_allowlist_source_is_flagged() {
         // The firing negative for R3e: a fenced turtle term in no allowlist source.
@@ -1491,6 +2783,665 @@ mod tests {
                 .iter()
                 .any(|t| t.ends_with("/TotallyUndeclaredXyz")),
             "an unallowlisted docs term must be flagged: {unallowed:?}"
+        );
+    }
+
+    // ── R7: grounding seam-registry drift ────────────────────────────────────
+
+    fn sample_seam_manifest() -> Dataset {
+        ds(
+            "<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+            <https://blackcatinformatics.ca/gmeow/seam/denotation>\n\
+                a gmeow:Seam ;\n\
+                rdfs:label \"Denotation seam\"@x-gmeow-english ;\n\
+                gmeow:seamDirection [\n\
+                    gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;\n\
+                    gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>\n\
+                ] ;\n\
+                gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;\n\
+                gmeow:seamOwningDoc \"LANG-MEANING.md\" .\n",
+        )
+    }
+
+    #[test]
+    fn seam_records_of_reads_label_terms_and_docs() {
+        let d = sample_seam_manifest();
+        let records = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        assert_eq!(records.len(), 1);
+        let seam = &records[0];
+        assert_eq!(seam.name, "Denotation seam");
+        assert_eq!(
+            seam.carrying_terms,
+            BTreeSet::from([
+                "lang:denotationKind".to_string(),
+                "lang:denotationTarget".to_string(),
+            ])
+        );
+        assert_eq!(
+            seam.owning_docs,
+            BTreeSet::from(["LANG-MEANING.md".to_string()])
+        );
+    }
+
+    #[test]
+    fn seam_records_of_ignores_a_non_grounding_slice_manifest() {
+        // A gmeow:Seam authored on a slice NOT typed gmeow:GroundingSlice must not
+        // be picked up (mirrors gmeow_docs::model::is_grounding_slice's gate).
+        let d = ds(
+            "<https://blackcatinformatics.ca/gmeow/slices/plain> a gmeow:Slice .\n\
+                    <https://blackcatinformatics.ca/gmeow/seam/rogue> a gmeow:Seam ; rdfs:label \"Rogue\"@x-gmeow-english .\n",
+        );
+        let records = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        assert!(records.is_empty());
+    }
+
+    // ── R7 fixtures ──────────────────────────────────────────────────────────
+    //
+    // A TWO-seam registry, because the defect this gate exists to catch is
+    // per-seam: a page that assigns the right terms/docs/directions to the WRONG
+    // seam unions to exactly the correct set and is invisible to any comparison
+    // that pools the seams before checking.
+
+    /// A grounding manifest carrying two seams with disjoint terms, docs, and
+    /// directions — `lang → logic` and `math → logic`.
+    fn two_seam_manifest() -> Dataset {
+        ds(
+            "<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+            @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+            <https://blackcatinformatics.ca/gmeow/seam/denotation>\n\
+                a gmeow:Seam ;\n\
+                rdfs:label \"Denotation seam\"@x-gmeow-english ;\n\
+                gmeow:seamDirection [\n\
+                    gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;\n\
+                    gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>\n\
+                ] ;\n\
+                gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;\n\
+                gmeow:seamOwningDoc \"LANG-MEANING.md\" .\n\
+            <https://blackcatinformatics.ca/gmeow/seam/compilation>\n\
+                a gmeow:Seam ;\n\
+                rdfs:label \"Compilation seam\"@x-gmeow-english ;\n\
+                gmeow:seamDirection [\n\
+                    gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/math> ;\n\
+                    gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>\n\
+                ] ;\n\
+                gmeow:seamCarryingTerm math:compilesToLogicTerm ;\n\
+                gmeow:seamOwningDoc \"MATHEMATICS-EXPRESSIONS.md\" .\n",
+        )
+    }
+
+    /// Wrap table rows in the page frame `gmeow_docs::render::md_seam_registry`
+    /// emits — intro prose (which names a `gmeow:` CURIE that is NOT a carrying
+    /// term), the header, the alignment row, then the `## Definitions` section
+    /// that closes the table region.
+    fn seam_page(rows: &[&str]) -> String {
+        format!(
+            "# Grounding seams\n\n\
+             The closed set of sanctioned channels; every peered cross-slice reference must \
+             land on one rather than riding free on `gmeow:sliceCoFoundationalWith`.\n\n\
+             {header}\n\
+             | --- | --- | --- | --- |\n\
+             {rows}\n\n\
+             ## Definitions\n\n\
+             ### Denotation seam\n\n\
+             Prose that also mentions `lang:denotationTarget` and `LANG-MEANING.md`.\n",
+            header = SEAM_TABLE_HEADER,
+            rows = rows.join("\n"),
+        )
+    }
+
+    /// The Denotation seam's row, direction rendered as bare slice names (the
+    /// `seam_slice_link` fallback for an unresolvable slice).
+    const DENOTATION_ROW: &str = "| **Denotation seam** | lang → logic | \
+        `lang:denotationKind`, `lang:denotationTarget` | `LANG-MEANING.md` |";
+    /// The Compilation seam's row, direction and carrying term rendered as the
+    /// markdown LINKS the real renderer emits for resolvable slices/terms.
+    const COMPILATION_ROW: &str = "| **Compilation seam** | \
+        [math](../slices/math/index.md) → [logic](../slices/logic/index.md) | \
+        [`math:compilesToLogicTerm`](../terms/math-compilestologicterm/index.md) | \
+        `MATHEMATICS-EXPRESSIONS.md` |";
+
+    fn matching_page_text() -> String {
+        seam_page(&[DENOTATION_ROW])
+    }
+
+    fn two_seam_page() -> String {
+        seam_page(&[COMPILATION_ROW, DENOTATION_ROW])
+    }
+
+    fn two_seams() -> Vec<SeamRecord> {
+        seam_records_of(&two_seam_manifest(), Path::new("manifest.ttl")).unwrap()
+    }
+
+    fn drift_messages(findings: &[Finding]) -> String {
+        findings
+            .iter()
+            .map(|f| format!("[{:?}] {}", f.severity, f.message))
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    // ── R7 non-vacuity: the clean cases (a gate that always fires is not a gate)
+
+    #[test]
+    fn detect_seam_registry_drift_is_clean_when_page_matches_data() {
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let findings = detect_seam_registry_drift(&seams, &matching_page_text());
+        assert!(
+            findings.is_empty(),
+            "a page that carries every seam/term/doc/direction must not drift:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_is_clean_for_two_seams_with_rendered_links() {
+        // NON-VACUITY for every negative below: the same fixture, undisturbed, is
+        // clean — including the markdown-link forms of both a direction leg and a
+        // carrying term, so the parsers are proven to read the REAL render shape.
+        let seams = two_seams();
+        assert_eq!(seams.len(), 2, "the two-seam fixture must carry two seams");
+        let findings = detect_seam_registry_drift(&seams, &two_seam_page());
+        assert!(
+            findings.is_empty(),
+            "the matching two-seam page must not drift:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    // ── R7: per-seam assignment ──────────────────────────────────────────────
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_the_right_terms_are_on_the_wrong_seam() {
+        // THE per-seam defect: both rows together carry exactly the right terms,
+        // so any comparison that unions the seams first passes. Each row's terms
+        // belong to the OTHER seam.
+        let seams = two_seams();
+        let swapped_denotation =
+            DENOTATION_ROW.replace("`lang:denotationKind`, `lang:denotationTarget`", "MARKER");
+        let swapped_compilation = COMPILATION_ROW.replace(
+            "[`math:compilesToLogicTerm`](../terms/math-compilestologicterm/index.md)",
+            "`lang:denotationKind`, `lang:denotationTarget`",
+        );
+        let page = seam_page(&[
+            &swapped_compilation,
+            &swapped_denotation.replace("MARKER", "`math:compilesToLogicTerm`"),
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.code == codes::AUTHORING_SEAM_REGISTRY_DRIFT),
+            "every finding is a seam-registry drift finding:\n{text}"
+        );
+        for (seam, term) in [
+            ("Denotation seam", "lang:denotationKind"),
+            ("Denotation seam", "lang:denotationTarget"),
+            ("Compilation seam", "math:compilesToLogicTerm"),
+        ] {
+            assert!(
+                findings
+                    .iter()
+                    .any(|f| f.message.contains(seam) && f.message.contains(term)),
+                "seam {seam:?} must be reported as missing its own carrying term \
+                 {term:?}:\n{text}"
+            );
+        }
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("Compilation seam")
+                    && f.message.contains("lang:denotationTarget")
+                    && f.message.contains("does not declare")),
+            "the Compilation seam's row must be reported for listing a term that seam \
+             does not declare:\n{text}"
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_an_owning_doc_lands_on_the_wrong_seam() {
+        let seams = two_seams();
+        let page = seam_page(&[
+            &COMPILATION_ROW.replace("`MATHEMATICS-EXPRESSIONS.md`", "`LANG-MEANING.md`"),
+            &DENOTATION_ROW.replace("`LANG-MEANING.md`", "`MATHEMATICS-EXPRESSIONS.md`"),
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("Denotation seam")
+                    && f.message.contains("LANG-MEANING.md")
+                    && f.message.contains("missing from that seam's row")),
+            "the Denotation seam must be reported for losing its own owning doc:\n{text}"
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("Compilation seam")
+                    && f.message.contains("LANG-MEANING.md")
+                    && f.message.contains("does not declare")),
+            "the Compilation seam must be reported for claiming another seam's owning \
+             doc:\n{text}"
+        );
+    }
+
+    // ── R7: direction legs (never compared at all before) ────────────────────
+
+    #[test]
+    fn detect_seam_registry_drift_fires_on_an_inverted_direction_leg() {
+        let seams = two_seams();
+        let page = seam_page(&[
+            COMPILATION_ROW,
+            &DENOTATION_ROW.replace("lang → logic", "logic → lang"),
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == codes::AUTHORING_SEAM_REGISTRY_DRIFT
+                    && f.message.contains("Denotation seam")
+                    && f.message.contains("INVERTED")
+                    && f.message.contains("lang → logic")),
+            "an inverted gmeow:seamFromSlice/seamToSlice leg must be reported as \
+             inverted:\n{text}"
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_on_a_missing_direction_leg() {
+        let seams = two_seams();
+        let page = seam_page(&[
+            &COMPILATION_ROW.replace(
+                "[math](../slices/math/index.md) → [logic](../slices/logic/index.md)",
+                "",
+            ),
+            DENOTATION_ROW,
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("Compilation seam")
+                    && f.message.contains("math → logic")
+                    && f.message.contains("missing from that seam's row")),
+            "a dropped direction leg must be reported:\n{text}"
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_on_an_extra_direction_leg() {
+        let seams = two_seams();
+        let page = seam_page(&[
+            COMPILATION_ROW,
+            &DENOTATION_ROW.replace("lang → logic", "lang → logic; math → logic"),
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("Denotation seam")
+                    && f.message.contains("math → logic")
+                    && f.message.contains("does not declare")),
+            "a direction leg the seam never declares must be reported:\n{text}"
+        );
+    }
+
+    // ── R7: exact identity, never substring ──────────────────────────────────
+
+    #[test]
+    fn detect_seam_registry_drift_matches_a_seam_name_exactly_not_by_substring() {
+        // The retired gate asked `page_text.contains(seam.name)`, so a row whose
+        // name merely CONTAINED the authored name passed. The seam is not on the
+        // page under its own name and must be reported both ways.
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let page = seam_page(&[
+            &DENOTATION_ROW.replace("**Denotation seam**", "**Denotation seam (deprecated)**")
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings.iter().any(|f| f
+                .message
+                .contains("seam \"Denotation seam\" is declared in the grounding manifests")),
+            "the authored seam must be reported as absent from the page:\n{text}"
+        );
+        assert!(
+            findings.iter().any(|f| f
+                .message
+                .contains("\"Denotation seam (deprecated)\", which no gmeow:Seam individual")),
+            "the unbacked page row must be reported:\n{text}"
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_matches_carrying_terms_exactly_not_by_prefix() {
+        // The file's standing discipline (NORMS_EXTENSION_TERMS): `normIssuer`
+        // must never match `normIssuerRole`. A page that lengthens a carrying
+        // term's local name is drift in BOTH directions.
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let page = seam_page(&[
+            &DENOTATION_ROW.replace("`lang:denotationKind`", "`lang:denotationKindRole`")
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        let text = drift_messages(&findings);
+        assert!(
+            findings.iter().any(|f| f.message.contains(
+                "declares carrying term \
+                 lang:denotationKind,"
+            )),
+            "the authored term must be reported missing, not swallowed by its longer \
+             page-side namesake:\n{text}"
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("lang:denotationKindRole")
+                    && f.message.contains("does not declare")),
+            "the longer page-side term must be reported as unbacked:\n{text}"
+        );
+    }
+
+    // ── R7: the original single-field negatives, retained ────────────────────
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_a_carrying_term_is_missing_from_the_page() {
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let page = matching_page_text().replace(", `lang:denotationTarget`", "");
+        let findings = detect_seam_registry_drift(&seams, &page);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == codes::AUTHORING_SEAM_REGISTRY_DRIFT
+                    && f.message.contains("lang:denotationTarget")),
+            "a data-side carrying term missing from the page must be flagged:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_on_an_orphan_page_term() {
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let page = matching_page_text().replace(
+            "`lang:denotationTarget`",
+            "`lang:denotationTarget`, `logic:NotARealCarryingTerm`",
+        );
+        let findings = detect_seam_registry_drift(&seams, &page);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == codes::AUTHORING_SEAM_REGISTRY_DRIFT
+                    && f.message.contains("logic:NotARealCarryingTerm")),
+            "a page-side term unbacked by data must be flagged:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_an_owning_doc_is_missing() {
+        let d = sample_seam_manifest();
+        let seams = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
+        let page = matching_page_text().replace("`LANG-MEANING.md`", "(no doc)");
+        let findings = detect_seam_registry_drift(&seams, &page);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == codes::AUTHORING_SEAM_REGISTRY_DRIFT
+                    && f.message.contains("LANG-MEANING.md")),
+            "a data-side owning doc missing from the page must be flagged:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    // ── R7: structurally unusable pages are drift, not silence ───────────────
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_the_page_carries_no_table() {
+        let seams = two_seams();
+        let findings = detect_seam_registry_drift(
+            &seams,
+            "# Grounding seams\n\nNo grounding seams are declared in this model.\n",
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("carries no seam table")),
+            "a page with no table, against a non-empty registry, must be drift:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_on_a_structurally_malformed_row() {
+        let seams = two_seams();
+        // A row missing its Owning doc column entirely.
+        let page = seam_page(&[
+            COMPILATION_ROW,
+            "| **Denotation seam** | lang → logic | `lang:denotationKind` |",
+        ]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("unparsable") && f.message.contains("columns")),
+            "a row with the wrong column count must be reported, never skipped:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    #[test]
+    fn detect_seam_registry_drift_fires_when_the_page_renders_a_seam_twice() {
+        let seams = two_seams();
+        let page = seam_page(&[COMPILATION_ROW, DENOTATION_ROW, DENOTATION_ROW]);
+        let findings = detect_seam_registry_drift(&seams, &page);
+        assert!(
+            findings.iter().any(|f| f
+                .message
+                .contains("renders 2 rows for seam \"Denotation seam\"")),
+            "a duplicated row makes the projection ambiguous and must be reported:\n{}",
+            drift_messages(&findings)
+        );
+    }
+
+    // ── R7: the on-disk wrapper never reports a silent "clean" ───────────────
+
+    /// A temp project root carrying a grounding manifest with `seams` authored.
+    fn temp_seam_repo(manifest_body: &str) -> tempfile::TempDir {
+        let tmp = tempfile::tempdir().expect("temp project root");
+        let slice_dir = tmp.path().join("slices/grounding/logic");
+        std::fs::create_dir_all(&slice_dir).unwrap();
+        std::fs::write(
+            slice_dir.join("manifest.ttl"),
+            format!(
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+                 @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+                 <https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, \
+                 gmeow:GroundingSlice ;\n\
+                   gmeow:sliceTier gmeow:tierCore ;\n\
+                   rdfs:label \"logic\"@x-gmeow-english .\n\
+                 {manifest_body}"
+            ),
+        )
+        .unwrap();
+        tmp
+    }
+
+    /// The one seam `temp_seam_repo` authors when handed [`DENOTATION_SEAM_TTL`].
+    const DENOTATION_SEAM_TTL: &str = "<https://blackcatinformatics.ca/gmeow/seam/denotation>\n\
+             a gmeow:Seam ;\n\
+             rdfs:label \"Denotation seam\"@x-gmeow-english ;\n\
+             gmeow:seamDirection [\n\
+                 gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;\n\
+                 gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>\n\
+             ] ;\n\
+             gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;\n\
+             gmeow:seamOwningDoc \"LANG-MEANING.md\" .\n";
+
+    #[test]
+    fn seam_registry_drift_findings_refuses_a_vacuous_registry() {
+        // Zero seams discovered means the comparison certifies nothing, so the
+        // detector reports an Error — never a clean (empty) verdict.
+        let tmp = temp_seam_repo("");
+        let findings =
+            seam_registry_drift_findings(tmp.path(), &tmp.path().join("slices")).unwrap();
+        assert_eq!(findings.len(), 1, "{}", drift_messages(&findings));
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert!(
+            findings[0].message.contains("certifies nothing"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    #[test]
+    fn require_non_vacuous_corpus_refuses_a_seam_free_corpus() {
+        // The aggregator-level floor: `authoring_integrity_findings` must not run at
+        // all against a corpus whose grounding manifests declare no seam. Driven on a
+        // temp root so it needs no `generated/` tree; the seam floor is the LAST of
+        // the four floors, so reaching it here would require the earlier three to
+        // pass — assert instead on the error text of whichever floor fires, and pin
+        // the seam floor directly through its own reader.
+        let tmp = temp_seam_repo("");
+        let seams = seam_registry_of_slices(&tmp.path().join("slices")).unwrap();
+        assert!(
+            seams.is_empty(),
+            "the fixture must genuinely declare no seam"
+        );
+        // …and the real corpus's grounding tree is genuinely non-empty, so the floor
+        // is not a permanent tripwire.
+        let repo_slices = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("crates/validate lives two levels under the repo root")
+            .join("slices");
+        let real = seam_registry_of_slices(&repo_slices).unwrap();
+        assert!(
+            !real.is_empty(),
+            "the committed grounding manifests must declare at least one gmeow:Seam, \
+             otherwise the authoring-integrity seam floor can never be met"
+        );
+    }
+
+    #[test]
+    fn seam_registry_drift_findings_reports_not_compared_when_no_docs_tree_exists() {
+        // `ontology-docs/` is written only by a docs-selected sync, so on the
+        // `make validate` / `make check` path it is genuinely absent. The gate must
+        // say NOT COMPARED — an empty (clean) verdict here would certify nothing.
+        let tmp = temp_seam_repo(DENOTATION_SEAM_TTL);
+        assert!(!tmp.path().join(SEAM_REGISTRY_PAGE_PATH).exists());
+        assert!(!tmp.path().join(ONTOLOGY_DOCS_DIR).exists());
+
+        let findings =
+            seam_registry_drift_findings(tmp.path(), &tmp.path().join("slices")).unwrap();
+        assert_eq!(
+            findings.len(),
+            1,
+            "exactly one NOT COMPARED record:\n{}",
+            drift_messages(&findings)
+        );
+        assert!(
+            findings[0].message.contains("NOT COMPARED")
+                && findings[0].message.contains("make sync SYNC_OUTPUTS=docs")
+                && findings[0].message.contains("doc-lint"),
+            "the record must name the state, the remedy, and the unconditional leg: {}",
+            findings[0].message
+        );
+        assert_eq!(
+            findings[0].severity,
+            Severity::Warning,
+            "an unmaterialized on-demand docs tree is not itself an authoring defect, so \
+             it must not hard-fail make validate"
+        );
+    }
+
+    #[test]
+    fn seam_registry_drift_findings_errors_when_a_materialized_docs_tree_drops_the_page() {
+        // A docs render DID happen here; a missing seam page is a lost projection.
+        let tmp = temp_seam_repo(DENOTATION_SEAM_TTL);
+        std::fs::create_dir_all(tmp.path().join(ONTOLOGY_DOCS_DIR).join("terms")).unwrap();
+        assert!(!tmp.path().join(SEAM_REGISTRY_PAGE_PATH).exists());
+
+        let findings =
+            seam_registry_drift_findings(tmp.path(), &tmp.path().join("slices")).unwrap();
+        assert_eq!(findings.len(), 1, "{}", drift_messages(&findings));
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert_eq!(findings[0].code, codes::AUTHORING_SEAM_REGISTRY_DRIFT);
+        assert!(
+            findings[0]
+                .message
+                .contains("carries no seam-registry page"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    #[test]
+    fn seam_registry_drift_findings_compares_a_materialized_page() {
+        // The on-disk leg really compares: the SAME repo is clean against a
+        // matching page and fires against a drifted one (non-vacuity + teeth).
+        let tmp = temp_seam_repo(DENOTATION_SEAM_TTL);
+        let page_path = tmp.path().join(SEAM_REGISTRY_PAGE_PATH);
+        std::fs::create_dir_all(page_path.parent().unwrap()).unwrap();
+
+        std::fs::write(&page_path, matching_page_text()).unwrap();
+        let clean = seam_registry_drift_findings(tmp.path(), &tmp.path().join("slices")).unwrap();
+        assert!(
+            clean.is_empty(),
+            "a materialized page that matches the data must be clean:\n{}",
+            drift_messages(&clean)
+        );
+
+        std::fs::write(
+            &page_path,
+            matching_page_text().replace("lang → logic", "logic → lang"),
+        )
+        .unwrap();
+        let drifted = seam_registry_drift_findings(tmp.path(), &tmp.path().join("slices")).unwrap();
+        assert!(
+            drifted
+                .iter()
+                .any(|f| f.severity == Severity::Error && f.message.contains("INVERTED")),
+            "an inverted leg on the materialized page must hard-fail:\n{}",
+            drift_messages(&drifted)
+        );
+    }
+
+    // ── R7: markdown cell parsing ────────────────────────────────────────────
+
+    #[test]
+    fn split_row_cells_keeps_escaped_pipes_inside_their_cell() {
+        // `md_escape`/`code_escape` render a cell's own pipe as `\|`; splitting on
+        // a raw `|` would shear the row and shift every later column.
+        let cells = split_row_cells(r"| **A \| B** | lang → logic | `lang:x` | `D.md` |");
+        assert_eq!(cells.len(), 6, "{cells:?}");
+        assert_eq!(cells[1].trim(), r"**A \| B**");
+        assert_eq!(md_unescape(cells[1].trim()), "**A | B**");
+    }
+
+    #[test]
+    fn slice_token_reads_the_slug_from_a_rendered_slice_link() {
+        assert_eq!(
+            slice_token_of_cell("[Logic grounding](../slices/logic/index.md)"),
+            "logic",
+            "the identity is the href slug, never the display title"
+        );
+        assert_eq!(slice_token_of_cell("logic"), "logic");
+        assert_eq!(
+            slice_token_of_iri("https://blackcatinformatics.ca/gmeow/slices/logic"),
+            "logic"
         );
     }
 }

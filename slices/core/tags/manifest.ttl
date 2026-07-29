@@ -16,7 +16,10 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "The grounded-agent-memory engine (an agent's informal labels over remembered claims ride the same suppression-not-erasure contract as every Principle 14 memory claim), the images and software extensions (dual extension use is what forced the slice core), and the docs/SLICE_GUIDE.md worked instance — this slice is the guide's living example of the competency-first authoring loop, so its competency cells, contested-tagging scene, and honest-rung mappings are load-bearing teaching surfaces, not just tests."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered .

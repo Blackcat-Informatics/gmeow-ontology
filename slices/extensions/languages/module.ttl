@@ -452,15 +452,6 @@ gmeow:levelNative
     skos:definition "The native proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:levelScale
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:ProficiencyLevel ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "level scale"@x-gmeow-english ;
-    rdfs:range gmeow:ProficiencyScale ;
-    skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:modalityMachine
     a gmeow:LanguageModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
@@ -991,15 +982,6 @@ gmeow:varietyOf
     skos:definition "The parent language, lineage, or macrolanguage that a variety is considered a variety of. NON-FUNCTIONAL: standpoint-dependent — one standpoint may link Scots to English, another may treat it as an independent language (no varietyOf)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:versionLabel
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "version label"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 <https://blackcatinformatics.ca/gmeow/slices/languages>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
@@ -1009,3 +991,105 @@ gmeow:versionLabel
     skos:definition "The GMEOW Languages Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:proficiencyAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "proficiencyAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:proficiencyAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proficiencyAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:proficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:proficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:proficiencyAgent and nothing else. It is not a definition of gmeow:proficiencyAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:proficiencyAgentFunctionality logic:characterizes gmeow:proficiencyAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:proficiencyLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "proficiencyLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:proficiencyLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proficiencyLanguage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:proficiencyLanguage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:proficiencyLanguage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:proficiencyLanguage and nothing else. It is not a definition of gmeow:proficiencyLanguage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:proficiencyLanguageFunctionality logic:characterizes gmeow:proficiencyLanguage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:proficiencyLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "proficiencyLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:proficiencyLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proficiencyLevel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:proficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:proficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:proficiencyLevel and nothing else. It is not a definition of gmeow:proficiencyLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:proficiencyLevelFunctionality logic:characterizes gmeow:proficiencyLevel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:proficiencyModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "proficiencyModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyModality is functional: a language-proficiency relator rates exactly one skill modality, since a distinct proficiency is minted per (agent, language, modality) so that per-skill levels coexist rather than crowding one relator."@x-gmeow-english ;
+    logic:characterizes gmeow:proficiencyModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proficiencyModality ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:proficiencyModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:proficiencyModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:proficiencyModality and nothing else. It is not a definition of gmeow:proficiencyModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:proficiencyModalityFunctionality logic:characterizes gmeow:proficiencyModality ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:proficiencyScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "proficiencyScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:proficiencyScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proficiencyScale ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:proficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:proficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:proficiencyScale and nothing else. It is not a definition of gmeow:proficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:proficiencyScaleFunctionality logic:characterizes gmeow:proficiencyScale ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stateLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+    rdfs:label "stateLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:stateLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:stateLanguage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:stateLanguage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:stateLanguage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:stateLanguage and nothing else. It is not a definition of gmeow:stateLanguage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:stateLanguageFunctionality logic:characterizes gmeow:stateLanguage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

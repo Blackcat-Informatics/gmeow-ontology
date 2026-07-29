@@ -12,6 +12,7 @@
 @prefix rel: <http://purl.org/vocab/relationship/> .
 @prefix schema: <https://schema.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
 
 # Term equivalences for the genealogy domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-genealogy.sssom.tsv by `gmeow compile-mappings`.
@@ -234,4 +235,11 @@ gmeow:Family skos:exactMatch wd:Q8436 {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "family"
+|} .
+
+gmeow:KinRelationship skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack."
 |} .

@@ -1,0 +1,29 @@
+# Competency (executable lift): "What tensor computation graph and parameter space did this
+# ONNX model lift into?" — asked of the OUTPUT OF THE REAL LIFTER, not of a hand-authored
+# example graph.
+#
+# The producer-namespace twin of onnx-tensor-graph-and-parameter-space.rq. That query
+# interrogates the prose-authored tests/fixtures/bridges.ttl scene; this one interrogates
+# tests/fixtures/lifted-onnx.ttl — the byte-exact output of
+# gmeow_math::producers::onnx_lift, which decodes the real protobuf ModelProto at
+# crates/math-lift/fixtures/mlp.onnx through the hand-written wire reader and lifts it.
+# Operator types, tensor shapes, and the declared opset are read off actual bytes, so the
+# math:TensorComputationGraph this query returns is a report on a real artifact.
+#
+# The run must produce (gmeow:wasGeneratedBy) BOTH halves of the AI-self-structure frame
+# for one model: the architecture (math:architectureOf) and the parameter space holding
+# that same model's parameters (math:parameterSpaceOf). Exactly one row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?graph ?parameterSpace WHERE {
+    ?run a math:ONNXIngestRun .
+    ?graph gmeow:wasGeneratedBy ?run ;
+           a math:TensorComputationGraph ;
+           math:architectureOf ?model .
+    ?parameterSpace gmeow:wasGeneratedBy ?run ;
+                    math:parameterSpaceOf ?model .
+    FILTER(STRSTARTS(STR(?run), "https://blackcatinformatics.ca/gmeow/examples/math/producers/"))
+}
+ORDER BY ?run ?graph

@@ -27,6 +27,10 @@ use std::fmt;
 
 use gmeow_errors::Diag;
 
+/// The workspace's ONE content-key type, minted by the shared term arena. Re-exported so
+/// a consumer of this IR names the same type the arena hands back.
+pub use gmeow_term_arena::ContentKey;
+
 /// The null-byte field separator used by every `sort_key` (Python `"\x00"`).
 const SEP: char = '\u{0}';
 
@@ -2561,15 +2565,22 @@ impl Formula {
     /// *meaning* up to bound-variable renaming and commutative reordering. Two formulas
     /// equal up to those share this key; everything else (including free-variable
     /// renaming and `Implies` operand order) is preserved.
-    pub fn content_key(&self) -> String {
+    ///
+    /// This is ONE side of a congruence seam. The other is the shared term arena's own
+    /// netstring fold: lowering a `Formula` into
+    /// [`gmeow_term_arena`](gmeow_term_arena::TermArena) must collapse exactly the
+    /// formulas that share this key, and separate exactly the ones that do not. Both sides
+    /// therefore return the SAME [`ContentKey`] newtype — a bare `String` on one side
+    /// would leave two conventions and the guarantee unstated precisely where it is pinned.
+    pub fn content_key(&self) -> ContentKey {
         let mut env: Vec<(String, String)> = Vec::new();
-        self.key_in(&mut env, 0)
+        ContentKey::new(self.key_in(&mut env, 0))
     }
 
     /// Canonical sort key for ordering the [`LogicProgram::formulas`] collection. A
     /// formula has no separate identity field, so the full content key *is* the sort key
     /// (order-independent and alpha-stable).
-    pub fn sort_key(&self) -> String {
+    pub fn sort_key(&self) -> ContentKey {
         self.content_key()
     }
 
@@ -2777,7 +2788,7 @@ pub enum VariableSortScope {
     /// distinct scopes.
     Clause {
         /// The owning clause's [`Formula::content_key`].
-        key: String,
+        key: ContentKey,
         /// The clause's occurrence index among clauses sharing that `content_key`.
         occurrence: usize,
     },
@@ -2790,7 +2801,7 @@ pub enum VariableSortScope {
     /// a `logic:variableSort` could syntactically attach to.)
     Probe {
         /// The owning probe's [`Formula::content_key`].
-        key: String,
+        key: ContentKey,
         /// The probe's occurrence index among probes sharing that `content_key`.
         occurrence: usize,
     },
@@ -2986,13 +2997,13 @@ impl ReasoningProgramIr {
         let clauses = self
             .clauses
             .iter()
-            .map(Formula::content_key)
+            .map(|f| f.content_key().into_string())
             .collect::<Vec<_>>()
             .join(",");
         let probes = self
             .verdict_probes
             .iter()
-            .map(Formula::content_key)
+            .map(|f| f.content_key().into_string())
             .collect::<Vec<_>>()
             .join(",");
         let sorts = self
@@ -3284,7 +3295,7 @@ impl LogicProgram {
             let forms = self
                 .formulas
                 .iter()
-                .map(Formula::content_key)
+                .map(|f| f.content_key().into_string())
                 .collect::<Vec<_>>()
                 .join("\n");
             key.push_str("\nFORMULAS\n");

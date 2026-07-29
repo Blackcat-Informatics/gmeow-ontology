@@ -49,7 +49,7 @@ use crate::error::Release;
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";

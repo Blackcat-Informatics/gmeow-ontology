@@ -10,13 +10,18 @@
 //! into a per-set [`TermInterner`] over native [`TermValue`]s. Nothing in the
 //! production reasoning path formats or parses fact strings.
 //!
+//! The atomic-term dictionary itself ([`TermInterner`]) is the shared term arena's — it
+//! moved to [`gmeow_term_arena`] with the DAG it feeds, so a front-end can intern terms
+//! without linking this runtime — and is re-exported here, never redefined.
+//!
 //! # Determinism (non-negotiable)
 //!
 //! - The interner is **per-set** (never global): `TermId`s are meaningless
 //!   outside the set that minted them, are assigned in insertion order, and are
 //!   NEVER serialized or hashed for provenance — the provenance recipes in
 //!   [`crate::provenance`] stay the single source of truth, fed by `TermValue`.
-//! - Interning is keyed on the [`term_display`] surface, which preserves the
+//! - Interning is keyed on the [`term_display`](gmeow_term_arena::engine::term_display)
+//!   surface, which preserves the
 //!   historical dedup semantics **byte-exactly**: two terms are one `TermId`
 //!   exactly when their display surfaces are byte-equal (so an `xsd:string`
 //!   literal and a lang-less `rdf:langString` literal collapse, and language
@@ -40,14 +45,18 @@ use hashbrown::HashTable;
 use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 
-use crate::provenance::term_display;
+/// The shared arena's per-set atomic-term dictionary: display surface → dense
+/// [`TermId`]. ONE definition lives in [`gmeow_term_arena::engine`]; this is the
+/// crate-wide name the fact set and the store address terms by (greenfield — there is no
+/// second, ad-hoc interner here).
+pub(crate) use gmeow_term_arena::engine::TermInterner;
 
 /// The engine's branded per-interner term handle.
 ///
-/// `TermId` is the [`Term`](crate::physical::id::Term)-branded [`Id`](crate::physical::id::Id):
-/// ONE definition of the niche-ID lives in [`crate::physical::id`], and this
-/// re-export is the crate-wide name the interner/store address terms by (greenfield
-/// — there is no second, ad-hoc `TermId` here).
+/// `TermId` is the `Term`-branded [`Id`](crate::physical::id::Id): ONE definition of the
+/// niche-ID lives in the shared term arena, re-exported through [`crate::physical::id`],
+/// and this is the crate-wide name the interner/store address terms by (greenfield —
+/// there is no second, ad-hoc `TermId` here).
 pub(crate) use crate::physical::id::TermId;
 
 /// The engine's branded per-store predicate-IRI handle.
@@ -60,14 +69,12 @@ pub(crate) use crate::physical::id::TermId;
 /// sorts LEXICALLY — never by `PredId` mint order).
 pub(crate) use crate::physical::id::PredId;
 
-/// Fixed-seed hash of a display surface, for the interner's borrowed-key probe.
+/// Fixed-seed hash of a surface, for every borrowed-key probe here.
 ///
-/// The seed is fixed (`FixedState::default()`) and never persisted — determinism
-/// comes from insertion order and the sorted commit, never from this hash.
-#[inline]
-fn display_hash(display: &str) -> u64 {
-    foldhash::fast::FixedState::default().hash_one(display)
-}
+/// ONE definition, shared with the term arena's dictionary and DAG probes: the seed is
+/// fixed (`FixedState::default()`) and never persisted — determinism comes from
+/// insertion order and the sorted commit, never from this hash.
+use gmeow_term_arena::engine::surface_hash as display_hash;
 
 /// Fixed-seed hash of a `(predicate, args)` dedup key, for [`TypedFactSet`]'s
 /// borrowed-key probe (never clones the key to hash it).
@@ -107,111 +114,6 @@ fn skolemize(term: &TermValue) -> std::borrow::Cow<'_, TermValue> {
             std::borrow::Cow::Owned(TermValue::Iri(skolem_iri(&scope.qualify_label(label))))
         }
         other => std::borrow::Cow::Borrowed(other),
-    }
-}
-
-// ── TermInterner ──────────────────────────────────────────────────────────────
-
-/// A per-set term dictionary: display surface → dense [`TermId`].
-///
-/// IDs are assigned in insertion order.  The dedup key is the [`term_display`]
-/// surface (byte-exact preservation of the historical string-keyed semantics);
-/// the FIRST-seen `TermValue` for each surface is the one stored and resolved.
-#[derive(Debug, Clone, Default)]
-pub(crate) struct TermInterner {
-    /// Display surface → id, for O(1) intern/lookup.
-    ///
-    /// A hashbrown [`HashTable`] storing the [`TermId`] ONLY: the display bytes
-    /// live once in `displays` (the side arena), so a borrowed-key (`&str`) probe
-    /// resolves an entry with a cheap `displays[id.index()]` slice read — the
-    /// eq/hash closure NEVER re-renders `term_display`, and `intern` never stores
-    /// the display `String` twice.
-    by_display: HashTable<TermId>,
-    /// First-seen `TermValue` per id, in insertion order (slot = id index).
-    terms: Vec<TermValue>,
-    /// Cached display surface per id, in lockstep with `terms` — the side arena the
-    /// [`by_display`](Self::by_display) probe resolves against.
-    displays: Vec<String>,
-}
-
-impl TermInterner {
-    /// A fresh, empty interner.
-    pub(crate) fn new() -> Self {
-        Self::default()
-    }
-
-    /// Intern `term`, returning its id — minting a new insertion-ordered id if
-    /// its display surface is new, else the existing id (first-seen value wins).
-    pub(crate) fn intern(&mut self, term: &TermValue) -> TermId {
-        let display = term_display(term);
-        let hash = display_hash(&display);
-        // Borrowed-key probe: resolve each candidate id to its display slice in the
-        // side arena — no re-render, no owned-key clone.
-        let displays = &self.displays;
-        if let Some(&id) = self
-            .by_display
-            .find(hash, |&id| displays[id.index()] == display)
-        {
-            return id;
-        }
-        let id = TermId::from_index(self.terms.len());
-        self.terms.push(term.clone());
-        // Move the display bytes into the side arena ONCE (never stored twice).
-        self.displays.push(display);
-        let displays = &self.displays;
-        self.by_display
-            .insert_unique(hash, id, |&id| display_hash(&displays[id.index()]));
-        id
-    }
-
-    /// The id of the term with this [`term_display`] surface, if already
-    /// interned; never inserts.
-    ///
-    /// The display surface IS the interner key (see the module doctrine), so a
-    /// surface-keyed lookup is the primitive — probes that hold a `TermValue`
-    /// pass `&term_display(term)`.
-    pub(crate) fn lookup(&self, display: &str) -> Option<TermId> {
-        let hash = display_hash(display);
-        self.by_display
-            .find(hash, |&id| self.displays[id.index()] == display)
-            .copied()
-    }
-
-    /// The first-seen `TermValue` for `id`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `id` was not minted by this interner — `TermId`s are per-set,
-    /// and resolving a foreign id is a programming error, never a data state.
-    pub(crate) fn resolve(&self, id: TermId) -> &TermValue {
-        self.terms.get(id.index()).unwrap_or_else(|| {
-            panic!(
-                "TermId {id:?} was not minted by this interner (len {}): \
-                 TermIds are per-set handles and must never cross interner boundaries",
-                self.terms.len()
-            )
-        })
-    }
-
-    /// The cached display surface for `id` (same panic contract as [`Self::resolve`]).
-    ///
-    /// Hot joins compare the interned [`TermId`] itself. This cached lexical surface
-    /// is materialized only when a binding or output crosses back to text, avoiding a
-    /// repeated `term_display` call at that boundary.
-    pub(crate) fn display_of(&self, id: TermId) -> &str {
-        self.displays.get(id.index()).unwrap_or_else(|| {
-            panic!(
-                "TermId {id:?} was not minted by this interner (len {}): \
-                 TermIds are per-set handles and must never cross interner boundaries",
-                self.displays.len()
-            )
-        })
-    }
-
-    /// The number of distinct terms interned (test-only introspection).
-    #[cfg(test)]
-    pub(crate) fn len(&self) -> usize {
-        self.terms.len()
     }
 }
 
@@ -400,92 +302,16 @@ impl TypedFactSet {
 mod tests {
     use super::*;
 
-    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-    const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
-
     fn term(iri: &str) -> TermValue {
         TermValue::iri(iri)
     }
 
-    /// A literal built field-by-field so the language tag case is preserved
-    /// exactly as given (the `lang_literal` constructor lowercases it).
-    fn raw_lang_literal(lex: &str, lang: &str) -> TermValue {
-        TermValue::Literal {
-            lexical_form: lex.to_owned(),
-            datatype: RDF_LANG_STRING.to_owned(),
-            language: Some(lang.to_owned()),
-            direction: None,
-        }
-    }
+    // The atomic-term dictionary's own dedup/lookup parity (display-surface collapse,
+    // language-tag case significance, non-inserting lookup) is asserted where the
+    // dictionary lives — `gmeow_term_arena::interner`. What remains here is what this
+    // module owns: insertion order, `TermId` determinism, Skolemization, and quad dedup.
 
-    // ── (1) display-surface dedup byte-parity ─────────────────────────────────
-
-    #[test]
-    fn facts_intern_dedups_on_display_surface() {
-        let mut interner = TermInterner::new();
-
-        // xsd:string and rdf:langString-without-lang both display as `"a"` —
-        // they MUST collapse to one id (historical string-keyed semantics).
-        let plain = TermValue::simple_literal("a");
-        let langless = TermValue::Literal {
-            lexical_form: "a".to_owned(),
-            datatype: RDF_LANG_STRING.to_owned(),
-            language: None,
-            direction: None,
-        };
-        assert_eq!(term_display(&plain), "\"a\"");
-        assert_eq!(term_display(&langless), "\"a\"");
-
-        let id_plain = interner.intern(&plain);
-        let id_langless = interner.intern(&langless);
-        assert_eq!(id_plain, id_langless, "byte-equal surfaces must collapse");
-        assert_eq!(interner.len(), 1);
-
-        // First-seen value wins: the stored term is the xsd:string literal.
-        match interner.resolve(id_plain) {
-            TermValue::Literal { datatype, .. } => assert_eq!(datatype, XSD_STRING),
-            other => panic!("expected Literal, got {other:?}"),
-        }
-
-        // A lang-TAGGED literal displays with its tag and stays distinct.
-        let tagged = TermValue::lang_literal("a", "en");
-        assert_eq!(term_display(&tagged), "\"a\"@en");
-        let id_tagged = interner.intern(&tagged);
-        assert_ne!(id_plain, id_tagged);
-        assert_eq!(interner.len(), 2);
-    }
-
-    #[test]
-    fn facts_lang_tag_case_is_significant() {
-        // term_display preserves the stored language tag verbatim (it never
-        // lowercases), so `"a"@EN` and `"a"@en` are DISTINCT dedup surfaces.
-        let upper = raw_lang_literal("a", "EN");
-        let lower = raw_lang_literal("a", "en");
-        assert_eq!(term_display(&upper), "\"a\"@EN");
-        assert_eq!(term_display(&lower), "\"a\"@en");
-
-        let mut interner = TermInterner::new();
-        let id_upper = interner.intern(&upper);
-        let id_lower = interner.intern(&lower);
-        assert_ne!(id_upper, id_lower, "lang tag case must stay significant");
-        assert_eq!(interner.len(), 2);
-        assert_eq!(interner.display_of(id_upper), "\"a\"@EN");
-        assert_eq!(interner.display_of(id_lower), "\"a\"@en");
-    }
-
-    #[test]
-    fn facts_lookup_never_inserts() {
-        let mut interner = TermInterner::new();
-        let a = term("http://ex/a");
-        let a_display = term_display(&a);
-        assert_eq!(interner.lookup(&a_display), None);
-        assert_eq!(interner.len(), 0, "lookup must not insert");
-        let id = interner.intern(&a);
-        assert_eq!(interner.lookup(&a_display), Some(id));
-        assert_eq!(interner.len(), 1);
-    }
-
-    // ── (2) insertion-order iteration ─────────────────────────────────────────
+    // ── (1) insertion-order iteration ─────────────────────────────────────────
 
     #[test]
     fn facts_iterate_in_insertion_order() {
@@ -530,7 +356,7 @@ mod tests {
         );
     }
 
-    // ── (3) TermId determinism across identical build sequences ──────────────
+    // ── (2) TermId determinism across identical build sequences ──────────────
 
     #[test]
     fn facts_term_ids_deterministic_across_identical_builds() {
@@ -568,7 +394,7 @@ mod tests {
         }
     }
 
-    // ── (4) push_quad Skolemizes blanks via skolem_iri ────────────────────────
+    // ── (3) push_quad Skolemizes blanks via skolem_iri ────────────────────────
 
     #[test]
     fn facts_sha1_hex_matches_python_recipe_shape() {
@@ -611,7 +437,7 @@ mod tests {
         );
     }
 
-    // ── (5) dedup of an identical pushed quad ─────────────────────────────────
+    // ── (4) dedup of an identical pushed quad ─────────────────────────────────
 
     #[test]
     fn facts_push_quad_dedups_identical_quad() {

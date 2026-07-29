@@ -15,6 +15,8 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+        <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
+        <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     gmeow:sliceConsumer "The gmeow-pipeline Rust crate: its loader reads the gmeow:Pipeline / gmeow:PipelineStage individuals as the build DAG, binds each gmeow:stageImpl to a Rust Stage in the STAGE_REGISTRY, validates the graph, and the scheduler runs it single-pass. The build is thereby a first-class ontological citizen (MAXIMAL DOGFOODING); the migrated meta:gate-generator-registry queries gmeow:pipeline-build instead of the retired Python generator list."@x-gmeow-english .

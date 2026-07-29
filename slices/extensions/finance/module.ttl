@@ -36,7 +36,7 @@ gmeow:CryptoWallet
             owl:onProperty gmeow:walletScheme ;
             owl:someValuesFrom gmeow:WalletScheme ;
         ] ;
-    skos:definition "A digital wallet that holds cryptocurrency assets. A subclass of FinancialAccount (it is a financial-existence account) with wallet-specific properties: address(es), scheme, and cryptographic key linkage."@x-gmeow-english ;
+    skos:definition "A digital wallet that holds cryptocurrency assets. A subclass of FinancialAccount (it is a financial-existence account) with wallet-specific properties: address(es), scheme, and cryptographic key linkage. It is the ACCOUNT, not the asset held in it (gmeow:FinancialAsset) and not the key that controls it (gmeow:walletKey)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialAccount
@@ -108,7 +108,7 @@ gmeow:Holding
             owl:onProperty gmeow:holdingAsset ;
             owl:someValuesFrom gmeow:Asset ;
         ] ;
-    skos:definition "A reified relator connecting an agent to a financial asset with a quantity and cost-basis. The thing that is held: agent × asset × quantity × cost-basis × optional period. Promote from a flat accountBalance when cost-basis, period, or provenance must be recorded."@x-gmeow-english ;
+    skos:definition "A reified relator connecting an agent to a financial asset with a quantity and cost-basis. The thing that is held: agent × asset × quantity × cost-basis × optional period. Promote from a flat accountBalance when cost-basis, period, or provenance must be recorded. A Holding is the relator, not the asset itself and never the account it is booked against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Invoice
@@ -132,7 +132,7 @@ gmeow:Invoice
             owl:onProperty gmeow:invoiceRecipient ;
             owl:someValuesFrom gmeow:Agent ;
         ] ;
-    skos:definition "A billing document issued by a seller to a buyer, requesting payment for goods or services rendered. A subclass of Document."@x-gmeow-english ;
+    skos:definition "A billing document issued by a seller to a buyer, requesting payment for goods or services rendered. A subclass of Document: it is the REQUEST for payment, not the payment that discharges it (gmeow:Payment) and not the agreement it bills against (gmeow:Order)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InvoiceStatus
@@ -208,7 +208,7 @@ gmeow:Order
             owl:onProperty gmeow:orderSeller ;
             owl:someValuesFrom gmeow:Agent ;
         ] ;
-    skos:definition "A purchase order or sales order — an agreement between a buyer and a seller for the supply of goods or services at a stated price. A subclass of Agreement."@x-gmeow-english ;
+    skos:definition "A purchase order or sales order — an agreement between a buyer and a seller for the supply of goods or services at a stated price. A subclass of Agreement: it records what was agreed, not what was delivered or billed — the bill is a gmeow:Invoice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:OrderStatus
@@ -226,16 +226,7 @@ gmeow:Payment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Payment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:FinancialTransaction ;
-    skos:definition "A payment event — a financial transaction whose purpose is to discharge an obligation or transfer value. A thin subclass of FinancialTransaction distinguished by the paymentMethod facet."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:PaymentMethod
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "Payment Method"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
+    skos:definition "A payment event — a financial transaction whose purpose is to discharge an obligation or transfer value. A thin subclass of FinancialTransaction distinguished by the paymentMethod facet. It is the value-transfer EVENT, not the obligation it discharges and not the document that requested it (gmeow:Invoice)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Posting
@@ -266,7 +257,7 @@ gmeow:Posting
             owl:onProperty gmeow:postingDirection ;
             owl:someValuesFrom gmeow:PostingDirection ;
         ] ;
-    skos:definition "A reified relator connecting a journal entry to a ledger account with a monetary amount and a posting direction (debit or credit). The atomic unit of double-entry bookkeeping."@x-gmeow-english ;
+    skos:definition "A reified relator connecting a journal entry to a ledger account with a monetary amount and a posting direction (debit or credit). The atomic unit of double-entry bookkeeping. A posting is one leg, never a whole entry: it does not balance on its own, and the balancing obligation lives on the journal entry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PostingDirection
@@ -311,7 +302,7 @@ gmeow:accountBalance
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account balance"@x-gmeow-english ;
     rdfs:range gmeow:MonetaryAmount ;
-    skos:definition "The current balance of a financial account, expressed as a MonetaryAmount. Non-functional: a multi-currency account has several balances, and competing standpoint-indexed balance claims coexist (Principle 9)."@x-gmeow-english ;
+    skos:definition "The current balance of a financial account, expressed as a MonetaryAmount. Non-functional: a multi-currency account has several balances, and competing standpoint-indexed balance claims coexist (Principle 9). It is a reported balance, not a derived roll-up of postings — that computation is solver work."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountCurrency
@@ -320,7 +311,7 @@ gmeow:accountCurrency
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account currency"@x-gmeow-english ;
     rdfs:range gmeow:ReferenceFrame ;
-    skos:definition "The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts)."@x-gmeow-english ;
+    skos:definition "The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts), so it is not the currency of any one balance — that frame rides on the gmeow:MonetaryAmount."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountHolder
@@ -329,7 +320,7 @@ gmeow:accountHolder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account holder"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders."@x-gmeow-english ;
+    skos:definition "Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders, and none of them is privileged — the property does not distinguish a primary holder."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountNumber
@@ -347,7 +338,7 @@ gmeow:accountType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account type"@x-gmeow-english ;
     rdfs:range gmeow:FinancialAccountType ;
-    skos:definition "The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts."@x-gmeow-english ;
+    skos:definition "The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts rather than one account with a list."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountTypeBank
@@ -384,7 +375,7 @@ gmeow:assetIdentifier
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "asset identifier"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "An identifier for the financial asset — FIGI, ISIN, ticker symbol, or other instrument identifier. Non-functional: different sources may report differing identifiers."@x-gmeow-english ;
+    skos:definition "An identifier for the financial asset — FIGI, ISIN, ticker symbol, or other instrument identifier. Non-functional: different sources may report differing identifiers, so it is never an identity criterion — two assets are not the same because an identifier matches."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:assetType
@@ -393,7 +384,7 @@ gmeow:assetType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "asset type"@x-gmeow-english ;
     rdfs:range gmeow:AssetType ;
-    skos:definition "The kind of financial asset — one of the open AssetType values (stock, bond, cryptocurrency, real estate, commodity). Functional: an asset has one canonical type."@x-gmeow-english ;
+    skos:definition "The kind of financial asset — one of the open AssetType values (stock, bond, cryptocurrency, real estate, commodity). Functional: an asset has one canonical type, and the type is a VALUE, never a subclass of gmeow:FinancialAsset."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:assetTypeBond
@@ -437,7 +428,7 @@ gmeow:bic
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "BIC"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account."@x-gmeow-english ;
+    skos:definition "The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account. It identifies the INSTITUTION, not the account — the account identifier is gmeow:iban."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAgent
@@ -446,7 +437,7 @@ gmeow:holdingAgent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding agent"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent that holds the asset. Functional: a holding is held by exactly one agent."@x-gmeow-english ;
+    skos:definition "The agent that holds the asset. Functional: a holding is held by exactly one agent; co-ownership is several holdings, not one holding with several agents."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAsset
@@ -455,7 +446,7 @@ gmeow:holdingAsset
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding asset"@x-gmeow-english ;
     rdfs:range gmeow:Asset ;
-    skos:definition "The financial asset that is held. Functional: a holding is of exactly one asset."@x-gmeow-english ;
+    skos:definition "The financial asset that is held. Functional: a holding is of exactly one asset; it points at the asset, never at the account the asset sits in."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingCostBasis
@@ -464,7 +455,7 @@ gmeow:holdingCostBasis
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding cost basis"@x-gmeow-english ;
     rdfs:range gmeow:MonetaryAmount ;
-    skos:definition "The cost basis of the holding — the original monetary amount paid to acquire the asset. Functional: a holding has one canonical cost basis (disputed values are standpoint-indexed claims)."@x-gmeow-english ;
+    skos:definition "The cost basis of the holding — the original monetary amount paid to acquire the asset. Functional: a holding has one canonical cost basis (disputed values are standpoint-indexed claims). It is the acquisition cost, not the current market value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingPeriod
@@ -473,7 +464,7 @@ gmeow:holdingPeriod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding period"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    skos:definition "The time interval over which the holding is valid. Optional: omit for point-in-time holdings."@x-gmeow-english ;
+    skos:definition "The time interval over which the holding is valid. Optional: omit for point-in-time holdings. It is the holding's own validity window, not the asset's lifetime."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingQuantity
@@ -482,7 +473,7 @@ gmeow:holdingQuantity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding quantity"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements)."@x-gmeow-english ;
+    skos:definition "The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements). It is a count of asset units and is not a monetary amount — value is gmeow:holdingCostBasis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:iban
@@ -491,7 +482,7 @@ gmeow:iban
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "IBAN"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The International Bank Account Number (ISO 13616) of a bank account."@x-gmeow-english ;
+    skos:definition "The International Bank Account Number (ISO 13616) of a bank account. It identifies the ACCOUNT, not the institution holding it — that is gmeow:bic."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceAmount
@@ -500,7 +491,7 @@ gmeow:invoiceAmount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice amount"@x-gmeow-english ;
     rdfs:range gmeow:MonetaryAmount ;
-    skos:definition "The total monetary amount requested by the invoice, expressed as a MonetaryAmount. Functional: an invoice has one canonical total amount."@x-gmeow-english ;
+    skos:definition "The total monetary amount requested by the invoice, expressed as a MonetaryAmount. Functional: an invoice has one canonical total amount — it is the amount REQUESTED, never the amount actually paid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceDueDate
@@ -518,7 +509,7 @@ gmeow:invoiceIssuer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice issuer"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent that issued the invoice. Non-functional: a jointly issued invoice has several co-equal issuers."@x-gmeow-english ;
+    skos:definition "The agent that issued the invoice. Non-functional: a jointly issued invoice has several co-equal issuers. It is not the party being billed — that is gmeow:invoiceRecipient."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceRecipient
@@ -527,7 +518,7 @@ gmeow:invoiceRecipient
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice recipient"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent that is being billed. Non-functional: a jointly billed party has several recipients."@x-gmeow-english ;
+    skos:definition "The agent that is being billed. Non-functional: a jointly billed party has several recipients. Being billed is not the same as paying: the payer is recorded on the gmeow:Payment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceStatus
@@ -536,7 +527,7 @@ gmeow:invoiceStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice status"@x-gmeow-english ;
     rdfs:range gmeow:InvoiceStatus ;
-    skos:definition "The status of an invoice, drawn from the open InvoiceStatus value vocabulary. Non-functional: an invoice may progress through several statuses over time."@x-gmeow-english ;
+    skos:definition "The status of an invoice, drawn from the open InvoiceStatus value vocabulary. Non-functional: an invoice may progress through several statuses over time; a status is a VALUE, never a subclass of gmeow:Invoice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceStatusCancelled
@@ -581,7 +572,7 @@ gmeow:journalEntryPostings
     rdfs:label "journal entry postings"@x-gmeow-english ;
     rdfs:range gmeow:Posting ;
     owl:inverseOf gmeow:postingJournalEntry ;
-    skos:definition "The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced)."@x-gmeow-english ;
+    skos:definition "The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced) — a single-posting entry cannot balance and is not a journal entry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountCurrency
@@ -590,7 +581,7 @@ gmeow:ledgerAccountCurrency
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account currency"@x-gmeow-english ;
     rdfs:range gmeow:ReferenceFrame ;
-    skos:definition "The currency(ies) in which the ledger account tracks balances. Non-functional: a single logical ledger account may track several currency buckets (multi-currency bookkeeping). The functional constraint moves to individual Posting relators."@x-gmeow-english ;
+    skos:definition "The currency(ies) in which the ledger account tracks balances. Non-functional: a single logical ledger account may track several currency buckets (multi-currency bookkeeping). The functional constraint moves to individual Posting relators, so this property does not fix the currency of any one posting."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountHolder
@@ -599,7 +590,7 @@ gmeow:ledgerAccountHolder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account holder"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders."@x-gmeow-english ;
+    skos:definition "The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders. It is not the account's owner-of-record in any legal sense — the ledger is a bookkeeping artifact, not a title register."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountType
@@ -608,7 +599,7 @@ gmeow:ledgerAccountType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account type"@x-gmeow-english ;
     rdfs:range gmeow:LedgerAccountType ;
-    skos:definition "The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type."@x-gmeow-english ;
+    skos:definition "The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type; it is not gmeow:accountType, which classifies a gmeow:FinancialAccount rather than a bookkeeping account."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountTypeAsset
@@ -652,7 +643,7 @@ gmeow:orderAmount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order amount"@x-gmeow-english ;
     rdfs:range gmeow:MonetaryAmount ;
-    skos:definition "The total monetary amount of the order, expressed as a MonetaryAmount. Functional: an order has one canonical total amount."@x-gmeow-english ;
+    skos:definition "The total monetary amount of the order, expressed as a MonetaryAmount. Functional: an order has one canonical total amount — the agreed price, not the amount invoiced or paid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderBuyer
@@ -661,7 +652,7 @@ gmeow:orderBuyer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order buyer"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent placing the order. Non-functional: a joint purchase has several buyers."@x-gmeow-english ;
+    skos:definition "The agent placing the order. Non-functional: a joint purchase has several buyers, and not one of them is privileged as the principal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderSeller
@@ -670,7 +661,7 @@ gmeow:orderSeller
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order seller"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent fulfilling the order. Non-functional: a jointly fulfilled order has several sellers."@x-gmeow-english ;
+    skos:definition "The agent fulfilling the order. Non-functional: a jointly fulfilled order has several sellers. It names who supplies, not who is paid — payment routing is recorded on the gmeow:Payment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderStatus
@@ -679,7 +670,7 @@ gmeow:orderStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order status"@x-gmeow-english ;
     rdfs:range gmeow:OrderStatus ;
-    skos:definition "The status of an order, drawn from the open OrderStatus value vocabulary. Non-functional: an order may progress through several statuses."@x-gmeow-english ;
+    skos:definition "The status of an order, drawn from the open OrderStatus value vocabulary. Non-functional: an order may progress through several statuses; a status is a VALUE and never a subclass of gmeow:Order."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderStatusCancelled
@@ -723,43 +714,8 @@ gmeow:paymentMethod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "payment method"@x-gmeow-english ;
     rdfs:range gmeow:PaymentMethod ;
-    skos:definition "The method of payment — cash, cheque, credit card, bank transfer, cryptocurrency, etc. Non-functional: a single payment may involve several methods (e.g. split payment)."@x-gmeow-english ;
+    skos:definition "The method of payment — cash, cheque, credit card, bank transfer, cryptocurrency, etc. Non-functional: a single payment may involve several methods (e.g. split payment). It names HOW value moved, not the account it moved from."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:paymentMethodBankTransfer
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "bank transfer"@x-gmeow-english ;
-    skos:definition "Payment made by bank transfer or wire."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCash
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cash"@x-gmeow-english ;
-    skos:definition "Payment made in physical currency."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCheque
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cheque"@x-gmeow-english ;
-    skos:definition "Payment made by cheque."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCreditCard
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "credit card"@x-gmeow-english ;
-    skos:definition "Payment made by credit card."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCrypto
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cryptocurrency"@x-gmeow-english ;
-    skos:definition "Payment made in cryptocurrency."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:postingAccount
     a owl:ObjectProperty ;
@@ -767,7 +723,7 @@ gmeow:postingAccount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting account"@x-gmeow-english ;
     rdfs:range gmeow:LedgerAccount ;
-    skos:definition "The ledger account this posting affects. Functional: a posting affects exactly one ledger account."@x-gmeow-english ;
+    skos:definition "The ledger account this posting affects. Functional: a posting affects exactly one ledger account; a posting touching two accounts is not one posting but two."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingAmount
@@ -776,7 +732,7 @@ gmeow:postingAmount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting amount"@x-gmeow-english ;
     rdfs:range gmeow:MonetaryAmount ;
-    skos:definition "The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount."@x-gmeow-english ;
+    skos:definition "The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount, and it is unsigned — direction is carried by gmeow:postingDirection, never by a negative value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingDirection
@@ -785,7 +741,7 @@ gmeow:postingDirection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting direction"@x-gmeow-english ;
     rdfs:range gmeow:PostingDirection ;
-    skos:definition "The direction of this posting — debit or credit. Functional: a posting is exactly one direction."@x-gmeow-english ;
+    skos:definition "The direction of this posting — debit or credit. Functional: a posting is exactly one direction; direction is not a sign on the amount and not a statement about whether the account increases."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingDirectionCredit
@@ -809,7 +765,7 @@ gmeow:postingJournalEntry
     rdfs:label "posting journal entry"@x-gmeow-english ;
     rdfs:range gmeow:JournalEntry ;
     owl:inverseOf gmeow:journalEntryPostings ;
-    skos:definition "The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry."@x-gmeow-english ;
+    skos:definition "The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry and is never shared between entries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:roleIntermediary
@@ -848,7 +804,7 @@ gmeow:transactionStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction status"@x-gmeow-english ;
     rdfs:range gmeow:TransactionStatus ;
-    skos:definition "The status(es) of a financial transaction, drawn from the open TransactionStatus value vocabulary. Non-functional: a transaction may progress through several statuses over time, recorded as co-equal standpoint-indexed claims."@x-gmeow-english ;
+    skos:definition "The status(es) of a financial transaction, drawn from the open TransactionStatus value vocabulary. Non-functional: a transaction may progress through several statuses over time, recorded as co-equal standpoint-indexed claims — the graph does not pick a current status."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transactionStatusCompleted
@@ -885,7 +841,7 @@ gmeow:transactionType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction type"@x-gmeow-english ;
     rdfs:range gmeow:TransactionType ;
-    skos:definition "The kind(s) of a financial transaction, drawn from the open TransactionType value vocabulary. Non-functional: a transaction may carry several types, and competing standpoint-indexed type claims coexist."@x-gmeow-english ;
+    skos:definition "The kind(s) of a financial transaction, drawn from the open TransactionType value vocabulary. Non-functional: a transaction may carry several types, and competing standpoint-indexed type claims coexist; a type is a VALUE, never a subclass of gmeow:FinancialTransaction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transactionTypeDeposit
@@ -943,7 +899,7 @@ gmeow:walletAddress
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet address"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "A public address of the crypto wallet. Non-functional: a single wallet may have multiple addresses (e.g. HD wallet derivation paths)."@x-gmeow-english ;
+    skos:definition "A public address of the crypto wallet. Non-functional: a single wallet may have multiple addresses (e.g. HD wallet derivation paths), so an address is not a wallet identity criterion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletKey
@@ -952,7 +908,7 @@ gmeow:walletKey
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet key"@x-gmeow-english ;
     rdfs:range gmeow:CryptographicKey ;
-    skos:definition "The cryptographic key that controls the wallet. Non-functional: a wallet may be controlled by several keys (multi-sig) or the key may rotate over time."@x-gmeow-english ;
+    skos:definition "The cryptographic key that controls the wallet. Non-functional: a wallet may be controlled by several keys (multi-sig) or the key may rotate over time. It links to the key's identity, never to secret key material — private keys are not GMEOW content."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletScheme
@@ -961,7 +917,7 @@ gmeow:walletScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet scheme"@x-gmeow-english ;
     rdfs:range gmeow:WalletScheme ;
-    skos:definition "The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets)."@x-gmeow-english ;
+    skos:definition "The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets, not one wallet with a list)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletSchemeBTC
@@ -1234,3 +1190,240 @@ gmeow:JournalEntryBalanceConstraint
     logic:severity "Violation" ;
     logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
     logic:formalizes gmeow:JournalEntryBalancedShape .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:accountTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "accountType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:accountType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:accountType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:accountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:accountType and nothing else. It is not a definition of gmeow:accountType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assetTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "assetType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:assetType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assetType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:assetType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assetType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assetType and nothing else. It is not a definition of gmeow:assetType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:holdingAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:holdingAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:holdingAgent and nothing else. It is not a definition of gmeow:holdingAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:holdingAssetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingAsset is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingAsset ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingAsset ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:holdingAsset names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAsset, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:holdingAsset and nothing else. It is not a definition of gmeow:holdingAsset (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:holdingCostBasisFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingCostBasis is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingCostBasis is functional: a holding has exactly one canonical cost basis — the single monetary amount originally paid to acquire the asset, with disputed figures kept as separate standpoint-indexed claims rather than extra values."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingCostBasis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingCostBasis ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:holdingCostBasis names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingCostBasis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:holdingCostBasis and nothing else. It is not a definition of gmeow:holdingCostBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:holdingQuantityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingQuantity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingQuantity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingQuantity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:holdingQuantity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingQuantity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:holdingQuantity and nothing else. It is not a definition of gmeow:holdingQuantity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invoiceAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "invoiceAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:invoiceAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:invoiceAmount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:invoiceAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:invoiceAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:invoiceAmount and nothing else. It is not a definition of gmeow:invoiceAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ledgerAccountTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "ledgerAccountType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ledgerAccountType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ledgerAccountType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ledgerAccountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ledgerAccountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ledgerAccountType and nothing else. It is not a definition of gmeow:ledgerAccountType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orderAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "orderAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:orderAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:orderAmount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:orderAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:orderAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:orderAmount and nothing else. It is not a definition of gmeow:orderAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:postingAccountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingAccount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:postingAccount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingAccount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postingAccount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAccount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postingAccount and nothing else. It is not a definition of gmeow:postingAccount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:postingAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:postingAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingAmount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postingAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postingAmount and nothing else. It is not a definition of gmeow:postingAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:postingDirectionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingDirection is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingDirection is functional: a posting is exactly one direction — a single debit or credit, never both, as the atomic unit of double-entry bookkeeping requires."@x-gmeow-english ;
+    logic:characterizes gmeow:postingDirection ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingDirection ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postingDirection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingDirection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postingDirection and nothing else. It is not a definition of gmeow:postingDirection (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:postingJournalEntryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingJournalEntry is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:postingJournalEntry ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingJournalEntry ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postingJournalEntry names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingJournalEntry, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postingJournalEntry and nothing else. It is not a definition of gmeow:postingJournalEntry (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transactionAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "transactionAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transactionAmount is functional: a financial transaction occurrence has exactly one canonical amount — the single MonetaryAmount of the money moved, with disputed figures kept as separate standpoint-indexed statements rather than extra values on the same transaction."@x-gmeow-english ;
+    logic:characterizes gmeow:transactionAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transactionAmount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transactionAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transactionAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transactionAmount and nothing else. It is not a definition of gmeow:transactionAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:walletSchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "walletScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:walletScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:walletScheme ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:walletScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:walletScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:walletScheme and nothing else. It is not a definition of gmeow:walletScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -42,7 +42,7 @@ use support::flagship_discharge::{
 
 /// The `lang:` grounding namespace (byte-identical to every `lang:` producer). Used for the
 /// SCANNED failure classes (`lang:<Class>`), which stay slice-namespaced.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// The `lang:` slice's discharge identity: its base IRI, short prefix, on-disk root, and the
 /// acceptance-manifest path relative to that root.

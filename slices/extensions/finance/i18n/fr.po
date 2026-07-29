@@ -1,0 +1,434 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: finance, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountType is functional"
+msgstr "accountType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:accountType est fonctionnelle : un compte financier possède exactement un type canonique — un unique FinancialAccountType (bancaire, crédit, investissement, portefeuille), car un compte à plusieurs types est modélisé comme plusieurs comptes. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assetType is functional"
+msgstr "assetType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:assetType est fonctionnelle : un actif financier possède exactement un type canonique — un unique AssetType (action, obligation, cryptomonnaie, immobilier, matière première). Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingAgent is functional"
+msgstr "holdingAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingAgent est fonctionnelle : un avoir est détenu par exactement un agent — la partie unique que le relateur d'avoir relie à son actif, sa quantité et sa base de coût. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingAsset is functional"
+msgstr "holdingAsset est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingAsset est fonctionnelle : un avoir porte sur exactement un actif — l'instrument financier unique que le relateur d'avoir relie à son agent détenteur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingCostBasis is functional"
+msgstr "holdingCostBasis est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingCostBasis is functional: a holding has exactly one canonical cost basis — the single monetary amount originally paid to acquire the asset, with disputed figures kept as separate standpoint-indexed claims rather than extra values."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingCostBasis est fonctionnelle : un avoir possède exactement une base de coût canonique — le montant monétaire unique initialement payé pour acquérir l'actif, les chiffres contestés étant conservés sous forme de revendications distinctes indexées par point de vue plutôt que de valeurs supplémentaires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingQuantity is functional"
+msgstr "holdingQuantity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingQuantity est fonctionnelle : un avoir possède exactement une quantité — le montant unique xsd:decimal de l'actif détenu à un instant donné, les chiffres concurrents étant conservés sous forme d'énoncés distincts indexés par point de vue. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invoiceAmount is functional"
+msgstr "invoiceAmount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:invoiceAmount est fonctionnelle : une facture possède exactement un montant total canonique — l'unique MonetaryAmount qu'elle demande en paiement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ledgerAccountType is functional"
+msgstr "ledgerAccountType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:ledgerAccountType est fonctionnelle : un compte du grand livre possède exactement un type canonique — un unique LedgerAccountType (actif, passif, capitaux propres, produit, charge) fixant son rôle dans l'équation comptable. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orderAmount is functional"
+msgstr "orderAmount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:orderAmount est fonctionnelle : une commande a exactement un montant total canonique — l'unique MonetaryAmount convenu entre l'acheteur et le vendeur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingAccount is functional"
+msgstr "postingAccount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingAccount est fonctionnelle : une écriture affecte exactement un compte du grand livre — l'unique compte comptable que son montant débite ou crédite. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingAmount is functional"
+msgstr "postingAmount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingAmount est fonctionnelle : une écriture a exactement un montant — l'unique MonetaryAmount, dans un cadre monétaire explicite unique, qu'elle débite ou crédite sur son compte du grand livre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingDirection is functional"
+msgstr "postingDirection est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingDirection is functional: a posting is exactly one direction — a single debit or credit, never both, as the atomic unit of double-entry bookkeeping requires."
+msgstr "Affirme sur le porteur canonique que gmeow:postingDirection est fonctionnelle : une écriture est exactement une direction — un seul débit ou crédit, jamais les deux, comme l'exige l'unité atomique de la comptabilité en partie double."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingJournalEntry is functional"
+msgstr "postingJournalEntry est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingJournalEntry est fonctionnelle : une écriture appartient à exactement une pièce comptable — l'unique événement équilibré en partie double dont elle est une ligne. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transactionAmount is functional"
+msgstr "transactionAmount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transactionAmount is functional: a financial transaction occurrence has exactly one canonical amount — the single MonetaryAmount of the money moved, with disputed figures kept as separate standpoint-indexed statements rather than extra values on the same transaction."
+msgstr "Affirme sur le porteur canonique que gmeow:transactionAmount est fonctionnelle : une occurrence de transaction financière possède exactement un montant canonique — le MonetaryAmount unique de l'argent transféré, les chiffres contestés étant conservés comme des énoncés distincts indexés par point de vue plutôt que comme des valeurs supplémentaires sur la même transaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "walletScheme is functional"
+msgstr "walletScheme est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:walletScheme est fonctionnelle : un portefeuille crypto opère sur exactement un schéma de chaîne de blocs — un unique WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), un contenant multi-schémas étant modélisé comme plusieurs portefeuilles. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:accountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:accountType nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:accountType, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."
+msgstr "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:assetType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:assetType nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assetType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:assetType, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."
+msgstr "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:holdingAgent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:holdingAgent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."
+msgstr "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingAsset names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:holdingAsset nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAsset, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:holdingAsset, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."
+msgstr "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingCostBasis names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:holdingCostBasis nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingCostBasis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:holdingCostBasis, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."
+msgstr "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingQuantity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:holdingQuantity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingQuantity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:holdingQuantity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."
+msgstr "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:invoiceAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:invoiceAmount nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:invoiceAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:invoiceAmount, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."
+msgstr "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ledgerAccountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:ledgerAccountType nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ledgerAccountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:ledgerAccountType, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."
+msgstr "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:orderAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:orderAmount nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:orderAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:orderAmount, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."
+msgstr "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingAccount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:postingAccount nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAccount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:postingAccount, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."
+msgstr "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:postingAmount nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:postingAmount, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."
+msgstr "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingDirection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:postingDirection nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingDirection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:postingDirection, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."
+msgstr "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingJournalEntry names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:postingJournalEntry nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingJournalEntry, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:postingJournalEntry, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."
+msgstr "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:transactionAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:transactionAmount nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transactionAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:transactionAmount, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."
+msgstr "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:walletScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:walletScheme nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:walletScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:walletScheme, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."
+msgstr "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:accountType and nothing else. It is not a definition of gmeow:accountType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:accountType, et rien d'autre. Ce n'est pas une définition de gmeow:accountType (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:assetType and nothing else. It is not a definition of gmeow:assetType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:assetType, et rien d'autre. Ce n'est pas une définition de gmeow:assetType (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:holdingAgent and nothing else. It is not a definition of gmeow:holdingAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:holdingAgent, et rien d'autre. Ce n'est pas une définition de gmeow:holdingAgent (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:holdingAsset and nothing else. It is not a definition of gmeow:holdingAsset (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:holdingAsset, et rien d'autre. Ce n'est pas une définition de gmeow:holdingAsset (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:holdingCostBasis and nothing else. It is not a definition of gmeow:holdingCostBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:holdingCostBasis, et rien d'autre. Ce n'est pas une définition de gmeow:holdingCostBasis (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:holdingQuantity and nothing else. It is not a definition of gmeow:holdingQuantity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:holdingQuantity, et rien d'autre. Ce n'est pas une définition de gmeow:holdingQuantity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:invoiceAmount and nothing else. It is not a definition of gmeow:invoiceAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:invoiceAmount, et rien d'autre. Ce n'est pas une définition de gmeow:invoiceAmount (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ledgerAccountType and nothing else. It is not a definition of gmeow:ledgerAccountType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:ledgerAccountType, et rien d'autre. Ce n'est pas une définition de gmeow:ledgerAccountType (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:orderAmount and nothing else. It is not a definition of gmeow:orderAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:orderAmount, et rien d'autre. Ce n'est pas une définition de gmeow:orderAmount (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:postingAccount and nothing else. It is not a definition of gmeow:postingAccount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:postingAccount, et rien d'autre. Ce n'est pas une définition de gmeow:postingAccount (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:postingAmount and nothing else. It is not a definition of gmeow:postingAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:postingAmount, et rien d'autre. Ce n'est pas une définition de gmeow:postingAmount (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:postingDirection and nothing else. It is not a definition of gmeow:postingDirection (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:postingDirection, et rien d'autre. Ce n'est pas une définition de gmeow:postingDirection (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:postingJournalEntry and nothing else. It is not a definition of gmeow:postingJournalEntry (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:postingJournalEntry, et rien d'autre. Ce n'est pas une définition de gmeow:postingJournalEntry (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:transactionAmount and nothing else. It is not a definition of gmeow:transactionAmount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:transactionAmount, et rien d'autre. Ce n'est pas une définition de gmeow:transactionAmount (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:walletScheme and nothing else. It is not a definition of gmeow:walletScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:walletScheme, et rien d'autre. Ce n'est pas une définition de gmeow:walletScheme (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

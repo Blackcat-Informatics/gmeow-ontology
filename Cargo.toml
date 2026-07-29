@@ -64,6 +64,17 @@ members = [
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
     # deps. gmeow-logic depends on it.
     "crates/logic-compile",
+    # THE one structured-term representation: the persistent hash-consed, binder-aware,
+    # content-addressed term arena (ContentKey / TermArena / InterningStats), relocated
+    # out of the reasoning runtime so a front-end can intern terms without linking the
+    # native DL engine. Reasoner-free and wasm-clean; gmeow-logic and
+    # gmeow-logic-compile depend on it.
+    "crates/term-arena",
+    # The executable math: ingestion front-ends: R scripts, ONNX graphs, and TSTP proof
+    # derivations parsed into math: structures. It sits BESIDE crates/math rather than
+    # inside it because the in-bundle producers are pinned pure and no-disk-read, so a
+    # file-reading lifter cannot live among them — the same split as affect-ingest/affect.
+    "crates/math-lift",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
     # Reusable exact-rational geometry: an inner-product-space over a metric Gram
@@ -82,6 +93,12 @@ members = [
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
     "crates/music",
+    # The registered ontology term namespaces (gmeow/logic/lang/math) and the ONE
+    # purrdf SliceVocab / OntologyProfile built from them. Depends on `purrdf`
+    # alone so every consumer — validate, docs, slice-brief, pipeline, dev-cli —
+    # can sit above it; a namespace GMEOW mints into but never declares here is
+    # invisible to purrdf's ownership analyzer.
+    "crates/ns",
     # DAG-driven single-pass build executor (#861): typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
@@ -144,6 +161,12 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
+# Pinned to `rust-v0.8.5`: it carries the multi-dictionary GTS writer (many named
+# in-band dictionaries, per-frame selection, `zstd-rsyncable` dictionary priming, an
+# explicit training seed and a declared catalog `level`) that the medium axis consumes,
+# AND supersedes the rev pin that previously carried the ownership analyzer's
+# term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term) — that commit
+# is an ancestor of this tag, so a tag pin is once again correct.
 purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.8.5" }
 
 [workspace.package]

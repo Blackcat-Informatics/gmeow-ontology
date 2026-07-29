@@ -1566,6 +1566,7 @@ dependencies = [
  "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-math-lift",
  "gmeow-music",
  "gmeow-pipeline",
  "gmeow-slice-brief",
@@ -1605,6 +1606,7 @@ dependencies = [
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "purrdf",
  "serde_json",
 ]
@@ -1630,6 +1632,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
+ "gmeow-ns",
  "gmeow-pipeline",
  "gmeow-slice-quality",
  "gmeow-validate",
@@ -1652,6 +1655,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "gmeow-validate",
  "insta",
  "minijinja",
@@ -1726,6 +1730,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-license",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "insta",
  "proptest",
  "purrdf",
@@ -1764,6 +1769,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-term-arena",
  "hashbrown 0.15.5",
  "iai-callgrind",
  "insta",
@@ -1786,6 +1792,8 @@ version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-errors",
+ "gmeow-ns",
+ "gmeow-term-arena",
  "insta",
  "purrdf",
  "roxmltree",
@@ -1818,6 +1826,16 @@ version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
+ "gmeow-math-lift",
+ "purrdf",
+]
+
+[[package]]
+name = "gmeow-math-lift"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-term-arena",
  "purrdf",
 ]
 
@@ -1829,6 +1847,13 @@ dependencies = [
  "gmeow-gts-profile",
  "purrdf",
  "roxmltree",
+]
+
+[[package]]
+name = "gmeow-ns"
+version = "0.2.0"
+dependencies = [
+ "purrdf",
 ]
 
 [[package]]
@@ -1854,6 +1879,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-math",
  "gmeow-music",
+ "gmeow-ns",
  "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-slicetest",
@@ -1889,6 +1915,7 @@ dependencies = [
  "gmeow-docs",
  "gmeow-errors",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "gmeow-slice-quality",
  "purrdf",
  "serde",
@@ -1906,6 +1933,7 @@ dependencies = [
  "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "gmeow-validate",
  "insta",
  "pretty_assertions",
@@ -1924,8 +1952,19 @@ dependencies = [
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-ns",
  "gmeow-validate",
  "purrdf",
+]
+
+[[package]]
+name = "gmeow-term-arena"
+version = "0.2.0"
+dependencies = [
+ "foldhash 0.1.5",
+ "hashbrown 0.15.5",
+ "purrdf",
+ "smallvec",
 ]
 
 [[package]]
@@ -1943,6 +1982,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-ns",
  "iai-callgrind",
  "insta",
  "jsonschema",

@@ -284,6 +284,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: AffectCommands,
     },
+    /// `math:` ingestion bridges: lift a REAL external mathematical artifact into the
+    /// shipped `math:` codomain.
+    Math {
+        #[command(subcommand)]
+        command: MathCommands,
+    },
     /// Conjecture-and-refutation tools over the `logic:` engine.
     Conjecture {
         #[command(subcommand)]
@@ -1091,6 +1097,74 @@ pub enum AffectCommands {
     },
 }
 
+/// The `gmeow math` nested subcommands (native `gmeow_math_lift` ingestion bridges).
+///
+/// Each leaf is one of the three shipped `math:` ingestion bridges. Every one reads a REAL
+/// external artifact — an R script, an `.onnx` export, a TSTP derivation — and emits the
+/// `math:IngestRun` it produced together with the structured codomain that run generated:
+/// the run's four mandatory frame edges (`math:parseSource`, `logic:instantiatesSchema`,
+/// `logic:instantiatesPlan`, `math:ingestCorrespondence`), the `logic:Correspondence`
+/// carrying the lift's law spine, and every codomain node linked back by
+/// `gmeow:wasGeneratedBy`.
+///
+/// There is no degraded path and no partial lift. An artifact the bridge cannot FULLY
+/// structure emits no triples at all and fails with a typed `math.lift.*` diagnostic — a
+/// string-valued placeholder for an expression the bridge could not read would be a lie
+/// about what crossed the bridge.
+#[derive(Debug, Subcommand)]
+pub enum MathCommands {
+    /// Lift an R model/statistics script into `math:` structures: `math:ModelFormula` over
+    /// indexed `math:ArgumentSlot`s, `math:FittedModel` (with both its formula and its
+    /// `math:fittedToData` dataset), `math:DatasetMatrix` BY REFERENCE, `math:Distribution`,
+    /// `math:Estimate`, `math:Residual`, and `math:ApplicationExpression`; general
+    /// computation and control flow route to `logic:` via `math:compilesToLogicFormula`.
+    ///
+    /// Identical normalized subexpressions intern to ONE node, so the fact count grows with
+    /// distinct structure rather than textual repetition. A syntactically malformed script,
+    /// or one whose content carries no statistical structure at all, is a hard failure.
+    #[command(name = "lift-r")]
+    LiftR {
+        /// The R source file; `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Lift an ONNX model graph into `math:` structures: a `math:TensorComputationGraph`
+    /// over its `math:computationNode`s, each node's operator grounded in the model's
+    /// DECLARED opset, and its weight tensors held by reference.
+    ///
+    /// Weight PAYLOADS are never inlined (the blob-by-reference doctrine), so the lift is a
+    /// lossy lens over a CRISP source. A byte stream that is not a well-formed protobuf
+    /// `ModelProto`, or a model with no graph, no computation node, or no declared opset, is
+    /// a hard failure.
+    #[command(name = "lift-onnx")]
+    LiftOnnx {
+        /// The `.onnx` model file (BINARY protobuf); `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Lift a TSTP derivation (a proof dependency DAG) into the `math:` proof layer:
+    /// `math:ProofStep`s and `math:Axiom` leaves over their parent edges, each step's
+    /// inference rule, and the derivation's conclusion expression.
+    ///
+    /// This is the one bridge that claims a `logic:SectionRetraction` /
+    /// `logic:ExactPreservation` rung — the derivation reconstructs from the lifted graph and
+    /// its retained witness alone. That claim is what makes its refusals mandatory: any TSTP
+    /// construct the reader does not structure is a hard failure rather than a silently
+    /// dropped field, because dropping one would make the section claim false.
+    #[command(name = "lift-proof")]
+    LiftProof {
+        /// The TSTP derivation file; `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+}
+
 /// The `gmeow music` nested subcommands (native `gmeow_music` engine).
 #[derive(Debug, Subcommand)]
 pub enum MusicCommands {
@@ -1230,6 +1304,7 @@ pub fn run() -> i32 {
         Commands::Gts { args } => passthrough::gts(reporter, &args),
         Commands::Music { command } => passthrough::music(reporter, &command),
         Commands::Affect { command } => passthrough::affect(reporter, &command),
+        Commands::Math { command } => passthrough::math(reporter, &command),
         Commands::Conjecture { command } => match command {
             ConjectureCommands::Test {
                 formula,

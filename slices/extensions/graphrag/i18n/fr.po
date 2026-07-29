@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: graphrag, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexAlgorithm is functional"
+msgstr "indexAlgorithm est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:indexAlgorithm est fonctionnelle : un index vectoriel est construit avec exactement une structure de plus proches voisins approximatifs, un engagement unique pris au moment de la construction fixant la manière dont cet index est interrogé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipSource is functional"
+msgstr "relationshipSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipSource est fonctionnelle : une relation extraite possède exactement une description d'entité à son origine, l'unique point d'extrémité source de l'arête dirigée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipTarget is functional"
+msgstr "relationshipTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipTarget est fonctionnelle : une relation extraite possède exactement une description d'entité à sa tête, l'unique point d'extrémité cible de l'arête dirigée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summarizesCommunity is functional"
+msgstr "summarizesCommunity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:summarizesCommunity est fonctionnelle: un résumé de communauté condense exactement une communauté, le seul groupe dont les membres et fragments ont servi à générer le résumé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:indexAlgorithm names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:indexAlgorithm nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexAlgorithm, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:indexAlgorithm, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."
+msgstr "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:relationshipSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:relationshipSource nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:relationshipSource, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."
+msgstr "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:relationshipTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:relationshipTarget nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:relationshipTarget, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."
+msgstr "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:summarizesCommunity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:summarizesCommunity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:summarizesCommunity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:summarizesCommunity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."
+msgstr "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:indexAlgorithm and nothing else. It is not a definition of gmeow:indexAlgorithm (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:indexAlgorithm, et rien d'autre. Ce n'est pas une définition de gmeow:indexAlgorithm (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relationshipSource and nothing else. It is not a definition of gmeow:relationshipSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relationshipSource, et rien d'autre. Ce n'est pas une définition de gmeow:relationshipSource (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relationshipTarget and nothing else. It is not a definition of gmeow:relationshipTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relationshipTarget, et rien d'autre. Ce n'est pas une définition de gmeow:relationshipTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:summarizesCommunity, et rien d'autre. Ce n'est pas une définition de gmeow:summarizesCommunity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record which algorithm built a vector index."
+msgstr "À utiliser pour consigner l'algorithme ayant construit un index vectoriel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring it from the parameters or omitting it on a rebuilt index."
+msgstr "Évitez de le déduire des paramètres ou de l'omettre sur un index reconstruit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one gmeow:IndexAlgorithm value to the index; it is functional."
+msgstr "Attachez une valeur gmeow:IndexAlgorithm à l'index ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+msgstr "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points FROM."
+msgstr "À utiliser pour nommer l'entité d'où PART une relation extraite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipTarget on a symmetric-looking relation — direction is asserted, not inferred."
+msgstr "Évitez de l'intervertir avec gmeow:relationshipTarget sur une relation d'apparence symétrique — la direction est affirmée, non déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the tail of the relationship; it is functional."
+msgstr "Attachez exactement une gmeow:ExtractedEntity comme queue de la relation ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+msgstr "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points TO."
+msgstr "À utiliser pour nommer l'entité VERS laquelle pointe une relation extraite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipSource — direction is asserted, not inferred."
+msgstr "Évitez de l'intervertir avec gmeow:relationshipSource — la direction est affirmée, non déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the head of the relationship; it is functional."
+msgstr "Attachez exactement une gmeow:ExtractedEntity comme tête de la relation ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+msgstr "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which community a summary condenses."
+msgstr "À utiliser pour indiquer quelle communauté un résumé condense."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing one summary at several communities — that is several summaries."
+msgstr "Évitez de faire pointer un même résumé vers plusieurs communautés — ce sont alors plusieurs résumés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:Community; it is functional."
+msgstr "Attachez exactement une gmeow:Community ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."
+msgstr "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."

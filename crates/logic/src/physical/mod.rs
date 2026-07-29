@@ -17,7 +17,7 @@
 
 // The phase-scoped row/tuple bump arena: a genuinely resettable
 // per-round argument-tuple buffer, distinct from the persistent term arena
-// (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
+// (`gmeow_term_arena`). Consumed by the semi-naive fixpoint (`seminaive`).
 mod annotation;
 mod arena;
 mod binding_pattern;
@@ -53,35 +53,37 @@ mod incremental_grounding;
 // module's `Id<Term>` alias (one definition, not two — greenfield).
 pub(crate) mod id;
 mod magic;
-// The persistent hash-consed structured-term DAG: content-addressed, binder-aware
-// (locally-nameless de-Bruijn) function-symbol / proof-object nodes. It grows the
-// `facts::TermInterner` seam that `id::TermRef` documents; distinct from the per-round
-// `arena::RowArena`. The DAG (`term_dag`) and its content-key fold (`term_key`) land
-// ahead of the unification / proof-object consumers on the next rungs.
 mod magic_generic;
-pub(crate) mod term_dag;
-pub(crate) mod term_key;
-// The three-consumer lowering into the shared `term_dag::TermDag`: `logic:`
+// The persistent hash-consed structured-term DAG — content-addressed, binder-aware
+// (locally-nameless de-Bruijn) function-symbol / proof-object nodes — now lives in the
+// reasoner-free `gmeow-term-arena` crate (`gmeow_term_arena::engine::TermDag`) so a
+// front-end can intern terms without linking this runtime. It is still THE one term
+// representation, merely relocated; it remains distinct from the per-round
+// `arena::RowArena`. Its invariant suite stays here (`term_dag_tests`) because the
+// DAG ↔ `logic:` IR congruence member needs the compiler IR and the `lower` module.
+#[cfg(test)]
+mod term_dag_tests;
+// The three-consumer lowering into the shared `gmeow_term_arena::engine::TermDag`: `logic:`
 // (`gmeow_logic_compile::ir::Formula`/`Term`), `math:` (the RDF-authored
 // application/binding expression vocab), and `lang:` (a form + its one-way
 // `lang:`→`logic:` denotation) all lower into ONE arena, so alpha-equivalent
 // inputs authored in any surface intern to the SAME `NodeId` and content key.
 // Consumed by the unification / proof-object rungs to come.
 pub(crate) mod lower;
-// Robinson unification with occurs-check over the `term_dag::TermDag`: a union-find
+// Robinson unification with occurs-check over the shared `TermDag`: a union-find
 // `Subst` over `MetaId`, the single `resolve` identity primitive, and capture-avoiding
 // `apply`/`shift` (locally-nameless de-Bruijn, so the shift IS the capture-avoidance).
 // Consumed by the proof-object / backward-FOL rungs to come.
 pub(crate) mod unify;
-// First-class CHECKABLE proof objects: a proof IS a `term_dag::TermDag` node
+// First-class CHECKABLE proof objects: a proof IS a shared-arena `TermDag` node
 // (`by_rule`/`assert` constructors), and `check` re-derives it bottom-up via `unify`/`apply`
 // (the de-Bruijn/Curry-Howard criterion), rejecting any proof that does not prove its stated
 // goal. `derivation_iri`/`reify` project a proof/term node to the SAME content-addressed
 // provenance IRI a `RuleApplication` mints. Consumed by the backward-FOL rung to come.
 pub(crate) mod proof;
 // The structured (full-FOL) backward resolver: SLG tabling over compound (function-symbol)
-// terms with three-valued SLG-WFS well-founded negation. It stands on `term_dag` (the
-// hash-consed arena), `unify` (order-sorted occurs-checked unification), and `proof`
+// terms with three-valued SLG-WFS well-founded negation. It stands on the hash-consed
+// arena (`gmeow_term_arena`), `unify` (order-sorted occurs-checked unification), and `proof`
 // (checkable proof objects), and every answer it yields is proof-carrying. `dispatch::
 // dispatch_query`'s physical entry (`magic::resolve_native_under`) routes a program carrying
 // any `QTerm::Struct` argument here; flat programs stay on the byte-identical binary path.

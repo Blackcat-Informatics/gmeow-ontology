@@ -30,6 +30,7 @@ purrdf.workspace = true
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The mandated-frame validator: the repo-static GTS authorship seals prove the
 # profile crate is the single production door, and the Turtle-exit tests prove

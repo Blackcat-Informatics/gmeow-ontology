@@ -40,7 +40,7 @@ use std::sync::Arc;
 use purrdf::gts::reader::read;
 use purrdf::gts_view::GtsFoldView;
 
-use crate::gmeow_ns::GMEOW_NS;
+use gmeow_ns::GMEOW_NS;
 
 /// tar of `generated/mappings/*.sssom.tsv` (the SSSOM lift maps).
 pub const REP_MAPPINGS: &str = "mappings-archive";
@@ -968,7 +968,7 @@ mod tests {
         // property's own definitional triples, where it is a subject, survive, so
         // a bare substring check would be wrong).
         let text = String::from_utf8(base.clone()).expect("merged graph is UTF-8");
-        let guide_predicate = format!(" <{}guideBlob> ", crate::gmeow_ns::GMEOW_NS);
+        let guide_predicate = format!(" <{}guideBlob> ", gmeow_ns::GMEOW_NS);
         assert!(
             !text.lines().any(|line| line.contains(&guide_predicate)),
             "guideBlob reference triples are filtered from the merged graph"

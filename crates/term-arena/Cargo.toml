@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-term-arena"
+description = "The ONE hash-consed, binder-aware, content-addressed structured-term arena: ContentKey / TermArena / InterningStats, with zero reasoning-runtime dependencies"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["term", "hash-consing", "content-addressed", "de-bruijn", "arena"]
+
+[lib]
+# rlib-only: a substrate crate consumed by the workspace. It links no reasoning
+# runtime, so a parser front-end can intern terms without pulling the native DL
+# engine (and it cross-compiles to wasm32 exactly as gmeow-logic-compile does).
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# purrdf: the RDF 1.2 term value space. An interned leaf IS a `TermValue` (an IRI or a
+# literal with its datatype/language intact), so the arena's atom dictionary is keyed on
+# the canonical `TermValue` display surface. This is the SAME wasm-clean umbrella
+# `gmeow-logic-compile` pins (oxigraph OFF, python OFF), so the arena stays reasoner-free
+# and wasm-buildable — it is an RDF value-space dependency, never a reasoning one.
+purrdf.workspace = true
+# hashbrown: the raw-entry / `HashTable` borrowed-key probe surface so the interner dedup
+# and the DAG's content-key probe never clone an owned key per probe (the borrowed-key
+# raw-entry probe requirement — mechanical-sympathy doctrine). Direct, always-on
+# dependency; version matches the copy the workspace lock already resolves.
+hashbrown = "0.15"
+# foldhash: a fast, FIXED-seed hasher (`foldhash::fast::FixedState`) for the arena's
+# lookup-only maps. A required, always-on dependency (NOT optionality): determinism never
+# comes from hasher order — it comes from insertion order and the content key — so the
+# seed is fixed and never persisted. Version matches the copy already resolved in the
+# workspace lock (pulled transitively by hashbrown 0.15).
+foldhash = "0.1"
+# smallvec: the inline form of a node's cached free-metavariable set. The common
+# small-support case stays on the stack; a metavariable-rich term spills to the heap.
+# Direct, always-on dependency; version matches the workspace lock.
+smallvec = "1"

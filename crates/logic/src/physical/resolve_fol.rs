@@ -65,10 +65,11 @@ use purrdf::TermValue;
 use crate::physical::id::{MetaId, NodeId, TermId};
 use crate::physical::proof::{GroundClause, RuleCtx, proof_assert, proof_by_rule};
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind};
-use crate::physical::term_dag::{NodeData, TermDag};
 use crate::physical::unify::{SortContext, Subst, Unified, apply, unify_sorted};
 use crate::query_ir::{AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QProgram, QTerm};
 use crate::seam::BudgetStatus;
+use gmeow_term_arena::engine::StructNodeParts;
+use gmeow_term_arena::engine::{NodeData, TermDag};
 
 // ── Program model ─────────────────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ use gmeow_logic_compile::projections::ProjectionResult;
 
 /// The `lang:` namespace base, kept byte-identical to the translation producer so every
 /// `lang:` local name resolves to the same IRI across producers.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// A bridge lifts an external byte stream into `lang:` forms/surfaces (fully or
 /// hard-fails) and can emit that product back out.

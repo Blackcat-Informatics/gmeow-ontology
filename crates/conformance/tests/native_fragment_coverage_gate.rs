@@ -79,7 +79,7 @@ mod common;
 use common::{PER_CASE_TIMEOUT, divergence_root, native_token};
 
 /// The `logic:` grounding namespace whose local names key the shipped registry.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 

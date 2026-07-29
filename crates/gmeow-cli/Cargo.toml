@@ -33,6 +33,13 @@ gmeow-affect = { path = "../affect" }
 # The classifier-ingestion producer: captured GoEmotions output → attributed GMEOW
 # evidence, and its inverse. Drives `gmeow affect ingest-goemotions` / `recover-goemotions`.
 gmeow-affect-ingest = { path = "../affect-ingest" }
+# The `math:` ingestion bridges: a real R script / `.onnx` export / TSTP derivation →
+# `math:` structures. Wheel-safe: a pure-Rust rlib with hand-written readers, no reasoning
+# runtime, no repo checkout, and no filesystem of its own (it takes bytes and an IRI base).
+# Live runtime consumer: `src/passthrough.rs::math`, wired to `gmeow math lift-r` /
+# `lift-onnx` / `lift-proof` — a genuine consumer capability, never a repo-maintenance
+# crate (the wheel-only razor holds).
+gmeow-math-lift = { path = "../math-lift" }
 gmeow-pipeline = { path = "../pipeline" }
 # The GMN-1 codec + digest/witness/pack layer. A pure-Rust runtime rlib the wheel
 # ships (in the tree transitively via gmeow-pipeline): its `gmn1_write`/`gmn1_read`,

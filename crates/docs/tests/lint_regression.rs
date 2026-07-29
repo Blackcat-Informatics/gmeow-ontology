@@ -99,6 +99,7 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         worked_instances: Vec::new(),
         concerns: Vec::new(),
         external_terms: Vec::new(),
+        seams: Vec::new(),
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         constraint_rules: Vec::new(),

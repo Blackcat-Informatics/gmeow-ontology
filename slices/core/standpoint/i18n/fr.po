@@ -1,0 +1,322 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: standpoint, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimAssertoricForce is functional"
+msgstr "claimAssertoricForce est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."
+msgstr "Affirme sur le porteur canonique que gmeow:claimAssertoricForce est fonctionnelle : une revendication de point de vue porte une force d'acte de langage — assert, conjecture, assume ou retract — de sorte que le relateur prend une force unique (l'absence se lisant comme `assert`), et une assertion rétractée est close comme un acte conservé plutôt que de se voir attribuer une force rivale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimCredence is functional"
+msgstr "claimCredence est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimCredence is functional: a standpoint claim carries one precise graded belief as an xsd:decimal in [0,1], so the advisory numeric surface is a single value that must lie within its authoritative credence band's threshold range rather than a set of competing decimals."
+msgstr "Affirme sur le porteur canonique que gmeow:claimCredence est fonctionnelle : une revendication de point de vue porte une croyance graduée précise sous forme d'un xsd:decimal dans [0,1], de sorte que la surface numérique consultative est une valeur unique qui doit se situer dans la plage de seuil de sa bande de crédence faisant autorité, plutôt qu'un ensemble de décimales concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimCredenceLevel is functional"
+msgstr "claimCredenceLevel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimCredenceLevel is functional: a standpoint claim carries one qualitative credence band — the surface the lossless legacy projection keys on — so a claim's graded belief resolves to a single frame-relative band rather than several bands on one claim."
+msgstr "Affirme sur le porteur canonique que gmeow:claimCredenceLevel est fonctionnelle : une revendication de point de vue porte une bande de crédence qualitative unique — la surface sur laquelle s'appuie la projection héritée sans perte — de sorte que la croyance graduée d'une revendication se résout en une seule bande relative au cadre, plutôt qu'en plusieurs bandes sur une même revendication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimModalForce is functional"
+msgstr "claimModalForce est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."
+msgstr "Affirme sur le porteur canonique que gmeow:claimModalForce est fonctionnelle : une revendication de point de vue porte une force modale aléthique unique dans le registre □/◊, de sorte que le relateur prend une force unique (l'absence se lisant comme necessary), maintenue orthogonale à la crédence et à la confiance plutôt que d'empiler des valeurs modales rivales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimModality is functional"
+msgstr "claimModality est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."
+msgstr "Affirme sur le porteur canonique que gmeow:claimModality est fonctionnelle : une revendication de point de vue porte une modalité de croyance à cinq valeurs — unequivocal, probable, conceivable, refuted ou bullshit — la projection sans perte des six axes canoniques, de sorte que ce jumeau de commodité se résout en une seule valeur relative au cadre (l'absence se lisant comme unequivocal), plutôt qu'en plusieurs modalités sur une même revendication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimPolarity is functional"
+msgstr "claimPolarity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimPolarity is functional: a standpoint claim takes one affirm / deny / suspend direction, so the relator carries a single polarity (absent reading as affirm) and deny stays the frame-relative carrier of the legacy refuted rather than one claim holding several polarities."
+msgstr "Affirme sur le porteur canonique que gmeow:claimPolarity est fonctionnelle : une revendication de point de vue prend une direction affirm / deny / suspend unique, de sorte que le relateur porte une seule polarité (l'absence se lisant comme affirm) et deny reste le porteur relatif au cadre de l'ancien refuted, plutôt qu'une revendication portant plusieurs polarités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimSupportStatus is functional"
+msgstr "claimSupportStatus est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimSupportStatus is functional: a standpoint claim carries one Belnap evidential status — supported, opposed, both, or neither — so a witnessed glut or gap is recorded as the single admissible status of the claim rather than being split into rival status values on one claim."
+msgstr "Affirme sur le porteur canonique que gmeow:claimSupportStatus est fonctionnelle : une revendication de point de vue porte un unique statut évidentiel de Belnap — supported, opposed, both ou neither — de sorte qu'un excès (glut) ou un manque (gap) constaté est enregistré comme le seul statut admissible de la revendication, plutôt que d'être scindé en valeurs de statut rivales sur une même revendication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimTruthDirectedness is functional"
+msgstr "claimTruthDirectedness est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimTruthDirectedness is functional: a standpoint claim carries one orientation toward truth — truth-aimed, indifferent, or strategic — so the relator takes a single orientation (absent reading as truth-aimed) and indifferent remains the sole carrier of the legacy bullshit rather than co-existing orientations on one claim."
+msgstr "Affirme sur le porteur canonique que gmeow:claimTruthDirectedness est fonctionnelle : une revendication de point de vue porte une orientation unique envers la vérité — truth-aimed, indifferent ou strategic — de sorte que le relateur prend une orientation unique (l'absence se lisant comme `truth-aimed`) et indifferent reste l'unique porteur de l'ancien bullshit, plutôt que des orientations coexistant sur une même revendication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sharpens is transitive"
+msgstr "« affine » est transitif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:sharpens est transitif : l'ordre de raffinement de point de vue que sa skos:definition nomme (la relation de couverture de la Logique des points de vue). Le portail de cohérence natif lit ceci pour clore l'ordre de raffinement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpointClaim is functional"
+msgstr "standpointClaim est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:standpointClaim est fonctionnelle: une tenure de point de vue engendre exactement une observation StandpointClaim de son fait délimité dans le temps, de sorte que le pont entre la situation de tenure et son observation porte une seule affirmation, et une affirmation autonome sans tenure est plutôt frappée comme une simple observation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureStandpoint is functional"
+msgstr "tenureStandpoint est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureStandpoint is functional: a standpoint-tenure records exactly one frame's position, so it names a single standpoint that becomes the vantage of the generated claim, and a different frame's position is a separate tenure rather than a second — never privileged — standpoint on one."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureStandpoint est fonctionnelle: une tenure de point de vue enregistre exactement la position d'un seul repère, de sorte qu'elle nomme un unique point de vue qui devient la perspective de l'affirmation générée, et la position d'un repère différent constitue une tenure distincte plutôt qu'un second point de vue — jamais privilégié — sur celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:sharpens composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:sharpens se compose le long des chaînes ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque la relation ne doit pas se composer — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sharpens, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:sharpens, logic:characteristicSort logic:transitiveProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."
+msgstr "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimAssertoricForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimAssertoricForce nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimAssertoricForce, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimAssertoricForce, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimAssertoricForceFunctionality logic:characterizes gmeow:claimAssertoricForce ."
+msgstr "gmeow:claimAssertoricForceFunctionality logic:characterizes gmeow:claimAssertoricForce ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimCredence names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimCredence nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimCredence, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimCredence, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimCredenceFunctionality logic:characterizes gmeow:claimCredence ."
+msgstr "gmeow:claimCredenceFunctionality logic:characterizes gmeow:claimCredence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimCredenceLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimCredenceLevel nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimCredenceLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimCredenceLevel, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
+msgstr "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimModalForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimModalForce nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModalForce, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimModalForce, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
+msgstr "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimModality nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimModality, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimModalityFunctionality logic:characterizes gmeow:claimModality ."
+msgstr "gmeow:claimModalityFunctionality logic:characterizes gmeow:claimModality ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimPolarity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimPolarity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimPolarity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimPolarity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimPolarityFunctionality logic:characterizes gmeow:claimPolarity ."
+msgstr "gmeow:claimPolarityFunctionality logic:characterizes gmeow:claimPolarity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimSupportStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimSupportStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimSupportStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimSupportStatus, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimSupportStatusFunctionality logic:characterizes gmeow:claimSupportStatus ."
+msgstr "gmeow:claimSupportStatusFunctionality logic:characterizes gmeow:claimSupportStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimTruthDirectedness names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimTruthDirectedness nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimTruthDirectedness, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimTruthDirectedness, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimTruthDirectednessFunctionality logic:characterizes gmeow:claimTruthDirectedness ."
+msgstr "gmeow:claimTruthDirectednessFunctionality logic:characterizes gmeow:claimTruthDirectedness ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:standpointClaim names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:standpointClaim nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:standpointClaim, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:standpointClaim, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:standpointClaimFunctionality logic:characterizes gmeow:standpointClaim ."
+msgstr "gmeow:standpointClaimFunctionality logic:characterizes gmeow:standpointClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureStandpoint nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureStandpoint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureStandpoint, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureStandpointFunctionality logic:characterizes gmeow:tenureStandpoint ."
+msgstr "gmeow:tenureStandpointFunctionality logic:characterizes gmeow:tenureStandpoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:sharpens and nothing else. It is not a definition of gmeow:sharpens (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:sharpens, et rien d'autre. Ce n'est pas une définition de gmeow:sharpens (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimAssertoricForce and nothing else. It is not a definition of gmeow:claimAssertoricForce (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimAssertoricForce, et rien d'autre. Ce n'est pas une définition de gmeow:claimAssertoricForce (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimCredence and nothing else. It is not a definition of gmeow:claimCredence (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimCredence, et rien d'autre. Ce n'est pas une définition de gmeow:claimCredence (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimCredenceLevel and nothing else. It is not a definition of gmeow:claimCredenceLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimCredenceLevel, et rien d'autre. Ce n'est pas une définition de gmeow:claimCredenceLevel (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimModalForce and nothing else. It is not a definition of gmeow:claimModalForce (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimModalForce, et rien d'autre. Ce n'est pas une définition de gmeow:claimModalForce (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimModality and nothing else. It is not a definition of gmeow:claimModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimModality, et rien d'autre. Ce n'est pas une définition de gmeow:claimModality (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimPolarity and nothing else. It is not a definition of gmeow:claimPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimPolarity, et rien d'autre. Ce n'est pas une définition de gmeow:claimPolarity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimSupportStatus and nothing else. It is not a definition of gmeow:claimSupportStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimSupportStatus, et rien d'autre. Ce n'est pas une définition de gmeow:claimSupportStatus (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimTruthDirectedness and nothing else. It is not a definition of gmeow:claimTruthDirectedness (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:claimTruthDirectedness, et rien d'autre. Ce n'est pas une définition de gmeow:claimTruthDirectedness (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:standpointClaim and nothing else. It is not a definition of gmeow:standpointClaim (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:standpointClaim, et rien d'autre. Ce n'est pas une définition de gmeow:standpointClaim (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureStandpoint and nothing else. It is not a definition of gmeow:tenureStandpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenureStandpoint, et rien d'autre. Ce n'est pas une définition de gmeow:tenureStandpoint (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

@@ -25,7 +25,7 @@ use crate::store::{Node, Object, Store};
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 /// The GMEOW vocabulary namespace; IRIs under it get the `gmeow:` CURIE prefix.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -85,7 +85,7 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it are surfaced as the term's logic stereotypes.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// `logic:PathShape` — a named, parametric predicate-path traversal specification
 /// (design/LOGIC-PATHS.md). Its authored INSTANCES are first-class, reusable
@@ -103,11 +103,11 @@ const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/compl
 /// The language-grounding vocabulary namespace (`slices/grounding/lang`). Its
 /// slice owns first-class documented vocabulary in this namespace, exactly like
 /// `logic:` / `math:`.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 // ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
 /// The math-grounding vocabulary namespace (`slices/grounding/math`).
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 /// `math:hasDimension` — the predicate a worked instance's subject (a
 /// `Quantity`/`Integral`/`Measure`/measurable-function/…) declares its
 /// dimension object through. The SUBJECT-discovery predicate for
@@ -252,6 +252,31 @@ const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
 /// `logic:planSuccessMode` — the plan's declared success mode (e.g.
 /// `logic:StrongPlanSuccess`).
 const LOGIC_PLAN_SUCCESS_MODE: &str = "https://blackcatinformatics.ca/logic/planSuccessMode";
+
+// ── Grounding seams (`gmeow:Seam` individuals) ──────────────────────────────
+// The closed set of sanctioned cross-grounding reference channels (Principle
+// 19), authored as canonical governance DATA in a grounding slice's
+// `manifest.ttl` (today, `logic:`'s) rather than hand-maintained prose.
+// Discovered generically: [`extract_seams`] scans the `manifest_graph` of
+// EVERY slice typed `gmeow:GroundingSlice`, so a future seam authored in
+// `lang:`/`math:` is picked up without a code change.
+
+/// The marker class typing a grounding slice (`logic:`/`lang:`/`math:`) in its
+/// own `manifest.ttl` — the machine-checked signal [`extract_seams`] uses to
+/// find every manifest that may carry `gmeow:Seam` individuals.
+const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
+/// `gmeow:Seam` — a sanctioned cross-grounding reference channel.
+const GMEOW_SEAM: &str = "https://blackcatinformatics.ca/gmeow/Seam";
+/// `gmeow:seamDirection` — a seam's directed (from, to) legs (blank nodes).
+const GMEOW_SEAM_DIRECTION: &str = "https://blackcatinformatics.ca/gmeow/seamDirection";
+/// `gmeow:seamFromSlice` — a seam-direction leg's referencing grounding slice.
+const GMEOW_SEAM_FROM_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamFromSlice";
+/// `gmeow:seamToSlice` — a seam-direction leg's referenced grounding slice.
+const GMEOW_SEAM_TO_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamToSlice";
+/// `gmeow:seamCarryingTerm` — an exact term IRI a seam sanctions crossing it.
+const GMEOW_SEAM_CARRYING_TERM: &str = "https://blackcatinformatics.ca/gmeow/seamCarryingTerm";
+/// `gmeow:seamOwningDoc` — the design-doc filename that owns a seam's theory.
+const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOwningDoc";
 
 /// An error building the documentation model.
 #[derive(Debug)]
@@ -1334,6 +1359,39 @@ pub struct DocExternalTerm {
     pub via_predicate: Vec<String>,
 }
 
+/// One directed leg of a `gmeow:Seam` (a `gmeow:SeamDirection` blank node): the
+/// referencing (from) and referenced (to) grounding-slice IRIs.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct DocSeamDirection {
+    /// `gmeow:seamFromSlice` — the referencing (source) grounding slice IRI.
+    pub from: String,
+    /// `gmeow:seamToSlice` — the referenced (target) grounding slice IRI.
+    pub to: String,
+}
+
+/// A sanctioned cross-grounding reference channel (`gmeow:Seam`) — one edge of
+/// the grounding-reference information-flow policy (Principle 19). Authored as
+/// canonical governance data in a grounding slice's `manifest.ttl` (today,
+/// `logic:`'s — see [`extract_seams`]), never hand-duplicated as a markdown
+/// table: [`crate::render::Page::SeamRegistry`] projects this set to the
+/// generated seam-registry page, and `gmeow-validate`'s authoring-integrity
+/// gate asserts that projection never drifts from this data.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocSeam {
+    /// The seam IRI (`a gmeow:Seam`).
+    pub iri: String,
+    /// `rdfs:label`.
+    pub label: Option<String>,
+    /// `skos:definition` (falling back to `rdfs:comment`).
+    pub definition: Option<String>,
+    /// `gmeow:seamDirection` legs, sorted by `(from, to)` and deduped.
+    pub directions: Vec<DocSeamDirection>,
+    /// `gmeow:seamCarryingTerm` IRIs, sorted/deduped.
+    pub carrying_terms: Vec<String>,
+    /// `gmeow:seamOwningDoc` filenames, sorted/deduped.
+    pub owning_docs: Vec<String>,
+}
+
 /// A task-oriented adoption recipe (`gmeow:Recipe`), parsed from the guides
 /// slice. A curated guide that sequences canonical examples + terms for one
 /// recurring modelling task (no domain axiom — pure pedagogy).
@@ -1505,6 +1563,10 @@ pub struct DocsModel {
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
     pub external_terms: Vec<DocExternalTerm>,
+    /// All sanctioned cross-grounding seams (`gmeow:Seam` individuals), read
+    /// from every slice typed `gmeow:GroundingSlice` (sorted by IRI). See
+    /// [`DocSeam`].
+    pub seams: Vec<DocSeam>,
     /// All adoption recipes parsed from the guides slice (sorted by slug).
     pub recipes: Vec<DocRecipe>,
     /// All curated learning paths parsed from the guides slice (sorted by slug).
@@ -1892,11 +1954,15 @@ impl DocsModel {
     /// run-verified carrier contribution, so a stage term page self-explains what it
     /// produced.
     ///
-    /// v17: each [`DocSlice`] grows `documents` — every `text/markdown` source in the
-    /// slice as a first-class, strictly-decoded [`DocMarkdownDocument`] (selected by
-    /// media type, never by `ArtifactRole`, so `design/*.md` is a first-class
-    /// document). The [`crate::source_map::SourceToPageMap`] is the single
-    /// link-rewrite authority over this set (a pure function of the model).
+    /// v17: two additions land together. [`seams`](DocsModel::seams) carries the
+    /// sanctioned cross-grounding `gmeow:Seam` registry, read generically from every
+    /// slice manifest typed `gmeow:GroundingSlice` and projected to the generated
+    /// seam-registry page (`Page::SeamRegistry`). Each [`DocSlice`] also grows
+    /// `documents` — every `text/markdown` source in the slice as a first-class,
+    /// strictly-decoded [`DocMarkdownDocument`] (selected by media type, never by
+    /// `ArtifactRole`, so `design/*.md` is a first-class document). The
+    /// [`crate::source_map::SourceToPageMap`] is the single link-rewrite authority
+    /// over that set (a pure function of the model).
     pub const VERSION: &'static str = "17";
 
     /// An empty model with every collection cleared — for the [`crate::source_map`]
@@ -1914,6 +1980,7 @@ impl DocsModel {
             examples: Vec::new(),
             fixtures: Vec::new(),
             shapes: Vec::new(),
+            seams: Vec::new(),
             competencies: Vec::new(),
             grammars: Vec::new(),
             loss_targets: Vec::new(),
@@ -2319,6 +2386,23 @@ impl DocsModel {
         // ── External terms (linkage objects + non-GMEOW term edges) ────────────
         let external_terms = extract_external_terms(&terms, &linkages);
 
+        // ── Grounding seams (gmeow:Seam individuals, read from every slice's
+        // manifest_graph typed gmeow:GroundingSlice) ────────────────────────────
+        // Governance data, not module.ttl vocabulary: read directly off the
+        // catalog's already-parsed, lossless per-slice manifest IR (no re-parse of
+        // manifest.ttl bytes). Generic across every grounding slice — today only
+        // `logic:`'s manifest carries the registry, but a future seam authored in
+        // `lang:`/`math:` is picked up without a code change.
+        let mut seams: Vec<DocSeam> = Vec::new();
+        for record in catalog.records() {
+            let manifest_store = Store::from_dataset(std::sync::Arc::clone(&record.manifest_graph));
+            if is_grounding_slice(&manifest_store, &record.manifest.slice_iri) {
+                seams.extend(extract_seams(&manifest_store));
+            }
+        }
+        seams.sort_by(|a, b| a.iri.cmp(&b.iri));
+        seams.dedup_by(|a, b| a.iri == b.iri);
+
         // ── Guides: recipes + learning paths (parsed from module graphs) ───────
         let (recipes, learning_paths) = extract_guides(catalog);
 
@@ -2343,6 +2427,7 @@ impl DocsModel {
             worked_instances,
             concerns,
             external_terms,
+            seams,
             recipes,
             learning_paths,
             constraint_rules: Vec::new(),
@@ -2435,10 +2520,7 @@ impl DocsModel {
         manifest: BTreeMap<String, TermProvenance>,
         catalog_source: CatalogSource<'_>,
     ) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(
-            &root.join("slices"),
-            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-        )?;
+        let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
         let mut model = Self::from_catalog(&catalog, &ownership, &central_sets)?;
@@ -2515,8 +2597,7 @@ impl DocsModel {
     /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
     /// driven honestly by the slice's authored content.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
-        let catalog =
-            SliceCatalog::discover(slice_dir, purrdf::SliceVocab::for_namespace(GMEOW_NS))?;
+        let catalog = SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         Self::from_catalog(&catalog, &ownership, &[])
     }
@@ -3437,6 +3518,58 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
         });
     }
     (sets, links)
+}
+
+/// True when `slice_iri` is typed `gmeow:GroundingSlice` in its own already-
+/// parsed manifest `store` — the machine-checked signal (replacing the
+/// `slices/grounding/*` directory-path convention) that a manifest may carry
+/// `gmeow:Seam` individuals.
+fn is_grounding_slice(store: &Store, slice_iri: &str) -> bool {
+    subjects_of_type(store, GMEOW_GROUNDING_SLICE)
+        .iter()
+        .any(|iri| iri == slice_iri)
+}
+
+/// Extract every `gmeow:Seam` individual from an already-parsed manifest
+/// `store`. Generic over ANY grounding slice's manifest (gated by
+/// [`is_grounding_slice`] at the call site in [`DocsModel::from_catalog`]) — a
+/// future seam authored in `lang:`/`math:` is picked up without a code change.
+fn extract_seams(store: &Store) -> Vec<DocSeam> {
+    let mut seams = Vec::new();
+    for iri in subjects_of_type(store, GMEOW_SEAM) {
+        let label = first_literal(store, &iri, RDFS_LABEL);
+        let definition = first_literal(store, &iri, SKOS_DEFINITION)
+            .or_else(|| first_literal(store, &iri, RDFS_COMMENT));
+
+        let mut directions: Vec<DocSeamDirection> =
+            blank_objects(store, &iri, GMEOW_SEAM_DIRECTION)
+                .into_iter()
+                .filter_map(|blank| {
+                    let node = Node::Blank(blank);
+                    let from = first_named_of_node(store, &node, GMEOW_SEAM_FROM_SLICE)?;
+                    let to = first_named_of_node(store, &node, GMEOW_SEAM_TO_SLICE)?;
+                    Some(DocSeamDirection { from, to })
+                })
+                .collect();
+        directions.sort();
+        directions.dedup();
+
+        let mut carrying_terms = named_objects(store, &iri, GMEOW_SEAM_CARRYING_TERM);
+        carrying_terms.sort();
+        carrying_terms.dedup();
+
+        let owning_docs = literals(store, &iri, GMEOW_SEAM_OWNING_DOC);
+
+        seams.push(DocSeam {
+            iri,
+            label,
+            definition,
+            directions,
+            carrying_terms,
+            owning_docs,
+        });
+    }
+    seams
 }
 
 /// Extract a single example, carrying its Turtle source in full. Parses the
@@ -4736,6 +4869,64 @@ ex:elProjectionReport a gmeow:InformationObject ;
         assert_eq!(row.preservation_kind, "SoundUnderApproximation");
         assert_eq!(row.complexity_class, "EL -> PTIME");
         assert_eq!(row.slice, "https://example.org/slice/demo");
+    }
+
+    #[test]
+    fn extract_seams_reads_labels_directions_terms_and_docs() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .
+
+<https://blackcatinformatics.ca/gmeow/seam/denotation>
+    a gmeow:Seam ;
+    rdfs:label "Denotation seam"@x-gmeow-english ;
+    skos:definition "The lang -> logic seam."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;
+    gmeow:seamOwningDoc "LANG-MEANING.md" .
+"#;
+        let store = store_from(ttl);
+        assert!(is_grounding_slice(
+            &store,
+            "https://blackcatinformatics.ca/gmeow/slices/logic"
+        ));
+        assert!(!is_grounding_slice(
+            &store,
+            "https://blackcatinformatics.ca/gmeow/slices/lang"
+        ));
+
+        let seams = extract_seams(&store);
+        assert_eq!(seams.len(), 1);
+        let seam = &seams[0];
+        assert_eq!(
+            seam.iri,
+            "https://blackcatinformatics.ca/gmeow/seam/denotation"
+        );
+        assert_eq!(seam.label.as_deref(), Some("Denotation seam"));
+        assert_eq!(seam.definition.as_deref(), Some("The lang -> logic seam."));
+        assert_eq!(
+            seam.directions,
+            vec![DocSeamDirection {
+                from: "https://blackcatinformatics.ca/gmeow/slices/lang".to_string(),
+                to: "https://blackcatinformatics.ca/gmeow/slices/logic".to_string(),
+            }]
+        );
+        assert_eq!(
+            seam.carrying_terms,
+            vec![
+                "https://blackcatinformatics.ca/lang/denotationKind".to_string(),
+                "https://blackcatinformatics.ca/lang/denotationTarget".to_string(),
+            ]
+        );
+        assert_eq!(seam.owning_docs, vec!["LANG-MEANING.md".to_string()]);
     }
 
     /// Build a bare in-memory [`ArtifactRecord`] for a Turtle example, mirroring

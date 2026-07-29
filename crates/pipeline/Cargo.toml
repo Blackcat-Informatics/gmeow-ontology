@@ -66,6 +66,7 @@ gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The single mandatory GTS authorship profile (LEAF): the carrier/release/MCP/
 # transcode emitters route every payload frame through it. It cannot live in this

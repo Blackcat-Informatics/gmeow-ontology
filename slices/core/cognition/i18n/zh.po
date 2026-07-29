@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: cognition, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyAgent is functional"
+msgstr "knowledgeProficiencyAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyAgent 是函数性的:一个 gmeow:KnowledgeProficiency 恰好表达一个主体的知识深度,该主体的身份构成了这一具体化熟练度的构成要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyLevel is functional"
+msgstr "knowledgeProficiencyLevel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyLevel 是函数性的:一个 gmeow:KnowledgeProficiency 恰好记录在从 knowledgeAware 到 knowledgeMastered 的阶梯上所达到的一个序数深度。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyScale is functional"
+msgstr "knowledgeProficiencyScale 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyScale 是函数性的:一个 gmeow:KnowledgeProficiency 的水平恰好依据一种量表来解读,即原生的 gmeow:KnowledgeLevel,或布鲁姆分类法/SOLO/德雷福斯模型中的一种替代量表。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencySubject is functional"
+msgstr "knowledgeProficiencySubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencySubject 是函数式的:一个 gmeow:KnowledgeProficiency 恰好涉及一个主体实体——一个主题、人物、地点或事件——它构成了该项能力究竟是关于什么的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:knowledgeProficiencyAgent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:knowledgeProficiencyAgent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyAgentFunctionality logic:characterizes gmeow:knowledgeProficiencyAgent ."
+msgstr "gmeow:knowledgeProficiencyAgentFunctionality logic:characterizes gmeow:knowledgeProficiencyAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:knowledgeProficiencyLevel 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:knowledgeProficiencyLevel, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyLevelFunctionality logic:characterizes gmeow:knowledgeProficiencyLevel ."
+msgstr "gmeow:knowledgeProficiencyLevelFunctionality logic:characterizes gmeow:knowledgeProficiencyLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:knowledgeProficiencyScale 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:knowledgeProficiencyScale, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyScaleFunctionality logic:characterizes gmeow:knowledgeProficiencyScale ."
+msgstr "gmeow:knowledgeProficiencyScaleFunctionality logic:characterizes gmeow:knowledgeProficiencyScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencySubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:knowledgeProficiencySubject 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencySubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:knowledgeProficiencySubject, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencySubjectFunctionality logic:characterizes gmeow:knowledgeProficiencySubject ."
+msgstr "gmeow:knowledgeProficiencySubjectFunctionality logic:characterizes gmeow:knowledgeProficiencySubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:knowledgeProficiencyAgent and nothing else. It is not a definition of gmeow:knowledgeProficiencyAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:knowledgeProficiencyAgent 的一项完整性义务，别无其他。它不是 gmeow:knowledgeProficiencyAgent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:knowledgeProficiencyLevel and nothing else. It is not a definition of gmeow:knowledgeProficiencyLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:knowledgeProficiencyLevel 的一项完整性义务，别无其他。它不是 gmeow:knowledgeProficiencyLevel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:knowledgeProficiencyScale and nothing else. It is not a definition of gmeow:knowledgeProficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:knowledgeProficiencyScale 的一项完整性义务，别无其他。它不是 gmeow:knowledgeProficiencyScale 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:knowledgeProficiencySubject and nothing else. It is not a definition of gmeow:knowledgeProficiencySubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:knowledgeProficiencySubject 的一项完整性义务，别无其他。它不是 gmeow:knowledgeProficiencySubject 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

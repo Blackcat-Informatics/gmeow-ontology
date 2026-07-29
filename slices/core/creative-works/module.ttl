@@ -1582,3 +1582,135 @@ gmeow:ManifestationEmbodiesRequiredConstraint
 # enforced, staying inside the fragment the native reasoner decides.
 gmeow:Contribution logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:contributionDegree ; logic:minQualifiedCardinality 0 ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:contributionDegreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionDegree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionDegree is functional: a contribution carries at most one degree weight — lead, equal, or supporting — so the relator takes a single degree (or none when unknown) and disputed credit orderings live on the statement layer rather than as rival degrees on one Contribution."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionDegree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionDegree ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:contributionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:contributionDegree and nothing else. It is not a definition of gmeow:contributionDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:contributionDegreeFunctionality logic:characterizes gmeow:contributionDegree ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contributionRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionRole is functional: a Contribution relator names the one role the contributor played, so an agent acting in two roles is recorded as two Contributions rather than one relator bearing several roles."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:contributionRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:contributionRole and nothing else. It is not a definition of gmeow:contributionRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:contributionRoleFunctionality logic:characterizes gmeow:contributionRole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contributionTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionTarget is functional: a Contribution relator credits exactly one WEMI entity at the tier that matches the credit, so a credit spanning two works is recorded as two Contributions rather than one relator pointing at several targets."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:contributionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:contributionTarget and nothing else. It is not a definition of gmeow:contributionTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:contributionTargetFunctionality logic:characterizes gmeow:contributionTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contributorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributor is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributor is functional: a Contribution relator names the single agent who contributed, so co-contributors each get their own Contribution rather than several agents being stacked on one relator role."@x-gmeow-english ;
+    logic:characterizes gmeow:contributor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributor ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:contributor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:contributor and nothing else. It is not a definition of gmeow:contributor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:contributorFunctionality logic:characterizes gmeow:contributor ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationProductFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "derivationProduct is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationProduct is functional: a CreativeDerivation relator names the one product work that resulted, at the honest tier, so it carries a single derived work rather than several products on one derivation."@x-gmeow-english ;
+    logic:characterizes gmeow:derivationProduct ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:derivationProduct ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:derivationProduct names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:derivationProduct, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:derivationProduct and nothing else. It is not a definition of gmeow:derivationProduct (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:derivationProductFunctionality logic:characterizes gmeow:derivationProduct ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "derivationSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationSource is functional: a CreativeDerivation relator names the one source work the product was derived from, so a mashup of two sources is recorded as two derivations or segment pins rather than several sources on one relator."@x-gmeow-english ;
+    logic:characterizes gmeow:derivationSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:derivationSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:derivationSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:derivationSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:derivationSource and nothing else. It is not a definition of gmeow:derivationSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:derivationSourceFunctionality logic:characterizes gmeow:derivationSource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasManifestationFormatFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "hasManifestationFormat is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasManifestationFormat is functional: a Manifestation is issued in one publishable form — paperback, EPUB, audiobook, vinyl — so a second format is a second Manifestation rather than a rival format value on one."@x-gmeow-english ;
+    logic:characterizes gmeow:hasManifestationFormat ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasManifestationFormat ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasManifestationFormat names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasManifestationFormat, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasManifestationFormat and nothing else. It is not a definition of gmeow:hasManifestationFormat (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasManifestationFormatFunctionality logic:characterizes gmeow:hasManifestationFormat ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:realizationModeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "realizationMode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:realizationMode is functional: an Expression realizes its Work in one mode — notated, performed, improvised, oral, or machine-generated — so a notated and a performed rendition of the same Work are two Expressions, each with its single mode, rather than one Expression bearing several modes."@x-gmeow-english ;
+    logic:characterizes gmeow:realizationMode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:realizationMode ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:realizationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:realizationMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:realizationMode and nothing else. It is not a definition of gmeow:realizationMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:realizationModeFunctionality logic:characterizes gmeow:realizationMode ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

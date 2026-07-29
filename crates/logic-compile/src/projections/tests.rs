@@ -1686,8 +1686,38 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
     );
 }
 
+/// Every authored `slices/<tier>/<slice>/module.ttl`, sorted — the whole shipped
+/// corpus the functional-carrier guard below sweeps.
+///
+/// The carriers are NOT all in one file: a `logic:PropertyCharacteristicAssertion`
+/// about a term a non-grounding slice owns is authored in THAT slice's `module.ttl`
+/// (`docs/GROUNDING.md`'s tier rule — a grounding slice never depends on a
+/// non-grounding one), so `slices/grounding/logic/module.ttl` carries only the
+/// characteristics of `logic:`'s own and its grounding peers' terms. Reading a
+/// single file would therefore measure a fraction of the corpus and let a dropped
+/// re-emission in every other slice pass unseen.
+fn slice_module_ttls() -> Vec<PathBuf> {
+    let slices = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../slices");
+    let mut paths = Vec::new();
+    for tier in std::fs::read_dir(&slices).expect("read slices/") {
+        let tier = tier.expect("tier entry").path();
+        if !tier.is_dir() {
+            continue;
+        }
+        for slice in std::fs::read_dir(&tier).expect("read slices/<tier>/") {
+            let module = slice.expect("slice entry").path().join("module.ttl");
+            if module.is_file() {
+                paths.push(module);
+            }
+        }
+    }
+    paths.sort();
+    assert!(!paths.is_empty(), "expected at least one slice module.ttl");
+    paths
+}
+
 /// Whole-set count-and-set parity guard for the functional-carrier → OWL-DL
-/// re-projection over the REAL `slices/grounding/logic/module.ttl` corpus.
+/// re-projection over the REAL authored corpus (every `slices/*/*/module.ttl`).
 ///
 /// Since the deprecation removed the authored `?P rdf:type owl:FunctionalProperty`
 /// marker, functionality survives ONLY because `project_owl_dl` re-emits it from
@@ -1699,6 +1729,11 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
 /// exact failure the issue-1579 audit wrongly believed already existed — hard-fails
 /// here instead of shipping an OWL-DL view with zero `owl:FunctionalProperty`.
 ///
+/// Each `module.ttl` is parsed and projected INDEPENDENTLY (one program per file,
+/// the same production `parse_logic_str` path), so no cross-file blank-node label
+/// or prefix binding can collide; the per-file set-parity assertions are then
+/// summed into a corpus-wide non-vacuity guard.
+///
 /// The guard is a SET equality (not just a count): every functional carrier
 /// property must appear with an `owl:FunctionalProperty` type triple in the
 /// projected view, and nothing else may. A wrong-property substitution (right
@@ -1706,93 +1741,106 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
 /// parsed corpus (719 carriers today), never hardcoded, so it tracks the corpus.
 #[test]
 fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
-    // Locate the real slice source relative to the crate manifest, mirroring
-    // `crates/logic-compile/src/ir/tests.rs` and `clif/tests.rs`.
-    let module_ttl =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic/module.ttl");
-    let text = std::fs::read_to_string(&module_ttl)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
-
-    // Same production parse path the `parse` helper uses (frontend `parse_logic_str`).
-    let (program, _diags) =
-        parse_logic_str(&text, Some("urn:gmeow:slices/grounding/logic".to_owned()))
-            .expect("parse real module.ttl");
-
     // Fully-qualified logic: IRIs (the `logic()` helper in rdf.rs is private; reproduce
     // its tiny join here rather than touch production code).
     let characterizes = format!("{LOGIC_NS}characterizes");
     let characteristic_sort = format!("{LOGIC_NS}characteristicSort");
     let functional_sort = format!("{LOGIC_NS}functionalProperty");
+    let functional_type_obj = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
-    // Reproduce `functional_carrier_properties`: join `characterizes ?P` with the
-    // `characteristicSort logic:functionalProperty` sort on the carrier record IRI.
-    let mut rec_prop: std::collections::BTreeMap<String, String> =
-        std::collections::BTreeMap::new();
-    let mut functional_recs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    // Independent count of the carrier triples (`characteristicSort logic:functionalProperty`),
-    // NOT going through the join — a second, orthogonal witness of the corpus size.
-    let mut source_carrier_triples = 0usize;
-    for ax in &program.axioms {
-        if ax.predicate == characterizes && !ax.obj_is_literal {
-            rec_prop.insert(ax.subject.clone(), ax.obj.clone());
-        } else if ax.predicate == characteristic_sort
-            && !ax.obj_is_literal
-            && ax.obj == functional_sort
-        {
-            functional_recs.insert(ax.subject.clone());
-            source_carrier_triples += 1;
+    // Corpus-wide totals, accumulated across the per-file sweeps below.
+    let mut corpus_carrier_triples = 0usize;
+    let mut corpus_carrier_props: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+
+    for module_ttl in slice_module_ttls() {
+        let text = std::fs::read_to_string(&module_ttl)
+            .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+        let display = module_ttl.display().to_string();
+
+        // Same production parse path the `parse` helper uses (frontend `parse_logic_str`).
+        let (program, _diags) = parse_logic_str(&text, Some(format!("urn:gmeow:{display}")))
+            .unwrap_or_else(|e| panic!("parse real {display}: {e:?}"));
+
+        // Reproduce `functional_carrier_properties`: join `characterizes ?P` with the
+        // `characteristicSort logic:functionalProperty` sort on the carrier record IRI.
+        let mut rec_prop: std::collections::BTreeMap<String, String> =
+            std::collections::BTreeMap::new();
+        let mut functional_recs: std::collections::BTreeSet<String> =
+            std::collections::BTreeSet::new();
+        // Independent count of the carrier triples (`characteristicSort
+        // logic:functionalProperty`), NOT going through the join — a second, orthogonal
+        // witness of the corpus size.
+        let mut source_carrier_triples = 0usize;
+        for ax in &program.axioms {
+            if ax.predicate == characterizes && !ax.obj_is_literal {
+                rec_prop.insert(ax.subject.clone(), ax.obj.clone());
+            } else if ax.predicate == characteristic_sort
+                && !ax.obj_is_literal
+                && ax.obj == functional_sort
+            {
+                functional_recs.insert(ax.subject.clone());
+                source_carrier_triples += 1;
+            }
+        }
+        let carrier_props: std::collections::BTreeSet<String> = functional_recs
+            .iter()
+            .filter_map(|rec| rec_prop.get(rec).cloned())
+            .collect();
+
+        // Every functional carrier record names a DISTINCT property, so the carrier-triple
+        // count equals the distinct-property count. This ties the projected
+        // `owl:FunctionalProperty` triple count to the FULL carrier count.
+        assert_eq!(
+            carrier_props.len(),
+            source_carrier_triples,
+            "each functional carrier record in {display} must characterize a distinct property"
+        );
+
+        // Project OWL-DL from the real program and collect the subjects typed
+        // `owl:FunctionalProperty` in the resulting view.
+        let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
+        let projected_props: std::collections::BTreeSet<String> = triple_set(&dl.content)
+            .iter()
+            .filter_map(|t| {
+                // Each canonical line reads `<s> <p> <o>` (trailing ` .` already stripped).
+                let s = t.strip_prefix('<')?;
+                let (subject, rest) = s.split_once("> <")?;
+                let (predicate, object) = rest.split_once("> <")?;
+                let object = object.strip_suffix('>')?;
+                (predicate == RDF_TYPE && object == functional_type_obj).then(|| subject.to_owned())
+            })
+            .collect();
+
+        // STRICT parity: the SET of re-emitted functional properties equals the SET of
+        // functional-carrier properties. Catches a dropped re-emission (projected set
+        // shrinks) AND a wrong-property substitution (same count, different IRIs).
+        assert_eq!(
+            projected_props, carrier_props,
+            "the OWL-DL view of {display} must re-emit owl:FunctionalProperty for EXACTLY \
+             the functional carrier properties — no drop, no substitution"
+        );
+
+        corpus_carrier_triples += source_carrier_triples;
+        for prop in carrier_props {
+            assert!(
+                corpus_carrier_props.insert(prop.clone()),
+                "{prop} is named functional by a carrier in more than one slice ({display})"
+            );
         }
     }
-    let carrier_props: std::collections::BTreeSet<String> = functional_recs
-        .iter()
-        .filter_map(|rec| rec_prop.get(rec).cloned())
-        .collect();
 
     // The corpus must actually exercise the re-projection (guard against an empty
     // parse silently passing a vacuous set-equality).
     assert!(
-        source_carrier_triples >= 700,
+        corpus_carrier_triples >= 700,
         "expected the shipped corpus to carry ~719 functional carrier records; \
-         parsed only {source_carrier_triples} — the corpus likely failed to load"
+         parsed only {corpus_carrier_triples} — the corpus likely failed to load"
     );
-    // Every functional carrier record names a DISTINCT property, so the carrier-triple
-    // count equals the distinct-property count (712 == 712 today). This ties the
-    // projected `owl:FunctionalProperty` triple count to the FULL carrier count.
     assert_eq!(
-        carrier_props.len(),
-        source_carrier_triples,
-        "each functional carrier record must characterize a distinct property"
-    );
-
-    // Project OWL-DL from the real program and collect the subjects typed
-    // `owl:FunctionalProperty` in the resulting view.
-    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
-    let functional_type_obj = "http://www.w3.org/2002/07/owl#FunctionalProperty";
-    let projected_props: std::collections::BTreeSet<String> = triple_set(&dl.content)
-        .iter()
-        .filter_map(|t| {
-            // Each canonical line reads `<s> <p> <o>` (trailing ` .` already stripped).
-            let s = t.strip_prefix('<')?;
-            let (subject, rest) = s.split_once("> <")?;
-            let (predicate, object) = rest.split_once("> <")?;
-            let object = object.strip_suffix('>')?;
-            (predicate == RDF_TYPE && object == functional_type_obj).then(|| subject.to_owned())
-        })
-        .collect();
-
-    // STRICT parity: the SET of re-emitted functional properties equals the SET of
-    // functional-carrier properties. Catches a dropped re-emission (projected set
-    // shrinks) AND a wrong-property substitution (same count, different IRIs).
-    assert_eq!(
-        projected_props, carrier_props,
-        "the OWL-DL view must re-emit owl:FunctionalProperty for EXACTLY the functional \
-         carrier properties — no drop, no substitution"
-    );
-    // And the count is the full carrier count, derived from the parsed corpus (720 today).
-    assert_eq!(
-        projected_props.len(),
-        source_carrier_triples,
-        "every one of the {source_carrier_triples} functional carriers must project an \
-         owl:FunctionalProperty type triple"
+        corpus_carrier_props.len(),
+        corpus_carrier_triples,
+        "each functional carrier record across the whole corpus must characterize a \
+         distinct property"
     );
 }

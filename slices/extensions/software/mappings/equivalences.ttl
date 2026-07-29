@@ -203,3 +203,22 @@ gmeow:SoftwareProject skos:closeMatch wd:Q7397 {|
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "software"
 |} .
+
+# --------------------------------------------------------------------------- #
+# Naming — SoftwareName / hasSoftwareName (owned here; alignment authored
+# alongside the rest of the names-family cells this slice's terms specialize)
+# --------------------------------------------------------------------------- #
+
+gmeow:SoftwareName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — broad: a SoftwareName is a kind of name borne by a software project"
+|} .
+
+gmeow:hasSoftwareName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection"
+|} .
