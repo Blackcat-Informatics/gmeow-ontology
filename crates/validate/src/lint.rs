@@ -2480,8 +2480,7 @@ mod tests {
             report
                 .warnings()
                 .iter()
-                .any(|w| w.contains("/gmeow/Parent")
-                    && w.contains("systematic documentation gap")),
+                .any(|w| w.contains("/gmeow/Parent") && w.contains("systematic documentation gap")),
             "warnings: {:?}",
             report.warnings()
         );

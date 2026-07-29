@@ -266,7 +266,9 @@ fn class_bridge_traverses_canonical_logic_subclass_of() {
     let cyborg = "https://blackcatinformatics.ca/gmeow/Cyborg";
     let animal = "https://blackcatinformatics.ca/gmeow/Animal";
     assert!(
-        bridge.get(cyborg).is_some_and(|supers| supers.contains(animal)),
+        bridge
+            .get(cyborg)
+            .is_some_and(|supers| supers.contains(animal)),
         "build_class_bridge must traverse the canonical logic:subClassOf edge: {bridge:?}"
     );
 }

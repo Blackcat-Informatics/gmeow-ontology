@@ -1329,7 +1329,9 @@ mod tests {
             "the concrete child LonelyBond must get the RelComp finding: {findings:?}"
         );
         assert!(
-            !findings.iter().any(|p| p.message.contains("gmeow:AbstractBond")),
+            !findings
+                .iter()
+                .any(|p| p.message.contains("gmeow:AbstractBond")),
             "the abstract base AbstractBond must NOT get its own finding — its concrete \
              subtype carries the mediation: {findings:?}"
         );

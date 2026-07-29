@@ -55,7 +55,11 @@ impl ScratchRepo {
         fs::create_dir_all(&dir).expect("create scratch repo dir");
         let repo = Self { dir };
         repo.git(&["init", "-q"]);
-        repo.git(&["config", "user.email", "commit-generated-test@example.invalid"]);
+        repo.git(&[
+            "config",
+            "user.email",
+            "commit-generated-test@example.invalid",
+        ]);
         repo.git(&["config", "user.name", "commit-generated-test"]);
         repo.git(&["config", "commit.gpgsign", "false"]);
         repo
@@ -102,7 +106,9 @@ impl ScratchRepo {
             "#!/usr/bin/env bash\nset -euo pipefail\ndir=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\ncat \"$dir/listed-paths.txt\"\n",
         )
         .expect("write fake gmeow-dev");
-        let mut perms = fs::metadata(&script).expect("stat fake gmeow-dev").permissions();
+        let mut perms = fs::metadata(&script)
+            .expect("stat fake gmeow-dev")
+            .permissions();
         perms.set_mode(0o755);
         fs::set_permissions(&script, perms).expect("chmod fake gmeow-dev");
         script
@@ -182,10 +188,7 @@ fn missing_gmeow_dev_fails_with_a_clear_message() {
 fn missing_message_fails_with_a_clear_message() {
     let repo = ScratchRepo::new("missing-message");
     let gmeow_dev = repo.fake_gmeow_dev(&[]);
-    let out = run_script(
-        repo.path(),
-        &[("GMEOW_DEV", gmeow_dev.to_str().unwrap())],
-    );
+    let out = run_script(repo.path(), &[("GMEOW_DEV", gmeow_dev.to_str().unwrap())]);
     assert!(
         !out.status.success(),
         "an unset MESSAGE must fail closed, not open"
@@ -221,10 +224,7 @@ fn nothing_to_commit_exits_non_zero_with_the_expected_message() {
         "got stdout: {}",
         stdout_of(&out)
     );
-    assert!(
-        repo.log().is_empty(),
-        "no commit should have been created"
-    );
+    assert!(repo.log().is_empty(), "no commit should have been created");
 }
 
 #[test]

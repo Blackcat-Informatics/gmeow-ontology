@@ -617,14 +617,15 @@ enum FlowNode {
 /// Graphs here are single-digit-sized (a relocation touches a handful of slices),
 /// so Edmonds-Karp's `O(V E^2)` bound is irrelevant; determinism is what matters.
 pub fn solve_transport(network: &Transport) -> Flow {
-    use FlowNode::{Destination, SuperSink, SuperSource, Source};
+    use FlowNode::{Destination, Source, SuperSink, SuperSource};
 
     // Residual capacity for every directed edge, forward AND back. `add_edge`
     // seeds the back-edge at 0 capacity so the adjacency list already carries it —
     // augmenting a forward edge can then always increase its back-edge in place.
     let mut residual: BTreeMap<(FlowNode, FlowNode), i64> = BTreeMap::new();
     let mut add_edge = |a: FlowNode, b: FlowNode, cap: u64| {
-        *residual.entry((a.clone(), b.clone())).or_insert(0) += i64::try_from(cap).unwrap_or(i64::MAX);
+        *residual.entry((a.clone(), b.clone())).or_insert(0) +=
+            i64::try_from(cap).unwrap_or(i64::MAX);
         residual.entry((b, a)).or_insert(0);
     };
     for (src, cap) in &network.supply {
@@ -639,7 +640,10 @@ pub fn solve_transport(network: &Transport) -> Flow {
 
     let mut adjacency: BTreeMap<FlowNode, BTreeSet<FlowNode>> = BTreeMap::new();
     for (from, to) in residual.keys() {
-        adjacency.entry(from.clone()).or_default().insert(to.clone());
+        adjacency
+            .entry(from.clone())
+            .or_default()
+            .insert(to.clone());
     }
 
     loop {
@@ -661,7 +665,10 @@ pub fn solve_transport(network: &Transport) -> Flow {
                 if parent.contains_key(next) {
                     continue;
                 }
-                let cap = residual.get(&(node.clone(), next.clone())).copied().unwrap_or(0);
+                let cap = residual
+                    .get(&(node.clone(), next.clone()))
+                    .copied()
+                    .unwrap_or(0);
                 if cap <= 0 {
                     continue;
                 }
@@ -689,8 +696,12 @@ pub fn solve_transport(network: &Transport) -> Flow {
             .min()
             .expect("a discovered path has at least one edge");
         for (a, b) in &path {
-            *residual.get_mut(&(a.clone(), b.clone())).expect("edge exists") -= bottleneck;
-            *residual.get_mut(&(b.clone(), a.clone())).expect("back-edge exists") += bottleneck;
+            *residual
+                .get_mut(&(a.clone(), b.clone()))
+                .expect("edge exists") -= bottleneck;
+            *residual
+                .get_mut(&(b.clone(), a.clone()))
+                .expect("back-edge exists") += bottleneck;
         }
     }
 
@@ -714,7 +725,8 @@ pub fn solve_transport(network: &Transport) -> Flow {
             .filter(|((_, d), _)| d == dst)
             .map(|(_, units)| *units)
             .sum();
-        flow.residual.insert(dst.clone(), wanted.saturating_sub(delivered));
+        flow.residual
+            .insert(dst.clone(), wanted.saturating_sub(delivered));
     }
     flow
 }

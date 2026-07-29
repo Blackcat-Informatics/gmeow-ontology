@@ -505,7 +505,9 @@ pub fn closure_redundant_subclasses(
     let subclasses = named_subclass_triples(ds);
     let probes = subclasses
         .iter()
-        .map(|(subject, object)| LeaveOneOutAxiom::new(subject, gmeow_ns::RDFS_SUB_CLASS_OF, object))
+        .map(|(subject, object)| {
+            LeaveOneOutAxiom::new(subject, gmeow_ns::RDFS_SUB_CLASS_OF, object)
+        })
         .collect::<Vec<_>>();
     let rederived = leave_one_out_rederived(ds, &probes)?;
     Ok(subclasses
