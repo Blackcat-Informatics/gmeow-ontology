@@ -24,7 +24,7 @@
 //! corpus needs.
 //!
 //! **The head names the law, and that is load-bearing.** The kernel shares ONE failure
-//! class across all forty-two of its laws, so heading every rule with
+//! class across all forty-four of its laws, so heading every rule with
 //! `record rdf:type logic:EnactmentIntegrityViolation` made every law derive the SAME
 //! tuple. The chase keeps one winning derivation per derived tuple, so a record condemned
 //! by two laws surfaced under exactly one of them and the rest went dark — enforcing
@@ -447,9 +447,9 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// class it is typed with, and the authored `logic:Constraint` whose law condemned it.
 ///
 /// The third field is why this is a struct rather than the `(subject, class)` pair the math
-/// gate returns. The kernel deliberately shares ONE failure class across forty-two laws, so the
+/// gate returns. The kernel deliberately shares ONE failure class across forty-four laws, so the
 /// marker alone answers "this record is ill-formed" and leaves the operator to re-derive
-/// WHICH of forty-two authored obligations it broke — from a record that, by construction, looks
+/// WHICH of forty-four authored obligations it broke — from a record that, by construction, looks
 /// fine except in the one respect the law names. The law identity already exists at this
 /// point (every violation rule is `constraint_tag`-stamped by the lowering); carrying it out
 /// of the chase rather than dropping it on the floor is the whole fix.
@@ -560,7 +560,7 @@ mod tests {
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-    /// The 42 enactment-kernel laws the gate MUST compile, by local name.
+    /// The 44 enactment-kernel laws the gate MUST compile, by local name.
     ///
     /// Spelled out rather than counted, because the number alone would stay green if one
     /// law silently dropped out of the fragment and an unrelated one was added. This is the
@@ -574,7 +574,7 @@ mod tests {
     /// lease double-claiming a held scope are different defects, and a corpus must be able
     /// to trip each alone — and because a single law cannot do both: the relational body
     /// needs the binding in its GUARD, which makes the missing-binding case fall outside it.
-    const ENACTMENT_LAWS: [&str; 42] = [
+    const ENACTMENT_LAWS: [&str; 44] = [
         "AdvisoryNeverAuthorityConstraint",
         "ApprovalCommitmentCompletenessConstraint",
         "ApprovalDigestBindsDispatchIntentConstraint",
@@ -603,7 +603,9 @@ mod tests {
         "JournalEntryNamesBothHeadsConstraint",
         "LeaseCarriesFencingIdentityConstraint",
         "LeaseExclusivityConstraint",
+        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
         "NoBlindRetryConstraint",
+        "NoDispatchAgainstAnUnremediedGapConstraint",
         "OperationalGapCarriesProposalConstraint",
         "OperationalGapNamesBlockedStepConstraint",
         "PinStepsMatchInstantiatedMethodConstraint",
@@ -626,7 +628,7 @@ mod tests {
     /// carries the extra join atoms is exactly the shape that falls out of the Horn+NAF
     /// fragment first, and losing one would restore the defect this census was rebuilt to
     /// end — a law whose IRI asserts a relation and whose body tests a field.
-    const RELATIONAL_LAWS: [&str; 16] = [
+    const RELATIONAL_LAWS: [&str; 18] = [
         "ApprovalDigestBindsDispatchIntentConstraint",
         "ApprovalScopedToIntentEnactmentConstraint",
         "CheckpointRestoreIdentityConstraint",
@@ -637,7 +639,9 @@ mod tests {
         "FrontierClosureRequiresSaturationConstraint",
         "JournalChainIntegrityConstraint",
         "LeaseExclusivityConstraint",
+        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
         "NoBlindRetryConstraint",
+        "NoDispatchAgainstAnUnremediedGapConstraint",
         "OperationalGapCarriesProposalConstraint",
         "PinStepsMatchInstantiatedMethodConstraint",
         "PrescriptionVersionImmutabilityConstraint",

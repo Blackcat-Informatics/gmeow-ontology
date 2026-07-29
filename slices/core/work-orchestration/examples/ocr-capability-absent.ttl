@@ -58,8 +58,14 @@ ex:run77Frontier a logic:ActionableFrontier ;
     logic:frontierOfEnactment ex:ingestRun77 ;
     logic:hasFrontierEntry ex:ocrStepEntry .
 
+# logic:entryAction is what makes the label below a CONCLUSION rather than an author's
+# opinion. logic:ruleFrontierBlockedCapability joins an entry to a gap through the step the
+# entry positions, so without this edge no shipped rule reaches this entry and the label is
+# a string nothing has checked — which the operator surface then has to print as
+# ASSERTED-UNCHECKED, in the flagship example of the very discipline this file demonstrates.
 ex:ocrStepEntry a logic:FrontierEntry ;
     rdfs:label "OCR step — blocked, no capability available"@x-gmeow-english ;
+    logic:entryAction ex:ocrStep ;
     logic:entryLabel logic:FrontierBlockedCapabilityOrResource ;
     logic:entryAxisWitness logic:StepWaiting .
 

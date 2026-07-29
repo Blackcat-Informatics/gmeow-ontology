@@ -487,22 +487,26 @@ fn shipped_ocr_example() -> PathBuf {
         .join("../../slices/core/work-orchestration/examples/ocr-capability-absent.ttl")
 }
 
-/// The shipped example plus the one structural link the blocked-on-capability rule needs to
-/// reach it: the entry's action.
+/// The shipped example's text, with the two properties every test below relies on pinned.
 ///
-/// Without it no rule concludes anything about `ex:ocrStepEntry`, which is a real and
-/// separate case — covered by [`frontier_marks_an_authored_label_no_rule_derives`] — but not
-/// the one where a derivation and an assertion can contradict each other.
-fn rule_reachable_ocr_example() -> String {
+/// It ASSERTS the label under audit, and it carries the `logic:entryAction` edge through
+/// which `logic:ruleFrontierBlockedCapability` reaches the entry. The second used to be
+/// missing, and the example shipped a hand-asserted label the rule set could not reach —
+/// the flagship demonstration of "surface the gap" carrying, at its centre, exactly the
+/// unchecked assertion the discipline forbids. Asserting both here means a regression on
+/// either one fails loudly instead of quietly making every test below vacuous.
+fn shipped_ocr_example_text() -> String {
     let base = fs::read_to_string(shipped_ocr_example()).expect("shipped example is readable");
     assert!(
         base.contains("logic:entryLabel logic:FrontierBlockedCapabilityOrResource"),
         "the shipped example must ASSERT the label under audit, or this test proves nothing"
     );
-    format!(
-        "{base}\nex:ocrStepEntry logic:entryAction ex:ocrStep .\n\
-         ex:ocrCapabilityGap logic:gapBlockedStep ex:ocrStep .\n"
-    )
+    assert!(
+        base.contains("logic:entryAction ex:ocrStep"),
+        "the shipped example must bind the entry's ACTION, or no shipped rule can reach the \
+         entry and its label is an assertion nothing has checked"
+    );
+    base
 }
 
 /// The line of the frontier table that carries `entry`'s label, excluding the marker lines
@@ -520,7 +524,7 @@ const OCR_ENTRY: &str =
 #[test]
 fn frontier_prints_the_derived_label_and_flags_a_contradicting_authored_one() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let honest = rule_reachable_ocr_example();
+    let honest = shipped_ocr_example_text();
     // The mutation is a direct contradiction, not a near miss: the entry's own axis witness
     // is logic:StepWaiting on a step an operational capability gap blocks, so "ready and
     // authorized" is the one thing it demonstrably is not. An operator acting on the
@@ -601,7 +605,7 @@ fn frontier_prints_the_derived_label_and_flags_a_contradicting_authored_one() {
 #[test]
 fn why_not_never_stamps_a_hand_typed_label_as_derived() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let mutated = rule_reachable_ocr_example().replace(
+    let mutated = shipped_ocr_example_text().replace(
         "logic:entryLabel logic:FrontierBlockedCapabilityOrResource",
         "logic:entryLabel logic:FrontierReadyAuthorized",
     );
@@ -633,32 +637,45 @@ fn why_not_never_stamps_a_hand_typed_label_as_derived() {
 
 #[test]
 fn frontier_marks_an_authored_label_no_rule_derives() {
-    // The shipped example EXACTLY as it ships — the case [`rule_reachable_ocr_example`]
-    // exists to distinguish itself FROM. Nothing in the file as shipped links the entry to
-    // the step a capability gap blocks, so no shipped rule reaches ex:ocrStepEntry and its
-    // authored logic:FrontierBlockedCapabilityOrResource is a value nothing has checked.
+    // An entry whose axis witness NO shipped rule labels, carrying a hand-typed label.
+    // `logic:ApprovalExpired` positions the approval axis and nothing else, and no shipped
+    // logic:Rule concludes an entry label from it alone, so the authored value is a string
+    // nothing has checked.
     //
     // That must read as an unverified assertion rather than as a conclusion: the difference
     // between "the reasoner concluded this step is blocked" and "somebody typed blocked" is
     // the difference between trusting the frontier and auditing it.
     //
-    // The subject is a genuine candidate ACTION. It used to be the file's saturation
-    // witness, which was typed as a frontier entry and so appeared on the roster as a
-    // phantom completed action; a witness is a claim ABOUT the roster and no longer joins
-    // it, so this test asserts the same behaviour over a row that is really there.
+    // The fixture is synthetic ON PURPOSE. This case used to be driven from the shipped
+    // ocr-capability-absent.ttl, which asserted a label the rule set could not reach — so
+    // the flagship demonstration of "surface the gap honestly" shipped, at its centre, the
+    // very unchecked assertion the discipline forbids, and this test pinned it in place.
+    // The example now binds its entry's action and derives; a shipped example may no longer
+    // stand here, which `every_shipped_example_derives_the_labels_it_asserts` enforces.
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = write(
+        &dir,
+        "unreachable-label.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:staleApproval a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:ApprovalExpired ;
+    logic:entryLabel logic:FrontierBlockedCapabilityOrResource .
+"#,
+    );
+
     let out = stdout_of(&[
         "--console",
         "text",
         "logic",
         "frontier",
-        shipped_ocr_example().to_str().expect("utf-8 path"),
+        path.to_str().expect("utf-8 path"),
     ]);
-    assert!(
-        !out.contains("run77Saturation"),
-        "the saturation witness certifies the roster and is not a member of it; a witness \
-         on the frontier is an action an operator can be asked to take and cannot, got:\n{out}"
+    let row = row_for(
+        &out,
+        "https://blackcatinformatics.ca/gmeow/clitest/staleApproval",
     );
-    let row = row_for(&out, OCR_ENTRY);
     assert!(
         row.contains("FrontierBlockedCapabilityOrResource"),
         "the authored label must still be shown — hiding it would be its own dishonesty, \
@@ -675,6 +692,156 @@ fn frontier_marks_an_authored_label_no_rule_derives() {
     assert!(
         out.contains("UNCHECKED     no shipped logic:Rule derives a label for this entry"),
         "the marker must say WHY the value is unchecked, got:\n{out}"
+    );
+}
+
+/// The shipped example the flagship capability-absent scenario rests on DERIVES its label.
+///
+/// It used to assert one the rule set could not reach: `ex:ocrStepEntry` bound no
+/// `logic:entryAction`, and `logic:ruleFrontierBlockedCapability` joins an entry to a gap
+/// THROUGH the step the entry positions, so the command printed the file's headline claim
+/// as `ASSERTED-UNCHECKED`. An example that demonstrates surfacing a capability gap while
+/// asserting, unchecked, that the step is blocked demonstrates the failure it was written
+/// to rule out.
+#[test]
+fn the_shipped_capability_absent_example_derives_its_label() {
+    let out = stdout_of(&[
+        "--console",
+        "text",
+        "logic",
+        "frontier",
+        shipped_ocr_example().to_str().expect("utf-8 path"),
+    ]);
+    assert!(
+        !out.contains("run77Saturation"),
+        "the saturation witness certifies the roster and is not a member of it; a witness \
+         on the frontier is an action an operator can be asked to take and cannot, got:\n{out}"
+    );
+    let row = row_for(&out, OCR_ENTRY);
+    assert!(
+        row.contains("FrontierBlockedCapabilityOrResource"),
+        "the blocked-on-capability label must be the one reported, got:\n{row}"
+    );
+    assert!(
+        row.contains("derived (input agrees)"),
+        "the shipped example asserts the label AND the rule set reproduces it, which is a \
+         stronger statement than either alone; got:\n{row}"
+    );
+    assert!(
+        !out.contains("ASSERTED-UNCHECKED"),
+        "the flagship capability-absent example must carry no unchecked assertion, got:\n{out}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// The sweep: no SHIPPED example may assert a frontier label the rule set does
+// not derive.
+//
+// The CLI has printed `ASSERTED-UNCHECKED` since the provenance split was
+// introduced, and until now NOTHING consumed that verdict — the string existed
+// only in display code, so an example could carry an underived label forever and
+// every gate stayed green. This is the consumer. It runs the shipped binary over
+// every example the repository ships and fails on the first entry whose label
+// the rules do not reach.
+//
+// Scoped to `examples/` deliberately. A `tests/counter-examples/` fixture is
+// SUPPOSED to be malformed, and a conformance fixture is validated slice-scoped
+// against its own expectations; an `examples/` file is the repository speaking in
+// its own voice, and an unchecked assertion there is the ontology asserting
+// something it cannot derive.
+// ---------------------------------------------------------------------------
+
+/// Every `*.ttl` under a `slices/**/examples/` directory, sorted.
+fn shipped_examples() -> Vec<PathBuf> {
+    fn walk(dir: &Path, in_examples: bool, out: &mut Vec<PathBuf>) {
+        let Ok(entries) = fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                let is_examples = in_examples || path.file_name().is_some_and(|n| n == "examples");
+                walk(&path, is_examples, out);
+            } else if in_examples && path.extension().is_some_and(|e| e == "ttl") {
+                out.push(path);
+            }
+        }
+    }
+    let slices = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices");
+    let mut out = Vec::new();
+    walk(&slices, false, &mut out);
+    out.sort();
+    assert!(
+        !out.is_empty(),
+        "the sweep found no shipped examples at all, which means it is sweeping nothing"
+    );
+    out
+}
+
+#[test]
+fn every_shipped_example_derives_the_labels_it_asserts() {
+    let mut swept = 0usize;
+    let mut offenders: Vec<String> = Vec::new();
+    for example in shipped_examples() {
+        let text = fs::read_to_string(&example).expect("shipped example is readable");
+        // Only a file that ASSERTS a label can offend. One that asserts none is either
+        // silent about the frontier or already deriving everything it shows.
+        if !text.contains("logic:entryLabel") {
+            continue;
+        }
+        // `--console text` rather than `silent`: the JSON document goes to stdout and the
+        // reporter's diagnostics to stderr, so a refusal below can be read and CHECKED
+        // rather than being an empty exit code the sweep would have to guess about.
+        let output = gmeow()
+            .args([
+                "--console",
+                "text",
+                "logic",
+                "frontier",
+                example.to_str().expect("utf-8 path"),
+                "--format",
+                "json",
+            ])
+            .output()
+            .expect("the shipped binary runs");
+        let stdout = String::from_utf8(output.stdout).expect("utf-8 stdout");
+        if !output.status.success() {
+            // The command's own refusal when a file names `logic:entryLabel` only as a
+            // predicate (a closure census, say) and carries no labelled entry. Nothing to
+            // audit, and asserting the refusal's shape is louder than a silent skip.
+            let stderr = String::from_utf8(output.stderr).expect("utf-8 stderr");
+            assert!(
+                stderr.contains("no frontier label was derived"),
+                "the sweep must not swallow an unexpected failure on {}: {stderr}",
+                example.display()
+            );
+            continue;
+        }
+        swept += 1;
+        let doc: serde_json::Value =
+            serde_json::from_str(&stdout).expect("stdout is exactly one JSON document");
+        for entry in doc["entries"].as_array().into_iter().flatten() {
+            let provenance = entry["provenance"].as_str().unwrap_or_default();
+            if provenance == "ASSERTED-UNCHECKED" || provenance == "DISAGREEMENT" {
+                offenders.push(format!(
+                    "{}: {} is {provenance} ({})",
+                    example.display(),
+                    entry["entry"].as_str().unwrap_or_default(),
+                    entry["asserted_label"].as_str().unwrap_or_default()
+                ));
+            }
+        }
+    }
+    assert!(
+        swept > 0,
+        "the sweep audited no example carrying a frontier label, so it proves nothing"
+    );
+    assert!(
+        offenders.is_empty(),
+        "these SHIPPED examples assert a frontier label the rule set does not derive — an \
+         example is the repository speaking in its own voice, and an unchecked label there \
+         is the ontology asserting a conclusion it cannot reach; either bind the structure \
+         the rule needs or stop asserting the label: {offenders:#?}"
     );
 }
 
@@ -864,13 +1031,15 @@ fn structured_frontier_carries_the_provenance_split() {
         .and_then(|e| e.first())
         .expect("one frontier entry");
     // The three-way split is the point: a consumer must be able to tell a conclusion from
-    // an unverified assertion WITHOUT reading prose.
-    assert_eq!(entry["provenance"].as_str(), Some("ASSERTED-UNCHECKED"));
+    // an unverified assertion WITHOUT reading prose. The shipped example is the AGREEMENT
+    // arm — the rules concluded the label and the author had written the same thing — which
+    // is a different fact from either half alone and is carried as such.
+    assert_eq!(entry["provenance"].as_str(), Some("derived (input agrees)"));
     assert_eq!(
-        entry["asserted_label"].as_str(),
+        entry["derived_label"].as_str(),
         Some("https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource")
     );
-    assert!(entry["derived_label"].is_null(), "nothing derived it");
+    assert_eq!(entry["input_agrees"].as_bool(), Some(true));
     assert!(
         doc["facts"]
             .as_array()

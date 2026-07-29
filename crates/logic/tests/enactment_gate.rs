@@ -122,6 +122,13 @@ const ADVISORY_LAUNDERED_INTO_A_PROOF: &str = include_str!(
     "../../../slices/grounding/logic/tests/counter-examples/advisory-laundered-into-an-authorization-proof.ttl"
 );
 
+/// A continuing maintenance goal whose evaluation is BOTH `logic:Satisfied` and
+/// `logic:GoalEvaluationCompleted` — one good week presented as the permanent closure of a
+/// standing commitment. Trips `logic:MaintenanceGoalNeverConclusivelySatisfiedConstraint`.
+const MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/maintenance-goal-closed-by-one-good-week.ttl"
+);
+
 fn parse(ttl: &str) -> Arc<RdfDataset> {
     purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture is valid Turtle")
 }
@@ -1204,7 +1211,7 @@ ex:roster1 a logic:RefinementCandidateSet ;
 
 /// The marker-identity fix, pinned on the production surface.
 ///
-/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-two
+/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-four
 /// laws, so before the law identity was carried out of the chase an operator saw only that
 /// a record breached enactment integrity. This asserts the finding carries the ABSOLUTE IRI
 /// of the authored `logic:Constraint` — the thing whose `logic:message` states the
@@ -1453,12 +1460,32 @@ fn an_ocr_gap_remedied_for_another_step_fires_on_verify() {
         "DispatchIntentCompletenessConstraint",
         "the intent that dispatched the weaker parser binds all nine fields, so the \
          substitution leaves a complete, well-formed record behind it — which is exactly why \
-         it is silent",
+         a field check cannot see it",
+    );
+    // The SUBSTITUTION itself, condemned at the record that carries it. Every assertion
+    // above condemns the GAP: between them they say the blockage was reported badly, and
+    // none of them says anything about the dispatch that went ahead against a plain-text
+    // extractor. Asserting this law BY NAME on the INTENT is what makes the difference
+    // legible — the gap's own laws stay green on a scene where the gap arrives with its
+    // remedy and the dispatch happens anyway.
+    assert_condemns_under(
+        &report,
+        "ocrStepIntent",
+        "NoDispatchAgainstAnUnremediedGapConstraint",
     );
 }
 
+/// The green half of the substitution law: the SUBSTITUTING INTENT IS STILL THERE.
+///
+/// This is the whole discipline of the pair. Deleting the dispatch intent would make the
+/// scene green for a reason that has nothing to do with the law — no intent, no guard, no
+/// finding — and would leave a law that fires on every scene carrying a dispatch intent
+/// equally well. So the intent stays, whole and nine-field complete, dispatched at the very
+/// step the gap blocks; what changes is that the gap is now ANSWERED. A blocked step whose
+/// gap somebody is provisioning for is a scene the kernel models; a blocked step dispatched
+/// into an unanswered gap is the silent substitution.
 #[test]
-fn an_ocr_gap_answered_by_a_proposal_for_its_own_step_passes_on_verify() {
+fn a_dispatch_at_a_blocked_step_whose_gap_is_answered_passes_on_verify() {
     let report = run_verify(&scene(
         "
 ex:noOcrProvider a logic:OperationalCapabilityGap ;
@@ -1472,12 +1499,135 @@ ex:ocrProposal a logic:CapabilityGapProposal ;
     logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\" ;
     logic:proposalSecurityLifecycle \"Runs inside the data boundary; retains no page content.\" ;
     logic:proposalBlockedStep ex:ocrStep .
+ex:ocrStepIntent a logic:DispatchIntent ;
+    logic:intentOfEnactment ex:adrReviewWeek13 ;
+    logic:intentOfStep ex:ocrStep ;
+    logic:intentActionSchemaVersion ex:plainTextExtractV3 ;
+    logic:intentNormalizedArguments ex:ocrStepArguments ;
+    logic:intentTarget ex:documentIngestService ;
+    logic:intentPolicy ex:ingestPolicy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest \"b3:5a3e08c7b16d29f405ac83b71e0d64f2a97c5308be14d7a2609f3bc851d0e746\" ;
+    logic:expectedJournalHead \"b3:c04b91e7a5d3268f0b17ce49d0a53f8261bd794c0e5a3f16b28d0c74a9e5312\" .
 ",
     ));
+    assert_law_silent(
+        &report,
+        "NoDispatchAgainstAnUnremediedGapConstraint",
+        "the intent that dispatched the blocked step is still in the scene, byte for byte — \
+         what changed is that a complete proposal now answers the gap, so the green half \
+         differs by the REMEDY and not by the evidence being deleted",
+    );
     assert_clean(
         &report,
         "a gap whose blocked step a complete proposal names is the discipline working: the \
-         blockage arrived with the statement of what would close it",
+         blockage arrived with the statement of what would close it, and the dispatch \
+         record that accompanies it is complete on all nine fields",
+    );
+}
+
+// ── The continuing goal a successful occurrence may not close ─────────────────────────
+
+/// The SHIPPED counter-example: one good week presented as the closure of a standing goal.
+///
+/// The pair `(logic:Satisfied, logic:GoalEvaluationCompleted)` is exactly what generates a
+/// conclusive `gmeow:satisfiedBy` edge, so a maintenance goal that reaches it is retired —
+/// and the recurrence then issues occurrences against a commitment the record says ended.
+/// Every record in the fixture is individually well-formed: all four factored axes bound,
+/// the criterion and time present, the goal carrying a well-formed condition. Only the
+/// JOIN between the condition's kind and the evaluation's conclusiveness is wrong.
+#[test]
+fn a_maintenance_goal_closed_by_one_good_week_fires_on_verify() {
+    let report = run_verify(MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK);
+    assert_condemns_under(
+        &report,
+        "maintenanceGoalClosedByWeek12",
+        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
+    );
+}
+
+/// The green half: the SAME scene judged honestly — held so far, not concluded.
+///
+/// The only edit is the conclusiveness axis. Without this the red half would be satisfied
+/// by a law condemning every evaluation of a maintenance goal, which would make the
+/// continuing goal unjudgeable rather than unclosable.
+#[test]
+fn a_maintenance_goal_held_so_far_but_undetermined_passes_on_verify() {
+    let honest = MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK.replace(
+        "logic:goalEvaluationStatus logic:GoalEvaluationCompleted",
+        "logic:goalEvaluationStatus logic:GoalEvaluationUndetermined",
+    );
+    assert_ne!(
+        honest, MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK,
+        "the edit must actually change the fixture, or the green half proves nothing"
+    );
+    let report = run_verify(&honest);
+    assert_clean(
+        &report,
+        "a maintenance goal that holds so far and says so — Satisfied, and UNDETERMINED — is \
+         the record that keeps a continuing cluster open, and the kernel must raise nothing \
+         on it",
+    );
+}
+
+/// The FAILING maintenance goal still concludes, and must stay expressible.
+///
+/// `logic:GoalEvaluationCompleted`'s own definition says a maintenance target reaches a
+/// conclusive judgment when its window closes (satisfied) or its target FAILS (violated).
+/// A law that condemned every completed maintenance evaluation would make the second
+/// unrepresentable — a broken standing commitment could then only be recorded as still
+/// undetermined, which is the opposite of the honesty the law exists to enforce.
+#[test]
+fn a_maintenance_goal_conclusively_violated_passes_on_verify() {
+    let failed = MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK.replace(
+        "logic:satisfactionStatus logic:Satisfied",
+        "logic:satisfactionStatus logic:Violated",
+    );
+    assert_ne!(
+        failed, MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK,
+        "the edit must actually change the fixture"
+    );
+    let report = run_verify(&failed);
+    assert_law_silent(
+        &report,
+        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
+        "a maintenance target that FAILED has reached a conclusive judgment, and the law \
+         forbids the satisfied-and-concluded pair alone",
+    );
+}
+
+/// A maintenance target under a CLOSING window is outside the law's guard.
+///
+/// The discrimination the whole law rests on. A windowed maintenance target is authored as
+/// a `logic:DeadlineWindowGoal` whose operand carries the maintenance sub-expression, so
+/// the goal's own `logic:hasGoalCondition` names the windowed kind. Once that window
+/// closes the judgment may conclude — and a law whose guard read the operand instead would
+/// forbid it, making a bounded maintenance commitment permanently unfinishable.
+#[test]
+fn a_windowed_maintenance_goal_may_conclude_on_verify() {
+    let report = run_verify(&scene(
+        "
+ex:auditWindowGoal logic:hasGoalCondition ex:auditWindowCondition .
+ex:auditWindowCondition a logic:GoalExpression ;
+    logic:goalExpressionKind logic:DeadlineWindowGoal ;
+    logic:operand ex:auditMaintenanceTarget ;
+    logic:deadlineWindow ex:fiscalYear2026 .
+ex:auditMaintenanceTarget a logic:GoalExpression ;
+    logic:goalExpressionKind logic:MaintenanceGoal ;
+    logic:boundSituationType ex:controlsOperating .
+ex:auditWindowEvaluation a logic:GoalEvaluation ;
+    logic:evaluatesGoal ex:auditWindowGoal ;
+    logic:evaluatedAgainst ex:controlsOperating ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted .
+",
+    ));
+    assert_law_silent(
+        &report,
+        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
+        "the goal's own condition is the DEADLINE-WINDOW kind, so a closed window concludes \
+         exactly as the kernel says it may; only the unbounded maintenance target — the one \
+         whose interval is the life of the cluster — can never be conclusively satisfied",
     );
 }
 

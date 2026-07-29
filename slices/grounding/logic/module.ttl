@@ -14407,6 +14407,92 @@ logic:ogrStep a logic:Formula ; logic:relation logic:gapBlockedStep ;
 logic:ogrCons a logic:Formula ; logic:relation logic:proposalBlockedStep ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "proposal" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
 
+# The SUBSTITUTION leg, focused on the record the substitution actually leaves behind. The
+# two laws above both condemn the GAP, so between them they say a blockage was reported
+# badly; neither says anything about the dispatch that went ahead anyway. That dispatch is
+# the thing the discipline exists to forbid — an absent capability quietly replaced by a
+# weaker one — and it is invisible to every presence check, because the intent that records
+# it binds all nine of its mandatory fields. The join is the step: the intent names it
+# through logic:intentOfStep and the gap through logic:gapBlockedStep, so the law needs no
+# new predicate, only a body that reads both. The obligation the dispatch must meet is the
+# remedy, which is why the green case differs by a logic:CapabilityGapProposal arriving
+# rather than by the dispatch record being deleted.
+logic:NoDispatchAgainstAnUnremediedGapConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a blocked step is not dispatched against whatever capability is available"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:DispatchIntent whose logic:intentOfStep is the logic:gapBlockedStep of a logic:OperationalCapabilityGap that no logic:CapabilityGapProposal answers. This is the silent substitution itself, condemned at the record that carries it: the missing capability is not absent from the run, it has been replaced by whatever weaker thing was to hand, and the dispatch intent recording the replacement is complete, well-formed and individually blameless. Its siblings condemn the GAP — for naming no step, or for carrying no remedy — and so state only that a blockage was reported badly; none of them looks at the dispatch that proceeded regardless. The join is the step both records already name, and the obligation is the remedy: a blocked step whose gap has been answered is a step somebody is provisioning for, while a blocked step dispatched into an unanswered gap is an absent capability turned into a quality loss that surfaces much later as unexplained bad data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:DispatchIntent must not name as its logic:intentOfStep a step some logic:OperationalCapabilityGap blocks and no logic:CapabilityGapProposal answers; dispatching a blocked step against whatever capability IS available is the silent substitution of a weaker one, and it leaves a complete, well-formed record behind it." ;
+    logic:integrity logic:ndgForall .
+logic:ndgForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ndgImpl .
+logic:ndgImpl a logic:Formula ; logic:antecedent logic:ndgGuard ; logic:consequent logic:ndgCons .
+logic:ndgGuard a logic:Formula ; logic:and logic:ndgIsIntent , logic:ndgOfStep , logic:ndgIsGap , logic:ndgGapStep .
+logic:ndgIsIntent a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:DispatchIntent ] .
+logic:ndgOfStep a logic:Formula ; logic:relation logic:intentOfStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+logic:ndgIsGap a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gap" ] , [ logic:termIndex 1 ; logic:termIri logic:OperationalCapabilityGap ] .
+logic:ndgGapStep a logic:Formula ; logic:relation logic:gapBlockedStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gap" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+logic:ndgCons a logic:Formula ; logic:relation logic:proposalBlockedStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "proposal" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+
+# The recurrence law: a maintenance target is never CLOSED by an occurrence that went well.
+#
+# A continuing body of work exists because its goal is satisfied only WHILE its condition
+# holds. A successful week of the recurring review is evidence about that week and says
+# nothing conclusive about the standing goal, so the two are separate logic:GoalEvaluation
+# records with separate conclusiveness: the week's own achievement goal reaches
+# logic:GoalEvaluationCompleted, the cluster's maintenance goal stays
+# logic:GoalEvaluationUndetermined. Letting one occurrence carry the maintenance goal to
+# Satisfied AND Completed generates the conclusive gmeow:satisfiedBy edge, and the cluster
+# then reads as finished — the recurrence keeps firing against a goal the record says was
+# closed months ago, which is how a standing commitment quietly becomes a cron job nobody
+# can justify.
+#
+# The guard is the BARE maintenance kind, and that is the discrimination the law rests on. A
+# maintenance target with a closing window is authored as a logic:DeadlineWindowGoal whose
+# operand carries the maintenance sub-expression, so the goal's own logic:hasGoalCondition
+# names the windowed kind and falls outside this guard: a window that has closed may
+# conclude, exactly as logic:GoalEvaluationCompleted's definition says. What may never
+# conclude satisfied is the unbounded one — the goal whose interval is the life of the
+# cluster, which no occurrence can reach the end of.
+logic:MaintenanceGoalNeverConclusivelySatisfiedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an unbounded maintenance goal is never conclusively satisfied"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:GoalEvaluation that judges a goal whose logic:hasGoalCondition is logic:MaintenanceGoal-kinded and carries logic:Satisfied together with logic:GoalEvaluationCompleted. A maintenance target holds only while its condition does, so a successful occurrence of a recurring prescription is evidence about that occurrence and never a closure of the continuing goal: the pair (Satisfied, Completed) is precisely the pair that generates a conclusive gmeow:satisfiedBy edge, and generating one here permanently retires a commitment that was supposed to keep recurring. The guard names the BARE maintenance kind on purpose — a maintenance target indexed to a closing interval is authored as a logic:DeadlineWindowGoal whose operand carries it, so a window that has closed reaches a conclusive judgment through a condition this law does not govern. Violation is Satisfied-and-Completed only: logic:Violated with logic:GoalEvaluationCompleted is the maintenance target FAILING, which is conclusive and must stay expressible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:GoalEvaluation of a logic:MaintenanceGoal-kinded condition must not carry logic:satisfactionStatus logic:Satisfied together with logic:goalEvaluationStatus logic:GoalEvaluationCompleted; a successful occurrence never closes a continuing maintenance goal, and that pair is what generates the conclusive gmeow:satisfiedBy edge." ;
+    logic:integrity logic:mgcForall .
+logic:mgcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mgcImpl .
+logic:mgcImpl a logic:Formula ; logic:antecedent logic:mgcGuard ; logic:consequent logic:mgcCons .
+logic:mgcGuard a logic:Formula ; logic:and logic:mgcIsEvaluation , logic:mgcOfGoal , logic:mgcGoalCondition , logic:mgcMaintenanceKind .
+logic:mgcIsEvaluation a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] .
+logic:mgcOfGoal a logic:Formula ; logic:relation logic:evaluatesGoal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "goal" ] .
+logic:mgcGoalCondition a logic:Formula ; logic:relation logic:hasGoalCondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ] , [ logic:termIndex 1 ; logic:termVariable "condition" ] .
+logic:mgcMaintenanceKind a logic:Formula ; logic:relation logic:goalExpressionKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ] , [ logic:termIndex 1 ; logic:termIri logic:MaintenanceGoal ] .
+logic:mgcCons a logic:Formula ; logic:not logic:mgcTerminal .
+logic:mgcTerminal a logic:Formula ; logic:and logic:mgcSatisfied , logic:mgcCompleted .
+logic:mgcSatisfied a logic:Formula ; logic:relation logic:satisfactionStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] .
+logic:mgcCompleted a logic:Formula ; logic:relation logic:goalEvaluationStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] .
+
 # =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
