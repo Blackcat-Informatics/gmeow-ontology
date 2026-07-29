@@ -75,7 +75,8 @@ pub struct LinkRewrite {
 ///
 /// Emits `book.toml`, `SUMMARY.md`, and `src/<page-dir>/index.md` for every page
 /// in [`book_pages`]. Chapter bodies are the single Markdown authority
-/// ([`to_markdown_exec`]) transformed only by [`rewrite_book_links`]. The output
+/// ([`crate::render::to_markdown_exec`]) transformed only by
+/// [`rewrite_book_links`]. The output
 /// is byte-identical across calls.
 pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let pages = book_pages(model);

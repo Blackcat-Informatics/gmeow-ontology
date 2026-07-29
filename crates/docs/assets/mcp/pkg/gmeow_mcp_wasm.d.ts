@@ -8,13 +8,19 @@
  * embeds and the docs site serves. The bytes are parsed to the carrier dataset, the
  * bundle view is folded, and the builtin tool/resource surface is assembled, exactly
  * as [`gmeow_mcp::McpServer::from_snapshot`] does natively; the ONLY difference is
- * [`SegmentSet::reasoning_only`], which routes the twenty-three CORE tools back to the
- * always-resident core image with the typed `mcp.segment-not-loaded` signal instead of
- * answering them here. The twelve reasoning tools answer for real.
+ * [`SegmentSet::reasoning_only`], which routes the [`gmeow_mcp::CORE_SEGMENT_TOOL_COUNT`]
+ * CORE tools back to the always-resident core image with the typed
+ * `mcp.segment-not-loaded` signal instead of answering them here. The
+ * [`gmeow_mcp::REASONING_SEGMENT_TOOLS`] answer for real.
  *
  * Calling this again REPLACES the engine wholesale (a new bundle is a new session).
- * A failed load installs nothing, so [`ready`] stays `false` and [`mcp`] keeps
- * refusing frames rather than answering from a stale or partial bundle.
+ *
+ * The replacement is ORDERED: the installed engine is dropped BEFORE the new one is
+ * built, so a failed load leaves no engine at all — [`ready`] reports `false` and [`mcp`]
+ * refuses frames — rather than leaving the PREVIOUS session's bundle serving. The
+ * alternative ordering (build, then install on success) reads as safer and is the exact
+ * opposite: it makes a failed re-`init` invisible, and the caller who asked for a new
+ * bundle keeps getting answers from the old one's data.
  *
  * # Errors
  *

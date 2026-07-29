@@ -472,7 +472,7 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 				exit 1; \
 			fi; \
 		done; \
-		echo "== lean-core proof: gmeow-mcp-core-wasm (the SAME 35-tool surface, reasoning segment demand-loaded) builds for wasm32 =="; \
+		echo "== lean-core proof: gmeow-mcp-core-wasm (the SAME 38-tool surface, reasoning segment demand-loaded) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-core-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== segment gate: the reasoning segment must be ABSENT from the lean core's wasm dep tree =="; \
 		: "This is the whole claim of the crate, so it is a dep-tree assertion rather than a comment. gmeow-logic (the DL reasoner) and gmeow-slice-quality (the rubric kernel over it) are what the first-load image exists to NOT carry; if either reappears the byte win is gone and the tiering is theatre. tiktoken-rs is forbidden on BOTH sides: no image may carry the cl100k vocabulary. The native-only forbidden set is checked too, exactly as for the reasoning segment."; \
@@ -571,7 +571,13 @@ maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reaso
 	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.d.ts          crates/docs/assets/mcp/pkg/gmeow_mcp_wasm.d.ts
 	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm.d.ts  crates/docs/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm.d.ts
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json              crates/docs/assets/mcp/WITNESS.mcp.json
-	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset
+	@# The re-pin is RUN ALONE, then the whole binary re-runs as the verification. Blessing
+	@# inside the full parallel run raced: `both_segments_carry_a_present_and_current_native_wasm_attestation`
+	@# reads DIGESTS.blake3 while `vendored_mcp_reasoning_segment_passes_the_anti_rot_gate`
+	@# is rewriting it, so a refresh that genuinely moved bytes failed on a stale read and
+	@# then passed on a re-run — a gate that has to be run twice is not a gate.
+	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_reasoning_segment_passes_the_anti_rot_gate
+	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
 
 maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-core-wasm first-load segment into crates/docs/assets/mcp-core/ and re-pin its BLAKE3 manifest (only after the Node parity + demand-load lane passes).
@@ -586,7 +592,9 @@ maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-
 	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm.d.ts          crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.d.ts
 	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts  crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json         crates/docs/assets/mcp-core/WITNESS.core-deferral.json
-	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset
+	@# Blessed alone then verified in full, for the reason spelled out on maint-refresh-mcp-asset.
+	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_core_segment_passes_the_anti_rot_gate
+	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
 
 mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
