@@ -11,6 +11,7 @@
 @prefix ex:    <http://example.org/math/> .
 
 ex:bareResultClaim a gmeow:Observation ;
+    gmeow:observedFeature ex:someEstimate ;
     gmeow:observationResult ex:someEstimate .
 
 ex:someEstimate a math:Estimate .

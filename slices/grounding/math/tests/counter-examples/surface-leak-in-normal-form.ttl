@@ -29,6 +29,7 @@ ex:leakRewrite a math:NormalizationProcedure .
 
 ex:declObservation a gmeow:Observation ;
     gmeow:observationResult ex:decl ;
+    gmeow:observedFeature ex:src ;
     gmeow:vantage ex:leakStandpoint .
 
 ex:leakStandpoint a gmeow:Standpoint , gmeow:Entity .

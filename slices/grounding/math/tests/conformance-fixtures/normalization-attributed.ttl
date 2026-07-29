@@ -30,6 +30,7 @@ ex:commutativityRewrite a math:NormalizationProcedure .
 
 ex:attributedDeclObservation a gmeow:Observation ;
     gmeow:observationResult ex:attributedDecl ;
+    gmeow:observedFeature ex:attributedSource ;
     gmeow:vantage ex:analystStandpoint .
 
 ex:analystStandpoint a gmeow:Standpoint , gmeow:Entity .

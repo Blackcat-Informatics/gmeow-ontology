@@ -31,6 +31,7 @@ ex:externalTheoremEquivalence a math:NormalizationProcedure .
 
 ex:semanticDeclObservation a gmeow:Observation ;
     gmeow:observationResult ex:semanticDecl ;
+    gmeow:observedFeature ex:semanticSource ;
     gmeow:vantage ex:theoristStandpoint .
 
 ex:theoristStandpoint a gmeow:Standpoint , gmeow:Entity .

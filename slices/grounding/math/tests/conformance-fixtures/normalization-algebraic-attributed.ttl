@@ -32,6 +32,7 @@ ex:groebnerBasisReduction a math:NormalizationProcedure .
 
 ex:algebraicDeclObservation a gmeow:Observation ;
     gmeow:observationResult ex:algebraicDecl ;
+    gmeow:observedFeature ex:algebraicSource ;
     gmeow:vantage ex:algebraistStandpoint .
 
 ex:algebraistStandpoint a gmeow:Standpoint , gmeow:Entity .
