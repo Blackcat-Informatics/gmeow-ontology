@@ -157,3 +157,53 @@ fn the_gate_decides_a_non_empty_population_over_the_shipped_example_corpus() {
          genuinely passing one"
     );
 }
+
+/// Independently authored TWINS intern to one key ON THE REASONED SUBSTRATE.
+///
+/// The shipped reference example cannot express this: both of its expressions share one pair of
+/// `math:SymbolReference` occurrence nodes, so the occurrence IRIs are held constant and a digest
+/// keyed on them looks correct. This builds two expressions that share only their SYMBOLS and
+/// name every wrapper differently — the case a content-addressed key exists for, and the case
+/// under which the digest was previously a label.
+#[test]
+fn independently_authored_twins_over_shared_symbols_share_one_key_when_reasoned() {
+    const ALPHA_CLASS: &str = "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+    let twins = r#"
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <https://example.org/twin/> .
+ex:symL a math:MathematicalSymbol .
+ex:symR a math:MathematicalSymbol .
+ex:appA a math:ApplicationExpression ; math:operator math:Multiplication ;
+    math:argumentSlot ex:sA0 , ex:sA1 .
+ex:sA0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:refA0 .
+ex:sA1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:refA1 .
+ex:refA0 a math:SymbolReference ; math:hasMathematicalSymbol ex:symL .
+ex:refA1 a math:SymbolReference ; math:hasMathematicalSymbol ex:symR .
+ex:appB a math:ApplicationExpression ; math:operator math:Multiplication ;
+    math:argumentSlot ex:sB0 , ex:sB1 .
+ex:sB0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:refB0 .
+ex:sB1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:refB1 .
+ex:refB0 a math:SymbolReference ; math:hasMathematicalSymbol ex:symL .
+ex:refB1 a math:SymbolReference ; math:hasMathematicalSymbol ex:symR .
+"#;
+    let graph = reasoned(twins);
+    let mut classes: std::collections::BTreeMap<String, String> = Default::default();
+    for quad in graph.dataset.flat_default_graph_quads() {
+        if format!("{:?}", quad.p).contains(ALPHA_CLASS) {
+            classes.insert(format!("{:?}", quad.s), format!("{:?}", quad.o));
+        }
+    }
+    assert_eq!(
+        classes.len(),
+        2,
+        "both twins must be decided by the gate, saw {classes:?}"
+    );
+    let distinct: std::collections::BTreeSet<&String> = classes.values().collect();
+    assert_eq!(
+        distinct.len(),
+        1,
+        "independently authored twins over the same symbols must share ONE alpha-equivalence \
+         class; two classes means the digest is keyed on occurrence-wrapper IRIs and is a label, \
+         not a content key: {classes:?}"
+    );
+}

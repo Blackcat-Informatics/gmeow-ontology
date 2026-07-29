@@ -1736,6 +1736,7 @@ ex:ecComputableExpressionStructured a gmeow:ExampleConformance ;
 ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/computable-expression-string-only.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:StringOnlyComputableExpression ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's math:MathematicalExpression carries a math:normalForm trigger edge but none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, math:literalValue) — represented only by a string — so math:StringOnlyComputableExpressionConstraint's existential structured-child witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the normal-form pair so the fixture does not also trip math:UndeclaredNormalForm." .
 

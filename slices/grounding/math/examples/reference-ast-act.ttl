@@ -49,7 +49,7 @@ ex:matrixProductAst a math:ApplicationExpression ;
     # Byte-identical to ex:matrixProductNormalForm's own math:structuralKey below
     # because the two expressions are structurally identical (same operator, same
     # operand slot expressions), never asserted on faith.
-    math:structuralKey "ceded33d32a3de554e2286dfb565cf1615488eb04281179562a483025b2a8d47" .
+    math:structuralKey "ac83886bba4fbd63a96c6fbb734f7f1ba79de83d355c495f517d7a3c1ae67dd1" .
 
 ex:matrixProductNormalForm a math:ApplicationExpression ;
     math:operator math:Multiplication ;
@@ -58,7 +58,7 @@ ex:matrixProductNormalForm a math:ApplicationExpression ;
     # See ex:matrixProductAst's math:structuralKey comment above — the REAL,
     # recomputed digest, equal on both sides because the two expressions are
     # structurally identical.
-    math:structuralKey "ceded33d32a3de554e2286dfb565cf1615488eb04281179562a483025b2a8d47" .
+    math:structuralKey "ac83886bba4fbd63a96c6fbb734f7f1ba79de83d355c495f517d7a3c1ae67dd1" .
 
 # The attributed reason FOR the math:normalForm edge above: a math:NormalizationDeclaration
 # naming the SAME (source, target) pair through math:normalizes/math:normalizesTo, held at

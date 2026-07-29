@@ -375,6 +375,10 @@ const M_NUMBER_LITERAL: &str = "https://blackcatinformatics.ca/math/NumberLitera
 /// fallback would wrongly reject every committed `math:SymbolReference` leaf (e.g.
 /// `slices/grounding/math/examples/reference-ast-act.ttl`'s `ex:leftMatrixRef`).
 const M_SYMBOL_REFERENCE: &str = "https://blackcatinformatics.ca/math/SymbolReference";
+/// The edge a `math:SymbolReference` occurrence resolves through to its symbol — the
+/// occurrence's ONLY content, and therefore the only thing its structural identity may
+/// be keyed on.
+const M_HAS_MATHEMATICAL_SYMBOL: &str = "https://blackcatinformatics.ca/math/hasMathematicalSymbol";
 const M_OPERATOR: &str = "https://blackcatinformatics.ca/math/operator";
 const M_ARGUMENT_SLOT: &str = "https://blackcatinformatics.ca/math/argumentSlot";
 const M_SLOT_INDEX: &str = "https://blackcatinformatics.ca/math/slotIndex";
@@ -1031,9 +1035,9 @@ fn lower_math_node_dispatch(
         //     arithmetic-operator IRI filling `math:operator`, or an untyped external
         //     constant such as a Wikidata-anchored individual), or
         //   - it carries the recognized `math:SymbolReference` constant-operand type (a
-        //     symbol-occurrence leaf; this lowering interns its own IRI rather than
-        //     walking its `math:hasMathematicalSymbol` edge, exactly like any other bare
-        //     constant leaf).
+        //     symbol-occurrence leaf, interned on the SYMBOL its
+        //     `math:hasMathematicalSymbol` edge resolves to — the occurrence wrapper's own
+        //     IRI is not content, and keying on it would make the digest a label).
         //
         // A blank node NEVER qualifies (it has no identity outside this graph to serve as
         // a bare constant), and a named node carrying one or more `math:` types NONE of
@@ -1048,6 +1052,24 @@ fn lower_math_node_dispatch(
             && (math_types.is_empty()
                 || math_types.iter().any(|t| t.as_str() == M_SYMBOL_REFERENCE));
         if is_constant_operand {
+            // A `math:SymbolReference` is an OCCURRENCE wrapper: its identity is the symbol it
+            // resolves to, never its own node IRI. Interning the wrapper made the structural
+            // digest a LABEL rather than a content key — two independently authored copies of
+            // the same expression over the same symbols produced different digests, so they
+            // never interned to one key and never shared a math:AlphaEquivalenceClass. The
+            // slice says as much: a reference occurrence "has exactly one local symbol
+            // identity", and `math:UnresolvedSymbolReference` is the failure for zero, many,
+            // or off-class. So walk the edge, and HARD FAIL where that class says to.
+            if math_types.iter().any(|t| t.as_str() == M_SYMBOL_REFERENCE) {
+                let symbols = graph.refs(node, M_HAS_MATHEMATICAL_SYMBOL);
+                return match symbols.as_slice() {
+                    [symbol] => Ok(dag.intern_leaf(TermValue::iri(symbol.clone()))),
+                    _ => Err(MathLoweringError::UnrecognizedExpressionType {
+                        node: node.to_owned(),
+                        types: types.clone(),
+                    }),
+                };
+            }
             Ok(dag.intern_leaf(TermValue::iri(node.to_owned())))
         } else {
             Err(MathLoweringError::UnrecognizedExpressionType {
@@ -2672,29 +2694,55 @@ mod tests {
     /// untyped external constant — the stricter fallback rejects UNRECOGNIZED `math:`
     /// types, never every `math:` type whatsoever.
     #[test]
-    fn symbol_reference_leaf_still_lowers() {
-        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
-             @prefix ex: <https://example.org/> .\n\
-             ex:app a math:ApplicationExpression ; math:operator ex:p ; \
-             math:argumentSlot ex:s0 .\n\
-             ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:ref .\n\
-             ex:ref a math:SymbolReference ; math:hasMathematicalSymbol ex:sym .\n\
-             ex:sym a math:MathematicalSymbol .\n";
-        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
-        let mut dag = TermDag::new();
-        let node = lower_math_expression(&mut dag, &graph, "https://example.org/app")
-            .expect("a math:SymbolReference slot target must still lower");
-
-        // The SAME shape, hand-built: `p(ref)` where `ref` is a leaf keyed on the
-        // `math:SymbolReference` node's OWN IRI (its `math:hasMathematicalSymbol` edge is
-        // NOT walked — this lowering treats it exactly like any other bare constant leaf).
-        let op = dag.intern_leaf(TermValue::iri("https://example.org/p".to_owned()));
-        let arg = dag.intern_leaf(TermValue::iri("https://example.org/ref".to_owned()));
-        let hand_built = dag.intern_app(op, vec![arg]);
+    fn symbol_reference_leaf_interns_on_its_symbol_not_its_own_iri() {
+        // TWO independently authored copies of the same expression over the SAME symbols,
+        // differing only in their occurrence-wrapper IRIs. This is the case the shipped
+        // reference example cannot express, because it reuses one pair of occurrence nodes
+        // across both of its expressions — holding constant the very IRIs the defect moved
+        // with, which is why a digest keyed on the wrapper looked correct there.
+        let ttl = |refl: &str, refr: &str, app: &str, s0: &str, s1: &str| {
+            format!(
+                "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:{app} a math:ApplicationExpression ; math:operator ex:p ; \
+                 math:argumentSlot ex:{s0} , ex:{s1} .\n\
+                 ex:{s0} a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:{refl} .\n\
+                 ex:{s1} a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:{refr} .\n\
+                 ex:{refl} a math:SymbolReference ; math:hasMathematicalSymbol ex:symL .\n\
+                 ex:{refr} a math:SymbolReference ; math:hasMathematicalSymbol ex:symR .\n\
+                 ex:symL a math:MathematicalSymbol .\n\
+                 ex:symR a math:MathematicalSymbol .\n"
+            )
+        };
+        let digest_of = |text: &str, root: &str| {
+            let graph = MathGraph::from_turtle(text.as_bytes()).expect("parse");
+            let mut dag = TermDag::new();
+            let node = lower_math_expression(&mut dag, &graph, root).expect("lowers");
+            structural_digest(&dag, node)
+        };
+        let a = digest_of(
+            &ttl("refA0", "refA1", "appA", "sA0", "sA1"),
+            "https://example.org/appA",
+        );
+        let b = digest_of(
+            &ttl("refB0", "refB1", "appB", "sB0", "sB1"),
+            "https://example.org/appB",
+        );
         assert_eq!(
-            node, hand_built,
-            "a math:SymbolReference slot target interns to the SAME node as a by-hand \
-             application over a leaf keyed on the reference's own IRI"
+            a, b,
+            "two independently authored copies of one expression over the SAME symbols must \
+             intern to ONE key; a digest that moves with the occurrence-wrapper IRI is a label, \
+             not a content key, and the alpha-equivalence contract is false"
+        );
+
+        // Different SYMBOLS must still separate — the fix must not collapse distinct content.
+        let other = digest_of(
+            &ttl("refA0", "refA1", "appA", "sA0", "sA1").replace("ex:symR", "ex:symZ"),
+            "https://example.org/appA",
+        );
+        assert_ne!(
+            a, other,
+            "expressions over DIFFERENT symbols must not collide"
         );
     }
 

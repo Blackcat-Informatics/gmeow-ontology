@@ -138,7 +138,7 @@ fn counter_example_dir() -> PathBuf {
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
 /// One `###`-headed gate-matrix section of a conformance charter, generalized over ANY
-/// grounding slice's charter (not `math:`-specific machinery, per the task's instruction —
+/// grounding slice's charter (not `math:`-specific machinery, by design —
 /// only the [`SECTIONS`] registry below is math-specific).
 #[allow(dead_code)]
 struct ConformanceSection {
@@ -340,9 +340,9 @@ fn matrix_rows(md: &str, heading: &str) -> Vec<MatrixRow> {
 // Channel taxonomy + gate-cell classification.
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-/// The execution channel taxonomy: the task's seven named channels, plus two the charter's
+/// The execution channel taxonomy: the seven named channels, plus two the charter's
 /// OWN matrix cites verbatim for its Flagship/Bridges rows (`structural`, `native-test`) —
-/// documented above as a generalization, not a narrowing, of the task's list.
+/// documented above as a generalization, not a narrowing, of this harness's list.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Channel {
     OwlAxiom,
@@ -404,7 +404,7 @@ fn contains_word(haystack: &str, marker: &str) -> bool {
 
 /// Classify a charter `Primary gate` cell into every channel it names, by token-boundary
 /// match (not a bare substring test) against the charter's own stable vocabulary (see
-/// the exhaustive enumeration this was built from in the task investigation). A cell naming
+/// the exhaustive enumeration this was built from). A cell naming
 /// NONE of these markers is a charter-drift bug (a new gate-kind vocabulary word) and PANICS
 /// rather than silently classifying as empty.
 fn classify_gate(gate: &str) -> BTreeSet<Channel> {
@@ -608,11 +608,11 @@ fn unauthored_reachable_classes(
 mod unauthored_reachable_regression {
     use super::*;
 
-    /// Proves [`unauthored_reachable_classes`] catches the exact hole the task proved
+    /// Proves [`unauthored_reachable_classes`] catches the exact hole this harness proved
     /// experimentally. Reverting the `!authored.contains` / `!cited.contains` guard back to
     /// the pre-fix shape (only ever checking `authored ∩ reachable`, i.e. deleting this
     /// function's body and inlining the old orphan-only logic) makes the first assertion
-    /// below fail — this is the regression test the task requires: it fails if the
+    /// below fail — this is the regression test this guard requires: it fails if the
     /// reconciliation is removed.
     #[test]
     fn catches_a_reachable_class_native_rust_emits_but_module_ttl_never_authors() {
@@ -838,7 +838,7 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 // ACTUAL reasoned closure for the `owl:Nothing` witness the axiom promises — never a
 // structural co-typing heuristic alone, and never an "unverified" bucket when no fixture
 // happens to trip it (a class with no execution channel built is a hard gap instead, per
-// the task's own instruction).
+// this harness's own contract).
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
 /// One authored `owl:disjointWith` pair the module ties to a failure class via
