@@ -10119,8 +10119,7 @@ mod tests {
                 .collect::<BTreeSet<(String, String)>>()
         };
 
-        let in_logic_graph =
-            |g: &Option<purrdf::RdfTerm>| matches!(g, Some(purrdf::RdfTerm::Iri(g)) if g == GRAPH_LOGIC);
+        let in_logic_graph = |g: &Option<purrdf::RdfTerm>| matches!(g, Some(purrdf::RdfTerm::Iri(g)) if g == GRAPH_LOGIC);
         let declared_in_logic_graph = iri_statements(&in_logic_graph);
         for (predicate, object) in [
             (LOGIC_DOMAIN, LOGIC_ACTION_SCHEMA),
