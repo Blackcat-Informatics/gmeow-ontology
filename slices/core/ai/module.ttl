@@ -11,7 +11,8 @@ gmeow:Chunk
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunk"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:chunkOf ;
@@ -31,7 +32,8 @@ gmeow:Contradiction
     rdfs:label "Contradiction"@x-gmeow-english ;
     logic:mediates gmeow:contradictsClaim ,
         gmeow:detectedBy ;
-    rdfs:subClassOf logic:Relator ,
+    logic:subClassOf logic:Relator ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contradictsClaim ;
@@ -53,7 +55,7 @@ gmeow:ContradictionKind
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of contradiction flavours."@x-gmeow-english ;
     skos:example "ex:contradictionKindFactual a gmeow:ContradictionKind ; rdfs:label \"factual\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a contradiction-kind SUBCLASS of gmeow:Contradiction (the kind is a value, Principle 9) and avoid confusing it with gmeow:SupportPolarity — kind is the flavour of the conflict, polarity is a span's stance toward a claim."@x-gmeow-english ;
@@ -66,7 +68,7 @@ gmeow:DistanceMetric
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Distance Metric"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of vector similarity/distance functions — a CORE-tier primitive: both extensions/graphrag's retrieval substrate and extensions/embedding-projection's comparable vector spaces reuse the same three-value seed (gmeow:distanceMetricCosine / gmeow:distanceMetricDotProduct / gmeow:distanceMetricEuclidean) rather than each minting its own."@x-gmeow-english ;
     gmeow:useWhen "Use to name the similarity function under which a vector space is meaningful."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating the metric as an implementation detail or defaulting it silently — cosine and euclidean disagree about what is near."@x-gmeow-english ;
@@ -79,7 +81,8 @@ gmeow:Embedding
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Embedding"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:embeddingOf ;
@@ -107,7 +110,8 @@ gmeow:MemoryItem
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Item"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ,
+    logic:subClassOf gmeow:Observation ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:memoryOf ;
@@ -129,7 +133,7 @@ gmeow:MemoryKind
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of agent-memory registers."@x-gmeow-english ;
     skos:example "ex:memoryKindEpisodic a gmeow:MemoryKind ; rdfs:label \"episodic\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a register SUBCLASS of gmeow:MemoryItem (the register is a value, Principle 9) and avoid overloading it with salience or recency, which are statement-level facets, not registers."@x-gmeow-english ;
@@ -142,7 +146,7 @@ gmeow:ModelCard
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Card"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "A structured description of a model agent (gmeow:describesModel): provider, version tag, context window, training cutoff. Aligns Model Cards / ML-Schema / SPDX-AI by reference (P5). The card is a document ABOUT the agent; capability claims are claim-layer observations, attributed and contestable."@x-gmeow-english ;
     skos:example "ex:opusCard a gmeow:ModelCard ; gmeow:describesModel ex:opus ; gmeow:modelProvider \"Anthropic\" ; gmeow:modelTrainingCutoff \"2026-01-01\"^^xsd:date ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with the model itself (the agent is the gmeow:SoftwareAgent, the card is a document about it) and avoid baking capability claims into the card as facts — those are attributed, contestable claim-layer observations."@x-gmeow-english ;
@@ -155,7 +159,7 @@ gmeow:ModelInvocation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Invocation"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf gmeow:Activity ;
     skos:definition "One call to a generative model: the model agent (gmeow:usedModel), the prompts presented (gmeow:hasPrompt), and the sampling parameters. The provenance anchor of every generated claim — a claim node gmeow:wasGeneratedBy its invocation and gmeow:wasAttributedTo the model agent (both EXISTING provenance properties), so 'which model, under which prompt and parameters, at what time?' is answerable after the fact. Outputs are linked FROM the output via gmeow:wasGeneratedBy; no forward output property exists (P5)."@x-gmeow-english ;
     skos:example "ex:inv1 a gmeow:ModelInvocation ; gmeow:usedModel ex:opus ; gmeow:hasPrompt ex:sysPrompt ; gmeow:eventTime \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerFoafExport ,
@@ -173,7 +177,7 @@ gmeow:Prompt
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms slice's machinery, used from instance data."@x-gmeow-english ;
     skos:example "ex:sysPrompt a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleSystem ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms slice."@x-gmeow-english ;
@@ -186,7 +190,7 @@ gmeow:PromptRole
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Role"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of conversational prompt roles."@x-gmeow-english ;
     skos:example "ex:promptRoleTool a gmeow:PromptRole ; rdfs:label \"tool\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a prompt-role SUBCLASS of gmeow:Prompt (the role is a value, Principle 9) and avoid confusing it with gmeow:ParticipantRole — prompt roles are conversational turns, not event participation."@x-gmeow-english ;
@@ -199,7 +203,7 @@ gmeow:PromptTemplate
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Prompt ;
+    logic:subClassOf gmeow:Prompt ;
     skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (EvidenceSpan audit machinery ships the claim-extraction template as data, not code). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english ;
     skos:example "ex:extractTmpl a gmeow:PromptTemplate ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing a filled, ready-to-send instruction as a template (that is a plain gmeow:Prompt) — the template is the unfilled, versioned source a gmeow:Prompt points back to via gmeow:filledFrom."@x-gmeow-english ;
@@ -212,7 +216,8 @@ gmeow:RetrievalEvent
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Retrieval Event"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ,
+    logic:subClassOf gmeow:Activity ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:againstIndex ;
@@ -230,7 +235,7 @@ gmeow:SupportPolarity
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Support Polarity"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "The closed three-value polarity of an evidence span toward its claim."@x-gmeow-english ;
     skos:example "ex:polarityRefutes a gmeow:SupportPolarity ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid extending it with new individuals (the three values are closed, unlike the open kind vocabularies) and avoid using it for inter-work citation stance (that is gmeow:citationIntent)."@x-gmeow-english ;
@@ -243,7 +248,7 @@ gmeow:VectorIndex
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Vector Index"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its algorithm (extensions/graphrag's gmeow:indexAlgorithm), parameters (verbatim, for reproducibility), and metric; its build provenance rides the EXISTING gmeow:wasGeneratedBy, tying index contents to the corpus state (contentDigest) at build time. A CORE-tier primitive: extensions/embedding-projection's gmeow:DerivedVectorIndex specializes this class directly rather than through extensions/graphrag."@x-gmeow-english ;
     gmeow:useWhen "Use for a built retrieval structure over a corpus's embeddings — the artifact a retrieval queries."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with the embeddings it indexes or with the corpus itself, and avoid omitting its metric."@x-gmeow-english ;
@@ -270,7 +275,7 @@ gmeow:chunkOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunk of"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:subPropertyOf gmeow:partOf ;
+    logic:subPropertyOf gmeow:partOf ;
     skos:definition "The source information object this chunk segments. Functional: a chunk is cut from exactly one source; re-chunking produces new Chunk individuals, never a re-pointed one."@x-gmeow-english ;
     skos:example "ex:c1 gmeow:chunkOf ex:doc ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing one chunk at two sources (it is functional — a different cut is a new Chunk) and avoid using it for the chunk's evidence pin (that is gmeow:spanOfChunk, span-into-chunk, not chunk-into-source)."@x-gmeow-english ;
@@ -810,7 +815,7 @@ gmeow:Embedding rdfs:subClassOf
 gmeow:RetrievalEvent rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/chunkOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -821,7 +826,7 @@ gmeow:RetrievalEvent rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingModel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# Migrated procedural constraints: closed-world SHACL sparql shapes            #
 # from slices/core/ai/shapes.ttl, re-expressed as canonical logic:Constraints  #
 # (Principle 17). The authored shapes stay (additive).                         #
 # =========================================================================== #

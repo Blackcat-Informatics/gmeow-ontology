@@ -9971,8 +9971,8 @@ msgid "The failure raised when a gmeow:FlagshipScenario in the logic grounding l
 msgstr "当逻辑接地层中的一个 gmeow:FlagshipScenario 未被完全接线时所引发的失败：它缺少其可运行示例（gmeow:demonstratedByExample）、其胜任力问题（gmeow:demonstratedByCompetency）、其生产者（gmeow:demonstratedByProducer）、其反例（gmeow:guardedByCounterExample），或其实施用失败类（gmeow:enforcesFailureClass）；又或者它指名为实施用的类并非 logic:LogicConformanceFailure 的子类。深度门槛是一份合约，而非一条建议：未绑定全部实现／实施制品的接受场景不能宣称场景已满足，门禁会将其拒绝。这是本层对共享的 gmeow:UnwiredFlagshipScenario 标记的具体实现（由共享的 gmeow:FlagshipScenarioShape 统一实施）；它仅子类化本切片的失败根（绝不子类化规范层的 gmeow:UnwiredFlagshipScenario 标记），因此它是本层自身失败格中一个带类型、可查询的对象。"
 
 msgctxt "https://blackcatinformatics.ca/logic/EnactmentIntegrityViolation|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The failure raised when an enactment record breaks one of the enactment kernel's authored logic:Constraint integrity laws: a logic:DispatchIntent omitting a mandatory binding, a logic:ExternalEffectReceipt naming no attempt, a logic:ResourceLease with no fencing identity, a logic:CompensationAttempt typed as the receipt it counteracts, a logic:EffectAttempt carrying derivation provenance. The native enactment gate materializes it by compiling each law's logic:integrity formula into a violation-emitting forward rule — the antecedent plus the NEGATED consequent — and typing the offending record with this class when the guard holds and the obligation fails; the logic:Constraint whose law fired travels with the derivation as its rule tag, so the marker is traceable to the authored law rather than to a Rust decision. One class across the kernel's laws rather than one per law, mirroring math:DimensionalInhomogeneity over the two dimension laws: the operator's question is always the same — which record is ill-formed — and law identity is carried by the derivation, not by a proliferation of marker classes."
-msgstr "当一条执行记录违反执行内核所撰的某条 logic:Constraint 完整性法则时所引发的失败：一个省略了必备绑定的 logic:DispatchIntent、一个未指明任何尝试的 logic:ExternalEffectReceipt、一个没有围栏身份的 logic:ResourceLease、一个被类型化为其所抵销之回执的 logic:CompensationAttempt、一个带有派生溯源的 logic:EffectAttempt。原生执行门通过把每条法则的 logic:integrity 公式编译为发出违反的前向规则——前件加上被否定的后件——并在守卫成立而义务不成立时以此类给出错记录赋型，从而将其物化；触发该法则的 logic:Constraint 作为规则标签随派生一同流转，因此该标记可追溯到所撰的法则，而非追溯到某个 Rust 决定。对内核诸法则采用一个类而非每法一类，效法 math:DimensionalInhomogeneity 涵盖两条量纲法则：操作者的问题始终相同——哪条记录格式错误——而法则身份由派生承载，而非由标记类的泛滥承载。"
+msgid "The failure raised when an enactment record breaks one of the enactment kernel's authored logic:Constraint integrity laws: a logic:DispatchIntent omitting a mandatory binding, a logic:ExternalEffectReceipt naming no attempt, a logic:ResourceLease claiming a scope another lease holds, a logic:CompensationAttempt typed as the receipt it counteracts, a logic:EffectAttempt carrying derivation provenance. The native enactment gate materializes it by compiling each law's logic:integrity formula into a violation-emitting forward rule — the antecedent plus the NEGATED consequent — and typing the offending record with this class when the guard holds and the obligation fails; the logic:Constraint whose law fired is published ALONGSIDE the marker on logic:violatedLaw, so a reader of the finding sees which law rejected the record and not merely that one did. One class across the kernel's laws rather than one per law, mirroring math:DimensionalInhomogeneity over the two dimension laws: the marker answers WHICH RECORD is ill-formed, logic:violatedLaw answers WHICH LAW says so, and neither question needs a proliferation of marker classes to be answerable."
+msgstr "当一条执行记录违反执行内核所撰的某条 logic:Constraint 完整性法则时所引发的失败：一个省略了必备绑定的 logic:DispatchIntent、一个未指明任何尝试的 logic:ExternalEffectReceipt、一个所主张的范围已为另一份租约所持有的 logic:ResourceLease、一个被类型化为其所抵销之回执的 logic:CompensationAttempt、一个带有派生溯源的 logic:EffectAttempt。原生执行门通过把每条法则的 logic:integrity 公式编译为发出违反的前向规则——前件加上被否定的后件——并在守卫成立而义务不成立时以此类给出错记录赋型，从而将其物化；触发该法则的 logic:Constraint 会与该标记一并发布在 logic:violatedLaw 上，于是读到该发现的人看到的是哪一条法则驳回了这条记录，而不只是有法则驳回过。对内核诸法则采用一个类而非每法一类，效法 math:DimensionalInhomogeneity 涵盖两条量纲法则：标记回答的是哪条记录格式错误，logic:violatedLaw 回答的是哪条法则如此判定，两个问题都不必靠标记类的泛滥才能回答。"
 
 msgctxt "https://blackcatinformatics.ca/logic/UnwitnessedRefutation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a logic:RefutationAcceptanceWitness — the acceptance record of a symmetric φ/¬φ conjecture test whose verdict is a refutation — names no logic:namesContradictionWitness, i.e. claims the conjecture was refuted without pointing at the concrete logic:ContradictionWitness that carries the clash. A refutation with no replayable witness is an assertion, not a proof; the flagship's guarantee is that conjecture_test returns a concrete witness on a refutation, so a witness-less refutation record is ill-formed (LOGIC-CONTRACT.md)."
@@ -12359,8 +12359,8 @@ msgid "A model-generated decomposition, recommendation, summary or draft: attrib
 msgstr "由模型生成的分解、建议、摘要或草稿：一种被归属的证据，可为决策提供参考，却绝不能构成决策。它在结构上被禁止授权固定、裁定批准或承载证明。与 logic:AdviceGuidance 判然有别：后者是为人类作者撰写、附于某个术语之上的用法说明；而咨询意见是关于某一情境的生成内容，其主题、存续期与受众皆不相同。"
 
 msgctxt "https://blackcatinformatics.ca/logic/AdvisoryNeverAuthorityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:Advisory that authorizes a pin. Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure."
-msgstr "拒斥授权固定之咨询意见的 logic:Constraint。模型生成的内容是被归属的证据，绝不能成为许可行动之物；此项分离由结构强制施行，而非托付于约定——因为约定恰恰是在时间压力下最先失效的东西。"
+msgid "The logic:Constraint rejecting a logic:Advisory that occupies ANY of the three authority positions logic:Advisory's own definition bars it from: authorizing a pin (logic:pinAuthority), carrying the proof that licensed an intent (logic:proofEstablishes), or standing as the decision an approval reached (logic:approvalDecision). Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure. The three legs are one law rather than three because they are one prohibition read at three seams — and a law that guarded only the pin seam would leave the other two open while its name claimed all of them, which is how advice arrives as proof."
+msgstr "拒斥这样一个 logic:Advisory 的 logic:Constraint：它占据了 logic:Advisory 自身定义所禁三种权威位置中的任意一种——授权固定（logic:pinAuthority）、承载曾许可某意图的证明（logic:proofEstablishes）、或充当某次批准所达成的决定（logic:approvalDecision）。模型生成的内容是被归属的证据，绝不能成为许可行动之物；此项分离由结构强制施行，而非托付于约定——因为约定恰恰是在时间压力下最先失效的东西。三条腿合为一法而非三法，因为它们本是同一条禁令在三处接缝上的读法——而一条只看守固定这处接缝的法则，会在其名义囊括三者的同时放任另外两处敞开，咨询意见正是这样摇身变作证明的。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ApprovalBindingFault|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed vocabulary of WHY an authorization failed to detach: a digest mismatch, a different enactment, an elapsed window, or a different operator-policy binding. Typing the fault separately for each is what lets a conformance corpus prove the four are detected independently rather than collapsing into one undifferentiated refusal."
@@ -15480,7 +15480,7 @@ msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 instan
 
 msgctxt "https://blackcatinformatics.ca/logic/keyProperty|http://www.w3.org/2004/02/skos/core#example"
 msgid "logic:keyProperty logic:characterizes instance ."
-msgstr "logic:keyProperty logic:characterizes instance ."
+msgstr "示例：logic:keyProperty logic:characterizes instance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -15732,7 +15732,7 @@ msgstr "指称接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/denotation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR."
-msgstr "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → logic 接缝：lang:Denotation 借此命名其含义。lang:denotationKind 确定所指事物的种类，lang:denotationTarget 命名它所指向的 logic:Formula/logic:Type/logic:Individual（或其他资源）；复合指称还会命名将其下降到 logic 的 Formula/Term 中间表示的 lang:CompositionRule。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Compilation seam"
@@ -15740,7 +15740,7 @@ msgstr "编译接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal."
-msgstr "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → logic 接缝：math:MathematicalExpression 借此下降到推理层。math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType 承载该下降，并以已声明的 math:denotationKind 为前提；math:SetBuilderExpression 上的内涵式 math:memberCondition 指称一个 logic: 公式，而非不透明的字面量。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Laws and boundaries seam"
@@ -15748,7 +15748,7 @@ msgstr "定律与边界接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula."
-msgstr "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → logic 接缝：数学定律（齐次性、拓扑、代数）借此直接写作 logic:Formula，而 logic:expressivenessBoundary 是对某个定义性陈述确实超出一阶逻辑的诚实记录，而不是伪造一个一阶公式。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Correspondence and preservation seam"
@@ -15756,7 +15756,7 @@ msgstr "对应与保持接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum."
-msgstr "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → logic 与 math → logic 接缝：两个对等方借此命名同一个 logic:Correspondence（翻译、GMN 方言跨越、外部对齐），并原样复用 logic:preservationKind 作为唯一的保持性表面，绝不以平行枚举将其遮蔽。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Rendering seam"
@@ -15764,7 +15764,7 @@ msgstr "渲染接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary."
-msgstr "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → lang 接缝：math:ExpressionRendering 是嫁接在通用 lang:Rendering 理论之上的 lang:Relator。渲染节点直接从 math 记录上读取 lang:renderedContent、lang:renderingConvention 和 lang:renderingPreservation，而不是由 lang: 另行实现一套平行的渲染词汇。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Quantity seam"
@@ -15772,7 +15772,7 @@ msgstr "量接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals."
-msgstr "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → math 接缝：math:Quantity 个体携带 math:hasDimension 与 math:quantityValue，以有量纲的值而非裸字面量承载 lang 的已声明量与已测量量——GMN 码本速率、字形词元开销。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "GMN mathematical-plane seam"
@@ -15780,7 +15780,7 @@ msgstr "GMN 数学平面接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer."
-msgstr "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → math 接缝：GMN 字形清单中以 @μ 为范围的数学平面借此命名它所渲染的 math: 术语。gmeow:gmnCandidateTarget 记录某术语经审计的符号学裁定，lang:denotationTarget 承载已采纳字形的可执行含义，gmeow:gmnDictionaryEntryTerm 在测量否决了显示符号处绑定具名键别名；整条记录是 gmeow:eqLangGmnMathNotationAst 透镜下 math:MathematicalExpression 的一种记法。GMN 命名这些术语并为其渲染定价，但从不重新铸造它们，math: 始终是其唯一权威。已声明量与已测量量刻意不在此接缝上——它们经由量接缝跨越——以免任何接缝变成在对等方中任意命名的通行证。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Quantity boundary seam"
@@ -15788,7 +15788,7 @@ msgstr "量边界接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer."
-msgstr "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "logic → math 接缝：由 logic 拥有的上层本体边界借此将由 math 拥有的量权威命名为桥接行在 GMEOW 一侧的源端点。SUMO 是上层本体，其目录归 logic: 所有；但 SUMO 带有 Quantity 类，而 docs/GROUNDING.md 的层级规则确定 math:Quantity 为有量纲量的唯一类权威——logic: 不得铸造对手，因此诚实的写法是 math:Quantity skos:broadMatch sumo:Quantity，一个处于 logic:ValidationOnly 的、发生承诺位移的 logic:BridgeView。该接缝刻意只承载一个术语：它只批准将对等方拥有的量权威命名为桥接端点，别无其他。这是 logic: 对某个 grounding 对等方所做的唯一结构性引用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "logical grounding domain"
@@ -15796,7 +15796,7 @@ msgstr "逻辑基础域"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."
-msgstr "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "上层本体、逻辑形式体系、规则语言与验证方言——种类与基础范畴，将知识库按描述逻辑划分为术语、角色、断言与陈述语境，模态与次协调框架，推导与完整性语言，以及验证所投影到的形状方言。`logic:` 切片是该领域中每一个 grounding 概念的唯一拥有者。一条形式化了某领域术语的规则或公式，并不因此使该术语成为 grounding 概念：由术语自身的主题决定，而形式化领域词汇正是 `logic:` 被设计承担的角色。"
 
 msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "entry awaits"
@@ -18317,3 +18317,27 @@ msgstr "把被原生闸门判定违规的记录，与判定它违规的那条已
 msgctxt "https://blackcatinformatics.ca/logic/violatedLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:lease-7 logic:violatedLaw logic:LeaseCarriesFencingIdentityConstraint ."
 msgstr "示例：ex:lease-7 logic:violatedLaw logic:LeaseCarriesFencingIdentityConstraint 。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a compensation outcome is not evidenced by the receipt it counteracts"
+msgstr "补偿结果不得以其所抵销的那份回执为凭证"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CompensationOutcome whose logic:compensationReceipt is the very logic:ExternalEffectReceipt its compensation addresses. Reusing the forward receipt as the compensation's evidence is the pointing form of the guaranteed-inverse fallacy: nothing new was observed, so a compensation that never took effect reads as successful. Coded apart from the typing form because a corpus must be able to trip each alone."
+msgstr "拒斥这样一个 logic:CompensationOutcome 的 logic:Constraint：它的 logic:compensationReceipt 正是其补偿所要处理的那个 logic:ExternalEffectReceipt。把正向回执重新用作补偿的证据，是「保证性逆操作」谬误的指向形态：并没有观察到任何新事实，于是一次从未生效的补偿读起来却像是成功了。之所以与其类型化形态分开编码，是因为语料必须能够单独触发其中任何一条。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeatExcludesReviseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repeat and revise are not conflated"
+msgstr "重复与修订不得混为一谈"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeatExcludesReviseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a continuation record typed as BOTH logic:ContinuationRepeat and logic:ContinuationRevise. It completes the pairwise disjointness of the three continuation kinds, whose resume leg logic:ContinuationKindDisjointnessConstraint carries: repeat mints a new logic:Enactment against a new snapshot and leaves the prescription untouched, revise mints a new logic:PrescriptionVersion and leaves in-flight enactments on the version they pinned, and a record asserting both has said neither which occurrence continued nor which prescription governs it."
+msgstr "拒斥同时被类型化为 logic:ContinuationRepeat 与 logic:ContinuationRevise 的续行记录的 logic:Constraint。它补全了三种续行类别的两两互斥，其中「恢复」那一支由 logic:ContinuationKindDisjointnessConstraint 承担：重复会针对一份新快照铸出一个新的 logic:Enactment，而处方原封不动；修订会铸出一个新的 logic:PrescriptionVersion，而在飞的执行仍停留在各自所固定的版本上；一条同时断言两者的记录，既没说清是哪一次发生在延续，也没说清由哪份处方治理它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a selected pin was in the roster it was selected from"
+msgstr "所选定的固定项必须出自它被选出的那份名录"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:RefinementEpisode whose logic:selectedPin is not a logic:refinementCandidate of the logic:RefinementCandidateSet it produced. A roster is a claim about what the search FOUND, and a commitment to something outside it says the roster describes some other search — after which its closedness, its budget and its declared fragment all certify a deliberation that did not produce this decision. The failure is invisible to any check over one record, since the episode, the roster and the pin are each individually well-formed."
+msgstr "拒斥这样一个 logic:RefinementEpisode 的 logic:Constraint：它的 logic:selectedPin 并不是它所产出的那个 logic:RefinementCandidateSet 的 logic:refinementCandidate。名录是关于搜索「找到了什么」的主张；承诺于名录之外的东西，等于说这份名录描述的是另一次搜索——此后它的封闭性、它的预算与它所声明的片段，所证明的都是一场并未产生这个决定的审议。这项失败在任何针对单条记录的检查下都不可见，因为该情节、该名录与该固定项各自都是良构的。"

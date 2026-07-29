@@ -28,7 +28,7 @@ Because the derived quads are the difference between `input.nq` and
 `expected/materialized.nq`, a case whose materialization equals its input is by
 construction proving nothing:
 
-```
+```sh
 for c in conformance/logic/cases/enactment/*/; do
   diff <(sort "$c/input.nq") <(sort "$c/expected/materialized.nq") >/dev/null \
     && echo "STILL AN ECHO: $c"; done
@@ -61,12 +61,14 @@ Not one `logic:entryLabel` appears in the data world of
 witnesses, and the five shipped `logic:Rule` instances its profile names compute the
 label. Its golden shows five derived:
 
-    readyEntry      StepReady + ApprovalNull     -> FrontierReadyAuthorized
-    gatedEntry      StepReady + ApprovalCreated  -> FrontierReadyApprovalRequired
-    unknownEntry    EffectAttempted              -> FrontierReconciliationRequired
-    receiptedEntry  EffectReceipted              -> FrontierCompensationEligible
-    blockedEntry    StepWaiting + a gap on its   -> FrontierBlockedCapabilityOrResource
-                    action step
+```text
+readyEntry      StepReady + ApprovalNull     -> FrontierReadyAuthorized
+gatedEntry      StepReady + ApprovalCreated  -> FrontierReadyApprovalRequired
+unknownEntry    EffectAttempted              -> FrontierReconciliationRequired
+receiptedEntry  EffectReceipted              -> FrontierCompensationEligible
+blockedEntry    StepWaiting + a gap on its   -> FrontierBlockedCapabilityOrResource
+                action step
+```
 
 That is the frontier as a derived total function of the axis tuple rather than an
 asserted label, which is the claim the whole seven-axis design rests on — and it is

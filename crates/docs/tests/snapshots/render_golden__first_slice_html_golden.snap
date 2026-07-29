@@ -139,7 +139,7 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>6f5bb7917ce3</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>2ffd23a0c689</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>

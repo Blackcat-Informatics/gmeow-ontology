@@ -12,7 +12,7 @@ gmeow:AccountStatus
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Account Status"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "The usage status of an account from its holder's standpoint — a VALUE vocabulary (active, dormant, historical, …); open set."@x-gmeow-english ;
     skos:example "ex:accountStatusHistorical a gmeow:AccountStatus ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the underlying service's liveness (use gmeow:ServiceStatus) and avoid per-status subclasses; statuses are individuals on an open value vocabulary."@x-gmeow-english ;
@@ -25,7 +25,7 @@ gmeow:OnlineAccount
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Account"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity."@x-gmeow-english ;
     skos:example "ex:lillithMastodon a gmeow:OnlineAccount ; gmeow:accountService ex:fosstodon ; gmeow:accountName \"lillith\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the agent itself (use gmeow:Agent / Person) and for the service or platform the account lives on (use gmeow:OnlineService); the account is neither the person nor the platform but the held identity-object linking the two."@x-gmeow-english ;
@@ -38,7 +38,7 @@ gmeow:OnlineService
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Service"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "An online service or platform an account is held with — a social network, code forge, email provider, or federated instance. Carries the service's liveness (gmeow:serviceStatus / gmeow:serviceShutdownDate) so historical services (Yahoo 360, Google+) remain first-class with their shutdown recorded."@x-gmeow-english ;
     skos:example "ex:fosstodon a gmeow:OnlineService ; gmeow:serviceStatus gmeow:serviceStatusLive ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an individual account on the service (use gmeow:OnlineAccount) and for the agent operating the platform; the service is the platform-object, distinct from any one account held with it."@x-gmeow-english ;
@@ -51,7 +51,7 @@ gmeow:PaymentMethod
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Payment Method"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:useWhen "Use to say HOW a payment was made, as a value on the payment."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing it or minting a slice-local rival vocabulary; it is an open VALUE type, so add a new individual instead."@x-gmeow-english ;
@@ -64,7 +64,7 @@ gmeow:ServiceStatus
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Service Status"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "The liveness status of an online service — a VALUE vocabulary (live, shut-down, …); open set."@x-gmeow-english ;
     skos:example "ex:serviceStatusLive a gmeow:ServiceStatus ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an account's usage state (use gmeow:AccountStatus) and avoid minting per-status subclasses; statuses are individuals on an open value vocabulary."@x-gmeow-english ;

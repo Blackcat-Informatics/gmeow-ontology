@@ -111,7 +111,7 @@ msgstr "通过 gmeow:paymentMethod 关联某个 gmeow:paymentMethod* 个体；�
 
 msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodCash a gmeow:PaymentMethod ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a bank transfer or wire settles the payment."
@@ -127,7 +127,7 @@ msgstr "通过 gmeow:paymentMethod 关联到付款；它是开放词汇 gmeow:Pa
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when physical currency changes hands."
@@ -143,7 +143,7 @@ msgstr "通过 gmeow:paymentMethod 关联到付款；它是开放词汇 gmeow:Pa
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodCash a gmeow:PaymentMethod ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a cheque is the instrument."
@@ -159,7 +159,7 @@ msgstr "通过 gmeow:paymentMethod 关联到付款；它是开放词汇 gmeow:Pa
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a credit card settles the payment."
@@ -175,7 +175,7 @@ msgstr "通过 gmeow:paymentMethod 关联到付款；它是开放词汇 gmeow:Pa
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a cryptocurrency transfer settles the payment."
@@ -191,4 +191,4 @@ msgstr "通过 gmeow:paymentMethod 关联到付款；它是开放词汇 gmeow:Pa
 
 msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."
-msgstr "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."
+msgstr "示例：gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."

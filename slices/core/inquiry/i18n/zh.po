@@ -107,7 +107,7 @@ msgstr "示例：ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActiv
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "inquiry kind"
-msgstr "探究种类属性"
+msgstr "探究种类"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Classifies a gmeow:Question by the OPERATIONAL kind of the inquiry pursuing it, drawn from the open gmeow:InquiryKind value vocabulary. NOT gmeow:questionType, which classifies the same question by its erotetic answerhood condition: the two axes are orthogonal and co-apply rather than compete. Non-functional — one question may be pursued as several kinds of inquiry at once, and competing standpoint-indexed kind claims coexist rather than contradict (Principle 9)."

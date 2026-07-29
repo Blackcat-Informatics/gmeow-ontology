@@ -161,7 +161,7 @@ class, in connectivity).
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `6f5bb7917ce3` |
+| `module.ttl` | `text/turtle` | `2ffd23a0c689` |
 
 ### Tests
 

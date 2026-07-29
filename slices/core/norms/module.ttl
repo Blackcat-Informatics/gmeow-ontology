@@ -26,7 +26,7 @@ gmeow:ComplianceAssessment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Compliance Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
-    skos:definition "An observation that an event complied with or violated a norm — vantage = the assessor. The reified form of gmeow:violates / gmeow:complies, for when who-judged, on-what-evidence, and how-confidently must be first-class. Two assessors disagreeing are two coexisting cells; no global compliance verdict exists (Principle 9)."@x-gmeow-english ;
+    skos:definition "An observation that an event complied with or violated a norm — vantage = the assessor. The reified form of gmeow:violates / gmeow:complies, for when who-judged, on-what-evidence, and how-confidently must be first-class. Two assessors disagreeing are two coexisting cells; a global compliance verdict does not exist (Principle 9). It is the JUDGEMENT, not the norm judged (gmeow:Norm) and not the event judged (the gmeow:assessedEvent)."@x-gmeow-english ;
     skos:example "ex:ca1 a gmeow:ComplianceAssessment ; gmeow:assessedEvent ex:leakEvent ; gmeow:assessedNorm ex:n1 ; gmeow:complianceVerdict gmeow:verdictNotHeld ; gmeow:vantage ex:auditor ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the ordinary case (flat gmeow:violates / gmeow:complies carry it more cheaply) and avoid expecting a single global verdict — disagreeing assessors coexist (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -78,7 +78,7 @@ gmeow:ConditionParameter
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Parameter"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A named binding that instantiates a condition template — 'threshold = 0.8', 'jurisdiction = Canada'. Lets one Condition serve many norms with different bindings."@x-gmeow-english ;
+    skos:definition "A named binding that instantiates a condition template — 'threshold = 0.8', 'jurisdiction = Canada'. Lets one Condition serve many norms with different bindings. It binds a name in a condition template rather than stating a condition itself: a parameter is not a gmeow:Condition and carries no truth value."@x-gmeow-english ;
     skos:example "ex:p1 a gmeow:ConditionParameter ; gmeow:parameterName \"threshold\" ; gmeow:parameterValue \"0.8\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid duplicating a whole condition per binding (parameterize it instead) and avoid carrying both a literal and an entity binding on one parameter (it carries exactly one — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -91,7 +91,7 @@ gmeow:CriterionDomain
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion Domain"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The subject domain of a criterion — an OPEN value vocabulary (relational, factual, aesthetic, safety, stylistic, …). Open: evaluation traditions disagree about the domain inventory itself (Principle 9)."@x-gmeow-english ;
+    skos:definition "The subject domain of a criterion — an OPEN value vocabulary (relational, factual, aesthetic, safety, stylistic, …). It is open because evaluation traditions disagree about the domain inventory itself (Principle 9). It names the SUBJECT MATTER a criterion judges, never the criterion's poles or its score scale."@x-gmeow-english ;
     skos:example "ex:criterionDomainPedagogical a gmeow:CriterionDomain ; rdfs:label \"pedagogical\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-domain subclasses (domains are individuals) and avoid treating the inventory as closed — evaluation traditions disagree about the domain list itself (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -131,7 +131,7 @@ gmeow:Exemplar
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Exemplar"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CitationAct ;
-    skos:definition "A citation act that holds something up as an example — positively, negatively, or as a cautionary boundary case. Pins into the cited work via the citation Selector machinery (page, quote, locator) AND/OR names an entity subject (gmeow:exemplarSubject — a character's conduct across a whole work, foundation-corpus coordination): at least one of the two (SHACL). The kernel aboutness axis carries the phase-gate: an exemplar whose span DESCRIBES trust is source material; one whose span ENACTS it is embodiment — same selector, different gmeow:hasAboutness, different anchored range. CiTO alignment arrives free through CitationAct."@x-gmeow-english ;
+    skos:definition "A citation act that holds something up as an example — positively, negatively, or as a cautionary boundary case. Pins into the cited work via the citation Selector machinery (page, quote, locator) AND/OR names an entity subject (gmeow:exemplarSubject — a character's conduct across a whole work, foundation-corpus coordination): at least one of the two (SHACL). The kernel aboutness axis carries the phase-gate: an exemplar whose span DESCRIBES trust is source material; one whose span ENACTS it is embodiment — same selector, different gmeow:hasAboutness, different anchored range. CiTO alignment arrives free through CitationAct. An exemplar is a citation ACT, not the cited work and not a norm: holding conduct up as exemplary asserts nothing about whether it complied."@x-gmeow-english ;
     skos:example "ex:ex1 a gmeow:Exemplar ; gmeow:exemplarPolarity gmeow:polarityPositive ; gmeow:exemplarSubject ex:hari ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an exemplar with neither a selector nor a subject (at least one is required — SHACL) and avoid conflating a span that DESCRIBES a quality with one that ENACTS it — the kernel aboutness axis carries that phase-gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -157,7 +157,7 @@ gmeow:ExpressionLanguage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Expression Language"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The language of a condition expression — an OPEN value vocabulary seeded with the policy-engine and query languages GMEOW projects to: prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL. Open: new engines join without schema change."@x-gmeow-english ;
+    skos:definition "The language of a condition expression — an OPEN value vocabulary seeded with the policy-engine and query languages GMEOW projects to: prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL. It is open so new engines join without schema change. It names the language a condition is WRITTEN in, not the engine that evaluates it and never the expression text itself (gmeow:expressionText)."@x-gmeow-english ;
     skos:example "ex:exprLangCedarV2 a gmeow:ExpressionLanguage ; rdfs:label \"Cedar v2\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-language subclasses (languages are individuals) and avoid using it for the expression source itself (that is gmeow:expressionText)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -170,7 +170,7 @@ gmeow:GroupOperator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Group Operator"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The combination operator of a condition group — a closed three-member value vocabulary: all (conjunction), any (disjunction), none (negated disjunction)."@x-gmeow-english ;
+    skos:definition "The combination operator of a condition group — a closed three-member value vocabulary: all (conjunction), any (disjunction), none (negated disjunction). It combines member conditions and is not itself a condition, nor a deontic force (gmeow:deonticModality)."@x-gmeow-english ;
     skos:example "ex:cg1 gmeow:groupOperator gmeow:operatorAny ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a fourth operator (the trichotomy is closed by design) and avoid using it for anything but a gmeow:ConditionGroup's combination logic."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -184,7 +184,7 @@ gmeow:Norm
     rdfs:label "Norm"@x-gmeow-english ;
     logic:instantiatesFramework logic:DeonticFramework ;
     rdfs:subClassOf gmeow:Entity ;
-    skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world: it records that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the rights graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english ;
+    skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world and is not a claim that anything is the case: it records only that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the rights graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english ;
     skos:example "ex:n1 a gmeow:Norm ; gmeow:deonticModality gmeow:deonticObligation ; gmeow:normIssuer ex:gdpr ; gmeow:prescribedConduct ex:eraseOnRequest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting a norm as a global ought (every modality-bearing norm must name gmeow:normIssuer — there is no ought, only ought-according-to) and avoid using it for whether conduct complied (that is a vantage-indexed gmeow:ComplianceAssessment)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -252,7 +252,7 @@ gmeow:ScoreAnchor
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Anchor"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A pinned score range with its meaning and exemplars — 'range 0.8–1.0 means the text embodies the covenant, as in THIS passage'. Anchors are the rubric's calibration content; interpolation between anchors is solver work (Principle 12)."@x-gmeow-english ;
+    skos:definition "A pinned score range with its meaning and exemplars — 'range 0.8–1.0 means the text embodies the covenant, as in THIS passage'. Anchors are the rubric's calibration content; interpolation between anchors is solver work (Principle 12). An anchor pins a RANGE's meaning and is not a score awarded to anything — an actual rating is an assessment, never an anchor."@x-gmeow-english ;
     skos:example "ex:a1 a gmeow:ScoreAnchor ; gmeow:anchorRangeMin 0.8 ; gmeow:anchorRangeMax 1.0 ; gmeow:anchorMeaning \"embodies the covenant\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding interpolation between anchors in triples (that is solver work — Principle 12) and avoid an anchor without a meaning (an anchor without gmeow:anchorMeaning is just an interval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -265,7 +265,7 @@ gmeow:ScoreScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Scale"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A numeric scale for assessments — minimum, maximum, optional step. Scale arithmetic (normalization, conversion between scales) is solver work (Principle 12)."@x-gmeow-english ;
+    skos:definition "A numeric scale for assessments — minimum, maximum, optional step. Scale arithmetic (normalization, conversion between scales) is solver work (Principle 12). It is the measuring scale, not a unit of measure and not any value taken on it."@x-gmeow-english ;
     skos:example "ex:zeroToOne a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding normalization or scale-conversion arithmetic in triples (that is solver work — Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -328,7 +328,7 @@ gmeow:anchorRangeMax
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor range maximum"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The anchored range's upper bound. Functional."@x-gmeow-english ;
+    skos:definition "The anchored range's upper bound. Functional. It bounds the anchor's range, not the scale — the scale's ceiling is gmeow:scaleMax."@x-gmeow-english ;
     skos:example "ex:a1 gmeow:anchorRangeMax 1.0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one (it is functional) and avoid an upper bound below the lower bound (SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -355,7 +355,7 @@ gmeow:assessedEvent
     rdfs:label "assessed event"@x-gmeow-english ;
     rdfs:range gmeow:Event ;
     rdfs:subPropertyOf gmeow:observedFeature ;
-    skos:definition "The event whose compliance is assessed (⊑ observedFeature). Functional."@x-gmeow-english ;
+    skos:definition "The event whose compliance is assessed (⊑ observedFeature). Functional. It names the conduct judged, never the assessor (that is the assessment's vantage) and never the norm judged against (gmeow:assessedNorm)."@x-gmeow-english ;
     skos:example "ex:ca1 gmeow:assessedEvent ex:leakEvent ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one event per assessment (it is functional) and avoid naming the norm here (that is gmeow:assessedNorm)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -368,7 +368,7 @@ gmeow:assessedNorm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessed norm"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "The norm against which the event is assessed. Functional: one assessment, one norm."@x-gmeow-english ;
+    skos:definition "The norm against which the event is assessed. Functional: one assessment, one norm — an assessment covering several norms is several assessments, not one with a list."@x-gmeow-english ;
     skos:example "ex:ca1 gmeow:assessedNorm ex:n1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one norm per assessment (it is functional — mint a separate assessment per norm) and avoid naming the event here (that is gmeow:assessedEvent)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -431,7 +431,7 @@ gmeow:complies
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "complies with"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "Flat shortcut: the event complies with the norm — according to whoever asserts it. The positive twin of gmeow:violates; same promotion path, same never-entailed doctrine."@x-gmeow-english ;
+    skos:definition "Flat shortcut: the event complies with the norm — according to whoever asserts it. The positive twin of gmeow:violates; same promotion path, same never-entailed doctrine — compliance is asserted by someone and is never derived by the reasoner."@x-gmeow-english ;
     skos:example "ex:erasureEvent gmeow:complies ex:n1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as an entailment (compliance is always somebody's judgement) and avoid it when the assessor, evidence, or confidence must be first-class (promote to gmeow:ComplianceAssessment)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -519,7 +519,7 @@ gmeow:deonticModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "deontic modality"@x-gmeow-english ;
     rdfs:range gmeow:DeonticModality ;
-    skos:definition "The deontic force of this norm. Functional: one norm, one force — a rule that both permits and obliges is two norms. A norm carrying a modality must also carry an issuer (SHACL): no anonymous oughts."@x-gmeow-english ;
+    skos:definition "The deontic force of this norm. Functional: one norm, one force — a rule that both permits and obliges is two norms. A norm carrying a modality must also carry an issuer (SHACL): an anonymous ought is not a norm. It is the FORCE of the prescription, distinct from whether anything complied with it."@x-gmeow-english ;
     skos:example "ex:n1 gmeow:deonticModality gmeow:deonticObligation ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid giving one norm two forces (it is functional — a rule that both permits and obliges is two norms) and avoid asserting a modality without also asserting gmeow:normIssuer (SHACL forbids anonymous oughts)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -561,7 +561,7 @@ gmeow:evaluatedCondition
     rdfs:label "evaluated condition"@x-gmeow-english ;
     rdfs:range gmeow:Condition ;
     rdfs:subPropertyOf gmeow:observedFeature ;
-    skos:definition "The condition this evaluation reports on (⊑ observedFeature — the observation-spine bridge idiom). Functional: one evaluation, one condition; group members get their own evaluations."@x-gmeow-english ;
+    skos:definition "The condition this evaluation reports on (⊑ observedFeature — the observation-spine bridge idiom). Functional: one evaluation, one condition; group members get their own evaluations rather than sharing the group's."@x-gmeow-english ;
     skos:example "ex:ev1 gmeow:evaluatedCondition ex:c1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one condition per evaluation (it is functional — group members get their own evaluations) and avoid naming the verdict here (that is gmeow:evaluationVerdict)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -574,7 +574,7 @@ gmeow:evaluationVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluation verdict"@x-gmeow-english ;
     rdfs:range gmeow:EvaluationVerdict ;
-    skos:definition "The verdict of this evaluation. Functional and mandatory (SHACL). The claimModality pattern: equivalent in role to observationResult, separate in axiom because QualityValue ⟂ Entity."@x-gmeow-english ;
+    skos:definition "The verdict of this evaluation. Functional and mandatory (SHACL). The claimModality pattern: equivalent in role to observationResult but not the same property, held separate in axiom because QualityValue ⟂ Entity."@x-gmeow-english ;
     skos:example "ex:ev1 gmeow:evaluationVerdict gmeow:verdictHeld ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL) and avoid modelling it as observationResult — it plays that role but stays a separate axiom (QualityValue ⟂ Entity)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -712,7 +712,7 @@ gmeow:expressionLanguage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression language"@x-gmeow-english ;
     rdfs:range gmeow:ExpressionLanguage ;
-    skos:definition "The language of this expression. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    skos:definition "The language of this expression. Functional and mandatory (SHACL). It names the language only and is not the expression source (gmeow:expressionText)."@x-gmeow-english ;
     skos:example "ex:e1 gmeow:expressionLanguage gmeow:exprLangSparqlAsk ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an expression with no declared language or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -725,7 +725,7 @@ gmeow:expressionText
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression text"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The expression source, verbatim, in the named language. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    skos:definition "The expression source, verbatim, in the named language. Functional and mandatory (SHACL). It is carried as opaque text, never parsed into the ontology: the graph does not model the expression's internal structure."@x-gmeow-english ;
     skos:example "ex:e1 gmeow:expressionText \"ASK { ?s ex:requestedErasure true }\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL) and avoid mixing languages in one expression — declare the language with gmeow:expressionLanguage."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -751,7 +751,7 @@ gmeow:groupMember
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "group member"@x-gmeow-english ;
     rdfs:range gmeow:Condition ;
-    skos:definition "A member condition of this group. At least two (SHACL); nest groups for arbitrary trees."@x-gmeow-english ;
+    skos:definition "A member condition of this group. At least two (SHACL); nest groups for arbitrary trees rather than flattening — a one-member group is not a group."@x-gmeow-english ;
     skos:example "ex:cg1 gmeow:groupMember ex:c1 , ex:c2 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a group with fewer than two members (SHACL requires at least two) and avoid using it outside a gmeow:ConditionGroup."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -764,7 +764,7 @@ gmeow:groupOperator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "group operator"@x-gmeow-english ;
     rdfs:range gmeow:GroupOperator ;
-    skos:definition "The combination operator of this group. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    skos:definition "The combination operator of this group. Functional and mandatory (SHACL). It is drawn from the closed gmeow:GroupOperator vocabulary and is never an arbitrary expression."@x-gmeow-english ;
     skos:example "ex:cg1 gmeow:groupOperator gmeow:operatorAll ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a group with no combination operator or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -888,7 +888,7 @@ gmeow:parameterEntity
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter entity"@x-gmeow-english ;
-    skos:definition "The bound entity for IRI-valued bindings. Range intentionally open. A parameter carries exactly one of parameterValue / parameterEntity (SHACL)."@x-gmeow-english ;
+    skos:definition "The bound entity for IRI-valued bindings. Range intentionally open. A parameter carries exactly one of parameterValue / parameterEntity (SHACL) — never both and never neither."@x-gmeow-english ;
     skos:example "ex:p2 gmeow:parameterEntity ex:canada ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a literal binding (that is gmeow:parameterValue) and avoid carrying both — a parameter holds exactly one of the two (SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -901,7 +901,7 @@ gmeow:parameterName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter name"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The parameter's name as used in the condition text or expressions. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    skos:definition "The parameter's name as used in the condition text or expressions. Functional and mandatory (SHACL). It is the binding's NAME, not its value (gmeow:parameterValue / gmeow:parameterEntity)."@x-gmeow-english ;
     skos:example "ex:p1 gmeow:parameterName \"threshold\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a parameter with no name or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -913,7 +913,7 @@ gmeow:parameterValue
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter value"@x-gmeow-english ;
-    skos:definition "The bound literal value. Use gmeow:parameterEntity for IRI-valued bindings; a parameter carries exactly one of the two (SHACL)."@x-gmeow-english ;
+    skos:definition "The bound literal value. It is not for IRI-valued bindings — use gmeow:parameterEntity for those; a parameter carries exactly one of the two (SHACL)."@x-gmeow-english ;
     skos:example "ex:p1 gmeow:parameterValue \"0.8\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for an IRI-valued binding (that is gmeow:parameterEntity) and avoid carrying both — a parameter holds exactly one of the two (SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -926,7 +926,7 @@ gmeow:penaltyPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — without poles there is no axis); it must not coincide with the reward pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:rewardPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -939,7 +939,7 @@ gmeow:personaBearer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "persona bearer"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent whose expression policy this persona is. Functional and mandatory (SHACL): one persona, one bearer; an agent bears many co-equal personas."@x-gmeow-english ;
+    skos:definition "The agent whose expression policy this persona is. Functional and mandatory (SHACL): one persona, one bearer; an agent bears many co-equal personas, and not one of them is the agent's true or primary self."@x-gmeow-english ;
     skos:example "ex:drChen gmeow:personaBearer ex:chen ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one bearer per persona (it is functional and mandatory) and avoid implying a bearer's personas are ranked — an agent bears many co-equal personas."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -986,7 +986,7 @@ gmeow:precedenceHigher
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence higher"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "The norm that prevails during this tenure. Functional."@x-gmeow-english ;
+    skos:definition "The norm that prevails during this tenure. Functional. Prevailing is recorded, not entailed: it does not make the yielding norm false or retract it."@x-gmeow-english ;
     skos:example "ex:pt1 gmeow:precedenceHigher ex:tier2 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one prevailing norm (it is functional) and avoid pointing it at the yielding norm (that is gmeow:precedenceLower, which must differ by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1072,7 +1072,7 @@ gmeow:rewardPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — without poles there is no axis); it must not coincide with the penalty pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:rewardPole ex:powerFromBottom ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:penaltyPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1091,7 +1091,7 @@ gmeow:scaleMax
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale maximum"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The scale's maximum value. Functional and mandatory; must exceed the minimum (SHACL)."@x-gmeow-english ;
+    skos:definition "The scale's maximum value. Functional and mandatory; it must exceed the minimum and is not an anchor bound (gmeow:anchorRangeMax) (SHACL)."@x-gmeow-english ;
     skos:example "ex:zeroToOne gmeow:scaleMax 1.0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory) and avoid a maximum at or below the minimum (SHACL requires max > min)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1104,7 +1104,7 @@ gmeow:scaleMin
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale minimum"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The scale's minimum value. Functional and mandatory; must be below the maximum (SHACL)."@x-gmeow-english ;
+    skos:definition "The scale's minimum value. Functional and mandatory; it must be below the maximum and is not an anchor bound (SHACL)."@x-gmeow-english ;
     skos:example "ex:zeroToOne gmeow:scaleMin 0.0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory) and avoid a minimum at or above the maximum (SHACL requires min < max)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1117,7 +1117,7 @@ gmeow:scaleStep
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale step"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The scale's granularity step, when discrete. Optional; absent means continuous."@x-gmeow-english ;
+    skos:definition "The scale's granularity step, when discrete. Optional; when absent the scale is continuous rather than stepless-by-default."@x-gmeow-english ;
     skos:example "ex:fivePoint gmeow:scaleStep 1.0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it for a continuous scale (leave it absent — absence means continuous) and avoid more than one (it is functional)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1156,7 +1156,7 @@ gmeow:systemIssuer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "system issuer"@x-gmeow-english ;
     rdfs:subPropertyOf gmeow:normIssuer ;
-    skos:definition "The agent or standpoint that issues a normative system as a whole. ⊑ normIssuer: issuing the system is issuing its stance. Member norms may still carry their own issuers (an annex contributed by another party)."@x-gmeow-english ;
+    skos:definition "The agent or standpoint that issues a normative system as a whole. ⊑ normIssuer: issuing the system is issuing its stance. Member norms may still carry their own issuers (an annex contributed by another party), so the system issuer is not automatically the issuer of every member norm."@x-gmeow-english ;
     skos:example "ex:gdpr gmeow:systemIssuer ex:euParliament ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it on a single norm (use the general gmeow:normIssuer) and avoid assuming member norms inherit the system's issuer — an annex may carry its own."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1168,7 +1168,7 @@ gmeow:usesScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "uses scale"@x-gmeow-english ;
     rdfs:range gmeow:ScoreScale ;
-    skos:definition "The score scale a rubric or criterion uses. Domain-free (rubric-level default, criterion-level override — the holder is whatever points here); functional: one scale per holder, the gmeow:unit convention."@x-gmeow-english ;
+    skos:definition "The score scale a rubric or criterion uses. Domain-free (rubric-level default, criterion-level override — the holder is whatever points here); functional: one scale per holder, the gmeow:unit convention. It names the scale a rating is taken on, never a value on that scale."@x-gmeow-english ;
     skos:example "ex:voiceRubric gmeow:usesScale ex:zeroToOne ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one scale per holder (it is functional, the gmeow:unit convention) and avoid restating the rubric default on every criterion — set it once and override only where needed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
