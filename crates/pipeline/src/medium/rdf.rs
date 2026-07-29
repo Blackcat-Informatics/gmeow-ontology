@@ -484,6 +484,7 @@ mod tests {
             realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
         let envelope = seal(
             &registry,
+            &crate::medium::registry::MediumSelection::Authored,
             &FrameFacts {
                 frame: "https://e/frame7",
                 rep: "cells-archive",

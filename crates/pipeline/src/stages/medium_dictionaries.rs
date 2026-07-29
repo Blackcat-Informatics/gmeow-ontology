@@ -56,7 +56,7 @@ use crate::bundle::bundle_from_artifacts_over;
 use crate::medium::corpus::{self, CorpusSources};
 use crate::medium::envelope::{DigestStratum, FrameFacts, MediumEnvelope, seal};
 use crate::medium::rdf::{DictionaryRealization, check_dictionary_retention, realize};
-use crate::medium::registry::{DictionaryStrategy, MediumRegistry};
+use crate::medium::registry::{DictionaryStrategy, MediumRegistry, MediumSelection};
 use crate::medium::{GMEOW, MEDIUM_REGISTRY_GRAPH, SNAPSHOT_WIRE_REP, blake3_digest, train};
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -359,6 +359,7 @@ pub fn frame_iri(rep: &str, content_digest: &str) -> String {
 /// identity (which would collapse two envelopes onto one subject).
 pub(crate) fn seal_bundle_envelopes(
     registry: &MediumRegistry,
+    selection: &MediumSelection,
     plan: &MediumPlan,
     blobs: &[&BlobRow],
     snapshot_payload: &[u8],
@@ -391,6 +392,7 @@ pub(crate) fn seal_bundle_envelopes(
         }
         envelopes.push(seal(
             registry,
+            selection,
             &FrameFacts {
                 frame: &frame,
                 rep: &blob.rep,
@@ -405,6 +407,7 @@ pub(crate) fn seal_bundle_envelopes(
     let snapshot_digest = blake3_digest(snapshot_payload);
     envelopes.push(seal(
         registry,
+        selection,
         &FrameFacts {
             frame: &frame_iri(SNAPSHOT_WIRE_REP, &snapshot_digest),
             rep: SNAPSHOT_WIRE_REP,

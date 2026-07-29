@@ -88,6 +88,16 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
 slow-timeout = { period = "900s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The MEDIUM IDENTITY GATE emits the real carrier TWICE from one in-memory DAG run —
+# once under the authored `gmeow:mediumProfileDistL12` assignment and once under the
+# declared `gmeow:mediumProfileBaselineL12` — then folds, canonicalizes and projects
+# both. It is the razor for the whole axis (a zstd-compressed claim is the same claim),
+# so it is ON-gate deliberately, and it costs a whole-DAG execution plus a second
+# emission. Same runaway backstop as the sibling whole-bundle medium gate.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+
 # The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
 # WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
 # artifact — the same order of magnitude as the pipeline whole-run parity lanes above,

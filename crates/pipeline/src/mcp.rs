@@ -3981,7 +3981,8 @@ pub struct ConjecturePureOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body
+    /// [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
 }
 
@@ -4011,7 +4012,8 @@ pub struct ConjectureRunOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body
+    /// [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
     /// The TR receipt gating the persist (rendered as the transaction summary by callers).
     pub receipt: TxReceipt,

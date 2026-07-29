@@ -230,6 +230,43 @@ pub enum DictSelection {
     Baseline,
 }
 
+/// WHICH declared medium an emission writes its frames through.
+///
+/// A first-class NAMED selection, never a boolean and never an empty registry. The
+/// counterfactual half of the medium axis — "the same claim, written through the
+/// declared no-dictionary medium" — has to be reachable to be checkable, and the only
+/// honest way to reach it is to NAME the medium it is written through. Reaching it by
+/// handing the emitter an empty [`MediumRegistry`] (or a bare
+/// [`purrdf::gts_compose::MediumPlan::undicted`]) would be the legacy no-dict mode this
+/// axis exists to remove: nothing on the artifact would say which medium it is, and a
+/// registry that silently lost its dictionaries would look identical to a deliberate
+/// baseline emission.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MediumSelection {
+    /// The AUTHORED rep→medium assignment (`gmeow:payloadSchemaMedium` +
+    /// `gmeow:payloadSchemaDictionary`) — the shipped distribution selection, under
+    /// which every primed blob rep names `gmeow:mediumProfileDistL12`.
+    Authored,
+    /// ONE declared `gmeow:Medium` applied to EVERY frame slot.
+    ///
+    /// Legal only for a medium whose `gmeow:mediumDictionary` set is EMPTY — the
+    /// explicitly-declared no-dictionary media, of which `gmeow:mediumProfileBaselineL12`
+    /// is the shipped one. A dictionary-DECLARING medium resolves its dictionary per
+    /// registered `gmeow:PayloadSchema` (`gmeow:mediumSourcePerRep`), which IS
+    /// [`Self::Authored`]; applying it "uniformly" would have to invent a per-rep answer,
+    /// so it is refused rather than defaulted.
+    Uniform(String),
+}
+
+impl MediumSelection {
+    /// The `gmeow:mediumProfileBaselineL12` uniform selection — the declared
+    /// no-dictionary medium, spelled once so no caller has to spell the IRI.
+    #[must_use]
+    pub fn baseline_profile() -> Self {
+        Self::Uniform(gm("mediumProfileBaselineL12"))
+    }
+}
+
 /// One row of the rep→medium assignment.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RepAssignment {
@@ -359,6 +396,55 @@ impl MediumRegistry {
         })
     }
 
+    /// The assignment a rep's frames are written under for `selection`.
+    ///
+    /// TOTAL for both selections, and both ways of failing stay NAMED:
+    /// [`MediumSelection::Authored`] answers with the authored row verbatim, while
+    /// [`MediumSelection::Uniform`] answers with the named medium and its own
+    /// (necessarily [`DictSelection::Baseline`]) selection — after proving the medium is
+    /// DECLARED and declares no dictionary. The rep must still be registered and
+    /// assigned under either selection: a uniform medium changes which medium the frame
+    /// is written through, never whether the rep is one the registry knows.
+    ///
+    /// # Errors
+    /// `MediumUnknownSchema` (unregistered rep), `MediumUndeclaredDictionary` (registered
+    /// but unassigned), or `InvalidDeclaration` (the uniform medium is undeclared, or
+    /// declares a dictionary set and therefore has no uniform per-rep answer).
+    pub fn resolved_assignment(
+        &self,
+        selection: &MediumSelection,
+        rep: &str,
+    ) -> Result<RepAssignment, gmeow_errors::Diag> {
+        let authored = self.assignment_for(rep)?;
+        match selection {
+            MediumSelection::Authored => Ok(authored.clone()),
+            MediumSelection::Uniform(iri) => {
+                let medium = self.media.get(iri).ok_or_else(|| {
+                    invalid_declaration(format!(
+                        "the uniform medium selection names <{iri}>, which is not a declared \
+                         gmeow:Medium — a medium nothing declares cannot be the one an emission \
+                         was written through"
+                    ))
+                })?;
+                if !medium.dictionaries.is_empty() {
+                    return Err(invalid_declaration(format!(
+                        "<{iri}> declares {} gmeow:mediumDictionary value(s), so applying it \
+                         uniformly to every frame slot has no derivable per-rep selection — a \
+                         dictionary-declaring medium resolves its dictionary per registered \
+                         gmeow:PayloadSchema (gmeow:mediumSourcePerRep), which IS the authored \
+                         assignment. There is nothing to pick between its dictionaries here",
+                        medium.dictionaries.len()
+                    )));
+                }
+                Ok(RepAssignment {
+                    schema: authored.schema.clone(),
+                    medium: iri.clone(),
+                    dictionary: DictSelection::Baseline,
+                })
+            }
+        }
+    }
+
     /// Render the assignment as the [`purrdf::gts_compose::MediumPlan`] the
     /// authorship door ([`gmeow_gts_profile::emit_gmeow_gts_with_medium`]) consumes.
     ///
@@ -386,6 +472,29 @@ impl MediumRegistry {
         reps: &[String],
         trained: &BTreeMap<String, Vec<u8>>,
     ) -> Result<WireMediumPlan, gmeow_errors::Diag> {
+        self.medium_plan_under(&MediumSelection::Authored, reps, trained)
+    }
+
+    /// [`Self::medium_plan`] under an explicit [`MediumSelection`] — the door the
+    /// counterfactual baseline emission goes through.
+    ///
+    /// The PINNED dictionary set is the same under every selection: `gmeow:dicts` is the
+    /// bundle's DISTRIBUTION channel for the dictionary family (a consumer priming its own
+    /// runtime store reads them out of the shipped header), while the assignment is what
+    /// PRIMES a frame. A baseline emission therefore still carries every declared
+    /// dictionary and primes nothing with it — which is exactly the counterfactual the
+    /// two-part code is judged against, and what makes the two emissions differ in
+    /// priming ALONE.
+    ///
+    /// # Errors
+    /// Everything [`Self::medium_plan`] raises, plus an undeclared or
+    /// dictionary-declaring uniform medium (see [`Self::resolved_assignment`]).
+    pub fn medium_plan_under(
+        &self,
+        selection: &MediumSelection,
+        reps: &[String],
+        trained: &BTreeMap<String, Vec<u8>>,
+    ) -> Result<WireMediumPlan, gmeow_errors::Diag> {
         let mut assignment: BTreeMap<FrameSlot, WireDictSelection> = BTreeMap::new();
         let mut pinned: BTreeSet<String> = BTreeSet::new();
         let mut level: Option<(i32, String)> = None;
@@ -408,7 +517,7 @@ impl MediumRegistry {
             .chain(std::iter::once((FrameSlot::Snapshot, SNAPSHOT_WIRE_REP)));
 
         for (slot, rep) in slots {
-            let row = self.assignment_for(rep)?;
+            let row = self.resolved_assignment(selection, rep)?;
             let medium = self.media.get(&row.medium).ok_or_else(|| {
                 invalid_declaration(format!(
                     "the assignment for rep {rep:?} names medium <{}>, which is not a declared \

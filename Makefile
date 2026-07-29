@@ -82,7 +82,8 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep \
+	maint-medium-model-facing-diff maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
@@ -753,6 +754,72 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
 	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
+
+maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
+	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate
+	@# (crates/pipeline/src/gmn_dialect.rs) selects out of each tree's materialized
+	@# generated/ directory — the EBNF / GBNF / Lark grammar surfaces, the whole versioned
+	@# GMN-1 pack, gmn1/v*/token-metrics.ttl and the operator glyph tables — first as SETS
+	@# (an artifact that appeared or vanished is a model-facing change) and then BYTE FOR
+	@# BYTE. Two predicate clauses are DECLARED to resolve to zero paths and are documented
+	@# in that module rather than silently absent: `abnf/**` (no authored grammar is inside
+	@# the ABNF-expressible fragment, so that target emits a SoundUnder record and no
+	@# artifact) and the GMN-1 primer (in memory, materialized only into the dist/llms.txt
+	@# blobs — frozen instead by the llms-shape freeze in tests/model_facing_invariance.rs).
+	@#
+	@# WHY IT IS A maint- LANE AND NOT AN ON-GATE TEST: the merge base carries ZERO medium
+	@# axis, so this branch's test binary cannot run there, and building the base workspace
+	@# inside an on-gate test would put a second (and much slower) compile of a DIFFERENT
+	@# commit inside `make check`. The base tree is regenerated ENTIRELY by its own
+	@# checkout — its own Makefile, its own rust-toolchain, its own Cargo.lock. This
+	@# branch's sources are never overlaid onto it; the only thing that crosses the
+	@# boundary is the read-only path predicate (`gmn-dialect-paths`), because classifying
+	@# the two trees with two different predicates would compare nothing.
+	@#
+	@# HOW TO RUN IT:
+	@#     make regen                          # materialize THIS branch's generated/ tree
+	@#     make maint-medium-model-facing-diff  # regenerate the base and diff
+	@# It needs `origin/main` fetched (it resolves `git merge-base HEAD origin/main`) and
+	@# enough disk for a second full checkout + target dir. Exits non-zero on ANY set or
+	@# byte difference; prints the offending paths.
+	@set -eu; \
+	  base="$$(git merge-base HEAD origin/main)"; \
+	  echo "merge base: $$base"; \
+	  test -d generated/projections/lang || { \
+	    echo "ERROR: this branch's generated/ tree is not materialized — run 'make regen' first."; \
+	    echo "       Comparing an unmaterialized tree would report every artifact as unchanged"; \
+	    echo "       by comparing nothing."; \
+	    exit 1; \
+	  }; \
+	  cargo build -q -p gmeow-pipeline --bin gmn-dialect-paths; \
+	  lister="$$(cargo metadata --format-version 1 --no-deps -q | sed -n 's/.*"target_directory":"\([^"]*\)".*/\1/p')/debug/gmn-dialect-paths"; \
+	  test -x "$$lister" || { echo "ERROR: could not locate the gmn-dialect-paths binary at $$lister"; exit 1; }; \
+	  tmpdir="$$(mktemp -d)"; \
+	  trap 'git worktree remove --force "$$tmpdir/base" >/dev/null 2>&1 || true; rm -rf "$$tmpdir"' EXIT; \
+	  git worktree add --detach "$$tmpdir/base" "$$base" >/dev/null; \
+	  echo "regenerating the merge base in $$tmpdir/base with ITS OWN toolchain…"; \
+	  $(MAKE) -C "$$tmpdir/base" regen; \
+	  "$$lister" "$$tmpdir/base" > "$$tmpdir/base.paths"; \
+	  "$$lister" . > "$$tmpdir/head.paths"; \
+	  if ! diff -u "$$tmpdir/base.paths" "$$tmpdir/head.paths" > "$$tmpdir/paths.diff"; then \
+	    echo "ERROR: the GMN-dialect artifact SET changed between the merge base and this branch:"; \
+	    cat "$$tmpdir/paths.diff"; \
+	    exit 1; \
+	  fi; \
+	  moved=0; \
+	  while IFS= read -r path; do \
+	    if ! cmp -s "$$tmpdir/base/$$path" "./$$path"; then \
+	      echo "MOVED: $$path"; \
+	      moved=$$((moved + 1)); \
+	    fi; \
+	  done < "$$tmpdir/head.paths"; \
+	  if [ "$$moved" -ne 0 ]; then \
+	    echo "ERROR: $$moved GMN-dialect artifact(s) differ between the merge base and this"; \
+	    echo "       branch. The medium axis re-CODES the bundle's bytes; it may not change"; \
+	    echo "       what a model reads."; \
+	    exit 1; \
+	  fi; \
+	  echo "✓ $$(wc -l < "$$tmpdir/head.paths") GMN-dialect artifact(s) byte-identical across the merge base and this branch"
 
 maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh native run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:

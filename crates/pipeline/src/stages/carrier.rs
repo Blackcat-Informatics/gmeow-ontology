@@ -376,7 +376,40 @@ pub(crate) fn serialize_carrier_snapshot(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    serialize_carrier_snapshot_without_docs(root, upstream, carrier)
+    serialize_carrier_snapshot_without_docs(
+        root,
+        upstream,
+        carrier,
+        &crate::medium::registry::MediumSelection::Authored,
+    )
+}
+
+/// [`serialize_carrier_snapshot`] under an explicit, DECLARED
+/// [`MediumSelection`](crate::medium::registry::MediumSelection) — the counterfactual
+/// door.
+///
+/// The shipped emission is this function at
+/// [`MediumSelection::Authored`](crate::medium::registry::MediumSelection::Authored).
+/// The other inhabitant is a NAMED no-dictionary medium
+/// (`gmeow:mediumProfileBaselineL12`), and it exists so the axis's central claim — a
+/// zstd-compressed claim is the SAME claim — can be measured on the real carrier rather
+/// than asserted: the two emissions differ in priming and in nothing else, so their
+/// decoded folds must agree everywhere the wire medium is not itself the subject.
+///
+/// It is deliberately NOT an "unprimed mode": the plan still pins every declared
+/// dictionary (the pack is the dictionary family's distribution channel), and the
+/// medium it is written through is a first-class individual the emitted envelopes name.
+///
+/// # Errors
+/// Any missing upstream artifact, or a medium-axis declaration defect (including a
+/// uniform selection naming an undeclared or dictionary-declaring medium).
+pub fn serialize_carrier_snapshot_under(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    selection: &crate::medium::registry::MediumSelection,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    serialize_carrier_snapshot_without_docs(root, upstream, carrier, selection)
 }
 
 /// Assemble the terminal GTS from the logical carrier and non-document runtime
@@ -390,7 +423,12 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     carrier: &purrdf::RdfDataset,
     _docs_model: &gmeow_docs::model::DocsModel,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    serialize_carrier_snapshot_without_docs(root, upstream, carrier)
+    serialize_carrier_snapshot_without_docs(
+        root,
+        upstream,
+        carrier,
+        &crate::medium::registry::MediumSelection::Authored,
+    )
 }
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
@@ -521,6 +559,7 @@ fn serialize_carrier_snapshot_without_docs(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
+    selection: &crate::medium::registry::MediumSelection,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let frames = snapshot_frames(root, upstream, carrier)?;
     serialize_snapshot(
@@ -529,6 +568,7 @@ fn serialize_carrier_snapshot_without_docs(
         frames.blobs,
         frames.report_blobs,
         upstream,
+        selection,
     )
 }
 
@@ -1747,6 +1787,7 @@ fn serialize_snapshot(
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
     upstream: &BTreeMap<String, StageProduct>,
+    selection: &crate::medium::registry::MediumSelection,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     use crate::stages::medium_dictionaries as medium;
 
@@ -1840,11 +1881,12 @@ fn serialize_snapshot(
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
     let reps: Vec<String> = reps.into_iter().collect();
-    let plan = registry.medium_plan(&reps, &trained)?;
+    let plan = registry.medium_plan_under(selection, &reps, &trained)?;
 
     // ── pass 2: the envelopes, projected from the facts every frame already carries ──
     let envelopes = medium::seal_bundle_envelopes(
         &registry,
+        selection,
         &plan,
         &frames,
         &snapshot_payload,
@@ -2003,7 +2045,14 @@ fn snapshot_product(
 /// statements, imports, metadata, alignments, slice-analysis, verify, documentation,
 /// diagnostics, conformance, projection-ledger, provenance, logic, relational-core,
 /// correspondence, reasoning).
-pub(crate) fn snapshot_dataset(
+///
+/// Public because the medium identity gate re-emits THIS carrier under a second declared
+/// medium: the counterfactual has to be the SAME carrier, and reaching it any other way
+/// would compare two builds rather than two encodings of one claim.
+///
+/// # Errors
+/// The `stage-snapshot` product is missing.
+pub fn snapshot_dataset(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     Ok(snapshot_product(upstream)?.bundle().dataset_arc())

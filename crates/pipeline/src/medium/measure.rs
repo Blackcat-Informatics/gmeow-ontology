@@ -53,7 +53,7 @@
 //! * **B — [`Population::RuntimeStoreSegments`]**: the append-only runtime store
 //!   files a CONSUMER writes, replayed here through the real
 //!   `Memory::store` / audit-segment / conjecture-append paths over a declared,
-//!   bundle-derived corpus ([`replay_runtime_store`]). Its `bytes_on_disk` is net of
+//!   bundle-derived corpus ([`crate::medium::sweep::replay_runtime_store`]). Its `bytes_on_disk` is net of
 //!   the per-file in-band dictionary bytes, which is the whole question for a store:
 //!   whether a dictionary paid once per FILE wins is a pure function of the record
 //!   count, so a store that opened a header per record would charge those bytes

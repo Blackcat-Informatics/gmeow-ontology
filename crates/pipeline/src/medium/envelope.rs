@@ -31,7 +31,7 @@
 
 use std::collections::BTreeSet;
 
-use super::registry::{DictSelection, DictionaryDef, MediumRegistry};
+use super::registry::{DictSelection, DictionaryDef, MediumRegistry, MediumSelection};
 use super::{
     GMEOW, blake3_digest, digest_mismatch, is_canonical_digest, opaque_frame,
     undeclared_dictionary, unknown_dictionary,
@@ -108,7 +108,15 @@ pub struct MediumEnvelope {
     pub content_digest: String,
 }
 
-/// Project a `gmeow:MediumEnvelope` from the facts a frame already carries.
+/// Project a `gmeow:MediumEnvelope` from the facts a frame already carries, under the
+/// [`MediumSelection`] the emission was written through.
+///
+/// The selection is a PARAMETER rather than always the authored assignment because an
+/// envelope describes the frame this emission actually wrote. An emission through the
+/// declared no-dictionary medium writes unprimed frames, and an envelope that named the
+/// authored `gmeow:mediumProfileDistL12` over them would be a projection of an intention
+/// instead of a projection of the wire — precisely the failure the whole class exists to
+/// exclude.
 ///
 /// # Errors
 /// `MediumUnknownSchema` (unregistered rep), `MediumUndeclaredDictionary` (the rep
@@ -117,9 +125,10 @@ pub struct MediumEnvelope {
 /// disagrees with the one the registry assigns that rep).
 pub fn seal(
     registry: &MediumRegistry,
+    selection: &MediumSelection,
     facts: &FrameFacts<'_>,
 ) -> Result<MediumEnvelope, gmeow_errors::Diag> {
-    let row = registry.assignment_for(facts.rep)?;
+    let row = registry.resolved_assignment(selection, facts.rep)?;
 
     let dictionary = match (&row.dictionary, facts.dictionary_id) {
         (DictSelection::Baseline, None) => None,
@@ -313,8 +322,12 @@ mod tests {
     #[test]
     fn a_primed_frame_seals_and_reopens() {
         let registry = registry();
-        let envelope = seal(&registry, &facts("cells-archive", Some("gmeow-core-v1")))
-            .expect("a primed frame seals");
+        let envelope = seal(
+            &registry,
+            &MediumSelection::Authored,
+            &facts("cells-archive", Some("gmeow-core-v1")),
+        )
+        .expect("a primed frame seals");
         assert_eq!(
             envelope.dictionary.as_deref(),
             Some(crate::medium::registry::gm("dictCore").as_str())
@@ -343,8 +356,12 @@ mod tests {
     #[test]
     fn the_declared_baseline_medium_seals_without_a_dictionary() {
         let registry = registry();
-        let envelope = seal(&registry, &facts(crate::medium::SNAPSHOT_WIRE_REP, None))
-            .expect("the baseline rep seals");
+        let envelope = seal(
+            &registry,
+            &MediumSelection::Authored,
+            &facts(crate::medium::SNAPSHOT_WIRE_REP, None),
+        )
+        .expect("the baseline rep seals");
         assert_eq!(envelope.dictionary, None);
         assert_eq!(
             open(
@@ -364,8 +381,12 @@ mod tests {
     /// even though its bytes are intact.
     #[test]
     fn a_frame_declaring_no_dictionary_under_a_primed_rep_is_undeclared() {
-        let diag = seal(&registry(), &facts("cells-archive", None))
-            .expect_err("a primed rep with no in-band dictionary must fail");
+        let diag = seal(
+            &registry(),
+            &MediumSelection::Authored,
+            &facts("cells-archive", None),
+        )
+        .expect_err("a primed rep with no in-band dictionary must fail");
         assert_eq!(
             diag.code(),
             crate::error::MediumUndeclaredDictionary::register(),
@@ -379,6 +400,7 @@ mod tests {
     fn an_unresolvable_in_band_dictionary_is_unknown() {
         let diag = seal(
             &registry(),
+            &MediumSelection::Authored,
             &facts("cells-archive", Some("never-trained-v1")),
         )
         .expect_err("an unknown dictionary must fail");
@@ -395,8 +417,12 @@ mod tests {
     /// content.
     #[test]
     fn an_in_band_dictionary_disagreeing_with_the_assignment_is_refused() {
-        let diag = seal(&registry(), &facts("cells-archive", Some("gmeow-terms-v1")))
-            .expect_err("a disagreeing dictionary must fail");
+        let diag = seal(
+            &registry(),
+            &MediumSelection::Authored,
+            &facts("cells-archive", Some("gmeow-terms-v1")),
+        )
+        .expect_err("a disagreeing dictionary must fail");
         assert_eq!(
             diag.code(),
             crate::error::MediumUnknownDictionary::register(),
@@ -410,8 +436,12 @@ mod tests {
     #[test]
     fn a_reader_missing_a_declared_capability_raises_opaque_frame() {
         let registry = registry();
-        let envelope =
-            seal(&registry, &facts("cells-archive", Some("gmeow-core-v1"))).expect("seal");
+        let envelope = seal(
+            &registry,
+            &MediumSelection::Authored,
+            &facts("cells-archive", Some("gmeow-core-v1")),
+        )
+        .expect("seal");
         let diag = open(
             &envelope,
             &registry,
@@ -433,7 +463,12 @@ mod tests {
     #[test]
     fn a_digest_that_disagrees_with_the_bytes_refuses_before_any_decode() {
         let registry = registry();
-        let sealed = seal(&registry, &facts("cells-archive", Some("gmeow-core-v1"))).expect("seal");
+        let sealed = seal(
+            &registry,
+            &MediumSelection::Authored,
+            &facts("cells-archive", Some("gmeow-core-v1")),
+        )
+        .expect("seal");
         let caps = capabilities(&["zstd-dictionary", "zstd-rsyncable"]);
 
         let diag = open(&sealed, &registry, &caps, b"different bytes", STRATUM)

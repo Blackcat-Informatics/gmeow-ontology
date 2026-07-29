@@ -13,7 +13,7 @@
 //! surface. Four doors exist and no fifth:
 //!
 //! * [`emit_gmeow_gts`] / [`emit_gmeow_gts_with_medium`] — snapshot bundles
-//!   composed from a [`SnapshotBuilder`](purrdf::gts_compose::SnapshotBuilder)
+//!   composed from a [`purrdf::gts_compose::SnapshotBuilder`]
 //!   (the shipped `gmeow.gts`, release bundles, on-demand consumer bundles),
 //!   unprimed or under an explicit [`MediumPlan`](purrdf::gts_compose::MediumPlan);
 //! * [`dataset_to_gmeow_gts`] — a frozen carrier
