@@ -204,9 +204,26 @@ fn well_formed_expression_with_matching_structural_key_and_no_surface_leak_is_cl
          math:structuralKey \"{digest}\" .\n"
     );
     let f = findings(&keyed);
+    // "Clean" means no ERROR-grade violation — never that the gate is silent.
+    // `report_alpha_equivalence_classes` is the gate's own positive verdict: it surfaces
+    // a `Severity::Note` "verify.math.alpha-equivalence-class" for every root the lowering
+    // ACCEPTS (see its doc comment), so a well-formed, correctly-keyed, leak-free root still
+    // raises exactly that one Note — never zero findings.
     assert!(
-        f.is_empty(),
+        f.iter().all(|finding| finding.severity != Severity::Error),
         "a well-formed expression with a matching authored math:structuralKey and no \
-         surface leak must raise nothing: {f:?}"
+         surface leak must raise no ERROR-grade finding: {f:?}"
+    );
+    assert_eq!(
+        f.len(),
+        1,
+        "a clean root raises exactly the α-equivalence-class positive-verdict Note, nothing \
+         else: {f:?}"
+    );
+    assert_eq!(f[0].severity, Severity::Note);
+    assert_eq!(f[0].code, "verify.math.alpha-equivalence-class");
+    assert!(
+        f[0].message.contains("https://example.org/e1"),
+        "the positive verdict must name the clean root: {f:?}"
     );
 }
