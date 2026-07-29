@@ -245,26 +245,35 @@ try {
       continue;
     }
 
-    // 1. pack the REAL tarball.
-    const packed = run("npm", ["pack", "--silent", "--pack-destination", scratch], dir)
-      .trim()
-      .split("\n")
-      .pop();
-    const tarball = join(scratch, packed);
-
-    // 2. install it into a throwaway project, resolved BY NAME.
-    const project = join(scratch, `consume-${packed.replace(/[^\w.-]/g, "_")}`);
-    await writeFile(
-      join(await mkdirp(project), "package.json"),
-      JSON.stringify({ name: "gmeow-consumability-probe", private: true, type: "module" }, null, 2),
-    );
-    run("npm", ["install", "--no-audit", "--no-fund", "--ignore-scripts", tarball], project);
-
-    const installed = join(project, "node_modules", ...name.split("/"));
-    const installedManifest = JSON.parse(await readFile(join(installed, "package.json"), "utf8"));
-
-    // 3. the witness, against the INSTALLED bytes.
+    // Packing, installing and witnessing all live INSIDE the per-package `try`. They used
+    // to sit outside it, so a single package whose `npm pack` or `npm install` threw
+    // aborted the whole lane: every remaining package went unreported, and `execFileSync`'s
+    // `stderr` — the only place npm says WHY — was swallowed with the exception. One bad
+    // tarball must cost one FAIL line, not the lane.
     try {
+      // 1. pack the REAL tarball.
+      const packed = run("npm", ["pack", "--silent", "--pack-destination", scratch], dir)
+        .trim()
+        .split("\n")
+        .pop();
+      const tarball = join(scratch, packed);
+
+      // 2. install it into a throwaway project, resolved BY NAME.
+      const project = join(scratch, `consume-${packed.replace(/[^\w.-]/g, "_")}`);
+      await writeFile(
+        join(await mkdirp(project), "package.json"),
+        JSON.stringify(
+          { name: "gmeow-consumability-probe", private: true, type: "module" },
+          null,
+          2,
+        ),
+      );
+      run("npm", ["install", "--no-audit", "--no-fund", "--ignore-scripts", tarball], project);
+
+      const installed = join(project, "node_modules", ...name.split("/"));
+      const installedManifest = JSON.parse(await readFile(join(installed, "package.json"), "utf8"));
+
+      // 3. the witness, against the INSTALLED bytes.
       // Universal: the installed manifest's version, and export-set equality of the
       // installed entry against the installed declaration file.
       assert.equal(
@@ -301,7 +310,14 @@ try {
       const detail = await witness(mod, installed, installedManifest);
       console.log(`OK   ${name}@${installedManifest.version} — ${detail}`);
     } catch (error) {
+      // `execFileSync` puts the child's diagnostics on `error.stderr`, NOT in the message
+      // (`Command failed: npm pack …` alone says nothing about WHY). Surfacing it is the
+      // difference between a report and a riddle.
+      const stderr = typeof error.stderr === "string" ? error.stderr.trim() : "";
+      const stdout = typeof error.stdout === "string" ? error.stdout.trim() : "";
       console.error(`FAIL ${name}: ${error.stack ?? error.message}`);
+      if (stderr.length > 0) console.error(`     npm stderr: ${stderr}`);
+      if (stdout.length > 0) console.error(`     npm stdout: ${stdout}`);
       failures += 1;
     }
   }

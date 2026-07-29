@@ -276,11 +276,16 @@ impl SubAsset {
 
     /// The wasm engines are `application/wasm`; the queryable bundle is the GTS container
     /// the engine boots over; the conjecture demo library is Turtle.
+    ///
+    /// EXHAUSTIVE, like [`slug`](Self::slug) / [`label`](Self::label) /
+    /// [`tree_path_prefix`](Self::tree_path_prefix) on this same type: a `_` catch-all here
+    /// would silently label any new non-wasm sub-asset `application/wasm`, and the catalog's
+    /// declared media type is what a consumer serves the bytes as.
     fn media_type(self) -> &'static str {
         match self {
+            SubAsset::McpCoreWasm | SubAsset::McpWasm => "application/wasm",
             SubAsset::Bundle => "application/vnd.blackcat.gts+cbor",
             SubAsset::ConjectureDemo => "text/turtle",
-            _ => "application/wasm",
         }
     }
 
@@ -453,7 +458,12 @@ pub fn sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str, &'s
 /// module already references by name through [`consumer_iri`] — so a loss node's accounted
 /// parameter and a concept's intent member are the SAME six declared individuals, never a
 /// second, catalog-local capability namespace.
-fn capability_iri(cap: Capability) -> String {
+///
+/// `pub(crate)` because it is the ONE spelling authority for these six local names: the
+/// docs-distribution release producer's matrix gate reads the expected local name back
+/// through [`gmeow_docs_catalog::identity::local_name`] over this function, rather than
+/// keeping a second copy of the table that a rename would silently fork.
+pub(crate) fn capability_iri(cap: Capability) -> String {
     let local = match cap {
         Capability::SearchIndex => "capabilitySearchIndex",
         Capability::LiveSparql => "capabilityLiveSparql",

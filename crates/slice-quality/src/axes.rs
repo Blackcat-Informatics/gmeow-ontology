@@ -1837,18 +1837,24 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
                 }
             }
             (d, b, Some(glyph), Some(fallback)) if d == named => {
-                let measured_win = match audited_pair_costs(glyph, fallback) {
-                    Ok((glyph_cost, fallback_cost)) => {
-                        b == token_basis && glyph_cost > fallback_cost
-                    }
-                    Err(error) => {
-                        defects.push(format!(
-                            "named-key glyph/fallback pair is outside the pinned token-cost \
-                             inventory: {error}"
-                        ));
-                        false
-                    }
-                };
+                // The pinned token-cost inventory is consulted ONLY for a candidate that
+                // actually makes a token-cost claim. A named key whose declared basis is
+                // ambiguity or confusability makes no such claim, so a glyph/fallback pair
+                // the inventory does not price is not a defect OF THAT CANDIDATE — reporting
+                // one made the axis fire for a reason the candidate never asserted, and the
+                // `safety_win` branch below already had to override it. `&&` short-circuits,
+                // so the inventory is not even consulted for a safety-basis candidate.
+                let measured_win = b == token_basis
+                    && match audited_pair_costs(glyph, fallback) {
+                        Ok((glyph_cost, fallback_cost)) => glyph_cost > fallback_cost,
+                        Err(error) => {
+                            defects.push(format!(
+                                "named-key glyph/fallback pair is outside the pinned token-cost \
+                                 inventory: {error}"
+                            ));
+                            false
+                        }
+                    };
                 let safety_win = b == ambiguity_basis || b == confusable_basis;
                 if !measured_win && !safety_win {
                     defects.push(

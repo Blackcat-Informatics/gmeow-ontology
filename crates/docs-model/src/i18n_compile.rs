@@ -575,7 +575,30 @@ pub fn merge_markdown_text(source: &str, po_text: &str) -> Result<String> {
     Ok(out_lines.join(newline))
 }
 
-fn bcp47_to_internal_map(root: &Path) -> BTreeMap<String, String> {
+/// Every literal row of every authored Turtle source, parsed ONCE.
+///
+/// Three projections read this same corpus (the BCP-47 ↔ internal language map, the current
+/// English values, and the declared homograph sources). Each used to walk
+/// [`authored_turtle_files`] and re-parse every one of them, so a single `lint_po_files`
+/// call paid the whole authored-Turtle parse three times over for three different views of
+/// identical bytes. Parsing once and projecting three ways is the same answer for a third
+/// of the work — and, more importantly, makes it impossible for the three views to be
+/// taken of different reads.
+fn authored_literal_rows(root: &Path) -> Vec<RdfLiteralRow> {
+    let mut rows = Vec::new();
+    for source in authored_turtle_files(root) {
+        let Ok(bytes) = fs::read(&source) else {
+            continue;
+        };
+        let Ok(parsed) = parse_rdf_literals(&bytes, "turtle") else {
+            continue;
+        };
+        rows.extend(parsed);
+    }
+    rows
+}
+
+fn bcp47_to_internal_map_from_rows(rows: &[RdfLiteralRow]) -> BTreeMap<String, String> {
     let mut out = BTreeMap::from([
         ("en".to_owned(), "x-gmeow-english".to_owned()),
         ("fr".to_owned(), "x-gmeow-french".to_owned()),
@@ -584,22 +607,14 @@ fn bcp47_to_internal_map(root: &Path) -> BTreeMap<String, String> {
     let mut by_subject: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
     let bcp47_tag_pred = format!("{GMEOW_NS}bcp47Tag");
     let language_tag_pred = format!("{GMEOW_NS}languageTag");
-    for source in authored_turtle_files(root) {
-        let Ok(bytes) = fs::read(&source) else {
-            continue;
-        };
-        let Ok(rows) = parse_rdf_literals(&bytes, "turtle") else {
-            continue;
-        };
-        for row in rows {
-            if row.predicate == bcp47_tag_pred || row.predicate == language_tag_pred {
-                by_subject
-                    .entry(row.subject)
-                    .or_default()
-                    .entry(row.predicate)
-                    .or_default()
-                    .insert(row.lexical);
-            }
+    for row in rows {
+        if row.predicate == bcp47_tag_pred || row.predicate == language_tag_pred {
+            by_subject
+                .entry(row.subject.clone())
+                .or_default()
+                .entry(row.predicate.clone())
+                .or_default()
+                .insert(row.lexical.clone());
         }
     }
     for props in by_subject.values() {
@@ -628,21 +643,15 @@ fn bcp47_to_internal_map(root: &Path) -> BTreeMap<String, String> {
 /// so this predicate-scoped read can never pick up a derived entry literal and silently
 /// widen the exempt set.
 pub fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
+    declared_homograph_sources_from_rows(&authored_literal_rows(root))
+}
+
+fn declared_homograph_sources_from_rows(rows: &[RdfLiteralRow]) -> BTreeSet<String> {
     const HOMOGRAPH_SOURCE_PRED: &str = "https://blackcatinformatics.ca/lang/homographSource";
-    let mut out = BTreeSet::new();
-    for source in authored_turtle_files(root) {
-        let Ok(bytes) = fs::read(&source) else {
-            continue;
-        };
-        if let Ok(rows) = parse_rdf_literals(&bytes, "turtle") {
-            for row in rows {
-                if row.predicate == HOMOGRAPH_SOURCE_PRED {
-                    out.insert(skeleton(&row.lexical));
-                }
-            }
-        }
-    }
-    out
+    rows.iter()
+        .filter(|row| row.predicate == HOMOGRAPH_SOURCE_PRED)
+        .map(|row| skeleton(&row.lexical))
+        .collect()
 }
 
 /// The authored Turtle files the homograph escape reads (`ontology/gmeow.ttl` plus every
@@ -706,21 +715,16 @@ fn collect_po_paths(root: &Path) -> Vec<PathBuf> {
     paths
 }
 
-fn current_english_values(root: &Path) -> BTreeMap<(String, String), BTreeSet<String>> {
-    let mut values = BTreeMap::new();
-    for source in authored_turtle_files(root) {
-        let Ok(bytes) = fs::read(&source) else {
-            continue;
-        };
-        if let Ok(rows) = parse_rdf_literals(&bytes, "turtle") {
-            for row in rows {
-                if row.language.as_deref() == Some(ENGLISH_TAG) {
-                    values
-                        .entry((row.subject, row.predicate))
-                        .or_insert_with(BTreeSet::new)
-                        .insert(row.lexical);
-                }
-            }
+fn current_english_values_from_rows(
+    rows: &[RdfLiteralRow],
+) -> BTreeMap<(String, String), BTreeSet<String>> {
+    let mut values: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for row in rows {
+        if row.language.as_deref() == Some(ENGLISH_TAG) {
+            values
+                .entry((row.subject.clone(), row.predicate.clone()))
+                .or_default()
+                .insert(row.lexical.clone());
         }
     }
     values
@@ -728,12 +732,15 @@ fn current_english_values(root: &Path) -> BTreeMap<(String, String), BTreeSet<St
 
 pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     let mut report = I18nLintReport::default();
-    let tag_map = bcp47_to_internal_map(root);
-    let current = current_english_values(root);
+    // ONE parse of the authored Turtle corpus, three projections of it. The three used to
+    // walk and re-parse every authored source independently.
+    let authored = authored_literal_rows(root);
+    let tag_map = bcp47_to_internal_map_from_rows(&authored);
+    let current = current_english_values_from_rows(&authored);
     // Ontology-resident escape for the glossary-consistency check: English sources
     // explicitly declared homographs (distinct senses that legitimately render
-    // differently). Loaded once from authored TTL only.
-    let homographs = declared_homograph_sources(root);
+    // differently). Read from authored TTL only.
+    let homographs = declared_homograph_sources_from_rows(&authored);
 
     for path in collect_po_paths(root)
         .into_iter()
@@ -1251,8 +1258,11 @@ fn nt_literal(value: &str, lang: &str) -> String {
 }
 
 pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Result<MergeReport> {
-    let tag_map = bcp47_to_internal_map(root);
-    let base_values = current_english_values(root);
+    // One parse of the authored Turtle corpus, two projections of it (see
+    // [`authored_literal_rows`]).
+    let authored = authored_literal_rows(root);
+    let tag_map = bcp47_to_internal_map_from_rows(&authored);
+    let base_values = current_english_values_from_rows(&authored);
     let mut added = 0usize;
     let mut text = String::new();
     let mut po_count = 0usize;
@@ -1529,15 +1539,34 @@ fn iri_text_forms(iri: &str, prefixes: &BTreeMap<String, String>) -> Vec<String>
     forms
 }
 
+/// The byte offset one CODEPOINT past `i`.
+///
+/// The Turtle scanners in this module walk a byte cursor and then slice `text[i..]`, which
+/// PANICS the instant the cursor lands inside a multi-byte codepoint — i.e. on any authored
+/// Turtle containing a single non-ASCII character (a `é`, a `—`, a CJK label, any of which
+/// the localized slice sources are full of). Advancing by codepoints instead of by bytes is
+/// what makes the cursor a valid slice index at every step.
+///
+/// `i` must already be a char boundary; the walk keeps it one.
+fn next_char_boundary(text: &str, i: usize) -> usize {
+    let mut next = i + 1;
+    while next < text.len() && !text.is_char_boundary(next) {
+        next += 1;
+    }
+    next
+}
+
 fn skip_triple_quoted(text: &str, mut i: usize, end: usize, quote: &str) -> usize {
     i += quote.len();
     while i < end {
         if text.as_bytes()[i] == b'\\' && i + 1 < end {
-            i += 2;
+            // The ESCAPED character may itself be multi-byte (`\é`), so step over the
+            // backslash and then over one whole codepoint.
+            i = next_char_boundary(text, i + 1);
         } else if text[i..].starts_with(quote) {
             return i + quote.len();
         } else {
-            i += 1;
+            i = next_char_boundary(text, i);
         }
     }
     end
@@ -1548,11 +1577,11 @@ fn skip_single_quoted(text: &str, mut i: usize, end: usize, quote: u8) -> usize 
     while i < end {
         let ch = text.as_bytes()[i];
         if ch == b'\\' && i + 1 < end {
-            i += 2;
+            i = next_char_boundary(text, i + 1);
         } else if ch == quote {
             return i + 1;
         } else {
-            i += 1;
+            i = next_char_boundary(text, i);
         }
     }
     end
@@ -1701,7 +1730,9 @@ fn tokenize_turtle(text: &str, end: usize) -> Vec<TurtleToken> {
             i = j;
             continue;
         }
-        i += 1;
+        // By CODEPOINT: this loop slices `text[i..]` on every iteration, so a byte step
+        // through a non-ASCII character panics on the next one.
+        i = next_char_boundary(text, i);
     }
     tokens
 }
@@ -1875,7 +1906,9 @@ fn english_literal_candidates(text: &str) -> Vec<LiteralCandidate> {
             i = quoted_end.max(i + 1);
             continue;
         }
-        i += 1;
+        // By CODEPOINT: the two `text[i..].starts_with(…)` probes above slice at the
+        // cursor, so a byte step through a non-ASCII character panics on the next pass.
+        i = next_char_boundary(text, i);
     }
     out
 }
@@ -2072,6 +2105,62 @@ mod tests {
             "",
             "a #, fuzzy seed contributes no live target to the shipped bundle"
         );
+    }
+
+    /// Non-ASCII authored Turtle does not crash the byte-walking scanners.
+    ///
+    /// Both scanners advance a byte cursor and then slice `text[i..]`. A byte step through
+    /// a multi-byte codepoint leaves the cursor INSIDE it, and the next slice panics with
+    /// `byte index N is not a char boundary`. Every source below carries a character that
+    /// reproduced exactly that — a `é`, an em dash, and CJK — in the positions the
+    /// scanners walk: inside a literal, between statements, and inside a comment.
+    #[test]
+    fn the_turtle_scanners_survive_non_ascii_sources() {
+        const SOURCES: [&str; 6] = [
+            // Non-ASCII OUTSIDE any literal or comment — here inside an IRI, which the
+            // cursor walks one step at a time between its quote probes. This is the source
+            // that reaches the scanners' own fall-through step.
+            "@prefix ex: <http://\u{4f8b}/> .\nex:a rdfs:label \"plain\"@x-gmeow-english .\n",
+            // Non-ASCII in a BARE token: the tokenizer's name predicates are ASCII-only, so
+            // the prefixed-name reader stops at the accent and the cursor falls through on
+            // the character itself — the tokenizer's own fall-through step.
+            "@prefix ex: <http://ex/> .\nex:na\u{ef}ve a ex:Thing .\n\
+             ex:a rdfs:label \"plain\"@x-gmeow-english .\n",
+            // Non-ASCII inside a single-quoted English literal.
+            "@prefix ex: <http://ex/> .\nex:a rdfs:label \"café — 日本語\"@x-gmeow-english .\n",
+            // Non-ASCII inside a triple-quoted literal.
+            "@prefix ex: <http://ex/> .\nex:a skos:definition \"\"\"Ünicode — ok\"\"\"@x-gmeow-english .\n",
+            // Non-ASCII OUTSIDE any literal: in a comment, which the cursor walks byte by
+            // byte before it ever reaches a quote.
+            "# a comment with é and — in it\n@prefix ex: <http://ex/> .\nex:a rdfs:label \"plain\"@x-gmeow-english .\n",
+            // A backslash-escaped non-ASCII character: the escape skip must step over one
+            // whole codepoint, not one byte.
+            "@prefix ex: <http://ex/> .\nex:a rdfs:label \"esc \\é done\"@x-gmeow-english .\n",
+        ];
+        for source in SOURCES {
+            // The candidate scanner…
+            let candidates = english_literal_candidates(source);
+            for candidate in &candidates {
+                // Every recorded span must be a valid slice of the source, or the caller
+                // (`replace_literal_in_text`) panics on the rewrite instead of the scan.
+                assert!(
+                    source.is_char_boundary(candidate.start)
+                        && source.is_char_boundary(candidate.end),
+                    "candidate span {}..{} is not on codepoint boundaries of {source:?}",
+                    candidate.start,
+                    candidate.end
+                );
+                let _ = &source[candidate.start..candidate.end];
+            }
+            // …and the tokenizer, which walks the same cursor.
+            let _ = tokenize_turtle(source, source.len());
+        }
+
+        // Non-vacuity: the scanner really does FIND the non-ASCII English literals, so a
+        // scanner that silently returned nothing could not pass this test.
+        let found = english_literal_candidates(SOURCES[2]);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].decoded, "café — 日本語");
     }
 
     #[test]

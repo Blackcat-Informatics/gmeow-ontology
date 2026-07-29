@@ -97,6 +97,11 @@ fn cited_package_names(body: &str) -> BTreeSet<String> {
             .chars()
             .take_while(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '.')
             .collect();
+        // `.` is admitted because npm names may contain it — but a name never ENDS in one,
+        // while a sentence citing a package routinely does ("…published as
+        // @blackcatinformatics/gmeow-console."). Without this trim, correct prose minted a
+        // package name no registry has and failed the gate.
+        let name = name.trim_end_matches('.');
         if !name.is_empty() {
             out.insert(format!("{SCOPE}{name}"));
         }

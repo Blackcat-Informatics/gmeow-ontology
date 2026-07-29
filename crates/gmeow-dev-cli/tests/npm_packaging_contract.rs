@@ -201,7 +201,37 @@ fn identifier_after(rest: &str) -> Option<String> {
         .chars()
         .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '$')
         .collect();
-    (!name.is_empty()).then_some(name)
+    // A JS identifier never starts with a digit — the JS twin's `[A-Za-z_$][\w$]*` says so
+    // too, and the two halves are held to agreeing by `the_two_esm_parsers_agree_…`.
+    let starts_valid = name
+        .chars()
+        .next()
+        .is_some_and(|c| c.is_alphabetic() || c == '_' || c == '$');
+    starts_valid.then_some(name)
+}
+
+/// The byte offsets of every `export` keyword that opens a statement — i.e. one preceded,
+/// back to the start of its line, by nothing but whitespace, and followed by whitespace or
+/// `{`.
+///
+/// This is the Rust spelling of the JS twin's `^\s*export` anchor (`RE_EXPORT_BLOCK` and
+/// `DECLARED` in `scripts/npm-packaging.mjs` both use it). Anchoring matters: an unanchored
+/// `find("export {")` also matches inside an expression, and the two halves would then
+/// disagree about the same bytes.
+fn statement_export_offsets(clean: &str) -> Vec<usize> {
+    clean
+        .match_indices("export")
+        .filter(|(index, _)| {
+            let head = &clean[..*index];
+            let line_start = head.rfind('\n').map_or(0, |n| n + 1);
+            head[line_start..].chars().all(char::is_whitespace)
+        })
+        .filter(|(index, _)| {
+            let tail = &clean[index + "export".len()..];
+            tail.starts_with(|c: char| c.is_whitespace() || c == '{')
+        })
+        .map(|(index, _)| index)
+        .collect()
 }
 
 /// The set of VALUE names a module (or declaration file) exports.
@@ -209,38 +239,49 @@ fn identifier_after(rest: &str) -> Option<String> {
 /// Type-only declarations (`export interface`, `export type`) are excluded: they have no
 /// runtime counterpart, so counting them would make a `.d.ts` carrying an interface
 /// unequal to the module it describes for a reason that is not a defect.
+///
+/// Whitespace-TOLERANT in exactly the places the JS twin is (`\s+` between tokens, `\s*`
+/// before a re-export brace, so `export{a}` and a declaration split across lines both
+/// parse). The two used to differ there — Rust demanded a single space and `export {`,
+/// the JS regex allowed any whitespace and `export{` — with nothing asserting they agreed;
+/// `the_two_esm_parsers_agree_over_the_shared_corpus` now does.
 fn exported_value_names(source: &str) -> BTreeSet<String> {
+    const DECLARATION_KEYWORDS: [&str; 5] = ["function", "class", "const", "let", "var"];
     let clean = strip_comments(source);
     let mut names = BTreeSet::new();
-    for line in clean.lines() {
-        let line = line.trim_start();
-        let Some(rest) = line.strip_prefix("export ") else {
+    for index in statement_export_offsets(&clean) {
+        let tail = clean[index + "export".len()..].trim_start();
+        // `export { a, b as c };` — the EXPORTED name is the alias when one is present.
+        if let Some(list) = tail.strip_prefix('{') {
+            let Some(end) = list.find('}') else { continue };
+            for clause in list[..end].split(',') {
+                let clause = clause.trim();
+                if clause.is_empty() {
+                    continue;
+                }
+                let exported = match clause.split_whitespace().collect::<Vec<_>>().as_slice() {
+                    [_, "as", alias, ..] => (*alias).to_string(),
+                    [name, ..] => (*name).to_string(),
+                    [] => continue,
+                };
+                names.insert(exported);
+            }
             continue;
-        };
-        let rest = rest.strip_prefix("declare ").unwrap_or(rest);
-        let rest = rest.strip_prefix("async ").unwrap_or(rest);
-        for keyword in ["function ", "class ", "const ", "let ", "var "] {
-            if let Some(tail) = rest.strip_prefix(keyword)
-                && let Some(name) = identifier_after(tail.trim_start())
-            {
-                names.insert(name);
+        }
+        // `export [declare] [async] <keyword> <name>`.
+        let mut tokens = tail.split_whitespace();
+        let mut token = tokens.next();
+        for optional in ["declare", "async"] {
+            if token == Some(optional) {
+                token = tokens.next();
             }
         }
-    }
-    // `export { a, b as c };` — the EXPORTED name is the alias when one is present.
-    let mut rest = clean.as_str();
-    while let Some(start) = rest.find("export {") {
-        let tail = &rest[start + "export {".len()..];
-        let Some(end) = tail.find('}') else { break };
-        for clause in tail[..end].split(',') {
-            let clause = clause.trim();
-            if clause.is_empty() {
-                continue;
-            }
-            let exported = clause.split(" as ").last().unwrap_or(clause).trim();
-            names.insert(exported.to_string());
+        if !token.is_some_and(|t| DECLARATION_KEYWORDS.contains(&t)) {
+            continue;
         }
-        rest = &tail[end..];
+        if let Some(name) = tokens.next().and_then(identifier_after) {
+            names.insert(name);
+        }
     }
     names
 }
@@ -266,10 +307,14 @@ fn engine_imports(source: &str) -> BTreeMap<String, String> {
         if clause.is_empty() {
             continue;
         }
-        let mut parts = clause.split(" as ");
-        let src = parts.next().expect("split yields at least one part").trim();
-        let local = parts.next().unwrap_or(src).trim();
-        map.insert(src.to_string(), local.to_string());
+        // Tokenized rather than split on the literal `" as "`, so a clause wrapped across
+        // lines reads the same here as it does under the JS twin's `/\s+as\s+/`.
+        let (src, local) = match clause.split_whitespace().collect::<Vec<_>>().as_slice() {
+            [source, "as", alias, ..] => ((*source).to_string(), (*alias).to_string()),
+            [name, ..] => ((*name).to_string(), (*name).to_string()),
+            [] => continue,
+        };
+        map.insert(src, local);
     }
     map
 }
@@ -905,4 +950,179 @@ fn runtime_cdn_loading_is_documented_as_forbidden() {
             "{file} must carry the `No runtime CDN loading` statement"
         );
     }
+}
+
+// ── The two halves of the ESM surface parser agree ─────────────────────────────────
+
+/// The shared corpus both ESM-surface parsers are run over.
+///
+/// Every entry is a form the two halves used to treat DIFFERENTLY, plus the ordinary forms
+/// that must keep working:
+///
+/// * `export{a}` with no space — the JS `RE_EXPORT_BLOCK` allowed it (`export\s*\{`), the
+///   Rust half demanded the literal `"export {"`;
+/// * a declaration whose tokens are split across lines — the JS `\s+` spans newlines, the
+///   Rust half demanded a single space;
+/// * an `export` that is NOT at a statement position — the JS regexes are line-anchored,
+///   the Rust half searched the whole text unanchored;
+/// * an engine import that is not the FIRST import in the file — the JS `engineImports`
+///   regex used to span the preceding statements and capture their braces;
+/// * a clause aliased across a line break, and comment forms.
+const ESM_CORPUS: &[(&str, &str)] = &[
+    (
+        "plain declarations",
+        "export function ready(a) {}\nexport const K = 1;\nexport class C {}\n",
+    ),
+    (
+        "re-export block, spaced and unspaced",
+        "export { a, b as c };\nexport{d,e as f};\n",
+    ),
+    (
+        "declaration file forms",
+        "export type A = string;\nexport interface B { x: number }\n\
+         export declare function g(): void;\nexport declare const H: number;\n\
+         export default function __wbg_init(): Promise<void>;\n",
+    ),
+    (
+        "async and var",
+        "export async function boot() {}\nexport var legacy = 1;\n",
+    ),
+    (
+        "tokens split across lines",
+        "export\n  async\n  function\n  spread() {}\n",
+    ),
+    (
+        "an export keyword that is not at a statement position",
+        "const o = { export: 1 };\nfoo(); export { real };\n",
+    ),
+    (
+        "engine import preceded by unrelated imports",
+        "import { unrelatedA, unrelatedB } from \"./other.mjs\";\n\
+         import { third } from \"../shared/util.mjs\";\n\
+         import wasmInit, { mcp, ready as loaded } from \"./pkg/gmeow_mcp_wasm.js\";\n\
+         export { mcp, loaded };\n",
+    ),
+    (
+        "engine import clause wrapped across lines",
+        "import init, {\n  version,\n  ready\n    as\n    loaded,\n} from \"./pkg/x.js\";\n",
+    ),
+    ("no engine import at all", "export const only = 1;\n"),
+    (
+        "comments never contribute",
+        "// export function ghost() {}\n/* export { phantom }; */\nexport function real2() {}\n",
+    ),
+];
+
+/// The JS half's answers for [`ESM_CORPUS`], obtained by RUNNING
+/// `scripts/npm-packaging.mjs` — never by re-implementing or scraping it.
+///
+/// A missing/failing `node` is a HARD FAIL: this gate's whole content is that the two
+/// implementations agree, and an implementation that could not be run has not agreed with
+/// anything.
+fn js_parser_answers() -> serde_json::Value {
+    let module = repo_root().join("scripts/npm-packaging.mjs");
+    let corpus = serde_json::to_string(&ESM_CORPUS.iter().map(|(_, src)| *src).collect::<Vec<_>>())
+        .expect("serialize the corpus");
+    let script = format!(
+        r#"import {{ exportedValueNames, engineImports }} from {module};
+const corpus = {corpus};
+const out = corpus.map((source) => ({{
+  exports: [...exportedValueNames(source)].sort(),
+  imports: engineImports(source).sort((a, b) => (a.source < b.source ? -1 : 1)),
+}}));
+process.stdout.write(JSON.stringify(out));
+"#,
+        module = serde_json::to_string(&format!("file://{}", module.display()))
+            .expect("quote the module URL"),
+    );
+    let output = std::process::Command::new("node")
+        .args(["--input-type=module", "--eval", &script])
+        .output()
+        .unwrap_or_else(|e| {
+            panic!(
+                "cannot run `node` to exercise scripts/npm-packaging.mjs ({e}). This gate \
+                 proves the Rust and JS halves of the ESM surface parser agree; without a \
+                 node runtime it proves nothing, so it fails rather than skipping."
+            )
+        });
+    assert!(
+        output.status.success(),
+        "scripts/npm-packaging.mjs failed under node: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
+        panic!(
+            "the JS half emitted unparseable JSON ({e}): {}",
+            String::from_utf8_lossy(&output.stdout)
+        )
+    })
+}
+
+/// The Rust and JS ESM-surface parsers are two implementations of one contract, and
+/// nothing used to hold them to it: they carried different tolerances (`export{` vs
+/// `"export "`, `\s+` vs a single space, an anchored vs unanchored `export` scan), so the
+/// always-on Rust gate and the wasm-parity Node lane could reach different verdicts about
+/// the same shipped bytes. This runs BOTH over one corpus and asserts equality.
+#[test]
+fn the_two_esm_parsers_agree_over_the_shared_corpus() {
+    let js = js_parser_answers();
+    let js_rows = js.as_array().expect("the JS half emits an array");
+    assert_eq!(
+        js_rows.len(),
+        ESM_CORPUS.len(),
+        "the JS half answered {} of {} corpus cases",
+        js_rows.len(),
+        ESM_CORPUS.len()
+    );
+
+    for ((label, source), js_row) in ESM_CORPUS.iter().zip(js_rows) {
+        let js_exports: Vec<String> = js_row["exports"]
+            .as_array()
+            .expect("exports is an array")
+            .iter()
+            .map(|v| v.as_str().expect("an export name is a string").to_string())
+            .collect();
+        let rust_exports: Vec<String> = exported_value_names(source).into_iter().collect();
+        assert_eq!(
+            rust_exports, js_exports,
+            "{label}: the Rust and JS export-name parsers disagree — one of \
+             crates/gmeow-dev-cli/tests/npm_packaging_contract.rs and \
+             scripts/npm-packaging.mjs is wrong about the shipped bytes"
+        );
+
+        let js_imports: Vec<(String, String)> = js_row["imports"]
+            .as_array()
+            .expect("imports is an array")
+            .iter()
+            .map(|v| {
+                (
+                    v["source"]
+                        .as_str()
+                        .expect("source is a string")
+                        .to_string(),
+                    v["local"].as_str().expect("local is a string").to_string(),
+                )
+            })
+            .collect();
+        let rust_imports: Vec<(String, String)> = engine_imports(source).into_iter().collect();
+        assert_eq!(
+            rust_imports, js_imports,
+            "{label}: the Rust and JS engine-import parsers disagree"
+        );
+    }
+
+    // Non-vacuity: the corpus really does exercise both parsers, so an agreement over two
+    // empty answer sets can never stand in for agreement.
+    assert!(
+        ESM_CORPUS
+            .iter()
+            .any(|(_, source)| !exported_value_names(source).is_empty()),
+        "the corpus must contain at least one exporting module"
+    );
+    assert!(
+        ESM_CORPUS
+            .iter()
+            .any(|(_, source)| !engine_imports(source).is_empty()),
+        "the corpus must contain at least one engine import"
+    );
 }

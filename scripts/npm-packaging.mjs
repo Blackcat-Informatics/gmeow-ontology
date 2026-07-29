@@ -151,11 +151,24 @@ export function exportedValueNames(source) {
  */
 export function engineImports(source) {
   const clean = stripComments(source);
-  const match = clean.match(/import\s+([\s\S]*?)\s+from\s+"\.\/pkg\/[^"]+\.js"/);
-  if (match === null) return [];
-  const braces = match[1].match(/\{([\s\S]*)\}/);
-  if (braces === null) return [];
-  return braces[1]
+  // Anchored on the `./pkg/…` STATEMENT and walked backwards, mirroring `engine_imports`
+  // in `crates/gmeow-dev-cli/tests/npm_packaging_contract.rs` exactly.
+  //
+  // The regex this replaces started at the FIRST `import` in the file and let a lazy
+  // `[\s\S]*?` run all the way to the pkg `from`, then took a GREEDY `\{([\s\S]*)\}` over
+  // that span — so any import statement preceding the engine one contributed its braces
+  // to the clause, and every downstream export-set EQUALITY assertion could fail for a
+  // reason that has nothing to do with the engine. It passed only because the `./pkg/*.js`
+  // import happens to be first in every entry today.
+  const from = clean.indexOf('from "./pkg/');
+  if (from === -1) return [];
+  const head = clean.slice(0, from);
+  const open = head.lastIndexOf("{");
+  if (open === -1) return [];
+  const close = head.indexOf("}", open);
+  if (close === -1) return [];
+  return head
+    .slice(open + 1, close)
     .split(",")
     .map((clause) => clause.trim())
     .filter((clause) => clause.length > 0)

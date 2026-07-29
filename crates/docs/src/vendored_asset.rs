@@ -89,7 +89,7 @@ fn module_exports(text: &str) -> BTreeSet<String> {
     for line in text.lines() {
         if in_block {
             if let Some(head) = line.split('}').next() {
-                collect_specifiers(head, false, &mut names);
+                collect_specifiers(head, &mut names);
             }
             if line.contains('}') {
                 in_block = false;
@@ -102,7 +102,7 @@ fn module_exports(text: &str) -> BTreeSet<String> {
         if let Some(spec) = rest.strip_prefix('{') {
             // `export { … };` — possibly spanning several lines.
             let head = spec.split('}').next().unwrap_or(spec);
-            collect_specifiers(head, false, &mut names);
+            collect_specifiers(head, &mut names);
             in_block = !spec.contains('}');
             continue;
         }
@@ -148,48 +148,143 @@ fn dts_value_exports(text: &str) -> BTreeSet<String> {
     names
 }
 
-/// The names a module IMPORTS from `from`, by their SOURCE name (`a` in `a as b`).
-///
-/// The source name is what the glue must still provide; the local alias is the wrapper's
-/// private business.
-fn module_imports_from(text: &str, from: &str) -> BTreeSet<String> {
-    let mut names = BTreeSet::new();
-    let needle = format!("\"{from}\"");
-    let mut collecting = false;
-    let mut buffer = String::new();
-    for line in text.lines() {
-        if !collecting && line.starts_with("import ") && line.contains('{') {
-            collecting = true;
-            buffer.clear();
-        }
-        if !collecting {
-            continue;
-        }
-        buffer.push_str(line);
-        buffer.push('\n');
-        if !line.contains("from ") {
-            continue;
-        }
-        collecting = false;
-        if !buffer.contains(&needle) {
-            continue;
-        }
-        let Some(open) = buffer.find('{') else {
-            continue;
-        };
-        let Some(close) = buffer.find('}') else {
-            continue;
-        };
-        if open < close {
-            collect_specifiers(&buffer[open + 1..close], true, &mut names);
-        }
-    }
-    names
+/// One named specifier of an import clause: the name the module being imported FROM must
+/// still export, and the name the importing module binds it to locally.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct ImportBinding {
+    /// `a` in `import { a as b }` — what the glue must still provide.
+    source: String,
+    /// `b` in `import { a as b }` — the name the wrapper's own body and re-exports use.
+    local: String,
 }
 
-/// Push each `a` / `a as b` specifier in `list` into `names`, keeping the SOURCE name
-/// when `source` and the EXPORTED name otherwise.
-fn collect_specifiers(list: &str, source: bool, names: &mut BTreeSet<String>) {
+/// Drop line and block comments so a commented-out import is never counted.
+///
+/// Only a line whose TRIMMED start is `//` is dropped: `//` also occurs inside every URL
+/// literal in these files, and stripping from the first bare `//` would truncate them.
+fn strip_js_comments(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find("/*") {
+        out.push_str(&rest[..start]);
+        match rest[start + 2..].find("*/") {
+            Some(end) => rest = &rest[start + 2 + end + 2..],
+            None => {
+                rest = "";
+                break;
+            }
+        }
+    }
+    out.push_str(rest);
+    out.lines()
+        .map(|line| match line.trim_start().starts_with("//") {
+            true => "",
+            false => line,
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Whether the identifier ending at `end` in `text` is a standalone word rather than the
+/// tail of a longer one (so `notfrom"x"` never reads as a `from` clause).
+fn is_word_start(text: &str, end: usize) -> bool {
+    text[..end]
+        .chars()
+        .next_back()
+        .is_none_or(|c| !(c.is_alphanumeric() || c == '_' || c == '$'))
+}
+
+/// Every named specifier a module imports from the module specifier `from`.
+///
+/// Anchored on the QUOTED SPECIFIER and walked backwards (`rfind('}')` then `rfind('{')`),
+/// exactly as the npm-packaging contract's twin does, rather than by accumulating lines
+/// from an `import` keyword. Two forms the line accumulator missed:
+///
+/// * a clause whose `{` opens on a LATER line than the `import` keyword — the accumulator
+///   armed only on `import … {` on one line, so such a statement was skipped entirely;
+/// * a SINGLE-quoted specifier — a vendored third-party wrapper is formatted by its own
+///   toolchain, and `'./glue.js'` is exactly as valid as `"./glue.js"`.
+///
+/// Both would have silently emptied the import set, and an empty set makes the
+/// "wrapper exports something it neither imports nor declares" check fire for a reason
+/// that has nothing to do with the vendored bytes.
+fn module_import_bindings(text: &str, from: &str) -> BTreeSet<ImportBinding> {
+    let clean = strip_js_comments(text);
+    let mut out = BTreeSet::new();
+    for quote in ['"', '\''] {
+        let needle = format!("{quote}{from}{quote}");
+        for (idx, _) in clean.match_indices(needle.as_str()) {
+            let head = &clean[..idx];
+            // The specifier must be the target of a `from` clause, not a string that
+            // merely spells the same path.
+            let before = head.trim_end();
+            if !before.ends_with("from") || !is_word_start(before, before.len() - "from".len()) {
+                continue;
+            }
+            let Some(close) = before.rfind('}') else {
+                continue;
+            };
+            let Some(open) = before[..close].rfind('{') else {
+                continue;
+            };
+            // …and the clause must belong to an `import` statement: everything between the
+            // keyword and the brace is at most a default binding and a comma.
+            let Some(keyword) = before[..open].rfind("import") else {
+                continue;
+            };
+            if before[keyword + "import".len()..open].contains(';') {
+                continue;
+            }
+            for raw in before[open + 1..close].split(',') {
+                let spec = raw.trim();
+                if spec.is_empty() {
+                    continue;
+                }
+                let mut parts = spec.split_whitespace();
+                let first = parts.next().unwrap_or_default();
+                let renamed = parts.next() == Some("as");
+                let local = match renamed {
+                    true => parts.next().unwrap_or(first),
+                    false => first,
+                };
+                let (Some(source), Some(local)) = (identifier(first), identifier(local)) else {
+                    continue;
+                };
+                out.insert(ImportBinding { source, local });
+            }
+        }
+    }
+    out
+}
+
+/// The names a module IMPORTS from `from`, by their SOURCE name (`a` in `a as b`).
+///
+/// The source name is what the glue must still provide.
+fn module_imports_from(text: &str, from: &str) -> BTreeSet<String> {
+    module_import_bindings(text, from)
+        .into_iter()
+        .map(|binding| binding.source)
+        .collect()
+}
+
+/// The names a module BINDS LOCALLY from `from` (`b` in `a as b`).
+///
+/// An aliased import is still a backing for a re-export: `import { a as b }` followed by
+/// `export { b }` is exported, imported and correct. Comparing re-exports against the
+/// SOURCE names alone reported `b` as unbacked.
+fn module_import_locals(text: &str, from: &str) -> BTreeSet<String> {
+    module_import_bindings(text, from)
+        .into_iter()
+        .map(|binding| binding.local)
+        .collect()
+}
+
+/// Push the EXPORTED name of each `a` / `a as b` specifier in an `export { … }` list into
+/// `names` — `b` when the clause renames, `a` otherwise.
+///
+/// (The import side reads BOTH halves of a specifier and so parses its own clauses in
+/// [`module_import_bindings`]; this one only ever needs the exported name.)
+fn collect_specifiers(list: &str, names: &mut BTreeSet<String>) {
     for raw in list.split(',') {
         let spec = raw.trim();
         if spec.is_empty() {
@@ -198,12 +293,11 @@ fn collect_specifiers(list: &str, source: bool, names: &mut BTreeSet<String>) {
         let mut parts = spec.split_whitespace();
         let first = parts.next().unwrap_or_default();
         let renamed = parts.next() == Some("as");
-        let name = if source || !renamed {
-            first.to_owned()
-        } else {
-            parts.next().unwrap_or(first).to_owned()
+        let name = match renamed {
+            true => parts.next().unwrap_or(first),
+            false => first,
         };
-        if let Some(name) = identifier(&name) {
+        if let Some(name) = identifier(name) {
             names.insert(name);
         }
     }
@@ -445,21 +539,32 @@ impl VendoredWasmAsset {
         );
 
         let wrapper_exports = module_exports(&wrapper);
-        let local: BTreeSet<String> = wrapper
-            .lines()
-            .filter_map(|line| {
-                // `export` is optional here: a name the wrapper declares is locally backed
-                // whether or not the declaration itself carries the keyword.
-                let head = line.trim_start();
-                let head = head.strip_prefix("export ").unwrap_or(head);
-                for keyword in ["async function ", "function ", "class ", "const ", "let "] {
-                    if let Some(tail) = head.strip_prefix(keyword) {
-                        return identifier(tail);
-                    }
+        // Every name the wrapper's own body can legally re-export: a locally-declared
+        // binding, or the LOCAL half of an import specifier. The local half matters because
+        // `import { a as b } … export { b }` is exported, imported and correct — comparing
+        // re-exports against the SOURCE names alone reported `b` as unbacked.
+        let mut local = module_import_locals(&wrapper, &format!("./{}", surface.glue_js));
+        local.extend(wrapper.lines().filter_map(|line| {
+            // `export` is optional here: a name the wrapper declares is locally backed
+            // whether or not the declaration itself carries the keyword.
+            let head = line.trim_start();
+            let head = head.strip_prefix("export ").unwrap_or(head);
+            // `var ` rides the list because `module_exports` recognizes `export var` — a
+            // surface the backing scan could otherwise never account for.
+            for keyword in [
+                "async function ",
+                "function ",
+                "class ",
+                "const ",
+                "let ",
+                "var ",
+            ] {
+                if let Some(tail) = head.strip_prefix(keyword) {
+                    return identifier(tail);
                 }
-                None
-            })
-            .collect();
+            }
+            None
+        }));
         let unbacked: Vec<&String> = wrapper_exports
             .iter()
             .filter(|name| !imported.contains(*name) && !local.contains(*name))
@@ -800,6 +905,64 @@ mod tests {
         assert!(
             module_imports_from(text, "./pkg/other.js").is_empty(),
             "an import from a different module contributes nothing"
+        );
+        assert_eq!(
+            module_import_locals(text, "./pkg/x.js")
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            ["mcp", "snapshotLoaded"],
+            "the LOCAL half of `ready as snapshotLoaded` is what the wrapper's body and \
+             its re-exports name"
+        );
+    }
+
+    /// The two import spellings the line-accumulating scanner silently returned NOTHING
+    /// for — an empty import set makes the "exports something it neither imports nor
+    /// declares" check fire for a reason that has nothing to do with the vendored bytes.
+    #[test]
+    fn module_imports_from_reads_a_late_brace_and_a_single_quoted_specifier() {
+        let late_brace = "import\n  {\n  mcp,\n  ready,\n}\n  from \"./pkg/x.js\";\n";
+        assert_eq!(
+            module_imports_from(late_brace, "./pkg/x.js")
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            ["mcp", "ready"],
+            "a clause whose `{{` opens on a later line than the `import` keyword is still \
+             an import"
+        );
+
+        let single_quoted = "import { mcp, ready } from './pkg/x.js';\n";
+        assert_eq!(
+            module_imports_from(single_quoted, "./pkg/x.js")
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            ["mcp", "ready"],
+            "a single-quoted module specifier is exactly as valid as a double-quoted one"
+        );
+    }
+
+    /// …and the widened scanner does not start counting things that are not imports.
+    #[test]
+    fn module_imports_from_ignores_comments_and_bare_strings() {
+        let commented = "// import { ghost } from \"./pkg/x.js\";\n\
+                         /* import { phantom } from \"./pkg/x.js\"; */\n\
+                         import { mcp } from \"./pkg/x.js\";\n";
+        assert_eq!(
+            module_imports_from(commented, "./pkg/x.js")
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            ["mcp"],
+            "a commented-out import contributes nothing"
+        );
+
+        let bare_string = "const spec = { a } = notfrom\"./pkg/x.js\";\n";
+        assert!(
+            module_imports_from(bare_string, "./pkg/x.js").is_empty(),
+            "a string that merely spells the module path is not a `from` clause"
         );
     }
 

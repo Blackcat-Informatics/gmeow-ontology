@@ -67,13 +67,23 @@ fn console_assemble_refuses_the_regen_owned_bases() {
 /// the guard compares normalized path components, not string prefixes.
 #[test]
 fn console_assemble_does_not_refuse_a_sibling_name() {
-    // The refusal is decided before any bundle read, so a non-refused path gets past the
-    // guard; whether it then succeeds depends on the bundle, which this test does not
-    // require. Asserting only that the REFUSAL message is absent keeps it hermetic.
-    dev_cmd()
-        .args(["console-assemble", "--out", "dist/gmeow-docs-scratch"])
+    // Anchored at a TEMPORARY root, not the repository. The guard resolves `--out` against
+    // `GMEOW_ROOT`, so `dist/gmeow-docs-scratch` under a temp root is a genuine sibling of
+    // that root's `dist/gmeow-docs` — the exact discrimination under test — while a
+    // non-refused path that gets PAST the guard can no longer drop the full console tree
+    // (engine wasm and all, ~13 MB) into the working checkout with nothing to clean it up.
+    // The temp root carries no bundle, so the run fails on the bundle read that follows;
+    // asserting only that the REFUSAL message is absent is exactly the claim.
+    let root = tempfile::tempdir().expect("tempdir");
+    let mut cmd = Command::cargo_bin("gmeow-dev").expect("gmeow-dev binary");
+    cmd.env("GMEOW_ROOT", root.path());
+    cmd.args(["console-assemble", "--out", "dist/gmeow-docs-scratch"])
         .assert()
         .stderr(predicate::str::contains("refusing to write the console into").not());
+    assert!(
+        !root.path().join("dist/gmeow-docs-scratch").exists(),
+        "a run that cannot read a bundle must write no console tree at all"
+    );
 }
 
 /// Read a directory tree into `{relative path: bytes}`.

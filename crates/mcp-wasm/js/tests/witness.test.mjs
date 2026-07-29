@@ -50,7 +50,22 @@ test("version() equals the published package version", () => {
 
 test("mcp() refuses frames before a snapshot is loaded", () => {
   assert.equal(loaded(), false, "no snapshot is loaded before init");
-  assert.throws(() => mcp(REQUEST), "a frame sent before init must be refused");
+  // A bare `assert.throws(fn)` accepts ANY error — a typo in `REQUEST`, a broken import,
+  // a panic inside the engine — and would pass while proving nothing about the refusal.
+  // Pin the exact contract: the refusal names the missing snapshot AND the call that
+  // supplies it.
+  assert.throws(
+    () => mcp(REQUEST),
+    (error) => {
+      assert.match(
+        String(error.message ?? error),
+        /no gmeow\.gts snapshot loaded — call init\(snapshotBytes\) before mcp\(frame\)/,
+        "the pre-init refusal must name the missing snapshot and the init call that loads it",
+      );
+      return true;
+    },
+    "a frame sent before init must be refused",
+  );
 });
 
 test("wasm MCP response frame is byte-identical to the native witness attestation", async () => {

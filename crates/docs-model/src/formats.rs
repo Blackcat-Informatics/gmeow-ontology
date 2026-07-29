@@ -30,11 +30,22 @@
 //! ```
 //!
 //! mdbook and pdf are independent siblings projected directly off the shared
-//! body-set — comparable to neither the site nor each other — so no chain relates
-//! them (mdbook packs live interactivity the pdf never carries; they are genuinely
-//! incomparable). [`format_capabilities`] realizes the per-node partition and the
-//! DAG-edge monotonicity test in this module gates it. Nothing a format drops is
-//! ever regained by a strictly-poorer format downstream of it.
+//! body-set — NEITHER is rendered from the other — so this PROVENANCE order carries no
+//! edge between them, nor from the site to either. That is **provenance**-incomparability
+//! and nothing more: on the CAPABILITY lattice ([`crate::surface_lattice`]) the two are
+//! perfectly comparable, with
+//!
+//! ```text
+//! dropped(site) ⊆ dropped(mdbook) ⊆ dropped(pdf) = dropped(snippets)
+//! ```
+//!
+//! because mdbook packs the live engines the pdf cannot. The two orders are distinct and
+//! neither is a function of the other — see the [`PROJECTION_DAG_EDGES`] doc comment,
+//! which owns that distinction, and
+//! `dropped_sets_form_the_capability_refinement_chain`, which proves the chain.
+//! [`format_capabilities`] realizes the per-node partition; the DAG-edge monotonicity test
+//! in this module gates the provenance half and the capability-chain test gates the other.
+//! Nothing a format drops is ever regained by a strictly-poorer format downstream of it.
 //!
 //! Pure / std-only: no I/O and no graph dependency.
 

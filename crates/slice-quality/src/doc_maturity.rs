@@ -431,7 +431,7 @@ mod tests {
     }
 
     /// Scaffold a temp repo root carrying exactly one real slice (copied from the
-    /// committed `gmeow-docs` single-slice fixture). Returns the root and the slice
+    /// committed `gmeow-docs-model` single-slice fixture). Returns the root and the slice
     /// directory. No `generated/` tree is created.
     fn scaffold_single_slice_root(tag: u32) -> (std::path::PathBuf, std::path::PathBuf) {
         let root = std::env::temp_dir().join(format!(
@@ -441,10 +441,13 @@ mod tests {
         std::fs::remove_dir_all(&root).ok();
         let slice_dir = root.join("slices").join("fixture").join("single");
         std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
-        // The committed fixture lives in the sibling gmeow-docs crate.
+        // The committed fixture lives in the sibling gmeow-docs-model crate — it moved
+        // there with the model when `gmeow-docs` was split, and this reader was left
+        // pointing at the old `crates/docs/tests/fixtures/` path, so the copy failed and
+        // the determinism check could not run at all.
         let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")
-            .join("docs")
+            .join("docs-model")
             .join("tests")
             .join("fixtures")
             .join("single-slice");

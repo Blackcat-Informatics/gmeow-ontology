@@ -134,6 +134,50 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
         "AC3: the upload-pages-artifact step must upload `path: ontology-docs` (the \
          source-rendered site tree written by `sync_docs`), never a different or generated/ path"
     );
+
+    // …and the interactive console RIDES that upload. The chain is three positive reads of
+    // production sources, each of which is where the fact actually lives:
+    //   1. pages.yml uploads `ontology-docs`                                (just above);
+    //   2. `sync_docs` reconciles `ontology-docs` from the SITE tree        (dev_project.rs);
+    //   3. the site render folds the console producer into that tree        (render.rs).
+    // Without (3) the console would be a `dist/` distribution only, and the published site
+    // would 404 on the `console/index.html` its own navigation links to.
+    let dev_project = dev_project_source();
+    assert!(
+        dev_project.contains("(\"ontology-docs\", &site)"),
+        "AC3: `sync_docs` must reconcile the Pages upload root `ontology-docs` FROM the \
+         rendered site tree — that is what puts the console inside the published site"
+    );
+    assert!(
+        read("crates/docs/src/render.rs")
+            .contains("files.extend(crate::console::console_files(exec))"),
+        "AC3 (Task 12.6): the site render must fold `crate::console::console_files(exec)` \
+         into its own tree, or the console does not ride the `ontology-docs` Pages upload \
+         at all. If that fold moved, retarget this reader — do not delete the assertion."
+    );
+    // Non-vacuity, at run time: the console producer really does emit a `console/` tree.
+    // A structural read of a fold that folds in NOTHING would pass while shipping no
+    // console, which is precisely the failure this gate exists to catch.
+    let console = gmeow_docs::console_files(&interactive_exec());
+    assert!(
+        console.contains_key("console/index.html"),
+        "AC3 (Task 12.6): `console_files` must emit `console/index.html`; got {:?}",
+        console.keys().collect::<Vec<_>>()
+    );
+}
+
+/// An `exec` that makes the console producer interactive.
+///
+/// The producer only checks non-emptiness of the bundle field and content-addresses the
+/// bytes, so fixed sentinels are sufficient — mirroring `interactive_exec()` in
+/// `crates/docs/tests/console_producer.rs`, and keeping this gate independent of a
+/// materialized `generated/dist/gmeow.gts`.
+fn interactive_exec() -> gmeow_docs::ExecutableDocsData {
+    gmeow_docs::ExecutableDocsData {
+        full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
+        conjectures_ttl: b"@prefix ex: <http://example/> . ex:c a ex:Conjecture .\n".to_vec(),
+        ..Default::default()
+    }
 }
 
 #[test]
@@ -161,6 +205,15 @@ fn ac3_makefile_release_publish_attaches_docs_tar_via_docs_package() {
         recipe.contains("dist/gmeow-docs.tar"),
         "AC3: `release-publish` must attach `dist/gmeow-docs.tar` as a \
          content-addressed release asset; recipe was: {recipe:?}"
+    );
+    // The console is one of the nine distributions that archive must carry — proved at run
+    // time, through the real binary, by
+    // `docs_package_archives_the_console_alongside_every_other_distribution` below.
+    assert!(
+        gmeow_pipeline::stages::distribution_catalog::distribution_row("console")
+            .is_some_and(|row| row.rel_path == "dist/gmeow-docs/console"),
+        "AC3 (Task 12.6): the console must be a declared distribution under \
+         `dist/gmeow-docs/`, or it cannot ride `dist/gmeow-docs.tar` at all"
     );
 }
 
@@ -328,32 +381,83 @@ fn ac2_ac6_docs_destinations_stay_under_dist_or_ontology_docs_never_generated() 
             row.rel_path
         );
     }
-    // The two destination bases that are NOT table rows — the Pages upload root and the
-    // manifest subdir — are read POSITIVELY, by their exact `destinations` push/seed form.
-    // A blanket "no `generated/` anywhere in this file" scan would be a false gate:
+    // The destination bases that are NOT table rows — the Pages upload root and the
+    // manifest subdir — are PARSED OUT of `sync_docs`'s own `destinations` seed/push forms
+    // and then checked. The check used to run against the test's own search literal
+    // (`assert!(!base.contains("generated/"))`), which is a tautology over a constant this
+    // file wrote: it could only ever pass, and it would have gone on passing while
+    // `sync_docs` reconciled straight into `generated/`. Reading the literal off the
+    // production source is what makes the boundary claim falsifiable.
+    //
+    // A blanket "no `generated/` anywhere in this file" scan would be the opposite error:
     // `sync_docs` legitimately READS `generated/…` inputs (the axiom set and the
     // bibliography feeding the print render), and conflating an input read with a
     // reconciliation base is exactly the kind of proxy that reds for the wrong reason.
     let source = dev_project_source();
+    let literal_bases = non_table_destination_bases(&source);
     for (base, role) in [
-        ("(\"ontology-docs\", &site)", "the Pages upload root"),
+        ("ontology-docs", "the Pages upload root"),
         (
-            "(\"dist/gmeow-docs/manifest\", &manifest)",
+            "dist/gmeow-docs/manifest",
             "the DCAT release-manifest subdir",
         ),
     ] {
         assert!(
-            source.contains(base),
-            "AC2/AC6 (boundary): sync_docs must reconcile {role} via the exact destination \
-             entry `{base}`. If that base was renamed, retarget this reader; every \
-             reconciliation base must stay outside `generated/`, which is the pipeline's own \
-             output tree."
-        );
-        assert!(
-            !base.contains("generated/"),
-            "AC2/AC6 (boundary): {role} must never be written into `generated/`"
+            literal_bases.contains(base),
+            "AC2/AC6 (boundary): sync_docs must reconcile {role} as the destination base \
+             `{base}`; parsed bases were {literal_bases:?}. If that base was renamed, \
+             retarget this reader — do not delete the assertion."
         );
     }
+    // The boundary itself, over every literal base the production source actually declares
+    // (including any added since this gate was written).
+    for base in &literal_bases {
+        assert!(
+            !base.contains("generated/"),
+            "AC2/AC6 (boundary): sync_docs reconciles a destination base {base:?} inside \
+             `generated/`, which is the pipeline's own output tree and has exactly one \
+             writer; every docs destination must live under `dist/` or `ontology-docs`"
+        );
+        assert!(
+            base == "ontology-docs" || base.starts_with("dist/"),
+            "AC2/AC6 (boundary): sync_docs reconciles a destination base {base:?} outside \
+             both `dist/` and the `ontology-docs` Pages root"
+        );
+    }
+}
+
+/// Every reconciliation base `sync_docs` names as a STRING LITERAL, parsed out of
+/// `dev_project.rs`.
+///
+/// The table rows are covered by the `DISTRIBUTIONS` walk above (they are `row.rel_path`,
+/// not literals, and this parser skips them by construction: it only reads a tuple whose
+/// first element opens with `"`). What is left is exactly the bases that have no catalog
+/// row and so would otherwise be checked by nothing at all.
+fn non_table_destination_bases(source: &str) -> BTreeSet<String> {
+    const ANCHORS: [&str; 2] = [
+        "destinations: Vec<(&str, &BTreeMap<String, Vec<u8>>)> = vec![(",
+        "destinations.push((",
+    ];
+    let mut out = BTreeSet::new();
+    for anchor in ANCHORS {
+        for (index, _) in source.match_indices(anchor) {
+            let tail = &source[index + anchor.len()..];
+            let Some(quoted) = tail.strip_prefix('"') else {
+                continue; // a `row.rel_path` push — a table row, covered above.
+            };
+            let Some(end) = quoted.find('"') else {
+                continue;
+            };
+            out.insert(quoted[..end].to_string());
+        }
+    }
+    assert!(
+        !out.is_empty(),
+        "AC2/AC6 (boundary): the `destinations` reader parsed NO literal base out of \
+         dev_project.rs — the reader is broken, and a broken reader would make every \
+         boundary assertion below pass vacuously. Retarget it at the new seed/push form."
+    );
+    out
 }
 
 #[test]
@@ -768,6 +872,67 @@ fn docs_package_cmd(root: &Path) -> assert_cmd::Command {
     cmd.env("GMEOW_ROOT", root);
     cmd.args(["docs-package", "--out", "dist/gmeow-docs.tar"]);
     cmd
+}
+
+/// Task 12.6 — the console RIDES `dist/gmeow-docs.tar`.
+///
+/// Driven through the real `gmeow-dev docs-package` binary over a materialized
+/// `dist/gmeow-docs/` tree, and read back out of the produced archive: the tar's member
+/// list must name the console's files under `console/`. `release-publish` attaching the
+/// tar (asserted structurally above) means nothing about the console unless the console is
+/// actually inside it — and `package_docs_dir` walking the whole directory is the property
+/// that makes it so, which only a real packaging run can demonstrate.
+#[test]
+fn docs_package_archives_the_console_alongside_every_other_distribution() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let root = tmp.path();
+    let docs_dir = root.join("dist").join("gmeow-docs");
+
+    // One subdirectory per declared distribution, at the catalog's own `rel_path` tails —
+    // the shape `sync_docs` reconciles. Naming them off the table rather than by hand is
+    // what makes "the console is in there" a claim about the catalog, not about a fixture.
+    for row in gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS {
+        let slug = row
+            .rel_path
+            .strip_prefix("dist/gmeow-docs/")
+            .unwrap_or_else(|| panic!("{} ships outside dist/gmeow-docs/", row.slug));
+        let dir = docs_dir.join(slug);
+        std::fs::create_dir_all(&dir).expect("mkdir distribution");
+        std::fs::write(dir.join("index.html"), format!("<html>{slug}</html>"))
+            .expect("write distribution file");
+    }
+    let manifest_dir = docs_dir.join("manifest");
+    std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
+    std::fs::write(
+        manifest_dir.join("docs-manifest.ttl"),
+        b"<urn:x> <urn:y> <urn:z> .\n",
+    )
+    .expect("write docs-manifest.ttl");
+
+    docs_package_cmd(root).assert().success();
+    let archive = std::fs::read(root.join("dist").join("gmeow-docs.tar")).expect("read the tar");
+    let members: BTreeSet<String> = purrdf::ustar::read_archive(&archive)
+        .expect("read the packaged tar")
+        .into_iter()
+        .map(|(name, _)| name)
+        .collect();
+
+    assert!(
+        members.contains("console/index.html"),
+        "Task 12.6: `dist/gmeow-docs.tar` must carry the interactive console under \
+         `console/` — the release asset ships every distribution or it ships a lie; \
+         members were {members:?}"
+    );
+    // …and not only the console: every declared distribution's tail is in the archive, so
+    // this cannot pass by the console being special-cased into a tar that lost the rest.
+    for row in gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS {
+        let slug = row.rel_path.trim_start_matches("dist/gmeow-docs/");
+        assert!(
+            members.contains(&format!("{slug}/index.html")),
+            "Task 12.6: distribution {slug:?} is missing from the packaged archive: \
+             {members:?}"
+        );
+    }
 }
 
 #[test]

@@ -30,19 +30,13 @@
 //! returns nothing does not teach that the ontology lacks the data — it teaches that the
 //! surface is broken. So emptiness is the failure condition for exactly this set.
 
-use std::path::PathBuf;
-
 use serde_json::json;
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("canonicalize repo root")
-}
-
 mod common;
+
+// The repo root is `common::repo_root()` — the SAME anchor every other gmeow-docs
+// integration binary uses. A second local copy here could drift from it silently.
+use common::repo_root;
 
 /// What the engine answered for one shipped query.
 ///

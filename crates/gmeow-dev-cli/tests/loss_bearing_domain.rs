@@ -28,7 +28,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
+use purrdf::{DatasetView, GraphMatch, TermValue};
+
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 fn repo_root() -> PathBuf {
@@ -41,6 +46,62 @@ fn repo_root() -> PathBuf {
 
 fn read(rel: &str) -> String {
     std::fs::read_to_string(repo_root().join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}"))
+}
+
+/// The absolute IRI of a `gmeow:` local name.
+fn gmeow(local: &str) -> String {
+    format!("{GMEOW_NS}{local}")
+}
+
+/// A committed slice module, PARSED.
+///
+/// The axiom checks below used to be `module.ttl.contains("…exact bytes…")` — pinned to the
+/// authored whitespace, the authored predicate ORDER, and the authored prefix bindings. A
+/// reformat, a reordered predicate list, or a renamed prefix reddened them for a reason
+/// that has nothing to do with the axioms they exist to protect, and (worse) an axiom
+/// re-authored in an equivalent Turtle spelling would have passed nothing at all. Asking
+/// the parsed graph asks the question the reasoner asks.
+struct Module {
+    rel: &'static str,
+    ds: std::sync::Arc<purrdf::RdfDataset>,
+}
+
+impl Module {
+    fn parse(rel: &'static str) -> Self {
+        let text = read(rel);
+        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+            .unwrap_or_else(|e| panic!("parse {rel} as Turtle: {e}"));
+        Self { rel, ds }
+    }
+
+    fn term(&self, iri: &str) -> Option<purrdf::TermId> {
+        self.ds.term_id_by_value(&TermValue::iri(iri))
+    }
+
+    fn assert_triple(&self, subject: &str, predicate: &str, object: &str, why: &str) {
+        let found = match (self.term(subject), self.term(predicate), self.term(object)) {
+            (Some(s), Some(p), Some(o)) => self
+                .ds
+                .quads_for_pattern(Some(s), Some(p), Some(o), GraphMatch::Default)
+                .next()
+                .is_some(),
+            _ => false,
+        };
+        assert!(
+            found,
+            "{}: <{subject}> <{predicate}> <{object}> is not asserted — {why}",
+            self.rel
+        );
+    }
+
+    fn has_predicate(&self, predicate: &str) -> bool {
+        self.term(predicate).is_some_and(|p| {
+            self.ds
+                .quads_for_pattern(None, Some(p), None, GraphMatch::Default)
+                .next()
+                .is_some()
+        })
+    }
 }
 
 /// The classes an emitted `gmeow:declaredLoss` subject may assert. Each is either
@@ -201,48 +262,76 @@ fn the_music_manifest_declares_loss_only_on_a_loss_bearing_subject() {
 /// subsumption is no weaker for being grounded.
 #[test]
 fn the_admissible_types_are_really_subsumed_by_the_category() {
-    let kernel = read("slices/core/kernel/module.ttl");
-    let notation = read("slices/core/notation/module.ttl");
+    let kernel = Module::parse("slices/core/kernel/module.ttl");
+    let notation = Module::parse("slices/core/notation/module.ttl");
 
-    assert!(
-        kernel.contains("gmeow:LossBearingProfile\n    a logic:Category ,\n        owl:Class ;"),
-        "the kernel must declare gmeow:LossBearingProfile as an EL-safe category"
+    kernel.assert_triple(
+        &gmeow("LossBearingProfile"),
+        RDF_TYPE,
+        &format!("{LOGIC_NS}Category"),
+        "the kernel must declare gmeow:LossBearingProfile as a logic: category",
     );
-    assert!(
-        kernel.contains(
-            "    rdfs:label \"Documentation Distribution\"@x-gmeow-english ;\n    logic:subClassOf gmeow:LossBearingProfile ;"
-        ),
+    kernel.assert_triple(
+        &gmeow("LossBearingProfile"),
+        RDF_TYPE,
+        &format!("{OWL_NS}Class"),
+        "the kernel must declare gmeow:LossBearingProfile as an EL-safe owl:Class",
+    );
+    kernel.assert_triple(
+        &gmeow("DocumentationDistribution"),
+        &format!("{LOGIC_NS}subClassOf"),
+        &gmeow("LossBearingProfile"),
         "gmeow:DocumentationDistribution must be declared logic:subClassOf \
-         gmeow:LossBearingProfile"
+         gmeow:LossBearingProfile",
     );
-    assert!(
-        notation.contains(
-            "    rdfs:subClassOf gmeow:Profile ;\n    logic:subClassOf gmeow:LossBearingProfile ;"
-        ),
+    notation.assert_triple(
+        &gmeow("NotationProjectionProfile"),
+        &format!("{RDFS_NS}subClassOf"),
+        &gmeow("Profile"),
+        "gmeow:NotationProjectionProfile must stay a gmeow:Profile",
+    );
+    notation.assert_triple(
+        &gmeow("NotationProjectionProfile"),
+        &format!("{LOGIC_NS}subClassOf"),
+        &gmeow("LossBearingProfile"),
         "gmeow:NotationProjectionProfile must be declared logic:subClassOf \
-         gmeow:LossBearingProfile"
+         gmeow:LossBearingProfile",
     );
-    assert!(
-        notation.contains(
-            "gmeow:declaredLoss\n    a owl:ObjectProperty ;\n    rdfs:domain gmeow:LossBearingProfile ;"
+    for (property, why) in [
+        (
+            "declaredLoss",
+            "gmeow:declaredLoss must take gmeow:LossBearingProfile as its domain — not a \
+             narrower class, and not an owl:unionOf, which is outside EL",
         ),
-        "gmeow:declaredLoss must take gmeow:LossBearingProfile as its domain — not a \
-         narrower class, and not an owl:unionOf, which is outside EL"
-    );
-    assert!(
-        notation.contains(
-            "gmeow:representableParameter\n    a owl:ObjectProperty ;\n    rdfs:domain gmeow:LossBearingProfile ;"
+        (
+            "representableParameter",
+            "gmeow:representableParameter is gmeow:declaredLoss's exact complement and must \
+             share its domain, or the completeness pairing has only one half",
         ),
-        "gmeow:representableParameter is gmeow:declaredLoss's exact complement and must \
-         share its domain, or the completeness pairing has only one half"
-    );
-    assert!(
-        !notation.contains("owl:unionOf"),
-        "the loss domain must never be widened with a union: EL++ has intersection and \
-         existential restriction, not union"
-    );
-    assert!(
-        !kernel.contains("owl:unionOf"),
-        "the kernel's new distribution vocabulary must stay EL-safe: no owl:unionOf"
-    );
+    ] {
+        notation.assert_triple(
+            &gmeow(property),
+            RDF_TYPE,
+            &format!("{OWL_NS}ObjectProperty"),
+            why,
+        );
+        notation.assert_triple(
+            &gmeow(property),
+            &format!("{RDFS_NS}domain"),
+            &gmeow("LossBearingProfile"),
+            why,
+        );
+    }
+
+    // No union anywhere in either module: EL++ has intersection and existential
+    // restriction, not union. Asked of the PARSED graph, so it catches a union authored in
+    // any Turtle spelling — expanded, collection-shorthand, or with a different prefix
+    // binding — none of which a substring search for the text `owl:unionOf` would see.
+    for module in [&kernel, &notation] {
+        assert!(
+            !module.has_predicate(&format!("{OWL_NS}unionOf")),
+            "{}: the loss vocabulary must stay EL-safe — no owl:unionOf",
+            module.rel
+        );
+    }
 }

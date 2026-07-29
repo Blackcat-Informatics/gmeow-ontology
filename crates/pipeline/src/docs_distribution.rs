@@ -837,14 +837,22 @@ mod tests {
                 "{}",
                 row.slug
             );
-            // The dropped set is DERIVED from the surface lattice, never authored.
+            // The dropped set is DERIVED from the surface lattice, never authored — and
+            // its SPELLING is read back off the emitter's own `capability_iri`, so a
+            // renamed capability individual moves both sides at once. A local
+            // capability→local-name table here would be a second authority: rename one
+            // arm and this gate would go on asserting a spelling no emitter produces.
             let expected: Vec<String> = match declared.surface {
                 Some(surface) => {
                     let mut dropped: Vec<String> =
                         gmeow_docs::formats::surface_capabilities(surface)
                             .dropped
                             .into_iter()
-                            .map(|cap| format!("capability{}", capability_local_suffix(cap)))
+                            .map(|cap| {
+                                gmeow_docs_catalog::identity::local_name(
+                                    &crate::stages::distribution_catalog::capability_iri(cap),
+                                )
+                            })
                             .collect();
                     dropped.sort();
                     dropped
@@ -884,20 +892,6 @@ mod tests {
             okf.dropped_capabilities.is_empty(),
             "serialization family declares no loss: {okf:?}"
         );
-    }
-
-    /// The `gmeow:ProjectionCapability` individual local-name suffix for a capability —
-    /// the kernel's declared spelling, mirroring `distribution_catalog::capability_iri`.
-    fn capability_local_suffix(cap: gmeow_docs::formats::Capability) -> &'static str {
-        use gmeow_docs::formats::Capability;
-        match cap {
-            Capability::SearchIndex => "SearchIndex",
-            Capability::LiveSparql => "LiveSparql",
-            Capability::Interactivity => "Interactivity",
-            Capability::LiveReasoning => "LiveReasoning",
-            Capability::Diagrams => "Diagrams",
-            Capability::CrossLinkFidelity => "CrossLinkFidelity",
-        }
     }
 
     /// The EMITTER half of the concept-lattice pair, read back through the reader that was

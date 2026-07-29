@@ -12,26 +12,24 @@
 //! lanes, the CDN drift gate) lives in
 //! `crates/gmeow-dev-cli/tests/npm_packaging_contract.rs`.
 
-/// The `version` field of a package manifest, read without a JSON dependency: the first
-/// quoted string after the `"version"` key.
-fn manifest_version(manifest: &str) -> &str {
-    let key = manifest
-        .find("\"version\"")
-        .expect("the package manifest declares a version");
-    let tail = &manifest[key + "\"version\"".len()..];
-    let open = tail.find('"').expect("the version value is a JSON string");
-    let rest = &tail[open + 1..];
-    let close = rest.find('"').expect("the version string is terminated");
-    &rest[..close]
+/// A package manifest, PARSED as the JSON it is.
+///
+/// A string scrape (`find("\"version\"")` and count quotes) answers a different question
+/// than the one npm asks: it matches the key wherever it appears — inside a dependency
+/// name, a script body, a nested object — and it cannot tell `"private": true` from
+/// `"private": "true"` or from the word appearing in a description. Parsing is the only
+/// read that agrees with the registry's own.
+fn manifest(bytes: &str) -> serde_json::Value {
+    serde_json::from_str(bytes).expect("the package manifest is valid JSON")
 }
 
 /// The shipped console package's version equals this crate's version.
 #[test]
 fn console_package_version_equals_the_crate_version() {
-    let manifest = include_str!("../assets/console/package.json");
+    let manifest = manifest(include_str!("../assets/console/package.json"));
     assert_eq!(
-        manifest_version(manifest),
-        env!("CARGO_PKG_VERSION"),
+        manifest["version"].as_str(),
+        Some(env!("CARGO_PKG_VERSION")),
         "crates/docs/assets/console/package.json version drifted from the crate version"
     );
 }
@@ -40,10 +38,12 @@ fn console_package_version_equals_the_crate_version() {
 /// keeps it out of the published set every packaging gate quantifies over.
 #[test]
 fn the_smoke_manifest_declares_itself_private() {
-    let manifest = include_str!("../assets/console/smoke/package.json");
-    assert!(
-        manifest.contains("\"private\": true"),
-        "the console smoke manifest must declare `private: true` — it is what excludes \
-         Playwright, and the smoke lane itself, from everything this repository publishes"
+    let manifest = manifest(include_str!("../assets/console/smoke/package.json"));
+    assert_eq!(
+        manifest["private"].as_bool(),
+        Some(true),
+        "the console smoke manifest must declare the JSON boolean `private: true` — it is \
+         what excludes Playwright, and the smoke lane itself, from everything this \
+         repository publishes"
     );
 }

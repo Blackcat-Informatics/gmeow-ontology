@@ -136,7 +136,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
 /// correct at any chapter depth. Emitted at [`MDBOOK_BOOT_JS_PATH`].
 fn mdbook_boot_js() -> String {
     format!(
-        "// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>\n\
+        "// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
          // SPDX-License-Identifier: AGPL-3.0-only\n\
          \n\
          // mdbook injects additional-js as a plain <script> (no type=\"module\"), so this classic\n\

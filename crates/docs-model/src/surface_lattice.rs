@@ -213,36 +213,111 @@ impl SurfaceConcept {
     pub fn of_surface(surface: DistributionSurface, incidence: &[CapMask]) -> Self {
         Self::from_extent(SurfaceMask(1u16 << surface_index(surface)), incidence)
     }
-}
 
-impl BoundedLattice for SurfaceConcept {
-    /// `(M′, M)` — the surfaces carrying EVERY capability, with all of them. Over the
-    /// authored context that is `({site}, ALL_CAPS)`; `(∅, ALL_CAPS)` is not a concept.
-    const BOTTOM: Self = Self {
-        extent: extent_of(ALL_CAPS, &AUTHORED_INCIDENCE),
-        intent: ALL_CAPS,
-    };
-    /// `(G, G′)` — every surface, with the capabilities all of them share (none, since the
-    /// pdf and the snippets represent nothing).
-    const TOP: Self = Self {
-        extent: ALL_SURFACES,
-        intent: intent_of(ALL_SURFACES, &AUTHORED_INCIDENCE),
-    };
+    /// Whether this pair really is a formal concept OF `incidence`: `extent′ = intent`
+    /// and `intent′ = extent`.
+    ///
+    /// The membership test that makes the context of a concept decidable rather than
+    /// assumed. A concept derived from a perturbed context is (in general) not closed
+    /// under the authored one, which is exactly what [`join_in`](Self::join_in) and
+    /// [`meet_in`](Self::meet_in) refuse.
+    #[must_use]
+    pub fn is_closed_under(self, incidence: &[CapMask]) -> bool {
+        intent_of(self.extent, incidence) == self.intent
+            && extent_of(self.intent, incidence) == self.extent
+    }
 
-    fn join(self, other: Self) -> Self {
+    /// The least concept of `incidence`: `(M′, M)` — the surfaces carrying EVERY
+    /// capability, with all of them. Over the authored context that is
+    /// `({site}, ALL_CAPS)`; `(∅, ALL_CAPS)` is not a concept.
+    #[must_use]
+    pub const fn bottom_in(incidence: &[CapMask]) -> Self {
+        Self {
+            extent: extent_of(ALL_CAPS, incidence),
+            intent: ALL_CAPS,
+        }
+    }
+
+    /// The greatest concept of `incidence`: `(G, G′)` — every surface, with the
+    /// capabilities all of them share (none over the authored context, since the pdf and
+    /// the snippets represent nothing).
+    #[must_use]
+    pub const fn top_in(incidence: &[CapMask]) -> Self {
+        Self {
+            extent: ALL_SURFACES,
+            intent: intent_of(ALL_SURFACES, incidence),
+        }
+    }
+
+    /// `((B₁∩B₂)′, B₁∩B₂)` — the join IN `incidence`.
+    ///
+    /// # Panics
+    ///
+    /// If either operand is not a concept of `incidence`. Closing a foreign-context pair
+    /// against this one yields a well-formed-LOOKING concept of the wrong lattice, which
+    /// is the silent-misleading failure this refusal exists to make impossible.
+    #[must_use]
+    pub fn join_in(self, other: Self, incidence: &[CapMask]) -> Self {
+        self.assert_same_context(other, incidence, "join");
         let intent = CapMask(self.intent.0 & other.intent.0);
         Self {
-            extent: extent_of(intent, &AUTHORED_INCIDENCE),
+            extent: extent_of(intent, incidence),
             intent,
         }
     }
 
-    fn meet(self, other: Self) -> Self {
+    /// `(A₁∩A₂, (A₁∩A₂)′)` — the meet IN `incidence`.
+    ///
+    /// # Panics
+    ///
+    /// If either operand is not a concept of `incidence` — see [`join_in`](Self::join_in).
+    #[must_use]
+    pub fn meet_in(self, other: Self, incidence: &[CapMask]) -> Self {
+        self.assert_same_context(other, incidence, "meet");
         let extent = SurfaceMask(self.extent.0 & other.extent.0);
         Self {
             extent,
-            intent: intent_of(extent, &AUTHORED_INCIDENCE),
+            intent: intent_of(extent, incidence),
         }
+    }
+
+    fn assert_same_context(self, other: Self, incidence: &[CapMask], op: &str) {
+        for operand in [self, other] {
+            assert!(
+                operand.is_closed_under(incidence),
+                "surface-lattice {op}: {operand:?} is not a concept of the incidence it is \
+                 being combined under ({incidence:?}) — a concept derived from a DIFFERENT \
+                 formal context cannot be closed against this one. Use the `*_in` operations \
+                 with the incidence the concept came from."
+            );
+        }
+    }
+}
+
+/// The bounded-lattice instance is the AUTHORED context's, and ONLY the authored
+/// context's.
+///
+/// [`BoundedLattice`] carries no context parameter — `BOTTOM`/`TOP` are associated
+/// consts and `join`/`meet` are binary — so this impl fixes the incidence to
+/// [`AUTHORED_INCIDENCE`]. That used to be a silent choice: [`SurfaceConcept::from_extent`]
+/// and [`SurfaceConcept::of_surface`] accept an ARBITRARY incidence, so a concept derived
+/// from a perturbed context (as `flipping_one_incidence_cell_changes_the_derived_order`
+/// constructs) could be fed to `join`/`meet` and come back closed against a context it
+/// never belonged to. It is now enforced: every operation checks that its operands are
+/// concepts of the incidence it closes against, and the context-carrying
+/// [`SurfaceConcept::join_in`] / [`SurfaceConcept::meet_in`] /
+/// [`SurfaceConcept::bottom_in`] / [`SurfaceConcept::top_in`] are the operations to use
+/// for any other context.
+impl BoundedLattice for SurfaceConcept {
+    const BOTTOM: Self = Self::bottom_in(&AUTHORED_INCIDENCE);
+    const TOP: Self = Self::top_in(&AUTHORED_INCIDENCE);
+
+    fn join(self, other: Self) -> Self {
+        self.join_in(other, &AUTHORED_INCIDENCE)
+    }
+
+    fn meet(self, other: Self) -> Self {
+        self.meet_in(other, &AUTHORED_INCIDENCE)
     }
 }
 
@@ -671,8 +746,8 @@ mod tests {
                 DistributionSurface::Format(DocFormat::Pdf),
                 &perturbed
             ),
-            "flipping pdf/diagrams must break console ≤ pdf — otherwise the order is not \
-             derived from the incidence at all"
+            "flipping pdf/search-index must break console ≤ pdf — otherwise the order is \
+             not derived from the incidence at all"
         );
         // …and the reverse does not silently take its place: the two become incomparable.
         assert!(!surface_leq(
@@ -697,6 +772,73 @@ mod tests {
             concept_hasse_edges(&AUTHORED_INCIDENCE),
             "a flipped cell must move the Hasse diagram the console renders"
         );
+    }
+
+    /// A concept of the perturbed context, built exactly as the perturbation test builds
+    /// its lattice: `({pdf}″, {pdf}′)` where the pdf has been given a bundled search index.
+    fn foreign_context_concept() -> (SurfaceConcept, [CapMask; SURFACE_COUNT]) {
+        let mut perturbed = AUTHORED_INCIDENCE;
+        let pdf = surface_index(DistributionSurface::Format(DocFormat::Pdf));
+        perturbed[pdf] = CapMask(perturbed[pdf].0 | (1u8 << Capability::SearchIndex.index()));
+        let concept =
+            SurfaceConcept::of_surface(DistributionSurface::Format(DocFormat::Pdf), &perturbed);
+        (concept, perturbed)
+    }
+
+    /// The formal CONTEXT of a concept is decidable, not assumed: a concept of the
+    /// perturbed incidence is provably not one of the authored incidence.
+    #[test]
+    fn a_perturbed_context_concept_is_not_a_concept_of_the_authored_context() {
+        let (foreign, perturbed) = foreign_context_concept();
+        assert!(
+            foreign.is_closed_under(&perturbed),
+            "{foreign:?} must be Galois-closed in the context it was derived from"
+        );
+        assert!(
+            !foreign.is_closed_under(&AUTHORED_INCIDENCE),
+            "{foreign:?} must NOT be a concept of the authored context, or this test — and \
+             the refusal it backs — proves nothing"
+        );
+    }
+
+    /// …and the bounded-lattice operations REFUSE it rather than silently closing it
+    /// against the authored context. Before the refusal, `join` returned a well-formed
+    /// concept of a lattice neither operand belonged to.
+    #[test]
+    #[should_panic(expected = "is not a concept of the incidence it is being combined under")]
+    fn joining_a_foreign_context_concept_under_the_authored_lattice_is_refused() {
+        let (foreign, _) = foreign_context_concept();
+        let _ = foreign.join(SurfaceConcept::TOP);
+    }
+
+    /// The same for `meet` — both halves of the lattice are guarded, not just one.
+    #[test]
+    #[should_panic(expected = "is not a concept of the incidence it is being combined under")]
+    fn meeting_a_foreign_context_concept_under_the_authored_lattice_is_refused() {
+        let (foreign, _) = foreign_context_concept();
+        let _ = foreign.meet(SurfaceConcept::BOTTOM);
+    }
+
+    /// The explicit-context operations are the supported way to work in ANY context: over
+    /// the perturbed incidence, the perturbed bounds and the perturbed operations satisfy
+    /// the same bounded-lattice laws the authored ones do.
+    #[test]
+    fn the_explicit_context_operations_form_a_lattice_over_the_perturbed_incidence() {
+        let (_, perturbed) = foreign_context_concept();
+        let bottom = SurfaceConcept::bottom_in(&perturbed);
+        let top = SurfaceConcept::top_in(&perturbed);
+        let nodes = concepts(&perturbed);
+        assert!(nodes.contains(&bottom) && nodes.contains(&top));
+        for a in &nodes {
+            assert_eq!(bottom.join_in(*a, &perturbed), *a);
+            assert_eq!(top.meet_in(*a, &perturbed), *a);
+            for b in &nodes {
+                assert!(nodes.contains(&a.join_in(*b, &perturbed)));
+                assert!(nodes.contains(&a.meet_in(*b, &perturbed)));
+                assert_eq!(a.join_in(*b, &perturbed), b.join_in(*a, &perturbed));
+                assert_eq!(a.meet_in(*b, &perturbed), b.meet_in(*a, &perturbed));
+            }
+        }
     }
 
     /// The DG basis is COMPLETE and SOUND over the authored incidence: every implication

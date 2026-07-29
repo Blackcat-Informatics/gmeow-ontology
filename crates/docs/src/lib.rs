@@ -29,8 +29,8 @@ pub use gmeow_docs_model::{
 };
 
 pub mod render;
-// The pure naming layer (slugs, display names, alignment facets), hoisted out of
-// `render` so the model half of this crate can use it without the renderer.
+// The vendored wasm-engine assets (the browser-side glue/wrapper/`.d.ts` triples and
+// their pinned `DIGESTS.blake3`) and the anti-rot gate over them.
 pub mod vendored_asset;
 
 pub use console::{CONSOLE_PREFIX, console_files, generated_shell};
