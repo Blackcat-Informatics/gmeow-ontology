@@ -6,7 +6,7 @@
 // Loaded as an ES module on every interactive page. It drives EVERY widget — the SPARQL
 // playground, the bundle explorer, the Tier-1 validate buttons, the live entailment panel,
 // the conjecture playground and the GMN transcode — through ONE protocol: JSON-RPC frames
-// against the same 37-tool surface an agent talks to.
+// against the same 38-tool surface an agent talks to.
 //
 // # One transport
 //

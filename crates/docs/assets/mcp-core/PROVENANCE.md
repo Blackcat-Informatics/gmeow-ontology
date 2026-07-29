@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -16,7 +16,7 @@ The site used to vendor four separate engines — the purrdf runtime plus a besp
 `#[wasm_bindgen]` shim each for validation, reasoning and the GMN codec — every one with its
 own export surface, its own boot ritual, and its own controller code path. All four have
 been retired in favour of ONE protocol: every widget now speaks JSON-RPC to the MCP surface,
-so the docs controller drives the same 37-tool engine an agent does. A capability the
+so the docs controller drives the same 38-tool engine an agent does. A capability the
 console has is a capability an agent has, by construction rather than by parallel
 maintenance.
 

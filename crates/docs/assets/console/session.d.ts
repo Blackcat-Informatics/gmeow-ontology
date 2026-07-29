@@ -66,17 +66,20 @@ export function decodePermalink(fragment: string): DecodedPermalink;
 
 /** The engine's store reading: its own serialization, and which reads found real state. */
 export interface StoreReading {
-  /** The engine's serialization of the store. Empty when the engine offers none. */
+  /** The engine's serialization of its claim store, as `store_segment` returned it. */
   nquads: string;
-  /** The tools that reported actual stored state (`recall`, `list_candidates`). */
+  /** The tools that reported actual stored state (`store_segment`, `list_candidates`). */
   heldBy: string[];
+  /** The subset of `heldBy` whose state `nquads` actually carries. */
+  carriedBy: string[];
 }
 
 /**
- * The engine's store reading, taken off the `recall` and `list_candidates` results. Mints
- * nothing: the RDF shape of a stored claim belongs to the engine's store.
+ * The engine's store reading, taken off the `store_segment` and `list_candidates` results.
+ * Mints nothing: the RDF shape of a stored claim belongs to the engine's store, and
+ * `store_segment` is the one tool that serializes it.
  */
-export function storeReading(claims: unknown, candidates: unknown): StoreReading;
+export function storeReading(store: unknown, candidates: unknown): StoreReading;
 
 /**
  * The exportable `.gts` segment text for a session: the trajectory in the default graph
@@ -86,8 +89,8 @@ export function storeReading(claims: unknown, candidates: unknown): StoreReading
  * The `store` reading is required — an export that never asked the store what it held
  * cannot know whether it dropped anything. An EMPTY store is not an error: the export
  * succeeds carrying the trajectory alone, and emits no store graph rather than an empty
- * one. A store that holds state the engine will not serialize IS a hard failure, naming
- * the tools whose state cannot be carried.
+ * one. A holder in `heldBy` that is not in `carriedBy` IS a hard failure, naming the tools
+ * whose state cannot be carried.
  */
 export function exportSegment(session: ConsoleSession, store: StoreReading): string;
 

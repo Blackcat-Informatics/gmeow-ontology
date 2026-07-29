@@ -258,6 +258,11 @@ pub const CORE_SEGMENT: &str = "core";
 ///   `EvaluationStatus`, `ConjectureLifecycleState`) — types that live in `gmeow-logic`
 ///   and must not be duplicated here to dodge the edge.
 ///
+/// `store_segment` is deliberately NOT here. It reads the claim package through the same
+/// storage seam `recall` does and links nothing else, so it belongs where `recall` is —
+/// which is also what keeps the exported session coherent: the store an export carries is
+/// the store the session's reads actually answered from.
+///
 /// Everything else is core and answers in the first-load image. That deliberately includes
 /// `entailments` and `counter_examples`, whose names suggest reasoning but whose bodies are
 /// pure SPARQL over the bundle's documentation graph: the derivations were computed at
@@ -3005,6 +3010,21 @@ fn builtin_tool_descriptors() -> Vec<Value> {
             ],
         ),
         tool(
+            "store_segment",
+            "Serialize the grounded-memory store — every claim and every recorded tool \
+                 call, in append order — as N-Quads in the shared session-store transport \
+                 shape (gmeow:ClaimToken / gmeow:ToolCall, position-addressed under \
+                 urn:gmeow:session:). Returns {ok, claim_count, tool_call_count, nquads}. \
+                 A READ: it commits nothing and the segment is a projection of state that \
+                 was already stored. Distinct from recall, which answers a QUERY with a \
+                 ranked, truncated JSON view of matching claims and is therefore not a \
+                 snapshot: this is what an exported session carries so the trajectory and \
+                 the store it ran against travel together, and it is what re-seeds a store \
+                 for a replay. An empty store returns an empty nquads and zero counts, \
+                 which is an answer, not a failure.",
+            &[],
+        ),
+        tool(
             "revise_belief",
             "Suppress a stored claim without deleting history (the store_claim \
                  compensation, P10), executed as a Transaction-Logic transaction whose \
@@ -3358,6 +3378,7 @@ fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler
         reasoning_tool!(segments, "store_conjecture", tool_store_conjecture),
         reasoning_tool!(segments, "refute_conjecture", tool_refute_conjecture),
         core_tool!(segments, "recall", tool_recall),
+        core_tool!(segments, "store_segment", tool_store_segment),
         reasoning_tool!(segments, "revise_belief", tool_revise_belief),
         core_tool!(segments, "counter_examples", tool_counter_examples),
         core_tool!(segments, "entailments", tool_entailments),
@@ -3434,7 +3455,7 @@ fn builtin_resource_descriptors() -> Vec<Value> {
             "The canonical action theory governing the engine's whole tool surface, as \
                  N-Quads: one schema per advertised tool (tied by logic:mcpToolName), the 6 \
                  writes carrying logic:precondition / logic:effect / logic:compensation and \
-                 the 31 reads carrying logic:capability / logic:precondition — the resource \
+                 the 32 reads carrying logic:capability / logic:precondition — the resource \
                  twin of the `action_policy` tool.",
             ACTION_POLICY_MEDIA_TYPE,
         ),
@@ -4324,8 +4345,8 @@ impl McpServer {
     /// action and the `logic:capability` / `logic:precondition` structure of every read, plus
     /// the `logic:mcpToolName` wire name that ties each schema to the tool it governs, in
     /// [`TXN_WORLD`]. The theory is TOTAL over the surface — 6 governed writes
-    /// (`logic:McpActionSchema`) and 31 reads (plain `logic:ActionSchema`), bijective with the
-    /// 37 advertised tools, enforced by
+    /// (`logic:McpActionSchema`) and 32 reads (plain `logic:ActionSchema`), bijective with the
+    /// 38 advertised tools, enforced by
     /// `the_action_theory_is_bijective_with_the_consumer_tool_surface`. The tool returns THAT
     /// function's output verbatim — never a re-derivation off the embedded Turtle and never a
     /// second filter — so what an agent inspects is exactly what the engine obeys.
@@ -4520,6 +4541,11 @@ impl McpServer {
     #[cfg(feature = "core")]
     fn tool_recall(&self, args: &Value) -> gmeow_errors::Result<String> {
         recall_json(self.claim_store()?.as_ref(), args)
+    }
+
+    #[cfg(feature = "core")]
+    fn tool_store_segment(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        store_segment_json(self.claim_store()?.as_ref())
     }
 
     #[cfg(feature = "reasoning")]
@@ -7764,6 +7790,39 @@ pub fn recall_json(store: &dyn ClaimStore, args: &Value) -> gmeow_errors::Result
     .to_string())
 }
 
+/// The `store_segment` tool body against an EXPLICIT claim store.
+///
+/// Serializes the store's whole readable contents — every claim and every recorded tool
+/// call — into the shared session-store transport segment, and reports the two counts the
+/// caller needs to tell "the store holds nothing" apart from "the store holds something".
+/// It COMMITS NOTHING: it is a read, and the segment it returns is a projection of state
+/// that was already there.
+///
+/// This is the ONLY way a caller can obtain the store's contents as RDF. `recall` answers a
+/// QUERY and returns a ranked, truncated, JSON view of matching claims; it is not, and
+/// cannot be, a snapshot — which is why a session export that tried to read a serialization
+/// off a `recall` result found none.
+///
+/// The shaping lives here, once, so it can be exercised against any [`ClaimStore`] — in
+/// particular the browser backend's in-process store, which no environment variable can
+/// point [`McpServer::claim_store`] at.
+///
+/// # Errors
+///
+/// A store read failure, or a record the transport shape cannot carry.
+pub fn store_segment_json(store: &dyn ClaimStore) -> gmeow_errors::Result<String> {
+    let claims = store.claims()?;
+    let calls = store.tool_calls()?;
+    let nquads = crate::storage::claim_segment(&claims, &calls)?;
+    Ok(json!({
+        "ok": true,
+        "claim_count": claims.len(),
+        "tool_call_count": calls.len(),
+        "nquads": nquads,
+    })
+    .to_string())
+}
+
 fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
     json!({
         "id": claim.id,
@@ -8274,14 +8333,14 @@ mod tests {
         );
     }
 
-    /// The CONSUMER surface is exactly 35 tools and 5 resources.
+    /// The CONSUMER surface is exactly 38 tools and 5 resources.
     ///
     /// The counts are pinned, not approximated: a later bijection gate is defined
     /// against the consumer tool list, so silently adding (or dev-promoting) a tool
     /// would change that contract without anyone noticing. The names are asserted
     /// alongside the counts so a rename cannot pass by keeping the arithmetic.
     #[test]
-    fn consumer_surface_is_thirty_seven_tools_and_five_resources() {
+    fn consumer_surface_is_thirty_eight_tools_and_five_resources() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG"]);
         unsafe {
@@ -8293,8 +8352,8 @@ mod tests {
         let names = consumer.surface().tool_names();
         assert_eq!(
             names.len(),
-            37,
-            "the consumer tool surface is 37 tools, got {names:?}"
+            38,
+            "the consumer tool surface is 38 tools, got {names:?}"
         );
         assert_eq!(
             names,
@@ -8323,6 +8382,7 @@ mod tests {
                 "store_conjecture",
                 "refute_conjecture",
                 "recall",
+                "store_segment",
                 "revise_belief",
                 "counter_examples",
                 "entailments",
@@ -8495,7 +8555,7 @@ mod tests {
             );
         let server = McpServer::from_snapshot_with(&bytes, extension).unwrap();
 
-        assert_eq!(server.surface().tool_names().len(), 38);
+        assert_eq!(server.surface().tool_names().len(), 39);
         assert_eq!(
             server.surface().tool_names().last().copied(),
             Some("host_echo"),
@@ -9380,8 +9440,8 @@ mod tests {
         let advertised = advertised_consumer_tools();
         assert_eq!(
             advertised.len(),
-            37,
-            "the consumer surface is 37 tools; this gate's arithmetic depends on it"
+            38,
+            "the consumer surface is 38 tools; this gate's arithmetic depends on it"
         );
 
         let theory = ActionTheory::read(action_policy_nquads());
@@ -9451,7 +9511,7 @@ mod tests {
             !read_subjects.is_empty(),
             "the asserted-plain-minus-governed set must not be empty"
         );
-        assert_eq!(read_subjects.len(), 31, "31 reads: {read_subjects:?}");
+        assert_eq!(read_subjects.len(), 32, "32 reads: {read_subjects:?}");
         assert_eq!(theory.governed.len(), 6, "6 writes: {:?}", theory.governed);
 
         let write_names = theory.names_of(&theory.governed);
@@ -9698,7 +9758,7 @@ mod tests {
             "exactly one literal-valued predicate survives the projection"
         );
         assert_eq!(
-            tool_name_count, 37,
+            tool_name_count, 38,
             "one logic:mcpToolName per advertised consumer tool"
         );
         // The dropped annotations really were present in the source, so the assertion above
@@ -15354,12 +15414,17 @@ mod browser_storage_tests {
 
     use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions};
 
+    use std::collections::BTreeSet;
+
+    use purrdf::RdfTerm;
+    use purrdf::gts::examples::agent_memory::ToolCallOptions;
+
     use crate::storage::{
         ClaimStore, InMemoryClaimStore, InMemorySegmentLibrary, InMemoryStorage, Storage,
     };
     use crate::{
         append_library_segments, build_nt_segment, recall_json, run_list_candidates_in,
-        with_library_lock,
+        store_segment_json, with_library_lock,
     };
 
     /// Store three claims and recall them: the browser store returns REAL, non-error
@@ -15499,6 +15564,91 @@ mod browser_storage_tests {
                 )
                 .is_err(),
             "a confidence outside 0.0..=1.0 must be refused"
+        );
+    }
+
+    /// `store_segment` returns the browser store's REAL serialization — the field a
+    /// session export reads to carry the store it ran against.
+    ///
+    /// This is the tool the console's export exists to call. Before it there was none:
+    /// the export read `store_nquads ?? nquads` off a `recall` result, and no engine tool
+    /// returns either field, so a console session could RECORD a store it could never
+    /// EXPORT. The assertions below are over the parsed answer, so an engine that answered
+    /// with an empty or absent serialization would fail here rather than downstream.
+    #[test]
+    fn store_segment_serializes_the_browser_claim_store() {
+        let store = InMemoryClaimStore::default();
+
+        // An untouched store serializes to nothing, and says so in its counts: "the store
+        // holds nothing" and "the store holds something I cannot carry" are opposite
+        // situations, and only the second is a failure.
+        let empty: Value =
+            serde_json::from_str(&store_segment_json(&store).expect("store_segment runs"))
+                .expect("store_segment returns JSON");
+        assert_eq!(empty["ok"], true, "{empty}");
+        assert_eq!(empty["claim_count"], 0, "{empty}");
+        assert_eq!(empty["tool_call_count"], 0, "{empty}");
+        assert_eq!(empty["nquads"], "", "{empty}");
+
+        let claim = store
+            .store_claim(
+                "the console can export what it stored",
+                StoreOptions {
+                    source: Some("mcp:test"),
+                    confidence: Some(0.75),
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+        store
+            .record_tool_call(
+                "urn:gmeow:tool:store_claim",
+                ToolCallOptions {
+                    arguments: Some(r#"{"text":"the console can export what it stored"}"#),
+                    result: Some(r#"{"ok":true}"#),
+                    invocation: None,
+                    generated: &[claim.id.as_str()],
+                },
+            )
+            .expect("records");
+
+        let read: Value =
+            serde_json::from_str(&store_segment_json(&store).expect("store_segment runs"))
+                .expect("store_segment returns JSON");
+        assert_eq!(read["claim_count"], 1, "{read}");
+        assert_eq!(read["tool_call_count"], 1, "{read}");
+        let nquads = read["nquads"].as_str().expect("a serialization: {read}");
+        assert!(
+            !nquads.trim().is_empty(),
+            "a store holding state must serialize to a non-empty segment: {read}"
+        );
+
+        // The answer is RDF, not a string that looks like it: it parses, and the claim's
+        // text survives the round trip through the parser.
+        let dataset = purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+            .expect("the served segment parses as N-Quads");
+        let carried: BTreeSet<String> = purrdf::flat_rdf_quads_from_dataset(&dataset)
+            .into_iter()
+            .filter_map(|quad| match quad.object {
+                RdfTerm::Literal(literal) => Some(literal.lexical_form),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            carried.contains("the console can export what it stored"),
+            "the stored claim's text must ride in the segment: {carried:?}"
+        );
+
+        // And it is genuinely re-seedable: a second store built from the segment holds the
+        // same claim, which is what makes an exported session replayable.
+        let seeded = InMemoryClaimStore::default();
+        assert_eq!(
+            crate::storage::seed_claim_store(&seeded, nquads).expect("seeds"),
+            (1, 1)
+        );
+        assert_eq!(
+            seeded.claims().expect("reads")[0].text,
+            "the console can export what it stored"
         );
     }
 

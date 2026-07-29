@@ -55,7 +55,8 @@
 //! cannot mistake it for a wall time — and it preserves the only property the memory
 //! package actually depends on, which is that later records stamp later instants.
 
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
 use purrdf::gts::examples::agent_memory::{
@@ -134,6 +135,23 @@ pub trait ClaimStore: Send + Sync {
     ///
     /// A backend write failure.
     fn append_audit_segment(&self, segment: &[u8]) -> Result<()>;
+
+    /// This store's whole readable contents as the shared session-store transport segment
+    /// (N-Quads) — see [`claim_segment`].
+    ///
+    /// A PROVIDED method with no backend override, deliberately: [`claim_segment`] is the
+    /// SINGLE serializer, so the native package and the browser store emit the identical
+    /// segment for identical contents. That identity is the whole point — it is what makes
+    /// an exported browser session re-seedable into a native package and answerable there,
+    /// and a per-backend serializer would be two shapes that could drift.
+    ///
+    /// # Errors
+    ///
+    /// A backend read failure, or a record the transport shape cannot carry (see
+    /// [`claim_segment`]).
+    fn segment_nquads(&self) -> Result<String> {
+        claim_segment(&self.claims()?, &self.tool_calls()?)
+    }
 }
 
 /// An exclusive hold on a [`SegmentLibrary`], released when the value is dropped.
@@ -246,6 +264,430 @@ pub fn storage() -> &'static dyn Storage {
 pub fn browser_storage() -> &'static InMemoryStorage {
     static BROWSER: OnceLock<InMemoryStorage> = OnceLock::new();
     BROWSER.get_or_init(InMemoryStorage::new)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The session-store transport segment
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// The ONE serialization of a claim package's readable contents, shared by BOTH backends
+// and used in both directions: [`claim_segment`] writes it, [`seed_claim_store`] reads it
+// back through a store's PUBLIC write API. Together they are an isomorphism on exactly the
+// state the store's API can express, which is what lets an exported browser session be
+// re-seeded into a native package and answer identically there.
+//
+// # Why this is not `purrdf`'s on-disk shape
+//
+// `purrdf`'s `Memory` — the native backend's delegate — exposes `store` / `recall` /
+// `claims` / `tool_calls` and no serializer at all: its on-disk claim encoding (reified
+// RDF 1.2 statements in an append-only GTS `ai-package`, addressed under
+// `https://example.org/memory/`) is genuinely private, and reproducing it here would be a
+// second, silent source of truth for a shape we do not own. So the transport carries the
+// GMEOW vocabulary instead — `gmeow:ClaimToken` and `gmeow:ToolCall` with the properties
+// the agentic / provenance / epistemics slices already define — and mints no term.
+//
+// # Why the records are POSITION-addressed
+//
+// A record's address is `urn:gmeow:session:claim:0007`, not a digest of its content. An
+// append-only store's identity for a record IS its position, and a position address is
+// what makes the segment order-independent to READ: a parser recovers append order from
+// the address alone rather than depending on file order surviving a parse. It is also why
+// each recorded call carries that same address as its `gmeow:sessionStoreSegment` — the
+// property whose whole purpose is locating a call's record inside an append-only store.
+//
+// # What the segment deliberately does NOT carry
+//
+// Neither the backend-minted record id nor the backend's creation stamp. Those are the two
+// fields the two backends mint DIFFERENTLY by construction — `purrdf` content-addresses an
+// id off the package's file length and stamps real UTC, while the browser store folds a
+// session-local counter and stamps an explicitly logical instant — so carrying either
+// would make the same contents serialize differently on the two sides and would carry a
+// browser session's fake 1970 clock into a native package as though it were a wall time.
+// What the segment carries is exactly what `StoreOptions` / `ToolCallOptions` accept back:
+// that boundary is not information loss, it is the edge of what the store's public API can
+// express, and anything past it is un-replayable by construction.
+
+/// The namespace the exported session-store segment addresses its records under.
+pub const SESSION_SEGMENT_NS: &str = "urn:gmeow:session:";
+
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDF_VALUE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+
+// The `gmeow:` predicates the segment writes and reads, spelled out once so the writer and
+// the reader join on the SAME string rather than on two `format!`s that could drift.
+const GMEOW_CLAIM_TOKEN: &str = "https://blackcatinformatics.ca/gmeow/ClaimToken";
+const GMEOW_TOOL_CALL: &str = "https://blackcatinformatics.ca/gmeow/ToolCall";
+const GMEOW_SOFTWARE_AGENT: &str = "https://blackcatinformatics.ca/gmeow/SoftwareAgent";
+const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
+const GMEOW_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
+const GMEOW_SOURCE_LOCATION: &str = "https://blackcatinformatics.ca/gmeow/sourceLocation";
+const GMEOW_DISPLAYABLE: &str = "https://blackcatinformatics.ca/gmeow/displayable";
+const GMEOW_USED_TOOL: &str = "https://blackcatinformatics.ca/gmeow/usedTool";
+const GMEOW_TOOL_ARGUMENTS: &str = "https://blackcatinformatics.ca/gmeow/toolArguments";
+const GMEOW_TOOL_RESULT: &str = "https://blackcatinformatics.ca/gmeow/toolResult";
+const GMEOW_CALLED_BY_INVOCATION: &str = "https://blackcatinformatics.ca/gmeow/calledByInvocation";
+const GMEOW_SESSION_STORE_SEGMENT: &str =
+    "https://blackcatinformatics.ca/gmeow/sessionStoreSegment";
+const GMEOW_WAS_GENERATED_BY: &str = "https://blackcatinformatics.ca/gmeow/wasGeneratedBy";
+
+/// The position address of the `ordinal`-th record of `kind` (`claim` / `call`).
+fn segment_node(kind: &str, ordinal: usize) -> String {
+    format!("{SESSION_SEGMENT_NS}{kind}:{ordinal:04}")
+}
+
+/// The zero-padded segment identifier a recorded call carries as its
+/// `gmeow:sessionStoreSegment` — the address's own local part, so the property and the node
+/// name one position and not two.
+fn segment_label(ordinal: usize) -> String {
+    format!("{ordinal:04}")
+}
+
+/// Recover a record's ordinal from its position address, given the expected `kind`.
+fn segment_ordinal(node: &str, kind: &str) -> Option<usize> {
+    node.strip_prefix(SESSION_SEGMENT_NS)?
+        .strip_prefix(kind)?
+        .strip_prefix(':')?
+        .parse()
+        .ok()
+}
+
+/// One N-Triples/N-Quads literal, escaped per the grammar's ECHAR set.
+fn nq_literal(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            // Every other C0 control is escaped as `\uXXXX` rather than emitted raw: the
+            // N-Triples STRING_LITERAL_QUOTE production excludes them outright, so a claim
+            // carrying one would otherwise serialize to a segment that does not parse.
+            other if (other as u32) < 0x20 || other as u32 == 0x7f => {
+                let _ = write!(out, "\\u{:04X}", other as u32);
+            }
+            other => out.push(other),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// The same literal with an explicit datatype IRI.
+fn nq_typed(value: &str, datatype: &str) -> String {
+    format!("{}^^<{datatype}>", nq_literal(value))
+}
+
+/// Refuse a value the transport must carry as an IRI but which is not one.
+///
+/// `gmeow:usedTool`, `gmeow:calledByInvocation` and the `gmeow:wasGeneratedBy` targets are
+/// object properties: a relative or empty value there would serialize to a segment that
+/// does not parse, so it is a HARD FAIL naming the record and the field rather than a
+/// quietly dropped edge.
+fn require_iri(value: &str, field: &str, node: &str) -> Result<()> {
+    if value.contains(':') && !value.contains(char::is_whitespace) && !value.contains(['<', '>']) {
+        return Ok(());
+    }
+    Err(err(format!(
+        "session store segment: {node} carries {field} {value:?}, which is not an absolute IRI"
+    )))
+}
+
+/// Serialize a claim package's readable contents — its claims and its recorded tool calls —
+/// as the shared session-store transport segment, in N-Quads, in append order.
+///
+/// The single serializer behind [`ClaimStore::segment_nquads`], used by BOTH backends. See
+/// the section comment above for the shape, the addressing, and what it deliberately omits.
+///
+/// # Errors
+///
+/// A claim with empty text, or a record whose `gmeow:usedTool` /
+/// `gmeow:calledByInvocation` / generated-entity value is not an absolute IRI — each named
+/// individually, because a record the transport cannot carry must fail the export rather
+/// than be dropped out of a segment that still calls itself a snapshot.
+pub fn claim_segment(claims: &[Claim], calls: &[ToolCallRecord]) -> Result<String> {
+    let mut out = String::new();
+    // Backend claim id → this segment's position address, so a call's generated-entity edge
+    // lands on the claim node the segment actually carries rather than on an id that only
+    // means something inside the backend that minted it.
+    let mut node_of: HashMap<&str, String> = HashMap::with_capacity(claims.len());
+
+    for (ordinal, claim) in claims.iter().enumerate() {
+        let node = segment_node("claim", ordinal);
+        if claim.text.trim().is_empty() {
+            return Err(err(format!(
+                "session store segment: {node} carries empty claim text"
+            )));
+        }
+        let _ = writeln!(out, "<{node}> <{RDF_TYPE}> <{GMEOW_CLAIM_TOKEN}> .");
+        let _ = writeln!(out, "<{node}> <{RDF_VALUE}> {} .", nq_literal(&claim.text));
+        if let Some(confidence) = claim.confidence {
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_CONFIDENCE}> {} .",
+                nq_typed(&confidence.to_string(), XSD_DECIMAL)
+            );
+        }
+        if let Some(according_to) = claim.according_to.as_deref() {
+            // A plain literal, not an IRI: the memory package records `accordingTo` as an
+            // opaque party identifier and never asserts that it names a resource, so
+            // promoting it here would be a typing claim the store does not make.
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_ACCORDING_TO}> {} .",
+                nq_literal(according_to)
+            );
+        }
+        if let Some(source) = claim.source.as_deref() {
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_SOURCE_LOCATION}> {} .",
+                nq_literal(source)
+            );
+        }
+        if claim.suppressed {
+            // P10 suppression, carried as the model's ONE display control rather than as a
+            // deletion: the retired claim rides in the segment and is marked, never dropped.
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_DISPLAYABLE}> {} .",
+                nq_typed("false", XSD_BOOLEAN)
+            );
+        }
+        node_of.insert(claim.id.as_str(), node);
+    }
+
+    for (ordinal, call) in calls.iter().enumerate() {
+        let node = segment_node("call", ordinal);
+        require_iri(&call.tool, "gmeow:usedTool", &node)?;
+        let _ = writeln!(out, "<{node}> <{RDF_TYPE}> <{GMEOW_TOOL_CALL}> .");
+        let _ = writeln!(out, "<{node}> <{GMEOW_USED_TOOL}> <{}> .", call.tool);
+        // gmeow:ToolCall requires its tool to be a gmeow:SoftwareAgent; the type rides with
+        // the edge so the segment stands alone rather than leaning on an outside graph.
+        let _ = writeln!(
+            out,
+            "<{}> <{RDF_TYPE}> <{GMEOW_SOFTWARE_AGENT}> .",
+            call.tool
+        );
+        if let Some(arguments) = call.arguments.as_deref() {
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_TOOL_ARGUMENTS}> {} .",
+                nq_literal(arguments)
+            );
+        }
+        if let Some(result) = call.result.as_deref() {
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_TOOL_RESULT}> {} .",
+                nq_literal(result)
+            );
+        }
+        if let Some(invocation) = call.invocation.as_deref() {
+            require_iri(invocation, "gmeow:calledByInvocation", &node)?;
+            let _ = writeln!(
+                out,
+                "<{node}> <{GMEOW_CALLED_BY_INVOCATION}> <{invocation}> ."
+            );
+        }
+        let _ = writeln!(
+            out,
+            "<{node}> <{GMEOW_SESSION_STORE_SEGMENT}> {} .",
+            nq_literal(&segment_label(ordinal))
+        );
+        // The generated set is emitted in ADDRESS order, not in the order the backend
+        // happened to hand it over: `gmeow:wasGeneratedBy` is a set of edges, and a
+        // canonical order is what makes seed → re-serialize land on the same bytes.
+        let targets: BTreeSet<String> = call
+            .generated
+            .iter()
+            .map(|generated| {
+                require_iri(generated, "gmeow:wasGeneratedBy target", &node)?;
+                Ok(node_of
+                    .get(generated.as_str())
+                    .cloned()
+                    .unwrap_or_else(|| generated.clone()))
+            })
+            .collect::<Result<_>>()?;
+        for target in targets {
+            let _ = writeln!(out, "<{target}> <{GMEOW_WAS_GENERATED_BY}> <{node}> .");
+        }
+    }
+
+    Ok(out)
+}
+
+/// One claim read back out of a transport segment, before it is replayed.
+#[derive(Default)]
+struct SeededClaim {
+    text: Option<String>,
+    confidence: Option<String>,
+    according_to: Option<String>,
+    source: Option<String>,
+    suppressed: bool,
+}
+
+/// One recorded call read back out of a transport segment.
+#[derive(Default)]
+struct SeededCall {
+    tool: Option<String>,
+    arguments: Option<String>,
+    result: Option<String>,
+    invocation: Option<String>,
+    /// The entities the call generated, by segment address (or verbatim IRI for an entity
+    /// the segment does not itself address).
+    generated: BTreeSet<String>,
+}
+
+/// Replay a session-store transport segment into `store` through the store's PUBLIC write
+/// API — [`ClaimStore::store_claim`], [`ClaimStore::record_tool_call`] and, for a
+/// suppressed claim, [`ClaimStore::revise_claim`].
+///
+/// The exact inverse of [`claim_segment`]: a store seeded from a segment re-serializes to
+/// the byte-identical segment. Natively that write path IS `purrdf`'s `Memory::store()`, so
+/// the seeded package is a real, cold-auditable `memory.gts` written by its owner — the
+/// on-disk shape stays `purrdf`'s and nothing here reproduces it.
+///
+/// Returns the `(claims, calls)` counts seeded.
+///
+/// # Errors
+///
+/// A segment that does not parse as N-Quads, a `gmeow:wasGeneratedBy` edge whose object is
+/// not a segment call address, a claim with no `rdf:value` text, a claim whose confidence
+/// is not a number, a call with no `gmeow:usedTool`, or a backend write failure.
+pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize, usize)> {
+    let dataset = purrdf::parse_dataset(segment.as_bytes(), "application/n-quads", None)
+        .map_err(|e| err(format!("session store segment does not parse: {e}")))?;
+
+    let mut claims: BTreeMap<usize, SeededClaim> = BTreeMap::new();
+    let mut calls: BTreeMap<usize, SeededCall> = BTreeMap::new();
+    // `gmeow:wasGeneratedBy` runs from the generated ENTITY to the call, so a call's
+    // generated set is collected by walking that edge backwards.
+    let mut generated: Vec<(usize, String)> = Vec::new();
+
+    for quad in purrdf::flat_rdf_quads_from_dataset(&dataset) {
+        let purrdf::RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let object = match &quad.object {
+            purrdf::RdfTerm::Iri(iri) => iri.clone(),
+            purrdf::RdfTerm::Literal(literal) => literal.lexical_form.clone(),
+            purrdf::RdfTerm::BlankNode(_) | purrdf::RdfTerm::Triple(_) => continue,
+        };
+        let predicate = quad.predicate.as_str();
+
+        if predicate == GMEOW_WAS_GENERATED_BY {
+            let call = segment_ordinal(&object, "call").ok_or_else(|| {
+                err(format!(
+                    "session store segment: {subject} was generated by {object}, which is not \
+                     a segment call address"
+                ))
+            })?;
+            generated.push((call, subject.clone()));
+            continue;
+        }
+
+        if let Some(ordinal) = segment_ordinal(subject, "claim") {
+            let claim = claims.entry(ordinal).or_default();
+            match predicate {
+                RDF_VALUE => claim.text = Some(object),
+                GMEOW_CONFIDENCE => claim.confidence = Some(object),
+                GMEOW_ACCORDING_TO => claim.according_to = Some(object),
+                GMEOW_SOURCE_LOCATION => claim.source = Some(object),
+                // The ONLY display control in the model: `false` is the P10 suppression.
+                GMEOW_DISPLAYABLE => claim.suppressed = object == "false",
+                _ => {}
+            }
+        } else if let Some(ordinal) = segment_ordinal(subject, "call") {
+            let call = calls.entry(ordinal).or_default();
+            match predicate {
+                GMEOW_USED_TOOL => call.tool = Some(object),
+                GMEOW_TOOL_ARGUMENTS => call.arguments = Some(object),
+                GMEOW_TOOL_RESULT => call.result = Some(object),
+                GMEOW_CALLED_BY_INVOCATION => call.invocation = Some(object),
+                _ => {}
+            }
+        }
+    }
+
+    for (call, entity) in generated {
+        calls.entry(call).or_default().generated.insert(entity);
+    }
+
+    // Replay in append order — the position addresses ARE that order, so a segment whose
+    // lines were reordered by a parse still seeds the store in the order it was written.
+    let mut seeded_ids: BTreeMap<usize, String> = BTreeMap::new();
+    for (ordinal, claim) in &claims {
+        let text = claim.text.as_deref().ok_or_else(|| {
+            err(format!(
+                "session store segment: claim {ordinal:04} carries no rdf:value text"
+            ))
+        })?;
+        let confidence = claim
+            .confidence
+            .as_deref()
+            .map(|raw| {
+                raw.parse::<f64>().map_err(|e| {
+                    err(format!(
+                        "session store segment: claim {ordinal:04} confidence {raw:?}: {e}"
+                    ))
+                })
+            })
+            .transpose()?;
+        let stored = store.store_claim(
+            text,
+            StoreOptions {
+                source: claim.source.as_deref(),
+                confidence,
+                according_to: claim.according_to.as_deref(),
+            },
+        )?;
+        seeded_ids.insert(*ordinal, stored.id);
+    }
+    // Suppressions land AFTER every claim is stored: a revision names the claim it retires
+    // by the id the store just minted, which does not exist until the store has minted it.
+    for (ordinal, claim) in &claims {
+        if claim.suppressed {
+            store.revise_claim(&seeded_ids[ordinal], RevisionOptions::default())?;
+        }
+    }
+
+    for (ordinal, call) in &calls {
+        let tool = call.tool.as_deref().ok_or_else(|| {
+            err(format!(
+                "session store segment: call {ordinal:04} carries no gmeow:usedTool"
+            ))
+        })?;
+        // A generated entity the segment addresses is re-pointed at the id THIS store just
+        // minted for it; anything else the store recorded rides verbatim.
+        let generated: Vec<String> = call
+            .generated
+            .iter()
+            .map(|entity| match segment_ordinal(entity, "claim") {
+                Some(claim) => seeded_ids
+                    .get(&claim)
+                    .cloned()
+                    .unwrap_or_else(|| entity.clone()),
+                None => entity.clone(),
+            })
+            .collect();
+        let generated: Vec<&str> = generated.iter().map(String::as_str).collect();
+        store.record_tool_call(
+            tool,
+            ToolCallOptions {
+                arguments: call.arguments.as_deref(),
+                result: call.result.as_deref(),
+                invocation: call.invocation.as_deref(),
+                generated: &generated,
+            },
+        )?;
+    }
+
+    Ok((claims.len(), calls.len()))
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -685,17 +1127,40 @@ impl InMemoryClaimStore {
     }
 }
 
+/// The civil date `days` days after 1970-01-01, as `(year, month, day)`.
+///
+/// The standard proleptic-Gregorian `civil_from_days` shift-the-epoch-to-March algorithm:
+/// re-anchoring on 0000-03-01 makes the leap day the LAST day of the year, which is what
+/// collapses the month-length table into the exact affine map `mp = (5·doy + 2) / 153`.
+/// Total over the whole `u64` day range — there is no month or year it cannot render.
+fn civil_from_days(days: u64) -> (u64, u64, u64) {
+    // Days from 0000-03-01 to 1970-01-01. Every quantity below is non-negative because the
+    // logical clock is a counter anchored AT the epoch and never runs backwards.
+    let z = days + 719_468;
+    let era = z / 146_097;
+    let doe = z % 146_097; // day of era, [0, 146_096]
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365; // [0, 399]
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // day of the March-anchored year
+    let mp = (5 * doy + 2) / 153; // March-anchored month, [0, 11]
+    let day = doy - (153 * mp + 2) / 5 + 1; // [1, 31]
+    let month = if mp < 10 { mp + 3 } else { mp - 9 }; // [1, 12]
+    let year = yoe + era * 400 + u64::from(month <= 2);
+    (year, month, day)
+}
+
 /// The logical instant for sequence number `seq`: `seq` seconds after the Unix epoch,
 /// rendered as an `xsd:dateTime`. Anchoring at the epoch is what makes the stamp
 /// self-identifying as logical rather than a plausible-looking fake wall time.
+///
+/// The date is a REAL civil date computed from the epoch offset, not `1970-01-{seq/86400+1}`:
+/// a session that records 2 678 400 times crosses out of January, and a stamp that read
+/// `1970-01-32T…` would not be an `xsd:dateTime` at all — every consumer that parses the
+/// stamp (the trajectory auditor orders on it) would reject the record rather than order it.
 fn logical_instant(seq: u64) -> String {
-    let days = seq / 86_400;
     let rest = seq % 86_400;
     let (h, m, s) = (rest / 3600, (rest % 3600) / 60, rest % 60);
-    // Day 0 is 1970-01-01; the counter is a session-scoped monotone sequence, so the
-    // date only advances after 86_400 records and never leaves 1970 in practice.
-    let day = days + 1;
-    format!("1970-01-{day:02}T{h:02}:{m:02}:{s:02}Z")
+    let (year, month, day) = civil_from_days(seq / 86_400);
+    format!("{year:04}-{month:02}-{day:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
 /// A deterministic opaque id for an in-memory record: the store kind, the sequence
@@ -931,5 +1396,336 @@ impl SegmentLibrary for InMemorySegmentLibrary {
             .lock()
             .map_err(|_| err("in-memory segment library lock was poisoned by a panic"))?;
         Ok(Box::new(InMemoryLibraryLock { _guard: guard }))
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The seam's own suite
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The `xsd:dateTime` datatype IRI, so the clock is validated by a REAL XSD parser
+    /// rather than by a shape assertion written here.
+    const XSD_DATE_TIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
+    /// Parse one logical stamp as an `xsd:dateTime`, hard-failing when it is not one.
+    fn as_datetime(stamp: &str) -> purrdf::xsd::XsdValue {
+        purrdf::xsd::parse_by_iri(stamp, XSD_DATE_TIME)
+            .unwrap_or_else(|e| panic!("{stamp:?} is not a valid xsd:dateTime: {e:?}"))
+            .expect("xsd:dateTime is in the XSD value space")
+    }
+
+    /// The logical clock is monotone AND every value it emits is a real `xsd:dateTime` —
+    /// checked across both rollovers the old `1970-01-{seq/86400+1}` rendering broke on.
+    ///
+    /// The second rollover is the one that mattered: at `seq >= 2_678_400` the old code
+    /// emitted `1970-01-32T00:00:00Z`, which no `xsd:dateTime` parser accepts, so every
+    /// consumer that reads the stamp — the trajectory auditor orders trajectories ON it —
+    /// would reject the record rather than order it. Monotonicity is asserted on the PARSED
+    /// values, not on the strings: a lexical comparison would pass for two stamps that no
+    /// parser accepts at all.
+    #[test]
+    fn the_logical_clock_is_monotone_and_every_stamp_is_a_valid_xsd_date_time() {
+        // Around the day rollover, around the month rollover, and well past both.
+        let seqs: Vec<u64> = [
+            0u64,
+            1,
+            59,
+            60,
+            3_599,
+            3_600,
+            86_398,
+            86_399,
+            86_400,
+            86_401,
+            172_800,
+            2_678_398,
+            2_678_399,
+            2_678_400,
+            2_678_401,
+            5_097_600,
+            31_535_999,
+            31_536_000,
+            1_000_000_000,
+        ]
+        .to_vec();
+
+        assert_eq!(
+            logical_instant(0),
+            "1970-01-01T00:00:00Z",
+            "the clock is anchored AT the Unix epoch — that anchor is what makes the stamp \
+             self-identifying as logical rather than a plausible fake wall time"
+        );
+        assert_eq!(
+            logical_instant(86_400),
+            "1970-01-02T00:00:00Z",
+            "one day of records advances the day"
+        );
+        assert_eq!(
+            logical_instant(2_678_400),
+            "1970-02-01T00:00:00Z",
+            "31 days of records advances the MONTH; the old rendering emitted 1970-01-32"
+        );
+        assert_eq!(
+            logical_instant(31_536_000),
+            "1971-01-01T00:00:00Z",
+            "365 days of records advances the year"
+        );
+        // 1972 is a leap year: 1972-02-29 must exist, and 1973-01-01 must be 366 days
+        // after 1972-01-01 — the leap rule is exercised, not assumed.
+        assert_eq!(logical_instant(68_169_600), "1972-02-29T00:00:00Z");
+        assert_eq!(logical_instant(68_256_000), "1972-03-01T00:00:00Z");
+        assert_eq!(logical_instant(94_694_400), "1973-01-01T00:00:00Z");
+
+        let mut previous: Option<(u64, purrdf::xsd::XsdValue)> = None;
+        for seq in seqs {
+            let stamp = logical_instant(seq);
+            let value = as_datetime(&stamp);
+            if let Some((prior_seq, prior)) = &previous {
+                assert_eq!(
+                    purrdf::xsd::value_cmp(prior, &value),
+                    Some(std::cmp::Ordering::Less),
+                    "seq {prior_seq} -> {seq} must stamp a strictly later instant, got \
+                     {} -> {stamp}",
+                    logical_instant(*prior_seq)
+                );
+            }
+            previous = Some((seq, value));
+        }
+
+        // Dense sweep straight through the month rollover: every single second in the
+        // window parses and every step is strictly increasing.
+        let mut prior = as_datetime(&logical_instant(2_678_390));
+        for seq in 2_678_391..=2_678_410u64 {
+            let value = as_datetime(&logical_instant(seq));
+            assert_eq!(
+                purrdf::xsd::value_cmp(&prior, &value),
+                Some(std::cmp::Ordering::Less),
+                "the clock stalled or went backwards at seq {seq}"
+            );
+            prior = value;
+        }
+    }
+
+    /// A store seeded from a transport segment re-serializes to the BYTE-IDENTICAL segment.
+    ///
+    /// This is the whole contract [`claim_segment`] and [`seed_claim_store`] exist to hold:
+    /// the pair is an isomorphism on exactly the state the store's public write API can
+    /// express, so an exported session can be re-seeded into a different store — natively,
+    /// through `purrdf`'s own `Memory::store()` — and answer identically there.
+    #[test]
+    fn a_store_seeded_from_a_segment_reserializes_to_the_same_bytes() {
+        let origin = InMemoryClaimStore::default();
+        let blue = origin
+            .store_claim(
+                "widgets are blue",
+                StoreOptions {
+                    source: Some("mcp:test"),
+                    confidence: Some(0.9),
+                    according_to: Some("urn:gmeow:party:lab"),
+                },
+            )
+            .expect("stores");
+        origin
+            .store_claim(
+                "gadgets are red",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+        let retired = origin
+            .store_claim(
+                "sprockets are green",
+                StoreOptions {
+                    source: None,
+                    confidence: Some(0.25),
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+        origin
+            .revise_claim(
+                &retired.id,
+                RevisionOptions {
+                    reason: Some("measured again"),
+                    superseded_by: None,
+                },
+            )
+            .expect("revises");
+        origin
+            .record_tool_call(
+                "urn:gmeow:tool:store_claim",
+                ToolCallOptions {
+                    arguments: Some(r#"{"text":"widgets are blue"}"#),
+                    result: Some(r#"{"ok":true}"#),
+                    invocation: Some("urn:gmeow:invocation:0"),
+                    generated: &[blue.id.as_str()],
+                },
+            )
+            .expect("records");
+
+        let segment = origin.segment_nquads().expect("serializes");
+        assert!(
+            segment.contains("<urn:gmeow:session:claim:0000>"),
+            "records are position-addressed: {segment}"
+        );
+
+        let seeded = InMemoryClaimStore::default();
+        let (claims, calls) = seed_claim_store(&seeded, &segment).expect("seeds");
+        assert_eq!((claims, calls), (3, 1), "every record is replayed");
+        assert_eq!(
+            seeded.segment_nquads().expect("re-serializes"),
+            segment,
+            "seed → re-serialize must land on the SAME bytes"
+        );
+
+        // The seeded store is a real store, not a transcript: the suppression took, and
+        // the recorded call points at the id THIS store minted rather than at the address.
+        let seeded_claims = seeded.claims().expect("reads");
+        assert_eq!(seeded_claims.len(), 3);
+        assert!(!seeded_claims[0].suppressed);
+        assert!(
+            seeded_claims[2].suppressed,
+            "a suppressed claim seeds back suppressed, not dropped"
+        );
+        assert_eq!(seeded_claims[0].text, "widgets are blue");
+        assert_eq!(seeded_claims[0].confidence, Some(0.9));
+        assert_eq!(seeded_claims[0].source.as_deref(), Some("mcp:test"));
+        assert_eq!(
+            seeded_claims[0].according_to.as_deref(),
+            Some("urn:gmeow:party:lab")
+        );
+        let seeded_calls = seeded.tool_calls().expect("reads");
+        assert_eq!(seeded_calls[0].generated, vec![seeded_claims[0].id.clone()]);
+    }
+
+    /// An empty store serializes to an EMPTY segment — an answer, not a failure — and
+    /// seeding from it is a no-op rather than an error.
+    #[test]
+    fn an_empty_store_serializes_to_an_empty_segment() {
+        let store = InMemoryClaimStore::default();
+        let segment = store.segment_nquads().expect("serializes");
+        assert_eq!(segment, "", "nothing stored, nothing serialized");
+        let seeded = InMemoryClaimStore::default();
+        assert_eq!(
+            seed_claim_store(&seeded, &segment).expect("seeds"),
+            (0, 0),
+            "seeding an empty segment stores nothing and raises nothing"
+        );
+    }
+
+    /// The emitted segment PARSES as N-Quads and carries the GMEOW vocabulary the
+    /// transport declares — asserted structurally over the parsed quads, never over a
+    /// substring of the text.
+    #[test]
+    fn the_segment_parses_and_carries_the_declared_vocabulary() {
+        let store = InMemoryClaimStore::default();
+        store
+            .store_claim(
+                "the segment parses",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+        store
+            .record_tool_call(
+                "urn:gmeow:tool:recall",
+                ToolCallOptions {
+                    arguments: Some("{}"),
+                    result: Some(r#"{"ok":true}"#),
+                    invocation: None,
+                    generated: &[],
+                },
+            )
+            .expect("records");
+
+        let segment = store.segment_nquads().expect("serializes");
+        let dataset = purrdf::parse_dataset(segment.as_bytes(), "application/n-quads", None)
+            .expect("the emitted segment parses as N-Quads");
+        let quads = purrdf::flat_rdf_quads_from_dataset(&dataset);
+        let typed_as = |class: &str| {
+            quads.iter().any(|quad| {
+                quad.predicate == RDF_TYPE
+                    && matches!(&quad.object, purrdf::RdfTerm::Iri(iri) if iri == class)
+            })
+        };
+        assert!(
+            typed_as(GMEOW_CLAIM_TOKEN),
+            "the claim is a gmeow:ClaimToken"
+        );
+        assert!(typed_as(GMEOW_TOOL_CALL), "the call is a gmeow:ToolCall");
+        assert!(
+            typed_as(GMEOW_SOFTWARE_AGENT),
+            "the called tool is typed a gmeow:SoftwareAgent, so the segment stands alone"
+        );
+        assert!(
+            quads
+                .iter()
+                .any(|quad| quad.predicate == GMEOW_SESSION_STORE_SEGMENT),
+            "each call carries the segment identifier that locates its record"
+        );
+    }
+
+    /// A control character in a claim survives the round trip: it is escaped on the way
+    /// out, so the segment still PARSES, and comes back byte-identical.
+    ///
+    /// N-Triples excludes the C0 controls from its quoted-literal production outright, so a
+    /// raw one would produce a segment no parser accepts — an export that silently could
+    /// not be read back.
+    #[test]
+    fn a_control_character_in_a_claim_survives_the_round_trip() {
+        let store = InMemoryClaimStore::default();
+        store
+            .store_claim(
+                "a bell \u{7} and a vertical tab \u{b} and a tab \t",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+        let segment = store.segment_nquads().expect("serializes");
+        purrdf::parse_dataset(segment.as_bytes(), "application/n-quads", None)
+            .expect("a segment carrying a control character must still parse");
+
+        let seeded = InMemoryClaimStore::default();
+        seed_claim_store(&seeded, &segment).expect("seeds");
+        assert_eq!(
+            seeded.claims().expect("reads")[0].text,
+            "a bell \u{7} and a vertical tab \u{b} and a tab \t"
+        );
+        assert_eq!(seeded.segment_nquads().expect("re-serializes"), segment);
+    }
+
+    /// A record the transport cannot carry is a HARD FAIL naming the field, never a
+    /// silently dropped edge — the difference between an export that refuses and an export
+    /// that ships an incomplete snapshot.
+    #[test]
+    fn a_record_the_transport_cannot_carry_fails_naming_the_field() {
+        let calls = [ToolCallRecord {
+            id: "urn:gmeow:mcp:call:0".to_owned(),
+            tool: "not an iri".to_owned(),
+            arguments: None,
+            result: None,
+            invocation: None,
+            created: None,
+            generated: Vec::new(),
+        }];
+        let diag = claim_segment(&[], &calls).expect_err("a non-IRI tool must be refused");
+        let message = format!("{diag:?}");
+        assert!(
+            message.contains("gmeow:usedTool"),
+            "the refusal must name the field: {message}"
+        );
     }
 }

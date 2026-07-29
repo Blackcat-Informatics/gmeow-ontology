@@ -157,16 +157,18 @@ const OPS = {
   /**
    * Export the session as a `.gts` segment.
    *
-   * The claim/candidate store is read out of the engine itself (`recall` +
-   * `list_candidates`, both shipped tools) and re-graphed into the session-store segment
-   * graph, so the export carries the store AS IT STOOD, not a reconstruction.
+   * The store is read out of the engine itself — `store_segment` for the claim package
+   * (the one tool that SERIALIZES it; `recall` answers a query and returns a ranked JSON
+   * view, which is not a snapshot) and `list_candidates` for the candidate library — and
+   * re-graphed into the session-store segment graph, so the export carries the store AS IT
+   * STOOD, not a reconstruction.
    */
   async export() {
-    const claims = await callTool("recall", {});
+    const store = await callTool("store_segment", {});
     const candidates = await callTool("list_candidates", {}, ({ phase, tool, segment }) => {
       post({ event: "segment", phase, tool, segment });
     });
-    return { gts: exportSegment(session, storeReading(claims, candidates)) };
+    return { gts: exportSegment(session, storeReading(store, candidates)) };
   },
 };
 

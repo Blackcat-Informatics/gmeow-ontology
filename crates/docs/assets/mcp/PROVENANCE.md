@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -14,7 +14,7 @@ reasoning tool and never as part of the first load.
 
 This image links the DL reasoner (`gmeow-logic`) and the rubric kernel over it
 (`gmeow-slice-quality`) and NOTHING of the core tool surface. The two segments are DISJOINT
-halves of one 37-tool surface: each serves its own tools and defers the other's back with
+halves of one 38-tool surface: each serves its own tools and defers the other's back with
 the typed `mcp.segment-not-loaded` signal, so no byte is paid twice. `tools/list` is
 byte-identical across both — a deployment tier is not a reduced theory.
 

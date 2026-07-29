@@ -19,6 +19,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import {
+  GMEOW_NS,
   actionPolicyPanes,
   callTool,
   conjectureLibrary,
@@ -26,7 +27,13 @@ import {
   listTools,
   parseNQuads,
 } from "../../mcp-transport.mjs";
-import { ConsoleSession, decodePermalink, exportSegment, storeReading } from "../session.mjs";
+import {
+  ConsoleSession,
+  SESSION_STORE_GRAPH,
+  decodePermalink,
+  exportSegment,
+  storeReading,
+} from "../session.mjs";
 import { VIGNETTES } from "../examples/gallery.mjs";
 
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
@@ -353,7 +360,8 @@ test("session_export_carries_the_store_segment_graph", () => {
   // ── case 1: the store holds state AND the engine serialized it → carried ───────
   const gts = exportSegment(session, {
     nquads: "<http://example.org/claim> <http://example.org/p> \"v\" .\n",
-    heldBy: ["recall"],
+    heldBy: ["store_segment"],
+    carriedBy: ["store_segment"],
   });
   assert.match(gts, /store-segment/, "the export names its session-store segment graph");
   const stored = parseNQuads(gts.split("\n").filter((l) => !l.startsWith("#")).join("\n")).filter(
@@ -366,21 +374,53 @@ test("session_export_carries_the_store_segment_graph", () => {
   // and the export silently emitted an empty store graph. The refusal names the tool.
   for (const empty of ["", "   \n# only a comment\n"]) {
     assert.throws(
-      () => exportSegment(session, { nquads: empty, heldBy: ["recall"] }),
-      /recall reported stored state/,
+      () => exportSegment(session, { nquads: empty, heldBy: ["store_segment"], carriedBy: [] }),
+      /store_segment reported stored state/,
       "state that cannot be carried must fail the export, and the failure must name its tool",
     );
   }
   assert.throws(
-    () => exportSegment(session, { nquads: "", heldBy: ["recall", "list_candidates"] }),
-    /recall and list_candidates reported stored state/,
+    () =>
+      exportSegment(session, {
+        nquads: "",
+        heldBy: ["store_segment", "list_candidates"],
+        carriedBy: [],
+      }),
+    /store_segment and list_candidates reported stored state/,
+  );
+  // ── case 2b: PARTIAL coverage is a refusal too, and names only the uncarried half.
+  // A whole-reading "is the serialization non-empty?" test passes here — the claim
+  // package serialized — while the candidate library is dropped on the floor. That is
+  // half a snapshot claiming to be a whole one, so coverage is judged per HOLDER.
+  assert.throws(
+    () =>
+      exportSegment(session, {
+        nquads: "<http://example.org/claim> <http://example.org/p> \"v\" .\n",
+        heldBy: ["store_segment", "list_candidates"],
+        carriedBy: ["store_segment"],
+      }),
+    (error) => {
+      assert.match(error.message, /^session export: list_candidates reported stored state/);
+      assert.doesNotMatch(
+        error.message,
+        /store_segment reported/,
+        "the holder that WAS carried must not be blamed",
+      );
+      return true;
+    },
+    "a holder whose state nothing carried must fail the export, alone and by name",
   );
   // A reading that was never taken is still refused: not knowing is not the same as empty.
   assert.throws(() => exportSegment(session, undefined), /store reading is required/);
   assert.throws(() => exportSegment(session, ""), /store reading is required/);
+  assert.throws(
+    () => exportSegment(session, { nquads: "", heldBy: [] }),
+    /store reading is required/,
+    "a reading with no coverage report is not a reading — it cannot say what it carried",
+  );
 
   // ── case 3: the store holds NOTHING → exports, with no store graph at all ──────
-  const bare = exportSegment(session, { nquads: "", heldBy: [] });
+  const bare = exportSegment(session, { nquads: "", heldBy: [], carriedBy: [] });
   assert.match(bare, /ToolCall/, "a no-store session must still export its trajectory");
   assert.doesNotMatch(
     bare,
@@ -397,28 +437,96 @@ test("session_export_carries_the_store_segment_graph", () => {
   );
 });
 
+test("session_export_carries_a_stored_claim_and_the_result_parses", async () => {
+  // The defect this pins: `storeReading` used to read `store_nquads ?? nquads` off a
+  // `recall` result — fields NO engine tool returns — so `nquads` was ALWAYS `""`. A
+  // session that recorded a `recall` against a store holding a claim therefore hit the
+  // refusal on every export: the console could RECORD a session it could never EXPORT.
+  //
+  // The store BODY here is the engine's transport shape for one stored claim, written out
+  // rather than read off a live browser store, because the shipped browser engine cannot
+  // put a claim in the store this tool reads: `store_claim` lives in the reasoning image
+  // and `recall` / `store_segment` in the core image, and the two images hold SEPARATE
+  // in-process stores. That split is a real shipped defect, and it is exactly why the
+  // engine linkage is asserted separately — `session_export_drives_the_real_worker_store_read`
+  // below drives the REAL `store_segment` tool, and the segment's CONTENT is proven
+  // against both storage backends (and re-seeded through purrdf's own `Memory::store()`)
+  // by the Rust suite. What is under test HERE is the export composition: a session with a
+  // store to carry must EXPORT, and what it emits must be RDF.
+  const claim = "urn:gmeow:session:claim:0000";
+  const storeBody =
+    `<${claim}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${GMEOW_NS}ClaimToken> .\n` +
+    `<${claim}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "the launch window closes on the 14th" .\n` +
+    `<${claim}> <${GMEOW_NS}confidence> "0.8"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n`;
+  const reading = storeReading(
+    { ok: true, claim_count: 1, tool_call_count: 0, nquads: storeBody },
+    { ok: true, candidate_count: 0, candidates: [] },
+  );
+  assert.deepEqual(reading.heldBy, ["store_segment"], "the store reports it holds a claim");
+  assert.deepEqual(reading.carriedBy, ["store_segment"], "…and the reading carries it");
+
+  const session = new ConsoleSession({ id: "t4f", now: () => "2026-01-01T00:00:00Z" });
+  session.record({
+    tool: "recall",
+    schema: "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/recall",
+    args: {},
+    // The REAL engine answer for the recorded call, so the trajectory carries what the
+    // shipped engine actually returned rather than a stand-in.
+    result: await callTool("recall", { query: "launch window" }),
+  });
+
+  // The export SUCCEEDS — the whole point — and what it emitted is RDF, not a string that
+  // resembles it: every non-comment line is parsed back.
+  const gts = exportSegment(session, reading);
+  const quads = parseNQuads(gts.split("\n").filter((l) => !l.startsWith("#")).join("\n"));
+  assert.ok(quads.length > 0, "the exported segment must parse as N-Quads");
+
+  const inStore = quads.filter((q) => q.graph !== null);
+  assert.ok(inStore.length > 0, "the store rides in the named session-store graph");
+  assert.ok(
+    inStore.every((q) => q.graph.value === SESSION_STORE_GRAPH),
+    "every store quad lands in SESSION_STORE_GRAPH and nowhere else",
+  );
+  const tokens = inStore
+    .filter((q) => q.predicate.endsWith("#type") && q.object.value === `${GMEOW_NS}ClaimToken`)
+    .map((q) => q.subject.value);
+  assert.deepEqual(tokens, [claim], "the exported store carries the claim as a ClaimToken");
+  const texts = inStore
+    .filter((q) => q.subject.value === claim && q.predicate.endsWith("#value"))
+    .map((q) => q.object.value);
+  assert.deepEqual(
+    texts,
+    ["the launch window closes on the 14th"],
+    "the claim text survives into the export",
+  );
+  // …and the trajectory is still in the DEFAULT graph, where the auditor reads it.
+  assert.ok(
+    quads.some((q) => q.graph === null && q.object.value === `${GMEOW_NS}ToolCall`),
+    "the recorded trajectory stays in the default graph",
+  );
+});
+
 test("session_export_drives_the_real_worker_store_read", async () => {
   // NON-VACUOUS by construction: the store string is not hand-supplied here, it is read
-  // off the REAL results of the two shipped tools by the SAME function `OPS.export` uses.
-  // The previous test could not have observed the defect this one exists to pin, because
-  // it never touched the worker's store read at all.
-  //
-  const claims = await callTool("recall", {});
+  // off the REAL results of the two shipped tools by the SAME function `OPS.export` uses,
+  // and `store_segment` is the tool that actually serializes the store — `recall` answers
+  // a query and cannot. The previous test could not have observed the defect this one
+  // exists to pin, because it never touched the worker's store read at all.
+  const engineStore = await callTool("store_segment", {});
   const candidates = await callTool("list_candidates", {});
-  const store = storeReading(claims, candidates);
+  const store = storeReading(engineStore, candidates);
 
   const session = new ConsoleSession({ id: "t4e", now: () => "2026-01-01T00:00:00Z" });
   session.record({ tool: "recall", schema: "https://example.org/s", args: {} });
 
-  // `heldBy` is read off the tools' own answers, so it tracks the engine rather than a
-  // list kept here. Whatever it says, the export's behaviour must follow from it.
+  // The holders are read off the tools' own answers, so they track the engine rather than
+  // a list kept here. Whatever they say, the export's behaviour must follow from it.
   assert.ok(Array.isArray(store.heldBy), "the reading must report which tools hold state");
+  assert.ok(Array.isArray(store.carriedBy), "the reading must report what it carried");
   assert.equal(typeof store.nquads, "string", "the reading must report a serialization");
 
   if (store.heldBy.length === 0) {
-    // Nothing stored: the export must SUCCEED and carry no store graph. This is the case
-    // the console is actually in — it renders only the read half of the action policy, so
-    // no pane can write a claim or a candidate.
+    // Nothing stored: the export must SUCCEED and carry no store graph.
     assert.equal(store.nquads, "", "an empty store cannot produce a serialization");
     const gts = exportSegment(session, store);
     assert.match(gts, /ToolCall/, "an untouched store must not block the trajectory export");
@@ -426,12 +534,13 @@ test("session_export_drives_the_real_worker_store_read", async () => {
     return;
   }
 
-  if (store.nquads.trim().length === 0) {
-    // State exists and the engine will not serialize it. The export MUST refuse, naming
-    // the tools, so the console can never emit a snapshot that quietly dropped them.
+  const uncarried = store.heldBy.filter((tool) => !store.carriedBy.includes(tool));
+  if (uncarried.length > 0) {
+    // State exists and nothing carried it. The export MUST refuse, naming the tools, so
+    // the console can never emit a snapshot that quietly dropped them.
     assert.throws(
       () => exportSegment(session, store),
-      new RegExp(`${store.heldBy[0]}.*reported stored state`),
+      new RegExp(`${uncarried[0]}.*reported stored state`),
       "stored state that cannot be carried must FAIL the export and name its tool",
     );
     return;

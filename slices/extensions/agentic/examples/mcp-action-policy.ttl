@@ -27,7 +27,7 @@
 # precondition but NO logic:effect and NO logic:compensation, because a read changes no
 # state and a rollback obligation on it would be vacuous — see the note on ex:recall
 # below, which is the pattern every read row follows. The partition is read off the
-# ASSERTED types: 6 governed writes, 29 plain reads. (logic:McpActionSchema is a
+# ASSERTED types: 6 governed writes, 32 plain reads. (logic:McpActionSchema is a
 # SUBCLASS of logic:ActionSchema, so under the subclass-closed view every write is also
 # an ActionSchema; the partition is a statement about what is asserted, and the
 # projection the engine reads is an asserted-quad projection.)
@@ -180,7 +180,7 @@ ex:persistConjecture a logic:McpActionSchema ;
 # library. Append-only — it inserts conjecture-in-library and DELETES NOTHING (a persist
 # only adds; the library never mutates a prior segment).
 ex:persistConjectureEffect
-    rdfs:label "effect of conjecture_test"@x-gmeow-english ;
+    rdfs:label "effect of store_conjecture"@x-gmeow-english ;
     rdfs:comment "Inserts conjecture-in-library; deletes nothing — an append-only persist only adds."@x-gmeow-english ;
     logic:ins ex:conjectureInLibrary .
 
@@ -282,6 +282,13 @@ ex:recall a logic:ActionSchema ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
 
+ex:storeSegment a logic:ActionSchema ;
+    rdfs:label "store_segment — serialize the memory store for export and replay"@x-gmeow-english ;
+    rdfs:comment "A read action: projects the whole grounded-memory store — every claim and every recorded tool call, in append order — into the shared session-store transport shape, so an exported session carries the store it ran against and a replay can re-seed one from it. Shares ex:recall's capability and precondition because it reads the same store; it is a DIFFERENT action because recall answers a query with a ranked, truncated view while this returns the store's whole readable content, and a query result is not a snapshot. NO compensation — projecting stored state changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "store_segment" ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
+
 # --------------------------------------------------------------------------- #
 # The proof-carrying diagnostics READ triad — explain_quad, verify_graph,
 # coherence_certificate. Each is a plain read action over the bundle/memory
@@ -313,11 +320,11 @@ ex:coherenceCertificate a logic:ActionSchema ;
     logic:precondition ex:memoryReadable .
 
 # =========================================================================== #
-# THE REST OF THE READ SURFACE — the 25 remaining advertised consumer tools.
+# THE REST OF THE READ SURFACE — the 27 remaining advertised consumer tools.
 #
-# Together with ex:recall, ex:explainQuad, ex:verifyGraph and
-# ex:coherenceCertificate above, these are the 29 READ tools; with the 6 governed
-# writes they exhaust the 35-tool consumer surface. Every row below follows the
+# Together with ex:recall, ex:storeSegment, ex:explainQuad, ex:verifyGraph and
+# ex:coherenceCertificate above, these are the 32 READ tools; with the 6 governed
+# writes they exhaust the 38-tool consumer surface. Every row below follows the
 # ex:recall pattern EXACTLY: a plain logic:ActionSchema, one logic:capability
 # (what the engine must be able to do), one logic:precondition (what must hold in
 # the world for the call to be answerable), NO logic:effect, NO

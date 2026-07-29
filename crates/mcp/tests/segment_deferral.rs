@@ -317,8 +317,8 @@ fn a_core_deployment_advertises_the_whole_surface_and_the_whole_theory() {
         .collect();
     assert_eq!(
         advertised.len(),
-        37,
-        "the consumer surface is 37 tools in EVERY deployment tier; a lean image that \
+        38,
+        "the consumer surface is 38 tools in EVERY deployment tier; a lean image that \
          advertised fewer would be a reduced engine, not a reduced download"
     );
     for tool in REASONING_SEGMENT_TOOLS {

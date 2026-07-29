@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # `<gmeow-console>`
 
-The standalone, offline, zero-dependency GMEOW console: the same 37-tool surface an agent
+The standalone, offline, zero-dependency GMEOW console: the same 38-tool surface an agent
 drives, in a browser tab, with no server and no network.
 
 It is one custom element. Drop `<gmeow-console></gmeow-console>` on a page, load
@@ -66,9 +66,13 @@ only — never the results, so a link replays against the reader's own engine. A
 mismatch is refused, not best-effort replayed.
 
 The **`.gts` export** carries two graphs: the trajectory in the default graph, and the
-engine's claim/candidate store as it stood at export time in a named
-`gmeow:sessionStoreSegment` graph. An export without the store is refused — half a session
-snapshot is not a session snapshot.
+engine's store as it stood at export time in a named `gmeow:sessionStoreSegment` graph. The
+store is read through **`store_segment`**, the one tool that serializes it — `recall`
+answers a *query* with a ranked, truncated view of matching claims, which is not a snapshot
+of anything. Coverage is judged per holder: a collection that reported state which nothing
+carried refuses the export by name, because half a session snapshot is not a session
+snapshot. That same segment re-seeds a store for a replay, so an exported session runs again
+against a native `gmeow mcp` and answers byte-identically.
 
 ## Local preview
 

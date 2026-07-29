@@ -353,14 +353,24 @@ export function sessionFromPermalink(fragment, options = {}) {
 // ── Export ──────────────────────────────────────────────────────────────────
 
 /**
- * The engine's store reading: `{nquads, heldBy}`, taken off the `recall` and
- * `list_candidates` results that `engine.worker.mjs`'s `export` operation just made.
+ * The engine's store reading: `{nquads, heldBy, carriedBy}`, taken off the `store_segment`
+ * and `list_candidates` results that `engine.worker.mjs`'s `export` operation just made.
  *
- * * `nquads` — the engine's own serialization of the store, concatenated. Empty when the
- *   engine offers none.
+ * * `nquads` — the engine's OWN serialization of its store, as `store_segment` returned it.
  * * `heldBy` — the tools that reported ACTUAL STATE, so [`exportSegment`] can tell "there
  *   is nothing to carry" apart from "there is something to carry and I cannot carry it".
  *   Those are opposite situations and only the second is a failure.
+ * * `carriedBy` — the subset of `heldBy` whose state `nquads` actually contains. The two
+ *   lists are what make the refusal exact: an export that carried the claims and dropped
+ *   the candidate library would satisfy a "the serialization is non-empty" test while
+ *   shipping half a snapshot, so coverage is tracked per holder rather than in aggregate.
+ *
+ * `store_segment` is the ONE tool that serializes the store. `recall` deliberately is not
+ * and cannot be: it answers a QUERY with a ranked, truncated JSON view of matching claims,
+ * which is not a snapshot of anything. Reading a serialization off a `recall` (or a
+ * `list_candidates`) result is exactly the mistake this function used to make — it read
+ * `store_nquads ?? nquads`, fields NO engine tool returns, so it produced `""` on every
+ * export and the guard below never fired.
  *
  * It lives HERE, beside its one consumer [`exportSegment`], rather than inline in the
  * worker, for two reasons. It is the worker's only DOM-free, engine-free step, so keeping
@@ -369,35 +379,34 @@ export function sessionFromPermalink(fragment, options = {}) {
  * is real. And the pairing is the contract: the reader and the refusal belong together,
  * so a field rename on one side cannot drift past the other unnoticed.
  *
- * # Why `heldBy` is read off the RESULTS, not off the recorded trajectory
+ * # Why the holders are read off the RESULTS, not off the recorded trajectory
  *
  * The alternative is to scan the trajectory for store-touching tool names. That is
- * strictly weaker AND needs a list. Weaker, because `export` calls `recall` and
- * `list_candidates` on EVERY export: the store's whole state is observed at export time
- * regardless of what the reader happened to click, so a trajectory scan is a proxy for a
- * fact already in hand. And it misreads the common case — a session that called `recall`
- * and got nothing back recorded a store-touching invocation but has no state to lose, so
- * a name-based rule would refuse an export that is perfectly complete. Asking the store
- * what it holds needs no list of tool names to keep in sync with the engine, which is the
- * whole point.
+ * strictly weaker AND needs a list. Weaker, because `export` asks the store what it holds
+ * on EVERY export: the store's whole state is observed at export time regardless of what
+ * the reader happened to click, so a trajectory scan is a proxy for a fact already in
+ * hand. And it misreads the common case — a session that called `recall` and got nothing
+ * back recorded a store-touching invocation but has no state to lose, so a name-based rule
+ * would refuse an export that is perfectly complete. Asking the store what it holds needs
+ * no list of tool names to keep in sync with the engine, which is the whole point.
  *
  * It deliberately mints NOTHING. The RDF shape of a stored claim is owned by the engine's
  * store; re-deriving quads here from the returned JSON would be a second source of truth
  * for that shape, and a silent one — the store could change shape and nothing would fail.
- * If the engine carries no serialization this reports the empty string; it never invents
- * a substitute.
  */
-export function storeReading(claims, candidates) {
-  const nquads = [
-    claims.store_nquads ?? claims.nquads ?? "",
-    candidates.store_nquads ?? candidates.nquads ?? "",
-  ]
-    .filter((text) => typeof text === "string" && text.trim().length > 0)
-    .join("\n");
+export function storeReading(store, candidates) {
+  const nquads = typeof store.nquads === "string" ? store.nquads : "";
   const heldBy = [];
-  if (Array.isArray(claims.claims) && claims.claims.length > 0) heldBy.push("recall");
+  const carriedBy = [];
+  if (Number(store.claim_count ?? 0) > 0 || Number(store.tool_call_count ?? 0) > 0) {
+    heldBy.push("store_segment");
+    if (nquads.trim().length > 0) carriedBy.push("store_segment");
+  }
+  // The candidate library is a SEPARATE append-only collection, not part of the claim
+  // package `store_segment` serializes, so it is held and never carried. Saying so is the
+  // point: the export then refuses instead of shipping a snapshot missing the candidates.
   if (Number(candidates.candidate_count ?? 0) > 0) heldBy.push("list_candidates");
-  return { nquads, heldBy };
+  return { nquads, heldBy, carriedBy };
 }
 
 /**
@@ -413,19 +422,22 @@ export function storeReading(claims, candidates) {
  *    property that locates a call's audit record inside the append-only store, and each
  *    call's segment identifier is recorded on the call itself.
  *
- * `store` is the [`storeReading`] the engine just gave us — `{nquads, heldBy}`, never a
- * bare string. The reading is REQUIRED (an export that never asked the store what it held
- * cannot know whether it dropped anything), but an EMPTY store is not an error.
+ * `store` is the [`storeReading`] the engine just gave us — `{nquads, heldBy, carriedBy}`,
+ * never a bare string. The reading is REQUIRED (an export that never asked the store what
+ * it held cannot know whether it dropped anything), but an EMPTY store is not an error.
  *
  * The refusal is scoped to the case where state actually exists and cannot be carried:
  *
  *  * `heldBy` empty — the store holds nothing. There is nothing to drop, so the export
  *    succeeds and carries the trajectory alone. A session that parsed some Turtle and ran
  *    `convert` is perfectly exportable and is not made less so by an untouched store.
- *  * `heldBy` non-empty and `nquads` empty — the store holds state the engine will not
- *    serialize. THAT is the hard failure, and it names the tools whose state cannot be
- *    carried, because an export that quietly shipped without them would claim to be a
- *    session snapshot while carrying half of one.
+ *  * a holder in `heldBy` that is not in `carriedBy` — that collection holds state the
+ *    engine will not serialize. THAT is the hard failure, and it names the tools whose
+ *    state cannot be carried, because an export that quietly shipped without them would
+ *    claim to be a session snapshot while carrying half of one. Checking coverage per
+ *    HOLDER rather than in aggregate is deliberate: a whole-reading "is the serialization
+ *    non-empty?" test passes as soon as any one collection serializes, which is exactly
+ *    the half-a-snapshot case.
  *
  * Note what this does NOT do: when the store is empty it emits no `SESSION_STORE_GRAPH`
  * quads at all, rather than an empty named graph. An empty graph would imply the store
@@ -435,22 +447,23 @@ export function storeReading(claims, candidates) {
  * "Empty" is judged on the QUADS the reading contributes, not on a field's type. A
  * `typeof store !== "string"` test accepts `""`, and `""` reaches the end of this
  * function as an empty `storeLines` — precisely the storeless export described above.
- * That was not hypothetical: `engine.worker.mjs` reads `store_nquads`/`nquads` off
- * `recall` and `list_candidates`, neither of which carries either field, so it passed
- * `""` here on every export and no refusal ever fired. A guard a real caller walks
- * straight through is not a guard.
+ * That was not hypothetical: the worker used to read `store_nquads`/`nquads` off `recall`
+ * and `list_candidates`, neither of which carries either field, so it passed `""` here on
+ * every export and no refusal ever fired. A guard a real caller walks straight through is
+ * not a guard.
  */
 export function exportSegment(session, store) {
   if (
     store === null ||
     typeof store !== "object" ||
     typeof store.nquads !== "string" ||
-    !Array.isArray(store.heldBy)
+    !Array.isArray(store.heldBy) ||
+    !Array.isArray(store.carriedBy)
   ) {
     throw new Error(
       "session export: the wasm claim/candidate store reading is required — an export that " +
         "never asked the store what it held cannot know whether it dropped anything. Pass the " +
-        "`{nquads, heldBy}` value `storeReading` returns.",
+        "`{nquads, heldBy, carriedBy}` value `storeReading` returns.",
     );
   }
   const graph = `<${SESSION_STORE_GRAPH}>`;
@@ -464,9 +477,14 @@ export function exportSegment(session, store) {
       const body = line.replace(/\s*\.\s*$/, "");
       return `${body} ${graph} .`;
     });
-  if (storeLines.length === 0 && store.heldBy.length > 0) {
+  // A holder whose state nothing carried, plus the case where the reading claimed coverage
+  // but every line it offered was a comment: both are "state exists and did not travel".
+  const uncarried = store.heldBy.filter(
+    (tool) => !store.carriedBy.includes(tool) || storeLines.length === 0,
+  );
+  if (uncarried.length > 0) {
     throw new Error(
-      `session export: ${store.heldBy.join(" and ")} reported stored state, but the engine ` +
+      `session export: ${uncarried.join(" and ")} reported stored state, but the engine ` +
         "returned no serialization for it, so the store segment carried no quads. Exporting the " +
         "trajectory alone would silently drop that state and still call itself a session snapshot.",
     );
