@@ -381,6 +381,7 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | No projection silently converts confidence to probability | Rust validator (`check_math_projection_confidence_as_probability`) | `math:ProjectionConfidenceAsProbability` |
 | No projection silently drops distribution parameterization | Rust validator (`check_math_projection_dropped_parameterization`) | `math:ProjectionDroppedParameterization` |
 | No projection flattens an expression AST to a string without recording loss | Rust validator (`check_math_unrecorded_projection_loss`) | `math:UnrecordedProjectionLoss` |
+
 > **Why these five name the native validator and not a projection producer.** No production
 > `math:` projection producer emits `math:ProjectionRecord` individuals today — the shipped bundle
 > carries none, and the authored records live in slice fixtures. A charter row must name the
