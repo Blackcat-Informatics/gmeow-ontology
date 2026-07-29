@@ -1646,6 +1646,15 @@ pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFac
         let subject = edb.term_value(quad.s);
         let object = edb.term_value(quad.o);
         edb_facts.push_quad(&subject, predicate, &object, world);
+
+        // Lower a canonically spelled subsumption edge onto its `rdfs:` twin. The
+        // fixed EL/DL calculi fire on the `rdfs:` names, so without this an axiom
+        // authored in the CANONICAL `logic:` vocabulary reaches the engine and is
+        // silently dropped — strictly weaker reasoning for the same asserted fact
+        // (see `rl::CANONICAL_SUBSUMPTION_LOWERINGS`).
+        if let Some(projected) = rl::rdfs_projection_of(predicate) {
+            edb_facts.push_quad(&subject, projected, &object, world);
+        }
     }
     Ok(edb_facts)
 }

@@ -165,8 +165,32 @@ use session_common::*;
 /// THIRD value — neither branch's nor main's. Every contributing change is a pure
 /// refactor or a visibility widening, so the fixed edge-only input's reasoning verdict is
 /// unchanged.
+///
+/// Re-blessed once more for the CANONICAL-SUBSUMPTION INGESTION LOWERING. **This one is NOT a
+/// refactor: it deliberately GROWS the reasoning closure.** Until now the engine could not see
+/// the canonical `logic:` subsumption vocabulary AT ALL — the fixed EL/RL/DL calculi key
+/// exclusively on `rdfs:subClassOf` / `rdfs:subPropertyOf`, and nothing between the slice
+/// sources and the chase lowered the canonical spelling onto them (`stages/reason.rs`
+/// "canonicalize" is RDFC-1.0 blank-node canonicalization, not a vocabulary lowering). Every
+/// IRI-to-IRI subsumption axiom authored as `logic:subClassOf` / `logic:subPropertyOf` was
+/// therefore parsed, carried into the EDB, and then silently ignored by every rule — a
+/// no-optionality violation, since the canonical spelling entailed strictly LESS than the same
+/// axiom spelled `rdfs:`. `reason/rl.rs` (`encode_generic_edb`) and `reason/mod.rs`
+/// (`build_edb_facts`) now apply the lowering at the INGESTION boundary, so both folded source
+/// axes move AND the closure over any canonically-authored ontology is genuinely larger.
+///
+/// The asserted content of the ontology did not change; what changed is that the engine now
+/// derives what that content already said. Two entailment tests that were red — the sensory
+/// slice's `SensoryQuantity ⊑ math:Quantity` subsumption and the `sensoryResult ⊑
+/// observationResult` step of the `isResultOf ∘ hasReferenceFrame` frame-inheritance chain —
+/// go green, and no other verdict in the suite moves: every negative/consistency test
+/// (`smoke_property_chain_entailment_and_negative`, `non_factive_siblings_do_not_collapse_into_belief`,
+/// `dl_consistency_gate_catches_injected_disjoint_clash`, the `dl_oracle_gold` corpus) still
+/// holds, so the growth is exactly the previously-dropped subsumption and nothing spurious.
+/// The fixed edge-only input below authors no subsumption at all, so ITS reasoning verdict is
+/// unchanged — only the folded source digest moves for it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4055dfd15bf5d7dcbb09d52a37c6817d196482efb67ce1acd4d6089882f92b75";
+    "e2c57f34e158e7db8f178aaa3cafeefc2b7866366d41a3d7e57440740baae7ba";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -233,8 +257,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// THIRD value — neither branch's nor main's. Every contributing change is a pure
 /// refactor or a visibility widening, so the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the canonical-subsumption ingestion lowering (see the
+/// engine-descriptor golden above, which records why this one is a genuine semantics change
+/// and not a refactor): the native contract hash is one of the seven folded identity axes and
+/// moves with the changed `reason/rl.rs` + `reason/mod.rs` source. The fixed edge-only input
+/// authors no `logic:subClassOf` / `logic:subPropertyOf` edge, so the lowering is inert on it
+/// and its reasoning verdict is unchanged — only the folded digest moves.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "9027159a020205a0c78fa32ae8d2034576cfa34342865e53367b9183a087d606";
+    "2d6242e9748d366fbcf97aa7eae11e611dbd956577d22efb56d27554cd1f2cfd";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
