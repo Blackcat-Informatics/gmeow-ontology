@@ -81,6 +81,11 @@ mod physical;
 pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
+/// The public STRUCTURED proof view: a checked backward-engine proof as a step TREE
+/// ([`proof_tree::ProofTree`]) with parent edges, asserted leaves, and content-addressed
+/// step identities, plus its TSTP derivation projection — the proof-as-process surface
+/// [`goal_directed`]'s single `derivation_iri` hash cannot carry.
+pub mod proof_tree;
 pub mod provenance;
 /// Verified PURREMB external-relation provider: a query-scoped nearest-neighbour relation
 /// over a fully verified embedding artifact, exposing retrieved RDF 1.2 identities to the
@@ -116,6 +121,11 @@ pub mod store;
 /// in-crate benches and the `gmeow-conformance` bench-corpus loader.
 pub mod synth_corpus;
 pub mod teleology;
+/// The shared structured-term arena's façade (`ContentKey` / `TermArena` / `StructNode` /
+/// `InterningStats`, re-exported from the reasoner-free [`gmeow_term_arena`] crate) plus
+/// [`term_arena::MathGraphInterning`] — the thin `math:`-graph interning wrapper, which
+/// lives here because it needs this crate's `purrdf`-backed `math:` expression lowering.
+pub mod term_arena;
 mod term_codec;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general
 /// existential program per broader chase-termination class, each in its own world).

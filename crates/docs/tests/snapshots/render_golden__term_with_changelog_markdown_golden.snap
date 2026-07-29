@@ -2,36 +2,29 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Affect Scale Profile
+# Account Status
 
-`gmeow:AffectScaleProfile` · Class
+`gmeow:AccountStatus` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AffectScaleProfile` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AffectScaleProfile` |
+| CURIE | `gmeow:AccountStatus` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AccountStatus` |
 | Category | Class |
-| Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
+| Slice | [GMEOW Accounts Module](../../slices/accounts/index.md) |
 
-![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
 
 ## Definition
 
-The declared reference frame a numeric affect reading is expressed against: its range \(gmeow:profileRangeMin/gmeow:profileRangeMax\), midpoint \(gmeow:profileMidpoint\), polarity \(gmeow:profilePolarity — bipolar/unipolar\), and normalization transform \(gmeow:profileTransform\)\. A magnitude on an affect axis is meaningless without one \(Principle 11: a value asserted without its frame is ill\-formed\)\. Scale arithmetic — normalization, cross\-scale conversion, and the metric under which magnitudes combine into an intensity — is solver work outside the logic \(Principle 12\); the profile DECLARES the frame, it does not compute in triples\. The affect\-domain analogue of the rubrics facility's gmeow:ScoreScale: a distinct declared frame for a numeric affect reading, not a rubric's judging scale, so the two axes stay separately identified\.
+The usage status of an account from its holder's standpoint — a VALUE vocabulary \(active, dormant, historical, …\); open set\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AffectScaleProfile ;
-    gmeow:metricGram <...> ;  # math:GramMatrix
-    gmeow:profileMidpoint "..." ;  # xsd:decimal
-    gmeow:profilePolarity <...> ;  # gmeow:ScalePolarity
-    gmeow:profileRangeMax "..." ;  # xsd:decimal
-    gmeow:profileRangeMin "..." ;  # xsd:decimal
-    gmeow:profileTransform "..." ;  # xsd:string
-    gmeow:sparseAxisCompletion "..." .  # xsd:boolean
+<subject> a gmeow:AccountStatus .
 ```
 
 ## Example in multiple syntaxes
@@ -39,14 +32,7 @@ The declared reference frame a numeric affect reading is expressed against: its 
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AffectScaleProfile ;
-    gmeow:metricGram <...> ;  # math:GramMatrix
-    gmeow:profileMidpoint "..." ;  # xsd:decimal
-    gmeow:profilePolarity <...> ;  # gmeow:ScalePolarity
-    gmeow:profileRangeMax "..." ;  # xsd:decimal
-    gmeow:profileRangeMin "..." ;  # xsd:decimal
-    gmeow:profileTransform "..." ;  # xsd:string
-    gmeow:sparseAxisCompletion "..." .  # xsd:boolean
+<subject> a gmeow:AccountStatus .
 ```
 
 **JSON\-LD**
@@ -59,84 +45,38 @@ The declared reference frame a numeric affect reading is expressed against: its 
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"
+          "@id": "https://blackcatinformatics.ca/gmeow/AccountStatus"
         }
-      ],
-      "https://blackcatinformatics.ca/gmeow/metricGram": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/profileMidpoint": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/profilePolarity": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/profileRangeMax": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/profileRangeMin": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/profileTransform": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/sparseAxisCompletion": {
-        "@value": "..."
-      }
+      ]
     }
   ]
 }
 ```
 
-## Neighborhood
-
-![Term neighborhood](../../diagrams/terms/affectscaleprofile.svg)
-
-## Super\-classes
-
-- [`gmeow:InformationObject`](../informationobject/index.md)
-
 ## Usage Advice
 
-- **Example:** ex:padUnitScale a gmeow:AffectScaleProfile ; gmeow:profileRangeMin \-1\.0 ; gmeow:profileRangeMax 1\.0 ; gmeow:profileMidpoint 0\.0 ; gmeow:profilePolarity gmeow:polarityBipolar \.
-- **Use when:** Use to declare the scale/frame a numeric affect magnitude is read against — range, midpoint, polarity, and normalization transform — so a reading carries its own interpretation\.
-- **Avoid when:** Avoid encoding normalization or cross\-scale conversion arithmetic in triples \(that is solver work — Principle 12\), and avoid a bare numeric reading with no profile — an unframed magnitude is ill\-formed, not a default\.
-- **How to use:** Mint the profile with gmeow:profileRangeMin / gmeow:profileRangeMax \(and gmeow:profileMidpoint / gmeow:profilePolarity / gmeow:profileTransform as the tradition declares\), then bind every gmeow:appraisalValue to it via gmeow:appraisalScaleProfile and name a vector reading's basis via gmeow:vectorProfile\.
-
-## Examples using this term
-
-- [the \(valence, arousal, dominance, unpredictability\) coordinate basis](../../slices/affect/index.md) — `examples/classify-canonical-prototype.ttl`
-- [PAD unit scale](../../slices/affect/index.md) — `examples/intensity-discriminating.ttl`
-- [PAD unit scale](../../slices/affect/index.md) — `examples/saudade.ttl`
-- [PAD unit scale](../../slices/affect/index.md) — `examples/two-critics.ttl`
+- **Example:** ex:accountStatusHistorical a gmeow:AccountStatus \.
+- **Use when:** Use as the value vocabulary for an account's usage state from the holder's standpoint — the open set \(active, dormant, historical, …\) an OnlineAccount declares through gmeow:accountStatus\.
+- **Avoid when:** Avoid for the underlying service's liveness \(use gmeow:ServiceStatus\) and avoid per\-status subclasses; statuses are individuals on an open value vocabulary\.
+- **How to use:** Reference the seeded gmeow:AccountStatus individuals from an account via gmeow:accountStatus; a retired account takes the historical value and is kept on record rather than deleted \(P10\)\.
 
 ## Profiles
 
-- `full` · `narrative`
+- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative` · `purremb`
 
 ## Formal & academic
 
-## Description\-Logic axioms
-
-```text
-gmeow:AffectScaleProfile ⊑ gmeow:InformationObject
-```
-
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
-## Formalized by
-
-- `gmeow:AffectScaleProfileRangeConstraint`
-
 ## Documentation coverage
 
-- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
@@ -150,8 +90,8 @@ gmeow:AffectScaleProfile ⊑ gmeow:InformationObject
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectScaleProfile>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectScaleProfile@blake3:3ec8a220d41528579f2bd67d02e1c5ecea93fb3be8a2ed7412b8fdc419bfe9af`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AccountStatus>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AccountStatus@blake3:3897d1a6b630b6a9cfad9926d32c2efa54969c4ec96c01c156bb25e56c5bb977`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

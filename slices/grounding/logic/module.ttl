@@ -18274,7 +18274,7 @@ logic:LogicConformanceFailure
 
 logic:IncompleteClosure
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Incomplete Closure"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:ClosureAcceptanceWitness — the acceptance record of an EL→RL→DL reasoning closure — declares no logic:closureEntailedAtom, i.e. names no atom the closure entails beyond its asserted EDB. A closure that adds nothing is either trivial or truncated; the flagship's guarantee is that the native reason_all closure genuinely derives new entailed atoms, so a witness carrying none is ill-formed and the gate rejects it."@x-gmeow-english ;
@@ -18282,7 +18282,7 @@ logic:IncompleteClosure
 
 logic:SectionObligationViolated
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Section Obligation Violated"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:SectionAcceptanceWitness — the acceptance record of a correspondence section-law discharge — names no logic:dischargesSectionObligation edge, i.e. claims a get/put leg pair round-trips without pointing at the section obligation it discharges. The section law (put ∘ get = identity) is the correspondence's teeth; a witness that discharges no obligation is unfalsifiable, so the gate rejects it (LOGIC-CORRESPONDENCE.md)."@x-gmeow-english ;
@@ -18290,7 +18290,7 @@ logic:SectionObligationViolated
 
 logic:UnentrenchedCounterfactual
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unentrenched Counterfactual"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:CounterfactualAcceptanceWitness — the acceptance record of a Stratum-C counterfactual resolution — names no logic:selectedByEntrenchment outcome, i.e. resolves an antecedent without recording the entrenchment-ranked selection that made the result deterministic. A counterfactual whose outcome is not tied to an entrenchment ordering is a silent, arbitrary choice; the flagship's guarantee is a deterministic entrenchment-ranked selection, so a witness with none is ill-formed (LOGIC-SEMANTICS.md)."@x-gmeow-english ;
@@ -18298,7 +18298,7 @@ logic:UnentrenchedCounterfactual
 
 logic:UnwitnessedRefutation
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unwitnessed Refutation"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:RefutationAcceptanceWitness — the acceptance record of a symmetric φ/¬φ conjecture test whose verdict is a refutation — names no logic:namesContradictionWitness, i.e. claims the conjecture was refuted without pointing at the concrete logic:ContradictionWitness that carries the clash. A refutation with no replayable witness is an assertion, not a proof; the flagship's guarantee is that conjecture_test returns a concrete witness on a refutation, so a witness-less refutation record is ill-formed (LOGIC-CONTRACT.md)."@x-gmeow-english ;
@@ -18306,7 +18306,7 @@ logic:UnwitnessedRefutation
 
 logic:UncertifiedChase
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Uncertified Chase"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_existential_rules surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
@@ -18356,7 +18356,10 @@ logic:UnwiredFlagshipScenario
 # class to lie in the transitive LogicConformanceFailure hierarchy; the projector emits the SHACL
 # path check and preserves the exact failure type attached to this validation obligation. The
 # rdf:type guard is carried inside the formula so this grounding slice does not re-own or retype the
-# test-DSL's gmeow:FlagshipScenario term.
+# test-DSL's gmeow:FlagshipScenario term. The membership atom names logic:subClassOf, not
+# rdfs:subClassOf: this slice's failure lattice asserts its subsumption on the canonical logic:
+# predicate, and rdfs:subClassOf is a downstream projected view — a law that read the view would
+# see nothing in the authored TBox and vacuously pass every scenario.
 logic:FlagshipScenarioFailureClassConstraint
     a logic:Constraint ;
     rdfs:label "Flagship scenario failure-class constraint"@x-gmeow-english ;
@@ -18378,7 +18381,7 @@ logic:fsfcFailurePath a logic:Formula ; logic:relation gmeow:enforcesFailureClas
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
 logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/logic/" ] .
-logic:fsfcMembership a logic:Formula ; logic:relation rdfs:subClassOf ;
+logic:fsfcMembership a logic:Formula ; logic:relation logic:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 
 # =========================================================================== #

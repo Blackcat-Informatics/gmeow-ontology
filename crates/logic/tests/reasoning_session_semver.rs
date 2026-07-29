@@ -145,8 +145,35 @@ use session_common::*;
 /// silently lost the rest. `relational_core.rs` is a folded engine-source axis, so its bytes
 /// and the folded descriptor move. The fixed edge-only input authors no enactment record, so
 /// no reasoning verdict on it changes; only the identity moved.
+/// Re-blessed once more when the hash-consed structured-term arena was relocated out of
+/// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
+/// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
+/// moving `physical/term_dag.rs` + `physical/term_key.rs` to `term-arena/src/` — and
+/// splitting the atom dictionary into `interner.rs` and the term rendering into
+/// `display.rs` — changes the folded source-content digest on that axis. The relocation is
+/// byte-for-byte behaviour-preserving (the same netstring fold, the same de-Bruijn
+/// encoding, the same interning constructors), so no reasoning verdict on any input
+/// changes.
+/// Re-blessed once more for the public STRUCTURED proof view (`proof_tree.rs`): reading a
+/// checked proof term as a step TREE requires `physical/proof.rs`'s `ProofShape` decoder and
+/// its `classify` entry to be `pub(crate)` (a second decode of the `App` proof framing would
+/// be a forked duplicate of the one place it is parsed), and `physical/proof.rs` is folded via
+/// `include_str!` into `backward_source_hash`, so the raw source-content digest moves. The
+/// change is visibility-only — no constructor, checker rule, or minting recipe is touched — so
+/// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
+/// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
+/// `goal_directed.rs`, so it adds nothing to the digest.)
+/// Re-blessed on integrating main, and for the same structural reason as the earlier
+/// integration note above: BOTH sides had moved this golden away from the merge base, so
+/// neither branch's value is correct for the merged engine. The descriptor folds this
+/// branch's enactment-gate registration and law-identity fix together with main's term-arena
+/// relocation and `proof.rs` visibility change, producing a THIRD value that is not a choice
+/// between the two. It was recomputed from the merged engine rather than resolved by taking a
+/// side — taking a side here would pin a hash that no build actually produces. Every
+/// contributing change is individually verdict-preserving on the fixed edge-only input, so
+/// only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "054ae04f0e4d29b829baf051bb5060a9ce584bfd72e63eed2b9462348185e306";
+    "6d61c466e55e52f1889839fcf8e53c806c9e01264aefff893869b07d285fdb71";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -213,8 +240,19 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed again for the same reason as the engine descriptor above: the violation
 /// rules' head tuple now names the law that drew the conclusion, moving `relational_core.rs`
 /// and therefore the fixed-input session identity with it.
+/// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// with the arena's new crate-relative source paths, while the fixed edge-only input's
+/// reasoning verdict is unchanged.
+/// Re-blessed once more for the public structured proof view (see the engine-descriptor
+/// golden above): the backward-source digest is one of the seven folded identity axes and
+/// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
+/// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed on integrating main, for the same reason as the engine descriptor above: both
+/// sides had moved this golden away from the merge base, so the merged identity is a third
+/// value recomputed from the merged engine rather than a choice between the two sides.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "946c5b7fce7aa3c2f73b6c01cd00d8fc47d83f743910aa3fe011a430376bfd3d";
+    "85d02e07d4fb9234121c0ad4971f207c982ea4959ce32411c14825d45b49cb7c";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

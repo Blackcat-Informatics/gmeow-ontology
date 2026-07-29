@@ -1088,7 +1088,10 @@ fn formula_residue_reason(source: &Formula, reason: &str) -> String {
         .map(|s| s.as_str())
         .collect::<Vec<_>>()
         .join("+");
-    format!("{reason} [{tags}] [{}]", sha256_12(&source.content_key()))
+    format!(
+        "{reason} [{tags}] [{}]",
+        sha256_12(source.content_key().as_str())
+    )
 }
 
 /// Flatten a (possibly nested) disjunction into its flat list of clause literals. NNF
@@ -1525,7 +1528,7 @@ fn skolemize(formula: Formula) -> Formula {
     if !matches!(formula, Formula::Exists { .. }) {
         return formula;
     }
-    let seed = sha256_12(&formula.content_key());
+    let seed = sha256_12(formula.content_key().as_str());
     let mut names: Vec<String> = Vec::new();
     let matrix = peel_exists(formula.clone(), &mut names);
     if has_quantifier(&matrix) {

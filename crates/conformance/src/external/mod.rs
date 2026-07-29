@@ -56,6 +56,6 @@ pub use ontouml::{
 pub use status::{ExternalOutcome, outcome_for_szs};
 pub use szs::{outcome_from_szs, parse_szs_status};
 pub use tptp::{
-    AnnotatedFormula, LoweredProblem, LoweringGap, TPTP_NS, TptpError, TptpRole, lower_and_decide,
-    lower_problem, parse_tptp,
+    AnnotatedFormula, LoweredProblem, LoweringGap, TPTP_NS, TptpError, TptpRole, TptpSource,
+    TstpTerm, lower_and_decide, lower_problem, lower_to_fol_program, parse_tptp,
 };

@@ -1,23 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `math_producers` stage: fold the eight `math:` producers' output into the carrier
+//! The `math_producers` stage: fold the ten `math:` producers' output into the carrier
 //! (Design A).
 //!
 //! Each flagship-acceptance scenario in
 //! `slices/grounding/math/examples/flagship-acceptance.ttl` names a native producer entrypoint
-//! (`gmeow:demonstratedByProducer`). Those entrypoints are five deterministic,
-//! exact-arithmetic functions in [`gmeow_math::producers`]; each returns a byte-deterministic
-//! RDF graph fragment (Turtle) built from constants + formatted exact integers/rationals. A
-//! SIXTH producer, [`gmeow_math::producers::probability_model_seam`], folds the same way but
+//! (`gmeow:demonstratedByProducer`). Those entrypoints are five deterministic functions in
+//! [`gmeow_math::producers`]; four build a byte-deterministic RDF graph fragment (Turtle) from
+//! constants + formatted exact integers/rationals, and the fifth — the `rBridge` flagship's
+//! [`gmeow_math::producers::r_lift`] — RUNS the shipped R front-end over a real committed
+//! script. [`gmeow_math::producers::probability_model_seam`] folds the same way but
 //! is NOT bound to a flagship scenario — it exists solely to carry the probability layer's
-//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`. A SEVENTH producer,
+//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`.
 //! [`gmeow_math::producers::pvalue_tri_slice`], likewise non-flagship, carries the signature
-//! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`.
-//! An EIGHTH producer, [`gmeow_math::producers::clifford_twelve_thirteen`], calculates both
+//! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`, and
+//! [`gmeow_math::producers::clifford_twelve_thirteen`] calculates both
 //! exact `Cl(12)` → `Cl(13)` positive extensions without changing the five-flagship contract.
+//! [`gmeow_math::producers::r_lift`], [`onnx_lift`](gmeow_math::producers::onnx_lift), and
+//! [`proof_lift`](gmeow_math::producers::proof_lift) are the EXECUTABLE ingestion lifts:
+//! each runs the shipped `gmeow_math_lift` front-end (the same entrypoint the `gmeow` CLI
+//! calls) over a real committed artifact embedded in the binary at compile time, so the
+//! bundle carries the output of the actual R / ONNX / TSTP parsers rather than a hand-written
+//! imitation of them. Only `r_lift` is flagship-bound; the manifest stays at exactly five.
 //!
-//! This stage RUNS all eight and parses each producer's `.turtle` into its own named carrier
+//! This stage RUNS all ten and parses each producer's `.turtle` into its own named carrier
 //! graph ([`crate::stages::carrier::MATH_PRODUCER_GRAPHS`], in producer order). The snapshot
 //! presenter reads those graphs back via `producer_graph` and folds them into `gmeow.gts`, so
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
@@ -25,6 +32,9 @@
 //!
 //! The graph content comes ONLY from the producers: no hand-typed constant, no disk read, no
 //! clock, no randomness (the producers are pure), so the attached dataset is byte-deterministic.
+//! That holds for the three lift producers precisely BECAUSE their sources are `include_str!` /
+//! `include_bytes!` compile-time embeddings — the bytes ride the binary, never the machine that
+//! ran the build, and every IRI they mint is a content digest of those bytes.
 //! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
 
 use std::collections::BTreeMap;
@@ -33,10 +43,10 @@ use std::path::Path;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
 
-/// Run the eight producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
+/// Run the ten producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
 /// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
 /// the snapshot presenter (both index into `MATH_PRODUCER_GRAPHS`).
-fn producer_turtles() -> [(&'static str, String); 8] {
+fn producer_turtles() -> [(&'static str, String); 10] {
     [
         (
             MATH_PRODUCER_GRAPHS[0],
@@ -52,29 +62,37 @@ fn producer_turtles() -> [(&'static str, String); 8] {
         ),
         (
             MATH_PRODUCER_GRAPHS[3],
-            gmeow_math::producers::r_bridge_lift().turtle,
-        ),
-        (
-            MATH_PRODUCER_GRAPHS[4],
             gmeow_math::producers::exact_pca_residual().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[5],
+            MATH_PRODUCER_GRAPHS[4],
             gmeow_math::producers::probability_model_seam().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[6],
+            MATH_PRODUCER_GRAPHS[5],
             gmeow_math::producers::pvalue_tri_slice().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[7],
+            MATH_PRODUCER_GRAPHS[6],
             gmeow_math::producers::clifford_twelve_thirteen().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[7],
+            gmeow_math::producers::r_lift().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[8],
+            gmeow_math::producers::onnx_lift().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[9],
+            gmeow_math::producers::proof_lift().turtle,
         ),
     ]
 }
 
 /// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream product
-/// (the producers are self-contained native functions) and attaches the eight producer graphs to
+/// (the producers are self-contained native functions) and attaches the ten producer graphs to
 /// its carrier dataset.
 pub struct MathProducersStage {
     consumes: Vec<String>,
@@ -122,7 +140,14 @@ impl Stage for MathProducersStage {
         // non-flagship producer carrying the signature lang: -> logic: -> math: round-trip).
         // v4: additionally fold the exact Cl(12) -> Cl(13) producer's graph (an eighth,
         // non-flagship producer carrying both positive-extension calculations).
-        "math_producers.v4"
+        // v5: additionally fold the three EXECUTABLE lift producers' graphs (r_lift,
+        // onnx_lift, proof_lift) — the shipped gmeow_math_lift front-ends run over real
+        // committed artifacts embedded at compile time.
+        // v6: RETIRE the r_bridge_lift graph (graph/math-producers/r-bridge). That producer
+        // parsed nothing — it pushed a fixed Turtle string — and r_lift, which runs the real
+        // R front-end over a committed script and emits a strictly richer math:RIngestRun,
+        // fully subsumes it. Ten graphs now, and the rBridge flagship names r_lift.
+        "math_producers.v6"
     }
     fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // No source files: the producers are self-contained native functions whose bytes ride
@@ -157,11 +182,11 @@ impl Stage for MathProducersStage {
 mod tests {
     use super::*;
 
-    /// The stage attaches EXACTLY the eight producer graphs, each non-empty and carrying its
+    /// The stage attaches EXACTLY the ten producer graphs, each non-empty and carrying its
     /// producer's pinned content — the proof the producer output reaches the carrier (and thence
     /// `gmeow.gts`), not merely a test.
     #[test]
-    fn run_attaches_the_eight_producer_graphs() {
+    fn run_attaches_the_ten_producer_graphs() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
         let out = stage
@@ -202,6 +227,44 @@ mod tests {
             purrdf::canonical_flat_nquads(a.product.dataset()).expect("canon a"),
             purrdf::canonical_flat_nquads(b.product.dataset()).expect("canon b"),
             "the math-producers carrier dataset must be deterministic"
+        );
+    }
+
+    /// [`producer_turtles`] and [`MATH_PRODUCER_GRAPHS`] are INDEX-ALIGNED: the pairing is
+    /// the single source of the producer→graph mapping the snapshot presenter also indexes
+    /// into, so a producer appended to one array and not the other would silently reroute a
+    /// graph's content. The arrays are equal length and slot `i` carries `graphs[i]`.
+    #[test]
+    fn producer_turtles_is_index_aligned_with_the_graph_table() {
+        let turtles = producer_turtles();
+        assert_eq!(
+            turtles.len(),
+            MATH_PRODUCER_GRAPHS.len(),
+            "every producer must have exactly one target graph"
+        );
+        for (i, (graph_iri, turtle)) in turtles.iter().enumerate() {
+            assert_eq!(
+                *graph_iri, MATH_PRODUCER_GRAPHS[i],
+                "producer slot {i} must target MATH_PRODUCER_GRAPHS[{i}]"
+            );
+            assert!(
+                !turtle.is_empty(),
+                "producer slot {i} (<{graph_iri}>) emitted no Turtle"
+            );
+        }
+    }
+
+    /// Every producer graph IRI is DISTINCT. Two producers sharing a graph would union their
+    /// content into one named graph and drop the other's slot entirely — a silent merge the
+    /// per-graph quad-count check above could not see.
+    #[test]
+    fn every_producer_graph_iri_is_distinct() {
+        let distinct: std::collections::BTreeSet<&str> =
+            MATH_PRODUCER_GRAPHS.iter().copied().collect();
+        assert_eq!(
+            distinct.len(),
+            MATH_PRODUCER_GRAPHS.len(),
+            "the ten math-producer graph IRIs must be pairwise distinct"
         );
     }
 }

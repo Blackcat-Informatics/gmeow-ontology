@@ -38,9 +38,16 @@
 //! under `{NAMESPACE}derivation/`.
 //! Sources are sorted for order-independence.
 
-use purrdf::{RdfTextDirection, TermValue};
+use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 use std::num::NonZeroU32;
+
+/// The canonical `TermValue` surface renderer. ONE definition, and it lives with the
+/// arena whose atom dictionary keys on it ([`gmeow_term_arena`]) — the provenance recipes
+/// here fold the SAME bytes, so the reifier/derivation identities and the interner's dedup
+/// key can never drift apart.
+pub use gmeow_term_arena::engine::term_display;
+use gmeow_term_arena::engine::term_n3_unchecked;
 
 /// Wrap a provenance-derivation condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -351,11 +358,6 @@ impl ProvenanceRing for ZWeightSemiring {
     }
 }
 
-// ── XSD / RDF datatype IRIs ────────────────────────────────────────────────────
-
-const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
-
 // ── SHA-1 helper ─────────────────────────────────────────────────────────────
 
 /// The lowercase-hex SHA-1 of `s` — the content-addressing primitive the reifier,
@@ -367,150 +369,6 @@ pub fn sha1_hex(s: &str) -> String {
 }
 
 // ── N3 serialization ─────────────────────────────────────────────────────────
-
-/// Escape a literal lexical form exactly as rdflib does in `.n3()`.
-///
-/// rdflib escapes: `\` → `\\`, `"` → `\"`, newline → `\n`, CR → `\r`, tab → `\t`.
-/// No other escaping is applied.
-fn escape_lexical(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 4);
-    for c in s.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            other => out.push(other),
-        }
-    }
-    out
-}
-
-/// Serialize a native literal (lexical form + datatype IRI + optional language) to
-/// rdflib `.n3()` form.
-///
-/// Rules:
-/// - `xsd:string` → `"lex"` (datatype elided)
-/// - `rdf:langString` (lang-tagged) → `"lex"@lang` (datatype elided, lang kept)
-/// - Any other datatype → `"lex"^^<datatype_iri>`
-///
-/// rdflib lowercases the BCP-47 language subtag.  The native IR lowercases the
-/// language tag for the identity key, but a `TermValue` constructed directly may
-/// carry an un-lowercased tag, so we lowercase here to stay in sync regardless.
-fn literal_n3_parts(
-    lexical_form: &str,
-    datatype: &str,
-    language: Option<&str>,
-    direction: Option<RdfTextDirection>,
-) -> String {
-    let lex = escape_lexical(lexical_form);
-
-    if let Some(lang) = language {
-        // Language-tagged literal — rdflib elides the rdf:langString datatype.
-        // rdflib lowercases the language tag; mirror that.
-        let language = lang.to_lowercase();
-        return match direction {
-            Some(direction) => format!("\"{lex}\"@{language}--{}", direction.as_str()),
-            None => format!("\"{lex}\"@{language}"),
-        };
-    }
-
-    if datatype == XSD_STRING {
-        // Plain xsd:string — rdflib elides the datatype.
-        return format!("\"{}\"", lex);
-    }
-    if datatype == RDF_LANG_STRING {
-        // rdf:langString without a language tag — treated like xsd:string by rdflib.
-        // (In practice rdf:langString always has a lang tag; be defensive.)
-        return format!("\"{}\"", lex);
-    }
-
-    // Typed literal with a non-elided datatype.
-    format!("\"{}\"^^<{}>", lex, datatype)
-}
-
-#[derive(Clone, Copy)]
-enum TermRenderStyle {
-    N3,
-    Display,
-}
-
-enum TermRenderTask<'term> {
-    Term(&'term TermValue),
-    Text(&'static str),
-}
-
-fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
-    let mut rendered = String::new();
-    let mut tasks = vec![TermRenderTask::Term(term)];
-    while let Some(task) = tasks.pop() {
-        let term = match task {
-            TermRenderTask::Term(term) => term,
-            TermRenderTask::Text(text) => {
-                rendered.push_str(text);
-                continue;
-            }
-        };
-        match term {
-            TermValue::Iri(iri) => {
-                rendered.push('<');
-                rendered.push_str(iri);
-                rendered.push('>');
-            }
-            TermValue::Blank { label, scope } => {
-                rendered.push_str("_:");
-                rendered.push_str(&scope.qualify_label(label));
-            }
-            TermValue::Literal {
-                lexical_form,
-                datatype,
-                language,
-                direction,
-            } => match style {
-                TermRenderStyle::N3 => rendered.push_str(&literal_n3_parts(
-                    lexical_form,
-                    datatype,
-                    language.as_deref(),
-                    *direction,
-                )),
-                TermRenderStyle::Display => {
-                    let lex = escape_lexical(lexical_form);
-                    if let Some(lang) = language {
-                        rendered.push('"');
-                        rendered.push_str(&lex);
-                        rendered.push_str("\"@");
-                        rendered.push_str(lang);
-                        if let Some(direction) = direction {
-                            rendered.push_str("--");
-                            rendered.push_str(direction.as_str());
-                        }
-                    } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
-                        rendered.push('"');
-                        rendered.push_str(&lex);
-                        rendered.push('"');
-                    } else {
-                        rendered.push('"');
-                        rendered.push_str(&lex);
-                        rendered.push_str("\"^^<");
-                        rendered.push_str(datatype);
-                        rendered.push('>');
-                    }
-                }
-            },
-            TermValue::Triple { s, p, o } => {
-                tasks.push(TermRenderTask::Text(" )>>"));
-                tasks.push(TermRenderTask::Term(o));
-                tasks.push(TermRenderTask::Text(" "));
-                tasks.push(TermRenderTask::Term(p));
-                tasks.push(TermRenderTask::Text(" "));
-                tasks.push(TermRenderTask::Term(s));
-                tasks.push(TermRenderTask::Text("<<( "));
-            }
-        }
-    }
-    rendered
-}
 
 fn validate_triple_term_predicates(term: &TermValue) -> gmeow_errors::Result<()> {
     let mut pending = vec![term];
@@ -538,7 +396,9 @@ fn validate_triple_term_predicates(term: &TermValue) -> gmeow_errors::Result<()>
 ///
 /// - `Iri(iri)` → `<iri>`
 /// - `Blank` → not expected after Skolemization; serialized as `_:label`
-/// - `Literal` → delegated to [`literal_n3_parts`]
+/// - `Literal` → `xsd:string` / lang-less `rdf:langString` elide the datatype; a
+///   lang-tagged literal renders `"lex"@lang` (lowercased); anything else renders
+///   `"lex"^^<dt>`
 /// - `Triple` → RDF 1.2 non-asserting triple term `<<( s p o )>>`, recursively.
 ///
 /// # Errors
@@ -546,30 +406,12 @@ fn validate_triple_term_predicates(term: &TermValue) -> gmeow_errors::Result<()>
 /// Returns an error when any nested triple term carries a non-IRI predicate.
 pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
     validate_triple_term_predicates(term)?;
-    Ok(render_term(term, TermRenderStyle::N3))
+    Ok(term_n3_unchecked(term))
 }
 
 /// Serialize an IRI string to rdflib `.n3()` form: `<iri>`.
 pub fn named_node_n3(iri: &str) -> String {
     format!("<{}>", iri)
-}
-
-/// Render a [`TermValue`] in oxigraph's Turtle term Display form — the exact byte
-/// form the prior `Term::to_string()` produced. This is the canonical-surface used
-/// for content-addressed dedup keys and sort keys (`rule_ir`, `foundation`) and for
-/// the verify finding detail, so it MUST stay byte-identical to oxigraph's Display.
-///
-/// Unlike [`term_n3`] this does **not** lowercase the language tag (oxigraph's
-/// Display preserves the stored tag verbatim) and renders a triple term in the
-/// RDF 1.2 non-asserting triple-term form `<<( s p o )>>`.
-///
-/// - `Iri` → `<iri>`
-/// - `Blank` → `_:label`
-/// - `Literal` xsd:string / rdf:langString → `"lex"` ; lang → `"lex"@lang` ;
-///   typed → `"lex"^^<dt>`
-/// - `Triple` → `<<( s p o )>>` (iteratively traversed, including nested triples)
-pub fn term_display(term: &TermValue) -> String {
-    render_term(term, TermRenderStyle::Display)
 }
 
 // ── mint_reifier ─────────────────────────────────────────────────────────────
@@ -741,6 +583,9 @@ pub fn mint_derivation_id(rule_iri: &str, source_reifier_iris: &[&str]) -> Strin
 
 #[cfg(test)]
 mod tests {
+    use gmeow_term_arena::engine::RDF_LANG_STRING;
+    use purrdf::RdfTextDirection;
+
     use super::*;
 
     #[test]
@@ -825,7 +670,7 @@ mod tests {
         );
     }
 
-    /// Test-only helper mirroring `literal_n3_parts` over a constructed `TermValue`.
+    /// Test-only helper naming the N3 literal render over a constructed `TermValue`.
     fn literal_n3(term: &TermValue) -> String {
         term_n3(term).expect("literal term must serialize")
     }
