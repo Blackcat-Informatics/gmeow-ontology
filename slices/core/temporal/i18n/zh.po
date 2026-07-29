@@ -439,7 +439,7 @@ msgstr "星期几"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/DayOfWeek|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A recurring position in the seven-day week cycle, seeded as a closed value vocabulary of the seven ISO-8601 weekdays from gmeow:dayMonday through gmeow:daySunday. A day-of-week value is a pattern slot rather than a located stretch of the timeline: it is distinct from gmeow:TimeInterval and gmeow:NamedPeriod, which are delimited by start and end instants, and it never fixes a date by itself — \"Monday\" picks out every Monday until an interval, a recurrence, or a gmeow:TemporalFrame anchors it to one. Projects to schema:dayOfWeek."
-msgstr "七天星期周期中的一个循环位置，作为一份封闭的取值词表播种，涵盖从 gmeow:dayMonday 到 gmeow:daySunday 这七个 ISO-8601 星期日。星期几的取值是一个模式槽位，而不是时间轴上一段有定位的区段：它有别于由起止瞬间界定的 gmeow:TimeInterval 与 gmeow:NamedPeriod，并且它本身从不确定任何一个日期——「Monday」指的是每一个星期一，直到某个区间、某条循环规则或某个 gmeow:TemporalFrame 把它锚定到具体的一天为止。投影到 schema:dayOfWeek。"
+msgstr "七天星期周期中的一个循环位置，作为一份封闭的取值词表播种，涵盖从 gmeow:dayMonday 到 gmeow:daySunday 这七个 ISO-8601 星期取值。星期几的取值是一个模式槽位，而不是时间轴上一段有定位的区段：它有别于由起止瞬间界定的 gmeow:TimeInterval 与 gmeow:NamedPeriod，并且它本身从不确定任何一个日期——「星期一」指的是每一个星期一，直到某个区间、某条循环规则或某个 gmeow:TemporalFrame 把它锚定到具体的一天为止。投影到 schema:dayOfWeek。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/dayMonday|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Monday"

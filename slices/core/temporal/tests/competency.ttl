@@ -31,9 +31,12 @@ ex:tcRecordedNoLaterThan a gmeow:ExpectedRow ;
 
 # The week cycle: gmeow:DayOfWeek is a CLOSED value vocabulary (ISO 8601 closes it), so
 # the class and all seven weekday individuals must be answerable from the asserted
-# ontology alone. All seven rows are pinned, which makes this a completeness witness for
-# the closure rather than a spot check; the shape stays RowsContains so a future
-# non-ISO day vocabulary added elsewhere would not red this question.
+# ontology alone. The closure is AUTHORED — gmeow:DayOfWeek logic:equivalentClass
+# [ logic:oneOf ( … seven days … ) ] in slices/core/temporal/module.ttl — so the shape
+# is logic:RowsExact, not logic:RowsContains: an eighth day-of-week individual added
+# anywhere is a violation of the authored enumeration, and this question is the test
+# surface that says so. Containment would only witness that the seven are PRESENT;
+# exact membership witnesses that they are ALL there is.
 ex:cqTemporalWeekCycleValues a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/temporal/queries/competency/week-cycle-values.rq" ;
     gmeow:cqRationale "A weekday is calendar STRUCTURE, not a located span: gmeow:DayOfWeek names a recurring position in the seven-day week cycle and its seven ISO-8601 individuals are the complete, closed membership. Both the opening-hours surface (gmeow:openingDay) and the calendar slice's recurrence machinery read these seven values, so the vocabulary lives beside gmeow:CalendarSystem and gmeow:PeriodType in temporal and must be queryable as a whole." ;
@@ -46,7 +49,7 @@ ex:cqTemporalWeekCycleValuesShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "dayClass" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "day" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsContains .
+    logic:shapeCardinality logic:RowsExact .
 
 ex:twcMonday a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,

@@ -43,6 +43,13 @@ gmeow:DayOfWeek
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Day Of Week"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
+    # The closure the prose asserts, AUTHORED rather than merely described: ISO 8601
+    # fixes exactly seven weekday positions, so the class is EQUIVALENT to that
+    # enumeration (logic:oneOf, the EL-safe nominal set — the same closed-value-set
+    # idiom gmeow:ReproducibilityLevel uses). An eighth day-of-week individual is now
+    # a modelling error the reasoner sees, not a silently-accepted extension, and the
+    # week-cycle competency question can pin EXACT membership instead of containment.
+    logic:equivalentClass [ logic:oneOf ( gmeow:dayMonday gmeow:dayTuesday gmeow:dayWednesday gmeow:dayThursday gmeow:dayFriday gmeow:daySaturday gmeow:daySunday ) ] ;
     skos:definition "A recurring position in the seven-day week cycle, seeded as a closed value vocabulary of the seven ISO-8601 weekdays from gmeow:dayMonday through gmeow:daySunday. A day-of-week value is a pattern slot rather than a located stretch of the timeline: it is distinct from gmeow:TimeInterval and gmeow:NamedPeriod, which are delimited by start and end instants, and it never fixes a date by itself — \"Monday\" picks out every Monday until an interval, a recurrence, or a gmeow:TemporalFrame anchors it to one. Projects to schema:dayOfWeek."@x-gmeow-english ;
     skos:example "ex:libraryWinterHours gmeow:openingDay gmeow:dayMonday , gmeow:dayWednesday ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-day subclasses (the days are individuals), avoid a free-text day name, and avoid using a day-of-week value where a dated occurrence is meant — that is a gmeow:Instant or a gmeow:TimeInterval; the seven seeded individuals are closed and complete."@x-gmeow-english ;

@@ -3788,8 +3788,13 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
     // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
     // sits in a class-definition position — never when it is `rdf:type`d onto an
-    // individual (the Wave-A decided case). The committed bundle uses only exact
-    // `cardinality 1` and qualified cardinalities, none in the withheld shape.
+    // individual (the Wave-A decided case). Every class-definition restriction in the
+    // committed bundle is a value restriction (`some`/`all`/`hasValue`) or a QUALIFIED
+    // cardinality; the only plain cardinality restrictions it asserts are
+    // `math:compilesToLogicFormula`'s two `owl:minCardinality "1"` domain companions,
+    // and an `rdfs:domain` filler is a property-scoping position that
+    // `nodes_in_class_constraint_position` never collects. Nothing in the bundle is
+    // therefore in the withheld shape.
     // Family 2 — the counting sub-decider ([`crate::reason::refute::counting`]) now
     // COMPLETELY decides the pure class-definition cardinality fragment (a collapsed
     // `min > max` bound on a populated class materializes `owl:Nothing`; an
@@ -3997,10 +4002,11 @@ fn nodes_in_class_constraint_position(edb: &RdfDataset) -> BTreeSet<(String, Str
 /// `owl:min`/`maxCardinality` — is `owl:onProperty` a property typed
 /// `owl:DatatypeProperty`. That is the datatype value-space counting shape (G8):
 /// `cardinality 257` distinct `xsd:byte` values is unsatisfiable, but the chase
-/// carries no datatype value-space reasoning to refute it. Qualified cardinalities
-/// and the exact `cardinality 1` (functional) case — the only plain cardinality the
-/// committed bundle asserts — are deliberately NOT withheld, so this never fires on
-/// production.
+/// carries no datatype value-space reasoning to refute it. Qualified cardinalities and
+/// the exact `cardinality 1` (functional) case are deliberately NOT withheld, and the
+/// committed bundle's only plain cardinality restrictions —
+/// `math:compilesToLogicFormula`'s two `owl:minCardinality "1"` domain companions —
+/// are `owl:onProperty` an `owl:ObjectProperty`, so this never fires on production.
 fn cardinality_on_datatype_property(edb: &RdfDataset) -> bool {
     const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_props: BTreeSet<(String, String)> = quads_by_subject(edb)

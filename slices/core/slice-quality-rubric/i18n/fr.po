@@ -1399,7 +1399,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisContextScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1415,7 +1415,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisWeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1431,7 +1431,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1447,7 +1447,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1463,7 +1463,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingVocabulary, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1479,7 +1479,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exemptionDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1495,7 +1495,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorAxis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1511,7 +1511,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1527,7 +1527,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1543,7 +1543,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1559,7 +1559,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdFloor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1575,7 +1575,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1591,7 +1591,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tierRank, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1607,7 +1607,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyCountKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1623,7 +1623,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1639,7 +1639,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1655,7 +1655,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPrefix, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1671,7 +1671,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPreservation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1687,7 +1687,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularySubsumedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."

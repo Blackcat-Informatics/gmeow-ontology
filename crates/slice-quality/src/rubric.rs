@@ -542,11 +542,16 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     // silently-defaulted one would be an unbounded permit (.goals no-optionality).
     //
     // The AUTHORITY for the four required-binding checks below (relocationTerm,
-    // relocationFromSlice, relocationToSlice, relocationDate all minCardinality 1)
-    // is the `gmeow:CeilingRelocation logic:subClassOf [ a logic:Restriction ; ... ]`
-    // EL-safe axiom authored on `gmeow:CeilingRelocation` in
-    // slices/core/slice-quality-rubric/module.ttl — this loader's hard fail is that
-    // axiom's DERIVED enforcement, not a second, Rust-only source of truth. The
+    // relocationFromSlice, relocationToSlice, relocationDate) is the EL-safe
+    // required-path PAIR authored on `gmeow:CeilingRelocation` in
+    // slices/core/slice-quality-rubric/module.ttl: a `logic:subClassOf
+    // [ a logic:Restriction ; logic:onProperty P ; logic:allValuesFrom F ]` value
+    // restriction PLUS a class-scoped `[ a logic:ClosureEntry ; logic:onClass
+    // gmeow:CeilingRelocation ; logic:closureKey P ; logic:closureValue
+    // logic:ClosedWorldClosure ]`, which together derive the `sh:minCount 1` this
+    // loader's hard fail mirrors — never an un-qualified `logic:minCardinality`,
+    // which sits outside the EL fragment. This loader's hard fail is that axiom
+    // pair's DERIVED enforcement, not a second, Rust-only source of truth. The
     // cross-node `from_slice == to_slice` rejection and the unknown-vocabulary-
     // reference rejections below are genuinely procedural checks with no declarative
     // cardinality/class/datatype form, so they remain enforced here only.

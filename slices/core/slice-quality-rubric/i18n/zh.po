@@ -619,7 +619,7 @@ msgstr "迁移日期"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The date a relocation declaration was minted — the same dating discipline every gmeow:AxisExemption carries, so a movement record that has outlived its move is visible and auditable rather than anonymous. It is NOT an expiry: what retires the declaration is the staleness rule, which reds once the relocation is fully absorbed at the merge base (the named terms sit at the destination on both sides), not the passage of time. It is NOT gmeow:exemptionDate (that stamps an unlanded-producer escape): it stamps a movement."
-msgstr "迁移声明被创建时所标注的日期——与每个 gmeow:AxisExemption 所遵循的相同定期约束，使得一条已经超出其迁移生命周期的移动记录仍然可见、可审计，而不是匿名的。它不是失效期限：使声明退役的是过期规则——一旦该迁移在合并基线处被完全吸收（具名术语在目的地两侧均已就位），关卡才会变红，而不是时间的流逝本身使其失效。它不是 gmeow:exemptionDate（后者为未落地生产者的豁免打上时间戳）：它为一次迁移打上时间戳。"
+msgstr "迁移声明被创建时所标注的日期——与每个 gmeow:AxisExemption 所遵循的相同日期标注规范，使得一条已经超出其迁移生命周期的移动记录仍然可见、可审计，而不是匿名的。它不是失效期限：使声明退役的是过期规则——一旦该迁移在合并基线处被完全吸收（具名术语在目的地两侧均已就位），关卡才会变红，而不是时间的流逝本身使其失效。它不是 gmeow:exemptionDate（后者为未落地生产者的豁免打上时间戳）：它为一次迁移打上时间戳。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
