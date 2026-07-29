@@ -218,12 +218,21 @@ regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessar
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
+# `commit`'s MESSAGE/GMEOW_DEV must reach the script through the ENVIRONMENT, never
+# through recipe-text interpolation: `VAR="$(VAR)" cmd` has Make expand $(VAR) into
+# the recipe's shell text BEFORE the shell parses it, so a MESSAGE containing a
+# double quote, backtick, `$(...)`, or `;` would break out of the quoting and
+# execute. `export` hands the shell process the value directly, with no quoting
+# round-trip, while still preserving GMEOW_DEV's deliberate word-splitting in the
+# script (see scripts/commit-generated.sh).
+commit: export GMEOW_DEV := $(GMEOW_DEV)
+commit: export MESSAGE := $(MESSAGE)
 commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@# Regeneration runs as a SUB-make (as install/release/docs already do) rather than
 	@# as a prerequisite: a prerequisite executes at the SAME MAKELEVEL as its target,
 	@# so `commit: regen` would trip the direct-invocation guard for every human.
 	$(MAKE) regen
-	@GMEOW_DEV="$(GMEOW_DEV)" MESSAGE="$(MESSAGE)" scripts/commit-generated.sh
+	@scripts/commit-generated.sh
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize

@@ -777,18 +777,20 @@ pub enum LogicCommands {
         /// (`ex:peanoAdd`) is NOT accepted — pass the program's full IRI.
         #[arg(long = "program-iri")]
         program_iri: Option<String>,
-        /// An additional Turtle document whose told `rdfs:subClassOf` edges seed
-        /// the order-sorted unification lattice — e.g.
-        /// `slices/grounding/math/module.ttl`, whose `math:Integer ⊑
-        /// math:RationalNumber ⊑ math:RealNumber ⊑ …` chain the engine composes
-        /// into `math:Integer ⊑ math:RealNumber` internally (the engine computes
-        /// its own reflexive-transitive closure over whatever covering edges it
-        /// is given, so passing the told chain is sufficient — never a
-        /// pre-reasoned closure). Default: use ONLY the `rdfs:subClassOf` edges
-        /// told in `--program-file` itself. A program whose sort obligation
-        /// needs an edge absent from every source resolves to ZERO order-sorted
-        /// answers for that obligation — a correct, honest gap, never a silent
-        /// hardcoded fallback to some vocabulary's subsort tower.
+        /// An additional Turtle document whose told class-subsumption edges seed
+        /// the order-sorted unification lattice — read on EITHER spelling of the
+        /// subsumption predicate (the canonical `logic:subClassOf` and its
+        /// `rdfs:subClassOf` projection) — e.g. `slices/grounding/math/module.ttl`,
+        /// whose `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …` chain
+        /// the engine composes into `math:Integer ⊑ math:RealNumber` internally
+        /// (the engine computes its own reflexive-transitive closure over
+        /// whatever covering edges it is given, so passing the told chain is
+        /// sufficient — never a pre-reasoned closure). Default: use ONLY the
+        /// `logic:subClassOf`/`rdfs:subClassOf` edges told in `--program-file`
+        /// itself. A program whose sort obligation needs an edge absent from
+        /// every source resolves to ZERO order-sorted answers for that
+        /// obligation — a correct, honest gap, never a silent hardcoded
+        /// fallback to some vocabulary's subsort tower.
         #[arg(long = "subsort-source")]
         subsort_source: Option<PathBuf>,
     },

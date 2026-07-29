@@ -310,15 +310,164 @@ fn unstaged_changes_after_commit_print_a_warning_but_still_succeed() {
     );
 }
 
+/// Proves the fix for the Makefile-level shell-interpolation finding at the
+/// point that actually matters: MESSAGE is now handed to the script through
+/// the process ENVIRONMENT (Make's target-specific `export`), exactly like
+/// `run_script`/`Command::env` do here — never through recipe text a shell
+/// re-parses. A MESSAGE containing a double quote, semicolon, and `#` must
+/// therefore commit VERBATIM, and the embedded `touch` must never run.
+#[test]
+fn message_with_shell_metacharacters_lands_verbatim_and_does_not_execute() {
+    let repo = ScratchRepo::new("shell-metacharacter-message");
+    repo.write_file("generated/output.txt", "generated content\n");
+    let gmeow_dev = repo.fake_gmeow_dev(&["generated/output.txt"]);
+    let marker = std::env::temp_dir().join(format!(
+        "gmeow-commit-generated-pwned-proof-{}-{}",
+        std::process::id(),
+        SCRATCH_COUNTER.fetch_add(1, Ordering::Relaxed)
+    ));
+    let _ = fs::remove_file(&marker);
+    let payload = format!(r#""; touch {}; #"#, marker.display());
+    let out = run_script(
+        repo.path(),
+        &[
+            ("GMEOW_DEV", gmeow_dev.to_str().unwrap()),
+            ("MESSAGE", payload.as_str()),
+        ],
+    );
+    let marker_existed = marker.exists();
+    let _ = fs::remove_file(&marker);
+    assert!(
+        out.status.success(),
+        "a hostile MESSAGE must not break the commit: stdout={} stderr={}",
+        stdout_of(&out),
+        stderr_of(&out)
+    );
+    assert!(
+        !marker_existed,
+        "the embedded `touch` must never execute — the script must treat \
+         MESSAGE as inert data, not shell text"
+    );
+    assert_eq!(
+        repo.log().trim(),
+        payload,
+        "the commit message must carry MESSAGE byte-for-byte, including its \
+         shell metacharacters"
+    );
+}
+
+/// Proves the fix for the "pre-staged sweep" finding: a caller who already
+/// has unrelated work staged for a different commit must never have that
+/// work silently folded into a commit labelled as generated-artifact sync.
+#[test]
+fn pre_staged_unrelated_changes_are_rejected_not_swept_in() {
+    let repo = ScratchRepo::new("pre-staged-unrelated");
+    repo.write_file("generated/output.txt", "generated content\n");
+    repo.write_file("unrelated-work-in-progress.txt", "not generator-owned\n");
+    repo.git(&["add", "unrelated-work-in-progress.txt"]);
+    let gmeow_dev = repo.fake_gmeow_dev(&["generated/output.txt"]);
+    let out = run_script(
+        repo.path(),
+        &[
+            ("GMEOW_DEV", gmeow_dev.to_str().unwrap()),
+            ("MESSAGE", "chore: synchronize checked-in artifacts"),
+        ],
+    );
+    assert!(
+        !out.status.success(),
+        "pre-staged unrelated changes must be rejected, not silently swept in: \
+         stdout={} stderr={}",
+        stdout_of(&out),
+        stderr_of(&out)
+    );
+    assert!(
+        stderr_of(&out).contains("unrelated-work-in-progress.txt"),
+        "the failure must name the offending pre-staged path; got stderr: {}",
+        stderr_of(&out)
+    );
+    assert!(
+        repo.log().is_empty(),
+        "no commit should have been created when refusing"
+    );
+    assert!(
+        !repo.cached_diff_is_empty(),
+        "the caller's pre-staged file must remain staged, untouched, for the \
+         caller to commit separately"
+    );
+}
+
 #[test]
 fn the_makefile_commit_target_delegates_to_the_extracted_script() {
     let makefile = std::fs::read_to_string(repo_root().join("Makefile")).expect("Makefile");
+    // `MESSAGE`/`GMEOW_DEV` must reach the script through the process ENVIRONMENT
+    // (target-specific `export`), never through recipe TEXT: Make expands
+    // `$(MESSAGE)` textually before the recipe's shell parses the line, so a
+    // MESSAGE containing a shell metacharacter (quote, backtick, `;`, `$(...)`)
+    // previously broke out of the quoting and executed. The recipe line itself
+    // must therefore invoke the script with no inline `VAR="..."` assignment at
+    // all — see `message_with_shell_metacharacters_lands_verbatim_and_does_not_execute`
+    // and `dry_run_never_places_message_text_in_recipe_output` for the exploit
+    // regression proofs.
     assert!(
-        makefile.contains(
-            r#"GMEOW_DEV="$(GMEOW_DEV)" MESSAGE="$(MESSAGE)" scripts/commit-generated.sh"#
-        ),
-        "the commit recipe must hand GMEOW_DEV and MESSAGE to the extracted script explicitly, \
-         not re-derive them inside the script"
+        makefile.contains("commit: export GMEOW_DEV := $(GMEOW_DEV)"),
+        "the commit target must export GMEOW_DEV via a target-specific variable, \
+         not interpolate it into recipe text; Makefile was: {makefile:?}"
+    );
+    assert!(
+        makefile.contains("commit: export MESSAGE := $(MESSAGE)"),
+        "the commit target must export MESSAGE via a target-specific variable, \
+         not interpolate it into recipe text; Makefile was: {makefile:?}"
+    );
+    assert!(
+        makefile.contains("\n\t@scripts/commit-generated.sh"),
+        "the commit recipe must invoke the script directly with no inline \
+         VAR=\"...\" assignment (that round-trip through the shell's quoting is \
+         exactly the injection this wiring closes); Makefile was: {makefile:?}"
+    );
+    assert!(
+        !makefile.contains(r#"MESSAGE="$(MESSAGE)""#),
+        "no recipe line may textually interpolate $(MESSAGE) into shell-parsed \
+         text anywhere in the Makefile"
+    );
+}
+
+#[test]
+fn dry_run_never_places_message_text_in_recipe_output() {
+    // `-n` still resolves the real `$(MAKE) regen` sub-make recursion (GNU make
+    // always executes recipe lines that reference $(MAKE), even under -n) but
+    // that sub-make ALSO inherits -n via MAKEFLAGS, so nothing is ever actually
+    // run — see `make_commit_still_resolves` below for the same property. This
+    // makes it safe to drive with a real Makefile invocation rather than a
+    // hand-rolled stand-in, and to assert on the exact text Make would hand to
+    // a shell if this were a live run.
+    let payload = r#""; touch /tmp/pwned-dry-run-proof; #"#;
+    let out = Command::new("make")
+        .arg("-n")
+        .arg("commit")
+        .arg(format!("MESSAGE={payload}"))
+        .arg("GMEOW_DEV=/bin/true")
+        .current_dir(repo_root())
+        .env_remove("CI")
+        .env_remove("REGEN_ACK")
+        .env_remove("REGEN_INTERNAL")
+        .output()
+        .expect("make is part of this repository's toolchain");
+    assert!(
+        out.status.success(),
+        "a hostile MESSAGE must not break recipe resolution: stdout={} stderr={}",
+        stdout_of(&out),
+        stderr_of(&out)
+    );
+    let stdout = stdout_of(&out);
+    assert!(
+        !stdout.contains("touch /tmp/pwned"),
+        "the payload text must never appear in the recipe output Make would \
+         hand to a shell — it must travel only through the exported \
+         environment; got stdout: {stdout}"
+    );
+    assert!(
+        !Path::new("/tmp/pwned-dry-run-proof").exists(),
+        "a dry run must never actually execute anything"
     );
 }
 

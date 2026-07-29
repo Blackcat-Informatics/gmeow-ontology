@@ -2185,11 +2185,12 @@ fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
     edges
 }
 
-/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
-/// extraction — deliberately independent of the `logic:` compiler frontend
-/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
-/// `Formula` data an engine caller can read back), so this reads the file's own
-/// triples directly.
+/// Parse a Turtle file into a raw [`RdfDataset`] for class-subsumption edge
+/// extraction (either spelling — see [`collect_subclass_edges`]) —
+/// deliberately independent of the `logic:` compiler frontend (which never
+/// surfaces a told `logic:subClassOf`/`rdfs:subClassOf` triple as
+/// `LogicAxiom`/`Formula` data an engine caller can read back), so this reads
+/// the file's own triples directly.
 fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
     let bytes = read_bytes(reporter, path)?;
     purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
@@ -2207,9 +2208,9 @@ fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfD
 /// production path `stage-goal-directed` folds into `gmeow.gts`'s
 /// `graph/goal-directed`. Never a reimplementation: this command lowers the
 /// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
-/// collects `rdfs:subClassOf` covering edges straight off the parsed source
-/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
-/// point the pipeline stage calls.
+/// collects class-subsumption covering edges (either spelling) straight off
+/// the parsed source (see [`collect_subclass_edges`]), and hands both to the
+/// SAME engine entry point the pipeline stage calls.
 ///
 /// Hard-fails (exit 1, never a silent empty success) on: a missing
 /// `--program-file`, an unparsable file (or one carrying error-grade parse
@@ -2287,8 +2288,9 @@ pub fn logic_backward(
         }
     };
 
-    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
-    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    // Collect class-subsumption covering edges (either spelling) directly off
+    // the parsed source graph(s) — never a hardcoded subsort tower (see
+    // `collect_subclass_edges`).
     let program_dataset = match parse_turtle_dataset(reporter, program_file) {
         Ok(ds) => ds,
         Err(code) => return code,
