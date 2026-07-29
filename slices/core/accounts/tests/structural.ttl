@@ -20,8 +20,8 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:AccountStatus a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
-    gmeow:ServiceStatus a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:AccountStatus a owl:Class , logic:AbstractIndividualType ; (logic:subClassOf|rdfs:subClassOf) logic:QualityValue .
+    gmeow:ServiceStatus a owl:Class , logic:AbstractIndividualType ; (logic:subClassOf|rdfs:subClassOf) logic:QualityValue .
 }""" ;
     gmeow:saRationale "gmeow:AccountStatus (usage state) and gmeow:ServiceStatus (liveness) MUST each be a logic:AbstractIndividualType owl:Class subClassOf logic:QualityValue — value vocabularies of individuals, never per-status subclasses." .
 
@@ -34,8 +34,8 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:OnlineAccount a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:OnlineService a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:OnlineAccount a owl:Class , logic:Kind ; (logic:subClassOf|rdfs:subClassOf) gmeow:InformationObject .
+    gmeow:OnlineService a owl:Class , logic:Kind ; (logic:subClassOf|rdfs:subClassOf) gmeow:InformationObject .
 }""" ;
     gmeow:saRationale "gmeow:OnlineAccount and gmeow:OnlineService MUST each be a logic:Kind owl:Class subClassOf gmeow:InformationObject — the held identity-object and the platform-object, both information carriers distinct from the agent." .
 

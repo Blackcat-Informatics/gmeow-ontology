@@ -1758,6 +1758,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-ns",
  "gmeow-term-arena",
  "hashbrown 0.15.5",
  "iai-callgrind",

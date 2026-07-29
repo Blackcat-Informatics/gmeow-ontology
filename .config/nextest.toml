@@ -87,13 +87,50 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & test(/dev_logic::compile_tests::mode_(owl_dl|datalog|report)_matches/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
-# The dev-cli real-repository end-to-end contract tests (docs-distribution manifest
-# verify, and the whole-repo slice-quality gate) assemble the full bundle; the
-# advice-catalog content pushed them past the 60s default under gate parallelism
-# (they pass at ~97-115s). Same 300s backstop the sibling bundle-assembly proofs use.
+# The dev-cli real-repository docs-distribution contract tests assemble the full
+# bundle; the advice-catalog content pushed them past the 60s default under gate
+# parallelism (they pass at ~97-115s). Same 300s backstop the sibling
+# bundle-assembly proofs use.
 [[profile.default.overrides]]
-filter = 'package(gmeow-dev-cli) & ( binary(docs_distribution_contract) | test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/) )'
+filter = 'package(gmeow-dev-cli) & binary(docs_distribution_contract)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The whole-repo slice-quality gate end-to-end proof drives `slice_quality_gate_at`
+# over the LIVE checkout — the production-surface analog of the `make check`
+# slice-quality-gate task, not a focused unit test. It scores every axis of all 85
+# slices (591 floor cells), runs the reasoner axis's leave-one-out re-derivation per
+# authored axiom, and — since the projection-vocabulary ratchet gained relocation
+# accounting — ALSO materializes the `git merge-base HEAD origin/main` tree and
+# re-measures every guarded (slice, vocabulary) residue there, so the corpus is
+# measured twice per run.
+#
+# MEASURED 2026-07-28/29 on this 32-CPU host, build fully cached. The identical code
+# path run directly — `cargo run -p gmeow-dev-cli -- slice-quality-gate`, exit 0 —
+# took 1082 s wall for 220 CPU-minutes of work, i.e. ~12 effective cores while the
+# host averaged load ~40. Under nextest on the same host the test itself was observed
+# at 1795 s. It is compute-bound and fully parallel, so the SAME work is ~7 minutes at
+# full 32-core width; the spread between 420 s and 1800 s is host contention, not
+# variance in the gate. The ~100 s figure recorded above is stale — it predates both
+# the projection-vocabulary ceiling ratchet and the relocation pass that materializes
+# the merge-base tree — so the old 300 s x 2 = 600 s ceiling was measuring an
+# obligation this test no longer has.
+#
+# Two consequences, both honest rather than cosmetic:
+#  * `threads-required = "num-cpus"` — this gate creates its own full-width worker
+#    pool, exactly the case this file already reserves the host for. Co-scheduling it
+#    with dozens of other bundle-builders is what turned a ~7-minute compute job into
+#    a starvation timeout.
+#  * a 600 s x 4 = 2400 s runaway backstop. That is ~5.7x the full-width cost and
+#    ~1.3x the worst CONTENDED observation above, so it does not fail a test that is
+#    merely doing the whole corpus's work; 1800 s was tried first and was too thin
+#    (one run passed at 1795 s, five seconds inside the ceiling). It still bounds a
+#    genuine runaway — a non-terminating gate trips it — and matches the
+#    `terminate-after = 4` the other exhaustive whole-repository lanes in this file
+#    already carry.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/)'
+slow-timeout = { period = "600s", "terminate-after" = 4, "grace-period" = "30s" }
+threads-required = "num-cpus"
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'

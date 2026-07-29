@@ -26,21 +26,21 @@ ASK {
 }""" ;
     gmeow:saRationale "The five typed accessibility relations MUST exist as owl:ObjectProperty -- each typed context kind reasons over its own named accessibility relation rather than one undifferentiated relation." .
 
-# --- 2. No typed relation is rdfs:subPropertyOf accessibleFrom (MUST-NOT, keystone) ---
+# --- 2. No typed relation is a subproperty of accessibleFrom (MUST-NOT, keystone) ---
 ex:saTypedRelationsNotSubpropertyAccessibleFrom a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    ?r rdfs:subPropertyOf logic:accessibleFrom .
+    ?r (logic:subPropertyOf|rdfs:subPropertyOf) logic:accessibleFrom .
     FILTER (?r IN (
         logic:epistemicallyPossible, logic:doxasticallyAccessible,
         logic:deonticallyIdeal, logic:temporallySucceeds,
         logic:counterfactuallyCloser
     ))
 }""" ;
-    gmeow:saRationale "No typed accessibility relation MUST be rdfs:subPropertyOf logic:accessibleFrom -- the generic superproperty licenses NO cross-type entailment by itself; an asserted subproperty edge would re-enable the cross-type subproperty inference the context algebra forbids (believed leaking into true, fiction into actual, ideal into is). The superproperty relationship is documented in prose only." .
+    gmeow:saRationale "No typed accessibility relation MUST be a subproperty of logic:accessibleFrom -- the generic superproperty licenses NO cross-type entailment by itself; an asserted subproperty edge would re-enable the cross-type subproperty inference the context algebra forbids (believed leaking into true, fiction into actual, ideal into is). The superproperty relationship is documented in prose only." .
 
 # --- 3. No typed relation asserts an OWL property characteristic (MUST-NOT) ---
 ex:saTypedRelationsAssertNoCharacteristics a gmeow:StructuralAssertion ;
@@ -352,7 +352,7 @@ ex:saConflictRelationsNotSubproperty a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    ?r rdfs:subPropertyOf ?super .
+    ?r (logic:subPropertyOf|rdfs:subPropertyOf) ?super .
     FILTER (?r IN (
         logic:contradictoryGoal, logic:contraryGoal, logic:preventsGoal,
         logic:competesForResource, logic:temporallyIncompatible,
@@ -360,7 +360,7 @@ ASK {
     ))
     FILTER (?super IN (gmeow:counterGoal, gmeow:properPartOf))
 }""" ;
-    gmeow:saRationale "No logic: goal-conflict relation MUST be rdfs:subPropertyOf gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
+    gmeow:saRationale "No logic: goal-conflict relation MUST be a subproperty of gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
 
 # --- 22. The four factored GoalEvaluation status classes exist (MUST) --------
 ex:saGoalEvaluationStatusClasses a gmeow:StructuralAssertion ;
@@ -656,7 +656,7 @@ ex:saConcurrentCompositionDistinct a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    logic:ConcurrentComposition rdfs:subClassOf logic:SerializabilityCriterion .
+    logic:ConcurrentComposition (logic:subClassOf|rdfs:subClassOf) logic:SerializabilityCriterion .
 }""" ;
     gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .
 
@@ -823,8 +823,8 @@ ASK {
     logic:dataflowConsumes a owl:ObjectProperty .
     logic:dataflowProduces a owl:ObjectProperty ;
                            owl:inverseOf logic:dataflowConsumes .
-    logic:ControlFlowEdge  a owl:Class ; rdfs:subClassOf logic:Relator .
-    logic:DataFlowEdge     a owl:Class ; rdfs:subClassOf logic:Relator .
+    logic:ControlFlowEdge  a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:Relator .
+    logic:DataFlowEdge     a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:Relator .
     logic:flowFrom         a owl:ObjectProperty .
     logic:flowTo           a owl:ObjectProperty .
 }""" ;
@@ -910,7 +910,7 @@ ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    logic:UnwiredFlagshipScenario rdfs:subClassOf logic:LogicConformanceFailure .
+    logic:UnwiredFlagshipScenario (logic:subClassOf|rdfs:subClassOf) logic:LogicConformanceFailure .
 }""" ;
     gmeow:saRationale "The unwired-flagship failure MUST be a subclass of logic:LogicConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other logic: conformance failure. It subclasses ONLY the slice failure root, never the spec-layer gmeow:UnwiredFlagshipScenario marker." .
 
@@ -935,7 +935,7 @@ ASK {
                 gmeow:demonstratedByProducer ?prod ;
                 gmeow:guardedByCounterExample ?ce ;
                 gmeow:enforcesFailureClass ?fc .
-            ?fc rdfs:subClassOf+ logic:LogicConformanceFailure .
+            ?fc (logic:subClassOf|rdfs:subClassOf)+ logic:LogicConformanceFailure .
             FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
         }
     }
@@ -978,8 +978,8 @@ ASK {
             logic:CrossNodeConstraint logic:ForbiddenPatternConstraint logic:AggregateConstraint
         }
         FILTER NOT EXISTS {
-            ?sugar rdfs:subClassOf logic:ConstraintSugar .
-            FILTER NOT EXISTS { ?sugar rdfs:subClassOf logic:Formula }
+            ?sugar (logic:subClassOf|rdfs:subClassOf) logic:ConstraintSugar .
+            FILTER NOT EXISTS { ?sugar (logic:subClassOf|rdfs:subClassOf) logic:Formula }
         }
     }
     logic:FormulaConstructorConstraint a logic:ChoiceGroupConstraint ;
@@ -1012,9 +1012,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     logic:ConversionTarget a owl:Class .
     logic:ProjectionTarget a owl:Class .
-    logic:Dialect a owl:Class ; rdfs:subClassOf logic:ConversionTarget .
+    logic:Dialect a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:ConversionTarget .
     logic:RelationalCore a logic:Dialect, logic:ConversionTarget .
-    FILTER NOT EXISTS { logic:Dialect rdfs:subClassOf logic:ProjectionTarget }
+    FILTER NOT EXISTS { logic:Dialect (logic:subClassOf|rdfs:subClassOf) logic:ProjectionTarget }
 }""" ;
     gmeow:saRationale "A compiler lowering MUST name a legality domain distinct from a reasoning contract's requested renderings: every Dialect is a ConversionTarget, and RelationalCore is the concrete conversion target of the native execution lowering. ProjectionTarget remains the separate presentation facet and is not a superclass of Dialect." .
 

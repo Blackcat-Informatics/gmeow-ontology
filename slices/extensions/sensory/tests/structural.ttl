@@ -89,10 +89,11 @@ ex:saSensoryQuantitySpecializesMathQuantity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SensoryQuantity rdfs:subClassOf math:Quantity .
+    gmeow:SensoryQuantity (logic:subClassOf|rdfs:subClassOf) math:Quantity .
 }""" ;
     gmeow:saRationale "gmeow:SensoryQuantity MUST specialize math:Quantity so sensory semantics remain domain-specific without creating a second quantity authority." .
 
@@ -112,22 +113,24 @@ ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
+    gmeow:sensoryResult (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain." .
+    gmeow:saRationale "gmeow:sensoryResult MUST be a subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:sensoryObservationOf (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be a subproperty of gmeow:observedFeature so generic observation-about-X queries reach sensory observations." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;
