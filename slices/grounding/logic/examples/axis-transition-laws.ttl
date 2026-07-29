@@ -1,0 +1,321 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The nineteen closed axes of the enactment kernel, each with the transition law
+# that governs it and the complete roster of positions that law ranges over.
+#
+# logic:AxisTransitionLaw exists so that "which moves does this axis admit?" is
+# DATA rather than prose — that is what lets deadlock-freedom and reachability be
+# PROVED over an axis instead of asserted about it. But a law that named its axis
+# and stopped there would be a signature on an empty page: the proof obligation is
+# discharged against the POSITIONS, so the positions have to be reachable from the
+# law. Each law below therefore carries its governed axis and, through
+# logic:lawAdmits, an atomic formula whose ordered argument carriers name the
+# positions the axis ranges over.
+#
+# Read as documentation this is the kernel's state space in one file, at the only
+# level of detail at which the closed-vocabulary claim can be checked: every
+# position of every axis, attached to the law that is answerable for it. A position
+# that appears in no law is one whose transitions nothing governs, and a law with
+# no positions governs nothing — both are visible here and in no prose anywhere.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/axes/> .
+
+ex:lawStepState a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the StepState axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:StepState ;
+    logic:lawAdmits ex:movesStepState .
+
+ex:movesStepState a logic:Formula ;
+    rdfs:label "The 8 positions the StepState axis ranges over"@x-gmeow-english ;
+    logic:relation logic:StepState ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:StepCancelled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:StepCompleted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:StepFailed ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:StepPending ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:StepReady ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:StepRunning ] ,
+        [ a logic:TermCarrier ; logic:termIndex 6 ; logic:termIri logic:StepSkipped ] ,
+        [ a logic:TermCarrier ; logic:termIndex 7 ; logic:termIri logic:StepWaiting ] .
+
+ex:lawEnactmentState a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the EnactmentState axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:EnactmentState ;
+    logic:lawAdmits ex:movesEnactmentState .
+
+ex:movesEnactmentState a logic:Formula ;
+    rdfs:label "The 6 positions the EnactmentState axis ranges over"@x-gmeow-english ;
+    logic:relation logic:EnactmentState ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:EnactmentCancelled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:EnactmentCompleted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:EnactmentFailed ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:EnactmentPaused ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:EnactmentPending ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:EnactmentRunning ] .
+
+ex:lawApprovalState a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the ApprovalState axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:ApprovalState ;
+    logic:lawAdmits ex:movesApprovalState .
+
+ex:movesApprovalState a logic:Formula ;
+    rdfs:label "The 8 positions the ApprovalState axis ranges over"@x-gmeow-english ;
+    logic:relation logic:ApprovalState ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:ApprovalCancelled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:ApprovalCreated ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:ApprovalDetached ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:ApprovalDischarged ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:ApprovalExpired ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:ApprovalNull ] ,
+        [ a logic:TermCarrier ; logic:termIndex 6 ; logic:termIri logic:ApprovalReleased ] ,
+        [ a logic:TermCarrier ; logic:termIndex 7 ; logic:termIri logic:ApprovalViolated ] .
+
+ex:lawEffectProtocolPosition a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the EffectProtocolPosition axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:EffectProtocolPosition ;
+    logic:lawAdmits ex:movesEffectProtocolPosition .
+
+ex:movesEffectProtocolPosition a logic:Formula ;
+    rdfs:label "The 8 positions the EffectProtocolPosition axis ranges over"@x-gmeow-english ;
+    logic:relation logic:EffectProtocolPosition ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:EffectAbandoned ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:EffectAttempted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:EffectCompensated ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:EffectCompensating ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:EffectIntended ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:EffectReceipted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 6 ; logic:termIri logic:EffectReconciled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 7 ; logic:termIri logic:EffectReconciling ] .
+
+ex:lawFrontierLabel a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the FrontierLabel axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:FrontierLabel ;
+    logic:lawAdmits ex:movesFrontierLabel .
+
+ex:movesFrontierLabel a logic:Formula ;
+    rdfs:label "The 16 positions the FrontierLabel axis ranges over"@x-gmeow-english ;
+    logic:relation logic:FrontierLabel ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:FrontierBlockedCapabilityOrResource ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:FrontierBlockedPrecondition ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:FrontierCancelled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:FrontierCancelledWithInFlightEffects ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:FrontierCompensationEligible ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:FrontierCompensationFailedForwardCommitted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 6 ; logic:termIri logic:FrontierCompensationRequired ] ,
+        [ a logic:TermCarrier ; logic:termIndex 7 ; logic:termIri logic:FrontierCompleted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 8 ; logic:termIri logic:FrontierMutuallyExclusive ] ,
+        [ a logic:TermCarrier ; logic:termIndex 9 ; logic:termIri logic:FrontierReadyApprovalRequired ] ,
+        [ a logic:TermCarrier ; logic:termIndex 10 ; logic:termIri logic:FrontierReadyAuthorized ] ,
+        [ a logic:TermCarrier ; logic:termIndex 11 ; logic:termIri logic:FrontierReconciliationImpossible ] ,
+        [ a logic:TermCarrier ; logic:termIndex 12 ; logic:termIri logic:FrontierReconciliationRequired ] ,
+        [ a logic:TermCarrier ; logic:termIndex 13 ; logic:termIri logic:FrontierSkippedWithTypedReason ] ,
+        [ a logic:TermCarrier ; logic:termIndex 14 ; logic:termIri logic:FrontierTerminallyFailed ] ,
+        [ a logic:TermCarrier ; logic:termIndex 15 ; logic:termIri logic:FrontierWaitingOnEventTimeOrInput ] .
+
+ex:lawPrescriptionKind a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the PrescriptionKind axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:PrescriptionKind ;
+    logic:lawAdmits ex:movesPrescriptionKind .
+
+ex:movesPrescriptionKind a logic:Formula ;
+    rdfs:label "The 12 positions the PrescriptionKind axis ranges over"@x-gmeow-english ;
+    logic:relation logic:PrescriptionKind ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:prescriptionKindAgentFlow ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:prescriptionKindBusinessProcess ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:prescriptionKindCiBuild ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:prescriptionKindControlPlan ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:prescriptionKindCurriculum ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:prescriptionKindDataPipeline ] ,
+        [ a logic:TermCarrier ; logic:termIndex 6 ; logic:termIri logic:prescriptionKindIngestion ] ,
+        [ a logic:TermCarrier ; logic:termIndex 7 ; logic:termIri logic:prescriptionKindLabProtocol ] ,
+        [ a logic:TermCarrier ; logic:termIndex 8 ; logic:termIri logic:prescriptionKindOrganizationalGuide ] ,
+        [ a logic:TermCarrier ; logic:termIndex 9 ; logic:termIri logic:prescriptionKindRecipe ] ,
+        [ a logic:TermCarrier ; logic:termIndex 10 ; logic:termIri logic:prescriptionKindRepeatableGuide ] ,
+        [ a logic:TermCarrier ; logic:termIndex 11 ; logic:termIri logic:prescriptionKindResearchPlan ] .
+
+ex:lawSkipReason a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the SkipReason axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:SkipReason ;
+    logic:lawAdmits ex:movesSkipReason .
+
+ex:movesSkipReason a logic:Formula ;
+    rdfs:label "The 4 positions the SkipReason axis ranges over"@x-gmeow-english ;
+    logic:relation logic:SkipReason ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:SkipAlreadySatisfied ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:SkipNotApplicable ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:SkipOperatorDeclined ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:SkipPolicyExcluded ] .
+
+ex:lawRejectionKind a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the RejectionKind axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:RejectionKind ;
+    logic:lawAdmits ex:movesRejectionKind .
+
+ex:movesRejectionKind a logic:Formula ;
+    rdfs:label "The 4 positions the RejectionKind axis ranges over"@x-gmeow-english ;
+    logic:relation logic:RejectionKind ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:RejectedApproval ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:RejectedCapability ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:RejectedPrecondition ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:RejectedResource ] .
+
+ex:lawIntegrityFault a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the IntegrityFault axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:IntegrityFault ;
+    logic:lawAdmits ex:movesIntegrityFault .
+
+ex:movesIntegrityFault a logic:Formula ;
+    rdfs:label "The 4 positions the IntegrityFault axis ranges over"@x-gmeow-english ;
+    logic:relation logic:IntegrityFault ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:FaultContentIntegrity ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:FaultDataGeneration ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:FaultIdentityMismatch ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:FaultRematerialization ] .
+
+ex:lawIncompleteCause a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the IncompleteCause axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:IncompleteCause ;
+    logic:lawAdmits ex:movesIncompleteCause .
+
+ex:movesIncompleteCause a logic:Formula ;
+    rdfs:label "The 4 positions the IncompleteCause axis ranges over"@x-gmeow-english ;
+    logic:relation logic:IncompleteCause ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:IncompleteCancellation ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:IncompleteDeadline ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:IncompletePageBudget ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:IncompleteStepBudget ] .
+
+ex:lawApprovalBindingFault a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the ApprovalBindingFault axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:ApprovalBindingFault ;
+    logic:lawAdmits ex:movesApprovalBindingFault .
+
+ex:movesApprovalBindingFault a logic:Formula ;
+    rdfs:label "The 4 positions the ApprovalBindingFault axis ranges over"@x-gmeow-english ;
+    logic:relation logic:ApprovalBindingFault ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:FaultDifferentEnactment ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:FaultDigestMismatch ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:FaultExpiredWindow ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:FaultOperatorPolicyMismatch ] .
+
+ex:lawRecurrenceState a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the RecurrenceState axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:RecurrenceState ;
+    logic:lawAdmits ex:movesRecurrenceState .
+
+ex:movesRecurrenceState a logic:Formula ;
+    rdfs:label "The 5 positions the RecurrenceState axis ranges over"@x-gmeow-english ;
+    logic:relation logic:RecurrenceState ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:RecurrenceActive ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:RecurrenceEnded ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:RecurrenceScheduled ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:RecurrenceSkipped ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:RecurrenceSuspended ] .
+
+ex:lawOperationOutcome a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the OperationOutcome axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:OperationOutcome ;
+    logic:lawAdmits ex:movesOperationOutcome .
+
+ex:movesOperationOutcome a logic:Formula ;
+    rdfs:label "The 6 positions the OperationOutcome axis ranges over"@x-gmeow-english ;
+    logic:relation logic:OperationOutcome ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:OutcomeApplied ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:OutcomeEngineFailure ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:OutcomeIncomplete ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:OutcomeInvalid ] ,
+        [ a logic:TermCarrier ; logic:termIndex 4 ; logic:termIri logic:OutcomeRequiresFullRebuild ] ,
+        [ a logic:TermCarrier ; logic:termIndex 5 ; logic:termIri logic:OutcomeUnsupportedFragment ] .
+
+ex:lawReconciliationVerdict a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the ReconciliationVerdict axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:ReconciliationVerdict ;
+    logic:lawAdmits ex:movesReconciliationVerdict .
+
+ex:movesReconciliationVerdict a logic:Formula ;
+    rdfs:label "The 3 positions the ReconciliationVerdict axis ranges over"@x-gmeow-english ;
+    logic:relation logic:ReconciliationVerdict ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:ReconciledCommitted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:ReconciledNotCommitted ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:ReconciledStillUnknown ] .
+
+ex:lawRebuildReason a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the RebuildReason axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:RebuildReason ;
+    logic:lawAdmits ex:movesRebuildReason .
+
+ex:movesRebuildReason a logic:Formula ;
+    rdfs:label "The 3 positions the RebuildReason axis ranges over"@x-gmeow-english ;
+    logic:relation logic:RebuildReason ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:RebuildFragmentChanged ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:RebuildNonIncrementalRetraction ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:RebuildRuleSetChanged ] .
+
+ex:lawDeliverySemantics a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the DeliverySemantics axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:DeliverySemantics ;
+    logic:lawAdmits ex:movesDeliverySemantics .
+
+ex:movesDeliverySemantics a logic:Formula ;
+    rdfs:label "The 3 positions the DeliverySemantics axis ranges over"@x-gmeow-english ;
+    logic:relation logic:DeliverySemantics ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:DeliveryAtLeastOnce ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:DeliveryAtMostOnce ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:DeliveryExactlyOnce ] .
+
+ex:lawContinuationKind a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the ContinuationKind axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:ContinuationKind ;
+    logic:lawAdmits ex:movesContinuationKind .
+
+ex:movesContinuationKind a logic:Formula ;
+    rdfs:label "The 3 positions the ContinuationKind axis ranges over"@x-gmeow-english ;
+    logic:relation logic:ContinuationKind ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:ContinuationRepeat ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:ContinuationResume ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:ContinuationRevise ] .
+
+ex:lawSearchFragment a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the SearchFragment axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:SearchFragment ;
+    logic:lawAdmits ex:movesSearchFragment .
+
+ex:movesSearchFragment a logic:Formula ;
+    rdfs:label "The 3 positions the SearchFragment axis ranges over"@x-gmeow-english ;
+    logic:relation logic:SearchFragment ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:FragmentAcyclicMethod ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:FragmentBoundedDepth ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:FragmentTotallyOrdered ] .
+
+ex:lawUnsupportedFragmentCondition a logic:AxisTransitionLaw ;
+    rdfs:label "Transition law for the UnsupportedFragmentCondition axis"@x-gmeow-english ;
+    logic:lawGovernsAxis logic:UnsupportedFragmentCondition ;
+    logic:lawAdmits ex:movesUnsupportedFragmentCondition .
+
+ex:movesUnsupportedFragmentCondition a logic:Formula ;
+    rdfs:label "The 3 positions the UnsupportedFragmentCondition axis ranges over"@x-gmeow-english ;
+    logic:relation logic:UnsupportedFragmentCondition ;
+    logic:argument
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri logic:UnsupportedConstruct ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:UnsupportedMethodSet ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri logic:UnsupportedNonTerminating ] .

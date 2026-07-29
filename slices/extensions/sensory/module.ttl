@@ -182,7 +182,7 @@ gmeow:sensoryObservationOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory observation of"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    logic:subPropertyOf gmeow:observedFeature ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -201,7 +201,7 @@ gmeow:sensoryResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory result"@x-gmeow-english ;
     rdfs:range gmeow:SensoryQuantity ;
-    logic:subPropertyOf gmeow:observationResult ;
+    rdfs:subPropertyOf gmeow:observationResult ;
     skos:definition "The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

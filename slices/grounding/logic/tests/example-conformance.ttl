@@ -429,3 +429,28 @@ ex:ecOcrGapRemediedElsewhere a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:OperationalGapCarriesProposalConstraintProceduralConstraintShape ;
     gmeow:conformanceRationale "The silent substitution, caught where it leaves a trace: an absent OCR capability, a logic:OperationalCapabilityGap correctly naming ex:ocrStep, a complete eight-field logic:CapabilityGapProposal whose logic:proposalBlockedStep is a DIFFERENT step, and a nine-field logic:DispatchIntent recording that ex:ocrStep was dispatched anyway against a plain-text extractor. Nothing is missing — the gap names its step, the proposal binds all eight fields, the intent binds all nine — so logic:OperationalGapNamesBlockedStepConstraint, logic:CapabilityGapProposalCompletenessConstraint and logic:DispatchIntentCompletenessConstraint all pass, and a reader counting proposals against gaps sees a backlog being attended to. The defect is the JOIN: no proposal answers the OCR blockage, which is what makes an unanswered gap indistinguishable from a system that degraded quietly instead. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
+
+# --- The closure census, positive and negative -------------------------------
+ex:ecEnactmentClosurePredicateCensus a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/enactment-closure-predicate-census.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:ActionableFrontier whose logic:SaturationWitness carries all three things a fixed-point claim needs: the enumerated logic:settledPredicate roster naming every enactment-kernel predicate the chase drove to a fixed point, the logic:consumedBudget it was proved under, and a logic:resultEvaluation of logic:EvaluationCompleted rather than logic:BudgetExhausted. Both saturation laws therefore pass — the presence law finds a witness and the reading law finds it certifies rather than merely exists — and validation emits no finding." .
+
+ex:ecSaturationCensusOmitsItsBudget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/saturation-census-omits-its-budget.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The same one-hundred-and-fifty-nine-predicate census with the logic:consumedBudget removed. A fixed point is a claim relative to a bound, so an enumeration with no budget records what the chase reached and never that it had nowhere left to go; the size of the list is what makes the omission hard to see. The presence law passes (a witness is cited and does carry content), so only the law that READS the witness can reject it. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint." .
+
+# --- The axis transition laws, positive and negative -------------------------
+ex:ecAxisTransitionLaws a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/axis-transition-laws.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Nineteen logic:AxisTransitionLaw records, each naming the closed axis it governs through logic:lawGovernsAxis and reaching every position of that axis through a logic:lawAdmits formula whose ordered logic:TermCarrier arguments each select exactly one value kind (logic:termIri). Every typed-IR carrier law is satisfied — one index, one value kind, contiguous ordering — so the whole roster validates with no finding." .
+
+ex:ecAxisLawCarrierRecordedTwoWays a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/axis-law-carrier-recorded-two-ways.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The same nineteen laws with the first carrier of the step-state law selecting BOTH logic:termIri and logic:termVariable. A carrier that names a position and a variable at once gives the admitted move an endpoint that is simultaneously a specific position and unconstrained, so the law admits transitions nobody authored and its deadlock-freedom proof becomes unfalsifiable rather than false. MUST emit shacl.SPARQLConstraintComponent for the typed-IR carrier law that rejects a carrier selecting more than one value kind." .

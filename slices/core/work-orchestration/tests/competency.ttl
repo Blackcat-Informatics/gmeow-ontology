@@ -12,6 +12,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
 @prefix exr:   <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 
 ex:cqFrontierLabels a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-frontier-labels.rq" ;
@@ -244,3 +245,150 @@ ex:cqStandpointRowCompliance a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseExposure ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:complianceOfficerStandpoint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+# =========================================================================== #
+# === Carrier rosters for the operator-facing records                     === #
+# =========================================================================== #
+#
+# Each of these records is a SURFACE — the thing a human reads instead of the
+# enactment itself — so its failure mode is partial completeness: a cluster with
+# no schedule edge, an explanation with no dissent edge, a guidance set with no
+# rubric. Each still validates, still renders, and still looks whole. The pin is
+# over (record, carrier) pairs rather than over a per-record count, because a
+# count survives a swap that drops one carrier and adds another, and the swap is
+# what a reviewer would never notice.
+
+ex:cqSurfaceCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqSurfaceCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { gmeow:WorkCluster gmeow:GuidanceSet gmeow:FrontierExplanation gmeow:WorkReviewProjection } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Four operator-facing records, twenty-seven carriers, pinned as pairs. The cluster is the unit a person actually manages, and its eight edges are the reason it is not just a folder: goal, policy, schedule, occurrence series, active prescription, enactment, guidance set and note, each of which a review must be able to reach without knowing where the work was filed. The explanation carries the entry it explains plus criterion, policy, evidence, proof and dissent — and dissent is a carrier rather than a footnote precisely because an explanation that can only record agreement is advocacy. The guidance set carries its checklist, rubric and version membership; the review projection carries the ten contents its own question pins. Reading all four off rdfs:domain rather than off prose is what makes the roster a contract instead of a description."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqSurfaceCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqSurfaceCarriersRowFrontierExplanationexplainsEntry , ex:cqSurfaceCarriersRowFrontierExplanationexplanationCriterion , ex:cqSurfaceCarriersRowFrontierExplanationexplanationDissent , ex:cqSurfaceCarriersRowFrontierExplanationexplanationEvidence , ex:cqSurfaceCarriersRowFrontierExplanationexplanationPolicy , ex:cqSurfaceCarriersRowFrontierExplanationexplanationProof , ex:cqSurfaceCarriersRowGuidanceSetguidanceChecklist , ex:cqSurfaceCarriersRowGuidanceSetguidanceRubric , ex:cqSurfaceCarriersRowGuidanceSetguidanceVersionMembership , ex:cqSurfaceCarriersRowWorkClusterclusterActivePrescription , ex:cqSurfaceCarriersRowWorkClusterclusterEnactment , ex:cqSurfaceCarriersRowWorkClusterclusterGoal , ex:cqSurfaceCarriersRowWorkClusterclusterGuidanceSet , ex:cqSurfaceCarriersRowWorkClusterclusterNote , ex:cqSurfaceCarriersRowWorkClusterclusterOccurrenceSeries , ex:cqSurfaceCarriersRowWorkClusterclusterPolicy , ex:cqSurfaceCarriersRowWorkClusterclusterSchedule , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewAccumulatedRecord , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewApprovalsAndPending , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewCurrentEnactment , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewEffectStatus , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewFrontier , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewGoalAndRecurrence , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewOfCluster , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewPrescriptionLineage , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewReceipt , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewTimelineRepresentation  .
+
+ex:cqSurfaceCarriersRowFrontierExplanationexplainsEntry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explainsEntry ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationCriterion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationCriterion ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationDissent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationDissent ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationEvidence ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationPolicy ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationProof a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationProof ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceChecklist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceChecklist ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceRubric a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceRubric ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceVersionMembership a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceVersionMembership ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterActivePrescription a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterActivePrescription ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterEnactment ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterGoal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterGoal ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterGuidanceSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterGuidanceSet ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterNote a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterNote ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterOccurrenceSeries a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterOccurrenceSeries ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterPolicy ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterSchedule a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterSchedule ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewAccumulatedRecord a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewAccumulatedRecord ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewApprovalsAndPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewApprovalsAndPending ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewCurrentEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewCurrentEnactment ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewEffectStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewEffectStatus ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewFrontier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewFrontier ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewGoalAndRecurrence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewGoalAndRecurrence ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewOfCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewOfCluster ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewPrescriptionLineage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewPrescriptionLineage ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewReceipt ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewTimelineRepresentation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewTimelineRepresentation ] .
+
+# --- The carriers of the two work-orchestration value axes -------------------
+ex:cqWorkAxisCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqWorkAxisCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?axis ?term WHERE { VALUES ?axis { gmeow:ContributionKind math:Quantity } ?term rdfs:range ?axis ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> } ORDER BY ?axis ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Two questions the slice must be able to answer about its own quantitative and attributive surface, asked together because they share a shape. The query is scoped by rdfs:isDefinedBy to the terms this slice OWNS, which is what makes the answer a statement about this vocabulary rather than about every relation in the canon that happens to reach a math:Quantity. Exactly one work-orchestration relation carries the contribution kind, so a record cannot be attributed to a model and an operator at once; and exactly one carries a decision criterion's magnitude into the math: quantity spine, so a criterion's number arrives with its dimension rather than as a bare literal that nobody can convert or compare. A second carrier on either axis would be the drift: two contribution-kind edges make attribution ambiguous, and a second magnitude edge is how an ungrounded number gets back in beside the grounded one."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqWorkAxisCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqWorkAxisCarriersRowContributionKindcontributionKind , ex:cqWorkAxisCarriersRowQuantitycriterionMagnitude  .
+
+ex:cqWorkAxisCarriersRowContributionKindcontributionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:ContributionKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:contributionKind ] .
+ex:cqWorkAxisCarriersRowQuantitycriterionMagnitude a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri math:Quantity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:criterionMagnitude ] .
+
+# --- The relations this slice deliberately leaves untyped at both ends -------
+ex:cqUntypedSeamRelationsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqUntypedSeamRelations a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?term WHERE { ?term a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> . FILTER NOT EXISTS { ?term rdfs:domain ?d } FILTER NOT EXISTS { ?term rdfs:range ?r } } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Leaving both ends of a relation to prose is a real cost — no derived shape can check either side — so the slice should be able to say exactly how often it does so and answer for each case. The answer is one: the rendering seam, which applies to any item carrying authored prose (a guidance item, a note, a dissent, a review rendering) and points into lang:, so declaring a domain would exclude legitimate bearers and declaring a range would duplicate the grounding slice's own typing. Pinning the roster at exactly one entry is what makes the exception stay an exception: a second untyped relation cannot be added without this question failing and the justification being written down."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqUntypedSeamRelationsShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqUntypedSeamRowGuidanceRendering .
+
+ex:cqUntypedSeamRowGuidanceRendering a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceRendering ] .

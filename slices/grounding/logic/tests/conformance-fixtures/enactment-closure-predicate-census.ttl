@@ -1,0 +1,197 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The predicate census of a closed enactment frontier.
+#
+# A logic:SaturationWitness earns its name by ENUMERATING: its definition requires
+# that the predicates whose extensions the derivation proved final be spelled out
+# one by one, because the predicates a witness does not name are exactly the ones
+# whose closure it does not certify. "Everything settled" is not a claim anyone can
+# falsify; this list is.
+#
+# So this fixture is the honest form of a closure claim over the enactment kernel:
+# a frontier that says it is closed, backed by a witness that names every kernel
+# predicate the chase drove to a fixed point, states the budget it was proved
+# under, and records that the run finished rather than hitting its bound. Read as
+# documentation it answers a question no prose can: which parts of the kernel does
+# the frontier derivation actually reach?
+#
+# It is the positive half of a pair. Its counter-example
+# (tests/counter-examples/saturation-census-omits-its-budget.ttl) keeps the whole
+# enumeration and drops only the budget, which is the interesting failure: the
+# longer the list of settled predicates, the more convincing an unfounded closure
+# claim looks.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:censusFrontier a logic:ActionableFrontier ;
+    rdfs:label "a frontier whose closure claim names every predicate it settled"@en ;
+    logic:frontierSaturationWitness ex:censusSaturation .
+
+ex:censusSaturation a logic:SaturationWitness ;
+    rdfs:label "saturation witness for the enactment-kernel chase"@en ;
+    logic:resultEvaluation logic:EvaluationCompleted ;
+    logic:consumedBudget "steps=41208;pages=96;wallclock-ms=1873" ;
+    logic:settledPredicate
+        logic:adjudicatesAttempt ,
+        logic:advisoryAbout ,
+        logic:approvalBindingFault ,
+        logic:approvalDecision ,
+        logic:approvalEnactment ,
+        logic:approvalIntentDigest ,
+        logic:approvalOperator ,
+        logic:approvalPolicy ,
+        logic:approvalState ,
+        logic:approvalValidityWindow ,
+        logic:assemblyExcluded ,
+        logic:assemblyExclusionReason ,
+        logic:assemblyForEnactment ,
+        logic:assemblyGuidanceVersion ,
+        logic:assemblyIncluded ,
+        logic:attemptOfIntent ,
+        logic:certifiesDeadlockFreedom ,
+        logic:certifiesNoOrphanIntent ,
+        logic:certifiesReachability ,
+        logic:checkpointAnnotationDigest ,
+        logic:checkpointContractDigest ,
+        logic:checkpointDataDigest ,
+        logic:checkpointDescriptorHash ,
+        logic:checkpointEngineDigest ,
+        logic:checkpointFragmentDigest ,
+        logic:checkpointOfEnactment ,
+        logic:checkpointOfStep ,
+        logic:checkpointRulesDigest ,
+        logic:checkpointSliceDigest ,
+        logic:clockObservedAt ,
+        logic:clockSource ,
+        logic:cohortMember ,
+        logic:compensatesEffect ,
+        logic:compensationReceipt ,
+        logic:continuationKind ,
+        logic:deadlineExhausted ,
+        logic:deadlineOfEnactment ,
+        logic:deltaAddition ,
+        logic:deltaSuppression ,
+        logic:deviationFromStep ,
+        logic:effectKnowledge ,
+        logic:effectProtocolPosition ,
+        logic:enactmentInputSnapshot ,
+        logic:enactmentJournal ,
+        logic:enactmentState ,
+        logic:enactsPrescriptionVersion ,
+        logic:entryAction ,
+        logic:entryAwaits ,
+        logic:entryAxisWitness ,
+        logic:entryExcludes ,
+        logic:entryLabel ,
+        logic:expectedJournalHead ,
+        logic:fencingIdentity ,
+        logic:frontierOfEnactment ,
+        logic:frontierSaturationWitness ,
+        logic:frontierVantage ,
+        logic:gapBlockedStep ,
+        logic:hasFrontierEntry ,
+        logic:hasRejection ,
+        logic:idempotencyDuplicateSemantics ,
+        logic:idempotencyKey ,
+        logic:idempotencyProviderEvidence ,
+        logic:idempotencyRetention ,
+        logic:idempotencyScope ,
+        logic:impossibleOfAttempt ,
+        logic:incompleteCause ,
+        logic:integrityFault ,
+        logic:intentActionSchemaVersion ,
+        logic:intentApprovalRequired ,
+        logic:intentDigest ,
+        logic:intentIdempotency ,
+        logic:intentNormalizedArguments ,
+        logic:intentOfEnactment ,
+        logic:intentOfStep ,
+        logic:intentPolicy ,
+        logic:intentTarget ,
+        logic:journalDeltaIdentity ,
+        logic:journalHead ,
+        logic:journalNewHead ,
+        logic:journalOutcomeTag ,
+        logic:journalPrevHead ,
+        logic:knowledgePrecedes ,
+        logic:lawAdmits ,
+        logic:lawGovernsAxis ,
+        logic:leaseExpiry ,
+        logic:leaseOwner ,
+        logic:leaseScope ,
+        logic:lensGetPutHolds ,
+        logic:lensGoverns ,
+        logic:lensPutGetHolds ,
+        logic:licenceCoversAttempt ,
+        logic:methodApplicability ,
+        logic:methodDecomposes ,
+        logic:methodDigest ,
+        logic:methodStep ,
+        logic:methodYieldCell ,
+        logic:methodYields ,
+        logic:normalizationRecipe ,
+        logic:operationOutcome ,
+        logic:outcomeOfCompensation ,
+        logic:pinAuthority ,
+        logic:pinDigest ,
+        logic:pinInstantiatesMethod ,
+        logic:pinnedStepSequence ,
+        logic:preparationOf ,
+        logic:prescriptionDigest ,
+        logic:prescriptionKind ,
+        logic:prescriptionOf ,
+        logic:probesAttempt ,
+        logic:producedCandidateSet ,
+        logic:proofEstablishes ,
+        logic:proposalBlockedStep ,
+        logic:proposalExpectedEffects ,
+        logic:proposalExpectedInputs ,
+        logic:proposalExpectedOutputs ,
+        logic:proposalMissingCapability ,
+        logic:proposalRequiredContract ,
+        logic:proposalSecurityLifecycle ,
+        logic:proposalVerificationMethod ,
+        logic:providerCorrelationId ,
+        logic:rebuildReason ,
+        logic:receiptEvidence ,
+        logic:receiptOfAttempt ,
+        logic:receiptOfPreparation ,
+        logic:reconciliationVerdict ,
+        logic:recoveryWitness ,
+        logic:recurrenceState ,
+        logic:refinementBudget ,
+        logic:refinementCandidate ,
+        logic:refinementCandidateMethod ,
+        logic:refinementExpands ,
+        logic:refinementReaches ,
+        logic:refinementRejectedOnApproval ,
+        logic:refinementRejectedOnCapability ,
+        logic:refinementRejectedOnPrecondition ,
+        logic:refinementRejectedOnResource ,
+        logic:refinementServesGoal ,
+        logic:refinementWorldSnapshot ,
+        logic:refinesStep ,
+        logic:rejectedCandidate ,
+        logic:rejectionKind ,
+        logic:rejectionWitness ,
+        logic:requiredPriorPrescription ,
+        logic:requiredPriorState ,
+        logic:restoreDescriptorHash ,
+        logic:restoreOfEnactment ,
+        logic:restoresCheckpoint ,
+        logic:resultOfProbe ,
+        logic:retryLicence ,
+        logic:retryOfAttempt ,
+        logic:searchFragment ,
+        logic:selectedPin ,
+        logic:settledPredicate ,
+        logic:skipReason ,
+        logic:snapshotDigest ,
+        logic:stepState ,
+        logic:unknownOfAttempt ,
+        logic:unsupportedCondition ,
+        logic:violatedLaw .
