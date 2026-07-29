@@ -301,6 +301,12 @@ mod tests;
 /// not, which is backwards for an identity. The materialized edge lives in the reasoned graph
 /// this gate reads, and the reasoned graph is internal; a note is how a CLI consumer sees it.
 ///
+/// The message deliberately does NOT open with a `math:<Class>: ` token. That prefix is the
+/// native channel's convention for "this finding reports FAILURE class X", and the conformance
+/// harness scans source for it to build the reachable-class set — an identity class carrying it
+/// registers as a phantom failure class, which is exactly what the harness reported when this
+/// note was first written that way.
+///
 /// It is also the gate's only POSITIVE verdict. "No findings" and "nothing to decide" are the
 /// same observation from outside, so a silent population is indistinguishable from a healthy
 /// one; one note per decided root makes the population countable.
@@ -318,7 +324,7 @@ fn report_alpha_equivalence_classes(
             Severity::Note,
             "verify.math.alpha-equivalence-class",
             format!(
-                "math:AlphaEquivalenceClass: expression {root} resolves to {alpha_iri} — two \
+                "expression {root} resolves to alpha-equivalence class {alpha_iri} — two \
                  expressions identical up to bound-variable renaming and symbol occurrence share \
                  this node, so a consumer joins on it rather than string-comparing digests"
             ),

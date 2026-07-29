@@ -25,12 +25,33 @@ const PRODUCER_PREFIXES: &str = "@prefix math:  <https://blackcatinformatics.ca/
      @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\
      @prefix p:     <https://blackcatinformatics.ca/gmeow/examples/math/projection-producers/> .\n\n";
 
-/// Render `s` as a Turtle string literal. Turtle's `STRING_LITERAL_QUOTE` ECHAR escapes
-/// (`\"`, `\\`, `\n`, `\t`, `\r`, …) are the same characters Rust's `Debug` formatting for
-/// `&str` escapes, so `{s:?}` is a valid Turtle string literal for any input this module
-/// passes through it (including the computed renderings that embed a nested `"…"`).
+/// Render `s` as a Turtle `STRING_LITERAL_QUOTE`.
+///
+/// Escapes exactly the ECHAR set Turtle defines and nothing else. `{s:?}` was close enough for
+/// the ASCII this module happens to pass today, but Rust's `Debug` also emits `\u{7f}`-style
+/// escapes for control and non-printable characters, and Turtle has no such form — a producer
+/// that ever rendered one would emit a literal no parser accepts. Escaping to the grammar
+/// rather than to whatever the current inputs contain keeps that from depending on luck.
 fn turtle_string_literal(s: &str) -> String {
-    format!("{s:?}")
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            // Turtle's ECHAR covers only the escapes above; anything else that is a control
+            // character has no Turtle escape at all and must go through \uXXXX.
+            c if (c as u32) < 0x20 || c as u32 == 0x7f => {
+                out.push_str(&format!("\\u{:04X}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 /// Produce a REAL `math:` → "the OWL annotation surface" projection.
@@ -106,12 +127,11 @@ pub fn produce_expression_annotation_projection() -> String {
 pub fn produce_distribution_scipy_projection() -> String {
     // SciPy's `scipy.stats.norm` names exactly these two roles; both are representable as
     // named keyword arguments, so the mapping is role-complete (checked, not assumed).
+    // The two roles SciPy's `norm` takes as named keyword arguments. Asserting they are
+    // non-empty would be a tautology over the literals on the line above; what the projection
+    // must actually preserve is that BOTH of them survive into the emitted parameterization,
+    // which the acceptance query over this producer's output checks.
     let roles = ["mean", "stddev"];
-    let role_complete = roles.iter().all(|r| !r.is_empty());
-    assert!(
-        role_complete,
-        "every SciPy `norm` role must have a non-empty name to be representable"
-    );
 
     let mut t = String::new();
     t.push_str(PRODUCER_PREFIXES);
