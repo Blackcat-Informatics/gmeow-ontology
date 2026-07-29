@@ -124,3 +124,43 @@ msgstr "范围：该记录仅承载关于 gmeow:toolResult 的一项完整性义
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:usedTool and nothing else. It is not a definition of gmeow:usedTool (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:usedTool 的一项完整性义务，别无其他。它不是 gmeow:usedTool 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derived by"
+msgstr "派生自"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tool call a RESULT STATEMENT came out of — the predicate an annotated result triple carries so an agent's answer stays attributable to the call that produced it. Backward-pointing, like gmeow:wasGeneratedBy, but attaching to the statement rather than to an entity: gmeow:wasGeneratedBy says a thing was produced by an activity, this says a particular assertion was. Deliberately domain-free, since any statement a session emits may be annotated this way and the annotated subjects share no class. Distinct from gmeow:derivedByFunction, which names a pure function a derived observation was computed with, not an audited call event."
+msgstr "某条结果陈述所出自的那次工具调用——带注记的结果三元组所携带的谓词，使智能体给出的回答始终可归因于产生它的那次调用。它像 gmeow:wasGeneratedBy 一样向来源方向指回，但附着于陈述而非实体：gmeow:wasGeneratedBy 说的是某物由某项活动产生，而本谓词说的是某条特定断言由此产生。它有意不设定义域，因为会话发出的任何陈述都可以这样加注，而被加注的主体并不共属同一个类。它区别于 gmeow:derivedByFunction，后者命名的是计算某项派生观测所用的纯函数，而非一次经审计的调用事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:answer gmeow:derivedBy ex:searchCall ."
+msgstr "示例：ex:answer gmeow:derivedBy ex:searchCall ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "session store segment"
+msgstr "会话存储分段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the append-only session-store segment this call's audit record was appended to. A session's trajectory is written as an ordered run of segments rather than as one rewritten whole, so naming the segment makes the record locatable without re-reading the entire store, and makes an audit that spans several commits reconstructible in order."
+msgstr "本次调用的审计记录被追加到的那个只追加会话存储分段的标识符。会话的轨迹是作为有序的分段序列写入的，而不是作为一个被反复重写的整体；因此指明分段即可在无需重读整个存储的情况下定位该记录，也使跨越多次提交的审计能够按顺序重建。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:sessionStoreSegment \"0003\" ."
+msgstr "示例：ex:call gmeow:sessionStoreSegment \"0003\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sessionStoreSegment is functional"
+msgstr "sessionStoreSegment 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sessionStoreSegment is functional: a tool call's audit record was appended to exactly one append-only session-store segment, the single segment its bytes were committed to. A second value would make the record locatable in two places at once and let a replay re-point an already-committed call at a different segment, which is precisely what an append-only trajectory forbids. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:sessionStoreSegment 是函数性的：一次工具调用的审计记录恰好被追加到一个只追加会话存储分段，即其字节所提交到的那个唯一分段。第二个取值会使该记录同时可在两处定位，并允许一次重放把已提交的调用改指到另一个分段，而这正是只追加轨迹所禁止的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:sessionStoreSegment and nothing else. It is not a definition of gmeow:sessionStoreSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:sessionStoreSegment 的一项完整性义务，别无其他。它不是 gmeow:sessionStoreSegment 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
+msgstr "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."

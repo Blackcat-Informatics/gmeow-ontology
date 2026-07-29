@@ -124,3 +124,203 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:levelScale and nothing else. It is not a definition of gmeow:levelScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:levelScale, et rien d'autre. Ce n'est pas une définition de gmeow:levelScale (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Family"
+msgstr "Famille de distribution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The family a shipped documentation distribution belongs to — an open value vocabulary of individuals, never subclasses. It separates the lossy prose renderings (the doc-render family: the live site, the offline book, the print PDF, the flat term snippets) from the structured re-serializations (the serialization family: the Open-Knowledge export, JSON-LD-star, YAML-LD-star, the typed-model package). That split is what decides whether a distribution may carry a declared capability loss at all: only a rendering loses capabilities, a re-serialization does not."
+msgstr "La famille à laquelle appartient une distribution de documentation livrée — un vocabulaire de valeurs ouvert, formé d'individus et jamais de sous-classes. Elle sépare les rendus en prose avec perte (la famille des rendus documentaires : le site en ligne, le livre hors ligne, le PDF d'impression, les extraits de termes à plat) des re-sérialisations structurées (la famille des sérialisations : l'export Open-Knowledge, JSON-LD-star, YAML-LD-star, le paquet de modèles typés). C'est ce clivage qui décide si une distribution peut porter une perte de capacité déclarée : seul un rendu perd des capacités, une re-sérialisation n'en perd aucune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:docRenderFamily a gmeow:DistributionFamily ."
+msgstr "Exemple : ex:docRenderFamily a gmeow:DistributionFamily ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Documentation Distribution"
+msgstr "Distribution de documentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One shipped documentation artifact of the release: a rendered prose surface or a structured re-serialization of the ontology, identified by its stable format slug and characterized by its family, its media type, the audiences it is eligible for, and — for a rendering — the capabilities it declares lost. A distribution is the SCHEMA-level artifact, not a release record: its per-release content digest is a later instance fact, never folded into the declaration."
+msgstr "Un artefact de documentation livré avec la version : une surface en prose rendue ou une re-sérialisation structurée de l'ontologie, identifiée par son identifiant de format stable et caractérisée par sa famille, son type de média, les publics auxquels elle est destinée et — pour un rendu — les capacités qu'elle déclare perdues. Une distribution est l'artefact de niveau SCHÉMA, non un enregistrement de version : son condensé de contenu propre à chaque version est un fait d'instance ultérieur, jamais replié dans la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:site a gmeow:DocumentationDistribution ; gmeow:distributionFormat \"site\" ."
+msgstr "Exemple : ex:site a gmeow:DocumentationDistribution ; gmeow:distributionFormat \"site\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalConcept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Formal Concept"
+msgstr "Concept formel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalConcept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One node of a formal-concept lattice: a closed extent/intent pair over a two-column incidence, where the extent is every object that carries all of the intent and the intent is every attribute shared by all of the extent. Purely DERIVED — a concept is computed from the incidence by the Galois connection, never authored — so an emitted concept is a queryable projection of a table stated elsewhere, and a node with an empty extent or an empty intent is normal lattice structure rather than a defect."
+msgstr "Un nœud du treillis de concepts formels : une paire close extension/intension sur une incidence à deux colonnes, où l'extension réunit tous les objets qui portent l'intégralité de l'intension et l'intension réunit tous les attributs partagés par toute l'extension. Purement DÉRIVÉ — un concept est calculé à partir de l'incidence par la correspondance de Galois, jamais rédigé — de sorte qu'un concept émis est une projection interrogeable d'une table énoncée ailleurs, et qu'un nœud à extension vide ou à intension vide relève de la structure normale du treillis et non d'un défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalConcept|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:concept a gmeow:FormalConcept ; gmeow:conceptIntent gmeow:capabilityDiagrams ."
+msgstr "Exemple : ex:concept a gmeow:FormalConcept ; gmeow:conceptIntent gmeow:capabilityDiagrams ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalConcept|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LossBearingProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loss Bearing Profile"
+msgstr "Profil porteur de perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LossBearingProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Anything that may declare what it drops when canonical content is projected through it — the single domain of gmeow:declaredLoss. Deliberately a non-sortal category, so that structurally unrelated projections can share one loss ledger: a notation projection profile, a shipped documentation distribution, and a one-off render manifest are all loss-bearing without being kinds of one another. Stated as a category rather than as a union of those classes so the axiom stays inside the EL profile the derived shapes are compiled from."
+msgstr "Tout ce qui peut déclarer ce qu'il abandonne lorsqu'un contenu canonique est projeté à travers lui — l'unique domaine de gmeow:declaredLoss. Délibérément une catégorie non sortale, afin que des projections structurellement sans lien puissent partager un même registre de pertes : un profil de projection notationnelle, une distribution de documentation livrée et un manifeste de rendu ponctuel sont tous porteurs de perte sans être des espèces les uns des autres. Énoncée comme catégorie plutôt que comme réunion de ces classes, pour que l'axiome demeure dans le profil EL à partir duquel les formes dérivées sont compilées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LossBearingProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:manifest a gmeow:LossBearingProfile ; gmeow:declaredLoss ex:lossMicrotiming ."
+msgstr "Exemple : ex:manifest a gmeow:LossBearingProfile ; gmeow:declaredLoss ex:lossMicrotiming ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LossBearingProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCapability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Projection Capability"
+msgstr "Capacité de projection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCapability|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A cross-cutting capability a projection surface either represents faithfully or declares lost — an open value vocabulary of individuals, never subclasses. These are the attribute column of the surface/capability incidence: full-text search, live query, interactivity, live reasoning, rendered diagrams, and cross-link fidelity. A capability is a property of the SURFACE, not of the content it renders, so the same content is capability-rich on one surface and capability-poor on another."
+msgstr "Une capacité transversale qu'une surface de projection représente fidèlement ou déclare perdue — un vocabulaire de valeurs ouvert, formé d'individus et jamais de sous-classes. Ce sont les attributs de l'incidence surface/capacité : la recherche plein texte, la requête en direct, l'interactivité, le raisonnement en direct, les diagrammes rendus et la fidélité des liens croisés. Une capacité est une propriété de la SURFACE et non du contenu qu'elle rend ; un même contenu est donc riche en capacités sur une surface et pauvre en capacités sur une autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCapability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:accountsForParameter gmeow:capabilityDiagrams ."
+msgstr "Exemple : ex:profile gmeow:accountsForParameter gmeow:capabilityDiagrams ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCapability|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SiteSubAsset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Site Sub Asset"
+msgstr "Sous-actif de site"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SiteSubAsset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A separately addressable component that ships INSIDE a documentation distribution rather than as one of its own: a vendored engine binary, an object-level bundle, or a demo library, each content-addressed at a known path within the rendered tree. A sub-asset is priced and typed like a distribution but is deliberately outside the distribution enumeration, so counting the shipped surfaces never double-counts the parts that ride within one."
+msgstr "Un composant adressable séparément qui est livré À L'INTÉRIEUR d'une distribution de documentation plutôt qu'en tant que distribution à part entière : un binaire de moteur incorporé, un paquet de niveau objet ou une bibliothèque de démonstration, chacun adressé par son contenu à un chemin connu dans l'arborescence rendue. Un sous-actif est chiffré et typé comme une distribution, mais il reste délibérément hors de l'énumération des distributions, de sorte que le décompte des surfaces livrées ne compte jamais deux fois les pièces qui voyagent à l'intérieur de l'une d'elles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SiteSubAsset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:site gmeow:hasSubAsset ex:reasonerEngine ."
+msgstr "Exemple : ex:site gmeow:hasSubAsset ex:reasonerEngine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SiteSubAsset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its subsumption is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored, so the taxonomy has one source and adds no ungrounded rdfs residue — the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."
+msgstr "Sa subsomption est fondée dans logic: (logic:subClassOf, que le pipeline abaisse en rdfs:subClassOf sur la projection OWL/RDFS) plutôt qu'écrite à la main ; la taxonomie n'a donc qu'une seule source et n'ajoute aucun résidu rdfs non fondé — le compteur de résidus ne compte que les rdfs:subClassOf affirmés dans la source, jamais les logic:subClassOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityCrossLinkFidelity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cross-link fidelity"
+msgstr "fidélité des liens croisés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityCrossLinkFidelity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cross-link-fidelity capability — every term or slice reference is a live link that resolves inside the artifact, rather than prose naming a target the reader must go and find elsewhere."
+msgstr "La capacité de fidélité des liens croisés — chaque référence à un terme ou à une tranche est un lien actif qui se résout à l'intérieur de l'artefact, et non une mention en prose d'une cible que le lecteur doit aller chercher ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityDiagrams|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "diagrams"
+msgstr "diagrammes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityDiagrams|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The rendered-diagram capability — dependency, box-role, DAG, and lattice figures are drawn on the surface instead of being described in text."
+msgstr "La capacité de diagrammes rendus — les figures de dépendances, de rôles de boîtes, de graphes acycliques orientés et de treillis sont dessinées sur la surface au lieu d'être décrites en texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityInteractivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interactivity"
+msgstr "interactivité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityInteractivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The interactive-surface capability — playgrounds, collapsible sections, and other widgets respond to the reader instead of presenting one fixed rendering."
+msgstr "La capacité de surface interactive — bacs à sable, sections repliables et autres composants réagissent au lecteur au lieu de présenter un rendu figé unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityLiveReasoning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "live reasoning"
+msgstr "raisonnement en direct"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityLiveReasoning|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The live-reasoning capability — the structured description-logic chase and the notation transcode run against the reader's own input, in place, rather than having been pre-computed at build time."
+msgstr "La capacité de raisonnement en direct — la poursuite structurée en logique de description et le transcodage notationnel s'exécutent sur place, sur la propre entrée du lecteur, au lieu d'avoir été précalculés à la construction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityLiveSparql|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "live SPARQL"
+msgstr "SPARQL en direct"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilityLiveSparql|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The live-query capability — arbitrary SPARQL is executed against the ontology from within the surface, so a reader can ask a question the authors never anticipated."
+msgstr "La capacité de requête en direct — du SPARQL arbitraire est exécuté sur l'ontologie depuis l'intérieur de la surface, si bien qu'un lecteur peut poser une question que les auteurs n'avaient pas prévue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilitySearchIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "search index"
+msgstr "index de recherche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capabilitySearchIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The bundled full-text search capability — the surface ships an index over the whole corpus, so a reader can find a term without already knowing where it lives."
+msgstr "La capacité de recherche plein texte intégrée — la surface embarque un index sur l'ensemble du corpus, si bien qu'un lecteur peut trouver un terme sans savoir au préalable où il se trouve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "concept extent"
+msgstr "extension du concept"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One object in a derived formal concept's extent — a projection surface that represents every capability in the concept's intent. The extent is closed by construction: it is exactly the surfaces the intent selects, so adding or removing one by hand contradicts the incidence it was derived from."
+msgstr "Un objet de l'extension d'un concept formel dérivé — une surface de projection qui représente chacune des capacités de l'intension du concept. L'extension est close par construction : elle est exactement l'ensemble des surfaces que l'intension sélectionne, si bien qu'en ajouter ou en retirer une à la main contredit l'incidence dont elle est issue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:concept gmeow:conceptExtent ex:siteDistribution ."
+msgstr "Exemple : ex:concept gmeow:conceptExtent ex:siteDistribution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "concept intent"
+msgstr "intension du concept"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One attribute in a derived formal concept's intent — a capability every surface in the concept's extent represents. The intent is closed by construction: it is exactly the capabilities shared by the whole extent, so it is the complement view of the same Galois pair, never an independent claim."
+msgstr "Un attribut de l'intension d'un concept formel dérivé — une capacité que représente chaque surface de l'extension du concept. L'intension est close par construction : elle est exactement l'ensemble des capacités partagées par toute l'extension ; elle est donc la vue complémentaire de la même paire de Galois, jamais une affirmation indépendante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:concept gmeow:conceptIntent gmeow:capabilityLiveSparql ."
+msgstr "Exemple : ex:concept gmeow:conceptIntent gmeow:capabilityLiveSparql ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consumerInteractiveConsole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interactive console"
+msgstr "console interactive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consumerInteractiveConsole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer is an operator working the ontology live at the standalone interactive console — querying, reasoning, and transcoding against the bundle in a session rather than reading a rendered page."
+msgstr "Le consommateur est un opérateur qui manipule l'ontologie en direct depuis la console interactive autonome — il interroge, raisonne et transcode sur le paquet au fil d'une session plutôt que de lire une page rendue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "distribution family"
+msgstr "Famille de distribution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The family a shipped documentation artifact belongs to. Deliberately domain-free: both a whole distribution and a component shipping inside one carry a family, and those two classes stand in no subsumption relation — declaring their union as a domain would push the axiom outside the EL profile the derived shapes are compiled from, so the honest declaration constrains the range only."
+msgstr "La famille à laquelle appartient un artefact de documentation livré. Délibérément sans domaine : aussi bien une distribution entière qu'un composant livré à l'intérieur de l'une d'elles portent une famille, et ces deux classes n'entretiennent aucune relation de subsomption — déclarer leur réunion comme domaine pousserait l'axiome hors du profil EL à partir duquel les formes dérivées sont compilées ; la déclaration honnête ne contraint donc que la portée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:site gmeow:distributionFamily ex:docRenderFamily ."
+msgstr "Exemple : ex:site gmeow:distributionFamily ex:docRenderFamily ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has sub-asset"
+msgstr "possède un sous-actif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A separately addressable component this documentation distribution ships inside itself. The link is what keeps a shipped component out of the distribution enumeration while still leaving it addressable: whoever counts the surfaces follows the distribution set, and whoever verifies the bytes follows this edge."
+msgstr "Un composant adressable séparément que cette distribution de documentation livre en son sein. C'est ce lien qui maintient un composant livré hors de l'énumération des distributions tout en le laissant adressable : qui dénombre les surfaces suit l'ensemble des distributions, et qui vérifie les octets suit cette arête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:site gmeow:hasSubAsset ex:reasonerEngine ."
+msgstr "Exemple : ex:site gmeow:hasSubAsset ex:reasonerEngine ."
