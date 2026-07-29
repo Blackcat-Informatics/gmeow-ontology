@@ -37,8 +37,21 @@
     "session.mjs",
     "session.d.ts",
     "examples/gallery.mjs",
-    "README.md"
+    "README.md",
+    "pkg/mcp-transport.mjs",
+    "pkg/blake3.mjs",
+    "pkg/bundle-manifest.json",
+    "pkg/gmeow.gts",
+    "pkg/mcp-core/index.mjs",
+    "pkg/mcp-core/pkg/gmeow_mcp_core_wasm.js",
+    "pkg/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm",
+    "pkg/mcp/index.mjs",
+    "pkg/mcp/pkg/gmeow_mcp_wasm.js",
+    "pkg/mcp/pkg/gmeow_mcp_wasm_bg.wasm"
   ],
+  "scripts": {
+    "prepack": "node ./prepack.mjs"
+  },
   "engines": {
     "node": ">=18"
   },

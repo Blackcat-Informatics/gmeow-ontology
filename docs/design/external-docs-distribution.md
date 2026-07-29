@@ -176,8 +176,12 @@ the workspace version, all published from the `v*` tag by `.github/workflows/rel
 
 The split is by kind, not by taste. Five packages are **engines** — a `wasm32` image plus
 the thin ESM shim that adds the one-time async instantiation the synchronous wasm boundary
-cannot express. The sixth is an **element** — plain JavaScript, no wasm of its own, which
-drives two of those engines.
+cannot express. The sixth is an **application**: the console element, together with the
+whole runtime it boots over — the browser transport, both MCP images and the `gmeow.gts`
+snapshot — staged into its `pkg/` at pack time out of `gmeow-dev console-assemble`. It is
+self-contained on purpose. An element published without that runtime is an element that
+cannot start: its worker's relative import walks out of the installed package and 404s, and
+the reader is told the engine worker failed to load.
 
 | Package | Kind | What it is |
 |---|---|---|
@@ -186,16 +190,18 @@ drives two of those engines.
 | `@blackcatinformatics/gmeow-gmn-wasm` | engine | the GMN-0↔GMN-1 codec and its glyph legend |
 | `@blackcatinformatics/gmeow-mcp-core-wasm` | engine | the LEAN first-load MCP engine: the whole tool surface, reasoning segment demand-loaded |
 | `@blackcatinformatics/gmeow-mcp-wasm` | engine | the demand-loaded REASONING segment the lean core dispatches into |
-| `@blackcatinformatics/gmeow-console` | element | `<gmeow-console>` — the standalone console as one custom element, plus its DOM-free session module |
+| `@blackcatinformatics/gmeow-console` | application | `<gmeow-console>` — the standalone console as one custom element, its DOM-free session module, and the engine payload it boots over |
 
 **Why exactly these.** The set is not curated; it is the set of surfaces that already ship
 a `js/` ESM shim over a `wasm-bindgen` build (the five `*-wasm-pkg` Make lanes) plus the
-one browser element that ships as source. Nothing else in the tree is consumable off the
-repository: `crates/docs/assets/mcp{,-core}/` are re-vendored copies of two of the packages
-above (the documentation site and the console share one 7 MB image rather than carrying a
-second), `crates/docs/assets/console/smoke/` is a dev-only Playwright manifest that declares
-itself `private`, and `editors/vscode/` is a Visual Studio Marketplace extension published
-by `vsce`, on that registry's cadence and metadata contract, not to npm.
+one browser application. Nothing else in the tree is consumable off the repository:
+`crates/docs/assets/mcp{,-core}/` are re-vendored copies of two of the packages above (the
+documentation site and the console's site tree share one 7 MB image rather than carrying a
+second; the console's own npm tarball stages that same image, because an installed package
+has no site around it to share with), `crates/docs/assets/console/smoke/` is a dev-only
+Playwright manifest that declares itself `private`, and `editors/vscode/` is a Visual Studio
+Marketplace extension published by `vsce`, on that registry's cadence and metadata contract,
+not to npm.
 
 A third vendored tree, `crates/docs/assets/purrdf/`, used to sit alongside those two: an
 upstream package this repository does not author, vendored so the site's SPARQL playground
@@ -235,8 +241,10 @@ without editing this table is a hard failure, not a stale doc.
 contains one.
 
 The reason is the offline contract, not preference. The console is a cache-first PWA whose
-service-worker `SHELL` is generated from the assembled key set and pre-cached with
-`cache.addAll` — a member that lives on a third-party origin would be an install that
+service-worker `SHELL` is generated from the assembled tree's FIRST-LOAD tier — the
+demand-loaded reasoning segment is deliberately excluded, and is cached only once a pane
+asks for it — and pre-cached with `cache.addAll`. A member that lives on a third-party
+origin would be an install that
 fails, or worse, an offline console whose engine silently is not there. It is also an
 integrity contract: the vendored engine images are pinned by a BLAKE3 manifest and their
 digests are verified against the bytes that shipped, which a third-party origin can

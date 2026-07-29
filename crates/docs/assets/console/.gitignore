@@ -3,6 +3,12 @@
 /node_modules/
 /*.tgz
 
+# The engine payload `prepack.mjs` stages out of `gmeow-dev console-assemble` before the
+# tarball is cut: the browser transport, the client-side BLAKE3, both wasm images, the
+# integrity manifest and the `gmeow.gts` snapshot. A build product of the one producer,
+# exactly like every other package's `pkg/` — never a checked-in second copy.
+/pkg/
+
 # The dev-only Playwright smoke lane's installed dependencies. `smoke/package.json` and
 # `smoke/package-lock.json` ARE tracked (the lane is pinned); what `npm ci --prefix
 # crates/docs/assets/console/smoke` unpacks under them is not. The rule above is anchored

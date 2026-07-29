@@ -91,18 +91,32 @@ Then open `http://localhost:8080/console/`.
 ## Offline
 
 `sw.mjs` is a cache-first service worker registered at `console/` scope. Its `SHELL` array
-is **generated** by the Rust producer from the assembled key set — never hand-authored, so
-it cannot drift from what actually ships. Install pre-caches every shell member with
-`cache.addAll`, which rejects the whole install if any member is missing: a partially
-cached shell is an offline surface that fails unpredictably later.
+and its cache name are both **generated** by the Rust producer from the assembled tree —
+never hand-authored, so neither can drift from what actually ships.
 
-The engine assets live one level up under `assets/` (shared with the documentation site, so
-the 7 MB core image is not duplicated) and are therefore out of the worker's scope. They are
-pre-cached anyway and read back through `caches.match`, so an offline console still gets its
-engine.
+`SHELL` is the **first-load tier and nothing else**: the shell, the transport, the
+always-resident core engine image and the ontology snapshot. Install pre-caches exactly
+those with `cache.addAll`, which rejects the whole install if any member is missing — a
+partially cached shell is an offline surface that fails unpredictably later. The
+demand-loaded reasoning segment is deliberately **not** in it: pre-caching a 10 MB image at
+install would download it for every reader who only ever looks things up, and would make
+"demand-loaded" a claim the artifact contradicts. It is cached by the `fetch` handler the
+first time a pane actually asks for it, and is offline-available from that moment on.
 
-`manifest.webmanifest` declares `display: standalone` and `start_url: "."`, so the console
-installs as a PWA.
+A service worker intercepts every request made by a page it controls, whatever the
+request's own path — so the engine assets one level up under `assets/` (shared with the
+documentation site, which is why the 7 MB core image is not duplicated) are cached and
+served here exactly like the shell is.
+
+The cache name is a **BLAKE3 content digest of the assembled tree**. A cache keyed on the
+shell's entry count and path length would be reused by any rebuild that kept the same
+paths, serving a returning reader the previous build's bytes for ever; a content digest
+changes with any byte, so `activate` deletes the old cache and the new bytes are fetched.
+
+`manifest.webmanifest` declares `display: standalone`, `start_url: "."` and an icon set
+(`icon.svg`, `icon-192.png`, `icon-512.png`, and a `maskable` `icon-maskable-512.png`), all
+of which the producer emits — so the console meets a browser's installability criteria and
+installs as a PWA without letterboxing.
 
 ## No optionality
 
@@ -114,39 +128,11 @@ deliberate exception is segment deferral, which is progress and is shown as such
 
 ## Measured bytes
 
-Measured over the shipped, `wasm-opt -Oz`'d assets in this tree — uncompressed on-disk
-bytes, no transfer encoding assumed.
+<!-- __GMEOW_CONSOLE_BYTE_TABLE__ -->
 
-**First load** — everything fetched before any pane runs:
-
-| Asset | Bytes |
-|---|---:|
-| `console/index.html` | 4 416 |
-| `console/element.mjs` | 34 535 |
-| `console/engine.worker.mjs` | 9 555 |
-| `console/session.mjs` | 17 060 |
-| `console/examples/gallery.mjs` | 8 700 |
-| `console/manifest.webmanifest` | 341 |
-| `assets/mcp-transport.mjs` | 17 936 |
-| `assets/mcp-core/index.mjs` | 6 974 |
-| `assets/mcp-core/pkg/gmeow_mcp_core_wasm.js` | 14 324 |
-| `assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm` | 7 452 156 |
-| **Code subtotal** | **7 565 997** |
-| `assets/gmeow.gts` (the ontology snapshot) | 37 379 608 |
-| **First-load total** | **44 945 605** |
-
-**Demand-loaded reasoning segment** — fetched only when a pane first needs a
-reasoning-segment tool, and never at all for a reader who only looks things up:
-
-| Asset | Bytes |
-|---|---:|
-| `assets/mcp/index.mjs` | 2 024 |
-| `assets/mcp/pkg/gmeow_mcp_wasm.js` | 12 229 |
-| `assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm` | 10 346 467 |
-| **Segment total** | **10 360 720** |
-
-The console does **not** load the vendored purrdf engine — that one serves the
-documentation site's standalone SPARQL/describe surfaces, not the console.
+There is no second engine. The site's SPARQL, describe and conjecture surfaces query the
+same shipped bundle through the same MCP segments listed above; the separately vendored
+purrdf engine that used to serve them is gone from this tree.
 
 ## Install
 
@@ -159,20 +145,36 @@ npm install @blackcatinformatics/gmeow-console
 <gmeow-console></gmeow-console>
 ```
 
-The package ships the element (`element.mjs`), its engine worker, the DOM-free session
-module (a second entry, `@blackcatinformatics/gmeow-console/session.mjs`), the vignette
-gallery, and the TypeScript declarations for both entries. It does **not** ship
-`index.html`, `manifest.webmanifest` or `sw.mjs`: those three are the standalone *site*
-shell, and `sw.mjs` in particular carries a `SHELL` array that only
-`gmeow-dev console-assemble` can fill in from the assembled key set. Publishing the
-unsubstituted worker would ship an offline surface that caches nothing.
+Serve the page over HTTP (a module worker and a streaming `WebAssembly` instantiation are
+both refused from `file://`) and the console boots — no build step, no bundler, no import
+map, nothing to configure.
 
-The element needs the sibling `assets/` engine tree reachable one level up from
-`element.mjs` — that is the layout `gmeow-dev console-assemble` emits, and the layout the
-documentation site already has. Point the transport elsewhere with
-`configure({ assetBase })` from `assets/mcp-transport.mjs` if yours differs. The engines
-themselves are published beside this package as
-`@blackcatinformatics/gmeow-mcp-core-wasm` (first load) and
+**The package is self-contained.** It ships the element (`element.mjs`), its engine worker,
+the DOM-free session module (a second entry,
+`@blackcatinformatics/gmeow-console/session.mjs`), the vignette gallery, the TypeScript
+declarations for both entries, **and the entire engine payload the worker boots over**,
+under `pkg/`: the browser transport, the client-side BLAKE3, the always-resident core wasm
+image, the demand-loaded reasoning segment, the integrity manifest, and the `gmeow.gts`
+ontology snapshot itself. That payload is staged into the package by its own `prepack`
+step, straight out of `gmeow-dev console-assemble` — the one producer that assembles the
+console — so the published bytes are the assembled bytes and there is nothing to copy by
+hand.
+
+It does **not** ship `index.html`, `manifest.webmanifest` or `sw.mjs`: those three are the
+standalone *site* shell, which `gmeow-dev console-assemble` emits, and `sw.mjs` in
+particular carries a generated `SHELL` array and cache digest that only an assembled tree
+can fill in. Publishing the unsubstituted worker would ship an offline surface that caches
+nothing.
+
+Nothing about the payload is optional. The worker imports its transport as
+`./pkg/mcp-transport.mjs`, which is the same specifier that resolves in the assembled site
+tree (where `console/pkg/mcp-transport.mjs` is a generated forwarder to the shared
+`assets/mcp-transport.mjs`, so the site carries one engine copy rather than two). Point the
+transport at a different snapshot with `configure({ assetBase })` if you have one; the
+default is the payload beside it.
+
+The engines are additionally published on their own, for a consumer that wants the wasm
+without the element: `@blackcatinformatics/gmeow-mcp-core-wasm` (first load) and
 `@blackcatinformatics/gmeow-mcp-wasm` (the demand-loaded reasoning segment).
 
 ### No runtime CDN loading
@@ -191,7 +193,9 @@ origin can neither offer nor be held to.
 ## `smoke/`
 
 `smoke/package.json` + `smoke/package-lock.json` pin Playwright for the browser smoke lane.
-Dev-only; nothing under `smoke/` is part of the shipped console. `npm ci` requires the
+Dev-only; nothing under `smoke/` is part of the shipped console — the lane reads them from
+the repository, the producer's shell file set does not carry them, and so they are neither
+deployed to the site nor pre-cached into a reader's offline storage. `npm ci` requires the
 lockfile, which is why it is committed.
 
 The DOM-free acceptance lanes are not part of the shipped tree — they live in the

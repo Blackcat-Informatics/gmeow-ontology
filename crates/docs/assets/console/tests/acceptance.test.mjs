@@ -4,9 +4,17 @@
 // The console's named acceptance assertions, run under `node --test` against the SHIPPED
 // wasm engine and the SHIPPED bundle — no browser, no mocks, no stubs.
 //
-// Each `test(...)` name below is one of the seven named assertions. They are gate
-// blockers: none is skipped, none is conditional, and the engine they drive is the same
-// `crates/docs/assets/mcp-core/` image the site and the console load in a browser.
+// The file is in two halves. The first is the seven NAMED acceptance assertions, numbered
+// in the section rules below. The second — "the shipped-runtime totality assertions" — is
+// one test per shipped defect that contradicted the surface's own written contract: the
+// N-Quads reader that documented itself as total, the session emitter that guessed term
+// kinds and under-escaped literals, the re-grapher that emitted five-term lines, the
+// worker dispatch that ran inherited methods, the element that hung for ever on a failed
+// worker, and the manifest that promised a PWA install with no icon to install.
+//
+// Every one of them is a gate blocker: none is skipped, none is conditional, and the
+// engine they drive is the same `crates/docs/assets/mcp-core/` image the site and the
+// console load in a browser.
 //
 // The DOM-free modules (`session.mjs`, `../mcp-transport.mjs`) are imported directly. The
 // three assertions that would otherwise need a browser are written as structural
@@ -254,18 +262,20 @@ test("session_annotations_are_quoted_triples", () => {
     schema: "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/lookupTerm",
     args: { term: "gmeow:ToolCall" },
     result: { ok: true },
+    // Every term DECLARES its kind. `{iri: …}` is an IRI; a bare string is a plain
+    // literal. Nothing is inferred from the text of a value.
     derived: [
       {
-        subject: "https://example.org/a",
-        predicate: "https://example.org/p",
-        object: "https://example.org/b",
-        antecedents: ["https://blackcatinformatics.ca/gmeow/ToolCall"],
+        subject: { iri: "https://example.org/a" },
+        predicate: { iri: "https://example.org/p" },
+        object: { iri: "https://example.org/b" },
+        antecedents: [{ iri: "https://blackcatinformatics.ca/gmeow/ToolCall" }],
       },
       {
-        subject: "https://example.org/c",
-        predicate: "https://example.org/q",
+        subject: { iri: "https://example.org/c" },
+        predicate: { iri: "https://example.org/q" },
         object: "a literal answer",
-        antecedents: ["https://example.org/a", "https://example.org/b"],
+        antecedents: [{ iri: "https://example.org/a" }, { iri: "https://example.org/b" }],
       },
     ],
   });
@@ -302,7 +312,14 @@ test("session_annotations_are_quoted_triples", () => {
         tool: "lookup_term",
         schema: "https://example.org/schema",
         args: {},
-        derived: [{ subject: "https://example.org/x", predicate: "https://example.org/y", object: "z", antecedents: [] }],
+        derived: [
+          {
+            subject: { iri: "https://example.org/x" },
+            predicate: { iri: "https://example.org/y" },
+            object: "z",
+            antecedents: [],
+          },
+        ],
       }) && session.trajectoryNQuads(),
     /names no antecedents/,
   );
@@ -669,4 +686,502 @@ test("worked_vignettes_execute_against_the_shipped_engine", async () => {
     const payload = await callTool(v.pane, v.args);
     assert.ok(payload !== null && typeof payload === "object", `vignette ${v.id} returned nothing`);
   }
+});
+
+// ── The shipped-runtime totality assertions ─────────────────────────────────
+//
+// Each test below pins one defect that the surface's OWN prose already claimed was
+// impossible — a reader documented as total that read a half-term as a whole one, an
+// emitter that guessed term kinds, a re-grapher that produced five-term lines, a worker
+// dispatch that ran inherited methods, an element that hung for ever on a failed worker,
+// and a manifest that promised a PWA install with no icon to install.
+
+/**
+ * The shipped `engine.worker.mjs`, importable, at a URL its own specifiers resolve from.
+ *
+ * The worker's imports are written for the layout the RENDERER emits — `console/…` beside
+ * `assets/…` — which is not the layout of this build-input tree, where `console/` sits
+ * INSIDE `assets/`. So the site layout is staged in a temp directory: the worker's own
+ * bytes are copied in, and its siblings are symlinked. Node resolves a symlink to its real
+ * path before keying the module cache, so `mcp-transport.mjs` and `session.mjs` load as the
+ * SAME module instances this file already imported and configured — the worker under test
+ * drives the engine this lane booted, not a second unconfigured copy of it.
+ *
+ * Both candidate sibling spellings are staged, so this harness follows the shipped file
+ * rather than pinning today's specifier text.
+ */
+async function shippedWorkerUrl() {
+  const { mkdtemp, mkdir, copyFile, symlink } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const root = await mkdtemp(join(tmpdir(), "gmeow-console-worker-"));
+  const assets = here("../../");
+  await mkdir(join(root, "console", "pkg"), { recursive: true });
+  await copyFile(here("../engine.worker.mjs"), join(root, "console", "engine.worker.mjs"));
+  await symlink(here("../session.mjs"), join(root, "console", "session.mjs"));
+  // The worker imports its transport as `./pkg/mcp-transport.mjs` — the one specifier that
+  // resolves both in the assembled site tree (where the producer emits a forwarder there)
+  // and in the published npm package (where the whole payload is staged there). Node
+  // resolves a symlinked module's own imports from its REAL path, so the transport still
+  // finds its siblings in `assets/`.
+  await symlink(join(assets, "mcp-transport.mjs"), join(root, "console", "pkg", "mcp-transport.mjs"));
+  await symlink(here("../examples"), join(root, "console", "examples"));
+  await symlink(assets, join(root, "assets"));
+  for (const sibling of ["mcp-transport.mjs", "blake3.mjs", "mcp-core", "mcp"]) {
+    await symlink(join(assets, sibling), join(root, sibling));
+  }
+  return new URL(`file://${join(root, "console", "engine.worker.mjs")}`);
+}
+
+/** A backslash. An N-Quads escape is DATA in these tests, so it is built by code point. */
+const BS = String.fromCharCode(0x5c);
+const uchar = (hex) => `${BS}u${hex}`;
+const bigUchar = (hex) => `${BS}U${hex}`;
+const echar = (c) => `${BS}${c}`;
+
+test("nquads_reader_decodes_the_full_escape_set_and_refuses_a_half_read_term", () => {
+  const S = "<http://example.org/s>";
+  const P = "<http://example.org/p>";
+
+  // (a) The CAPABILITY first: every `ECHAR` and both `UCHAR` widths decode to the code
+  //     points they name. `A` is the letter A — it is not the five characters
+  //     `u0041`, which is what a reader that only special-cased `n`/`t`/`r` produced for
+  //     every escape it did not know, silently, in the middle of a literal.
+  const encoded = [
+    uchar("0041"),
+    echar("t"),
+    echar("b"),
+    echar("f"),
+    echar("r"),
+    echar("n"),
+    echar('"'),
+    echar("'"),
+    echar(BS),
+    bigUchar("0001F63A"),
+  ].join("");
+  const expected =
+    "A" +
+    String.fromCharCode(0x09, 0x08, 0x0c, 0x0d, 0x0a) +
+    '"' +
+    "'" +
+    BS +
+    String.fromCodePoint(0x1f63a);
+  const [decoded] = parseNQuads(`${S} ${P} "${encoded}" .\n`);
+  assert.equal(decoded.object.kind, "literal");
+  assert.equal(decoded.object.value, expected, "every escape must decode to its code point");
+
+  // A `UCHAR` inside an IRI decodes too, including inside an RDF-1.2 triple term.
+  const [starred] = parseNQuads(`<<( <http://example.org/${uchar("0061")}> ${P} ${S} )>> ${P} "x" .\n`);
+  assert.equal(starred.subject.kind, "triple");
+  assert.equal(starred.subject.value[0].value, "http://example.org/a");
+
+  // (b) …and every half-read term is REPORTED. Each of these was previously accepted:
+  //     the literal loop ran off the end of the line and returned the remainder as a
+  //     value, the `)>>` closer was "stripped" by a regex that matched nothing, and a
+  //     fifth term was read and discarded.
+  //
+  //     Each refusal names the term that could not be read. That is part of the fix, not
+  //     decoration: the old reader swallowed the rest of the line into the unterminated
+  //     literal and then blamed the GRAPH term, pointing the reader at the wrong end of
+  //     the line.
+  const refusals = [
+    ["an unterminated literal", `${S} ${P} "no closing quote .`, /cannot read an object term/],
+    ["an unknown escape", `${S} ${P} "bad ${echar("q")} escape" .`, /cannot read an object term/],
+    ["a truncated UCHAR", `${S} ${P} "${BS}u00" .`, /cannot read an object term/],
+    ["a triple term with no closer", `<<( ${S} ${P} ${S} ${S} ${P} "x" .`, /cannot read a subject term/],
+    [
+      "a fifth term",
+      `${S} ${P} ${S} <http://example.org/g> <http://example.org/h> .`,
+      /does not end after its terms/,
+    ],
+    ["a missing terminator", `${S} ${P} ${S}`, /does not end after its terms/],
+    ["a literal graph term", `${S} ${P} ${S} "not a graph" .`, /cannot name a graph/],
+    ["an IRI carrying a raw space", `<http://example.org/a b> ${P} ${S} .`, /cannot read a subject term/],
+  ];
+  for (const [why, line, named] of refusals) {
+    assert.throws(
+      () => parseNQuads(`${line}\n`),
+      named,
+      `${why} must be reported, by name, never read as if it were a whole term`,
+    );
+  }
+});
+
+test("session_literals_carry_the_engine_s_own_escaping_of_every_control_character", async () => {
+  // The console's own `callIri` joins with U+001F, and `toolArguments`/`toolResult` carry
+  // JSON built from arbitrary engine payloads, so a control character in a recorded
+  // literal is a live case. Escaping only LF/CR/TAB let every other one through raw.
+  const text = `unit${String.fromCharCode(0x1f)}sep${String.fromCharCode(0x07)}bell`;
+  const session = new ConsoleSession({ id: "t8a", now: () => "2026-01-01T00:00:00Z" });
+  session.record({
+    tool: "recall",
+    schema: "https://example.org/schema/recall",
+    args: { needle: text },
+    result: { ok: true },
+    derived: [
+      {
+        subject: { iri: "https://example.org/answer" },
+        predicate: { iri: "https://example.org/says" },
+        object: text,
+        antecedents: [{ iri: "https://example.org/claim" }],
+      },
+    ],
+  });
+  const nquads = session.trajectoryNQuads();
+
+  // (a) It parses, and the literal decodes back to exactly the characters recorded.
+  const said = parseNQuads(nquads).filter((q) => q.predicate === "https://example.org/says");
+  assert.equal(said.length, 1);
+  assert.equal(said[0].object.value, text, "the recorded characters must survive the round trip");
+
+  // (b) The SERIALIZATION is the engine's own. Feeding the recorded trajectory back
+  //     through the shipped `convert` re-emits canonical N-Quads; the console's line and
+  //     the engine's line must be the same bytes, which is what "the console writes RDF"
+  //     means. A raw control character survives the parse and comes back ESCAPED, so this
+  //     comparison — not a parse — is what catches the under-escaping.
+  const canonical = await callTool("convert", { data: nquads, from: "nquads", to: "nquads" });
+  const saysLine = (body) => body.split("\n").find((line) => line.includes("/says"));
+  assert.equal(
+    saysLine(nquads),
+    saysLine(canonical.output),
+    "the console must emit the same escaping the engine's own serializer does",
+  );
+
+  // (c) …so no raw control character reaches the wire at all.
+  const raw = [...nquads].filter((c) => c !== "\n" && c.codePointAt(0) < 0x20);
+  assert.deepEqual(raw, [], "no raw control character may appear in the emitted N-Quads");
+});
+
+test("session_emits_the_term_kind_the_caller_declared_and_never_guesses_one", () => {
+  const session = new ConsoleSession({ id: "t8b", now: () => "2026-01-01T00:00:00Z" });
+  // Prose that happens to begin with `https://` AND carries a space: the old
+  // `startsWith("http")` heuristic emitted it as `<…>`, which is not an IRI at all.
+  const prose = "https://example.org/a b — the answer, as the tool phrased it";
+  session.record({
+    tool: "lookup_term",
+    schema: "https://example.org/schema/lookupTerm",
+    args: {},
+    derived: [
+      {
+        // A `urn:`/`did:` pair — IRIs the heuristic emitted as literals.
+        subject: { iri: "urn:gmeow:session:claim:0000" },
+        predicate: { iri: "https://example.org/p" },
+        object: { iri: "did:example:123" },
+        antecedents: [{ iri: "urn:gmeow:session:claim:0001" }],
+      },
+      {
+        subject: { iri: "https://example.org/c" },
+        predicate: { iri: "https://example.org/q" },
+        object: prose,
+        antecedents: ["a plain-literal antecedent"],
+      },
+      {
+        subject: { iri: "https://example.org/c" },
+        predicate: { iri: "https://example.org/n" },
+        object: { literal: "42", datatype: "http://www.w3.org/2001/XMLSchema#integer" },
+        antecedents: [{ literal: "chat", language: "x-gmeow-english" }],
+      },
+    ],
+  });
+  const quads = parseNQuads(session.trajectoryNQuads());
+  const objectOf = (predicate) => {
+    const matched = quads.filter((q) => q.predicate === predicate && q.graph === null);
+    assert.equal(matched.length, 1, `${predicate} must be asserted exactly once`);
+    return matched[0].object;
+  };
+
+  const iriObject = objectOf("https://example.org/p");
+  assert.equal(iriObject.kind, "iri", "a declared `did:` IRI rides as an IRI");
+  assert.equal(iriObject.value, "did:example:123");
+
+  const literalObject = objectOf("https://example.org/q");
+  assert.equal(literalObject.kind, "literal", "declared prose rides as a literal, URL or not");
+  assert.equal(literalObject.value, prose, "…verbatim, with its space and its em dash");
+
+  const typed = objectOf("https://example.org/n");
+  assert.equal(typed.kind, "literal");
+  assert.equal(typed.datatype, "http://www.w3.org/2001/XMLSchema#integer");
+  const tagged = quads.filter((q) => q.predicate === `${GMEOW_NS}wasDerivedFrom`).map((q) => q.object);
+  assert.ok(
+    tagged.some((t) => t.kind === "literal" && t.language === "x-gmeow-english"),
+    "a declared language-tagged antecedent keeps its tag",
+  );
+  assert.ok(
+    tagged.some((t) => t.kind === "iri" && t.value === "urn:gmeow:session:claim:0001"),
+    "a declared `urn:` antecedent rides as an IRI, not as a literal",
+  );
+
+  // The quoted-triple annotation carries the SAME kinds as the asserted statement — the
+  // reifier and the statement it reifies cannot disagree about what the object was.
+  const REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+  const reified = quads.filter((q) => q.predicate === REIFIES).map((q) => q.object.value[2].kind);
+  assert.deepEqual(reified.slice().sort(), ["iri", "literal", "literal"]);
+
+  // An UNDECLARED term is refused rather than guessed at, in every position.
+  const undeclared = (statement) =>
+    assert.throws(() => {
+      const s = new ConsoleSession({ id: "t8c", now: () => "2026-01-01T00:00:00Z" });
+      s.record({ tool: "lookup_term", schema: "https://example.org/s", derived: [statement] });
+      return s.trajectoryNQuads();
+    }, /declared/);
+  undeclared({
+    subject: "https://example.org/x",
+    predicate: { iri: "https://example.org/y" },
+    object: "z",
+    antecedents: ["a"],
+  });
+  undeclared({
+    subject: { iri: "https://example.org/x" },
+    predicate: { iri: "https://example.org/y" },
+    object: { url: "https://example.org/z" },
+    antecedents: ["a"],
+  });
+});
+
+test("session_export_regraphs_a_store_quad_instead_of_emitting_a_five_term_line", () => {
+  const session = new ConsoleSession({ id: "t8d", now: () => "2026-01-01T00:00:00Z" });
+  session.record({ tool: "recall", schema: "https://example.org/s", args: {} });
+
+  // A store serialization that exercises everything a naive `\s*\.\s*$` strip gets wrong:
+  // a QUAD that already names a graph, a literal containing both a space and a `.`, and an
+  // RDF-1.2 triple term whose own components must not be mistaken for statement terms.
+  const RDF_VALUE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value";
+  const storeBody =
+    `<urn:gmeow:claim:0> <${RDF_VALUE}> "v. 2 of the plan" <urn:gmeow:store:own-graph> .\n` +
+    `<urn:gmeow:claim:0> <${GMEOW_NS}confidence> "0.8"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n` +
+    `<<( <urn:gmeow:claim:0> <${RDF_VALUE}> "v. 2 of the plan" )>> <${GMEOW_NS}derivedBy> ` +
+    `<urn:gmeow:call:0> <urn:gmeow:store:own-graph> .\n`;
+  const gts = exportSegment(session, {
+    nquads: storeBody,
+    heldBy: ["store_segment"],
+    carriedBy: ["store_segment"],
+  });
+
+  // The whole export parses — before the re-graph was term-aware, the two four-term lines
+  // came back out as five-term lines and this parse failed for the entire file.
+  const quads = parseNQuads(gts.split("\n").filter((l) => !l.startsWith("#")).join("\n"));
+  const stored = quads.filter((q) => q.graph !== null);
+  assert.equal(stored.length, 3, "every store line rides into the export");
+  assert.ok(
+    stored.every((q) => q.graph.value === SESSION_STORE_GRAPH),
+    "the store's own graph term is REPLACED by the segment graph, never appended to it",
+  );
+  const value = stored.find((q) => q.predicate === RDF_VALUE);
+  assert.equal(value.object.value, "v. 2 of the plan", "a literal with a `.` survives intact");
+  const annotation = stored.find((q) => q.subject.kind === "triple");
+  assert.equal(annotation.subject.value.length, 3, "a quoted triple survives as one term");
+  assert.equal(annotation.subject.value[2].value, "v. 2 of the plan");
+
+  // A store line that is not an N-Quads statement cannot be re-graphed into one, and
+  // saying so is the point: emitting an invalid quad is the failure being removed.
+  for (const malformed of ["<urn:a> <urn:b> .", "<urn:a> <urn:b> <urn:c>"]) {
+    assert.throws(
+      () =>
+        exportSegment(session, {
+          nquads: `${malformed}\n`,
+          heldBy: ["store_segment"],
+          carriedBy: ["store_segment"],
+        }),
+      /not a terminated N-Quads statement/,
+    );
+  }
+});
+
+test("worker_dispatch_is_total_over_own_operations_only", async () => {
+  // The worker's own commitment is that an unregistered tool name is a NAMED hard error.
+  // `OPS[op]` is a prototype-chain walk, so `constructor`, `toString` and `valueOf` all
+  // resolved to inherited functions and were INVOKED — `{op: "constructor"}` answered
+  // `{ok: true, value: {}}`, which is neither a registered operation nor an error.
+  const posted = [];
+  const listeners = new Map();
+  globalThis.self = {
+    postMessage: (message) => posted.push(message),
+    addEventListener: (type, handler) => listeners.set(type, handler),
+  };
+  await import(await shippedWorkerUrl());
+  const onMessage = listeners.get("message");
+  assert.equal(typeof onMessage, "function", "the worker must register a message listener");
+
+  const dispatch = async (op, args) => {
+    const before = posted.length;
+    onMessage({ data: { id: posted.length, op, args } });
+    // The handler is async and posts on settle; poll the queue rather than guess a delay.
+    for (let tick = 0; tick < 2000 && posted.length === before; tick += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    return posted.at(-1);
+  };
+
+  // The CAPABILITY: a registered operation still dispatches and answers.
+  const booted = await dispatch("boot", { sessionId: "t8e" });
+  assert.equal(booted.ok, true, `boot must answer: ${JSON.stringify(booted)}`);
+  assert.ok(booted.value.panes.length > 0, "boot returns the derived pane set");
+  const trajectory = await dispatch("trajectory", {});
+  assert.equal(trajectory.ok, true);
+
+  // …and every INHERITED member is a named hard error, not an invocation.
+  for (const op of ["constructor", "toString", "valueOf", "hasOwnProperty", "__proto__", "nope"]) {
+    const answer = await dispatch(op, {});
+    assert.equal(answer.ok, false, `\`${op}\` must not dispatch: ${JSON.stringify(answer)}`);
+    assert.match(answer.error, new RegExp(`unknown console operation`));
+    assert.ok(answer.error.includes(op), `the refusal must name the operation, got ${answer.error}`);
+  }
+  delete globalThis.self;
+});
+
+test("element_rejects_every_request_in_flight_when_the_worker_fails", async () => {
+  // The shipped README promises that an unavailable engine is a VISIBLE hard error and
+  // that nothing degrades quietly. The `error` listener rendered the banner but never
+  // settled `pending`, so `boot()`'s `await this.ask("boot", …)` hung for ever and the
+  // pane sat on "Starting the engine…" behind a banner saying the engine had failed.
+  //
+  // The element's HOST is substituted here (a DOM and a Worker constructor); the element
+  // itself — `boot`, `ask`, the listener wiring and the pending bookkeeping — is the
+  // shipped code, run unmodified.
+  const workers = [];
+  class ShimWorker extends EventTarget {
+    constructor(url, options) {
+      super();
+      this.url = url;
+      this.options = options;
+      this.terminated = false;
+      workers.push(this);
+    }
+    postMessage() {} // A worker that never loaded never answers. That is the whole case.
+    terminate() {
+      this.terminated = true;
+    }
+    failToLoad(message) {
+      const event = new Event("error");
+      event.message = message;
+      this.dispatchEvent(event);
+    }
+  }
+  class ShimNode {
+    constructor(tag) {
+      this.tagName = tag;
+      this.children = [];
+      this.dataset = {};
+      this.textContent = "";
+    }
+    append(...kids) {
+      this.children.push(...kids);
+    }
+    replaceChildren(...kids) {
+      this.children = kids.filter((kid) => kid !== null && kid !== undefined);
+    }
+    querySelectorAll() {
+      return [];
+    }
+    setAttribute(name, value) {
+      this[name] = value;
+    }
+  }
+  globalThis.document = { createElement: (tag) => new ShimNode(tag) };
+  globalThis.HTMLElement = class extends EventTarget {
+    attachShadow() {
+      this.shadowRoot = new ShimNode("#shadow-root");
+      return this.shadowRoot;
+    }
+  };
+  globalThis.Worker = ShimWorker;
+  const { GmeowConsole } = await import("../element.mjs");
+
+  /** Settle `promise`, or fail LOUDLY rather than let `node --test` time the suite out. */
+  const deadline = (promise, what) =>
+    Promise.race([
+      promise,
+      new Promise((_resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error(`HUNG: ${what} never settled — the console would wait for ever`)),
+          2000,
+        );
+        timer.unref();
+      }),
+    ]);
+
+  // ── a worker that fails to load ────────────────────────────────────────────
+  const node = new GmeowConsole();
+  const reported = [];
+  node.addEventListener("gmeow-console-error", (event) => reported.push(event.detail));
+  node.connectedCallback();
+  const inFlight = node.ask("trajectory", {});
+  assert.equal(node.pending.size, 2, "the boot and the second request are both in flight");
+  workers.at(-1).failToLoad("engine.worker.mjs could not be loaded");
+
+  await assert.rejects(
+    () => deadline(inFlight, "a request in flight when the worker failed"),
+    /engine worker failed/,
+    "a worker failure must REJECT every request in flight, not just paint a banner",
+  );
+  assert.equal(node.pending.size, 0, "nothing may be left waiting on a worker that failed");
+  assert.ok(
+    reported.some((detail) => detail.where === "worker"),
+    "the failure is still reported for the shell's #error-banner",
+  );
+  // A request made AFTER the failure is refused immediately, for the same reason.
+  await assert.rejects(() => deadline(node.ask("trajectory", {}), "a post-failure request"), /worker/);
+
+  // ── a worker that is terminated with work outstanding ──────────────────────
+  const detached = new GmeowConsole();
+  detached.addEventListener("gmeow-console-error", () => {});
+  detached.connectedCallback();
+  const orphaned = detached.ask("export", {});
+  detached.disconnectedCallback();
+  assert.ok(workers.at(-1).terminated, "disconnecting terminates the worker");
+  await assert.rejects(
+    () => deadline(orphaned, "a request outstanding when the worker was terminated"),
+    /terminated/,
+    "a terminated worker must settle its outstanding requests too",
+  );
+});
+
+test("the_console_manifest_ships_installable_icons", async () => {
+  // The README claims the console installs as a PWA. Chrome's installability criteria
+  // require at least one square icon of 192px or more; the manifest carried NO `icons`
+  // member at all, so the claim was false on the shipped surface.
+  const manifest = JSON.parse(await readFile(here("../manifest.webmanifest"), "utf8"));
+  assert.ok(Array.isArray(manifest.icons) && manifest.icons.length > 0, "the manifest declares icons");
+
+  /** `[width, height]` read out of a PNG's IHDR — the bytes, not the file name. */
+  const pngSize = (bytes) => {
+    const header = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    assert.ok(bytes.subarray(0, 8).equals(header), "a declared PNG must actually be a PNG");
+    assert.equal(bytes.subarray(12, 16).toString("ascii"), "IHDR");
+    return [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+  };
+
+  let installable = 0;
+  const purposes = new Set();
+  for (const icon of manifest.icons) {
+    for (const purpose of String(icon.purpose ?? "any").split(/\s+/)) purposes.add(purpose);
+    const bytes = await readFile(here(`../${icon.src.replace(/^\.\//, "")}`));
+    if (icon.type === "image/svg+xml") {
+      const text = bytes.toString("utf8");
+      assert.match(text, /<svg[\s\S]*<\/svg>/, `${icon.src} is not an SVG document`);
+      assert.match(text, /SPDX-License-Identifier/, `${icon.src} carries no SPDX header`);
+      continue;
+    }
+    const [width, height] = pngSize(bytes);
+    assert.equal(
+      `${width}x${height}`,
+      icon.sizes,
+      `${icon.src} is ${width}x${height}, but the manifest declares ${icon.sizes}`,
+    );
+    assert.equal(width, height, `${icon.src} must be square`);
+    if (width >= 192) installable += 1;
+    // A binary asset carries its REUSE sidecar, like every other one in this tree.
+    await readFile(here(`../${icon.src.replace(/^\.\//, "")}.license`), "utf8");
+  }
+  assert.ok(installable > 0, "at least one raster icon must be 192px or larger to be installable");
+  assert.ok(purposes.has("maskable"), "a maskable icon is required for a non-letterboxed install");
+  assert.ok(purposes.has("any"), "an `any`-purpose icon is required for the general case");
+
+  // An icon the site never emits is a 404, and a manifest pointing at a 404 is not
+  // installable either — so every declared icon must be in the console's shipped file set.
+  const shipped = await readFile(here("../../../src/console.rs"), "utf8");
+  const unshipped = manifest.icons
+    .map((icon) => icon.src.replace(/^\.\//, ""))
+    .filter((name) => !shipped.includes(`console/${name}`));
+  assert.deepEqual(unshipped, [], `SHELL_FILES does not emit: ${unshipped.join(", ")}`);
 });

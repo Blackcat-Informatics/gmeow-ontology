@@ -15,6 +15,13 @@
 // `{event: "segment", phase: "loading" | "loaded", …}` before its answer, so the pane can
 // show a loading state instead of a multi-second stall.
 
+// The transport is imported as `./pkg/…`, not `../assets/…`: ONE specifier that resolves in
+// BOTH trees this worker ships in. In the site tree `console/pkg/mcp-transport.mjs` is a
+// generated forwarder to the shared `assets/mcp-transport.mjs`, so the site still carries
+// one engine copy rather than two. In the published npm package the package root IS the
+// console — there is no `../assets/` above it, which is why `../assets/mcp-transport.mjs`
+// resolved to a 404 outside the package and the installed console could not boot at all —
+// and the whole engine payload is staged under `pkg/` by the package's `prepack` step.
 import {
   actionPolicyPanes,
   callTool,
@@ -22,7 +29,7 @@ import {
   conjectureLibrary,
   ensureMcp,
   listTools,
-} from "../assets/mcp-transport.mjs";
+} from "./pkg/mcp-transport.mjs";
 import { ConsoleSession, exportSegment, storeReading } from "./session.mjs";
 
 // Same-origin guard. A worker inherits its creator's origin, but a message can be posted
@@ -86,7 +93,16 @@ const OPS = {
     };
   },
 
-  /** Invoke one tool and record the invocation into the session trajectory. */
+  /**
+   * Invoke one tool and record the invocation into the session trajectory.
+   *
+   * `derived` is the caller's list of `{subject, predicate, object, antecedents}` result
+   * statements, and every term in it DECLARES its kind — `{iri: "…"}`,
+   * `{literal: "…", datatype?, language?}`, or a bare string for a plain literal. The
+   * session emitter refuses an undeclared term rather than inferring a kind from its text:
+   * a tool that answers with a `urn:` IRI and a tool that answers with prose quoting a URL
+   * are making different statements, and only the caller knows which one it got.
+   */
   async invoke({ tool, args, derived }) {
     const schema = await schemaFor(tool);
     const value = await callTool(tool, args, ({ phase, tool: deferred, segment }) => {
@@ -179,8 +195,13 @@ self.addEventListener("message", (event) => {
     return;
   }
   const { id, op, args } = event.data ?? {};
-  const handler = OPS[op];
-  if (handler === undefined) {
+  // Dispatch is TOTAL, and "total" means the lookup itself cannot be tricked. `OPS[op]`
+  // is not a table lookup — it walks the prototype chain, so `op: "constructor"`,
+  // `"toString"` or `"valueOf"` resolves to an inherited function and gets INVOKED, which
+  // is neither a registered operation nor the named hard error this worker promises. An
+  // OWN, callable entry is the only thing that dispatches.
+  const handler = Object.hasOwn(OPS, op) && typeof OPS[op] === "function" ? OPS[op] : null;
+  if (handler === null) {
     post({ id, ok: false, op, error: `unknown console operation \`${op}\`` });
     return;
   }

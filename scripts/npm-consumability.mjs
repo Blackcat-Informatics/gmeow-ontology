@@ -182,6 +182,69 @@ const WITNESSES = {
   },
 
   "@blackcatinformatics/gmeow-console": async (_mod, installed, manifest) => {
+    // ── the boot chain RESOLVES inside the installed package ──────────────────────────
+    //
+    // This leg exists because the published console could not start at all: its worker
+    // imported the transport as `../assets/mcp-transport.mjs`, which walks OUT of the
+    // installed package to `node_modules/@blackcatinformatics/assets/…` and 404s, and no
+    // published package shipped the transport, the client-side BLAKE3, the wasm images or
+    // the `gmeow.gts` snapshot at all. Every gate passed anyway, because none of them
+    // followed an import.
+    //
+    // So follow them. Start at the element, walk each relative specifier to the file it
+    // names, and require that file to exist in the INSTALLED tree — a resolution walk, not
+    // a spot check, so a payload file dropped from `files` fails here rather than in a
+    // consumer's browser.
+    const entry = manifest.exports["."].import;
+    const seen = new Set();
+    const queue = [entry.replace(/^\.\//, "")];
+    while (queue.length > 0) {
+      const relative = queue.pop();
+      if (seen.has(relative)) continue;
+      seen.add(relative);
+      const source = await readFile(join(installed, relative), "utf8").catch((error) => {
+        throw new Error(`${relative} is imported but not installed: ${error.message}`);
+      });
+      const dir = relative.includes("/") ? relative.slice(0, relative.lastIndexOf("/")) : "";
+      // Static specifiers, plus the `new URL("./x", import.meta.url)` form the element
+      // uses to name its worker and the wasm shim uses to name its `.wasm`.
+      const specifiers = [
+        ...source.matchAll(/(?:from|import)\s*\(?\s*"(\.[^"]*)"/g),
+        ...source.matchAll(/new URL\(\s*"(\.[^"]*)"\s*,\s*import\.meta\.url\s*\)/g),
+      ]
+        .map((match) => match[1])
+        // A specifier that names a DIRECTORY (`new URL("./", import.meta.url)` — how the
+        // transport spells its own asset base) is not an import of anything.
+        .filter((specifier) => !specifier.endsWith("/"));
+      for (const specifier of specifiers) {
+        const resolved = join(dir, specifier).replaceAll("\\", "/");
+        assert.ok(
+          !resolved.startsWith(".."),
+          `${relative} imports ${specifier}, which resolves OUTSIDE the installed package`,
+        );
+        await readFile(join(installed, resolved)).catch((error) => {
+          throw new Error(`${relative} imports ${specifier}, which is not installed: ${error.message}`);
+        });
+        if (/\.mjs$/.test(resolved)) queue.push(resolved);
+      }
+    }
+    // The two non-module assets the transport fetches by name at boot: without them the
+    // engine has nothing to verify against and nothing to answer from.
+    for (const asset of ["pkg/bundle-manifest.json", "pkg/gmeow.gts"]) {
+      const bytes = await readFile(join(installed, asset));
+      assert.ok(bytes.length > 0, `${asset} is installed but empty`);
+    }
+    const pinned = JSON.parse(await readFile(join(installed, "pkg/bundle-manifest.json"), "utf8"));
+    const snapshot = await readFile(join(installed, "pkg/gmeow.gts"));
+    assert.equal(
+      snapshot.length,
+      pinned["assets/gmeow.gts"].bytes,
+      "the installed snapshot does not match the integrity manifest that ships beside it — " +
+        "the engine would refuse to boot over it",
+    );
+
+    // ── the DOM-free published subpath, against the installed bytes ───────────────────
+    //
     // `element.mjs` (the `.` entry) extends `HTMLElement`, so it is a browser module by
     // construction and its lane is the Playwright smoke one. The DOM-free half is a real
     // published subpath and is exercised here against the installed bytes.
@@ -222,7 +285,10 @@ const WITNESSES = {
       session.exportSegment(s, { nquads: "", heldBy: [] }).includes("ToolCall"),
       "a session whose store holds nothing must still export its trajectory",
     );
-    return "the installed session module recorded, exported and round-tripped a trajectory";
+    return (
+      `the installed boot chain resolved ${seen.size} modules inside the package (payload ` +
+      "included) and the session module recorded, exported and round-tripped a trajectory"
+    );
   },
 };
 
