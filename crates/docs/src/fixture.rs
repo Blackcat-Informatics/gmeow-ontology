@@ -25,12 +25,14 @@
 //!
 //! The cache key is salted with the crate version and the model schema version,
 //! then folds both every input `discover()` reads and the implementation sources
-//! that build/serialize/render the fixture. Data, renderer, schema, and local
-//! dependency changes therefore invalidate it without relying on a manual version
-//! bump. This is the same content-addressed, atomic-temp-then-rename pattern the
-//! validate and slice caches use.
+//! that build/serialize/render the fixture — the latter DERIVED from the manifests
+//! as the transitive local-dependency closure of this crate, so a crate that joins
+//! the build joins the key with nothing to remember. Data, renderer, schema, and
+//! local dependency changes therefore invalidate it without relying on a manual
+//! version bump. This is the same content-addressed, atomic-temp-then-rename
+//! pattern the validate and slice caches use.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -320,9 +322,10 @@ impl CachedSite {
 
 /// Content-address the inputs `discover()` reads. The key folds (in order): a
 /// salt of the crate version + model schema version, then the sorted
-/// `(relative-path, bytes)` of every file under the discovery and implementation
-/// roots. Any slice / shape / i18n / metadata edit changes the key, as does a
-/// renderer, model schema, or local model dependency edit.
+/// `(relative-path, bytes)` of every file under the discovery roots and under
+/// every crate in the DERIVED implementation closure ([`fixture_crate_dirs`]).
+/// Any slice / shape / i18n / metadata edit changes the key, as does an edit to
+/// any crate compiled into the model, the renderer, or the model schema.
 fn cache_key(root: &Path) -> String {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture\x1f");
@@ -335,22 +338,17 @@ fn cache_key(root: &Path) -> String {
     // Data roots discover() walks recursively. `queries` is the shared repo-root
     // SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
     // `apply_competency_query_text`) alongside the per-slice `.rq` files already
-    // covered by the `slices` walk. The implementation roots close the stale-cache
-    // hole left by the old crate-version-only salt: normal source edits do not bump
-    // Cargo's package version on every commit.
-    for dir in [
-        "slices",
-        "shapes",
-        "i18n",
-        "queries",
-        "crates/docs/src",
-        "crates/docs/templates",
-        "crates/docs/assets",
-        "crates/errors/src",
-        "crates/logic-compile/src",
-        "crates/validate/src",
-    ] {
+    // covered by the `slices` walk.
+    for dir in ["slices", "shapes", "i18n", "queries"] {
         collect_files(&root.join(dir), &mut files);
+    }
+    // The implementation roots close the stale-cache hole left by the old
+    // crate-version-only salt: normal source edits do not bump Cargo's package
+    // version on every commit. The crate set is DERIVED from the manifests
+    // ([`fixture_crate_dirs`]) rather than listed here, so a new local dependency
+    // joins the key by construction.
+    for crate_dir in fixture_crate_dirs(root) {
+        collect_crate_inputs(&crate_dir, &mut files);
     }
     // Individual files discover() reads directly.
     for file in [
@@ -360,10 +358,6 @@ fn cache_key(root: &Path) -> String {
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
         "Cargo.lock",
-        "crates/docs/Cargo.toml",
-        "crates/errors/Cargo.toml",
-        "crates/logic-compile/Cargo.toml",
-        "crates/validate/Cargo.toml",
     ] {
         let p = root.join(file);
         if p.is_file() {
@@ -387,6 +381,121 @@ fn cache_key(root: &Path) -> String {
     }
 
     hex(&hasher.finalize())
+}
+
+/// The per-crate subpaths whose bytes decide what a crate compiles to: its
+/// sources, its manifest, its build script, and the asset / template trees its
+/// `include_str!` / `include_bytes!` sites read. Anything else in a crate
+/// directory (`tests`, `benches`, `examples`, `target`) builds the crate's own
+/// tests, never the library the fixture is produced by.
+const CRATE_INPUT_SUBPATHS: [&str; 5] = ["src", "assets", "templates", "Cargo.toml", "build.rs"];
+
+/// Every local crate whose sources are compiled into the fixture artifacts, as
+/// crate directories under `root`.
+///
+/// This is DERIVED, not declared: it is the transitive closure of `path = "…"`
+/// dependency edges starting at `crates/docs`, read straight out of the manifests.
+/// A hand-maintained mirror of this closure is exactly what let a crate split move
+/// the whole documentation model into `crates/docs-model` while the cache key kept
+/// hashing the crates it used to live in — an edit to the moved code did not
+/// invalidate the cache, so a stale model was served. A derived closure cannot rot:
+/// adding a dependency to any crate in it adds that crate's bytes to the key on the
+/// next run, with nothing to remember.
+///
+/// Dev-dependency sections are NOT followed. A dev-dependency is linked into a
+/// crate's own tests, never into the library that builds the model / site / book,
+/// so its bytes cannot change a cached artifact (`gmeow-mcp` — this crate's
+/// test-only query executor — is the live example).
+fn fixture_crate_dirs(root: &Path) -> BTreeSet<PathBuf> {
+    let mut seen: BTreeSet<PathBuf> = BTreeSet::new();
+    let mut queue = vec![root.join("crates").join("docs")];
+    while let Some(dir) = queue.pop() {
+        let dir = normalize_lexically(&dir);
+        if !seen.insert(dir.clone()) {
+            continue;
+        }
+        // A crate directory with no readable manifest contributes its own bytes
+        // (it is already in `seen`) but no edges — the shape a synthetic test root
+        // takes, and a hard-fail here would make the key un-computable for it.
+        let Ok(manifest) = fs::read_to_string(dir.join("Cargo.toml")) else {
+            continue;
+        };
+        for dep in manifest_path_deps(&manifest) {
+            queue.push(dir.join(dep));
+        }
+    }
+    seen
+}
+
+/// The `path = "…"` values of every NON-dev dependency section of a manifest, in
+/// declaration order. Sections are tracked by header: any `[…dependencies]` table
+/// (plain, `[build-dependencies]`, `[target.'cfg(…)'.dependencies]`) contributes,
+/// and its `dev-` counterpart does not. Optional dependencies are followed — a
+/// feature this build does not enable can only over-approximate the key, and
+/// over-invalidation costs a rebuild while under-invalidation serves stale bytes.
+fn manifest_path_deps(manifest: &str) -> Vec<String> {
+    let mut deps = Vec::new();
+    let mut in_deps = false;
+    for line in manifest.lines() {
+        let line = line.trim();
+        if let Some(header) = line.strip_prefix('[').and_then(|h| h.strip_suffix(']')) {
+            in_deps = header.ends_with("dependencies") && !header.ends_with("dev-dependencies");
+            continue;
+        }
+        if !in_deps || line.starts_with('#') {
+            continue;
+        }
+        // Scan every `path` occurrence on the line: a dependency whose NAME
+        // contains "path" must not shadow the real key (`pathfinder = "1"` has no
+        // `=` `"` after its "path", so it falls through to the next occurrence).
+        for (idx, _) in line.match_indices("path") {
+            let rest = line[idx + "path".len()..].trim_start();
+            let Some(rest) = rest.strip_prefix('=') else {
+                continue;
+            };
+            let Some(rest) = rest.trim_start().strip_prefix('"') else {
+                continue;
+            };
+            let Some(end) = rest.find('"') else {
+                continue;
+            };
+            deps.push(rest[..end].to_string());
+            break;
+        }
+    }
+    deps
+}
+
+/// Resolve `.` / `..` components textually (no filesystem, no symlink resolution),
+/// so `crates/docs/../docs-model` and `crates/docs-model` are the same key — and
+/// therefore hash their bytes once — however a manifest spelled the edge.
+fn normalize_lexically(path: &Path) -> PathBuf {
+    let mut out = PathBuf::new();
+    for component in path.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                if !out.pop() {
+                    out.push(component);
+                }
+            }
+            other => out.push(other.as_os_str()),
+        }
+    }
+    out
+}
+
+/// Collect the hashable inputs of one crate directory: each [`CRATE_INPUT_SUBPATHS`]
+/// entry that exists, walked recursively when it is a directory.
+fn collect_crate_inputs(crate_dir: &Path, out: &mut Vec<PathBuf>) {
+    for sub in CRATE_INPUT_SUBPATHS {
+        let path = crate_dir.join(sub);
+        if path.is_dir() {
+            collect_files(&path, out);
+        } else if path.is_file() {
+            out.push(path);
+        }
+    }
 }
 
 /// Recursively collect every regular file under `dir` (absent dir → no files).
@@ -518,6 +627,161 @@ mod tests {
             input_key,
             cache_key(&root),
             "key must change when fixture implementation bytes change"
+        );
+    }
+
+    /// The repository root of THIS checkout (`crates/docs/` → up two).
+    fn repo_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("crates/docs has a grandparent")
+            .to_path_buf()
+    }
+
+    /// THE cache-correctness gate: a dependency crate's bytes are in the key, and a
+    /// NEWLY ADDED dependency edge joins the key with nothing to remember.
+    ///
+    /// The hole this pins is not hypothetical: the key once hashed a hand-written
+    /// crate list, a crate split moved the documentation model into a crate absent
+    /// from that list, and every later edit to the moved code read back a stale
+    /// cached model. The closure is derived from the manifests now, so this test
+    /// fails for any list-based key regression.
+    #[test]
+    fn a_dependency_crates_sources_join_the_cache_key() {
+        let root = temp_root("dep-closure");
+        let docs = root.join("crates/docs");
+        fs::create_dir_all(docs.join("src")).unwrap();
+        fs::create_dir_all(root.join("crates/alpha/src")).unwrap();
+        fs::write(
+            docs.join("Cargo.toml"),
+            b"[dependencies]\ngmeow-alpha = { path = \"../alpha\" }\n",
+        )
+        .unwrap();
+        fs::write(root.join("crates/alpha/src/lib.rs"), b"alpha v1").unwrap();
+
+        let base = cache_key(&root);
+        fs::write(root.join("crates/alpha/src/lib.rs"), b"alpha v2").unwrap();
+        let edited = cache_key(&root);
+        assert_ne!(
+            base, edited,
+            "editing a dependency crate's source must invalidate the fixture cache"
+        );
+
+        // A brand-new dependency edge — the exact change that silently rotted a
+        // hand-written list — joins the key on the next run.
+        fs::create_dir_all(root.join("crates/beta/src")).unwrap();
+        fs::write(root.join("crates/beta/src/lib.rs"), b"beta v1").unwrap();
+        let unreferenced = cache_key(&root);
+        assert_eq!(
+            edited, unreferenced,
+            "a crate nothing depends on is not compiled in and must not be hashed"
+        );
+        fs::write(
+            docs.join("Cargo.toml"),
+            b"[dependencies]\ngmeow-alpha = { path = \"../alpha\" }\n\
+              gmeow-beta = { path = \"../beta\" }\n",
+        )
+        .unwrap();
+        let with_beta = cache_key(&root);
+        assert_ne!(
+            unreferenced, with_beta,
+            "declaring the dependency must pull the new crate into the key"
+        );
+        fs::write(root.join("crates/beta/src/lib.rs"), b"beta v2").unwrap();
+        assert_ne!(
+            with_beta,
+            cache_key(&root),
+            "the newly declared crate's later edits must invalidate the cache too"
+        );
+    }
+
+    /// A dev-dependency is linked into a crate's TESTS, never into the library that
+    /// builds the cached model / site / book, so its bytes must not be in the key —
+    /// otherwise every edit to the test-only `gmeow-mcp` query executor would throw
+    /// away the whole fixture.
+    #[test]
+    fn dev_dependencies_are_not_hashed() {
+        let root = temp_root("dev-deps");
+        let docs = root.join("crates/docs");
+        fs::create_dir_all(docs.join("src")).unwrap();
+        fs::create_dir_all(root.join("crates/testonly/src")).unwrap();
+        fs::write(
+            docs.join("Cargo.toml"),
+            b"[dev-dependencies]\ngmeow-testonly = { path = \"../testonly\" }\n",
+        )
+        .unwrap();
+        fs::write(root.join("crates/testonly/src/lib.rs"), b"v1").unwrap();
+        let base = cache_key(&root);
+        fs::write(root.join("crates/testonly/src/lib.rs"), b"v2").unwrap();
+        assert_eq!(
+            base,
+            cache_key(&root),
+            "a dev-dependency must not be hashed"
+        );
+    }
+
+    /// The derived closure over the LIVE manifests is genuinely transitively closed
+    /// and reaches the documentation model. A crate that declares a path dependency
+    /// the closure does not contain would be a crate whose edits are invisible to
+    /// the cache — the defect class this whole derivation exists to make impossible.
+    #[test]
+    fn live_manifest_closure_is_closed_and_reaches_the_model() {
+        let root = repo_root();
+        let dirs = fixture_crate_dirs(&root);
+        assert!(
+            dirs.contains(&root.join("crates/docs-model")),
+            "the documentation model crate must be in the hashed closure: {dirs:?}"
+        );
+        for dir in &dirs {
+            let Ok(manifest) = fs::read_to_string(dir.join("Cargo.toml")) else {
+                continue;
+            };
+            for dep in manifest_path_deps(&manifest) {
+                let resolved = normalize_lexically(&dir.join(&dep));
+                assert!(
+                    dirs.contains(&resolved),
+                    "{} depends on {dep} but {} is not hashed into the fixture cache key",
+                    dir.display(),
+                    resolved.display()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn manifest_path_deps_reads_every_non_dev_section() {
+        let manifest = "\
+[package]\n\
+name = \"x\"\n\
+[dependencies]\n\
+serde.workspace = true\n\
+gmeow-a = { path = \"../a\" }\n\
+# gmeow-commented = { path = \"../commented\" }\n\
+pathological = \"1\"\n\
+[target.'cfg(not(target_arch = \"wasm32\"))'.dependencies]\n\
+gmeow-b = { path = \"../b\" }\n\
+[build-dependencies]\n\
+gmeow-c = { path = \"../c\" }\n\
+[dev-dependencies]\n\
+gmeow-d = { path = \"../d\" }\n\
+[target.'cfg(unix)'.dev-dependencies]\n\
+gmeow-e = { path = \"../e\" }\n";
+        assert_eq!(
+            manifest_path_deps(manifest),
+            vec!["../a".to_string(), "../b".to_string(), "../c".to_string()],
+        );
+    }
+
+    #[test]
+    fn lexical_normalization_dedupes_equivalent_crate_paths() {
+        assert_eq!(
+            normalize_lexically(Path::new("/repo/crates/docs/../docs-model")),
+            PathBuf::from("/repo/crates/docs-model")
+        );
+        assert_eq!(
+            normalize_lexically(Path::new("/repo/./crates/./ns")),
+            PathBuf::from("/repo/crates/ns")
         );
     }
 

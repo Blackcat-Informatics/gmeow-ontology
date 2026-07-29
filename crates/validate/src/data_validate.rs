@@ -127,13 +127,13 @@ pub struct Tier1Shapes {
     shapes: purrdf::shapes::shapes::Shapes,
     /// The same data-graph shape union parsed as an [`RdfDataset`], read for each
     /// advisory shape's `logic:formalizes` provenance term during the advisory
-    /// split ([`crate::advisory::split_advisory_results`]). Native-only: the
-    /// advisory bridge is a native module, so the wasm Tier-1 surface never carries
-    /// (or applies) the split.
+    /// split ([`crate::advisory::split_advisory_results`]). Carried on EVERY target:
+    /// the advisory bridge is wasm-clean, so the browser Tier-1 surface applies the
+    /// same split and returns the same advisories as the CLI.
     shapes_dataset: Arc<RdfDataset>,
     /// The bundle's imported RDF, carrying the formalized terms'
     /// `gmeow:howToUse` / `gmeow:useWhen` prose each split advisory surfaces as its
-    /// corrective suggestion / contextual guidance. Native-only (see
+    /// corrective suggestion / contextual guidance. Carried on every target (see
     /// `shapes_dataset`).
     ontology: Arc<RdfDataset>,
 }
@@ -152,10 +152,11 @@ impl Tier1Shapes {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
         })?;
-        // Native-only advisory-split inputs: the shape union as an RdfDataset (source
-        // of each advisory shape's `logic:formalizes` provenance) and the bundle's RDF
-        // (source of the formalized terms' howToUse/useWhen prose). Parsed here once
-        // per bundle so a resident consumer never re-parses per payload.
+        // The advisory-split inputs, parsed on every target: the shape union as an
+        // RdfDataset (source of each advisory shape's `logic:formalizes` provenance)
+        // and the bundle's RDF (source of the formalized terms' howToUse/useWhen
+        // prose). Parsed here once per bundle so a resident consumer never re-parses
+        // per payload.
         let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -195,8 +196,10 @@ impl Tier1Shapes {
         // SUPPRESSED and re-projected below as a Note + deonticRecommendation advisory
         // (the exact split the pipeline `ValidateStage` and the dev `validate_all` gate
         // apply, so the consumer `gmeow validate <file>` / MCP `validate_local` output
-        // carries the same advice, not a raw `shacl.* Info` finding). Native-only: the
-        // advisory bridge is a native module; the wasm surface keeps the raw report.
+        // carries the same advice, not a raw `shacl.* Info` finding). Applied on every
+        // target: the advisory bridge is wasm-clean, so the browser-run `validate_local`
+        // splits the report exactly as the native CLI does — there is no target on which
+        // the raw `shacl.* Info` findings survive.
         let (shacl_report, advisories) = crate::advisory::split_advisory_results(
             shacl_report,
             &self.shapes_dataset,

@@ -17,9 +17,16 @@
 //! ([`model`], [`codes`], [`store`], [`gufo`], [`findings`], [`data_validate`],
 //! [`report_bridge`]) are compiled on every target.
 //!
-//! Everything else — the slice-authoring dev gate ([`validate_all`], with the
+//! So is the whole REPORT-SHAPING path around that core: the advisory split
+//! ([`advisory`]), the constructive [`abductive`] tier, finding [`enrich`]ment, the
+//! per-term [`guidance`] reader, [`remediation`], [`distinctiveness`], and
+//! [`language_tags`]. A browser-run `validate_local` therefore returns the same
+//! enriched, advisory-split report the native CLI does, rather than a raw one.
+//!
+//! The remainder — the slice-authoring dev gate ([`validate_all`], with the
 //! native DL reasoner + rayon), the repo-lint guards, the DSL phases, and the
-//! Wikidata/HTTP lanes — is **native-only** (`#[cfg(not(target_arch = "wasm32"))]`).
+//! Wikidata/HTTP lanes — is **native-only** (`#[cfg(not(target_arch = "wasm32"))]`),
+//! because each is coupled to the repository on disk or to a native-only engine.
 //! The Tier-2 `--deep` semantic pass is excluded from the wasm surface by contract,
 //! not degraded: the wasm boundary reaches validation solely through
 //! [`data_validate::run_tier1`].
@@ -53,9 +60,13 @@ pub mod report_bridge;
 pub mod rule_catalog;
 pub mod store;
 
-// Native-only: the slice-authoring dev gate, repo-lint guards, DSL phases, and the
-// Tier-2 reasoner path all pull native-only crates (gmeow-logic, rayon, ureq,
-// gmeow-slice) and cannot cross-compile to wasm.
+// The rest of the crate. A module carrying `#[cfg(not(target_arch = "wasm32"))]` is
+// native-only because it pulls a native-only crate (gmeow-logic, rayon, ureq,
+// gmeow-slice) or the filesystem: the slice-authoring dev gate, the repo-lint guards,
+// the DSL phases, the Tier-2 reasoner path. A module below WITHOUT that attribute is
+// wasm-clean and compiled on every target — its own comment says which browser surface
+// requires it. The two sets are listed together, in one alphabetical run, so the gate
+// on each module sits next to the module it gates.
 // The constructive "what to ADD" tier. Wasm-clean: `gmeow_errors` + `purrdf` +
 // `gmeow_logic_compile`'s formula frontend + `sha2`, all of which cross-compile. Gated
 // only by its former block; the consumer advisory surface carries it on both targets.
@@ -94,22 +105,17 @@ pub mod dsl;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dsl_shacl;
 // The single proof-carrying enrichment entry point (`enrich_findings`) over a
-// consumer Report — attaches rule identity + registry-authored remediation. Reused by
-// the CLI validate/verify path and the pipeline validate stage so the two
-// surfaces cannot drift.
-// The single proof-carrying enrichment entry point (`enrich_findings`) over a
-// consumer Report — attaches rule identity + registry-authored remediation. Wasm-clean
-// (its imports are `gmeow_errors` + `purrdf` + `rule_catalog`), and required by the
-// browser-runnable `validate_local`, so it is compiled on every target.
+// consumer Report — attaches rule identity + registry-authored remediation. Shared by
+// the CLI validate/verify path, the pipeline validate stage, and the browser-runnable
+// `validate_local`, so none of those surfaces can drift from the others. Wasm-clean
+// (its imports are `gmeow_errors` + `purrdf` + `rule_catalog`), so it is compiled on
+// every target.
 pub mod enrich;
-// The per-term usage-guidance reader (Part 3): joins a finding onto the
-// `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology
-// terms, from both the finding's rule-governing term(s) and its own
-// `documented_terms`. Reads an `RdfDataset` directly (native-only, like `enrich`).
 // The per-term usage-guidance reader: joins a finding onto the
-// `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology terms.
-// Wasm-clean (`gmeow_errors` + `purrdf` only) and read by `enrich`, so it is compiled
-// on every target.
+// `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology terms,
+// from both the finding's rule-governing term(s) and its own `documented_terms`. Reads
+// an `RdfDataset` directly. Wasm-clean (`gmeow_errors` + `purrdf` only) and read by
+// `enrich`, so it is compiled on every target.
 pub mod guidance;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod instance;

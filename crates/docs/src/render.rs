@@ -813,11 +813,17 @@ pub fn interactive_assets_ship(exec: &ExecutableDocsData) -> bool {
 /// The DOM hooks the documentation controller binds to.
 ///
 /// This is the single inventory of "a page carries an interactive control", read by the
-/// script-injection gate. It mirrors the `document.querySelector`/`getElementById` targets
-/// in `assets/docs-controller.mjs`; a widget that added a hook without adding it here
-/// would render a control with no controller, which is exactly the defect the derived gate
-/// exists to prevent — so the shell-agreement test asserts the two shells activate the
-/// same control set.
+/// script-injection gate. It mirrors the elements `assets/docs-controller.mjs` binds a
+/// handler to; a widget that added a hook without adding it here would render a control
+/// with no controller, which is exactly the defect the derived gate exists to prevent — so
+/// the shell-agreement test asserts the two shells activate the same control set.
+///
+/// The mirror is itself gated: `controller_hooks_match_the_shipped_controller_selectors`
+/// scrapes the shipped controller module for every element it looks up
+/// (`getElementById` / `querySelectorAll`) AND registers a listener on, and asserts
+/// set-EQUALITY with this list in both directions. A hook added to the controller and not
+/// to this list — or removed from the controller and left here — fails that test, so this
+/// list cannot drift out of agreement with the module it mirrors.
 pub(crate) const CONTROLLER_HOOKS: &[&str] = &[
     "gmeow-run-validation",
     "id=\"gmeow-explorer-form\"",
@@ -7992,6 +7998,85 @@ mod tests {
     use super::*;
     use gmeow_docs_model::model::DocTermStability;
 
+    /// [`CONTROLLER_HOOKS`] is a mirror of the shipped controller's DOM targets, and a
+    /// mirror without a gate is drift waiting to happen — so the mirror is DERIVED here
+    /// from the module itself and compared for set equality in both directions.
+    ///
+    /// A hook is an element the controller both LOOKS UP (`document.getElementById` /
+    /// `document.querySelectorAll`) and BINDS A HANDLER TO (`.addEventListener`). That is
+    /// exactly "this page carries a control the controller drives": the sub-elements a
+    /// handler reads (`gmeow-sparql-status`, `gmeow-explorer-results`, …) are looked up
+    /// but never bound, and a dynamically created element is bound but never looked up.
+    #[test]
+    fn controller_hooks_match_the_shipped_controller_selectors() {
+        /// The identifier a `document.…` lookup is bound to, given the text preceding
+        /// the lookup: `const form = ` (assignment) or `for (const btn of ` (iteration).
+        fn binding_target(head: &str) -> Option<&str> {
+            let head = head.trim_end();
+            let head = head
+                .strip_suffix('=')
+                .or_else(|| head.strip_suffix(" of"))?
+                .trim_end();
+            let start = head
+                .rfind(|c: char| !(c.is_alphanumeric() || c == '_' || c == '$'))
+                .map_or(0, |i| i + 1);
+            let ident = &head[start..];
+            (!ident.is_empty() && ident != "const" && ident != "let" && ident != "var")
+                .then_some(ident)
+        }
+
+        /// The quoted argument that a `…("` prefix opens, if the line carries one.
+        fn quoted_after<'a>(line: &'a str, opener: &str) -> Option<(usize, &'a str)> {
+            let pos = line.find(opener)?;
+            let rest = &line[pos + opener.len()..];
+            let end = rest.find('"')?;
+            Some((pos, &rest[..end]))
+        }
+
+        // Bind each looked-up variable to the hook string a rendered body would carry.
+        let mut looked_up: BTreeMap<&str, String> = BTreeMap::new();
+        for line in DOCS_CONTROLLER.lines() {
+            if let Some((pos, id)) = quoted_after(line, "document.getElementById(\"")
+                && let Some(var) = binding_target(&line[..pos])
+            {
+                looked_up.insert(var, format!("id=\"{id}\""));
+            }
+            if let Some((pos, class)) = quoted_after(line, "document.querySelectorAll(\".")
+                && let Some(var) = binding_target(&line[..pos])
+            {
+                looked_up.insert(var, class.to_string());
+            }
+        }
+
+        let mut scraped: BTreeSet<String> = BTreeSet::new();
+        for line in DOCS_CONTROLLER.lines() {
+            let Some(pos) = line.find(".addEventListener(") else {
+                continue;
+            };
+            let head = &line[..pos];
+            let start = head
+                .rfind(|c: char| !(c.is_alphanumeric() || c == '_' || c == '$'))
+                .map_or(0, |i| i + 1);
+            if let Some(hook) = looked_up.get(&head[start..]) {
+                scraped.insert(hook.clone());
+            }
+        }
+
+        // A scraper that matched nothing would make the equality below vacuous the day
+        // someone empties the const, so the floor is asserted explicitly.
+        assert!(
+            scraped.len() >= 5,
+            "the controller-selector scrape found almost nothing ({scraped:?}) — the \
+             module's binding shape changed and this gate stopped seeing it"
+        );
+        let declared: BTreeSet<String> =
+            CONTROLLER_HOOKS.iter().map(|h| (*h).to_string()).collect();
+        assert_eq!(
+            scraped, declared,
+            "CONTROLLER_HOOKS must equal the hooks assets/docs-controller.mjs binds to"
+        );
+    }
+
     #[test]
     fn rel_computes_relative_dir_paths() {
         assert_eq!(rel("", "slices"), "slices/");
@@ -8997,8 +9082,8 @@ mod tests {
         assert!(
             site.files
                 .contains_key("assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
-            "the console's first-load MCP segment is emitted alongside purrdf so every \
-             interactive widget has an engine to dispatch to"
+            "the console's first-load MCP segment is emitted — with purrdf retired it is \
+             the ONLY engine, so every interactive widget dispatches to it or to nothing"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(
