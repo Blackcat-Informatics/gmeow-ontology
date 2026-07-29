@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance cells for the work-orchestration slice.
+#
+# The slice's five existing counter-examples are STRUCTURAL fail-witnesses: they
+# prove that the mustNot assertions in tests/structural.ttl are non-vacuous (a
+# hand-authored shape, a kernel-to-domain axiom edge, a second execution
+# concept, a second recommendation model, a second budget). Nothing until now
+# exercised the slice's two authored logic:Constraint laws against DATA, so the
+# laws compiled, projected and never bit.
+#
+# This registry closes that. Each cell binds one slice-relative fixture, and the
+# harness (crates/slicetest run_conformance_cell) validates
+# work-orchestration/module.ttl + that one file against the shapes THIS slice
+# owns, comparing finding codes.
+#
+# The two laws exercised here are the two whose projected shape carries
+# logic:formalizes back to a work-orchestration-owned class, and so survives the
+# slice-scoping in crates/slicetest exec::scope_shapes_to_slice:
+#
+#   gmeow:ReviewProjectionCompletenessConstraint  → gmeow:WorkReviewProjection
+#   gmeow:ExplanationCarriesProofConstraint       → gmeow:FrontierExplanation
+#
+# Both project to sh:SPARQLConstraint, so the component code is uniformly
+# shacl.SPARQLConstraintComponent — which alone cannot prove WHICH law fired,
+# because every logic:Constraint in the repository shares it. Each violating
+# cell therefore ALSO pins gmeow:expectedSourceShape: the deterministic
+# per-constraint sh:NodeShape the projector mints as
+# `{namespace}{Pascal(local-name)}ProceduralConstraintShape`
+# (crates/logic-compile/src/projections/shapes.rs::procedural_shape_iri), which
+# the finding carries as its sh:sourceShape. That IRI is unique per law, so a
+# fixture that tripped a DIFFERENT constraint sharing the generic component code
+# is rejected rather than credited.
+#
+# The two negatives are the SAME scene as the positive with exactly one binding
+# removed. That is deliberate and is the harder test: a three-triple negative
+# fails in a way nobody would ship, while a complete, plausible, richly-wired
+# review missing one line is the shape the defect actually takes in production.
+# It also makes the pair legible — the diff between the conforming fixture and
+# each counter-example IS the obligation the law states.
+#
+# The fixtures live under tests/conformance-fixtures/ and tests/counter-examples/
+# (never examples/), so the global `make validate` gate never loads them as data;
+# they are validated SLICE-SCOPED only.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
+
+# --- Conforming: the whole review, with its preservation receipt -------------
+ex:ecReviewProjectionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/review-projection-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:WorkReviewProjection over a continuing gmeow:WorkCluster carrying all eight contents — goal-and-recurrence, prescription lineage, current occurrence, derived frontier, approvals-and-pending, effect status, accumulated record, timeline — plus the gmeow:reviewReceipt that discloses what the projection collapsed, and a gmeow:FrontierExplanation whose gmeow:explanationProof names a real derivation. gmeow:ReviewProjectionCompletenessConstraint and gmeow:ExplanationCarriesProofConstraint therefore both stay silent and validation emits no finding. The contents are not eight blank nodes: each resolves into the cluster it summarises, so the frontier the review names is the frontier whose entries carry their hard failures, and the occurrence it names is the one that pinned its own input generation." .
+
+# --- Violating: the review that does not disclose what it collapsed ---------
+ex:ecReviewOmitsItsReceipt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/review-omits-its-preservation-receipt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ReviewProjectionCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The conforming scene with the gmeow:reviewReceipt binding removed. The closure witness is still in the graph — the run computed it and enumerated every predicate it settled — and the review simply does not cite it, which is why an operator reading this surface cannot tell 'no dissent was recorded' from 'dissent was collapsed away'. All eight contents remain, so the surface reads as complete to exactly the reader it misleads. MUST emit shacl.SPARQLConstraintComponent from gmeow:ReviewProjectionCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. Its sibling gmeow:ExplanationCarriesProofConstraint stays silent: the scene's frontier explanation carries its derivation." .
+
+# --- Violating: the explanation that is fluent and uncheckable --------------
+ex:ecExplanationWithoutItsProof a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/explanation-stands-on-narrative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ExplanationCarriesProofConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The conforming scene with the gmeow:explanationProof binding removed and a model-authored narrative standing in its place as ordinary evidence. Everything a reader looks at first survives — the entry explained, the verifier verdict, the governing norm, the criterion with its dimensioned magnitude, the retained dissent — so the record has the SHAPE of a warrant while carrying nothing that can be recomputed. That richness is the hazard: a bare narrative with no evidence and no policy is obviously an opinion, and this one is not. MUST emit shacl.SPARQLConstraintComponent from gmeow:ExplanationCarriesProofConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. Its sibling gmeow:ReviewProjectionCompletenessConstraint stays silent: the review projection carries all eight contents and its receipt." .

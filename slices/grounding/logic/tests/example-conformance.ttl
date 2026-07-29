@@ -454,3 +454,28 @@ ex:ecAxisLawCarrierRecordedTwoWays a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The same nineteen laws with the first carrier of the step-state law selecting BOTH logic:termIri and logic:termVariable. A carrier that names a position and a variable at once gives the admitted move an endpoint that is simultaneously a specific position and unconstrained, so the law admits transitions nobody authored and its deadlock-freedom proof becomes unfalsifiable rather than false. MUST emit shacl.SPARQLConstraintComponent for the typed-IR carrier law that rejects a carrier selecting more than one value kind." .
+
+# --- The whole run: joint satisfiability, and one absence inside it ----------
+#
+# Every other kernel cell in this file proves that one law CAN fire against a
+# scene built to make that one defect expressible. Neither of these two does
+# that. The positive is the corpus's JOINT-SATISFIABILITY witness: one
+# occurrence discharging every kernel obligation at once, which matters because
+# the obligations are largely relational (a digest that must resolve to an
+# intent, a fold that must match a checkpoint's, a licence that must cover its
+# own attempt, a pin whose steps must be the ones its method yields) and a
+# corpus of one-defect negatives cannot show that they are simultaneously
+# satisfiable. The negative is that same run with a single binding removed, so
+# the diff between the two files IS the obligation the pinned law states.
+
+ex:ecEnactmentRunComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/enactment-run-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One settlement occurrence discharging every enactment-kernel obligation at once: the logic:PrescriptionVersion is content-addressed and the logic:Enactment pinned that same address alongside its logic:InputSnapshot; the logic:DispatchIntent binds all nine carriers and the logic:ApprovalCommitment binds it BY DIGEST and is scoped to that intent's own enactment; the logic:AuthorizationProof and the logic:Advisory are typed apart so model output occupies no authority position; the undetermined logic:ExternalOutcomeUnknown names its attempt and its logic:RetryDispatch is licensed by a logic:IdempotencyContract that covers THAT attempt; the logic:CompensationAttempt names its forward receipt without being typed as one and its logic:CompensationOutcome carries a receipt that is not the forward receipt; the logic:CheckpointRestore's fold is the logic:EnactmentCheckpoint's and both name the same run; the logic:JournalEntry chain's previous head is its predecessor's new head; the logic:ResourceLease carries a fence and its scope names it as the exclusive holder; the logic:RefinementEpisode declares its search fragment and selects a pin from the roster it produced, and that logic:PinnedExecutableSubgraph freezes exactly the steps its logic:DecompositionMethod yields; the logic:OperationalCapabilityGap names its blocked step and a logic:CapabilityGapProposal complete in all eight facets covers it; and the logic:ActionableFrontier closes on a logic:SaturationWitness stating both what it settled and the budget it settled under. Validation emits no finding." .
+
+ex:ecEnactmentRunUnattributedClock a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/enactment-run-with-an-unattributed-clock.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ClockAttributionRequiredConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The complete run with one binding removed: the logic:ClockAttribution records THAT the settlement window was judged and never says by whose clock. Every other kernel obligation in the scene is still discharged, so the record reads as correct to a reviewer scanning it — which is the property this cell tests and the one-defect negatives cannot. The provider's clock is even present in the graph, named and pointed at by nothing, because in practice the clock is rarely missing and often unattributed; two parties judging the same window against their own clocks both record that it held, and once neither says WHICH clock, the disagreement can never be reconstructed. MUST emit shacl.SPARQLConstraintComponent from logic:ClockAttributionRequiredConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI, and no finding from any other law." .
