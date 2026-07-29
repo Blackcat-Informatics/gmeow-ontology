@@ -83,7 +83,8 @@ ASK {
 #
 # Principle 5: produced entities link BACK via wasGeneratedBy -- the agentic
 # slice must never mint a forward output object property. Only
-# gmeow:calledByInvocation and gmeow:usedTool are permitted ObjectProperties.
+# gmeow:calledByInvocation, gmeow:usedTool and gmeow:derivedBy are permitted
+# ObjectProperties -- three backward or inward edges, no forward one.
 ex:saNoForwardOutputObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
@@ -96,3 +97,42 @@ ASK {
     FILTER (?p NOT IN (gmeow:calledByInvocation, gmeow:usedTool, gmeow:derivedBy))
 }""" ;
     gmeow:saRationale "The agentic slice MUST NOT declare a FORWARD output object property (Principle 5): whatever a call produced links BACK to it, never forward from it. Its object properties are therefore exactly three backward or inward edges -- gmeow:calledByInvocation (call to the invocation that requested it), gmeow:usedTool (call to the tool agent that ran), and gmeow:derivedBy (result statement back to the call it came out of, the statement-level sibling of gmeow:wasGeneratedBy). Any other owl:ObjectProperty defined here is presumed to be the forbidden forward edge." .
+
+# --- 5. derivedBy is a domain-free ObjectProperty ranging on ToolCall (MUST) --
+#
+# The MUST-NOT above only PERMITS gmeow:derivedBy; on its own, deleting the term
+# would leave the suite green. This is its positive gate: the statement-level
+# provenance edge must actually exist, and must actually land on a ToolCall.
+ex:saDerivedByRangesOnToolCall a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:derivedBy a owl:ObjectProperty ;
+        rdfs:range gmeow:ToolCall .
+}""" ;
+    gmeow:saRationale "gmeow:derivedBy MUST be an owl:ObjectProperty with rdfs:range gmeow:ToolCall -- the backward edge that keeps an emitted RESULT STATEMENT attributable to the audited call it came out of. Without the range the annotation could point anywhere and the audit chain would not close on a call event." .
+
+# --- 6. sessionStoreSegment is functional (MUST) ------------------------------
+#
+# An audit record is appended to exactly ONE append-only session-store segment.
+# Without this carrier the property is legally plural, and a replay could
+# re-point an already-committed call at a second segment -- the falsification
+# gmeow:sessionStoreSegment's own avoid-when warns against but nothing enforced.
+ex:saSessionStoreSegmentIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:sessionStoreSegment a owl:DatatypeProperty ;
+        rdfs:domain gmeow:ToolCall ;
+        rdfs:range rdfs:Literal .
+    ?rec logic:characterizes gmeow:sessionStoreSegment ;
+        logic:characteristicSort logic:functionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:sessionStoreSegment MUST be an owl:DatatypeProperty on gmeow:ToolCall ranging over rdfs:Literal, and its one-per-call character MUST ride on a logic:PropertyCharacteristicAssertion, exactly as gmeow:toolArguments and gmeow:toolResult do. A call whose audit bytes were appended once names one segment; a second value would make the record locatable in two places at once and leave an append-only trajectory ambiguous under replay." .

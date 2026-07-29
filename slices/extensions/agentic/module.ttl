@@ -166,6 +166,21 @@ gmeow:calledByInvocationFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:calledByInvocation and nothing else. It is not a definition of gmeow:calledByInvocation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sessionStoreSegmentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "sessionStoreSegment is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sessionStoreSegment is functional: a tool call's audit record was appended to exactly one append-only session-store segment, the single segment its bytes were committed to. A second value would make the record locatable in two places at once and let a replay re-point an already-committed call at a different segment, which is precisely what an append-only trajectory forbids. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sessionStoreSegment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sessionStoreSegment ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sessionStoreSegment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sessionStoreSegment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sessionStoreSegment and nothing else. It is not a definition of gmeow:sessionStoreSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 gmeow:toolArgumentsFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;

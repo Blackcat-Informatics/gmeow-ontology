@@ -408,6 +408,28 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:hasDisclosurePolicy MUST NOT be entangled with gmeow:hasGranularity via rdfs:subPropertyOf or owl:equivalentProperty — disclosure and granularity are distinct axes (Principle 9)." .
 
+# --- 7.13 Documentation-distribution audience seeds are declared (MUST) ------
+#
+# ex:saProjectionContextNoTenthMember (7.8) only PERMITS the six
+# documentation-distribution audiences; ex:saProjectionContextSeedsDeclared
+# (7.7) pins only the original nine. On their own, deleting any of the six
+# would leave the suite green — the closure would simply admit one fewer name.
+# This is their positive gate, and the half of the closed fifteen-member
+# enumeration that 7.7 does not cover.
+ex:saProjectionContextDistributionAudiencesDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:consumerOfflineBook          a gmeow:ProjectionContext .
+    gmeow:consumerPrintArchive         a gmeow:ProjectionContext .
+    gmeow:consumerKnowledgeFederation  a gmeow:ProjectionContext .
+    gmeow:consumerLinkedDataTooling    a gmeow:ProjectionContext .
+    gmeow:consumerTypedModelClient     a gmeow:ProjectionContext .
+    gmeow:consumerInteractiveConsole   a gmeow:ProjectionContext .
+}""" ;
+    gmeow:saRationale "The six documentation-distribution audiences the external documentation distribution catalog references — offline book, print archive, knowledge federation, linked-data tooling, typed-model client, interactive console — MUST each be declared a gmeow:ProjectionContext individual. They are the second half of the closed fifteen-member enumeration (Principle 9): ex:saProjectionContextSeedsDeclared pins the original nine and ex:saProjectionContextNoTenthMember closes the set, so without this assertion any of the six could be deleted and the catalog would reference a consumer the kernel no longer declares." .
+
 # =============================================================================
 # 8. Privacy / sensitivity axis — kernel parts (migrated from tests/test_privacy.py)
 # =============================================================================
