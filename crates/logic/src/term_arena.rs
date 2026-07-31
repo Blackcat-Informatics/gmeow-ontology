@@ -13,7 +13,7 @@
 //! [`InterningStats`](gmeow_term_arena::InterningStats)) is re-exported below so a
 //! consumer that already depends on `gmeow-logic` names one surface.
 //!
-//! [`intern_math_root`] is the one addition. It writes NO interning logic — it composes the
+//! `intern_math_root` is the one addition. It writes NO interning logic — it composes the
 //! existing [`MathGraph`](crate::physical::lower) parse, the existing
 //! [`lower_math_expression`](crate::physical::lower) lowering, and the arena's own content key,
 //! and it is what the shipped `math:structuralKey` digest is computed through.
