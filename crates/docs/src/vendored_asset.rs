@@ -4,7 +4,8 @@
 //! Shared vendored-wasm-asset harness.
 //!
 //! The docs site ships one or more **prebuilt** wasm engines — today the console's two MCP
-//! segments, which EVERY interactive surface dispatches through — as pinned
+//! segments, which EVERY interactive surface dispatches through, plus the vendored
+//! `purrdf` RDF/JS engine a consumer of the published tree can import directly — as pinned
 //! `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
 //! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
 //! vendored blob to stay in step with its source crate. Each such asset therefore
@@ -21,7 +22,7 @@
 //!    digests match.
 //!
 //! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
-//! constant ([`MCP_CORE_ASSET`], [`MCP_ASSET`]): the renderer calls
+//! constant ([`MCP_CORE_ASSET`], [`MCP_ASSET`], [`PURRDF_ASSET`]): the renderer calls
 //! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
 //! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
 //! one definition per asset — the emission descriptor and the anti-rot verifier read
@@ -656,16 +657,18 @@ impl VendoredWasmAsset {
 ///
 /// Emitted under `assets/mcp-core/`; refreshed by `make maint-refresh-mcp-core-asset`.
 ///
-/// This descriptor and its sibling [`MCP_ASSET`] replaced FOUR retired ones
-/// (`VALIDATE_ASSET`, `REASON_ASSET`, `GMN_ASSET`, `PURRDF_ASSET`). The first three
-/// vendored a bespoke `#[wasm_bindgen]` shim per capability — a validator, a reasoner, a
-/// codec — each with its own export surface and its own controller code path. The fourth
-/// vendored a whole third-party SPARQL engine, kept back on the reading that a standalone
-/// query over a caller-supplied graph was a capability the MCP surface lacked; the site
-/// never asked that question, and `query_local` with `scope: "bundle"` answers the one it
-/// does ask. All four were duplicate capability: the site now speaks ONE protocol (JSON-RPC
-/// over `handle_message`) to the SAME engine an agent drives, so a capability the console
-/// has is a capability an agent has by construction rather than by parallel maintenance.
+/// This descriptor and its sibling [`MCP_ASSET`] replaced THREE retired ones
+/// (`VALIDATE_ASSET`, `REASON_ASSET`, `GMN_ASSET`), each of which vendored a bespoke
+/// `#[wasm_bindgen]` shim per capability — a validator, a reasoner, a codec — with its own
+/// export surface and its own controller code path. All three were duplicate capability:
+/// the site now speaks ONE protocol (JSON-RPC over `handle_message`) to the SAME engine an
+/// agent drives, so a capability the console has is a capability an agent has by
+/// construction rather than by parallel maintenance.
+///
+/// [`PURRDF_ASSET`] is still vendored and is NOT an exception to that: no widget dispatches
+/// to it, no capability is attested against it, and every query the site itself asks is
+/// `query_local` on these segments. It ships as an importable RDF/JS surface for a consumer
+/// of the published tree, which is a different thing from a second protocol.
 ///
 /// The vendored set is a directory tree rather than a flat list: `index.mjs` imports
 /// `./pkg/<mod>.js`, so the wasm-bindgen output keeps its `pkg/` subpath and the emitted
@@ -755,11 +758,185 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     witness_attestations: &["WITNESS.mcp.json"],
 };
 
+/// The vendored `purrdf` browser engine — the standalone RDF-1.2 + SPARQL runtime.
+///
+/// Emitted under `assets/purrdf/`; refreshed by `make maint-refresh-purrdf-asset`.
+///
+/// The one vendored engine this repository does not author. purrdf is the sibling RDF-1.2
+/// kernel (Principle 18), published to npm as [`PURRDF_NPM_PACKAGE`] under MIT OR
+/// Apache-2.0 — which is why every file here carries THAT identifier and not the
+/// AGPL-3.0-only the rest of this crate does: a REUSE sidecar states the license the bytes
+/// are actually under, and an upstream package relicensed by the act of vendoring it is a
+/// licensing claim nobody made.
+///
+/// It is not a second protocol surface. Every interactive widget the site and the console
+/// ship dispatches JSON-RPC to the MCP segments above, and nothing here changes that: what
+/// this asset adds is the RDF/JS surface a CONSUMER of the published tree can import
+/// directly (`assets/purrdf/index.mjs`) to run SPARQL over their OWN dataset offline — the
+/// one question `query_local` does not answer, because its scopes are the shipped bundle
+/// and the caller's frame, not a standing dataset with an RDF/JS API. It therefore backs no
+/// [`Capability`] and carries no witness attestation: it proves nothing about gmeow's own
+/// engine, and claiming otherwise would make an attestation decorative.
+///
+/// Refreshed by LOWER BOUND, never by exact pin: `maint-refresh-purrdf-asset` resolves the
+/// newest published version satisfying the Makefile's `PURRDF_NPM_MIN` and vendors that.
+/// [`UPSTREAM_RECORD`] records which version those bytes are, is digest-pinned like every
+/// other vendored file, and is checked against the declared floor by
+/// [`check_vendored_lower_bound`].
+pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "purrdf",
+    emitted_files: &[
+        ("index.mjs", include_bytes!("../assets/purrdf/index.mjs")),
+        (
+            "pkg/purrdf_wasm.js",
+            include_bytes!("../assets/purrdf/pkg/purrdf_wasm.js"),
+        ),
+        (
+            "pkg/purrdf_wasm_bg.wasm",
+            include_bytes!("../assets/purrdf/pkg/purrdf_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "UPSTREAM.txt",
+        "index.d.ts",
+        "index.mjs",
+        "pkg/purrdf_wasm.d.ts",
+        "pkg/purrdf_wasm.js",
+        "pkg/purrdf_wasm_bg.wasm",
+        "pkg/purrdf_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "pkg/purrdf_wasm_bg.wasm",
+    min_wasm_len: 4_000_000,
+    export_surface: ExportSurface {
+        glue_js: "pkg/purrdf_wasm.js",
+        glue_dts: "pkg/purrdf_wasm.d.ts",
+        wrapper_mjs: "index.mjs",
+        // Upstream ships a HAND-WRITTEN root type surface beside the generated one — the
+        // types a TypeScript consumer of the package root sees — so it is gated against the
+        // wrapper's exports rather than assumed to agree with them.
+        package_dts: Some("index.d.ts"),
+    },
+    refresh_target: "maint-refresh-purrdf-asset",
+    bless_env: "GMEOW_PURRDF_BLESS",
+    // No native↔wasm attestation: this engine is not gmeow's, backs no declared capability,
+    // and there is no native gmeow output for it to reproduce. An empty slice is a
+    // non-witnessed asset and is vacuously OK — see `witness_attestations`.
+    witness_attestations: &[],
+};
+
+/// The npm package the vendored purrdf engine is refreshed from.
+pub const PURRDF_NPM_PACKAGE: &str = "@blackcatinformatics/purrdf";
+
+/// The Make variable carrying the vendored purrdf engine's version LOWER BOUND.
+pub const PURRDF_MIN_VAR: &str = "PURRDF_NPM_MIN";
+
+/// The file in a vendored asset dir recording exactly which upstream release was vendored,
+/// as `<package>@<version>`. Written by the refresh target and digest-pinned like every
+/// other vendored file, so it cannot be edited to claim a version the bytes are not.
+pub const UPSTREAM_RECORD: &str = "UPSTREAM.txt";
+
 /// Every vendored engine this crate ships, in emission order.
 ///
 /// The single inventory the refresh-target gate and the render layer both read, so an asset
 /// added to one is an asset the other sees.
-pub static VENDORED_ASSETS: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET, &MCP_ASSET];
+pub static VENDORED_ASSETS: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET, &MCP_ASSET, &PURRDF_ASSET];
+
+/// A dotted-numeric version as its components, or `None` when it is not one.
+fn version_parts(version: &str) -> Option<Vec<u64>> {
+    version
+        .split('.')
+        .map(|part| part.parse::<u64>().ok())
+        .collect()
+}
+
+/// Whether `have` is at least `floor`, comparing dotted-numeric versions component-wise.
+///
+/// A shorter version is padded with zeros (`0.9` ≥ `0.8.3`, `0.8` < `0.8.3`), which is the
+/// ordering npm's own range resolution uses for the release versions this repository
+/// vendors. `None` when either side is not dotted-numeric — an unparseable version is a
+/// reportable failure, never a silent pass.
+fn version_at_least(have: &str, floor: &str) -> Option<bool> {
+    let (have, floor) = (version_parts(have)?, version_parts(floor)?);
+    let width = have.len().max(floor.len());
+    let at = |v: &[u64], i: usize| v.get(i).copied().unwrap_or(0);
+    for index in 0..width {
+        match at(&have, index).cmp(&at(&floor, index)) {
+            std::cmp::Ordering::Less => return Some(false),
+            std::cmp::Ordering::Greater => return Some(true),
+            std::cmp::Ordering::Equal => {}
+        }
+    }
+    Some(true)
+}
+
+/// The value of a `NAME ?= value` / `NAME := value` / `NAME = value` assignment in
+/// `makefile`, trimmed.
+fn make_variable<'a>(makefile: &'a str, name: &str) -> Option<&'a str> {
+    makefile
+        .lines()
+        .filter(|line| !line.starts_with('\t'))
+        .find_map(|line| {
+            let rest = line.trim_start().strip_prefix(name)?;
+            let rest = rest.trim_start();
+            for operator in ["?=", ":=", "::=", "="] {
+                if let Some(value) = rest.strip_prefix(operator) {
+                    return Some(value.trim());
+                }
+            }
+            None
+        })
+}
+
+/// Prove the VENDORED purrdf release satisfies the LOWER BOUND the Makefile declares.
+///
+/// D3's rule is "lower bound, always newest — no exact pin", and a floor nothing checks is
+/// not a floor: the refresh target could be run against a downgraded version, or the floor
+/// could be raised to require a capability while the vendored bytes stayed behind it, and
+/// nothing in the tree would notice. This reads the declared [`PURRDF_MIN_VAR`] out of the
+/// Makefile and the vendored release out of [`UPSTREAM_RECORD`] (whose bytes are pinned by
+/// `DIGESTS.blake3`, so the record cannot drift from the blob it describes) and compares
+/// them.
+///
+/// `upstream` is the record's contents; returns one message per violation, empty is a pass.
+#[must_use]
+pub fn check_vendored_lower_bound(makefile: &str, upstream: &str) -> Vec<String> {
+    let Some(floor) = make_variable(makefile, PURRDF_MIN_VAR) else {
+        return vec![format!(
+            "the Makefile declares no {PURRDF_MIN_VAR} — the vendored purrdf engine has no \
+             lower bound to be refreshed against, so `make {}` has nothing to resolve",
+            PURRDF_ASSET.refresh_target
+        )];
+    };
+    let record = upstream.trim();
+    let Some((package, version)) = record.rsplit_once('@') else {
+        return vec![format!(
+            "{UPSTREAM_RECORD} reads {record:?}, which is not `<package>@<version>` (run \
+             make {})",
+            PURRDF_ASSET.refresh_target
+        )];
+    };
+    let mut errors = Vec::new();
+    if package != PURRDF_NPM_PACKAGE {
+        errors.push(format!(
+            "{UPSTREAM_RECORD} records package '{package}', but the vendored purrdf engine \
+             is refreshed from '{PURRDF_NPM_PACKAGE}'"
+        ));
+    }
+    match version_at_least(version, floor) {
+        Some(true) => {}
+        Some(false) => errors.push(format!(
+            "the vendored purrdf engine is {version}, below the declared \
+             {PURRDF_MIN_VAR}={floor} — re-run make {} to take the newest release that \
+             satisfies the floor",
+            PURRDF_ASSET.refresh_target
+        )),
+        None => errors.push(format!(
+            "cannot compare the vendored purrdf version {version:?} against \
+             {PURRDF_MIN_VAR}={floor:?} — one of them is not a dotted-numeric version"
+        )),
+    }
+    errors
+}
 
 /// Prove every descriptor's printed [`refresh_target`](VendoredWasmAsset::refresh_target)
 /// is a REAL target in `makefile`.
@@ -810,7 +987,10 @@ pub fn check_refresh_targets(makefile: &str) -> Vec<String> {
 ///   capability. It is not one the site exercises: both surfaces query the SHIPPED bundle,
 ///   which the core segment is booted over, and `scope: "bundle"` answers every result form
 ///   they ask for — so the second engine was a second attestation surface for one
-///   capability, and both are now the core segment's.
+///   capability, and both are now the core segment's. [`PURRDF_ASSET`] is still SHIPPED
+///   (an importable RDF/JS surface for a consumer of the published tree) and deliberately
+///   still absent from this map: an engine no site surface dispatches to must not be
+///   allowed to satisfy — or to block — a capability claim the site makes.
 /// * `Interactivity` — every interactive widget dispatches through the MCP core segment:
 ///   the validate buttons are `validate_local`, the GMN transcode is
 ///   `encode_gmn1`/`gmn_expand`/`gmn_glyph_legend`, the copy-as bar is `convert`.
@@ -1002,6 +1182,70 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("maint-refresh-mcp-core-asset")),
             "a tab-indented line is a recipe, never a target declaration"
+        );
+    }
+
+    #[test]
+    fn version_ordering_pads_the_shorter_side_with_zeros() {
+        assert_eq!(version_at_least("0.9.0", "0.8.3"), Some(true));
+        assert_eq!(version_at_least("0.8.3", "0.8.3"), Some(true));
+        assert_eq!(version_at_least("0.8.2", "0.8.3"), Some(false));
+        assert_eq!(version_at_least("0.9", "0.8.3"), Some(true));
+        assert_eq!(version_at_least("0.8", "0.8.3"), Some(false));
+        assert_eq!(version_at_least("1.0.0", "0.99.99"), Some(true));
+        assert_eq!(
+            version_at_least("0.9.0-rc.1", "0.8.3"),
+            None,
+            "an unparseable version is reported, never silently accepted"
+        );
+    }
+
+    #[test]
+    fn make_variable_reads_every_assignment_operator() {
+        assert_eq!(make_variable("A ?= 1\n", "A"), Some("1"));
+        assert_eq!(make_variable("A := 2\n", "A"), Some("2"));
+        assert_eq!(make_variable("A = 3\n", "A"), Some("3"));
+        assert_eq!(
+            make_variable("\tA ?= tabbed\n", "A"),
+            None,
+            "a tab-indented line is a recipe, never a variable assignment"
+        );
+        assert_eq!(make_variable("B ?= 1\n", "A"), None);
+    }
+
+    /// The lower-bound gate reports, by name, each way the vendored record can be wrong.
+    #[test]
+    fn the_lower_bound_gate_names_every_violation() {
+        let makefile = format!("{PURRDF_MIN_VAR} ?= 0.8.3\n");
+        assert!(
+            check_vendored_lower_bound(&makefile, &format!("{PURRDF_NPM_PACKAGE}@0.9.0\n"))
+                .is_empty(),
+            "the newest release satisfying the floor is a pass"
+        );
+
+        let below = check_vendored_lower_bound(&makefile, &format!("{PURRDF_NPM_PACKAGE}@0.8.1"));
+        assert!(
+            below.iter().any(|e| e.contains("below the declared")),
+            "a downgraded vendored engine must be reported: {below:?}"
+        );
+
+        let wrong = check_vendored_lower_bound(&makefile, "@someone/else@0.9.0");
+        assert!(
+            wrong.iter().any(|e| e.contains("records package")),
+            "a record naming a different package must be reported: {wrong:?}"
+        );
+
+        let malformed = check_vendored_lower_bound(&makefile, "0.9.0");
+        assert!(
+            malformed.iter().any(|e| e.contains("<package>@<version>")),
+            "a record that is not `<package>@<version>` must be reported: {malformed:?}"
+        );
+
+        let unbounded =
+            check_vendored_lower_bound("all:\n", &format!("{PURRDF_NPM_PACKAGE}@0.9.0"));
+        assert!(
+            unbounded.iter().any(|e| e.contains(PURRDF_MIN_VAR)),
+            "a Makefile with no declared floor must be reported: {unbounded:?}"
         );
     }
 }

@@ -23,6 +23,16 @@ GTS_OUT ?= dist/gmeow.gts
 # `ontology-docs/` or `dist/gmeow-docs/`, because those have exactly one writer —
 # `make regen SYNC_OUTPUTS=docs` — which reconciles them as whole trees.
 CONSOLE_OUT ?= dist/console-smoke
+# The LOWER BOUND on the vendored purrdf browser engine (`crates/docs/assets/purrdf/`).
+# `maint-refresh-purrdf-asset` resolves the NEWEST published version that satisfies it and
+# vendors that — a floor, never an exact pin, so a refresh always moves forward and never
+# has to be edited to accept an upstream release. The floor is the version of the npm
+# package built from the same purrdf source tree the workspace's `purrdf` Cargo dependency
+# is pinned to, so the browser engine can never be OLDER than the native one gmeow links.
+# Raise it only to require a NEW upstream capability; `crates/docs/tests/purrdf_asset.rs`
+# proves the vendored version satisfies it.
+PURRDF_NPM_MIN ?= 0.8.3
+PURRDF_NPM_PACKAGE := @blackcatinformatics/purrdf
 PERF_DIR ?= dist/perf
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
@@ -596,6 +606,45 @@ maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-
 	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_core_segment_passes_the_anti_rot_gate
 	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
+
+maint-refresh-purrdf-asset: ## Re-vendor the purrdf browser engine into crates/docs/assets/purrdf/ from the NEWEST published npm release satisfying PURRDF_NPM_MIN, and re-pin its BLAKE3 manifest.
+	@# The third vendored engine, and the only one this repository does not author: purrdf
+	@# is the sibling RDF-1.2 kernel, published as `$(PURRDF_NPM_PACKAGE)` (MIT OR
+	@# Apache-2.0). Its wasm build cannot be produced here — the regeneration pipeline never
+	@# invokes cargo or wasm-bindgen, and purrdf's own CI is what builds, optimizes and
+	@# tests these bytes — so the refresh path is the REGISTRY, not a local toolchain. That
+	@# is also why there is no local `wasm-opt` step: applying one here would make the
+	@# committed bytes depend on whether binaryen happened to be on the refresher's $$PATH,
+	@# instead of being the published artifact verbatim.
+	@#
+	@# LOWER BOUND, always newest — never an exact pin. The lane resolves every published
+	@# version satisfying `>=$(PURRDF_NPM_MIN)` and vendors the LAST one, so a refresh always
+	@# moves forward and the floor only ever has to change to REQUIRE something new.
+	@# `crates/docs/assets/purrdf/UPSTREAM.txt` records what was actually vendored, and
+	@# `crates/docs/tests/purrdf_asset.rs` proves that record satisfies the floor above.
+	@set -euo pipefail; \
+	command -v npm >/dev/null 2>&1 || { \
+		echo "FAIL: npm is not installed — the vendored purrdf engine is refreshed from the npm registry and there is no local wasm build path for it."; exit 1; }; \
+	resolved=$$(npm view "$(PURRDF_NPM_PACKAGE)@>=$(PURRDF_NPM_MIN)" version --json \
+		| node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s);const list=Array.isArray(v)?v:[v];if(list.length===0)process.exit(1);console.log(list[list.length-1]);})'); \
+	test -n "$$resolved" || { echo "FAIL: no published $(PURRDF_NPM_PACKAGE) satisfies >=$(PURRDF_NPM_MIN)"; exit 1; }; \
+	echo "resolved $(PURRDF_NPM_PACKAGE)@$$resolved (newest satisfying >=$(PURRDF_NPM_MIN))"; \
+	scratch=$$(mktemp -d); \
+	trap 'rm -rf "$$scratch"' EXIT; \
+	( cd "$$scratch" && npm pack "$(PURRDF_NPM_PACKAGE)@$$resolved" --silent >/dev/null ); \
+	tarball=$$(find "$$scratch" -maxdepth 1 -name '*.tgz' -print -quit); \
+	test -n "$$tarball" || { echo "FAIL: npm pack produced no tarball"; exit 1; }; \
+	tar xzf "$$tarball" -C "$$scratch"; \
+	mkdir -p crates/docs/assets/purrdf/pkg; \
+	for f in index.mjs index.d.ts pkg/purrdf_wasm.js pkg/purrdf_wasm.d.ts pkg/purrdf_wasm_bg.wasm pkg/purrdf_wasm_bg.wasm.d.ts; do \
+		test -f "$$scratch/package/$$f" || { echo "FAIL: $(PURRDF_NPM_PACKAGE)@$$resolved ships no $$f — the vendored file set no longer matches the published package"; exit 1; }; \
+		cp "$$scratch/package/$$f" "crates/docs/assets/purrdf/$$f"; \
+	done; \
+	printf '%s@%s\n' "$(PURRDF_NPM_PACKAGE)" "$$resolved" > crates/docs/assets/purrdf/UPSTREAM.txt
+	@# Blessed alone then verified in full, for the reason spelled out on maint-refresh-mcp-asset.
+	GMEOW_PURRDF_BLESS=1 cargo test -p gmeow-docs --test purrdf_asset -- --exact vendored_purrdf_engine_passes_the_anti_rot_gate
+	cargo test -p gmeow-docs --test purrdf_asset
+	@echo "OK: re-vendored $(PURRDF_NPM_PACKAGE) into crates/docs/assets/purrdf/ (DIGESTS.blake3 re-pinned)"
 
 mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
 	cd crates/mcp-wasm/js && node --test tests/*.test.mjs

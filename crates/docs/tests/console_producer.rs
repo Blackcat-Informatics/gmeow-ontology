@@ -12,8 +12,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::ExecutableDocsData;
 use gmeow_docs::console::{
-    ByteReport, CONSOLE_PREFIX, FIRST_LOAD_CEILING_BYTES, Fetch, console_files, fetch_tier,
-    generated_build_digest, generated_shell,
+    ByteReport, CONSOLE_PREFIX, FIRST_LOAD_CEILING_FACTOR, Fetch, console_files, fetch_tier,
+    first_load_ceiling, generated_build_digest, generated_shell,
 };
 use gmeow_docs::mdbook::render_book;
 use gmeow_docs::render::{
@@ -206,7 +206,8 @@ fn the_cache_name_is_a_content_digest() {
     );
 }
 
-/// The console README's measured-byte table is GENERATED, and the ceiling is asserted.
+/// The console README's measured-byte table is GENERATED, and the ceiling it publishes is
+/// the DERIVED one — the factor between the two published numbers is an identity.
 ///
 /// The hand-authored table this replaced was wrong on nearly every row and omitted two
 /// assets the console fetches on every boot. A table typed into a document is a second
@@ -237,14 +238,58 @@ fn the_published_byte_table_is_measured_over_the_shipped_bytes() {
             "the published table omits the first-load asset {key}"
         );
     }
-    assert!(
-        report.first_load_total <= FIRST_LOAD_CEILING_BYTES,
-        "the assembled first load exceeds the measured ceiling"
+    // The two published numbers and the published FACTOR between them agree, read back out
+    // of the shipped prose. This is the D15 regression: the ceiling was a hand-typed
+    // constant (`47 534 469 × 1.1`) whose measurement had since moved to 47 704 211, so the
+    // sentence "the measurement above plus ten percent of headroom" sat directly under two
+    // numbers whose real ratio was 1.09609. Nothing bound the three together, so nothing
+    // noticed. Parsed here rather than restated, so this test cannot be the fourth place
+    // the factor is written down.
+    let published_total = grouped_number(&readme, "| **First-load total** | **")
+        .expect("the README publishes a first-load total");
+    let published_ceiling = grouped_number(&readme, "The first-load ceiling is **")
+        .expect("the README publishes a first-load ceiling");
+    assert_eq!(
+        published_total, report.first_load_total,
+        "the published first-load total is not the measured one"
+    );
+    assert_eq!(
+        published_ceiling,
+        first_load_ceiling(report.first_load_total),
+        "the published ceiling is not the derived one"
+    );
+    assert_eq!(
+        published_ceiling,
+        published_total * FIRST_LOAD_CEILING_FACTOR,
+        "the ratio between the two published numbers is not the declared factor"
     );
     assert!(
-        readme.contains("first-load ceiling"),
-        "the published table must state the ceiling it is asserted against"
+        readme.contains(&format!("× {FIRST_LOAD_CEILING_FACTOR} ")),
+        "the published sentence must STATE the factor it is derived with, so a reader can \
+         check the two numbers above it against each other"
     );
+    assert!(
+        readme.contains(&format!(
+            "({} % of headroom)",
+            (FIRST_LOAD_CEILING_FACTOR - 1) * 100
+        )),
+        "the published headroom percentage must be generated from the same factor — the \
+         hard-coded 'plus ten percent' that this replaced contradicted the numbers above it"
+    );
+}
+
+/// A space-grouped byte count published immediately after `marker`, as a number.
+///
+/// The README's own formatting (`52 287 915`), so the assertions above read the published
+/// numbers rather than trusting that they were rendered from the report.
+fn grouped_number(readme: &str, marker: &str) -> Option<u64> {
+    let start = readme.find(marker)? + marker.len();
+    let digits: String = readme[start..]
+        .chars()
+        .take_while(|c| c.is_ascii_digit() || *c == ' ')
+        .filter(char::is_ascii_digit)
+        .collect();
+    digits.parse().ok()
 }
 
 /// The engine worker's transport specifier RESOLVES inside the emitted tree.

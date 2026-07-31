@@ -14,17 +14,21 @@
 // `./mcp-transport.mjs`, which the standalone console's worker imports too. This file is
 // only the page wiring: what a widget reads out of the DOM, and how it renders an answer.
 //
-// There is now exactly ONE engine. A fourth vendored runtime (purrdf's 8.15 MB wasm build)
-// survived the first three retirements on the claim that it was not duplicate — that the
-// playground and the explorer needed a STANDALONE query over a caller-supplied graph. That
-// claim did not survive measurement. The two surfaces query the SHIPPED ontology, not a
-// caller's graph, and the engine already holds it: `query_local` with `scope: "bundle"`
-// answers SELECT/ASK/CONSTRUCT/DESCRIBE over the same `gmeow.gts` the worker booted, and
-// `convert` transcodes a result graph through the same hub the CLI drives.
+// Every widget here dispatches to exactly ONE engine. A fourth runtime (the vendored purrdf
+// wasm build) had a route of its own through the first three retirements, on the claim that
+// it was not duplicate — that the playground and the explorer needed a STANDALONE query over
+// a caller-supplied graph. That claim did not survive measurement. The two surfaces query the
+// SHIPPED ontology, not a caller's graph, and the engine already holds it: `query_local` with
+// `scope: "bundle"` answers SELECT/ASK/CONSTRUCT/DESCRIBE over the same `gmeow.gts` the
+// worker booted, and `convert` transcodes a result graph through the same hub the CLI drives.
 //
-// Retiring it also retired the 311 MB of client-side substrate that existed only to feed
-// it — and fixed the playground, whose own default query returned nothing because that
+// Retiring that route also retired the 311 MB of client-side substrate that existed only to
+// feed it — and fixed the playground, whose own default query returned nothing because that
 // substrate put every statement in a named graph. See `mcp-transport.mjs`'s `queryBundle`.
+//
+// The purrdf package is still SHIPPED at `assets/purrdf/`, and this file deliberately never
+// imports it: it is there for a page that embeds the tree and wants an offline RDF/JS store
+// over its own dataset, which is not a question any widget below asks.
 
 import {
   callTool,

@@ -61,6 +61,15 @@ Derived result statements are annotated with RDF-1.2 quoted triples: a reifier
 `rdf:reifies <<( s p o )>>` carrying `gmeow:derivedBy` (the call) and one
 `gmeow:wasDerivedFrom` per antecedent.
 
+An antecedent is not always an entity. A proof-carrying answer cites its **premises**, and a
+premise is a *statement*, so such an antecedent is minted as its own content-addressed
+reifier over its own `rdf:reifies <<( s p o )>>` and cited by that — the annotation says
+"this conclusion was derived from THAT statement", and a reader recovers the premise itself
+rather than a name for it. The premise is reified, never asserted: a triple term does not
+assert, so the session records that the engine cited the premise, not that the console
+independently claims it. Reifiers are content-addressed, so one premise cited by several
+conclusions is one node.
+
 The **permalink** is `<content-address>.<base64url payload>` over the *invocation list*
 only — never the results, so a link replays against the reader's own engine. A digest
 mismatch is refused, not best-effort replayed.
@@ -95,7 +104,8 @@ and its cache name are both **generated** by the Rust producer from the assemble
 never hand-authored, so neither can drift from what actually ships.
 
 `SHELL` is the **first-load tier and nothing else**: the shell, the transport, the
-always-resident core engine image and the ontology snapshot. Install pre-caches exactly
+always-resident core engine image, the ontology snapshot, and the vendored purrdf engine the
+published tree offers an embedder (see *Measured bytes*). Install pre-caches exactly
 those with `cache.addAll`, which rejects the whole install if any member is missing — a
 partially cached shell is an offline surface that fails unpredictably later. The
 demand-loaded reasoning segment is deliberately **not** in it: pre-caching a 10 MB image at
@@ -130,9 +140,21 @@ deliberate exception is segment deferral, which is progress and is shown as such
 
 <!-- __GMEOW_CONSOLE_BYTE_TABLE__ -->
 
-There is no second engine. The site's SPARQL, describe and conjecture surfaces query the
-same shipped bundle through the same MCP segments listed above; the separately vendored
-purrdf engine that used to serve them is gone from this tree.
+There is no second engine *behind the panes*. Every widget here, and every interactive
+surface of the documentation site — SPARQL, describe, conjectures — speaks JSON-RPC to the
+same MCP segments listed above, over the same shipped bundle. One protocol, one engine, and
+what the console can do an agent can do.
+
+`assets/purrdf/` in the table above is not an exception to that. It is the sibling
+[purrdf](https://github.com/Blackcat-Informatics/purrdf) RDF-1.2 kernel's browser build
+(`MIT OR Apache-2.0`, vendored from its published npm package, refreshed by lower bound
+rather than pinned), shipped so that a page **embedding** this tree can `import` an offline
+RDF/JS store and run SPARQL over **its own** dataset — the one question `query_local` does
+not answer, because its scopes are the shipped bundle and the frame you hand it, not a
+standing dataset you keep. Nothing in the console imports it and no capability is attested
+against it; it is pre-cached with the rest of the shell because an importable engine that
+was not cached would 404 for exactly the offline reader it is there for. Provenance,
+licensing and the refresh rule: `assets/purrdf/PROVENANCE.md`.
 
 ## Install
 

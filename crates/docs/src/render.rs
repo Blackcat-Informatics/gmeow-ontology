@@ -110,22 +110,24 @@ pub(crate) const BLAKE3_PATH: &str = "assets/blake3.mjs";
 const BLAKE3_MODULE: &str = include_str!("../assets/blake3.mjs");
 
 /// The vendored wasm engines emitted under `assets/<name>/` when the bundle ships: the
-/// console's two MCP segments, and nothing else.
+/// console's two MCP segments, and the vendored purrdf RDF/JS engine.
 ///
-/// This list used to carry FOUR engines, then two. The three gmeow-owned shims (validate,
-/// reason, GMN) went first, once the MCP surface could answer the same questions. purrdf
-/// was kept back on the claim that it was not duplicate — that the playground and the
-/// explorer needed a standalone query over a caller-supplied graph. Measurement retired
-/// that claim: both surfaces query the SHIPPED ontology, which the MCP engine already
-/// holds, and `query_local` with `scope: "bundle"` answers every form they ask for. The
-/// site now speaks ONE protocol to ONE engine — the same one an agent drives — so a
-/// capability the reader has is a capability an agent has by construction.
+/// The three gmeow-owned shims this list used to carry (validate, reason, GMN) were retired
+/// once the MCP surface could answer the same questions: the site speaks ONE protocol to
+/// ONE engine — the same one an agent drives — so a capability the reader has is a
+/// capability an agent has by construction. That is a statement about DISPATCH, and the
+/// purrdf engine is not an exception to it: no widget, no controller path and no capability
+/// attestation reaches it, and every query the site itself asks is `query_local` over the
+/// shipped bundle. It is emitted because the published tree is also something a reader
+/// EMBEDS, and an offline RDF-1.2 store with an RDF/JS API over the embedder's own dataset
+/// is a surface the MCP scopes do not cover. See `assets/purrdf/PROVENANCE.md`.
 ///
 /// Pinned build inputs — one descriptor per asset lives in [`crate::vendored_asset`]; see
 /// each `PROVENANCE.md`.
 const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
     &crate::vendored_asset::MCP_CORE_ASSET,
     &crate::vendored_asset::MCP_ASSET,
+    &crate::vendored_asset::PURRDF_ASSET,
 ];
 
 // ── Pages ──────────────────────────────────────────────────────────────────
@@ -9163,14 +9165,37 @@ mod tests {
         assert!(site.files.contains_key("sparql/index.html"));
         assert!(site.files.contains_key(DOCS_CONTROLLER_PATH));
         assert!(
-            !site.files.keys().any(|k| k.starts_with("assets/purrdf/")),
-            "the retired vendored purrdf engine must not be emitted"
-        );
-        assert!(
             site.files
                 .contains_key("assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
-            "the console's first-load MCP segment is emitted — with purrdf retired it is \
-             the ONLY engine, so every interactive widget dispatches to it or to nothing"
+            "the console's first-load MCP segment is emitted — it is the only engine any \
+             interactive widget dispatches to, so a widget reaches it or reaches nothing"
+        );
+        // The vendored purrdf engine is emitted as an IMPORTABLE surface (an offline
+        // RDF-1.2 store an embedder runs over their own dataset), not as a second dispatch
+        // target. Both halves are asserted: emitting it without the runtime files a caller
+        // imports is a dangling path, and the site's own widgets must still reach only the
+        // MCP segments.
+        for name in ["index.mjs", "pkg/purrdf_wasm.js", "pkg/purrdf_wasm_bg.wasm"] {
+            let path = format!("assets/purrdf/{name}");
+            assert!(
+                site.files.contains_key(&path),
+                "the vendored purrdf engine must be emitted: {path} is missing"
+            );
+        }
+        let controller = String::from_utf8(site.files[DOCS_CONTROLLER_PATH].clone()).unwrap();
+        // Over the CODE, with `//` comment lines dropped: the module documents at length
+        // why it does not reach for that engine, and a raw substring probe would read its
+        // own explanation as the violation it is explaining.
+        let controller_code: String = controller
+            .lines()
+            .filter(|line| !line.trim_start().starts_with("//"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(
+            !controller_code.contains("purrdf"),
+            "the docs controller must not import the vendored purrdf engine — every widget \
+             dispatches JSON-RPC to the MCP segments, and a second query engine behind the \
+             same surfaces is the duplicate capability that was retired"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(
