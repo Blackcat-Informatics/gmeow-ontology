@@ -63,6 +63,13 @@ mod magic_generic;
 // DAG ↔ `logic:` IR congruence member needs the compiler IR and the `lower` module.
 #[cfg(test)]
 mod term_dag_tests;
+// Generating property tests for `math:` expression interning: one `proptest` generator over
+// the `math:` vocabulary, driven through the REAL production entry points, asserting that
+// alpha-equivalent authorings share a structural digest and structurally distinct ones do not.
+// A sibling module rather than a nested `mod tests` block so the test path IS
+// `physical::interning`.
+#[cfg(test)]
+mod interning;
 // The three-consumer lowering into the shared `gmeow_term_arena::engine::TermDag`: `logic:`
 // (`gmeow_logic_compile::ir::Formula`/`Term`), `math:` (the RDF-authored
 // application/binding expression vocab), and `lang:` (a form + its one-way

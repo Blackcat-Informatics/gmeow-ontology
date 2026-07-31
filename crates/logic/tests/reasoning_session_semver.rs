@@ -228,15 +228,16 @@ use session_common::*;
 /// restricted chase's head-satisfaction probe could never match, blocking never fired, and a
 /// witness was invented even for a subject that already had its filler — one asserted value
 /// read back as two and collided with the `≤1` restriction on the same property.
-/// Re-blessed once more for the structural key routing through the PUBLIC arena facade:
+/// Re-blessed once more for the structural key routing through the arena seam:
 /// `physical/lower.rs` and `term_arena.rs` are both `BACKWARD_SOURCE` members, so
-/// `math_expression_structural_keys` calling `MathGraphInterning::intern_math_root` — and
-/// that trait gaining the parsed-graph entry point it calls — moves the backward-source
-/// digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
+/// `math_expression_structural_keys` calling `term_arena::intern_math_root` — and the
+/// removal of the uncalled `MathGraphInterning` Turtle-bytes wrapper beside it, the
+/// `alpha_class_iri` wrapper deletion, and the alpha-class materializer moving onto the
+/// asserted graph — moves the backward-source digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
 /// verbatim, and both routes now fold through the single `fold_content_key`), so no
 /// reasoning verdict moves with it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "9cbd579123b0209d9b6acef6ef5270a89eb90f1d1b4b1c512237b122015a4204";
+    "004347f959ce3e999137addd24a8c8c3414615ece694cc13e0ea2476a812b163";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -337,7 +338,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// fixed edge-only input (authoring no `math:` expression graph) has an unchanged
 /// reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e612076351db25881256088427ab20638aecd885b4df92b5df3e28452fc20700";
+    "f50ad78351363d358b3ef8c4039217f87ddd84d858a85f827904698ca2b56059";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

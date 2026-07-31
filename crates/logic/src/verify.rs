@@ -279,8 +279,16 @@ pub fn materialize_reasoned_graph(
     //
     // Rejected roots get no edge: a structural identity cannot be claimed for an expression
     // the grammar refutes (the same reason math:StructuralKeyOnRejectedExpression exists).
+    //
+    // Lowered from `edb`, NEVER from `dataset`. The DL chase invents a filler for an unsatisfied
+    // existential obligation, so a root the grammar refutes for a MISSING operand lowers cleanly
+    // over the closure — it would be handed an identity edge computed over a Skolem witness
+    // nobody authored, contradicting the sentence above and disagreeing with the digest
+    // `check_math_expression_findings` cites for the same root (it reads the asserted graph).
+    // Two substrates would mint two class IRIs for one expression, which is the opposite of a
+    // node to JOIN on.
     let alpha_edges: Vec<(String, String)> =
-        crate::physical::lower::math_expression_structural_keys(&dataset)
+        crate::physical::lower::math_expression_structural_keys(edb)
             .into_iter()
             .filter_map(|(root, keyed)| {
                 keyed.ok().map(|digest| {

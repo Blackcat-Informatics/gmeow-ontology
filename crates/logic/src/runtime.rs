@@ -414,6 +414,10 @@ const EXTERNAL_BACKWARD_SOURCE: &[(&str, &str)] = &[
 #[cfg(test)]
 const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
+        "physical/interning.rs",
+        "#[cfg(test)] generating proptest suite for math: expression interning and alpha-equivalence identity — it DRIVES physical/lower.rs's production entry points but is itself test scaffolding with no production caller; the lowering it exercises is pinned as a BACKWARD_SOURCE member in its own right",
+    ),
+    (
         "physical/term_dag_tests.rs",
         "#[cfg(test)] invariant suite for the relocated shared term arena (injectivity, alpha-collapse, metavariable identity, and the DAG <-> logic: IR congruence) — test scaffolding with no production caller; the arena's own source is pinned in EXTERNAL_BACKWARD_SOURCE",
     ),

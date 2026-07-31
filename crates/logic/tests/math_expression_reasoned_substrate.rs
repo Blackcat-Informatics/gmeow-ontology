@@ -255,3 +255,66 @@ fn the_shipped_twin_example_resolves_both_authorings_to_one_class() {
         "the shipped twins must share ONE alpha-equivalence class: {classes:?}"
     );
 }
+
+/// A root the GRAMMAR refutes must receive NO `math:alphaEquivalenceClass` edge — even though
+/// the DL chase makes it lower cleanly.
+///
+/// This is the substrate trap the file's header describes, in its second form. The gate's
+/// finding half was moved onto the asserted graph, but the identity MATERIALIZER kept reading
+/// the closure, where the chase has already invented the operator the fixture omits. The root
+/// therefore lowered, and a structural identity was published for an expression the very same
+/// reasoned graph reports as rejected — computed over a Skolem witness nobody authored, and
+/// disagreeing with the digest the finding itself cites.
+///
+/// The fixture below asserts NO `math:operator`, so `math:MalformedBindingExpression` /
+/// `math:ApplicationOperatorCardinality` refutes it on the asserted graph while the chase
+/// supplies a filler on the closure. Reverting the materializer to the reasoned dataset makes
+/// this test red.
+#[test]
+fn a_root_the_grammar_refutes_gets_no_materialized_identity_edge() {
+    const ALPHA_CLASS: &str = "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+    const OPERATOR_LESS: &str = r#"
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/refuted/> .
+
+ex:noOperator a math:ApplicationExpression ;
+    math:argumentSlot ex:slot0 .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:leaf .
+
+ex:leaf a math:NumberLiteral ;
+    math:literalValue 1 .
+"#;
+
+    let graph = reasoned(OPERATOR_LESS);
+
+    // The chase really does supply the missing operator on the closure — without this the test
+    // would pass for the wrong reason (nothing to invent means nothing to over-materialize).
+    let operator_edges = graph
+        .dataset
+        .flat_default_graph_quads()
+        .filter(|q| format!("{:?}", q.s).contains("refuted/noOperator"))
+        .filter(|q| format!("{:?}", q.p).ends_with("math/operator\")"))
+        .count();
+    assert!(
+        operator_edges > 0,
+        "precondition: the DL chase must invent the omitted math:operator on the closure, else \
+         this test cannot observe the defect it exists to pin"
+    );
+
+    let published: Vec<String> = graph
+        .dataset
+        .flat_default_graph_quads()
+        .filter(|q| format!("{:?}", q.p).contains(ALPHA_CLASS))
+        .map(|q| format!("{:?}", q.s))
+        .filter(|s| s.contains("refuted/noOperator"))
+        .collect();
+    assert!(
+        published.is_empty(),
+        "an expression the grammar refutes must carry NO materialized identity edge; the \
+         materializer published {published:?}, which means it lowered the CLOSURE (where the \
+         chase invented the missing operator) rather than the asserted graph"
+    );
+}

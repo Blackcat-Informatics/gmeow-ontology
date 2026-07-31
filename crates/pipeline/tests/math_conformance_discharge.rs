@@ -118,9 +118,9 @@ fn math_root() -> PathBuf {
 
 fn math_spec() -> SliceSpec {
     SliceSpec {
-        slice_ns: MATH_NS,
-        slice_prefix: "math",
         slice_root: math_root(),
+        slice_prefix: "math",
+        slice_ns: MATH_NS,
         manifest_rel: "examples/flagship-acceptance.ttl",
     }
 }
@@ -139,15 +139,13 @@ fn counter_example_dir() -> PathBuf {
 // The `ConformanceSection` descriptor + the (generalized) registry of all 13 sections.
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-/// One `###`-headed gate-matrix section of a conformance charter, generalized over ANY
-/// grounding slice's charter (not `math:`-specific machinery, by design —
-/// only the [`SECTIONS`] registry below is math-specific).
-#[allow(dead_code)]
+/// One `###`-headed gate-matrix section of a conformance charter.
+///
+/// Only the heading is carried: the charter path and the slice prefix/namespace are already
+/// owned by `charter_path()` and `math_spec()`, and duplicating them here gave the same fact
+/// two homes that nothing cross-checked.
 struct ConformanceSection {
-    charter_path: &'static str,
     heading: &'static str,
-    slice_prefix: &'static str,
-    slice_ns: &'static str,
 }
 
 /// ALL thirteen `###`-headed sections of `MATHEMATICS-CONFORMANCE.md`, by their REAL heading
@@ -157,82 +155,43 @@ struct ConformanceSection {
 /// hardcoded row count.
 const SECTIONS: &[ConformanceSection] = &[
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Expression and mathematical-core rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Normalization identity rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Numbers-and-sets rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Algebra rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Measure-and-dimension rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Analysis-and-geometry rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Linear-algebra-and-learning rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Probability rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Statistics rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Process/result/claim separation",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Projection rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Bridges / ingestion rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
     ConformanceSection {
-        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Flagship acceptance-manifest rules",
-        slice_prefix: "math",
-        slice_ns: MATH_NS,
     },
 ];
 
@@ -535,13 +494,14 @@ fn native_source_message_classes() -> BTreeSet<String> {
 /// (`format!("math:{class_local}: {err}")`) is RUNTIME-interpolated: the literal SOURCE text
 /// is never `math:CyclicExpressionGraph:` — only the value `class_local` resolves to at
 /// runtime is — so the message-token scan alone cannot see it. `mod failure_class`'s own doc
-/// comment confirms `math:CyclicExpressionGraph` / `math:ExpressionDepthExceeded` are
+/// comment confirms `math:CyclicExpressionGraph`, `math:ExpressionDepthExceeded`,
+/// `math:UnrecognizedExpressionType`, and `math:NumberLiteralMissingValue` are
 /// "reachable ONLY through this Rust decision". This scan is scoped to EXACTLY that module
 /// block (never the whole file, which also carries ordinary domain-class IRIs unrelated to
 /// any failure class — ApplicationExpression, ArgumentSlot, …) so it cannot manufacture a
 /// false "reachable" claim for some unrelated class reference elsewhere in the lowering
 /// engine; every constant in that block IS, by the block's own documented invariant, one of
-/// [`crate::physical::lower::MathLoweringError::failure_class`]'s eight decided classes.
+/// [`crate::physical::lower::MathLoweringError::failure_class`]'s ten decided classes.
 fn native_source_iri_constant_classes() -> BTreeSet<String> {
     let path = repo_root().join("crates/logic/src/physical/lower.rs");
     let text = std::fs::read_to_string(&path)
@@ -797,8 +757,10 @@ fn native_lint_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 /// (`gmeow_logic::reason::math_gate::dimension_gate_markers`,
 /// `math:DimensionalInhomogeneity`) — neither of which the pre-fold structural lint or the
 /// generated-SHACL surface can reach: both are genuine computations over the merged dataset
-/// itself (no actual DL closure is needed for either gate's own asserted-fact reading, so
-/// `dimension_gate_markers` is called with an empty derived-edge slice). Every class this
+/// itself. `dimension_gate_markers` is called with an EMPTY derived-edge slice, unlike
+/// production, which hands it the real closure — sound only while nothing in the grounding
+/// kernel can DERIVE one of its read-set predicates, which is exactly what
+/// `dimension_gate_inputs_have_no_entailment_path` pins. Every class this
 /// function can raise is declared `Rust validator` by the charter, so it is credited there
 /// directly by the caller (no tier-selection ambiguity, unlike the native-lint registry
 /// above which spans three tiers).
@@ -854,13 +816,124 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 ///
 /// That check consults exactly four graph facts — `rdf:type math:NormalizationDeclaration`,
 /// `math:rendersAs`, `math:normalizes`, `math:normalizesTo`. A closure can only produce one
-/// of them by an axiom that ENTAILS it: a subclass of the declaration class, a subproperty of
-/// one of the three predicates, or a domain/range axiom whose consequent is the declaration
-/// class. None is authored today, so the closure is provably redundant here — and closing the
-/// whole grounding kernel once per fixture is not free.
+/// of them by an axiom that ENTAILS it. The probe below enumerates every such shape the native
+/// reasoner actually materializes, in BOTH the `owl:` and `logic:` spellings the kernel admits:
+/// subclass and equivalent-class into the declaration class; domain, range, and the restriction
+/// consequents (`someValuesFrom`/`allValuesFrom`/`onClass`) that type a node as one; and
+/// subproperty, equivalent-property, inverse, property-chain, or a restriction `onProperty`
+/// touching any of the three predicates. None is authored today, so the closure is provably
+/// redundant here — and closing the whole grounding kernel once per fixture is not free.
 ///
 /// The moment such an axiom IS authored, this test fails and says so, rather than letting the
 /// conformance matrix quietly under-report leaks that only inference can see.
+/// Every `###` gate-matrix heading in the charter is REGISTERED, and every registered heading
+/// still exists in the charter.
+///
+/// [`SECTIONS`] is hand-maintained, and [`matrix_rows`] is driven by it — so a wholly new
+/// `###` section could be added to the charter carrying class-bearing rows, and the
+/// completeness gate would simply never read them while staying green. That is the precise
+/// shape of charter drift the whole-matrix registration exists to make impossible, and the
+/// registry cannot police itself. This compares the two sets directly, in both directions.
+/// The dimension gate's read-set has no entailment path either — the twin of
+/// [`leak_check_inputs_have_no_entailment_path`], for the OTHER shortcut [`reasoned_tripped`]
+/// takes.
+///
+/// [`gmeow_logic::reason::math_gate::dimension_gate_markers`] is called there with an EMPTY
+/// derived-edge slice, while production (`crates/logic/src/verify.rs`) hands it the real
+/// closure. Its own contract says why that matters: taking the derived edges is what keeps a
+/// DERIVED dimension triple — one reached by subproperty or class inference — inside the
+/// hard-fail gate's domain. Passing `&[]` is only sound while nothing can derive one, and that
+/// premise was previously asserted in a comment and checked by nothing.
+#[test]
+fn dimension_gate_inputs_have_no_entailment_path() {
+    let ds = gmeow_slicetest::native_query::dataset_from_files(
+        &gmeow_slicetest::paths::conformance_module_files(&math_root()),
+    )
+    .expect("math conformance module trio parses");
+
+    let entailing = select_class_local_names(
+        &ds,
+        "PREFIX math: <https://blackcatinformatics.ca/math/>
+         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+         PREFIX logic: <https://blackcatinformatics.ca/logic/>
+         PREFIX owl: <http://www.w3.org/2002/07/owl#>
+         SELECT ?class WHERE {
+           { ?class rdfs:subPropertyOf     ?p }
+           UNION { ?class logic:subPropertyOf    ?p }
+           UNION { ?class owl:equivalentProperty ?p }
+           UNION { ?p owl:equivalentProperty     ?class }
+           UNION { ?class owl:inverseOf          ?p }
+           UNION { ?p owl:inverseOf              ?class }
+           UNION { ?class logic:inverseOf        ?p }
+           UNION { ?p logic:inverseOf            ?class }
+           UNION { ?class logic:onProperty       ?p }
+           UNION { ?class owl:propertyChainAxiom ?p }
+           UNION { ?class rdfs:subClassOf        ?c }
+           UNION { ?class logic:subClassOf       ?c }
+           UNION { ?class owl:equivalentClass    ?c }
+           UNION { ?c owl:equivalentClass        ?class }
+           UNION { ?class logic:someValuesFrom   ?c }
+           UNION { ?class logic:allValuesFrom    ?c }
+           UNION { ?class logic:onClass          ?c }
+           UNION { ?class rdfs:domain            ?c }
+           UNION { ?class rdfs:range             ?c }
+           UNION { ?class logic:domain           ?c }
+           UNION { ?class logic:range            ?c }
+           VALUES ?p {
+             math:hasDimension math:homogeneousOperand math:integrand math:withRespectTo
+             math:baseDimensionExponent math:exponentOfDimension
+             math:exponentNumerator math:exponentDenominator
+           }
+           VALUES ?c { math:DerivedDimension math:Dimensionless }
+         }",
+    );
+
+    assert!(
+        entailing.is_empty(),
+        "the grounding kernel now authors {} axiom(s) that can DERIVE one of the dimension \
+         gate's read-set predicates or its two classified dimension types ({}). \
+         `reasoned_tripped` calls `dimension_gate_markers(ds, &[])` on the strength of no such \
+         axiom existing; that is now unsound, and a derived dimension triple would fall \
+         outside the hard-fail gate's domain. Hand it the real derived edges, as \
+         `crates/logic/src/verify.rs` does.",
+        entailing.len(),
+        entailing.iter().cloned().collect::<Vec<_>>().join(", ")
+    );
+}
+
+#[test]
+fn every_charter_gate_matrix_section_is_registered() {
+    let md = std::fs::read_to_string(charter_path()).expect("MATHEMATICS-CONFORMANCE.md readable");
+
+    let in_charter: BTreeSet<String> = md
+        .lines()
+        .map(str::trim_end)
+        .filter(|line| line.starts_with("### "))
+        .map(str::to_owned)
+        .collect();
+    let registered: BTreeSet<String> = SECTIONS.iter().map(|s| s.heading.to_owned()).collect();
+
+    let unregistered: Vec<&String> = in_charter.difference(&registered).collect();
+    let stale: Vec<&String> = registered.difference(&in_charter).collect();
+
+    assert!(
+        unregistered.is_empty(),
+        "the charter carries {} `###` gate-matrix section(s) no SECTIONS entry registers, so \
+         every class-bearing row under them is invisible to the completeness gate: {:?}. Add a \
+         SECTIONS entry per heading.",
+        unregistered.len(),
+        unregistered
+    );
+    assert!(
+        stale.is_empty(),
+        "SECTIONS registers {} heading(s) the charter no longer carries: {:?}. A registered \
+         heading that matches nothing contributes zero rows silently, which reads exactly like \
+         a section with no failures.",
+        stale.len(),
+        stale
+    );
+}
+
 #[test]
 fn leak_check_inputs_have_no_entailment_path() {
     let ds = gmeow_slicetest::native_query::dataset_from_files(
@@ -873,17 +946,31 @@ fn leak_check_inputs_have_no_entailment_path() {
         "PREFIX math: <https://blackcatinformatics.ca/math/>
          PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
          PREFIX logic: <https://blackcatinformatics.ca/logic/>
+         PREFIX owl: <http://www.w3.org/2002/07/owl#>
          SELECT ?class WHERE {
-           { ?class rdfs:subClassOf           math:NormalizationDeclaration }
-           UNION { ?class logic:subClassOf    math:NormalizationDeclaration }
-           UNION { ?class rdfs:domain         math:NormalizationDeclaration }
-           UNION { ?class rdfs:range          math:NormalizationDeclaration }
-           UNION { ?class rdfs:subPropertyOf  math:rendersAs }
-           UNION { ?class logic:subPropertyOf math:rendersAs }
-           UNION { ?class rdfs:subPropertyOf  math:normalizes }
-           UNION { ?class logic:subPropertyOf math:normalizes }
-           UNION { ?class rdfs:subPropertyOf  math:normalizesTo }
-           UNION { ?class logic:subPropertyOf math:normalizesTo }
+           { ?class rdfs:subClassOf            math:NormalizationDeclaration }
+           UNION { ?class logic:subClassOf     math:NormalizationDeclaration }
+           UNION { ?class owl:equivalentClass  math:NormalizationDeclaration }
+           UNION { math:NormalizationDeclaration owl:equivalentClass ?class }
+           UNION { ?class rdfs:domain          math:NormalizationDeclaration }
+           UNION { ?class rdfs:range           math:NormalizationDeclaration }
+           UNION { ?class logic:domain         math:NormalizationDeclaration }
+           UNION { ?class logic:range          math:NormalizationDeclaration }
+           UNION { ?class logic:someValuesFrom math:NormalizationDeclaration }
+           UNION { ?class logic:allValuesFrom  math:NormalizationDeclaration }
+           UNION { ?class logic:onClass        math:NormalizationDeclaration }
+
+           UNION { ?class rdfs:subPropertyOf     ?p }
+           UNION { ?class logic:subPropertyOf    ?p }
+           UNION { ?class owl:equivalentProperty ?p }
+           UNION { ?p owl:equivalentProperty     ?class }
+           UNION { ?class owl:inverseOf          ?p }
+           UNION { ?p owl:inverseOf              ?class }
+           UNION { ?class logic:inverseOf        ?p }
+           UNION { ?p logic:inverseOf            ?class }
+           UNION { ?class logic:onProperty       ?p }
+           UNION { ?class owl:propertyChainAxiom ?p }
+           VALUES ?p { math:rendersAs math:normalizes math:normalizesTo }
          }",
     );
 
