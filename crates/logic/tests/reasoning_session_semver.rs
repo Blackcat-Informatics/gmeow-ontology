@@ -228,8 +228,15 @@ use session_common::*;
 /// restricted chase's head-satisfaction probe could never match, blocking never fired, and a
 /// witness was invented even for a subject that already had its filler — one asserted value
 /// read back as two and collided with the `≤1` restriction on the same property.
+/// Re-blessed once more for the structural key routing through the PUBLIC arena facade:
+/// `physical/lower.rs` and `term_arena.rs` are both `BACKWARD_SOURCE` members, so
+/// `math_expression_structural_keys` calling `MathGraphInterning::intern_math_root` — and
+/// that trait gaining the parsed-graph entry point it calls — moves the backward-source
+/// digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
+/// verbatim, and both routes now fold through the single `fold_content_key`), so no
+/// reasoning verdict moves with it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "57b31304503e717f67a6e4f879d5346b84dd095f11c5cf3cb90411adaec39d47";
+    "9cbd579123b0209d9b6acef6ef5270a89eb90f1d1b4b1c512237b122015a4204";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -324,8 +331,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): the backward-source digest is one of the seven folded identity axes and
 /// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
 /// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the structural key routing through the public arena facade
+/// (see the engine-descriptor golden above): the backward-source digest is one of the seven
+/// folded identity axes and moves with `physical/lower.rs` + `term_arena.rs`, while the
+/// fixed edge-only input (authoring no `math:` expression graph) has an unchanged
+/// reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "bc5011fc02252bf7a96a65affc50758e88e72966b640826995a3d9e5fb11d407";
+    "e612076351db25881256088427ab20638aecd885b4df92b5df3e28452fc20700";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

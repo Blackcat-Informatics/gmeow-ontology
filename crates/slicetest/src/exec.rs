@@ -1017,7 +1017,10 @@ fn check_failure_class_isolation(
         ));
     }
 
-    for finding in check_math_expression_findings(data) {
+    // Conformance cells validate the fixture as AUTHORED, so the asserted graph is both
+    // substrates here: the grammar half is what these cells pin, and a cell that expected a
+    // derived surface leak would be pinning an entailment, not a fixture.
+    for finding in check_math_expression_findings(data, data) {
         if finding.severity != Severity::Error {
             continue;
         }

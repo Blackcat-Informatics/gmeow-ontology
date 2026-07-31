@@ -44,7 +44,7 @@ pub use gmeow_term_arena::{
     Arena, ArenaSnapshot, ContentKey, ForeignNode, InterningStats, StructNode, TermArena,
 };
 
-use crate::physical::lower::{MathGraph, lower_math_expression};
+use crate::physical::lower::{MathGraph, MathResult, lower_math_expression};
 
 /// Intern a `math:` expression graph into the shared arena.
 ///
@@ -73,23 +73,48 @@ pub trait MathGraphInterning: Arena {
 impl MathGraphInterning for TermArena {
     fn intern_math_graph(&mut self, turtle: &[u8], root: &str) -> Result<(StructNode, ContentKey)> {
         let graph = MathGraph::from_turtle(turtle)?;
-        let node = lower_math_expression(self.dag_mut(), &graph, root)?;
-        let handle = self.brand_node(node).map_err(|err| {
-            gmeow_errors::Diag::of_kind(gmeow_logic_compile::error::Ir {
-                detail: format!(
-                    "math expression lowering produced a node this arena rejects: {err}"
-                ),
-            })
-        })?;
-        let key = self.key(handle).map_err(|err| {
-            gmeow_errors::Diag::of_kind(gmeow_logic_compile::error::Ir {
-                detail: format!(
-                    "math expression lowering produced a node this arena rejects: {err}"
-                ),
-            })
-        })?;
-        Ok((handle, key))
+        Ok(intern_math_root(self, &graph, root)?)
     }
+}
+
+/// Intern the expression rooted at `root` of an ALREADY-PARSED [`MathGraph`], keeping the typed
+/// [`MathLoweringError`](crate::physical::lower::MathLoweringError) algebra intact.
+///
+/// This is the single implementation behind BOTH routes into the arena: the public
+/// [`MathGraphInterning::intern_math_graph`] facade (Turtle bytes) and the shipped structural-key
+/// computation [`crate::physical::lower::math_expression_structural_keys`] (an already-parsed
+/// dataset). The digest the ontology publishes and the [`ContentKey`] the arena hands a consumer
+/// are therefore the same bytes by construction, not because two implementations happen to agree.
+///
+/// It stays crate-visible deliberately: `MathGraph` and the typed error are internal, and the
+/// arena's EXTERNAL contract is `intern_math_graph`. Widening the public surface for an in-crate
+/// caller would add API no consumer outside this crate can reach.
+///
+/// # Errors
+///
+/// The lowering's own typed rejection — every variant carries the `math:` failure class it
+/// denotes, which is what makes an unliftable expression reportable rather than merely absent.
+///
+/// # Panics
+///
+/// If `arena` rejects a node its OWN backing DAG just minted. That is an internal invariant
+/// violation, not an input condition, so it is never folded into the typed error algebra (where
+/// it would mint a failure class no fixture could ever exhibit).
+pub(crate) fn intern_math_root(
+    arena: &mut TermArena,
+    graph: &MathGraph,
+    root: &str,
+) -> MathResult<(StructNode, ContentKey)> {
+    let node = lower_math_expression(arena.dag_mut(), graph, root)?;
+    // `brand_node`/`key` can only fail for a node minted by a DIFFERENT arena; `node` was just
+    // minted by `arena.dag_mut()`, so a failure here is a broken arena, not bad input.
+    let handle = arena
+        .brand_node(node)
+        .expect("a node this arena's own DAG just minted is one of its live slots");
+    let key = arena
+        .key(handle)
+        .expect("a node this arena's own DAG just minted is one of its live slots");
+    Ok((handle, key))
 }
 
 #[cfg(test)]

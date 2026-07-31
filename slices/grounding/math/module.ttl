@@ -11048,21 +11048,15 @@ math:MathematicalExpression logic:subClassOf
 # math:normalizationStrength, unlike math:structuralKey, is declared MANDATORY as well
 # as functional: every math:NormalizationDeclaration names exactly one strength — a
 # strength-less declaration is a bare, unattributed edge, exactly the vacuous-contract
-# gap this restriction closes (see the note on
-# math:UndeclaredNormalFormConstraint below). The sibling logic:allValuesFrom
-# restriction carries the math:NormalizationStrength class constraint so the derived
-# shape gets an sh:class, not a bare sh:maxCount; the logic:minQualifiedCardinality
-# sibling restoring sh:minCount 1 for this exact-one antecedent is authored here
-# directly (logic:minQualifiedCardinality lowers to owl:minQualifiedCardinality —
-# see crates/logic-compile/src/restriction.rs — so there is no need for the raw-triple
-# rdfs: appendix idiom math:FunctionPiece/math:pieceDomain still uses). The
-# gmeow:enforcesFailureClass binding below names the class-scoped failure the DERIVED
-# shape raises for EITHER half of the exact-one pair (the min-qualified restriction is
-# the one actually reachable in practice — a declaration cannot easily acquire two
-# strengths without first acquiring one — but the binding is class-scoped, exactly like
+# gap this restriction closes (see the note on math:UndeclaredNormalFormConstraint
+# below). The gmeow:enforcesFailureClass binding names the class-scoped failure the
+# DERIVED shape raises for EITHER half of the exact-one pair (the min half is the one
+# reachable in practice — a declaration cannot easily acquire two strengths without
+# first acquiring one — but the binding is class-scoped, exactly like
 # math:DimensionExponent's four restrictions sharing one math:MalformedDimension): a
 # strength-less declaration is math:UndeclaredNormalizationStrength, never a bare,
 # anonymous cardinality violation.
+#
 # The cardinality is deliberately UNQUALIFIED, and that is the whole point.
 #
 # Qualifying it on math:NormalizationStrength makes the count depend on the VALUE'S TYPE, and
@@ -11074,14 +11068,45 @@ math:MathematicalExpression logic:subClassOf
 #
 # An unqualified min/max-1 asks only what is actually required — that exactly one strength be
 # named — and needs no type lookup, so it decides identically in the bundle and in a consumer's
-# graph. The value-set restriction below carries the "which four" half by IRI, again without
+# graph. The value-set constraint below carries the "which four" half by IRI, again without
 # consulting a type, so the closed vocabulary is still closed.
 math:NormalizationDeclaration logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ;
-      logic:allValuesFrom math:NormalizationStrength ] ,
     [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxCardinality 1 ] ,
     [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:minCardinality 1 ] ;
     gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
+
+# "Which four" is decided by IRI, never by the value's TYPE.
+#
+# logic:allValuesFrom here derived a bare sh:class, and sh:class asks what the VALUE is typed as.
+# The four rungs are typed in this bundle and not in a consumer's file, so any graph that merely
+# CITES a rung was told its correct data was wrong — the unqualified cardinality above fixes the
+# COUNT half of that, but a class-valued restriction reintroduces the same dependence, so it is
+# gone. A value-set names the admissible IRIs outright: it closes the vocabulary exactly as
+# tightly, and decides identically in the bundle and in a consumer's graph because there is
+# nothing to look up.
+math:NormalizationStrengthValueConstraint
+    a logic:ForbiddenPatternConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalization strength is one of the four rungs"@x-gmeow-english ;
+    skos:definition "A math:NormalizationDeclaration's math:normalizationStrength names one of the four closed math:NormalizationStrength rungs, tested by IRI membership rather than by the value's asserted type so the obligation decides the same way in the shipped bundle and in a consumer's own graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:normalizationStrength ;
+    logic:message "A math:NormalizationDeclaration's math:normalizationStrength must be one of math:structuralNormalization, math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization (math:UndeclaredNormalizationStrength)." ;
+    logic:integrity math:nsvForall ;
+    gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
+math:nsvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "strength" ] ;
+    logic:forall math:nsvImpl .
+math:nsvImpl a logic:Formula ; logic:antecedent math:nsvGuard ; logic:consequent math:nsvIn .
+math:nsvGuard a logic:Formula ; logic:relation math:normalizationStrength ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "strength" ] .
+math:nsvIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "strength" ] ,
+                   [ logic:termIndex 1 ; logic:termIri math:structuralNormalization ] ,
+                   [ logic:termIndex 2 ; logic:termIri math:commutativeNormalization ] ,
+                   [ logic:termIndex 3 ; logic:termIri math:algebraicNormalization ] ,
+                   [ logic:termIndex 4 ; logic:termIri math:semanticNormalization ] .
 
 math:ApplicationExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;

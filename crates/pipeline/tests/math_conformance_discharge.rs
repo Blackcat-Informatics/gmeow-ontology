@@ -813,8 +813,20 @@ fn native_lint_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
     let mut classes = BTreeSet::new();
 
+    // BOTH halves read the ASSERTED fixture union. In production
+    // (`crates/logic/src/verify.rs`) the surface-leak half reads the reasoned graph, because a
+    // closure is already in hand there and inference can only ADD leak witnesses. Computing one
+    // per fixture here would close the whole grounding kernel once per counter-example, and it
+    // provably cannot
+    // change this channel's answer: `check_surface_leak_in_normal_form` consults exactly four
+    // things -- `rdf:type math:NormalizationDeclaration`, `math:rendersAs`, `math:normalizes`,
+    // `math:normalizesTo` -- and `module.ttl` authors no subclass, subproperty, domain, or range
+    // axiom that can derive any of them, so the closure and the asserted graph agree on every
+    // input consulted. That is not an assumption left to rot:
+    // `leak_check_inputs_have_no_entailment_path` fails the moment such an axiom is authored,
+    // at which point this channel must start closing for real.
     let expr_messages: Vec<String> =
-        gmeow_logic::math_expression::check_math_expression_findings(ds)
+        gmeow_logic::math_expression::check_math_expression_findings(ds, ds)
             .into_iter()
             .map(|f| f.message)
             .collect();
@@ -834,6 +846,57 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
         ),
     }
     classes
+}
+
+/// Guards the one claim [`reasoned_tripped`] rests on: that reading the ASSERTED fixture
+/// union is indistinguishable from reading a DL closure, for the surface-leak half of
+/// `check_math_expression_findings`.
+///
+/// That check consults exactly four graph facts — `rdf:type math:NormalizationDeclaration`,
+/// `math:rendersAs`, `math:normalizes`, `math:normalizesTo`. A closure can only produce one
+/// of them by an axiom that ENTAILS it: a subclass of the declaration class, a subproperty of
+/// one of the three predicates, or a domain/range axiom whose consequent is the declaration
+/// class. None is authored today, so the closure is provably redundant here — and closing the
+/// whole grounding kernel once per fixture is not free.
+///
+/// The moment such an axiom IS authored, this test fails and says so, rather than letting the
+/// conformance matrix quietly under-report leaks that only inference can see.
+#[test]
+fn leak_check_inputs_have_no_entailment_path() {
+    let ds = gmeow_slicetest::native_query::dataset_from_files(
+        &gmeow_slicetest::paths::conformance_module_files(&math_root()),
+    )
+    .expect("math conformance module trio parses");
+
+    let entailing = select_class_local_names(
+        &ds,
+        "PREFIX math: <https://blackcatinformatics.ca/math/>
+         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+         PREFIX logic: <https://blackcatinformatics.ca/logic/>
+         SELECT ?class WHERE {
+           { ?class rdfs:subClassOf           math:NormalizationDeclaration }
+           UNION { ?class logic:subClassOf    math:NormalizationDeclaration }
+           UNION { ?class rdfs:domain         math:NormalizationDeclaration }
+           UNION { ?class rdfs:range          math:NormalizationDeclaration }
+           UNION { ?class rdfs:subPropertyOf  math:rendersAs }
+           UNION { ?class logic:subPropertyOf math:rendersAs }
+           UNION { ?class rdfs:subPropertyOf  math:normalizes }
+           UNION { ?class logic:subPropertyOf math:normalizes }
+           UNION { ?class rdfs:subPropertyOf  math:normalizesTo }
+           UNION { ?class logic:subPropertyOf math:normalizesTo }
+         }",
+    );
+
+    assert!(
+        entailing.is_empty(),
+        "the grounding kernel now authors {} axiom(s) that can DERIVE one of the surface-leak \
+         check's four inputs ({}). `reasoned_tripped` currently reads the asserted fixture \
+         union for both halves on the strength of no such axiom existing; that shortcut is now \
+         unsound. Give the surface-leak half a real closure (mirroring \
+         `crates/logic/src/verify.rs`) before re-enabling this test.",
+        entailing.len(),
+        entailing.iter().cloned().collect::<Vec<_>>().join(", ")
+    );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────

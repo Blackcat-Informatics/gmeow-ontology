@@ -683,7 +683,7 @@ impl MathLoweringError {
 
 /// The `math:` lowering's own result alias: math-specific rejections are the TYPED
 /// [`MathLoweringError`] algebra, never the shared string-only [`Diag`].
-type MathResult<T> = std::result::Result<T, MathLoweringError>;
+pub(crate) type MathResult<T> = std::result::Result<T, MathLoweringError>;
 
 /// A read-only subject → predicate → objects index over the default graph of a parsed
 /// `math:` expression dataset — the substrate the `math:` lowering walks.
@@ -885,10 +885,7 @@ pub(crate) fn math_expression_structural_keys(
     let mut visited: BTreeSet<String> = BTreeSet::new();
     for root in graph.expression_roots() {
         visited.extend(reachable_expression_nodes(&graph, &root));
-        let mut dag = TermDag::new();
-        let result =
-            lower_math_expression(&mut dag, &graph, &root).map(|id| structural_digest(&dag, id));
-        out.insert(root, result);
+        out.insert(root.clone(), arena_structural_key(&graph, &root));
     }
     // A fully closed cyclic component (every member typed as a `math:` expression AND
     // referenced by another member of the SAME component through `math:slotExpression`)
@@ -903,10 +900,7 @@ pub(crate) fn math_expression_structural_keys(
             continue;
         }
         visited.extend(reachable_expression_nodes(&graph, &node));
-        let mut dag = TermDag::new();
-        let result =
-            lower_math_expression(&mut dag, &graph, &node).map(|id| structural_digest(&dag, id));
-        out.insert(node, result);
+        out.insert(node.clone(), arena_structural_key(&graph, &node));
     }
     out
 }
@@ -933,10 +927,32 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// SAME digest are alpha-equivalent by construction (the arena is locally-nameless and
 /// hash-consed); two with different digests are structurally distinct.
 pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
-    let content_key = dag.key(id);
+    fold_content_key(dag.key(id))
+}
+
+/// Fold an arena content key into the published fixed-width digest.
+///
+/// Split out of [`structural_digest`] so the [`TermDag`]-facing and
+/// [`crate::term_arena::TermArena`]-facing routes cannot drift: both end here, over the same
+/// bytes ([`gmeow_term_arena::Arena::key`] returns `dag.key` verbatim).
+fn fold_content_key(content_key: &str) -> String {
     let mut hasher = blake3::Hasher::new();
     feed_structural(&mut hasher, STRUCTURAL_KEY_TAG, content_key.as_bytes());
     hasher.finalize().to_hex().to_string()
+}
+
+/// Lower one root through the arena seam ([`crate::term_arena::intern_math_root`] — the single
+/// implementation the public [`crate::term_arena::MathGraphInterning`] facade also calls) and fold the
+/// [`gmeow_term_arena::ContentKey`] the arena returns into the published digest.
+///
+/// The shipped structural key is therefore computed by the very seam a downstream consumer
+/// of the structured-term arena calls — not by a parallel in-house lowering that merely
+/// happens to agree with it. A fresh arena per root preserves the isolation the caller
+/// documents: one root's typed rejection can never blind another root's `Ok`.
+fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<String> {
+    let mut arena = crate::term_arena::TermArena::new();
+    crate::term_arena::intern_math_root(&mut arena, graph, root)
+        .map(|(_, key)| fold_content_key(key.as_str()))
 }
 
 /// Namespace segment under which [`alpha_class_iri`]/[`alpha_class_iri_for_digest`] mint
