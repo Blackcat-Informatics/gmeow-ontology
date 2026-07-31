@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:VariableExpression in operand position that names NO
+# math:variableOccurrence, so the lowering has nothing to resolve it to and no way to tell
+# whether it is bound by an enclosing binder or free
+# (MathLoweringError::VariableExpressionMissingOccurrence -> math:UnscopedVariableOccurrence).
+#
+# A variable is the one expression form whose meaning is not local: the same symbol denotes a
+# bound slot inside a binder and a free parameter outside one, and only the occurrence edge
+# says which. Without it the node is not an under-specified expression the way a bare
+# math:MathematicalExpression is — it is a variable whose scope is unknowable, which is why
+# this is a rejection rather than an opaque leaf.
+#
+# The sibling operand is a fully-formed free variable (occurrence -> declaration -> domain),
+# so the ONLY defect here is the missing occurrence edge on ex:scopelessVar. This class was
+# previously reachable only as incidental scaffolding inside counter-examples authored for
+# other defects; it is decided by the native lowering and has no SHACL derivation, so a
+# fixture that exists to trip it is the only thing that keeps it live.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sumExpr a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:slot0 , ex:slot1 .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:scopelessVar .
+
+ex:slot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:wellFormedVar .
+
+# THE DEFECT: a variable expression with no math:variableOccurrence.
+ex:scopelessVar a math:VariableExpression .
+
+# The contrast: the same form, correctly scoped.
+ex:wellFormedVar a math:VariableExpression ;
+    math:variableOccurrence ex:wellFormedOccurrence .
+
+ex:wellFormedOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:wellFormedDeclaration .
+
+ex:wellFormedDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:realLine ;
+    rdfs:label "y — a free parameter"@x-gmeow-english .
+
+ex:realLine a math:Set ;
+    rdfs:label "the real line"@x-gmeow-english .
