@@ -130,6 +130,19 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & binary(sssom_correspondence_parity) & test(sssom_lowering_matches_committed_corpus)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The OBI planned-process bridge proof drives BOTH producer legs — the typed
+# correspondence frontend and the SSSOM lowering — over the real corpus, reading
+# only authored sources. It measures ~118s uncontended, which lands inside the
+# 60s default group's 120s kill by a margin small enough that gate parallelism
+# alone decides it: it passed at 118s on a quiet box and timed out here under
+# load. That is a red on timing rather than on content, which is the failure the
+# host lock exists to prevent and the one that teaches people to re-run reds.
+# Same 300s backstop the sibling whole-corpus parity proofs use. The assertions
+# are unchanged; only the budget it is allowed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(obi_planned_process_projection)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
