@@ -211,8 +211,8 @@ second reasoner on-gate.
 ### Testing & Verification
 
 ```bash
-make check           # Synchronize outputs, then run the logical gate with verified receipt reuse
-make check-full      # Synchronize outputs, then physically rerun every gate task
+make check           # Synchronize outputs, then run the local gate DAG (every task)
+make heavy           # CI-ONLY breadth lane (wasm parity, transpile acceptance, golden soak)
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
@@ -225,13 +225,21 @@ sync step effectively free. CI and direct `make check-sync` invocations retain
 read-only check mode, so CI still fails on uncommitted drift rather than repairing
 it.
 
-`make check` is evidence-complete even when it is impact-selected: it accepts
-reused task results only from a GitHub-attested successful `main`-push receipt
-whose commit, tree, task registry, and toolchain contract all match, then reruns
-every task affected by the complete local diff. Missing or invalid evidence,
-unknown paths, and Rust/tooling changes fail closed to `make check-full`. Use
-`make check CHECK_ARGS="--explain --timings-json dist/check-timings.json"` to
-inspect the selection. The receipt changes execution, never the required gate.
+`make check` physically executes every task in its DAG; there is no reuse or
+selection profile. What it does own is an *accurate* dependency graph: a task
+declares `sync` as a prerequisite if and only if it reads a `generated/` artifact,
+so the lint, crate-layering, and translation gates start in the first scheduling
+wave rather than queueing behind synchronization, and the Rust surface runs as four
+concurrent siblings (`carrier-purity`, `clippy`, `nextest`, `doctests`) under one
+`rust-build`. Use `make check CHECK_ARGS="--explain"` to print the wave plan
+without running anything or taking the host gate lock, and
+`CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
+
+`make heavy` is the CI-only companion: the lanes whose runtime is set by breadth
+(a whole-external-corpus recall sweep, four release wasm builds plus three Node
+execution lanes) or by a repeat-for-confidence soak. It refuses to run unless both
+`CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
+on every PR — and each task stays runnable by name (`make wasm-parity`).
 
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
@@ -626,7 +634,6 @@ make check-sync     # verify no drift remains
 
 ```bash
 make check
-make check-full      # optional audit: force physical execution of every task
 ```
 
 All Docker-free local gates must have passing evidence: lint, validate,

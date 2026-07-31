@@ -48,7 +48,8 @@ Two gates guard against a stale/broken blob:
   `make check`) asserts the vendored `.wasm` is a real wasm module, the bindings still
   export the `reason` surface, and the pinned BLAKE3 digests match the exact bytes;
 - a **Node native↔wasm parity witness** (`crates/reason-wasm/js/tests/witness.test.mjs`,
-  on `make reason-wasm-pkg-test`, now on the `make check` gate via `wasm-parity`) loads the
+  on `make reason-wasm-pkg-test`, gate-enforced on every pull request via `wasm-parity`
+  in the required CI `make heavy` lane) loads the
   built engine and asserts its reasoned closure is byte-identical to the native reasoner's.
 
 ## Size note

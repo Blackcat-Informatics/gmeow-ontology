@@ -59,9 +59,13 @@ ACCEPTANCE_MIN_RECALL ?=
 FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
-CHECK_PROFILE ?= impact
 CHECK_ARGS ?=
 CHECK_SYNC_MODE ?= check
+
+# The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
+# because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
+# than by the change under test; each remains individually runnable by name.
+HEAVY_TASKS := wasm-parity acceptance bench-soak
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -70,10 +74,10 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
+	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
@@ -109,10 +113,12 @@ lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markd
 lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
 	pre-commit run --all-files --show-diff-on-failure
 
-# `rust-gate` owns the aggregate gate's one full clippy invocation. Keep the
+# The `clippy` DAG node owns the aggregate gate's one full clippy invocation. Keep the
 # standalone `lint` target complete, but skip only that duplicate hook when `check`
-# composes the same pre-commit suite with `rust-gate`. `lint-issue-refs` remains an
+# composes the same pre-commit suite alongside `clippy`. `lint-issue-refs` remains an
 # always-run hook and therefore still executes exactly once in both entry points.
+# `check-lint` reads only the git-tracked tree (`/generated/` is gitignored in full),
+# which is why the DAG starts it immediately rather than after `sync`.
 check-lint:
 	SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure
 
@@ -130,10 +136,7 @@ reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
-rust-test: rust-build ## Run the Rust workspace tests and doctests.
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
-	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
+rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
 
 gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
@@ -170,11 +173,31 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(MAKE) lsp-release
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
-check: ## Synchronize generated outputs, then run the receipt-backed impact gate.
-	CHECK_SYNC_MODE=update cargo xtask check --profile $(CHECK_PROFILE) $(CHECK_ARGS)
+check: ## Synchronize generated outputs, then run the local gate DAG (every task, accurate dependencies).
+	CHECK_SYNC_MODE=update cargo xtask check $(CHECK_ARGS)
 
-check-full: ## Synchronize generated outputs, then physically run every local gate task.
-	CHECK_SYNC_MODE=update cargo xtask check --profile full $(CHECK_ARGS)
+heavy: ## CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates lifted off `make check`. Refuses to run outside CI.
+	@# `make check` must fail fast and deterministically on THIS branch's own changes.
+	@# The tasks below fail on breadth instead: a repeat-for-confidence soak, a
+	@# whole-external-corpus recall sweep, and a four-crate release wasm build plus three
+	@# Node execution lanes that SKIP locally whenever the wasm32 target or node is
+	@# absent. Running them per-commit costs every developer minutes of wall clock for a
+	@# signal that does not track the edit under test, so they run once per PR in CI.
+	@#
+	@# The refusal checks CI *and* a CI-vendor marker, so a developer who happens to have
+	@# exported CI=true cannot trip this lane by accident. There is no override flag: to
+	@# run one of these locally, run it by NAME (`make wasm-parity`), which is explicit.
+	@if [ "$${CI:-}" != "true" ] || { [ "$${GITHUB_ACTIONS:-}" != "true" ] && [ "$${GITLAB_CI:-}" != "true" ] && [ -z "$${BUILDKITE_BUILD_ID:-}" ]; }; then \
+		echo "make heavy is CI-ONLY: it needs CI=true plus a CI-vendor marker"; \
+		echo "  (GITHUB_ACTIONS=true, GITLAB_CI=true, or BUILDKITE_BUILD_ID set)."; \
+		echo "  saw: CI=$${CI:-<unset>} GITHUB_ACTIONS=$${GITHUB_ACTIONS:-<unset>}"; \
+		echo "  These lanes are breadth-dominated, not change-dominated, so they do not"; \
+		echo "  belong on a per-commit gate. Run 'make check' locally; to exercise one of"; \
+		echo "  these deliberately, invoke it by name: $(HEAVY_TASKS)."; \
+		exit 1; \
+	fi
+	@for t in $(HEAVY_TASKS); do echo "== heavy: $$t =="; $(MAKE) $$t || exit 1; done
+	@echo "heavy lane passed: $(HEAVY_TASKS)"
 
 # The `check` DAG's root task (crates/xtask/src/main.rs CHECK_DAG). generated/
 # is now a gitignored local product, not a committed tree, so this is an
@@ -182,7 +205,7 @@ check-full: ## Synchronize generated outputs, then physically run every local ga
 # PROJECTS the bundle fresh from source (an absent generated/ is a cache MISS,
 # not a not-found error — see dev_sync.rs's manifest-hit check) and, in Check
 # mode, proves that projection reproduces byte-identically on a second pass.
-# `check`/`check-full` force CHECK_SYNC_MODE=update so this materializes the
+# `check` forces CHECK_SYNC_MODE=update so this materializes the
 # bundle+fanout from a clean clone before any downstream consumer-build task
 # in the DAG runs; only a standalone `make check-sync` (mode=check by
 # default) treats a missing bundle as a hard-fail drift finding.
@@ -350,7 +373,7 @@ slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet.
 slice-quality-seed-floors: ## Emit gmeow:AxisFloorCommitment TTL for live scores to seed a NEW axis's floors (one-shot). Usage: make slice-quality-seed-floors AXIS=axisShapeMigration (or ALL_AXES=1)
 	$(GMEOW_DEV) slice-quality-seed-floors $(if $(strip $(AXIS)),--axis $(AXIS),)$(if $(strip $(ALL_AXES)),--all-axes,)
 
-acceptance: ## Gate full transpile recall against external RDF snapshots.
+acceptance: ## HEAVY (CI-only lane, `make heavy`) full transpile-recall gate over every external RDF snapshot.
 	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
@@ -371,10 +394,21 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build carrier-purity ## Warm Rust once, then run carrier purity, clippy, nextest, and doctests serially.
-	cargo clippy --all-targets -- -D warnings
+# The four Rust lanes are INDEPENDENT once `rust-build` has warmed the workspace: none
+# reads another's output, so the `check` DAG schedules them as concurrent siblings
+# (crates/xtask/src/main.rs, AFTER_RUST_BUILD) instead of one serial node. `rust-gate`
+# below stays as the aggregate alias for a human who wants the whole Rust surface in
+# one command; the gate never runs it, so nothing is executed twice.
+rust-gate: rust-build carrier-purity clippy nextest doctests ## Aggregate alias: the whole Rust surface (carrier purity, clippy, nextest, doctests). `make check` schedules the four parts concurrently instead.
+	@echo "rust-gate: carrier-purity, clippy, nextest, and doctests all passed"
+
+nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
+	@# The docs-model fixture is primed once, in-process, before the suite: without it
+	@# every docs test rebuilds the same DocsModel in its own process.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+
+doctests: rust-build ## Run the Rust workspace doctests.
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 coherence-gate-teeth: rust-build ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
@@ -525,14 +559,19 @@ gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its N
 	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
 
-wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the three Node lanes that RUN the shipped wasm and assert byte-identity to native.
+wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the three Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the three `*-pkg-test`
 	@# lanes RUN the shipped wasm (validate/reason/gmn) and assert byte-identity to the
 	@# native engine — the "every gmeow surface proven native≡wasm" contract (#1406).
-	@# On-gate so the vendored digest that gates the shipped bytes is exactly the one a
-	@# parity run blessed (the `maint-refresh-*-asset` targets now depend on `*-pkg-test`,
-	@# so re-vendoring cannot re-pin bytes that never passed parity). Locally this SKIPs
-	@# when the wasm32 target or node is absent; CI hard-fails — the parity criterion is
+	@# The vendored digest that gates the shipped bytes is exactly the one a parity run
+	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
+	@# re-vendoring cannot re-pin bytes that never passed parity).
+	@#
+	@# HEAVY, not per-commit: this builds four crates for wasm32 in RELEASE, runs
+	@# wasm-bindgen + wasm-opt over each, and then three Node suites. Its cost is set by
+	@# that breadth, not by the edit under test — and locally it SKIPs outright whenever
+	@# the wasm32 target or node is absent, so on a developer's gate it was frequently a
+	@# no-op occupying the critical path. In CI it hard-fails: the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test; \
@@ -582,7 +621,7 @@ bench-compare: ## Report-only perf scoreboard: live criterion run vs committed b
 bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the native engine over the committed mini corpora and hard-fail on any golden divergence (no live oracle — cheap).
 	cargo run -q -p gmeow-bench-engines -- --check-golden
 
-bench-soak: ## On-gate divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
+bench-soak: ## HEAVY (CI-only lane, `make heavy`) divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
 	cargo run -q -p gmeow-bench-engines -- --soak 3
 
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.

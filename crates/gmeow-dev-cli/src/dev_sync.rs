@@ -27,21 +27,116 @@ use crate::{SyncMode, SyncOutput};
 const MANIFEST_VERSION: u32 = 3;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
-/// Overrides the host-global gate-lock path (for CI runners or tests wanting a scoped
-/// lock instead of the machine-wide one). Must match the `xtask` copy.
-const HOST_LOCK_ENV: &str = "GMEOW_TASK_HOST_LOCK";
-
 /// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check` / `make regen`) runs on
 /// the entire host at a time, regardless of worktree, so sibling-worktree gates cannot
 /// interfere. Byte-identical to `crates/xtask/src/main.rs::host_lock_path` so both the
 /// `xtask` check runner and this `gmeow-dev sync` writer contend on the SAME file.
+///
+/// There is deliberately NO override — see the `xtask` copy for why. On a shared
+/// machine this lock is the queue, and a hatch out of it is a way for one worktree to
+/// starve every other.
+///
+/// `/var/tmp`, not `/tmp`: both are world-writable + sticky (so the lock stays ONE file
+/// for every user and every worktree), but `/tmp` is a tmpfs here, and a tmpfs clear
+/// deletes the lock file out from under a LIVE holder — after which a second gate
+/// creates a fresh inode and both run. `/var/tmp` is disk-backed and preserved, and
+/// sits outside every worktree so no checkout reset can remove it.
 fn host_lock_path() -> std::path::PathBuf {
-    if let Some(explicit) = std::env::var_os(HOST_LOCK_ENV)
-        && !explicit.is_empty()
-    {
-        return std::path::PathBuf::from(explicit);
+    std::path::PathBuf::from("/var/tmp/gmeow-task/host-runner.lock")
+}
+
+/// Whether `pid` names a live process on this host.
+fn pid_alive(pid: u32) -> bool {
+    Path::new(&format!("/proc/{pid}")).exists()
+}
+
+/// The `pid=` field of a lock owner record, when present and parseable.
+fn record_pid(record: &str) -> Option<u32> {
+    record
+        .split_whitespace()
+        .find_map(|field| field.strip_prefix("pid="))
+        .and_then(|pid| pid.parse().ok())
+}
+
+fn open_lock_rw(path: &Path) -> std::io::Result<File> {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(path)
+}
+
+/// Open the host gate-lock file read-write, reaping a PROVABLY stale one.
+///
+/// The lock directory is sticky + world-writable so a gate started by any user contends
+/// on the same file. The failure mode that needs reaping is a leftover file whose
+/// permissions deny `open(O_RDWR)` to everyone but its long-dead creator: nobody can
+/// take that lock and nobody can release it, so the gate is bricked host-wide. When the
+/// open fails AND the owner record is readable AND its pid is not alive, the record is
+/// provably stale — unlink and recreate.
+///
+/// A live recorded owner is never reaped, and an unreadable record is never reaped
+/// either: unlinking a file a live process holds an `flock` on would let two gates run
+/// at once. Kept in lockstep with the `xtask` copy.
+fn open_host_lock_file(path: &Path) -> gmeow_errors::Result<File> {
+    use std::os::unix::fs::PermissionsExt;
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| {
+            crate::error::sync(format!(
+                "create host gate-lock directory {}: {e}",
+                dir.display()
+            ))
+        })?;
+        let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
     }
-    std::path::PathBuf::from("/tmp/gmeow-task/host-runner.lock")
+    let open_error = match open_lock_rw(path) {
+        Ok(file) => {
+            let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
+            return Ok(file);
+        }
+        Err(e) => e,
+    };
+    let record = std::fs::read_to_string(path).map_err(|_| {
+        crate::error::sync(format!(
+            "open host gate lock {}: {open_error}; its owner record is also unreadable, so \
+             staleness cannot be proven — remove the file by hand once no GMEOW gate is running",
+            path.display()
+        ))
+    })?;
+    match record_pid(&record) {
+        Some(pid) if pid_alive(pid) => {
+            return Err(crate::error::sync(format!(
+                "open host gate lock {}: {open_error}; it is held by live pid {pid} ({})",
+                path.display(),
+                record.trim()
+            )));
+        }
+        Some(pid) => {
+            std::fs::remove_file(path).map_err(|e| {
+                crate::error::sync(format!(
+                    "host gate lock {} names dead owner pid {pid} but cannot be reaped: {e}",
+                    path.display()
+                ))
+            })?;
+        }
+        None => {
+            return Err(crate::error::sync(format!(
+                "open host gate lock {}: {open_error}; its owner record names no pid, so \
+                 staleness cannot be proven — remove the file by hand once no GMEOW gate is \
+                 running",
+                path.display()
+            )));
+        }
+    }
+    let file = open_lock_rw(path).map_err(|e| {
+        crate::error::sync(format!(
+            "open host gate lock {} after reap: {e}",
+            path.display()
+        ))
+    })?;
+    let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
+    Ok(file)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,61 +186,76 @@ impl TaskLock {
         // standalone `make regen` here cannot interfere with a `make check`/`make regen` in
         // ANY sibling worktree. (Re-entrant descendants of a running check skip this via
         // the token check above.)
-        use std::os::unix::fs::PermissionsExt;
+        use std::os::unix::fs::MetadataExt;
         let path = host_lock_path();
-        if let Some(dir) = path.parent() {
-            std::fs::create_dir_all(dir).map_err(|e| {
-                crate::error::sync(format!(
-                    "create host gate-lock directory {}: {e}",
-                    dir.display()
-                ))
-            })?;
-            let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
-        }
-        let mut file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(&path)
-            .map_err(|e| {
-                crate::error::sync(format!("open host gate lock {}: {e}", path.display()))
-            })?;
-        let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
-        match file.try_lock() {
-            Ok(()) => {
-                let owner = format!(
-                    "pid={} purpose={purpose} root={}\n",
-                    std::process::id(),
-                    root.display()
-                );
-                // Owner line is diagnostic only (a cross-user pre-existing file may deny
-                // the write); the flock is what makes the gate host-atomic, so a failed
-                // owner write must NOT fail the acquire.
-                let _ = file
-                    .set_len(0)
-                    .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
-                    .and_then(|()| file.write_all(owner.as_bytes()))
-                    .and_then(|()| file.flush());
-                Ok(Self { file: Some(file) })
-            }
-            Err(TryLockError::WouldBlock) => {
-                let mut owner = String::new();
-                let _ = file.seek(SeekFrom::Start(0));
-                let _ = file.read_to_string(&mut owner);
-                Err(crate::error::sync(format!(
-                    "another GMEOW gate is already running on this host{}",
-                    if owner.trim().is_empty() {
-                        String::new()
-                    } else {
-                        format!(": {}", owner.trim())
+        // Bounded retry: each attempt either wins the flock on the file CURRENTLY at
+        // `path` — proven by comparing the held descriptor's (dev, ino) against a fresh
+        // stat — or observes that the file was swapped underneath it (a reap by a
+        // sibling gate) and starts over. Without the identity check a swap would let the
+        // swapper and the previous holder both believe they own the host.
+        for _ in 0..3 {
+            let mut file = open_host_lock_file(&path)?;
+            match file.try_lock() {
+                Ok(()) => {
+                    let identical = match (file.metadata(), std::fs::metadata(&path)) {
+                        (Ok(held), Ok(current)) => {
+                            held.dev() == current.dev() && held.ino() == current.ino()
+                        }
+                        _ => false,
+                    };
+                    if !identical {
+                        let _ = file.unlock();
+                        continue;
                     }
-                )))
-            }
-            Err(TryLockError::Error(e)) => {
-                Err(crate::error::sync(format!("acquire host gate lock: {e}")))
+                    let owner = format!(
+                        "pid={} purpose={purpose} root={}\n",
+                        std::process::id(),
+                        root.display()
+                    );
+                    // Owner line is diagnostic only (a cross-user pre-existing file may
+                    // deny the write); the flock is what makes the gate host-atomic, so a
+                    // failed owner write must NOT fail the acquire.
+                    let _ = file
+                        .set_len(0)
+                        .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
+                        .and_then(|()| file.write_all(owner.as_bytes()))
+                        .and_then(|()| file.flush());
+                    return Ok(Self { file: Some(file) });
+                }
+                Err(TryLockError::WouldBlock) => {
+                    let mut owner = String::new();
+                    let _ = file.seek(SeekFrom::Start(0));
+                    let _ = file.read_to_string(&mut owner);
+                    // A dead recorded pid here is a stale RECORD, not a stale lock: the
+                    // kernel releases a dead process's flock, so a live process holds it
+                    // and simply could not rewrite the owner line. Reclaiming would run
+                    // two gates at once, so we refuse and say why.
+                    let stale_record = record_pid(&owner).is_some_and(|pid| !pid_alive(pid));
+                    return Err(crate::error::sync(format!(
+                        "another GMEOW gate is already running on this host{}{}",
+                        if owner.trim().is_empty() {
+                            String::new()
+                        } else {
+                            format!(": {}", owner.trim())
+                        },
+                        if stale_record {
+                            " (the recorded owner pid is no longer alive; the lock is held by a \
+                             live process that could not update the record)"
+                        } else {
+                            ""
+                        }
+                    )));
+                }
+                Err(TryLockError::Error(e)) => {
+                    return Err(crate::error::sync(format!("acquire host gate lock: {e}")));
+                }
             }
         }
+        Err(crate::error::sync(format!(
+            "host gate lock {} was replaced repeatedly while acquiring it; refusing to run rather \
+             than risk two concurrent gates",
+            path.display()
+        )))
     }
 }
 

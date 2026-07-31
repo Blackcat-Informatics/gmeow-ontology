@@ -13,7 +13,8 @@ It wraps the wasm-clean [`gmeow-logic`](../logic) chase: it runs the same struct
 reasoning as the native engine (serially on wasm — the parallel scheduler degrades to
 sequential where threads are unavailable) and returns the reasoned closure, the inferred
 triples. Byte-identity to the native reasoner is proven by the Node parity witness lane
-(`make reason-wasm-pkg-test`, on the `make check` gate via `wasm-parity`).
+(`make reason-wasm-pkg-test`, gate-enforced on every pull request via `wasm-parity` in
+the required CI `make heavy` lane).
 
 ## JavaScript API
 
