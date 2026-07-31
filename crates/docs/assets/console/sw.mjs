@@ -72,6 +72,16 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cached = await caches.match(request, { ignoreSearch: true });
       if (cached !== undefined) return cached;
+      // The deployed entry URL is the DIRECTORY — `/console/` — and that is also what
+      // `manifest.webmanifest`'s `start_url: "."` opens, so a launched PWA never asks for
+      // `index.html` by name. The shell is cached under its file name, and `caches.match`
+      // is URL-keyed, so without this the front door misses the cache, `fetch` throws with
+      // the network gone, and the console is dead offline at exactly the entry the offline
+      // reader uses. Serve the cached shell for any navigation the cache does not hold.
+      if (request.mode === "navigate") {
+        const shell = await caches.match(new URL("./index.html", self.location.href));
+        if (shell !== undefined) return shell;
+      }
       const response = await fetch(request);
       // Cache-on-first-use. This is what makes the demand-loaded reasoning segment real:
       // it is absent from the cache until a pane needs it, and offline-available from the

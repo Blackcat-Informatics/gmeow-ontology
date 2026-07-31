@@ -13,6 +13,15 @@
 // bytes and costs a few inodes. The perturbed file is UNLINKED before it is rewritten, so
 // the new bytes land on a fresh inode and the pristine tree is untouched — which is
 // checked, not assumed, by `assertPristine`.
+//
+// A hardlink cannot cross a filesystem, and the two roots here are chosen independently:
+// the perturbed trees are built under `target/`, while the source is `$CONSOLE_OUT`, which
+// `make console-smoke` documents as overridable and a caller may point at a scratch mount
+// (`/tmp` is a tmpfs on most Linux hosts, `target/` is not). So the farm falls back to a
+// byte COPY on `EXDEV`, announcing which strategy it used. That is a change of COST, not of
+// contract: a copied tree is byte-identical to a linked one, every perturbation below is
+// still applied on disk to a real file, and `assertPristine` proves the source untouched
+// either way. Only the inode sharing — an optimisation — is given up.
 
 import { promises as fs } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
@@ -31,12 +40,75 @@ export async function listFiles(root) {
   return out.sort();
 }
 
-/** Hardlink every file under `from` into `to`, creating directories as needed. */
+/**
+ * Hardlink every file under `from` into `to`, creating directories as needed.
+ *
+ * The first `EXDEV` — `from` and `to` are on different filesystems, which is what
+ * `CONSOLE_OUT=/tmp/…` against a `target/` on disk produces — switches the whole farm to
+ * `copyFile` and says so once, naming both roots. Any other error is the caller's to see.
+ *
+ * @returns `"link"` or `"copy"` — the strategy the tree was actually built with.
+ */
 export async function hardlinkTree(from, to) {
+  let strategy = "link";
   for (const name of await listFiles(from)) {
+    const source = join(from, name);
     const target = join(to, name);
     await fs.mkdir(dirname(target), { recursive: true });
-    await fs.link(join(from, name), target);
+    if (strategy === "copy") {
+      await fs.copyFile(source, target);
+      continue;
+    }
+    try {
+      await fs.link(source, target);
+    } catch (error) {
+      if (error?.code !== "EXDEV") throw error;
+      strategy = "copy";
+      // eslint-disable-next-line no-console -- the lane reports the strategy it fell back to
+      console.log(
+        `console-smoke: ${from} and ${to} are on different filesystems (EXDEV) — building the ` +
+          "perturbed trees by copy instead of by hardlink. Same bytes, more of them.",
+      );
+      await fs.copyFile(source, target);
+    }
+  }
+  return strategy;
+}
+
+/** Every file under `root` as `path → size`, the shape [`assertPristine`] compares. */
+async function fileSizes(root) {
+  const sizes = new Map();
+  for (const name of await listFiles(root)) {
+    sizes.set(name, (await fs.stat(join(root, name))).size);
+  }
+  return sizes;
+}
+
+/**
+ * Fail if `root`'s file set or any file's size changed since `before`.
+ *
+ * The perturbations write through a hardlink farm, and writing INTO a hardlink writes into
+ * the pristine tree the whole positive lane drives. That is a silent, whole-run corruption,
+ * so it is checked rather than argued about.
+ *
+ * @throws naming the first path whose bytes moved.
+ */
+async function assertPristine(root, before) {
+  const after = await fileSizes(root);
+  for (const [name, size] of before) {
+    const now = after.get(name);
+    if (now === undefined) {
+      throw new Error(`perturbing a copy of ${root} DELETED ${name} from the pristine tree`);
+    }
+    if (now !== size) {
+      throw new Error(
+        `perturbing a copy of ${root} rewrote the pristine ${name} (${size} → ${now} bytes) — ` +
+          "a perturbation wrote THROUGH a hardlink instead of replacing the inode",
+      );
+    }
+  }
+  for (const name of after.keys()) {
+    if (!before.has(name)) throw new Error(`perturbing a copy of ${root} ADDED ${name} to it`);
   }
 }
 
@@ -44,12 +116,16 @@ export async function hardlinkTree(from, to) {
  * A hardlinked copy of `from` at `to`, with `perturb(root)` applied to it.
  *
  * `perturb` receives the copy's root and must break exactly one thing. Use
- * [`truncateFile`] / [`removeFile`] rather than writing over a hardlink directly.
+ * [`truncateFile`] / [`removeFile`] rather than writing over a hardlink directly — and that
+ * discipline is verified, not trusted: `from` is stat'd before and after, and a perturbation
+ * that reached through a shared inode fails the setup naming the file it damaged.
  */
 export async function perturbedTree(from, to, perturb) {
   await fs.rm(to, { recursive: true, force: true });
+  const before = await fileSizes(from);
   await hardlinkTree(from, to);
   await perturb(to);
+  await assertPristine(from, before);
   return to;
 }
 

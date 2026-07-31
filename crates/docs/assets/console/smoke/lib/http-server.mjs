@@ -78,6 +78,12 @@ function underRoot(root, urlPath) {
  *
  * @returns `{ origin, close }` — `origin` is the `http://127.0.0.1:<port>` the browser
  *   drives, `close` shuts the listener down.
+ *
+ * `close` destroys every open socket as well as the listener. A browser holds keep-alive
+ * connections, and `server.close()` alone only stops NEW ones: the origin would go on
+ * answering over a socket it had already accepted. That matters beyond teardown — the
+ * offline spec makes an origin genuinely unreachable by closing it, because a service
+ * worker's own `fetch` is not subject to a page's network emulation.
  */
 export async function startStaticServer(mounts) {
   const table = Object.entries(mounts)
@@ -134,6 +140,10 @@ export async function startStaticServer(mounts) {
   const { port } = server.address();
   return {
     origin: `http://127.0.0.1:${port}`,
-    close: () => new Promise((done) => server.close(done)),
+    close: () =>
+      new Promise((done) => {
+        server.close(done);
+        server.closeAllConnections();
+      }),
   };
 }

@@ -36,14 +36,24 @@ test("Tier-1 validation answers with a conformance verdict over a real document"
 @prefix ex:    <https://example.org/gmeow/console/> .
 ex:call a gmeow:ToolCall .
 `;
+  //
+  // The assertions below are UNCONDITIONAL on purpose. `ex:call a gmeow:ToolCall .` is a
+  // ToolCall with none of the properties a ToolCall must carry, so Tier-1 has something to
+  // say about it; a spec that only asked whether `ok` was a boolean, or that guarded its
+  // finding checks on `findings.length > 0`, would pass unchanged against a validator that
+  // reported EVERY document conformant — the precise failure the note above says matters.
   const verdict = await app.call("validate_local", { data: counterExample, format: "turtle" });
-  expect(typeof verdict.ok, "a validation verdict reports conformance as a boolean").toBe("boolean");
   expect(Array.isArray(verdict.findings)).toBe(true);
-  if (verdict.findings.length > 0) {
-    for (const finding of verdict.findings) {
-      expect(typeof finding.code, "every finding carries a code").toBe("string");
-      expect(finding.code.length).toBeGreaterThan(0);
-    }
+  expect(
+    verdict.ok,
+    `a document missing every required ToolCall property must NOT be conformant: ${JSON.stringify(
+      verdict,
+    ).slice(0, 400)}`,
+  ).toBe(false);
+  expect(verdict.findings.length, "…and the refusal must be itemised").toBeGreaterThan(0);
+  for (const finding of verdict.findings) {
+    expect(typeof finding.code, "every finding carries a code").toBe("string");
+    expect(finding.code.length).toBeGreaterThan(0);
   }
 });
 
