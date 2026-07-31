@@ -55,6 +55,9 @@ const CODE_STRUCTURAL_KEY_ON_REJECTED_EXPRESSION: &str =
 /// singleton literal — two or more values (of any kind), or a single non-literal value.
 const CODE_MALFORMED_STRUCTURAL_KEY: &str = "verify.math.malformed-structural-key";
 
+/// The typed lowering rejection itself, reported for its OWN sake.
+const CODE_EXPRESSION_LOWERING_REJECTED: &str = "verify.math.expression-lowering-rejected";
+
 fn math(local: &str) -> String {
     format!("{MATH}{local}")
 }
@@ -109,6 +112,7 @@ pub fn check_math_expression_findings(
 
     check_malformed_structural_key(&usage, &mut findings);
     check_structural_key_drift(&keys, &usage, &mut findings);
+    check_expression_lowering_rejected(&keys, &mut findings);
     check_structural_key_on_rejected_expression(&keys, &usage, &mut findings);
     check_surface_leak_in_normal_form(&leak_index, &mut findings);
     report_alpha_equivalence_classes(&keys, &mut findings);
@@ -254,6 +258,46 @@ fn check_structural_key_on_rejected_expression(
                 ),
             ));
         }
+    }
+}
+
+/// Report EVERY root the `math:` expression lowering refuses, carrying the typed `math:`
+/// failure class it decided — independent of whether anything else was authored about it.
+///
+/// The grammar rules this publishes (`math:CyclicExpressionGraph`,
+/// `math:ExpressionDepthExceeded`, `math:UnrecognizedExpressionType`,
+/// `math:NumberLiteralMissingValue`, and the argument-slot/binding/operator families) are
+/// declared "Rust validator" in the charter and have no SHACL or Datalog derivation: a cycle
+/// through `math:slotExpression` is a graph traversal, not a flat relational join, and every
+/// node in a cyclic component is individually well-formed. So this is the only channel that
+/// can decide them at all.
+///
+/// It used to run only through [`check_structural_key_on_rejected_expression`], which iterates
+/// authored `math:structuralKey` subjects. That made an ill-formed expression reportable only
+/// when its author had volunteered an unrelated identity claim: the same cyclic graph raised
+/// `math:CyclicExpressionGraph` with a key present and NOTHING without one. A malformed
+/// expression is a violation of the grammar rule on its own; claiming an identity for it is a
+/// second, different violation, which is why both findings exist and why this one does not
+/// depend on the other's precondition.
+fn check_expression_lowering_rejected(
+    keys: &std::collections::BTreeMap<
+        String,
+        Result<String, crate::physical::lower::MathLoweringError>,
+    >,
+    findings: &mut Vec<Finding>,
+) {
+    for (subj, keyed) in keys {
+        let Err(err) = keyed else {
+            continue;
+        };
+        let class_local = failure_class_local_name(err.failure_class());
+        findings.push(error(
+            CODE_EXPRESSION_LOWERING_REJECTED,
+            format!(
+                "math:{class_local}: expression {subj} is not a well-formed math: expression \
+                 graph — {err}"
+            ),
+        ));
     }
 }
 

@@ -8,8 +8,9 @@
 //
 // The property is carried by a GENERATOR (`gen_expr`) driven through `proptest`,
 // exercised through the REAL
-// production entry points (`MathGraph::from_turtle` → `lower_math_expression` →
-// `structural_digest`) over generated `math:`-vocabulary Turtle text — never a
+// production entry points (`MathGraph::from_turtle` → `arena_structural_key`, the same
+// route `math_expression_structural_keys` publishes the shipped key through) over generated
+// `math:`-vocabulary Turtle text — never a
 // hand-built `TermDag`/`NodeId`.
 //
 
@@ -106,7 +107,7 @@ fn gen_expr() -> impl Strategy<Value = GenExpr> {
 // ── the reference model: an independent, non-digest alpha-equivalence key ──
 
 /// The REFERENCE alpha-equivalence identity of a [`GenExpr`]: a locally-nameless
-/// normal form computed INDEPENDENTLY of [`structural_digest`], so comparing the
+/// normal form computed INDEPENDENTLY of [`arena_structural_key`], so comparing the
 /// two (in [`structural_identity_matches_reference_alpha_equivalence`]) is a
 /// genuine cross-check, never a tautology. `Bind` carries no name (alpha-
 /// irrelevant, exactly like a `Binder` node's sort-only child list); `Var`
@@ -310,14 +311,12 @@ fn lower_rendered(rendered: &Rendered) -> String {
             rendered.ttl
         )
     });
-    let mut dag = TermDag::new();
-    let node = lower_math_expression(&mut dag, &graph, &rendered.root).unwrap_or_else(|e| {
+    arena_structural_key(&graph, &rendered.root).unwrap_or_else(|e| {
         panic!(
             "generated math: expression must lower: {e:?}\n\n--- generated Turtle ---\n{}",
             rendered.ttl
         )
-    });
-    structural_digest(&dag, node)
+    })
 }
 
 // ── the properties ──────────────────────────────────────────────────────────
@@ -328,7 +327,7 @@ proptest! {
     /// **Bound-variable renaming.** Rendering the SAME [`GenExpr`] shape through
     /// TWO independent [`Mint`] schemes — every `Bind`'s declaration IRI/label
     /// chosen differently, via a randomly generated salt — must yield the
-    /// IDENTICAL [`structural_digest`]. The wrapping `Bind` at the top of the
+    /// IDENTICAL [`arena_structural_key`]. The wrapping `Bind` at the top of the
     /// generator guarantees at least one renamed declaration exists, so the
     /// "the rename actually changed something" sanity check is never vacuous.
     #[test]
@@ -359,8 +358,8 @@ proptest! {
 
     /// **Injectivity, both directions — the reference-model cross-check.** Two
     /// INDEPENDENTLY generated expressions' [`Canon`] identity (computed with NO
-    /// reference to `structural_digest`) must coincide with their
-    /// `structural_digest` equality EXACTLY: alpha-equivalent inputs share one
+    /// reference to `arena_structural_key`) must coincide with their
+    /// `arena_structural_key` equality EXACTLY: alpha-equivalent inputs share one
     /// digest (soundness) AND structurally distinct inputs never collide
     /// (injectivity — the direction a constant-digest function would fail). This
     /// single property also exercises arbitrary slot arity/operand order and
@@ -378,7 +377,7 @@ proptest! {
             canon_a == canon_b,
             digest_a == digest_b,
             "structural (locally-nameless) equality of two INDEPENDENTLY \
-             generated expressions must coincide EXACTLY with structural_digest \
+             generated expressions must coincide EXACTLY with arena_structural_key \
              equality, in both directions"
         );
     }
@@ -481,7 +480,7 @@ proptest! {
     /// **Determinism.** The same term lowered twice into the SAME `TermDag` must
     /// re-intern to the SAME `NodeId` (hash-consing, not a fresh node); and the
     /// same term lowered into TWO INDEPENDENTLY-BUILT `TermDag`s must yield the
-    /// identical `structural_digest` despite unrelated `NodeId` numbering.
+    /// identical `arena_structural_key` despite unrelated `NodeId` numbering.
     #[test]
     fn lowering_is_deterministic_across_independent_dags(expr in gen_expr()) {
         let rendered = render(&expr, &PrimaryMint);
@@ -498,16 +497,13 @@ proptest! {
             "re-lowering the SAME graph into the SAME dag must re-intern to the \
              SAME node"
         );
-        let digest_same_dag = structural_digest(&dag, node_1);
+        let digest_same_dag = arena_structural_key(&graph, &rendered.root)
+            .unwrap_or_else(|e| panic!("digest over the shared dag must succeed: {e:?}"));
 
-        let mut dag_a = TermDag::new();
-        let node_a = lower_math_expression(&mut dag_a, &graph, &rendered.root)
-            .unwrap_or_else(|e| panic!("lowering into dag_a must succeed: {e:?}"));
-        let mut dag_b = TermDag::new();
-        let node_b = lower_math_expression(&mut dag_b, &graph, &rendered.root)
-            .unwrap_or_else(|e| panic!("lowering into dag_b must succeed: {e:?}"));
-        let digest_a = structural_digest(&dag_a, node_a);
-        let digest_b = structural_digest(&dag_b, node_b);
+        let digest_a = arena_structural_key(&graph, &rendered.root)
+            .unwrap_or_else(|e| panic!("digest through an independent arena must succeed: {e:?}"));
+        let digest_b = arena_structural_key(&graph, &rendered.root)
+            .unwrap_or_else(|e| panic!("digest through an independent arena must succeed: {e:?}"));
         prop_assert_eq!(
             &digest_a, &digest_b,
             "the same term lowered via two independently-built TermDags must \

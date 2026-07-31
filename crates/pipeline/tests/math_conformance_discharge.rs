@@ -739,28 +739,30 @@ fn native_check_channel(class: &str) -> Option<Channel> {
     }
 }
 
-/// The reasoned closure of one fixture, as the CHANNEL's two consumers need it: the DERIVED
+/// The reasoned closure of one fixture, as the channel's two consumers need it: the DERIVED
 /// edges `dimension_gate_markers` takes, and a substrate carrying them for the surface-leak half
 /// of `check_math_expression_findings`.
 ///
-/// Both were previously read off the asserted graph. Neither was sound. The kernel authors an
-/// existential restriction on `math:withRespectTo`, so the chase really does invent read-set
-/// edges the asserted read cannot see; and the leak check's own inputs are derivable in
-/// principle by several axiom shapes. Two guard tests tried to bound those shortcuts by
-/// enumerating the shapes the reasoner materializes — and each adversary pass found another
-/// shape the enumeration missed (transitive and symmetric properties, `owl:hasValue`, an
-/// inverted property-chain arm, the `owl:` spelling of every restriction consequent, subclass
-/// closure over the trigger set). Keeping a shortcut sound therefore meant maintaining a second
-/// copy of the reasoner's construct table, in a test, forever. So the shortcut is gone: this
-/// reasons every fixture, once, and both consumers read the result.
+/// Both consumers need a real closure, not the asserted graph. The kernel authors an existential
+/// restriction on `math:withRespectTo`, so the chase invents dimension read-set edges no asserted
+/// read can see; and the surface-leak check's four inputs are derivable by several axiom shapes,
+/// so a leak can exist only by entailment. Deciding either from asserted facts alone under-reports
+/// silently — the class still looks covered, because some other fixture trips it directly.
 ///
 /// # Panics
 ///
 /// If the chase fails. That is a genuine engine failure, never a missing-fixture condition —
 /// the same contract `dimension_gate_markers` and the owl-axiom channel already panic on.
-/// Returning an empty derived set here would silently restore the asserted-only behaviour with
-/// the whole matrix still green.
-fn fixture_closure(ds: &RdfDataset, name: &str) -> (Vec<purrdf::RdfQuad>, Arc<RdfDataset>) {
+/// Returning an empty derived set here would silently restore an asserted-only read with the
+/// whole matrix still green.
+fn fixture_closure(
+    ds: &RdfDataset,
+    name: &str,
+) -> (
+    Vec<purrdf::RdfQuad>,
+    Arc<RdfDataset>,
+    gmeow_logic::result::ReasoningResult,
+) {
     let result = gmeow_logic::reason::reason_all(ds).unwrap_or_else(|e| {
         panic!(
             "native reasoning failed over counter-example {name} — a genuine engine failure \
@@ -793,7 +795,7 @@ fn fixture_closure(ds: &RdfDataset, name: &str) -> (Vec<purrdf::RdfQuad>, Arc<Rd
     let closure = builder
         .freeze()
         .expect("the asserted union plus its own derived all-IRI edges is a valid dataset");
-    (derived, closure)
+    (derived, closure, result)
 }
 
 /// Strip `<`/`>` from an IRI the reasoner renders in angle brackets — the same normalization
@@ -802,45 +804,6 @@ fn bare_iri(term: &str) -> &str {
     term.strip_prefix('<')
         .and_then(|t| t.strip_suffix('>'))
         .unwrap_or(term)
-}
-
-/// Project the authored `logic:` structural predicates onto the `rdfs:` twins OWL 2 RL reasons
-/// over, so a closure taken over RAW slice source means what the shipped bundle's closure means.
-///
-/// `logic:subClassOf` / `logic:subPropertyOf` are this repo's canonical authoring predicates;
-/// the pipeline projects the `rdfs:` forms from them, and OWL 2 RL has rules only for the
-/// `rdfs:` forms. Without this, every authored specialization in the slice source parses and
-/// then does nothing — the closure is strictly weaker than production's, while claiming to be
-/// the same. (`crates/logic/tests/ontology_entailments.rs` carries the same projection for the
-/// same reason.)
-fn project_logic_structural_predicates(ds: &RdfDataset) -> Arc<RdfDataset> {
-    const PROJECTIONS: &[(&str, &str)] = &[
-        (
-            "https://blackcatinformatics.ca/logic/subClassOf",
-            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-        ),
-        (
-            "https://blackcatinformatics.ca/logic/subPropertyOf",
-            "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
-        ),
-    ];
-    let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(ds);
-    for quad in ds.owned_quads() {
-        if let Some((_, rdfs)) = PROJECTIONS
-            .iter()
-            .find(|(authored, _)| quad.predicate == *authored)
-        {
-            builder.push_owned_quad(&purrdf::RdfQuad::new(
-                quad.subject.clone(),
-                *rdfs,
-                quad.object.clone(),
-            ));
-        }
-    }
-    builder
-        .freeze()
-        .expect("projecting logic: subsumption onto its rdfs: twin yields a valid dataset")
 }
 
 /// The `math:` classes the native structural lint raises over the already-merged `ds`.
@@ -1064,13 +1027,15 @@ fn owl_axiom_candidates(
 /// genuinely forced into `owl:Nothing`, crediting the failure class from the witnessed
 /// individual's own candidate types (never crediting a class merely because SOME
 /// inconsistency exists somewhere in the graph).
-fn owl_axiom_tripped(ds: &Arc<RdfDataset>, carriers: &[OwlAxiomCarrier]) -> BTreeSet<String> {
+fn owl_axiom_tripped(
+    ds: &Arc<RdfDataset>,
+    carriers: &[OwlAxiomCarrier],
+    result: &gmeow_logic::result::ReasoningResult,
+) -> BTreeSet<String> {
     let candidates = owl_axiom_candidates(ds, carriers);
     if candidates.is_empty() {
         return BTreeSet::new();
     }
-    let result = gmeow_logic::reason::reason_all(ds)
-        .unwrap_or_else(|e| panic!("owl-axiom channel: native DL reasoning failed: {e}"));
     let mut classes = BTreeSet::new();
     for witness in &result.provenance.contradiction_witnesses {
         let individual = witness
@@ -1449,10 +1414,14 @@ fn total_math_conformance_matrix_is_discharged() {
             Arc::clone(&conformance_modules),
             Arc::clone(&fixture_ds),
         ]);
-        // The closure is taken over the PROJECTED union, so `logic:subClassOf`/`subPropertyOf`
-        // — this repo's canonical authoring predicates, inert to OWL 2 RL in their authored
-        // spelling — reach the reasoner the way they do in the shipped bundle.
-        let (derived, closure) = fixture_closure(&project_logic_structural_predicates(&ds), &name);
+        // Reasoned exactly as production reasons: no `logic:`->`rdfs:` projection is applied
+        // here, because the shipped pipeline applies none either. `logic:subClassOf` /
+        // `logic:subPropertyOf` are inert to OWL 2 RL in their authored spelling, and
+        // `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from a
+        // `logic:`-authored chain. Projecting here would make this gate STRONGER than the
+        // shipped reasoner and credit a class through a derived edge `gmeow validate --deep`
+        // never sees.
+        let (derived, closure, closure_result) = fixture_closure(&ds, &name);
 
         // The native structural-lint channel — credited under the channel its OWN
         // emitting function actually implements, never the charter's declared tier fed
@@ -1489,7 +1458,7 @@ fn total_math_conformance_matrix_is_discharged() {
         }
 
         // The OWL-axiom disjointness channel: reads the reasoned closure's verdict.
-        for class in owl_axiom_tripped(&ds, &owl_carriers) {
+        for class in owl_axiom_tripped(&ds, &owl_carriers, &closure_result) {
             class_channel_fixtures
                 .entry(class)
                 .or_default()

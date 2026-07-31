@@ -106,12 +106,17 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
 /// over, before the closure runs.
 ///
 /// `logic:subClassOf` / `logic:subPropertyOf` are this repo's CANONICAL authoring predicates for
-/// subsumption — slices state specializations with them and the pipeline projects the `rdfs:`
-/// forms from them. OWL 2 RL has rules only for the `rdfs:` forms, so a closure taken over RAW
-/// module source parses the authored axiom and then does nothing with it: every authored
+/// subsumption, and OWL 2 RL has rules only for the `rdfs:` forms, so a closure that does not
+/// project them parses each authored axiom and then does nothing with it: every authored
 /// specialization silently vanishes, and the missing entailment reads as an ontology defect
-/// rather than as a missing projection. Doing the projection here is what makes a source-level
-/// closure mean the same thing the shipped bundle's closure means.
+/// rather than as a missing projection.
+///
+/// Projecting here lets THESE cases assert the subsumption the slices authored. It does NOT
+/// make a source-level closure identical to the shipped one: the pipeline performs no such
+/// projection, so `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from any
+/// `logic:`-authored chain while `rdfs:`-authored chains close normally. This projection is
+/// therefore a statement about what the AXIOMS mean, not a claim about what the shipped
+/// reasoner currently derives.
 fn project_logic_structural_predicates(quads: &mut Vec<RdfQuad>) {
     const PROJECTIONS: &[(&str, &str)] = &[
         (

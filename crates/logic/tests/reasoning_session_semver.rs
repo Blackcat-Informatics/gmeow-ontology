@@ -233,12 +233,13 @@ use session_common::*;
 /// `math_expression_structural_keys` calling `term_arena::intern_math_root` — and the
 /// removal of the uncalled `MathGraphInterning` Turtle-bytes wrapper beside it, the
 /// `alpha_class_iri` wrapper deletion, the alpha-class materializer moving onto the asserted
-/// graph, and the doc-link repairs those deletions required — moves the backward-source
-/// digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
+/// graph, the unconditional typed-rejection emitter, and the lowering now accepting both
+/// authored `math:literalValue` idioms and the abstract expression base as an operand — moves
+/// the backward-source digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
 /// verbatim, and both routes now fold through the single `fold_content_key`), so no
 /// reasoning verdict moves with it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "8d006de7c5b1e1b31bb0914e07a361dc69934322d2457ddfdc53703aa152909a";
+    "7e55aa21780ec5ca4c9a35a391bb38b016e111c200a8a90e6d70587c0ba0c982";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -339,7 +340,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// fixed edge-only input (authoring no `math:` expression graph) has an unchanged
 /// reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "211627d9c18bdfb554aff756d468cc308f22217cde3add401afd967284859ffc";
+    "c8f05024ea2fe111f99bdae8a6f9791f06e93e612ea1476b171ea3362f41f6bb";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

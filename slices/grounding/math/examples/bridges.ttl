@@ -82,9 +82,24 @@ ex:mpgFormula a math:ModelFormula ;
 ex:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:mpgVar .
 ex:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:wtVar .
 ex:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:hpVar .
-ex:mpgVar a math:VariableExpression .
-ex:wtVar  a math:VariableExpression .
-ex:hpVar  a math:VariableExpression .
+# Each model variable is an OCCURRENCE resolving to its own free-variable declaration —
+# a regression formula's terms are free, not bound, so they need the declaration the
+# math: expression grammar resolves them through (a bare math:VariableExpression with no
+# math:variableOccurrence is math:UnscopedVariableOccurrence).
+ex:mpgVar a math:VariableExpression ; math:variableOccurrence ex:mpgOccurrence .
+ex:wtVar  a math:VariableExpression ; math:variableOccurrence ex:wtOccurrence .
+ex:hpVar  a math:VariableExpression ; math:variableOccurrence ex:hpOccurrence .
+
+ex:mpgOccurrence a math:VariableOccurrence ; math:declaredVariable ex:mpgDeclaration .
+ex:wtOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:wtDeclaration .
+ex:hpOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:hpDeclaration .
+
+ex:mpgDeclaration a math:FreeVariableDeclaration ;
+    rdfs:label "mpg — the response"@x-gmeow-english .
+ex:wtDeclaration a math:FreeVariableDeclaration ;
+    rdfs:label "wt — weight, a predictor"@x-gmeow-english .
+ex:hpDeclaration a math:FreeVariableDeclaration ;
+    rdfs:label "hp — horsepower, a predictor"@x-gmeow-english .
 
 # The data, held BY REFERENCE (never inlined).
 ex:mtcarsMatrix a math:DatasetMatrix ;

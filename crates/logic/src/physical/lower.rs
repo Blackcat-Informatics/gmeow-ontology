@@ -375,6 +375,13 @@ const M_NUMBER_LITERAL: &str = "https://blackcatinformatics.ca/math/NumberLitera
 /// fallback would wrongly reject every committed `math:SymbolReference` leaf (e.g.
 /// `slices/grounding/math/examples/reference-ast-act.ttl`'s `ex:leftMatrixRef`).
 const M_SYMBOL_REFERENCE: &str = "https://blackcatinformatics.ca/math/SymbolReference";
+/// The ABSTRACT expression base. A node typed with it and nothing more concrete is an
+/// expression whose FORM is deliberately unspecified — the shipped tensor/learning examples
+/// use it for an operand they name but do not decompose. It has no structure to walk, so it
+/// interns on its own IRI: that is the only content it has, and two distinct unspecified
+/// operands are genuinely distinct terms.
+const M_MATHEMATICAL_EXPRESSION: &str =
+    "https://blackcatinformatics.ca/math/MathematicalExpression";
 /// The edge a `math:SymbolReference` occurrence resolves through to its symbol — the
 /// occurrence's ONLY content, and therefore the only thing its structural identity may
 /// be keyed on.
@@ -927,7 +934,17 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// framed, domain-tagged `blake3` hash into a fixed-width hex digest. Two nodes with the
 /// SAME digest are alpha-equivalent by construction (the arena is locally-nameless and
 /// hash-consed); two with different digests are structurally distinct.
-pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
+/// Fold a `TermDag` node's content key into the published digest — TEST SCAFFOLDING ONLY.
+///
+/// Production never calls this: the shipped `math:structuralKey` is computed by
+/// [`arena_structural_key`], through the arena facade, and both routes end at
+/// [`fold_content_key`] over the same bytes ([`gmeow_term_arena::Arena::key`] returns
+/// `TermDag::key` verbatim). It exists because several invariant tests below intern SEVERAL
+/// nodes into ONE shared `TermDag` to check hash-consing, which the graph-and-root production
+/// entry point cannot express. `#[cfg(test)]` so it can never become a second production
+/// surface — the duplicate-entry-point condition the arena facade was deleted for.
+#[cfg(test)]
+fn structural_digest(dag: &TermDag, id: NodeId) -> String {
     fold_content_key(dag.key(id))
 }
 
@@ -949,7 +966,7 @@ fn fold_content_key(content_key: &str) -> String {
 /// of the structured-term arena calls — not by a parallel in-house lowering that merely
 /// happens to agree with it. A fresh arena per root preserves the isolation the caller
 /// documents: one root's typed rejection can never blind another root's `Ok`.
-fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<String> {
+pub(crate) fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<String> {
     let mut arena = crate::term_arena::TermArena::new();
     crate::term_arena::intern_math_root(&mut arena, graph, root)
         .map(|(_, key)| fold_content_key(key.as_str()))
@@ -1024,21 +1041,28 @@ fn lower_math_node_dispatch(
     } else if types.iter().any(|t| t == M_VARIABLE_EXPRESSION) {
         lower_math_variable(dag, graph, node, env)
     } else if types.iter().any(|t| t == M_NUMBER_LITERAL) {
-        // A `math:literalValue` is an RDF literal (e.g. `"42"^^xsd:integer`), never an
-        // IRI/blank reference, so it is read with `first_lit_typed` — and its datatype/
-        // language is preserved into the interned leaf, never discarded (a bare
-        // `TermValue::iri` here would silently coerce a typed number to an untyped
-        // constant).
-        let (lexical, datatype, language) = graph
-            .first_lit_typed(node, M_LITERAL_VALUE)
-            .ok_or_else(|| MathLoweringError::NumberLiteralMissingValue {
+        // `math:literalValue` carries the number in EITHER of the two idioms this slice
+        // authors: an RDF literal (`"42"^^xsd:integer`) or a reference to a number
+        // INDIVIDUAL (`math:RealNumber` with `math:inNumberSystem`/`math:isExact`), which is
+        // what the shipped closed-form and learning examples use. A literal keeps its
+        // datatype/language into the interned leaf (a bare `TermValue::iri` would silently
+        // coerce a typed number to an untyped constant); an individual is interned on its own
+        // IRI, which is the only content it has. Only a literalValue-less node is rejected —
+        // demanding the literal form alone reported the slice's own conforming examples as
+        // "missing" the value they plainly carry.
+        if let Some((lexical, datatype, language)) = graph.first_lit_typed(node, M_LITERAL_VALUE) {
+            let tv = match language {
+                Some(lang) => TermValue::lang_literal(lexical.to_owned(), lang),
+                None => TermValue::typed_literal(lexical.to_owned(), datatype.to_owned()),
+            };
+            return Ok(dag.intern_leaf(tv));
+        }
+        let individual = graph.first_ref(node, M_LITERAL_VALUE).ok_or_else(|| {
+            MathLoweringError::NumberLiteralMissingValue {
                 node: node.to_owned(),
-            })?;
-        let tv = match language {
-            Some(lang) => TermValue::lang_literal(lexical.to_owned(), lang),
-            None => TermValue::typed_literal(lexical.to_owned(), datatype.to_owned()),
-        };
-        Ok(dag.intern_leaf(tv))
+            }
+        })?;
+        Ok(dag.intern_leaf(TermValue::iri(individual)))
     } else {
         // Neither a blank node nor a named node carrying one of the four expression
         // types dispatched above. A leaf is accepted here ONLY when `node` is POSITIVELY
@@ -1061,8 +1085,17 @@ fn lower_math_node_dispatch(
         // and `math:StructuralKeyDrift` compares a declared key against a digest computed
         // over garbage.
         let math_types: Vec<&String> = types.iter().filter(|t| t.starts_with(MATH_NS)).collect();
+        // `math:MathematicalExpression` alone is the abstract base — an operand named but not
+        // decomposed. That is a POSITIVE typing meaning "unspecified form", not the unknown
+        // typing the hard fail exists for, so it interns on its own IRI. Rejecting it reported
+        // the slice's own conforming examples as ill-typed.
+        let is_abstract_expression = math_types
+            .iter()
+            .all(|t| t.as_str() == M_MATHEMATICAL_EXPRESSION)
+            && !math_types.is_empty();
         let is_constant_operand = !node.starts_with("_:")
             && (math_types.is_empty()
+                || is_abstract_expression
                 || math_types.iter().any(|t| t.as_str() == M_SYMBOL_REFERENCE));
         if is_constant_operand {
             // A `math:SymbolReference` is an OCCURRENCE wrapper: its identity is the symbol it
@@ -2114,32 +2147,29 @@ mod tests {
             MathGraph::from_turtle(application_ttl(&[(1, "ex:b"), (0, "ex:a")]).as_bytes())
                 .expect("parse");
 
-        let mut dag_a = TermDag::new();
-        let node_a = lower_math_expression(&mut dag_a, &forward, "https://example.org/app")
-            .expect("forward lowers");
-        let digest_a = structural_digest(&dag_a, node_a);
-
-        let mut dag_b = TermDag::new();
-        let node_b = lower_math_expression(&mut dag_b, &reversed, "https://example.org/app")
-            .expect("reversed lowers");
-        let digest_b = structural_digest(&dag_b, node_b);
+        let digest_a =
+            arena_structural_key(&forward, "https://example.org/app").expect("forward lowers");
+        let digest_b =
+            arena_structural_key(&reversed, "https://example.org/app").expect("reversed lowers");
 
         assert_eq!(
             digest_a, digest_b,
             "alpha-equivalent expressions share one structural digest"
         );
-        // Deterministic: computing it again from the same dag/node is byte-identical.
-        assert_eq!(digest_a, structural_digest(&dag_a, node_a));
+        // Deterministic: computing it again from the same graph is byte-identical.
+        assert_eq!(
+            digest_a,
+            arena_structural_key(&forward, "https://example.org/app").expect("forward lowers")
+        );
 
         // p(b, a) is a DISTINCT expression (operand order is identity-bearing) — a
         // DIFFERENT digest.
         let swapped =
             MathGraph::from_turtle(application_ttl(&[(0, "ex:b"), (1, "ex:a")]).as_bytes())
                 .expect("parse");
-        let mut dag_c = TermDag::new();
-        let node_c = lower_math_expression(&mut dag_c, &swapped, "https://example.org/app")
-            .expect("swapped lowers");
-        let digest_c = structural_digest(&dag_c, node_c);
+
+        let digest_c =
+            arena_structural_key(&swapped, "https://example.org/app").expect("swapped lowers");
         assert_ne!(digest_a, digest_c, "p(a,b) and p(b,a) get distinct digests");
 
         // The live minting entry point — the SAME one production calls — is content-stable
@@ -2579,14 +2609,10 @@ mod tests {
     fn committed_alpha_equivalence_fixtures_are_genuinely_alpha_equivalent() {
         let sum_root = "http://example.org/math/sumBinder";
         let graph_a = MathGraph::from_turtle(ALPHA_PAIR_A.as_bytes()).expect("pair-a parses");
-        let mut dag_a = TermDag::new();
-        let node_a = lower_math_expression(&mut dag_a, &graph_a, sum_root).expect("pair-a lowers");
-        let digest_a = structural_digest(&dag_a, node_a);
+        let digest_a = arena_structural_key(&graph_a, sum_root).expect("pair-a lowers");
 
         let graph_b = MathGraph::from_turtle(ALPHA_PAIR_B.as_bytes()).expect("pair-b parses");
-        let mut dag_b = TermDag::new();
-        let node_b = lower_math_expression(&mut dag_b, &graph_b, sum_root).expect("pair-b lowers");
-        let digest_b = structural_digest(&dag_b, node_b);
+        let digest_b = arena_structural_key(&graph_b, sum_root).expect("pair-b lowers");
 
         assert_eq!(
             digest_a, digest_b,
@@ -2601,10 +2627,8 @@ mod tests {
         let node_shadow = lower_math_expression(&mut dag_shadow, &graph_shadow, shadowing_root)
             .expect("shadowing fixture lowers");
         let digest_shadow_1 = structural_digest(&dag_shadow, node_shadow);
-        let mut dag_shadow_2 = TermDag::new();
-        let node_shadow_2 = lower_math_expression(&mut dag_shadow_2, &graph_shadow, shadowing_root)
+        let digest_shadow_2 = arena_structural_key(&graph_shadow, shadowing_root)
             .expect("shadowing fixture lowers (second pass)");
-        let digest_shadow_2 = structural_digest(&dag_shadow_2, node_shadow_2);
         assert_eq!(
             digest_shadow_1, digest_shadow_2,
             "the committed shadowing fixture's digest is deterministic across separate lowerings"
