@@ -234,8 +234,16 @@ const CHECK_DAG: &[Task] = &[
         target: "doc-lint",
         dependencies: AFTER_SYNC,
     },
-    // Reads the projected floors at
-    // `generated/governance/slice-quality-axis-floors.tsv`.
+    // The gate's committed floors/ceilings are projected from the ontology-resident
+    // rubric (`gmeow_slice_quality::load_repo_rubric` over the slices' authored
+    // `module.ttl`), NOT from a `generated/` file —
+    // `generated/governance/slice-quality-axis-floors.tsv` is only echoed as a human
+    // pointer inside a per-axis floor violation message and is never read. The real
+    // forcing read is the SCORING sweep: every slice's `DocMaturity` axis builds the
+    // repo documentation model (`doc_maturity::build_repo_facts` ->
+    // `DocsModel::discover`), whose `read_constraint_catalog` HARD-fails on a missing
+    // `generated/catalog/constraint-catalog.nq` (and which also reads
+    // `generated/catalog/term-content-manifest.nq`).
     Task {
         name: "slice-quality-gate",
         target: "slice-quality-gate",
