@@ -5272,7 +5272,7 @@ ex:uniformProbability a math:ProbabilityMeasure ;
     /// Cold-tree bootstrap + determinism: [`DocsModel::discover_with_catalog`] builds
     /// the whole model from LIVE constraint-catalog bytes with NO
     /// `generated/catalog/constraint-catalog.nq` on disk — the state a fresh clone /
-    /// cold `make regen` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
+    /// cold `make check` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
     /// Once the SAME bytes are written to disk, the disk path yields byte-identical
     /// constraint rules AND identical per-slice DocMaturity coverage facts. This pins
     /// the guarantee the in-pipeline DocMaturity axis relies on: cold (live bytes) ==

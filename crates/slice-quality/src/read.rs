@@ -94,7 +94,7 @@ impl RecordedCorpus {
             detail: format!(
                 "the recorded quality-assessment corpus at {RECORDED_CORPUS_PATH} is STALE: it \
                  was produced from sources fingerprinting {recorded}, but the authored sources \
-                 under {root} now fingerprint {live}. Regenerate it (`make regen`) — a stale \
+                 under {root} now fingerprint {live}. Regenerate it (`make check`) — a stale \
                  record is never read as current.",
                 recorded = self.fingerprint,
                 root = repo_root.display(),
@@ -107,7 +107,7 @@ impl RecordedCorpus {
 /// tier IRI against `standard`'s ladder.
 ///
 /// # Errors
-/// If the projection is absent or unparseable, if any assessment is structurally
+/// If the projection is absent or unparsable, if any assessment is structurally
 /// incomplete (no assessed slice, no score, no tier, or a tier outside the ladder), or
 /// if any slice's grade vector does not cover exactly the axes `standard` declares.
 pub fn read_recorded_corpus(
@@ -119,7 +119,7 @@ pub fn read_recorded_corpus(
         gmeow_errors::Diag::of_kind(error::Record {
             detail: format!(
                 "cannot read the recorded quality-assessment corpus at {}: {e}. It is a \
-                 projection of gmeow.gts — regenerate it (`make regen`); its absence is never \
+                 projection of gmeow.gts — regenerate it (`make check`); its absence is never \
                  a reason to skip the check",
                 path.display()
             ),
@@ -161,7 +161,7 @@ fn read_fingerprint(ds: &RdfDataset) -> gmeow_errors::Result<String> {
             detail: format!(
                 "the recorded quality-assessment corpus carries no gmeow:versionFingerprint on \
                  <{SLICE_QUALITY_GRAPH}>, so its freshness cannot be proven — it must not be \
-                 read as current. Regenerate it (`make regen`)"
+                 read as current. Regenerate it (`make check`)"
             ),
         })
     };

@@ -2679,7 +2679,7 @@ fn splice_out_spans(text: &mut String, mut spans: Vec<(usize, usize)>) {
 /// text); the default is a dry-run report. Injection is class-target only — domain/range and
 /// value-keyed grounding need a closure/SPARQL-target authoring step this phase leaves to review.
 ///
-/// After an `--apply` run the caller regenerates (`make regen`) and prunes the now-equivalent
+/// After an `--apply` run the caller regenerates (`make check`) and prunes the now-equivalent
 /// blocks (`shape-migrate --prune`); equivalence is proven by the oracle, never trusted.
 pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
     let root = project_root();

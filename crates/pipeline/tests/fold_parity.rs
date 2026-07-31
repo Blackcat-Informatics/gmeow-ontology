@@ -84,7 +84,7 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
 
 fn run_sink() -> Vec<u8> {
     let root = repo_root();
-    // Drive the REAL production DAG (`full_spec`, the same spec `run_full` / `make regen`
+    // Drive the REAL production DAG (`full_spec`, the same spec `run_full` / `make check`
     // build) rather than a hand-maintained copy: the executor's composed fold is then proven
     // fold-isomorphic to the committed bundle over the ACTUAL shipped stage set, and the spine
     // can never silently drift from the production wiring again.

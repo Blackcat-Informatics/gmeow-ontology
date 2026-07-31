@@ -148,7 +148,7 @@ hand-maintained:
 - **The rendered table.** The always-current human table (seam, direction,
   carrying terms, owning design doc) is the generated seam-registry page
   `ontology-docs/seams/index.md`, rendered on demand by
-  `make sync SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
+  `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
   product, so the page exists only after that render). It is a direct
   projection of the same data, and a validator gate keeps it from drifting out
   of sync with the manifests.

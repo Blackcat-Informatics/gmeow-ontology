@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Canonical GMEOW citation ledger. Edit this file, then run `make regen`.
+# Canonical GMEOW citation ledger. Edit this file, then run `make check`.
 # Generated bibliography projections live under generated/references/.
 
 @prefix brick: <https://brickschema.org/schema/Brick#> .

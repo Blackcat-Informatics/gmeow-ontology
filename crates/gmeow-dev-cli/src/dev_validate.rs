@@ -182,7 +182,7 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
     let bytes = std::fs::read(&path).map_err(|e| {
         fail(format!(
             "cannot read the recorded SHACL verdict at {}: {e}. It is a pipeline product \
-             — run `make regen`; its absence is never a reason to pass validation",
+             — run `make check`; its absence is never a reason to pass validation",
             path.display()
         ))
     })?;
@@ -199,7 +199,7 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
         .ok_or_else(|| {
             fail(format!(
                 "the recorded SHACL verdict at {} carries no {} metadata, so the inputs it \
-                 validated cannot be identified — regenerate it (`make regen`)",
+                 validated cannot be identified — regenerate it (`make check`)",
                 path.display(),
                 gmeow_pipeline::stages::validate::SHACL_INPUT_DIGEST_KEY,
             ))
@@ -208,7 +208,7 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
         return Err(fail(format!(
             "the recorded SHACL verdict at {} is STALE: it validated inputs digesting \
              {digest}, but the authored sources and the committed shape union \
-             (generated/shapes included) now digest {expected}. Regenerate it (`make regen`) \
+             (generated/shapes included) now digest {expected}. Regenerate it (`make check`) \
              — a stale verdict is never accepted as current",
             path.display(),
         )));

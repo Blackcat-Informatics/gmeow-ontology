@@ -180,8 +180,8 @@ where the work went. Keep the format template in the header so the next author h
   description here. `.deficiencies` itself is exempt (it is not Markdown), so the ledger
   header may cite numbers freely.
 - Verify with `make lint` (pre-commit runs the reference lint on every invocation). A drain
-  touches no Rust, no ontology source and no pipeline input, so `make regen` has nothing to
-  regenerate — do not run it.
+  touches no Rust, no ontology source and no pipeline input, so the regeneration pipeline
+  has nothing to produce — do not run `make check`.
 
 ---
 

@@ -27,7 +27,8 @@ use crate::{SyncMode, SyncOutput};
 const MANIFEST_VERSION: u32 = 3;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
-/// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check` / `make regen`) runs on
+/// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check`, or the single
+/// producer target `make check-sync` on its own) runs on
 /// the entire host at a time, regardless of worktree, so sibling-worktree gates cannot
 /// interfere. Byte-identical to `crates/xtask/src/main.rs::host_lock_path` so both the
 /// `xtask` check runner and this `gmeow-dev sync` writer contend on the SAME file.
@@ -183,7 +184,7 @@ impl TaskLock {
         }
 
         // HOST-GLOBAL lock: at most one GMEOW gate runs on the whole host at a time, so a
-        // standalone `make regen` here cannot interfere with a `make check`/`make regen` in
+        // standalone `make check-sync` here cannot interfere with a `make check` in
         // ANY sibling worktree. (Re-entrant descendants of a running check skip this via
         // the token check above.)
         use std::os::unix::fs::MetadataExt;

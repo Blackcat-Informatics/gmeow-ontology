@@ -187,7 +187,7 @@ pub const AUTHORING_UNDECLARED_TERM: &str = "authoring.undeclared-term";
 /// untranslatable.
 pub const AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL: &str = "authoring.untagged-localizable-literal";
 /// The generated grounding seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
-/// materialized under `ontology-docs/seams/index.md` by `make sync SYNC_OUTPUTS=docs`)
+/// materialized under `ontology-docs/seams/index.md` by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`)
 /// disagrees with the canonical `gmeow:Seam` data authored in the grounding slices'
 /// manifests — a carrying term, owning doc, or seam name present in one but not the
 /// other. Only fires when the generated page is present (an absent on-demand `docs`

@@ -43,7 +43,7 @@ fn bundle_carries_no_value_transport_surface() {
     let bytes = std::fs::read(&bundle).unwrap_or_else(|e| {
         panic!(
             "materialized bundle {} is required for the projection-purity gate — run \
-             `make regen` first: {e}",
+             `make check` first: {e}",
             bundle.display()
         )
     });

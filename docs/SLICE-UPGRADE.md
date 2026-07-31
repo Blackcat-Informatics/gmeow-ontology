@@ -252,8 +252,7 @@ filled cell in a coverage table.
 
 ```bash
 make fmt
-make regen
-make check-sync
+make check          # materializes generated/ through the single producer, then gates
 make validate
 make slicetest
 ```

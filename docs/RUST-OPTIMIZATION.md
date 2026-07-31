@@ -71,7 +71,7 @@ than by the change under test. It is CI-only by construction (it hard-fails with
 scheduling decision and never a coverage cut.
 
 Local `make check` owns update-mode synchronization, so a developer does not need
-to run `make regen` first. The whole-run manifest makes a clean fixed point a fast
+to run `make check` first. The whole-run manifest makes a clean fixed point a fast
 no-op; after relevant source changes, check pays the one required regeneration.
 CI invokes the internal `make check-sync` target in read-only mode so committed
 drift remains a hard failure.
@@ -215,7 +215,7 @@ Performance changes must not change output order accidentally.
   boundary or using a fixed-seed deterministic hasher where appropriate.
 - Keep first-wins rules explicit. If an optimized join changes first-wins behavior,
   it is a semantic change and needs a golden/parity update with explanation.
-- Keep generated artifact diffs reproducible through `make regen`.
+- Keep generated artifact diffs reproducible through `make check`.
 
 ## Build Profile Doctrine
 
@@ -243,7 +243,8 @@ gate:
   needed from one closure; use `make reason` or `make verify` to isolate one side.
 - Validation behavior: focused `gmeow-validate` / `gmeow-shacl` tests, then
   `make validate`.
-- Generated-output behavior: `make regen` followed by `make check-sync`.
+- Generated-output behavior: `make check` (it materializes through the single
+  producer and then gates the result — never a separate regenerate pass first).
 - Final branch confidence: `make check`.
 
 If the change is intentionally performance-only, the semantic output should be

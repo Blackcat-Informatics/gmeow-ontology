@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! A small, dependency-free DAG runner for the full host gate. It owns the
-//! HOST-GLOBAL gate lock (`make check`/`make regen` mutually exclude across every
-//! worktree on the machine — see [`host_lock_path`]) and schedules the gate's tasks
+//! HOST-GLOBAL gate lock (`make check` and a standalone `make check-sync` mutually
+//! exclude across every worktree on the machine — see [`host_lock_path`]), and
+//! schedules the gate's tasks
 //! concurrently under their ACCURATE dependencies, without imposing a thread cap on
 //! any child tool.
 //!
@@ -28,8 +29,9 @@ use std::time::{Duration, Instant};
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
 
-/// The HOST-GLOBAL gate-lock path. `make check` and `make regen` take THIS lock, so at
-/// most ONE GMEOW gate runs on the entire host at a time — regardless of worktree —
+/// The HOST-GLOBAL gate-lock path. `make check` and the single producer target
+/// (`make check-sync`, which runs `gmeow-dev sync`) take THIS lock, so at most ONE
+/// GMEOW gate runs on the entire host at a time — regardless of worktree —
 /// and concurrent gates in sibling worktrees can never interfere (shared build/target
 /// contention, disk pressure, or a mid-flight bundle regeneration another worktree
 /// reads).

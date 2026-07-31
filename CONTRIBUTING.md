@@ -125,7 +125,7 @@ make help
   category. Keep the logical core in OWL 2 DL.
 - Author cross-ontology alignments **in the mapping DSL** under `mapping-dsl/`
   (`equivalences/` for 1:1 SSSOM links, `projections/` for the lossy downcasts),
-  then run `make regen`. The `mappings/*.sssom.tsv`,
+  then run `make check`. The `mappings/*.sssom.tsv`,
   `projections/*.edoal.ttl`, `projections/functions.fno.ttl`, and
   `queries/projections/*.rq` are **generated — do not edit them by hand** (CI's
   `make check-sync` fails on drift). Link by IRI freely; never copy axioms
@@ -133,7 +133,7 @@ make help
   this by design.
 - Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model, and it is the
   **canonical** form (Principles 2–3). Author it once in `dsl/statements/` — the
-  RDF 1.2-shaped Turtle DSL — then run `make regen`. The RDF 1.2 / RDF\*
+  RDF 1.2-shaped Turtle DSL — then run `make check`. The RDF 1.2 / RDF\*
   serialization **and** the OWL 2 axiom-annotation form (`owl:Axiom` +
   `owl:annotatedSource/Property/Target`) are both **generated — do not hand-author
   either** (CI's `make check-sync` fails on drift). The OWL form is the
@@ -158,11 +158,13 @@ Before requesting review, make sure you:
 - [ ] ran `make lint`
 - [ ] ran `make validate` (syntax, term annotations, SHACL)
 - [ ] ran `make reason` after any ontology change (native EL/DL profile)
-- [ ] ran `make regen` after any `mapping-dsl/` change, then
-      `make mappings` and `make wikidata`
-- [ ] ran `make regen` after any `dsl/statements/` change
+- [ ] ran `make mappings` and `make wikidata` after any `mapping-dsl/` change
 - [ ] ran `make rust-test`
-- [ ] ran `make check` for the full repository gate
+- [ ] ran `make check` for the full repository gate — it materializes
+      `generated/` itself (through its single producer, `check-sync`) and then
+      gates, so it is the ONLY command needed after a canonical-source change;
+      never regenerate first and gate second (that runs the pipeline twice
+      against one host-global lock, which is why `make regen` refuses)
 - [ ] updated tests for any behavioural change
 - [ ] updated `README.md` if usage, flags, terms, or outputs changed
 - [ ] cited the affected Constitution principle(s) in the PR description

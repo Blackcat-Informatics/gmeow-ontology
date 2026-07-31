@@ -1448,7 +1448,7 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
 //
 // The generated seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
 // rendered as `seams/index.md` and materialized at `ontology-docs/seams/index.md`
-// by `make sync SYNC_OUTPUTS=docs`) is a pure projection of the `gmeow:Seam`
+// by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`) is a pure projection of the `gmeow:Seam`
 // individuals authored in the grounding slices' manifests (docs/GROUNDING.md,
 // "The seam registry"). This gate is a SECOND, INDEPENDENT reader of that same
 // governance data — `gmeow-validate` cannot depend on `gmeow-docs` (which itself
@@ -2046,7 +2046,8 @@ pub fn seam_registry_drift_findings(
                         "seam-registry drift NOT COMPARED against a materialized page: no \
                          {ONTOLOGY_DOCS_DIR}/ tree in this checkout, so \
                          {SEAM_REGISTRY_PAGE_PATH} does not exist (materialize it with `make \
-                         sync SYNC_OUTPUTS=docs`). The {n} declared gmeow:Seam individual(s) are \
+                         check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`). The {n} declared \
+                         gmeow:Seam individual(s) are \
                          compared unconditionally against the in-memory render by `gmeow-dev \
                          doc-lint`.",
                         n = seams.len(),
@@ -3354,7 +3355,9 @@ mod tests {
         );
         assert!(
             findings[0].message.contains("NOT COMPARED")
-                && findings[0].message.contains("make sync SYNC_OUTPUTS=docs")
+                && findings[0]
+                    .message
+                    .contains("make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs")
                 && findings[0].message.contains("doc-lint"),
             "the record must name the state, the remedy, and the unconditional leg: {}",
             findings[0].message

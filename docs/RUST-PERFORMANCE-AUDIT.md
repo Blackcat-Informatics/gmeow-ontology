@@ -118,7 +118,7 @@ only when that task genuinely reads a `generated/` artifact, and the monolithic
 still runs on every PR.
 
 The local `make check` entry point also owns update-mode synchronization. This
-removes the developer-visible `make regen` / `make check` boundary without adding
+removes the developer-visible regenerate-then-gate boundary without adding
 another cold pipeline: a clean manifest returns immediately, while a miss pays the
 same regeneration that previously had to be run as a separate command. The
 internal `make check-sync` target defaults to read-only mode for CI drift proof.

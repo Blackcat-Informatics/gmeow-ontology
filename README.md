@@ -198,7 +198,7 @@ dist/bin/gmeow mcp
 The public `gmeow` CLI is a native Rust binary backed by the bundled
 `generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
 projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
-Documentation projections are regenerated from canonical sources with `make regen SYNC_OUTPUTS=docs`;
+Documentation projections are regenerated from canonical sources with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`;
 they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
@@ -290,13 +290,13 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make reason` | Native Docker-free EL/DL reasoning authority |
 | `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
-| `make regen` | Run one cached synchronization DAG and materialize every output family: committed/generated, runtime `dist/`, and external docs (`SYNC_VERBOSE=1` streams live phases) |
-| `make check-sync` | Drift + orphan + internal-tag-leak gate over every registered generator |
+| `make check` | THE entry point: run the single producer (materializing `generated/` + the bundle), then the whole local gate DAG — one host-locked pass |
+| `make check-sync` | The single producer, standalone: read-only drift + orphan + internal-tag-leak gate by default; `SYNC_MODE=update` materializes, `SYNC_OUTPUTS={generated,docs,all}` scopes the fanout, `SYNC_VERBOSE=1` streams live phases |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make regen SYNC_OUTPUTS=docs` | Regenerate the external site, book, print, snippet, and generated-model documentation projections |
+| `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` | Regenerate the external site, book, print, snippet, and generated-model documentation projections |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
@@ -778,7 +778,7 @@ The issue backlog is represented here as current capability:
   manifests, constitution-as-code, annotation-driven co-equal/suppression/frame guards,
   `owl:sameAs` hard gates, and RDF compliance report make constitutional drift a build failure.
 - **Docs-from-the-ontology.** Every slice has a full guide; `gmeow describe` works from the
-  bundled logical graph, while `make regen SYNC_OUTPUTS=docs` source-renders every external documentation
+  bundled logical graph, while `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` source-renders every external documentation
   projection; the citation ledger lives in `metadata/references.ttl` and exports to
   CSL, BibTeX, Markdown, and generated docs.
 - **Transpile and projection.** `gmeow transpile` lifts consumer RDF to a pure-GMEOW draft,

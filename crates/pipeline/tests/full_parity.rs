@@ -6,7 +6,7 @@
 //! the freshly-materialized staged tree.
 //!
 //! `generated/` is NOT git-tracked: it is a git-ignored LOCAL PRODUCT that
-//! `make regen` materializes on disk (PIPELINE_SPINE §6 fanout). So the reference
+//! `make check` materializes on disk (PIPELINE_SPINE §6 fanout). So the reference
 //! this gate compares against is that MATERIALIZED staged tree (the bytes `make
 //! sync` last wrote), never "historical Git bytes" and never the git index — the
 //! test only ever reads the on-disk product. Its distinct value is the SEMANTIC
@@ -30,7 +30,7 @@
 //!    CBOR has encoding skew, so byte parity is not the contract; the fold
 //!    is. A fold mismatch here is a real regression (modulo the self-describing
 //!    pipeline-DAG triples the `fold_parity.rs` filter excludes for the
-//!    stale-vs-fresh window before `make regen` reruns the terminal).
+//!    stale-vs-fresh window before `make check` reruns the terminal).
 //!  * Every other declared artifact (`generated/**`) — reconciled against the
 //!    materialized bytes: byte-deterministic text/CSV/JSON/etc. by BYTES,
 //!    RDF/Turtle leaves by GRAPH ISOMORPHISM (RDF text carries serializer skew, so
@@ -314,7 +314,7 @@ struct FoldShape {
 /// `fold_parity.rs::is_pipeline_self_triple`. Re-authoring the dogfooded build DAG
 /// (e.g. re-adding `gmeow:stage-export-logic`) legitimately changes these triples
 /// in the freshly-composed fold while the materialized bundle still carries the old
-/// DAG (until `make regen` reruns the terminal), so they are excluded from the fold
+/// DAG (until `make check` reruns the terminal), so they are excluded from the fold
 /// comparison.
 fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";

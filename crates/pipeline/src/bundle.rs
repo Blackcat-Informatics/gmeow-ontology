@@ -19,7 +19,7 @@
 //! stages read them back by path. C4 swaps the CARRIER (a `BTreeMap<String,Vec<u8>>`
 //! in `StageProduct`) for the structured bundle WITHOUT changing the bytes any
 //! stage produces or reads — byte-identity of every committed artifact must hold
-//! (`make regen SYNC_MODE=check SYNC_OUTPUTS=generated`). To do that with zero behavioural change, the named
+//! (`make check-sync SYNC_MODE=check`). To do that with zero behavioural change, the named
 //! byte artifacts are stored INSIDE the bundle:
 //!
 //! * each artifact's bytes live in the bundle's [`ContentStore`] (the one owner of

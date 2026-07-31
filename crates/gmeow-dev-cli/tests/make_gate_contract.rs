@@ -369,7 +369,7 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     let source = makefile();
 
     assert!(
-        target_recipe(&source, "check").contains("CHECK_SYNC_MODE=update cargo xtask check"),
+        target_recipe(&source, "check").contains("SYNC_MODE=update cargo xtask check"),
         "local check owns update-mode synchronization"
     );
     // There is ONE local gate. The receipt-backed impact profile and its `check-full`
@@ -382,29 +382,73 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         !source.lines().any(|line| line.starts_with("check-full:")),
         "check-full existed only to force past the impact profile, which is removed"
     );
-    // `make sync` is removed: the standalone regenerate lane is `make regen`; `make check`
-    // owns its own sync pass, so agents run ONLY `make check` for the gate.
-    assert!(target_recipe(&source, "regen").contains("$(GMEOW_DEV) sync"));
-    assert!(
-        !source.lines().any(|line| line.starts_with("sync:")),
-        "the standalone `make sync` target must be removed (it duplicated `make check`'s sync pass)"
-    );
+    // ONE PRODUCER. `check-sync` is the only Make target that runs the regeneration
+    // pipeline: `make check`'s DAG, CI's cold materialization, and every non-gate lane
+    // (install/commit/release/release-publish/Pages) all drive it. A second invocable
+    // pipeline target does not merely duplicate the work — `gmeow-dev sync` takes the
+    // HOST-GLOBAL gate lock, so the second run blocks on the first.
     assert!(
         target_recipe(&source, "check-sync")
-            .contains("sync --mode $(CHECK_SYNC_MODE) --outputs generated"),
-        "aggregate sync must select its explicit update/check operation"
-    );
-    assert!(
-        source.contains("CHECK_SYNC_MODE ?= check"),
-        "direct and CI check-sync invocations must remain read-only by default"
+            .contains("$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS)"),
+        "the single producer must select its mode and output scope explicitly"
     );
     assert_eq!(
         source
             .lines()
-            .filter(|line| line.starts_with("regen:"))
+            .filter(|line| line.contains("$(GMEOW_DEV) sync --mode"))
             .count(),
         1,
-        "standalone regenerate lane (`make regen`) has one Make authority"
+        "exactly one Make recipe line may run the pipeline; a second entry point queues \
+         the whole host behind itself on the gate lock"
+    );
+    assert!(
+        !source.lines().any(|line| line.starts_with("sync:")),
+        "the standalone `make sync` target must stay removed (it duplicated the producer)"
+    );
+    assert!(
+        source.contains("SYNC_MODE ?= check"),
+        "direct and CI producer invocations must remain read-only by default"
+    );
+    assert!(
+        !source.contains("CHECK_SYNC_MODE"),
+        "the producer's mode has ONE variable name (SYNC_MODE); the CHECK_SYNC_MODE alias \
+         was a second name for the same selector"
+    );
+
+    // `make regen` is POISONED, not merely removed: it stays present so the habit fails
+    // LOUDLY and names its replacement, and it must never run the pipeline again.
+    let regen = target_recipe(&source, "regen");
+    assert!(
+        !regen.contains("$(GMEOW_DEV) sync"),
+        "make regen must not run the pipeline: it was the second producer entry point"
+    );
+    assert!(
+        regen
+            .lines()
+            .any(|line| line.trim_start_matches('\t').trim() == "@exit 1"),
+        "make regen must hard-fail unconditionally, not warn — a banner left the double \
+         run reachable"
+    );
+    for alternative in [
+        "make check",
+        "make check-sync SYNC_MODE=update",
+        "make install",
+    ] {
+        assert!(
+            regen.contains(alternative),
+            "the refusal must name the correct alternative {alternative:?}"
+        );
+    }
+    assert!(
+        !regen
+            .lines()
+            .any(|line| line.trim_start_matches('\t').starts_with("@if")
+                || line.trim_start_matches('\t').starts_with("if ")),
+        "the refusal must be unconditional: any escape hatch restores the double run"
+    );
+    assert!(
+        !source.lines().any(|line| line.contains("$(MAKE) regen")),
+        "no Make target may still invoke the poisoned regen lane"
     );
 
     assert_eq!(
@@ -476,10 +520,15 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
     );
     assert_eq!(
         source
-            .matches("run: make regen GMEOW_DEV=./dist/bin/gmeow-dev")
+            .matches("run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update")
             .count(),
         1,
-        "one matrix step must define both cold generations through the prebuilt producer"
+        "one matrix step must define both cold generations through the prebuilt producer, \
+         driving the SINGLE producer target"
+    );
+    assert!(
+        !source.contains("make regen"),
+        "CI must never invoke the poisoned regen lane"
     );
     assert!(
         source.contains("diff --recursive --brief --no-dereference generated-a generated-b"),

@@ -52,7 +52,7 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// A failure reading the RECORDED quality-assessment corpus back: the projection
-    /// is absent, unparseable, structurally incomplete (a grade missing its axis,
+    /// is absent, unparsable, structurally incomplete (a grade missing its axis,
     /// score, or tier), or stale with respect to the authored sources it claims to
     /// describe. Every one of these is a hard failure — a consumer of the record must
     /// never fall back to a partial reading or to trusting an unverified record.

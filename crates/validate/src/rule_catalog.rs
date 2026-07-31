@@ -635,7 +635,7 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     ),
     (
         codes::AUTHORING_CATALOG_MISSING_MODULE,
-        "Regenerate the XML catalog (make regen) so every slice module owl:Ontology IRI is mapped.",
+        "Regenerate the XML catalog (make check) so every slice module owl:Ontology IRI is mapped.",
     ),
     (
         codes::AUTHORING_MODULE_IRI_MISMATCH,
@@ -659,7 +659,7 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     ),
     (
         codes::AUTHORING_SEAM_REGISTRY_DRIFT,
-        "Regenerate the docs projection (make sync SYNC_OUTPUTS=docs) so the seam-registry page reflects the current gmeow:Seam data, or fix the gmeow:Seam individual the finding names in the grounding slice's manifest.ttl.",
+        "Regenerate the docs projection (make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs) so the seam-registry page reflects the current gmeow:Seam data, or fix the gmeow:Seam individual the finding names in the grounding slice's manifest.ttl.",
     ),
     (
         codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE,
