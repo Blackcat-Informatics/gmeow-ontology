@@ -179,8 +179,13 @@ const CHECK_DAG: &[Task] = &[
         target: "coherence-gate-teeth",
         dependencies: AFTER_RUST_BUILD,
     },
-    // `merged_shapes` -> `purrdf::shapes::shape_union::shape_files`, which unions
-    // `generated/shapes/*.ttl` and fails closed when that directory is empty.
+    // Two post-sync reads. (1) The shape union
+    // (`purrdf::shapes::shape_union::load_shapes` via `ValidateOptions::shape_union_root`)
+    // includes `generated/shapes/*.ttl` and fails closed when that directory is empty.
+    // (2) The whole-corpus merged-SHACL verdict is CONSUMED from `stage-validate`'s
+    // `generated/diagnostics/shacl.json` rather than recomputed; `gmeow-dev validate`
+    // hard-fails unless that record's `shaclInputDigest` matches the authored sources
+    // plus the committed shape union as they stand on disk.
     Task {
         name: "validate",
         target: "validate",
@@ -227,8 +232,11 @@ const CHECK_DAG: &[Task] = &[
         target: "lint-alignment",
         dependencies: AFTER_SYNC,
     },
-    // `DocsModel::discover` reads `generated/catalog/constraint-catalog.nq` and
-    // `generated/catalog/term-content-manifest.nq`.
+    // The documentation model and the rendered English site come from the
+    // content-addressed `.cache/docs-fixture` store (`gmeow_docs::fixture`), whose key
+    // folds `generated/catalog/constraint-catalog.nq` and
+    // `generated/catalog/term-content-manifest.nq` — the same two files
+    // `DocsModel::discover` reads, and which it HARD-fails without.
     Task {
         name: "doc-lint",
         target: "doc-lint",
@@ -238,12 +246,11 @@ const CHECK_DAG: &[Task] = &[
     // rubric (`gmeow_slice_quality::load_repo_rubric` over the slices' authored
     // `module.ttl`), NOT from a `generated/` file —
     // `generated/governance/slice-quality-axis-floors.tsv` is only echoed as a human
-    // pointer inside a per-axis floor violation message and is never read. The real
-    // forcing read is the SCORING sweep: every slice's `DocMaturity` axis builds the
-    // repo documentation model (`doc_maturity::build_repo_facts` ->
-    // `DocsModel::discover`), whose `read_constraint_catalog` HARD-fails on a missing
-    // `generated/catalog/constraint-catalog.nq` (and which also reads
-    // `generated/catalog/term-content-manifest.nq`).
+    // pointer inside a per-axis floor violation message and is never read. The forcing
+    // read is now the RECORDED grade vector: the gate loads
+    // `generated/quality/gmeow.quality-assessment.nt` (`stage-source-load`'s scoring
+    // sweep, projected) instead of re-scoring all 84 slices, and hard-fails unless that
+    // record's `gmeow:versionFingerprint` matches the authored sources on disk.
     Task {
         name: "slice-quality-gate",
         target: "slice-quality-gate",

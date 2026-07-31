@@ -42,6 +42,96 @@ pub const SHACL_HTML_PATH: &str = "generated/diagnostics/shacl.html";
 /// Committed `gmeow:Finding` N-Quads projection of the DAG SHACL diagnostics report.
 pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
 
+/// The `shacl.json` metadata key carrying [`shacl_input_digest`] — the exact input
+/// set this stage validated.
+///
+/// A consumer that reads the RECORDED merged-SHACL verdict instead of re-running the
+/// pass MUST recompute this digest over the working tree and hard-fail on absence or
+/// mismatch. Absence means the record predates the digest contract and its vintage is
+/// unknowable; mismatch means the record describes different bytes than are on disk.
+/// Neither is ever a skip and neither is ever a silent pass.
+pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
+
+/// The canonical digest of everything the merged-SHACL pass consumed: the authored
+/// source corpus and the shape union.
+///
+/// `members` is a sequence of `(repo-relative path, bytes)` pairs; the digest sorts
+/// them, so a caller may assemble the two halves in any order. Each entry folds its
+/// path, its byte length, and its bytes, so a rename, a truncation, and a content edit
+/// are all distinguishable.
+///
+/// The SHAPE half is what makes this the drift detector `generated/shapes/*.ttl` needs.
+/// `stage-validate` structurally never reads that directory — it validates against THIS
+/// run's freshly-produced shape bytes (the deliberate anti-stale-fold law in
+/// [`crate::stages::shape_union_fresh`]) — so a consumer comparing its own DISK-read
+/// union against this digest is precisely testing whether the committed shape files
+/// still equal what the pipeline produced and validated with. That is the one thing the
+/// old duplicate whole-corpus SHACL run caught and nothing else did; it is preserved
+/// here rather than lost.
+#[must_use]
+pub fn shacl_input_digest(members: &[(String, Vec<u8>)]) -> String {
+    let mut sorted: Vec<&(String, Vec<u8>)> = members.iter().collect();
+    sorted.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-shacl-input-v1\x1e");
+    for (path, bytes) in sorted {
+        hasher.update(path.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
+        hasher.update(bytes);
+        hasher.update(b"\x1e");
+    }
+    format!("blake3:{}", hasher.finalize().to_hex())
+}
+
+/// Read `(repo-relative path, bytes)` for each of `paths`, for [`shacl_input_digest`].
+fn read_digest_members(
+    root: &Path,
+    paths: &[std::path::PathBuf],
+) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
+    paths
+        .iter()
+        .map(|path| {
+            let rel = path
+                .strip_prefix(root)
+                .unwrap_or(path)
+                .to_string_lossy()
+                .replace('\\', "/");
+            let bytes = std::fs::read(path).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("digesting SHACL input {}: {e}", path.display()),
+                })
+            })?;
+            Ok((rel, bytes))
+        })
+        .collect()
+}
+
+/// The digest of the merged-SHACL input set as it stands ON DISK under `root`: every
+/// authored source file plus every member of the committed shape union
+/// (`purrdf::shapes::shape_union::shape_files`, `generated/shapes/*.ttl` included).
+///
+/// This is the value a consumer of the recorded verdict recomputes and compares
+/// against the `shaclInputDigest` in `shacl.json`. It reads `generated/shapes/*.ttl`
+/// off disk DELIBERATELY — that read is the whole point, since the recorded digest
+/// covers the bytes the pipeline actually validated with.
+///
+/// # Errors
+/// If the authored source list or the shape-union file list cannot be built, or any
+/// member cannot be read. A missing input makes the digest meaningless, so it is a
+/// hard failure rather than a shorter fold.
+pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::Diag> {
+    let mut members =
+        read_digest_members(root, &crate::stages::source_load::authored_files(root)?)?;
+    let shape_files = purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("listing the committed shape union: {e}"),
+        })
+    })?;
+    members.extend(read_digest_members(root, &shape_files)?);
+    Ok(shacl_input_digest(&members))
+}
+
 /// Convert the native SHACL engine report into the canonical diagnostics report.
 ///
 /// Each `ValidationResult` is routed through a [`DiagLedger`] (via
@@ -308,6 +398,27 @@ impl Stage for ValidateStage {
             input.upstream,
         )?;
         let (mut report, advisories) = validate_source_graph(input.root, source_graph, &fresh)?;
+        // Record EXACTLY what this pass validated: the authored source corpus, read
+        // from disk, plus the effective shape union — authored members from disk and
+        // generated members from THIS run's product bytes (never `generated/shapes` off
+        // disk, which is the previous run's projection). A consumer that reads this
+        // verdict instead of re-running the whole-corpus pass recomputes the same digest
+        // over its own DISK view and hard-fails on any difference; that comparison is
+        // what carries forward the `generated/shapes` drift detection the duplicate run
+        // used to provide.
+        {
+            let mut members = read_digest_members(
+                input.root,
+                &crate::stages::source_load::authored_files(input.root)?,
+            )?;
+            members.extend(crate::stages::shape_union_fresh::effective_union_members(
+                input.root, &fresh,
+            )?);
+            report.metadata.insert(
+                SHACL_INPUT_DIGEST_KEY.to_owned(),
+                json!(shacl_input_digest(&members)),
+            );
+        }
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare
         // IRI in the finding's logical location) matches a span-index entry — the path +
         // 1-based line/column travel onto the SHIPPED finding locations (and, via the

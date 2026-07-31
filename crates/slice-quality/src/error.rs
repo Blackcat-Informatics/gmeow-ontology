@@ -51,6 +51,18 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A failure reading the RECORDED quality-assessment corpus back: the projection
+    /// is absent, unparseable, structurally incomplete (a grade missing its axis,
+    /// score, or tier), or stale with respect to the authored sources it claims to
+    /// describe. Every one of these is a hard failure — a consumer of the record must
+    /// never fall back to a partial reading or to trusting an unverified record.
+    pub struct Record { detail: String }
+    code = "slice-quality.record";
+    grade = sq_grade!();
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// A reasoning-pass failure in the slice-quality axis producers.
     pub struct Reason { detail: String }
     code = "slice-quality.reason";
@@ -64,6 +76,7 @@ pub const SLICE_QUALITY_DIAG_CODES: &[fn() -> gmeow_errors::Code] = &[
     Rubric::register,
     Gate::register,
     Report::register,
+    Record::register,
     Reason::register,
 ];
 

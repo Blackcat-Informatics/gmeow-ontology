@@ -42,7 +42,7 @@ use sha1::{Digest, Sha1};
 use crate::exec::ExecutableDocsData;
 use crate::i18n::{ENGLISH, Translations, UiCatalog};
 use crate::mdbook::render_book;
-use crate::model::DocsModel;
+use crate::model::{DocsError, DocsModel};
 use crate::render::{Site, render_site_lang};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run
@@ -56,6 +56,19 @@ use crate::render::{Site, render_site_lang};
 /// loudly rather than silently rebuilding and masking it. Only a genuine absence
 /// is a legitimate miss that falls through to `discover()`.
 pub fn load(root: &Path) -> DocsModel {
+    try_load(root).unwrap_or_else(|e| panic!("build docs model from live slices: {e}"))
+}
+
+/// [`load`], but surfacing a model-BUILD failure as `Err` instead of panicking.
+///
+/// Same cache, same key, same integrity contract: a cache file that is present but
+/// undeserializable still panics (that is corruption, not an honest absence), and a
+/// genuine miss still builds and caches. The only difference is the disposition of a
+/// [`DocsModel::discover`] error, which some callers must report as a first-class
+/// finding rather than a crash — `gmeow-slice-quality`'s DocMaturity axis records it
+/// as `slice-quality.doc-maturity.model-unavailable`, and swapping that for a panic
+/// would turn a recorded, gradeable condition into a dead process.
+pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
     let cache_path = cache_path(root);
     match fs::read(&cache_path) {
         Ok(bytes) => {
@@ -66,9 +79,13 @@ pub fn load(root: &Path) -> DocsModel {
                     cache_path.display()
                 )
             });
-            cached.into_model()
+            Ok(cached.into_model())
         }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => build_and_cache(root, &cache_path),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let model = DocsModel::discover(root)?;
+            write_cache(&cache_path, &CachedModel::from_model(&model));
+            Ok(model)
+        }
         Err(e) => panic!(
             "cannot read docs-fixture cache at {}: {e}",
             cache_path.display()
@@ -167,19 +184,19 @@ fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site
 /// are on disk. Only a cold or interrupted-partial cache loads the model — once —
 /// to enumerate `available_languages` and render the missing artifacts.
 pub fn prime(root: &Path) {
-    let cache_path = cache_path(root);
-    let model = if cache_path.exists() {
-        // English is rendered last below, so an existing English site means every
-        // translation AND the book for this key are already warm — return without
-        // loading the model. The book check makes a pre-book-cache warm directory
-        // (English present, book absent) correctly re-prime the book.
-        if site_cache_path(root, ENGLISH).exists() && book_cache_path(root).exists() {
-            return;
-        }
-        load(root)
-    } else {
-        build_and_cache(root, &cache_path)
-    };
+    // English is rendered last below, so an existing English site means every
+    // translation AND the book for this key are already warm — return without
+    // loading the model. The book check makes a pre-book-cache warm directory
+    // (English present, book absent) correctly re-prime the book.
+    if cache_path(root).exists()
+        && site_cache_path(root, ENGLISH).exists()
+        && book_cache_path(root).exists()
+    {
+        return;
+    }
+    // Cold, or interrupted-partial: `load` builds-and-caches the model on a genuine
+    // miss and deserializes the warm entry otherwise — one authority for both.
+    let model = load(root);
 
     // Render every translation first, then the book, then the English carrier last
     // so the sentinel above only becomes true once the complete set is on disk.
@@ -203,12 +220,6 @@ pub fn prime(root: &Path) {
     let english_path = site_cache_path(root, ENGLISH);
     let english = render_site_lang(&model, ENGLISH);
     write_cache(&english_path, &CachedSite::from_site(&english));
-}
-
-fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
-    let model = DocsModel::discover(root).expect("build docs model from live slices");
-    write_cache(cache_path, &CachedModel::from_model(&model));
-    model
 }
 
 /// The on-disk cache path for the model built from the inputs under `root`.
@@ -318,6 +329,51 @@ impl CachedSite {
     }
 }
 
+/// Every workspace crate whose Rust sources can execute inside the model build or
+/// a render — the TRANSITIVE `path = "../…"` dependency closure of `gmeow-docs`,
+/// `gmeow-docs` itself included.
+///
+/// A path dependency carries NO content hash in `Cargo.lock` (unlike a registry or
+/// git dependency, which is pinned by checksum/rev), so editing one changes what
+/// `discover()` computes while leaving every other hashed input byte-identical. A
+/// cache keyed on less than this closure therefore serves a stale model across such
+/// an edit — and `.cache/` is gitignored and persists, so the stale entry survives
+/// indefinitely. The closure — not a hand-picked subset — is the only set that is
+/// sound by construction: it needs no per-call-site argument about which imported
+/// symbol "really" affects the model, and `crate_dep_closure_is_fully_hashed`
+/// re-derives it from the workspace manifests so a NEW path dependency reds a test
+/// instead of silently opening the hole again.
+///
+/// Sorted; each entry's `src/` tree and `Cargo.toml` are folded into the key.
+const HASHED_CRATE_ROOTS: &[&str] = &[
+    "affect-ingest",
+    "cost-measure",
+    "docs",
+    "errors",
+    "lang-bridge",
+    "lang-form",
+    "license",
+    "logic",
+    "logic-compile",
+    "math",
+    "math-lift",
+    "ns",
+    "term-arena",
+    "validate",
+];
+
+/// The repo-root-relative directories a `gmeow:cqQueryFile` may resolve into.
+///
+/// This is BOTH the authoring contract `crates/slicetest/src/paths.rs::query_file`
+/// documents (a shared `queries/…` tree or a slice's own
+/// `slices/<group>/<name>/queries/…`) AND the soundness boundary of
+/// [`cache_key`]: every path under these roots is folded into the key, so a
+/// competency query's TEXT can never change behind the cache's back.
+/// `apply_competency_query_text` hard-fails on a `cqQueryFile` outside them —
+/// see [`crate::model::COMPETENCY_QUERY_ROOTS`], which this mirrors and the
+/// `competency_query_roots_are_hashed` test pins.
+const COMPETENCY_QUERY_ROOTS: &[&str] = crate::model::COMPETENCY_QUERY_ROOTS;
+
 /// Content-address the inputs `discover()` reads. The key folds (in order): a
 /// salt of the crate version + model schema version, then the sorted
 /// `(relative-path, bytes)` of every file under the discovery and implementation
@@ -335,24 +391,34 @@ fn cache_key(root: &Path) -> String {
     // Data roots discover() walks recursively. `queries` is the shared repo-root
     // SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
     // `apply_competency_query_text`) alongside the per-slice `.rq` files already
-    // covered by the `slices` walk. The implementation roots close the stale-cache
-    // hole left by the old crate-version-only salt: normal source edits do not bump
-    // Cargo's package version on every commit.
-    for dir in [
-        "slices",
-        "shapes",
-        "i18n",
-        "queries",
-        "crates/docs/src",
-        "crates/docs/templates",
-        "crates/docs/assets",
-        "crates/errors/src",
-        "crates/logic-compile/src",
-        "crates/validate/src",
-    ] {
+    // covered by the `slices` walk — and `COMPETENCY_QUERY_ROOTS` is the enforced
+    // boundary that keeps that resolution inside this hashed set.
+    for dir in COMPETENCY_QUERY_ROOTS
+        .iter()
+        .map(|r| r.trim_end_matches('/'))
+        .chain(["shapes", "i18n"])
+    {
         collect_files(&root.join(dir), &mut files);
     }
-    // Individual files discover() reads directly.
+    // gmeow-docs' own non-source render inputs (templates + assets).
+    for dir in ["crates/docs/templates", "crates/docs/assets"] {
+        collect_files(&root.join(dir), &mut files);
+    }
+    // The implementation roots close the stale-cache hole left by the old
+    // crate-version-only salt (normal source edits do not bump Cargo's package
+    // version on every commit) AND the path-dependency hole: a `path = "../…"`
+    // dependency carries no content hash in `Cargo.lock`, so nothing else in the
+    // key moves when one is edited. See `HASHED_CRATE_ROOTS`.
+    for krate in HASHED_CRATE_ROOTS {
+        collect_files(&root.join("crates").join(krate).join("src"), &mut files);
+        let manifest = root.join("crates").join(krate).join("Cargo.toml");
+        if manifest.is_file() {
+            files.push(manifest);
+        }
+    }
+    // Individual files discover() reads directly, plus `Cargo.lock` — which pins
+    // every REGISTRY and GIT dependency by checksum/rev (purrdf included), the
+    // half of the dependency graph `HASHED_CRATE_ROOTS` does not cover.
     for file in [
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
@@ -360,10 +426,6 @@ fn cache_key(root: &Path) -> String {
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
         "Cargo.lock",
-        "crates/docs/Cargo.toml",
-        "crates/errors/Cargo.toml",
-        "crates/logic-compile/Cargo.toml",
-        "crates/validate/Cargo.toml",
     ] {
         let p = root.join(file);
         if p.is_file() {
@@ -519,6 +581,108 @@ mod tests {
             cache_key(&root),
             "key must change when fixture implementation bytes change"
         );
+    }
+
+    /// Every crate in `HASHED_CRATE_ROOTS` genuinely moves the key. A path
+    /// dependency has no `Cargo.lock` checksum, so this is the ONLY thing standing
+    /// between an edit to one of them and a stale cached model.
+    #[test]
+    fn every_hashed_crate_root_moves_the_key() {
+        let root = temp_root("crate-roots");
+        for krate in HASHED_CRATE_ROOTS {
+            let src = root.join("crates").join(krate).join("src");
+            fs::create_dir_all(&src).unwrap();
+            let before = cache_key(&root);
+            fs::write(src.join("lib.rs"), format!("// {krate} v1")).unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "editing crates/{krate}/src must invalidate the docs-fixture cache"
+            );
+            let before = cache_key(&root);
+            fs::write(
+                root.join("crates").join(krate).join("Cargo.toml"),
+                b"[package]\n",
+            )
+            .unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "editing crates/{krate}/Cargo.toml must invalidate the docs-fixture cache"
+            );
+        }
+    }
+
+    /// `HASHED_CRATE_ROOTS` IS the transitive `path = "../…"` dependency closure of
+    /// `gmeow-docs`, re-derived here from the live workspace manifests.
+    ///
+    /// This is the construction that keeps the cache sound as the crate graph moves:
+    /// adding a path dependency anywhere in the closure opens a fresh unhashed hole
+    /// (path deps carry no `Cargo.lock` checksum), and this test reds instead of the
+    /// hole opening silently. Removing one leaves a dead entry, which it also reds.
+    #[test]
+    fn crate_dep_closure_is_fully_hashed() {
+        /// The `path = "../<name>"` dependencies declared by one crate manifest.
+        fn path_deps(crates_dir: &Path, krate: &str) -> Vec<String> {
+            let manifest = crates_dir.join(krate).join("Cargo.toml");
+            let text = fs::read_to_string(&manifest)
+                .unwrap_or_else(|e| panic!("read {}: {e}", manifest.display()));
+            let mut out = Vec::new();
+            for (idx, _) in text.match_indices("path = \"../") {
+                let rest = &text[idx + "path = \"../".len()..];
+                let Some(end) = rest.find('"') else { continue };
+                let name = &rest[..end];
+                // Only sibling crates (`../<name>`), never a deeper relative path.
+                if !name.is_empty() && !name.contains('/') {
+                    out.push(name.to_string());
+                }
+            }
+            out
+        }
+
+        let crates_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("crates/docs has a parent")
+            .to_path_buf();
+
+        let mut closure: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        let mut queue = vec!["docs".to_string()];
+        while let Some(krate) = queue.pop() {
+            if !closure.insert(krate.clone()) {
+                continue;
+            }
+            queue.extend(path_deps(&crates_dir, &krate));
+        }
+
+        let hashed: std::collections::BTreeSet<String> = HASHED_CRATE_ROOTS
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect();
+        assert_eq!(
+            hashed, closure,
+            "HASHED_CRATE_ROOTS must be exactly gmeow-docs' transitive path-dependency \
+             closure — a path dependency carries no Cargo.lock checksum, so an unhashed \
+             one is a permanent stale-cache hole in .cache/docs-fixture"
+        );
+    }
+
+    /// The competency-query resolution boundary the model enforces is exactly a set
+    /// of directories this key walks in full — otherwise a `gmeow:cqQueryFile` could
+    /// name a file whose text changes without moving the key.
+    #[test]
+    fn competency_query_roots_are_hashed() {
+        for boundary in COMPETENCY_QUERY_ROOTS {
+            let dir = boundary.trim_end_matches('/');
+            let root = temp_root(&format!("cq-{dir}"));
+            fs::create_dir_all(root.join(dir)).unwrap();
+            let before = cache_key(&root);
+            fs::write(root.join(dir).join("q.rq"), b"SELECT * {}").unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "a competency query under {boundary} must be folded into the cache key"
+            );
+        }
     }
 
     #[test]

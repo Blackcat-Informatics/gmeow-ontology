@@ -3,8 +3,9 @@
 #
 # Worked example: a slice-quality report IS a bundle of quality observations.
 # Each per-axis grade is a gmeow:QualityAssessment (a gmeow:Observation subclass)
-# whose assessedEntity is the target slice, whose qualityDimension is the axis's
-# emitted dimension, and whose observationResult is a math:Quantity grade —
+# whose assessedEntity is the target slice, whose assessmentAxis is the rubric axis
+# it measured, whose qualityDimension is that axis's emitted dimension, and whose
+# observationResult is a math:Quantity grade —
 # the same measurement bundle (method, vantage, dimensioned result) as any other
 # GMEOW observation, never a bare number. This scene includes the epistemically
 # hard case: the translation-coverage grade is genuinely CONTESTED (a bare parallel
@@ -25,6 +26,7 @@ ex:advisor a gmeow:Organization ;
 # --- A per-axis grade: grounding measured Maximal as a normalized ratio. --------
 ex:groundingGrade a gmeow:QualityAssessment ;
     gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:assessmentAxis    gmeow:axisMaximalGrounding ;
     gmeow:qualityDimension  gmeow:qualityDimensionGrounding ;
     gmeow:observationMethod gmeow:methodComputationalModel ;
     gmeow:vantage           ex:advisor ;
@@ -40,6 +42,7 @@ ex:groundingScore a math:Quantity ;
 # honest low grade rather than pretending completeness.
 ex:translationGrade a gmeow:QualityAssessment ;
     gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:assessmentAxis    gmeow:axisTranslationCoverage ;
     gmeow:qualityDimension  gmeow:qualityDimensionTranslationCoverage ;
     gmeow:observationMethod gmeow:methodComputationalModel ;
     gmeow:vantage           ex:advisor ;

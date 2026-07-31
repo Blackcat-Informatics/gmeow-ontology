@@ -89,3 +89,138 @@ fn rdf_projection_is_well_formed_and_deterministic() {
     // Assertional-tier provenance is stamped on every generated subject.
     assert!(a.contains(&format!("<{GMEOW}graphBoxRole> <{GMEOW}boxABox>")));
 }
+
+/// **The round-trip proof.** Score fresh, project to RDF, read the projection back,
+/// and require the recovered grade vector to be EXACTLY the fresh one — every axis,
+/// every score bit-for-bit, every tier.
+///
+/// This is the precondition for any consumer replacing a live scoring sweep with a
+/// read of the recorded corpus. If any field were lossy the substitution would change
+/// what a gate sees: the per-axis floor check compares at `f64::EPSILON` tolerance, so
+/// even the sixth-decimal rounding the human-facing `fmt_score` applies would be
+/// enough to lift a score that sits just below a committed floor up through it and
+/// flip a FAIL into a PASS. `assert_eq!` on the raw `f64` — never an epsilon compare —
+/// is the point of this test.
+#[test]
+fn recorded_grades_round_trip_exactly() {
+    let root = repo_root();
+    let dir = root.join("slices/core/slice-quality-rubric");
+    let module = root.join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module]).expect("rubric parses");
+    let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
+        .expect("rubric loads")
+        .standard;
+    let fresh = score_slice_with_standard(&dir, &standard, ScoringEnv::Repo)
+        .expect("the rubric slice scores")
+        .assessment;
+
+    // The corpus as the pipeline projects it: the freshness witness plus this slice's
+    // block. The fingerprint value is irrelevant here (freshness is proven separately);
+    // what matters is that the reader consumes the identical bytes the emitter writes.
+    let projected = format!(
+        "{}{}",
+        gmeow_slice_quality::report::corpus_fingerprint_nquads("blake3:0"),
+        {
+            let report = score_slice_with_standard(&dir, &standard, ScoringEnv::Repo)
+                .expect("the rubric slice scores");
+            report.to_gmeow_rdf()
+        }
+    );
+
+    let corpus =
+        gmeow_slice_quality::read::read_recorded_corpus_bytes(projected.as_bytes(), &standard)
+            .expect("the projection reads back");
+    let recovered = corpus
+        .assessment(&fresh.slice)
+        .expect("the scored slice is in the record");
+
+    assert_eq!(
+        recovered.slice, fresh.slice,
+        "the assessed slice IRI must round-trip"
+    );
+    assert_eq!(
+        recovered.grades.len(),
+        fresh.grades.len(),
+        "every graded axis must round-trip — a dropped axis silently un-floors it"
+    );
+    assert!(
+        !fresh.grades.is_empty(),
+        "the rubric declares axes; a vacuous round-trip proves nothing"
+    );
+    for (got, want) in recovered.grades.iter().zip(&fresh.grades) {
+        assert_eq!(got.axis_iri, want.axis_iri, "axis identity must round-trip");
+        // Bit-for-bit: NOT an epsilon compare. A rounded score can cross a floor.
+        assert_eq!(
+            got.score.to_bits(),
+            want.score.to_bits(),
+            "axis {} score must round-trip bit-for-bit: recorded {} vs fresh {}",
+            want.axis_iri,
+            got.score,
+            want.score
+        );
+        assert_eq!(
+            got.tier, want.tier,
+            "axis {} tier must round-trip",
+            want.axis_iri
+        );
+    }
+    assert_eq!(
+        recovered.rollup, fresh.rollup,
+        "the roll-up meet tier must round-trip"
+    );
+    assert_eq!(
+        corpus.fingerprint, "blake3:0",
+        "the witness must round-trip"
+    );
+}
+
+/// The projection carries the axis as FIRST-CLASS data, and the reader keys off that
+/// rather than off the minted subject IRI or the lossy dimension.
+#[test]
+fn every_per_axis_grade_names_its_axis() {
+    let root = repo_root();
+    let dir = root.join("slices/core/slice-quality-rubric");
+    let module = root.join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module]).expect("rubric parses");
+    let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
+        .expect("rubric loads")
+        .standard;
+    let report =
+        score_slice_with_standard(&dir, &standard, ScoringEnv::Repo).expect("the slice scores");
+    let projected = report.to_gmeow_rdf();
+
+    for grade in &report.assessment.grades {
+        assert!(
+            projected.contains(&format!("<{GMEOW}assessmentAxis> <{}>", grade.axis_iri)),
+            "axis {} must be recorded as a first-class gmeow:assessmentAxis",
+            grade.axis_iri
+        );
+    }
+    // The axis→dimension map is many-to-one, so the dimension cannot substitute: the
+    // rubric grades strictly more axes than there are distinct emitted dimensions.
+    let dimensions: std::collections::BTreeSet<&str> = standard
+        .axes
+        .iter()
+        .map(|a| a.dimension_iri.as_str())
+        .collect();
+    assert!(
+        dimensions.len() < standard.axes.len(),
+        "the axis→dimension map must remain many-to-one for this argument to hold: \
+         {} axes onto {} dimensions",
+        standard.axes.len(),
+        dimensions.len()
+    );
+    // The roll-up spans every axis and therefore names none.
+    let rollup_subject = projected
+        .lines()
+        .find(|l| l.contains("/rollup> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"))
+        .expect("the roll-up assessment is projected");
+    let rollup_iri = rollup_subject
+        .split_whitespace()
+        .next()
+        .expect("subject term");
+    assert!(
+        !projected.contains(&format!("{rollup_iri} <{GMEOW}assessmentAxis>")),
+        "the roll-up is the meet across every axis and must name no single axis"
+    );
+}

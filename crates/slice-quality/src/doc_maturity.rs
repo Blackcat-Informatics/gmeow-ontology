@@ -250,8 +250,19 @@ pub(crate) fn prime_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) {
 /// fraction; supplying live bytes only guarantees the model BUILDS on a cold tree.
 fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
     let built = match catalog_bytes {
+        // In-pipeline: the catalog is THIS run's freshly-rendered bytes, which are not
+        // part of the on-disk content-addressed key, so the disk fixture cache cannot
+        // and must not serve it.
         Some(bytes) => DocsModel::discover_with_catalog(root, bytes),
-        None => DocsModel::discover(root),
+        // Post-pipeline / CLI over a materialized tree: take the model from the
+        // content-addressed `.cache/docs-fixture` store instead of paying a fresh
+        // ~12 s `discover()`. `fixture::try_load` is byte-identical to `discover()`
+        // and preserves its Result — a build failure still becomes
+        // `RepoFacts::Failed` (and thence the `doc-maturity.model-unavailable`
+        // advisory), never a panic. The key folds every input `discover()` reads plus
+        // gmeow-docs' whole transitive path-dependency closure, so a stale model
+        // cannot be served across any edit that would change this axis's score.
+        None => gmeow_docs::fixture::try_load(root),
     };
     match built {
         Ok(model) => {

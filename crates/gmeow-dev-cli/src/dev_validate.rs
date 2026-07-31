@@ -14,8 +14,9 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::Path;
 
+use gmeow_errors::Report;
 use gmeow_validate::lint::{LintConfig, default_annotation_predicates};
-use gmeow_validate::validate_all::{SignatureConfig, ValidateOptions, ValidationRun};
+use gmeow_validate::validate_all::{MergedShacl, SignatureConfig, ValidateOptions, ValidationRun};
 
 use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, project_root, write_timings_json,
@@ -73,12 +74,27 @@ pub fn validate(
         annotation_predicates: default_annotation_predicates().into_iter().collect(),
     };
 
-    // The merged SHACL shape union (with the canonical exclusions applied by
-    // `shape_files`) drives the conformance phase in both modes — the same shape
-    // set the `make validate` gate enforces.
-    let shapes_ttl = match merged_shapes(&root) {
-        Ok(s) => s,
-        Err(code) => return code,
+    // The whole-corpus merged-SHACL verdict is CONSUMED from `stage-validate`'s
+    // recorded product rather than computed a second time over the same inputs.
+    //
+    // Reading a record is only sound once the record is proven current, so the source
+    // is resolved by `recorded_merged_shacl`, which recomputes `stage-validate`'s input
+    // digest — over every authored source AND every member of the committed shape
+    // union, `generated/shapes/*.ttl` included — and HARD-FAILS on an absent, stale, or
+    // digest-less record. That digest comparison is what carries forward the one thing
+    // the duplicate run uniquely caught: `stage-validate` structurally never reads
+    // `generated/shapes` off disk, so committed-shape drift showed up only here. It
+    // still does, now as a digest mismatch instead of a second corpus-wide SHACL pass.
+    //
+    // `--gts` validates a bundle that is NOT the authored working tree, so no record of
+    // the pipeline's describes it; that path keeps its own live pass.
+    let merged_shacl = if gts.is_some() {
+        gmeow_validate::validate_all::MergedShacl::Live
+    } else {
+        match recorded_merged_shacl(&root) {
+            Ok(source) => source,
+            Err(code) => return code,
+        }
     };
 
     // `--gts PATH`: validate a folded bundle directly (with the optional signature
@@ -94,9 +110,11 @@ pub fn validate(
             gts_bytes: Some(gts_bytes),
             signature_config,
             deep,
+            shape_union_root: Some(root.clone()),
+            merged_shacl,
             ..ValidateOptions::default()
         };
-        ValidationRun::run(&[], &shapes_ttl, "", "", &lint_config, &options)
+        ValidationRun::run(&[], "", "", "", &lint_config, &options)
     } else {
         let source_paths: Vec<String> =
             match gmeow_pipeline::stages::source_load::authored_files(&root) {
@@ -107,9 +125,11 @@ pub fn validate(
             timings,
             project_root: Some(root.clone()),
             deep,
+            shape_union_root: Some(root.clone()),
+            merged_shacl,
             ..ValidateOptions::default()
         };
-        ValidationRun::run(&source_paths, &shapes_ttl, "", "", &lint_config, &options)
+        ValidationRun::run(&source_paths, "", "", "", &lint_config, &options)
     };
     let run = match run {
         Ok(r) => r,
@@ -141,20 +161,65 @@ pub fn validate(
     }
 }
 
-/// The merged SHACL shape union from the repo — the canonical shape file set
-/// (`purrdf::shapes::shape_union::shape_files`, with the same exclusions the live
-/// validator applies), concatenated into one Turtle document.
-fn merged_shapes(root: &Path) -> Result<String, i32> {
-    let files = purrdf::shapes::shape_union::shape_files(root)
-        .map_err(|e| fail(format!("cannot list shape files: {e}")))?;
-    let mut out = String::new();
-    for file in files {
-        let text = std::fs::read_to_string(&file)
-            .map_err(|e| fail(format!("cannot read {}: {e}", file.display())))?;
-        out.push_str(&text);
-        out.push('\n');
+/// `stage-validate`'s recorded whole-corpus merged-SHACL verdict, admitted ONLY after
+/// it is proven to describe the current working tree.
+///
+/// The proof is the input digest `stage-validate` stamps into `shacl.json`'s metadata:
+/// a content fold over every authored source file AND every member of the shape union
+/// it validated with. This recomputes that digest from disk — including
+/// `generated/shapes/*.ttl`, which `stage-validate` structurally never reads — so a
+/// committed shape file that has drifted from the bytes the pipeline produced and
+/// validated with makes the digests differ.
+///
+/// Every failure here is HARD. An absent `shacl.json` is not "nothing to check"; a
+/// record with no digest is a record of unknowable vintage; a mismatch is a record of
+/// different bytes. None of them is a skip, and none of them is a pass: a caller that
+/// cannot obtain a proven-current verdict has not validated, and says so.
+fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
+    let expected = gmeow_pipeline::stages::validate::on_disk_shacl_input_digest(root)
+        .map_err(|e| fail(format!("cannot digest the SHACL input set: {e}")))?;
+    let path = root.join(gmeow_pipeline::stages::validate::SHACL_JSON_PATH);
+    let bytes = std::fs::read(&path).map_err(|e| {
+        fail(format!(
+            "cannot read the recorded SHACL verdict at {}: {e}. It is a pipeline product \
+             — run `make regen`; its absence is never a reason to pass validation",
+            path.display()
+        ))
+    })?;
+    let recorded: Report = serde_json::from_slice(&bytes).map_err(|e| {
+        fail(format!(
+            "the recorded SHACL verdict at {} is not a diagnostics report: {e}",
+            path.display()
+        ))
+    })?;
+    let digest = recorded
+        .metadata
+        .get(gmeow_pipeline::stages::validate::SHACL_INPUT_DIGEST_KEY)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| {
+            fail(format!(
+                "the recorded SHACL verdict at {} carries no {} metadata, so the inputs it \
+                 validated cannot be identified — regenerate it (`make regen`)",
+                path.display(),
+                gmeow_pipeline::stages::validate::SHACL_INPUT_DIGEST_KEY,
+            ))
+        })?;
+    if digest != expected {
+        return Err(fail(format!(
+            "the recorded SHACL verdict at {} is STALE: it validated inputs digesting \
+             {digest}, but the authored sources and the committed shape union \
+             (generated/shapes included) now digest {expected}. Regenerate it (`make regen`) \
+             — a stale verdict is never accepted as current",
+            path.display(),
+        )));
     }
-    Ok(out)
+    // The recorded findings are exactly `stage-validate`'s post-advisory-split set:
+    // Info-severity results (advisory-constraint matches) were lifted out there and
+    // re-projected as Notes, and Info NEVER contributed to an error count on either
+    // side — `finding_from_shacl` maps `sh:Violation` to Error, `sh:Warning` to
+    // Warning, and `sh:Info` to Info. So the ERROR set this run gates on is identical
+    // to the one a live pass here would produce.
+    Ok(MergedShacl::Recorded(recorded.findings))
 }
 
 /// Build the [`SignatureConfig`] from the CLI flags + an optional trust-policy TOML.

@@ -2764,6 +2764,29 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
     }
 }
 
+/// The repo-root-relative directory roots a `gmeow:cqQueryFile` may resolve into:
+/// the shared root-level SPARQL tree and a slice's own committed queries.
+///
+/// Both are content-addressed by `crate::fixture::cache_key` (which walks `queries`
+/// and `slices` in full), which is what makes the documentation-model fixture cache
+/// sound with respect to competency-query text. `crate::fixture` re-exports this as
+/// its own boundary constant so the two can never drift.
+pub const COMPETENCY_QUERY_ROOTS: &[&str] = &["queries/", "slices/"];
+
+/// Whether `rel` is a legal `gmeow:cqQueryFile` value: repo-root-relative (never
+/// absolute), free of any `..` component (which could escape the hashed roots
+/// while still passing a naive prefix test), and under one of
+/// [`COMPETENCY_QUERY_ROOTS`].
+fn is_competency_query_path(rel: &str) -> bool {
+    if rel.starts_with('/') || rel.starts_with('\\') {
+        return false;
+    }
+    if rel.split(['/', '\\']).any(|seg| seg == "..") {
+        return false;
+    }
+    COMPETENCY_QUERY_ROOTS.iter().any(|r| rel.starts_with(r))
+}
+
 /// Resolve each [`DocCompetency::query_file`] to its [`DocCompetency::query_text`]
 /// by reading the repo-root-relative `.rq` path. `query_file` is
 /// REPO-ROOT-RELATIVE regardless of whether it happens to start with
@@ -2778,12 +2801,31 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
 /// A CQ with `query_file` set but no readable file at that path is a hard
 /// fail — `cqQueryFile` existing is the ontology's own claim that the file
 /// resolves; a dangling reference is a data bug, not an honest absence.
+///
+/// A `cqQueryFile` that resolves OUTSIDE [`COMPETENCY_QUERY_ROOTS`] is likewise a
+/// hard fail. Two reasons, both structural: it is outside the resolution contract
+/// `crates/slicetest/src/paths.rs::query_file` documents (so the executing
+/// competency harness and the docs model would disagree about where the query
+/// lives), and it is outside the content-addressed input set
+/// `crate::fixture::cache_key` folds — a query whose TEXT changed under an
+/// unhashed path would be served stale from `.cache/docs-fixture` forever. Making
+/// the boundary an error keeps the cache sound BY CONSTRUCTION rather than by the
+/// authoring convention that today's values all happen to satisfy.
 fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
     for cq in &mut model.competencies {
         if cq.query_text.is_some() {
             continue;
         }
         let Some(rel) = &cq.query_file else { continue };
+        if !is_competency_query_path(rel) {
+            return Err(DocsError::CompetencyQuery(format!(
+                "competency question <{}> declares gmeow:cqQueryFile {rel:?}, which is outside \
+                 the resolution contract: the path must be repo-root-relative, free of `..`, and \
+                 under one of {}",
+                cq.iri,
+                COMPETENCY_QUERY_ROOTS.join(" / "),
+            )));
+        }
         let path = root.join(rel);
         let text = std::fs::read_to_string(&path).map_err(|e| {
             DocsError::CompetencyQuery(format!(
@@ -4631,6 +4673,67 @@ mod tests {
 
     fn store_from(ttl: &str) -> Store {
         parse_turtle_lenient(ttl.as_bytes()).expect("parse")
+    }
+
+    /// The `cqQueryFile` resolution boundary: repo-root-relative, `..`-free, and
+    /// under one of the content-addressed roots. Anything else is a hard fail —
+    /// see `apply_competency_query_text`.
+    #[test]
+    fn competency_query_paths_are_confined_to_the_hashed_roots() {
+        assert!(is_competency_query_path("queries/competency/agents.rq"));
+        assert!(is_competency_query_path(
+            "slices/core/kernel/queries/competency/k.rq"
+        ));
+        // Outside the hashed roots: unhashed text would be served stale forever.
+        assert!(!is_competency_query_path("dsl/competency/agents.rq"));
+        assert!(!is_competency_query_path("generated/queries/agents.rq"));
+        // Absolute, and `..` escapes that would pass a naive prefix test.
+        assert!(!is_competency_query_path("/etc/passwd"));
+        assert!(!is_competency_query_path("queries/../dsl/agents.rq"));
+        assert!(!is_competency_query_path("slices/..\\dsl\\agents.rq"));
+    }
+
+    /// A `cqQueryFile` outside the boundary is an ERROR, not a silent skip and not
+    /// a tolerated read — the model build fails and names the offending path.
+    #[test]
+    fn competency_query_outside_the_hashed_roots_hard_fails() {
+        let root = std::env::temp_dir().join(format!(
+            "gmeow-cq-root-test-{}-{}",
+            std::process::id(),
+            line!()
+        ));
+        std::fs::remove_dir_all(&root).ok();
+        std::fs::create_dir_all(root.join("dsl")).expect("mkdir");
+        // The file EXISTS and is readable — only its location is illegal, so this
+        // proves the boundary itself rejects, not a dangling-path fallback.
+        std::fs::write(root.join("dsl/escape.rq"), b"SELECT * {}").expect("write");
+
+        let mut model = DocsModel {
+            competencies: vec![DocCompetency {
+                iri: "https://blackcatinformatics.ca/gmeow/cq/escape".to_owned(),
+                query_file: Some("dsl/escape.rq".to_owned()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let err = apply_competency_query_text(&mut model, &root)
+            .expect_err("a cqQueryFile outside the hashed roots must hard-fail");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("dsl/escape.rq") && msg.contains("outside the resolution contract"),
+            "the error must name the offending path and the contract, got: {msg}"
+        );
+
+        // The legal location, same bytes, resolves.
+        std::fs::create_dir_all(root.join("queries/competency")).expect("mkdir");
+        std::fs::write(root.join("queries/competency/ok.rq"), b"SELECT * {}").expect("write");
+        model.competencies[0].query_file = Some("queries/competency/ok.rq".to_owned());
+        apply_competency_query_text(&mut model, &root).expect("a query under queries/ resolves");
+        assert_eq!(
+            model.competencies[0].query_text.as_deref(),
+            Some("SELECT * {}")
+        );
+        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]

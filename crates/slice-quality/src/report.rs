@@ -422,7 +422,8 @@ impl SliceReport {
 // -----------------------------------------------------------------------------
 
 /// The named graph the slice-quality assessment projection lives in.
-const SLICE_QUALITY_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-quality";
+pub(crate) const SLICE_QUALITY_GRAPH: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/slice-quality";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
@@ -523,6 +524,20 @@ impl SliceReport {
                 &assessed_object,
                 &mut lines,
             );
+            // The AXIS this grade measured — measurement identity, carried as a
+            // first-class predicate so a reader recovers the grade vector exactly
+            // (see `crate::read`). Neither of the two things that look like they
+            // could stand in for it actually can: `gmeow:qualityDimension` is a
+            // many-to-one projection (sixteen axes onto twelve dimensions), and the
+            // minted subject IRI's `local_slug` lowercases and collapses runs, so it
+            // is a display convention rather than an assertion. Emitted for per-axis
+            // grades only; the roll-up spans every axis and names none.
+            triple(
+                &assessment_subject,
+                &format!("{}assessmentAxis", crate::model::GMEOW),
+                &format!("<{}>", nq_iri(&grade.axis_iri)),
+                &mut lines,
+            );
             // The dimension the grade is emitted under — a hard requirement: an axis
             // with no bound dimension is a rubric authoring error, never silently
             // dropped (the projection then carries a visibly under-specified grade).
@@ -580,7 +595,7 @@ impl SliceReport {
             triple(
                 &score_subject,
                 &format!("{}quantityValue", crate::model::MATH),
-                &format!("\"{}\"^^<{XSD_DECIMAL}>", fmt_score(grade.score)),
+                &format!("\"{}\"^^<{XSD_DECIMAL}>", exact_score(grade.score)),
                 &mut lines,
             );
             triple(
@@ -652,10 +667,92 @@ impl SliceReport {
     }
 }
 
-/// Format a normalized `[0,1]` score as a deterministic plain-decimal lexical form
-/// (fixed precision — never scientific notation, so it is a legal `xsd:decimal`).
+/// The `gmeow:versionFingerprint` predicate (core `versions` slice) the corpus
+/// carries — the semantic content fingerprint of the scored source set, NOT a
+/// byte-exact digest of any one file (which is what `gmeow:contentDigest` is for).
+pub(crate) const VERSION_FINGERPRINT: &str =
+    "https://blackcatinformatics.ca/gmeow/versionFingerprint";
+
+/// Project the corpus-level freshness witness: one `gmeow:versionFingerprint` on the
+/// assessment graph itself, recording the canonicalized digest of every authored file
+/// the sweep scored ([`crate::scored_input_fingerprint`]).
+///
+/// This is what lets a CONSUMER of the recorded corpus prove the record still
+/// describes the working tree instead of trusting that something regenerated it. The
+/// gate recomputes the digest and hard-fails on absence or mismatch, so a stale
+/// `generated/quality/gmeow.quality-assessment.nt` can never be read as if it were
+/// current — the recomputation the gate no longer performs is replaced by a proof
+/// that the recomputation is unnecessary, never by an assumption that it is.
+///
+/// Emitted exactly ONCE per corpus (by [`crate::assessment_artifacts`] and by the dev
+/// CLI's RDF sweep), never per slice: it is a property of the whole scored source set.
+#[must_use]
+pub fn corpus_fingerprint_nquads(fingerprint: &str) -> String {
+    let graph = format!("<{SLICE_QUALITY_GRAPH}>");
+    let subject = format!("<{}>", nq_iri(SLICE_QUALITY_GRAPH));
+    let triple = |p: &str, o: &str| format!("{subject} <{p}> {o} {graph} .\n");
+    let literal = |value: &str| format!("\"{}\"", nq_escape(value));
+    let mut out = String::new();
+    out.push_str(&triple(VERSION_FINGERPRINT, &literal(fingerprint)));
+    out.push_str(&triple(
+        RDFS_LABEL,
+        &literal("Slice-quality assessment corpus"),
+    ));
+    out.push_str(&triple(
+        SKOS_DEFINITION,
+        &literal(
+            "The slice-quality assessment corpus — every discovered slice scored against the \
+             ontology-resident rubric — fingerprinted by the canonicalized digest of every \
+             authored source file the sweep read, so a consumer can prove the record still \
+             describes the working tree.",
+        ),
+    ));
+    out.push_str(&triple(RDFS_IS_DEFINED_BY, &graph));
+    out.push_str(&triple(
+        &format!("{}graphBoxRole", crate::model::GMEOW),
+        &format!("<{}boxABox>", crate::model::GMEOW),
+    ));
+    out
+}
+
+/// Format a normalized `[0,1]` score for HUMAN prose — the `rdfs:label` /
+/// `skos:definition` sentences a reader sees — at a fixed six decimal places.
+///
+/// This is a DISPLAY form and must never be the machine-read value: it rounds, and
+/// the per-axis floor gate compares at `f64::EPSILON` tolerance, so a score below a
+/// committed floor by less than 5e-7 would round UP through the floor and flip a
+/// FAIL into a PASS. The value a consumer reads back is [`exact_score`].
 fn fmt_score(score: f64) -> String {
     format!("{score:.6}")
+}
+
+/// Format a normalized `[0,1]` score as the LOSSLESS machine-read `xsd:decimal`
+/// lexical form: Rust's shortest round-tripping `f64` rendering, which parses back
+/// to a bit-identical `f64`.
+///
+/// Two properties matter and both hold for a `[0,1]` normalized score. It round-trips
+/// EXACTLY — `Display` for `f64` emits the shortest digit string that reparses to the
+/// same value — which is what lets `crate::read` recover the grade vector the scorer
+/// produced instead of a rounded shadow of it. And it is plain decimal, never
+/// scientific notation (Rust's `f64` `Display` does not emit exponents), so it is a
+/// legal `xsd:decimal`; `0.0` renders `0`, `1.0` renders `1`, both legal and exact.
+///
+/// A non-finite score would render `NaN`/`inf`, which is NOT a legal `xsd:decimal` —
+/// so it is rejected here rather than emitted. Scores are clamped to `[0,1]` by
+/// `crate::lattice::grade_axis` before ever reaching a grade, so this is an
+/// unreachable-state assertion guarding the projection's datatype claim, not a
+/// runtime condition.
+///
+/// # Panics
+///
+/// If `score` is not finite.
+fn exact_score(score: f64) -> String {
+    assert!(
+        score.is_finite(),
+        "a quality score must be a finite normalized [0,1] value to project as \
+         xsd:decimal, got {score}"
+    );
+    format!("{score}")
 }
 
 /// The local name of an IRI (the tail after the last `/` or `#`), slugified to

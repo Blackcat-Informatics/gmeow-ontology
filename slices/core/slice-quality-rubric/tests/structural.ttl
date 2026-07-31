@@ -193,3 +193,33 @@ ASK {
     { gmeow:axisWeight rdfs:range gmeow:QualityTier }
 }""" ;
     gmeow:saRationale "The roll-up tier is the unweighted lattice meet of the axis grades, so the advice weight must not be wired into the tier order; a weighted meet would be an ad-hoc average and would break the ratchet-is-lattice-order law." .
+
+# --- 9. A per-axis grade carries its axis as first-class data (MUST) -----------
+ex:saAssessmentAxisIsFirstClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:assessmentAxis a owl:ObjectProperty ;
+        rdfs:domain gmeow:QualityAssessment ;
+        rdfs:range gmeow:QualityAxis .
+}""" ;
+    gmeow:saRationale "The axis a grade measured is measurement identity, not presentation, so it must be recoverable from the assessment itself: gmeow:axisDimension maps sixteen axes onto twelve dimensions, so gmeow:qualityDimension cannot recover the axis, and a minted subject IRI is a naming convention rather than an assertion." .
+
+# --- 10. The axis is NOT recoverable via the dimension: the map is lossy (MUST-NOT)
+ex:saAssessmentAxisNotAliasedToDimension a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:assessmentAxis rdfs:subPropertyOf gmeow:qualityDimension }
+    UNION
+    { gmeow:assessmentAxis owl:equivalentProperty gmeow:qualityDimension }
+    UNION
+    { gmeow:axisDimension a owl:InverseFunctionalProperty }
+}""" ;
+    gmeow:saRationale "Several axes deliberately publish under one ISO dimension, so the axis-to-dimension map is many-to-one; declaring the axis a sub-property or equivalent of the dimension — or the dimension map injective — would assert a bijection the rubric does not have and would license recovering the axis from the dimension." .

@@ -234,6 +234,52 @@ pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeo
     Ok(files)
 }
 
+/// The EFFECTIVE shape-union member set as `(repo-relative path, bytes)` — exactly the
+/// bytes [`load_shapes_fresh`] parses, in the same order: authored `shapes/*.ttl` and
+/// `slices/*/*/shapes.ttl` read from disk, generated members taken from THIS run's
+/// product bytes.
+///
+/// This is the shape half of `stage-validate`'s recorded input digest
+/// ([`crate::stages::validate::shacl_input_digest`]). Because the generated members
+/// come from the product and not from `generated/shapes/*.ttl` on disk, a consumer
+/// that recomputes the digest over its own DISK view detects committed-shape drift —
+/// the one capability the removed duplicate whole-corpus SHACL run uniquely had.
+///
+/// # Errors
+/// If an authored member cannot be read, or a `fresh` key does not lie under
+/// `generated/shapes/`.
+pub fn effective_union_members(
+    root: &Path,
+    fresh: &BTreeMap<String, Vec<u8>>,
+) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
+    for key in fresh.keys() {
+        if !key.starts_with(GENERATED_SHAPES_PREFIX) {
+            return Err(parse_err(format!(
+                "fresh shape-union member {key} does not lie under \
+                 {GENERATED_SHAPES_PREFIX} — only produced generated members may be \
+                 byte-overridden"
+            )));
+        }
+    }
+    let mut out: Vec<(String, Vec<u8>)> = Vec::new();
+    for path in authored_shape_files(root)? {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let bytes = std::fs::read(&path)
+            .map_err(|e| parse_err(format!("failed to read shape file {}: {e}", path.display())))?;
+        out.push((rel, bytes));
+    }
+    out.extend(
+        fresh
+            .iter()
+            .map(|(rel, bytes)| (rel.clone(), bytes.clone())),
+    );
+    Ok(out)
+}
+
 /// Parse the full shape union into ONE frozen [`RdfDataset`] + typed [`Shapes`],
 /// with every `generated/shapes/*.ttl` member's bytes taken from `fresh` (THIS
 /// run's consumed products — see [`fresh_generated_shape_members`]) and every

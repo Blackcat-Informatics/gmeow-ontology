@@ -574,11 +574,22 @@ fn seam_registry_drift_over_rendered_site(
 /// `gmeow-dev doc-lint` — lint the rust-rendered ontology-docs site.
 pub fn doc_lint() -> i32 {
     let root = project_root();
-    let model = match gmeow_docs::model::DocsModel::discover(&root) {
+    // The model and the English site come from the content-addressed
+    // `.cache/docs-fixture` store, NOT a fresh ~12 s `DocsModel::discover` + render.
+    // This is the identical artifact by construction: `fixture::load` is
+    // byte-identical to `discover()` (its envelope carries the three `#[serde(skip)]`
+    // i18n fields explicitly) and `fixture::load_site` is byte-identical to
+    // `render_site(&load(root))` (`render_site` IS `render_site_lang(_, ENGLISH)`).
+    // The cache key folds every input `discover()` reads plus the whole transitive
+    // path-dependency closure of `gmeow-docs`, so no edit that could change what this
+    // gate lints can leave the key unmoved; a present-but-corrupt entry panics rather
+    // than silently rebuilding. Nothing about what doc-lint ASSERTS changes here —
+    // only how many times the same model gets built in one `make check`.
+    let model = match gmeow_docs::fixture::try_load(&root) {
         Ok(m) => m,
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };
-    let site = gmeow_docs::render::render_site(&model);
+    let site = gmeow_docs::fixture::load_site(&root);
 
     // R7 seam-registry drift, over the page just rendered — the leg that makes the
     // per-seam comparison unconditional on-gate (see the helper's doc comment).

@@ -25,6 +25,7 @@ pub mod lattice;
 pub mod lint;
 pub mod model;
 pub mod prioritize;
+pub mod read;
 pub mod reasoner;
 pub mod report;
 pub mod rubric;
@@ -605,6 +606,44 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
     files
 }
 
+/// The canonicalized content fingerprint of every authored file the quality sweep
+/// scores — the freshness witness the projected corpus carries as its
+/// `gmeow:versionFingerprint`, and the value a consumer of that corpus recomputes to
+/// prove the record still describes the working tree
+/// ([`read::RecordedCorpus::verify_fresh`]).
+///
+/// Folds, in sorted repo-relative path order, each file's path, byte length, and bytes
+/// — so a rename, a truncation, and an edit are all distinguishable, and the digest is
+/// identical across platforms for the same repository state. The input set is
+/// [`scored_source_files`], the SAME single authority the pipeline's source-load cache
+/// key consults; there is deliberately no second enumeration that could drift from it.
+///
+/// # Errors
+/// If any scored source file cannot be read. A file that vanished between enumeration
+/// and hashing makes the digest meaningless, so it is a hard failure rather than a
+/// silently shorter fold.
+pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String> {
+    let mut hasher = blake3::Hasher::new();
+    for path in scored_source_files(repo_root) {
+        let rel = path
+            .strip_prefix(repo_root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let bytes = std::fs::read(&path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("fingerprinting scored source {}: {e}", path.display()),
+            })
+        })?;
+        hasher.update(rel.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
+        hasher.update(&bytes);
+        hasher.update(b"\x1e");
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
 /// `i18n/` directory) — the `DocMaturity` axis's `TranslationCoverage` dimension input
 /// ([`doc_maturity::DocMaturity`], via `gmeow_docs::i18n::Translations`).
@@ -665,7 +704,10 @@ fn assessment_artifacts_inner(
         }));
     }
 
-    let mut nquads = String::new();
+    // The corpus-level freshness witness, emitted ONCE ahead of the per-slice blocks.
+    // It is what makes the projection readable AS a record rather than as a snapshot of
+    // unknown vintage — see `read::RecordedCorpus::verify_fresh`.
+    let mut nquads = report::corpus_fingerprint_nquads(&scored_input_fingerprint(repo_root)?);
     let mut aggregate = gmeow_errors::Report::new("slice-quality");
     let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes);
     let mut slice_timings = Vec::with_capacity(scored.len());

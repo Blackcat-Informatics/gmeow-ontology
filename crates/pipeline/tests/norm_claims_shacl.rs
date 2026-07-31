@@ -105,24 +105,26 @@ fn norm_claims_only_graph() -> Option<Graph> {
     })
 }
 
-/// The merged SHACL shape union, exactly the file set `gmeow-dev validate` uses
-/// (`crates/gmeow-dev-cli/src/dev_validate.rs::merged_shapes`,
-/// `purrdf::shapes::shape_union::shape_files`) — `shapes/*.ttl` (minus the DSL/manifest
+/// The merged SHACL shape union, assembled by the SAME loader every in-repo consumer
+/// uses (`purrdf::shapes::shape_union::load_shapes`, which `gmeow-dev validate` selects
+/// via `ValidateOptions::shape_union_root`) — `shapes/*.ttl` (minus the DSL/manifest
 /// exclusions) + `generated/shapes/*.ttl` (fail-closed if empty; present post-sync) +
 /// `slices/*/*/shapes.ttl`.
-fn merged_shapes_ttl(root: &Path) -> String {
-    let files = purrdf::shapes::shape_union::shape_files(root).unwrap_or_else(|e| {
-        panic!("cannot list the SHACL shape union (requires post-sync generated/shapes/*.ttl): {e}")
-    });
-    let mut out = String::new();
-    for file in files {
-        out.push_str(
-            &std::fs::read_to_string(&file)
-                .unwrap_or_else(|e| panic!("read {}: {e}", file.display())),
-        );
-        out.push('\n');
-    }
-    out
+///
+/// The loader, not a text concatenation of the same files: it parses each member
+/// separately and unions them, which scopes blank-node labels per file and applies
+/// last-declaration-wins prefix recovery. Concatenating the text instead would fuse
+/// same-labelled blanks across files and let a second `@base` re-resolve earlier
+/// relative IRIs — so this test would be validating against a shape set the live
+/// validator never assembles.
+fn merged_shapes(root: &Path) -> purrdf::shapes::shapes::Shapes {
+    purrdf::shapes::shape_union::load_shapes(root)
+        .unwrap_or_else(|e| {
+            panic!(
+                "cannot load the SHACL shape union (requires post-sync generated/shapes/*.ttl): {e}"
+            )
+        })
+        .1
 }
 
 /// The invariant: the shipped `graph/norm-claims` carries at least one advisory-harvested
@@ -156,9 +158,7 @@ fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment()
 
     // The re-homed graph/norm-claims fragment must SHACL-conform against the merged shape union,
     // re-homed exactly as `gmeow-dev validate --gts` re-homes it.
-    let shapes_ttl = merged_shapes_ttl(&root);
-    let shapes =
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("parse the merged shape union");
+    let shapes = merged_shapes(&root);
     let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
         .expect("build an RdfDataset from the re-homed graph/norm-claims quads");
     let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
