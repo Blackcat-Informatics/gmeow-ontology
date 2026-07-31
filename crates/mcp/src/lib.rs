@@ -7151,12 +7151,18 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// the slice file is the one source of truth, and the worked example and conformance case
 /// reference these same schema IRIs (they encode no second copy).
 ///
-/// The SAME slice file also ships inside `gmeow.gts`, so there are two carriers of one theory.
-/// `the_embedded_policy_and_the_bundled_policy_are_the_same_theory` proves the two quad sets
-/// equal. THE BROWSER READS THE BUNDLE: a wasm console has no `include_str!` of a checkout, it
-/// has the snapshot bytes, so the bundled copy is the one a `gmeow://ontology/action-policy`
-/// reader in a browser ultimately sees — the embedded copy is what the executor runs on. They
-/// must not be allowed to drift.
+/// This embedded copy is the theory's ONLY carrier on the wire. `gmeow.gts` ships no second
+/// copy: the pipeline folds a slice's `module.ttl` into `graph/logic`, but a slice's
+/// `examples/*.ttl` is read only to derive documentation and try-it inferences — its triples
+/// are never folded. THE BROWSER READS THIS COPY: a wasm console cannot `include_str!` a
+/// checkout at runtime, but it carries the compiled crate, so a
+/// `gmeow://ontology/action-policy` reader in a browser is served [`action_policy_nquads`] —
+/// the projection of these bytes — and the Transaction-Logic executor reads the same
+/// function. One carrier can never drift; two can.
+/// `the_action_theory_has_exactly_one_carrier_on_the_wire` is the tripwire: it asserts the
+/// bundle carries ZERO policy quads and that the browser-facing resource serves this copy's
+/// projection. If slice examples ever start being folded, that test reds and must be replaced
+/// by a quad-set equality between the two copies — never relaxed.
 const MCP_ACTION_POLICY_TTL: &str =
     include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
 
