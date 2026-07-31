@@ -29,7 +29,10 @@ const FIXTURE: &str = include_str!(
 fn main() {
     let dataset = purrdf::parse_dataset(FIXTURE.as_bytes(), "text/turtle", None)
         .expect("the committed alpha-equivalence-drift-join.ttl fixture parses");
-    let findings = gmeow_logic::math_expression::check_math_expression_findings(dataset.as_ref());
+    let findings = gmeow_logic::math_expression::check_math_expression_findings(
+        dataset.as_ref(),
+        dataset.as_ref(),
+    );
 
     println!(
         "check_math_expression_findings over alpha-equivalence-drift-join.ttl: {} finding(s)\n",

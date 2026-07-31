@@ -25,7 +25,11 @@ fn dataset(turtle: &str) -> std::sync::Arc<RdfDataset> {
 }
 
 fn findings(turtle: &str) -> Vec<Finding> {
-    check_math_expression_findings(dataset(turtle).as_ref())
+    // A bare parse is both substrates here: these unit cases author no derived edges, so the
+    // asserted graph and the closure coincide. The production split is exercised in
+    // tests/math_expression_reasoned_substrate.rs, which reasons for real.
+    let ds = dataset(turtle);
+    check_math_expression_findings(ds.as_ref(), ds.as_ref())
 }
 
 fn count_class(findings: &[Finding], needle: &str) -> usize {

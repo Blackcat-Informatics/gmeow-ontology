@@ -41,11 +41,15 @@ const MATH_MODULE: &str = include_str!("../../../slices/grounding/math/module.tt
 const ALPHA_TWINS: &str =
     include_str!("../../../slices/grounding/math/examples/alpha-equivalent-twins.ttl");
 
+/// The asserted EDB production hands the grammar half, beside the closure it hands the rest.
+fn asserted(turtle: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    let combined = format!("{MATH_MODULE}\n{turtle}");
+    purrdf::parse_dataset(combined.as_bytes(), "text/turtle", None).expect("parse fixture")
+}
+
 /// Reason over the math TBox UNIONED with `turtle`, exactly as production does.
 fn reasoned(turtle: &str) -> gmeow_logic::verify::ReasonedGraph {
-    let combined = format!("{MATH_MODULE}\n{turtle}");
-    let edb =
-        purrdf::parse_dataset(combined.as_bytes(), "text/turtle", None).expect("parse fixture");
+    let edb = asserted(turtle);
     let result = reason_all(&edb).expect("native reasoning succeeds on the fixture");
     match materialize_reasoned_graph(&edb, &result).expect("materialize the reasoned graph") {
         ReasonedGraphOutcome::Ready(graph) => graph,
@@ -70,10 +74,11 @@ fn the_shipped_reference_example_raises_no_expression_identity_finding_when_reas
     let graph = reasoned(REFERENCE_AST_ACT);
     // Only VIOLATIONS matter here. The gate also emits one positive Note per decided root
     // (the expression's alpha-equivalence class), which is the population signal, not a fault.
-    let findings: Vec<_> = check_math_expression_findings(&graph.dataset)
-        .into_iter()
-        .filter(|f| f.severity != gmeow_errors::Severity::Note)
-        .collect();
+    let findings: Vec<_> =
+        check_math_expression_findings(&asserted(REFERENCE_AST_ACT), &graph.dataset)
+            .into_iter()
+            .filter(|f| f.severity != gmeow_errors::Severity::Note)
+            .collect();
     assert!(
         findings.is_empty(),
         "the shipped reference example must be clean through the reasoned substrate, got: {:?}",
@@ -112,7 +117,7 @@ fn structurally_identical_expressions_under_different_iris_share_one_key() {
     // the positive alpha-class notes are the gate's verdict, not a fault.
     let graph = reasoned(REFERENCE_AST_ACT);
     assert!(
-        check_math_expression_findings(&graph.dataset)
+        check_math_expression_findings(&asserted(REFERENCE_AST_ACT), &graph.dataset)
             .iter()
             .all(|f| f.severity == gmeow_errors::Severity::Note),
         "the shared key must survive the reasoned substrate"

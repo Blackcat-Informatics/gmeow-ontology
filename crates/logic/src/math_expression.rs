@@ -80,19 +80,37 @@ fn error(code: &str, message: String) -> Finding {
 /// message) order. Never panics: every fallible read is either surfaced as a typed
 /// finding or a deliberate skip.
 #[must_use]
-pub fn check_math_expression_findings(reasoned: &RdfDataset) -> Vec<Finding> {
-    let index = index_dataset(reasoned);
-    // The ONE `math:` expression lowering, run once per root over this same frozen
-    // graph — [`check_structural_key_drift`] and [`check_structural_key_on_rejected_expression`]
+pub fn check_math_expression_findings(
+    asserted: &RdfDataset,
+    reasoned: &RdfDataset,
+) -> Vec<Finding> {
+    // The GRAMMAR and the DIGEST read the ASSERTED graph; only the leak check reads the closure.
+    //
+    // These two want opposite things from the same data and cannot share a substrate. The DL
+    // chase is SUPPOSED to satisfy a `≥1 p.⊤` obligation by inventing a witness — that is what an
+    // existential means. The expression grammar is supposed to REJECT the missing filler. Run the
+    // grammar over the closure and the reasoner wins every time: an application with no
+    // math:operator acquires one, lowers cleanly, and gets a structural digest computed over a
+    // value nobody authored. math:StructuralKeyOnRejectedExpression then cannot fire for any
+    // missing-X variant, and math:StructuralKeyDrift reports a digest over a phantom.
+    //
+    // Structural identity is a claim about what an author WROTE, so it is computed over what they
+    // wrote. The surface-leak check keeps the closure on purpose: a math:rendersAs edge that
+    // reaches a normalization declaration by inference is exactly as much of a leak as an asserted
+    // one, and catching the derived case is the point of gating it there.
+    let index = index_dataset(asserted);
+    let leak_index = index_dataset(reasoned);
+    // The ONE `math:` expression lowering, run once per root over the asserted graph —
+    // [`check_structural_key_drift`] and [`check_structural_key_on_rejected_expression`]
     // both read off this shared map rather than each re-lowering the graph.
-    let keys = crate::physical::lower::math_expression_structural_keys(reasoned);
+    let keys = crate::physical::lower::math_expression_structural_keys(asserted);
     let usage = classify_structural_key_usage(&index);
     let mut findings = Vec::new();
 
     check_malformed_structural_key(&usage, &mut findings);
     check_structural_key_drift(&keys, &usage, &mut findings);
     check_structural_key_on_rejected_expression(&keys, &usage, &mut findings);
-    check_surface_leak_in_normal_form(&index, &mut findings);
+    check_surface_leak_in_normal_form(&leak_index, &mut findings);
     report_alpha_equivalence_classes(&keys, &mut findings);
 
     findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));

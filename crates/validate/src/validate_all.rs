@@ -1087,6 +1087,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
                 report.add_finding(finding);
             }
             for finding in gmeow_logic::math_expression::check_math_expression_findings(
+                edb.as_ref(),
                 reasoned.dataset.as_ref(),
             ) {
                 report.add_finding(finding);

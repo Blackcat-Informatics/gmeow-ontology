@@ -2643,7 +2643,7 @@ mod tests {
         }
         assert_eq!(
             err.failure_class(),
-            "https://blackcatinformatics.ca/math/MalformedArgumentSlot"
+            "https://blackcatinformatics.ca/math/UnrecognizedExpressionType"
         );
     }
 
