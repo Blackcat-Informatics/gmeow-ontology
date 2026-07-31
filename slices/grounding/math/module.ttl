@@ -514,7 +514,8 @@ math:AlphaEquivalenceClass
     gmeow:useWhen "Reach for it when two or more expressions' shared structural identity needs to be a graph node a query can JOIN on — grouping every expression alpha-equivalent to a given one, or asserting that a family of authored expressions denotes ONE underlying form — rather than a per-pair string comparison of math:structuralKey values."@x-gmeow-english ;
     gmeow:avoidWhen "Do not hand-author a math:AlphaEquivalenceClass individual or its IRI: it is minted ONLY by the math: expression-identity reasoned gate from an expression's own recomputed math:structuralKey digest. Do not use it in place of math:structuralKey itself when only a per-expression digest string is needed (e.g. authoring or checking one expression's own key) — the class individual is for JOINING across expressions, the literal digest is for stating or verifying one."@x-gmeow-english ;
     gmeow:howToUse "Read a math:MathematicalExpression's math:alphaEquivalenceClass edge to reach its class individual; two expressions sharing that same object are, by construction, α-equivalent. Never assert the class individual's IRI directly — it is a computed projection of math:structuralKey, materialized by the reasoned-graph gate exactly as the digest itself is."@x-gmeow-english ;
-    skos:example "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"@x-gmeow-english .
+    skos:example "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"@x-gmeow-english ;
+    skos:scopeNote "A minted, content-addressed individual, never hand-authored: it exists so two α-equivalent expressions JOIN through one shared node instead of being compared by string equality on two math:structuralKey literals. It names an equivalence class, not a normal form — membership says the two expressions are structurally identical up to bound-variable naming, and says nothing about which of them any normalization prefers."@x-gmeow-english .
 
 math:alphaEquivalenceClass
     a owl:ObjectProperty ;
@@ -2913,7 +2914,8 @@ math:CyclicExpressionGraph
     gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression chain loops back to a node still being lowered — the expression graph is not acyclic."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a merely DEEP but acyclic expression — that is math:ExpressionDepthExceeded, the sibling recursion-bound failure; this failure is specific to a genuine cycle."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — cycle detection over an authored graph is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:a math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression -> math:CyclicExpressionGraph"@x-gmeow-english .
+    skos:example "exf:a math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression -> math:CyclicExpressionGraph"@x-gmeow-english ;
+    skos:scopeNote "Distinguished from math:ExpressionDepthExceeded by what terminates the walk: a cycle revisits a node the current traversal already holds, so no finite unfolding exists at all, while a depth breach unfolds finitely but past the guard. Every individual node in a cyclic component can be perfectly well-formed — SHACL, which reasons node by node, cannot see the defect, which is why this is decided by the lowering's traversal rather than by a derived shape."@x-gmeow-english .
 
 math:ExpressionDepthExceeded
     a owl:Class ;
@@ -2925,7 +2927,8 @@ math:ExpressionDepthExceeded
     gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression nesting recurses past the native lowering's maximum supported depth."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a genuine CYCLE — that is math:CyclicExpressionGraph, the sibling cycle-detection failure (and fires first for a tight cycle, before the depth bound would otherwise be reached); this failure is specific to an acyclic but pathologically deep expression."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — an authored-graph recursion-depth bound is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "A chain of 501 nested math:ApplicationExpression nodes, each naming the next as its sole operand through math:argumentSlot/math:slotExpression — one level deeper than the native lowering's maximum supported depth -> math:ExpressionDepthExceeded"@x-gmeow-english .
+    skos:example "A chain of 501 nested math:ApplicationExpression nodes, each naming the next as its sole operand through math:argumentSlot/math:slotExpression — one level deeper than the native lowering's maximum supported depth -> math:ExpressionDepthExceeded"@x-gmeow-english ;
+    skos:scopeNote "A resource guard on a WELL-FORMED expression, not a claim that the expression is malformed: a chain one level past the bound denotes exactly what a chain one level inside it denotes. It is separate from math:CyclicExpressionGraph, where no finite unfolding exists at any bound, and it is never a substitute for a real structural defect elsewhere in the tree."@x-gmeow-english .
 
 math:UndeclaredLogicLowering
     a owl:Class ;
@@ -3089,7 +3092,8 @@ math:UndeclaredNormalizationStrength
     gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration omits math:normalizationStrength entirely — the mandatory rung every declaration must be held at, regardless of how well-formed its math:normalizes/math:normalizesTo pair is."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a declaration that DOES carry a math:normalizationStrength but fails the strength-specific guard: a structural claim with mismatched or missing math:structuralKey values is math:FalseStructuralNormalizationClaim, and a coarser claim missing its procedure/attribution/preservation is math:UnattributedNormalization. This failure is specific to a declaration naming NO strength at all — the antecedent both those guards need before they can even engage."@x-gmeow-english ;
     gmeow:howToUse "Point the min-cardinality-1 restriction on math:NormalizationDeclaration's math:normalizationStrength at it through gmeow:enforcesFailureClass. The cardinality is unqualified on purpose: a qualified count depends on the value's type, which lives in the bundle rather than a consumer's graph, so it would reject correct consumer data."@x-gmeow-english ;
-    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf . # no math:normalizationStrength at all -> math:UndeclaredNormalizationStrength"@x-gmeow-english .
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf . # no math:normalizationStrength at all -> math:UndeclaredNormalizationStrength"@x-gmeow-english ;
+    skos:scopeNote "Specific to a declaration naming NO rung at all — the antecedent both strength-specific guards need before they can engage. A declaration that DOES name a rung but fails its guard is math:FalseStructuralNormalizationClaim (structural) or math:UnattributedNormalization (coarser than structural), never this."@x-gmeow-english .
 
 math:FalseStructuralNormalizationClaim
     a owl:Class ;
@@ -3137,7 +3141,8 @@ math:UnrecognizedExpressionType
     gmeow:useWhen "Reach for it as the typed violation object when an operand or slot target carries a math: type the expression grammar does not recognize, including a blank node with no recognized expression type."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it when the ARGUMENT SLOT itself is ill-formed — a missing, repeated, non-integer or negative math:slotIndex, or a missing math:slotExpression — that is math:MalformedArgumentSlot. This failure is about the expression a well-formed slot points AT."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); recognizing an authored node's type against the expression grammar is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:slot math:slotIndex 0 ; math:slotExpression exf:v . exf:v a math:VariableOccurrence . # a well-formed slot pointing at a non-expression -> math:UnrecognizedExpressionType"@x-gmeow-english .
+    skos:example "exf:slot math:slotIndex 0 ; math:slotExpression exf:v . exf:v a math:VariableOccurrence . # a well-formed slot pointing at a non-expression -> math:UnrecognizedExpressionType"@x-gmeow-english ;
+    skos:scopeNote "Concerns the NODE's own typing — a math: type the lowering has no production for — and is therefore raised at the operand, not at the structure holding it. An argument slot that is missing, repeated, or non-integer-indexed is math:MalformedArgumentSlot; an application with the wrong operator count is math:ApplicationOperatorCardinality. This class exists because accepting an unknown type as an opaque leaf would let a digest be computed over content the lowering never understood."@x-gmeow-english .
 
 math:NumberLiteralMissingValue
     a owl:Class ;
@@ -3149,7 +3154,8 @@ math:NumberLiteralMissingValue
     gmeow:useWhen "Reach for it as the typed violation object when a math:NumberLiteral node carries no math:literalValue at all."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a slot-shape fault — a missing or repeated math:slotIndex or math:slotExpression is math:MalformedArgumentSlot; and do not raise it for a value that is present but wrongly typed, which the literal's own datatype constraints decide."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); reading a literal's value out of the authored graph during interning is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:n a math:NumberLiteral . # no math:literalValue -> math:NumberLiteralMissingValue"@x-gmeow-english .
+    skos:example "exf:n a math:NumberLiteral . # no math:literalValue -> math:NumberLiteralMissingValue"@x-gmeow-english ;
+    skos:scopeNote "The literal-carrier counterpart of math:UnrecognizedExpressionType: the node's type IS recognized, but the one datum that type exists to carry is absent, so there is nothing to intern. It is not a cardinality failure on a structural edge — a math:NumberLiteral has no operands to count."@x-gmeow-english .
 
 math:MalformedStructuralKey
     a owl:Class ;
@@ -3161,7 +3167,8 @@ math:MalformedStructuralKey
     gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression's math:structuralKey predicate carries two or more asserted values (of any kind), or a single value that is not a literal — any usage that is not a clean singleton literal."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a single, well-formed literal value that merely disagrees with the recomputed digest — that is math:StructuralKeyDrift, the sibling drift failure; this failure is specific to a math:structuralKey usage that is not a well-formed singleton literal in the first place."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage / check_malformed_structural_key); there is no SHACL/Datalog derivation to point at it — classifying a predicate's usage shape across every object it carries is a whole-population computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:e math:structuralKey \"k1\" , \"k2\" . # exf:e carries TWO math:structuralKey values -> math:MalformedStructuralKey"@x-gmeow-english .
+    skos:example "exf:e math:structuralKey \"k1\" , \"k2\" . # exf:e carries TWO math:structuralKey values -> math:MalformedStructuralKey"@x-gmeow-english ;
+    skos:scopeNote "Concerns the SHAPE of an authored key — absent, repeated, or not a literal — never its VALUE. A key whose value disagrees with the digest recomputed from the expression's own structure is math:StructuralKeyDrift, and a key authored on an expression the lowering rejects outright is math:StructuralKeyOnRejectedExpression."@x-gmeow-english .
 
 math:StructuralKeyDrift
     a owl:Class ;
@@ -3173,7 +3180,8 @@ math:StructuralKeyDrift
     gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries a single, well-formed math:structuralKey literal whose value disagrees with the digest the math: expression lowering recomputes from that same expression's own structure."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for an expression whose math: expression lowering rejects its own AST outright — no structural identity is even computable there, so an authored key on a rejected root is math:StructuralKeyOnRejectedExpression, never a drift. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is the surface-stratum sibling, math:SurfaceLeakInNormalForm. And do not raise it for a math:structuralKey usage that is not a well-formed singleton literal in the first place — that is math:MalformedStructuralKey, excluded from this population before drift is even checked. This failure is specific to a well-formed, ACCEPTED expression whose single authored digest simply disagrees with the recomputed one."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_drift); there is no SHACL/Datalog derivation to point at it — comparing an authored digest against a digest recomputed by the math: expression lowering over the expression's own structure is a content-addressed recomputation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:e math:structuralKey \"k1\" . # exf:e's math: expression lowering recomputes its structural digest as \"k2\" from exf:e's own structure, and k1 != k2 -> math:StructuralKeyDrift"@x-gmeow-english .
+    skos:example "exf:e math:structuralKey \"k1\" . # exf:e's math: expression lowering recomputes its structural digest as \"k2\" from exf:e's own structure, and k1 != k2 -> math:StructuralKeyDrift"@x-gmeow-english ;
+    skos:scopeNote "Compares an AUTHORED key against the digest recomputed from the expression's own structure, so it presupposes a well-formed key on a liftable expression. A key that is absent, repeated, or non-literal is math:MalformedStructuralKey; a key on an expression the lowering rejects is math:StructuralKeyOnRejectedExpression, where no digest exists to compare against."@x-gmeow-english .
 
 math:SurfaceLeakInNormalForm
     a owl:Class ;
@@ -3185,7 +3193,8 @@ math:SurfaceLeakInNormalForm
     gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration's structural-identity computation is reached by math:rendersAs — carried directly by the declaration itself, by its math:normalizes source, or by its math:normalizesTo target."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a declared math:structuralKey that merely disagrees with the recomputed digest on an otherwise clean, accepted expression — that is math:StructuralKeyDrift, the digest-mismatch sibling. Do not raise it for a math:structuralKey claimed on an expression the math: expression lowering rejects outright — that is math:StructuralKeyOnRejectedExpression, the grammar-refutation sibling. This failure is specific to a math:NormalizationDeclaration whose structural-identity computation is reached by math:rendersAs — a rendered-surface predicate contaminating an identity that must be computed over structural content alone."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_surface_leak_in_normal_form); there is no SHACL/Datalog derivation to point at it — tracing whether a rendered-surface predicate reaches a normalization declaration's own identity computation, through the declaration itself or either of its normalizes/normalizesTo endpoints, is a structural traversal, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:structuralNormalization . exf:e math:rendersAs \"x^2\" . # exf:e, the normalizes source, directly carries math:rendersAs -> math:SurfaceLeakInNormalForm"@x-gmeow-english .
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:structuralNormalization . exf:e math:rendersAs \"x^2\" . # exf:e, the normalizes source, directly carries math:rendersAs -> math:SurfaceLeakInNormalForm"@x-gmeow-english ;
+    skos:scopeNote "About the PROVENANCE of identity, not about rendering being wrong: an expression may carry math:rendersAs freely, and only becomes a leak when that same node participates in a normalization declaration, where identity must be computed from structural content alone. It has no SHACL derivation because it is a claim about which stratum a computation may read, not a shape a node either matches or does not."@x-gmeow-english .
 
 math:StructuralKeyOnRejectedExpression
     a owl:Class ;
@@ -3197,7 +3206,8 @@ math:StructuralKeyOnRejectedExpression
     gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries an authored math:structuralKey but the math: expression lowering rejects its own AST as ill-formed — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another construct the grammar refutes."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for an ACCEPTED expression whose declared math:structuralKey simply disagrees with the recomputed digest — that is math:StructuralKeyDrift, the digest-mismatch sibling, which only ever reads expressions the lowering accepts. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is math:SurfaceLeakInNormalForm, the surface-stratum sibling; a rejected expression's key is refuted by the grammar itself, not contaminated by a rendered surface. This failure is specific to a math:structuralKey asserted on an expression whose own AST the math: expression lowering refutes."@x-gmeow-english ;
     gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_on_rejected_expression); there is no SHACL/Datalog derivation to point at it — deciding whether the math: expression lowering accepts or rejects an expression's own AST is a whole-expression grammar computation, not a flat relational join."@x-gmeow-english ;
-    skos:example "exf:a math:structuralKey \"k1\" ; math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression, so the lowering rejects exf:a, yet exf:a claims math:structuralKey \"k1\" -> math:StructuralKeyOnRejectedExpression"@x-gmeow-english .
+    skos:example "exf:a math:structuralKey \"k1\" ; math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression, so the lowering rejects exf:a, yet exf:a claims math:structuralKey \"k1\" -> math:StructuralKeyOnRejectedExpression"@x-gmeow-english ;
+    skos:scopeNote "The wrapper that makes a lowering rejection REPORTABLE: it fires only where an authored math:structuralKey claims an identity for an expression that has none, and it carries the lowering's own typed failure class alongside its own token. Without an authored key there is nothing claimed and nothing to contradict, so a rejected expression carrying no key raises nothing here."@x-gmeow-english .
 
 # --- Binder AST properties -------------------------------------------------- #
 
@@ -11085,13 +11095,14 @@ math:NormalizationDeclaration logic:subClassOf
 # tightly, and decides identically in the bundle and in a consumer's graph because there is
 # nothing to look up.
 math:NormalizationStrengthValueConstraint
-    a logic:ForbiddenPatternConstraint ;
+    a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "normalization strength is one of the four rungs"@x-gmeow-english ;
     skos:definition "A math:NormalizationDeclaration's math:normalizationStrength names one of the four closed math:NormalizationStrength rungs, tested by IRI membership rather than by the value's asserted type so the obligation decides the same way in the shipped bundle and in a consumer's own graph."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes math:normalizationStrength ;
     logic:message "A math:NormalizationDeclaration's math:normalizationStrength must be one of math:structuralNormalization, math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization (math:UndeclaredNormalizationStrength)." ;
+    logic:severity "Violation" ;
     logic:integrity math:nsvForall ;
     gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
 math:nsvForall a logic:Formula ;
