@@ -58,3 +58,144 @@ pub fn cached_site_lang(lang: &str) -> Site {
 pub fn cached_book() -> Site {
     gmeow_docs::fixture::load_book(&repo_root())
 }
+
+// ── shipped-document path resolution ────────────────────────────────────────
+
+/// The file extensions that make a backticked token a PATH rather than prose.
+///
+/// A CLOSED list, deliberately. The alternative — "anything containing a dot" — reads
+/// `example.org`, `cache.addAll`, `inputSchema.required` and `mcp.segment-not-loaded` as
+/// file names, and a gate that reports prose as a missing file is a gate somebody turns off.
+const PATH_EXTENSIONS: &[&str] = &[
+    "blake3",
+    "css",
+    "gts",
+    "html",
+    "js",
+    "json",
+    "license",
+    "md",
+    "mjs",
+    "png",
+    "rs",
+    "svg",
+    "toml",
+    "ts",
+    "ttl",
+    "txt",
+    "wasm",
+    "webmanifest",
+];
+
+/// Every backticked token in `markdown` that names a path, in document order.
+///
+/// Fenced blocks are skipped: a shell transcript names commands and scratch directories,
+/// not members of the distribution. Inside prose, a token qualifies when it is free of the
+/// punctuation that marks it as code or a specifier (`logic:ActionSchema`,
+/// `configure({ assetBase })`, `@blackcatinformatics/…`, `role=alert`) AND either ends in
+/// `/` or carries one of [`PATH_EXTENSIONS`] with a non-empty stem — which is what keeps
+/// `.gts` (a format, named by its suffix) out and `gmeow.gts` in.
+#[must_use]
+pub fn readme_paths(markdown: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut fenced = false;
+    for line in markdown.lines() {
+        if line.trim_start().starts_with("```") {
+            fenced = !fenced;
+            continue;
+        }
+        if fenced {
+            continue;
+        }
+        for token in line.split('`').skip(1).step_by(2) {
+            if let Some(path) = as_path(token) {
+                out.push(path);
+            }
+        }
+    }
+    out
+}
+
+/// `token` as a distribution-relative path, or `None` when it is prose.
+fn as_path(token: &str) -> Option<String> {
+    if token.is_empty()
+        || token.starts_with('@')
+        || token.starts_with('#')
+        || token.starts_with('$')
+        || token.starts_with('-')
+        || token.contains([
+            ' ', '<', '>', '(', ')', '{', '}', '"', '=', ',', ';', ':', '*', '\\',
+        ])
+    {
+        return None;
+    }
+    let path = token.strip_prefix("./").unwrap_or(token);
+    if path.ends_with('/') {
+        return Some(path.to_string());
+    }
+    let name = path.rsplit('/').next()?;
+    let (stem, extension) = name.rsplit_once('.')?;
+    (!stem.is_empty() && PATH_EXTENSIONS.contains(&extension)).then(|| path.to_string())
+}
+
+/// Every path a shipped README names that its own distribution cannot answer for, as
+/// reportable messages.
+///
+/// Three kinds of reference, each checked in ITS OWN direction, so the answer is never
+/// "somebody said it was fine":
+///
+/// * a `crates/…` path is a REPOSITORY reference (`crates/docs/src/console.rs`) and must
+///   exist on disk;
+/// * a path listed in `elsewhere` is named precisely because ANOTHER distribution carries it
+///   — the npm README's "it does not ship `sw.mjs`" — so it must be ABSENT here; a listed
+///   path that turns up in the distribution is reported too, because the sentence around it
+///   has then become false;
+/// * every other path must be a key of `distribution`, either verbatim or under `prefix`
+///   (the deployed README sits at `console/README.md` and names both `element.mjs`, its own
+///   neighbour, and `assets/gmeow.gts`, a tree-root path).
+///
+/// `distribution` is the file set the distribution actually ships. A trailing `/` names a
+/// directory and is satisfied by any member under it.
+#[must_use]
+pub fn unresolved_readme_paths(
+    markdown: &str,
+    distribution: &std::collections::BTreeSet<String>,
+    prefix: &str,
+    elsewhere: &[&str],
+) -> Vec<String> {
+    let carried = |path: &str| -> bool {
+        let local = format!("{prefix}{path}");
+        if path.ends_with('/') {
+            distribution
+                .iter()
+                .any(|key| key.starts_with(path) || key.starts_with(&local))
+        } else {
+            distribution.contains(path) || distribution.contains(&local)
+        }
+    };
+    let mut problems = Vec::new();
+    for path in readme_paths(markdown) {
+        if let Some(repository) = path.strip_prefix("crates/") {
+            let on_disk = repo_root().join("crates").join(repository);
+            if !on_disk.exists() {
+                problems.push(format!(
+                    "`{path}` is named as a repository path and does not exist"
+                ));
+            }
+        } else if elsewhere.contains(&path.as_str()) {
+            if carried(&path) {
+                problems.push(format!(
+                    "`{path}` is declared as belonging to another distribution, but this one \
+                     ships it"
+                ));
+            }
+        } else if !carried(&path) {
+            problems.push(format!(
+                "`{path}` is named as a member of this distribution, which does not carry it"
+            ));
+        }
+    }
+    problems.sort();
+    problems.dedup();
+    problems
+}

@@ -853,7 +853,7 @@ fn version_parts(version: &str) -> Option<Vec<u64>> {
 ///
 /// A shorter version is padded with zeros (`0.9` ≥ `0.8.3`, `0.8` < `0.8.3`), which is the
 /// ordering npm's own range resolution uses for the release versions this repository
-/// vendors. `None` when either side is not dotted-numeric — an unparseable version is a
+/// vendors. `None` when either side is not dotted-numeric — an unparsable version is a
 /// reportable failure, never a silent pass.
 fn version_at_least(have: &str, floor: &str) -> Option<bool> {
     let (have, floor) = (version_parts(have)?, version_parts(floor)?);
@@ -1196,7 +1196,7 @@ mod tests {
         assert_eq!(
             version_at_least("0.9.0-rc.1", "0.8.3"),
             None,
-            "an unparseable version is reported, never silently accepted"
+            "an unparsable version is reported, never silently accepted"
         );
     }
 

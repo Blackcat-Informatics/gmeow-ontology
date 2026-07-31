@@ -722,7 +722,7 @@ console-smoke: console ## Drive the ASSEMBLED console in a real browser: the dep
 	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
 	@# GitHub Pages provides — and drives /console/ in headless Chromium: the derived pane
 	@# set, every read tool through the assembled worker, RDF-1.2 through every target, the
-	@# single-threaded contract, the measured first-load ceiling, and the REAL `npm pack`
+	@# single-threaded contract, the measured page load and pre-cache ceiling, and the REAL `npm pack`
 	@# tarball installed into a scratch project and booted the way the shipped README says.
 	@#
 	@# It HARD-FAILS EVERYWHERE. There is deliberately no local skip and no CI-only branch:

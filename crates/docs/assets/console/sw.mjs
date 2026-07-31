@@ -10,14 +10,20 @@
 // a hand-written list is a second source of truth for "what the console is made of", and it
 // would silently drift from the emitted tree the moment a file was added. The producer
 // hard-fails if a marker is missing, and an acceptance assertion compares the generated set
-// against the producer's first-load tier in BOTH directions.
+// against the producer's pre-cached tiers in BOTH directions.
 //
-// `SHELL` is the FIRST-LOAD tier only — the shell, the transport, the always-resident core
-// engine image and the ontology snapshot. It deliberately does NOT carry the demand-loaded
-// reasoning segment: pre-caching a 10 MB image at install would download it for every
-// reader who only ever looks things up, which is exactly the cost the tiered engine exists
-// to avoid, and it would make "demand-loaded" a claim the artifact contradicts. The segment
-// is cached by the `fetch` handler below, the first time something actually asks for it.
+// `SHELL` is the PRE-CACHED tiers and nothing else: what the page itself fetches on a first
+// visit (the shell, the transport, the always-resident core engine image and the ontology
+// snapshot) plus what only an install needs (this worker, the PWA manifest and its icons,
+// and the vendored purrdf engine an embedding page may import). The console's README
+// measures and publishes those two as separate numbers, because "what the worker stores" and
+// "what a page load costs" are different questions and one number cannot answer both.
+//
+// It deliberately does NOT carry the demand-loaded reasoning segment: pre-caching a 10 MB
+// image at install would download it for every reader who only ever looks things up, which
+// is exactly the cost the tiered engine exists to avoid, and it would make "demand-loaded" a
+// claim the artifact contradicts. The segment is cached by the `fetch` handler below, the
+// first time something actually asks for it.
 //
 // `BUILD` is a BLAKE3 content digest of the assembled tree, and it is the whole cache name.
 // Keying the cache on the shell's entry count and joined path length — which is what this
@@ -32,8 +38,8 @@
 // and a service worker intercepts every request a page it controls makes, whatever the
 // request's own path. The engine assets live one level up under `assets/` (they are shared
 // with the documentation site, which is why they are not duplicated), and they are
-// intercepted here just like the shell is. The first-load ones are pre-cached on install so
-// an offline console still gets its engine, and a pre-cache that fails is a hard install
+// intercepted here just like the shell is. The pre-cached ones are stored on install so an
+// offline console still gets its engine, and a pre-cache that fails is a hard install
 // failure rather than a console that boots online and dies offline.
 
 const SHELL = ["__GMEOW_CONSOLE_SHELL__"];

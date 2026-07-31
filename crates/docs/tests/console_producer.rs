@@ -12,8 +12,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::ExecutableDocsData;
 use gmeow_docs::console::{
-    ByteReport, CONSOLE_PREFIX, FIRST_LOAD_CEILING_FACTOR, Fetch, console_files, fetch_tier,
-    first_load_ceiling, generated_build_digest, generated_shell,
+    ByteReport, CONSOLE_PREFIX, Fetch, PRECACHE_CEILING_FACTOR, SITE_SECTIONS_MARKER,
+    console_files, fetch_tier, generated_build_digest, generated_shell, precache_ceiling,
 };
 use gmeow_docs::mdbook::render_book;
 use gmeow_docs::render::{
@@ -103,21 +103,67 @@ fn sw_relative(key: &str) -> String {
     }
 }
 
-/// The generated `SHELL` set EQUALS the FIRST-LOAD tier, in both directions.
+/// The generated `SHELL` set EQUALS the PRE-CACHED tiers, in both directions.
 ///
-/// Equality, not containment, in both directions: a shell member that is not a first-load
-/// asset is a byte downloaded at install for nothing, and a first-load asset that is not a
+/// Equality, not containment, in both directions: a shell member that is not a pre-cached
+/// asset is a byte downloaded at install for nothing, and a pre-cached asset that is not a
 /// shell member is a console that boots online and dies offline.
 #[test]
-fn the_generated_shell_equals_the_first_load_tier() {
+fn the_generated_shell_equals_the_precached_tiers() {
     let files = console_files(&interactive_exec());
     let generated: BTreeSet<String> = generated_shell(&files).into_iter().collect();
-    let first_load: BTreeSet<String> = files
+    let precached: BTreeSet<String> = files
         .keys()
-        .filter(|key| fetch_tier(key) == Fetch::First)
+        .filter(|key| fetch_tier(key).is_precached())
         .map(|key| sw_relative(key))
         .collect();
-    assert_eq!(generated, first_load);
+    assert_eq!(generated, precached);
+}
+
+/// The PAGE-LOAD tier is a PROPER subset of what the worker pre-caches.
+///
+/// The defect this closes was a published heading, not a number: a table of everything the
+/// service worker stores at install was headed "First load — everything fetched before any
+/// pane runs", so 8 MB of vendored purrdf, a PWA manifest and four icons were published as
+/// bytes a reader pays to open the page. No page load fetches any of them. The two sets are
+/// distinct now, so a future asset that joins the pre-cache cannot inflate the page-load
+/// figure by sitting in the same bucket.
+#[test]
+fn the_page_load_tier_is_strictly_inside_the_pre_cache() {
+    let files = console_files(&interactive_exec());
+    let page_load: BTreeSet<&String> = files
+        .keys()
+        .filter(|key| fetch_tier(key) == Fetch::PageLoad)
+        .collect();
+    let precached: BTreeSet<&String> = files
+        .keys()
+        .filter(|key| fetch_tier(key).is_precached())
+        .collect();
+    assert!(
+        page_load.is_subset(&precached),
+        "a page-load asset that is not pre-cached is a console that dies offline"
+    );
+    assert!(
+        page_load.len() < precached.len(),
+        "the pre-cache must carry members no page load fetches — otherwise the two published \
+         numbers are one number under two headings"
+    );
+    // Named, so this cannot pass on some incidental difference: these are the assets the
+    // published table used to count as "fetched before any pane runs".
+    for key in [
+        "assets/purrdf/index.mjs",
+        "assets/purrdf/pkg/purrdf_wasm_bg.wasm",
+        "console/manifest.webmanifest",
+        "console/icon-maskable-512.png",
+        "console/sw.mjs",
+    ] {
+        assert_eq!(
+            fetch_tier(key),
+            Fetch::InstallOnly,
+            "{key} is pre-cached but no page load fetches it"
+        );
+        assert!(precached.contains(&key.to_string()));
+    }
 }
 
 /// The install-time pre-cache does NOT carry the demand-loaded reasoning segment.
@@ -223,9 +269,9 @@ fn the_published_byte_table_is_measured_over_the_shipped_bytes() {
         !readme.contains("__GMEOW_CONSOLE_BYTE_TABLE__"),
         "the shipped README still carries the unsubstituted table marker"
     );
-    // Every first-load row the report measured is published, with the measured number.
+    // Every pre-cached row the report measured is published, with the measured number.
     for (key, bytes, tier) in &report.rows {
-        if *tier != Fetch::First {
+        if !tier.is_precached() {
             continue;
         }
         assert_eq!(
@@ -235,9 +281,26 @@ fn the_published_byte_table_is_measured_over_the_shipped_bytes() {
         );
         assert!(
             readme.contains(&format!("| `{key}` |")),
-            "the published table omits the first-load asset {key}"
+            "the published table omits the pre-cached asset {key}"
         );
     }
+    // The heading over the page-load table says what that table is, and the pre-cache table
+    // says what IT is. The one this replaced headed the pre-cache set "First load —
+    // everything fetched before any pane runs", 40 lines above the same document's
+    // admission that nothing in the console fetches the vendored engine it counted.
+    assert!(
+        readme.contains("**Page load** — what the page itself fetches on a first visit"),
+        "the page-load table must be headed as the page load"
+    );
+    assert!(
+        readme.contains("**Pre-cached at install, not fetched by a page load**"),
+        "the install-only table must be headed as what it is: bytes the worker stores that \
+         no page load asks for"
+    );
+    assert!(
+        !readme.contains("everything fetched before any pane runs"),
+        "the false heading is back over a table of the install pre-cache"
+    );
     // The two published numbers and the published FACTOR between them agree, read back out
     // of the shipped prose. This is the D15 regression: the ceiling was a hand-typed
     // constant (`47 534 469 × 1.1`) whose measurement had since moved to 47 704 211, so the
@@ -245,36 +308,130 @@ fn the_published_byte_table_is_measured_over_the_shipped_bytes() {
     // numbers whose real ratio was 1.09609. Nothing bound the three together, so nothing
     // noticed. Parsed here rather than restated, so this test cannot be the fourth place
     // the factor is written down.
-    let published_total = grouped_number(&readme, "| **First-load total** | **")
-        .expect("the README publishes a first-load total");
-    let published_ceiling = grouped_number(&readme, "The first-load ceiling is **")
-        .expect("the README publishes a first-load ceiling");
+    let published_page_load = grouped_number(&readme, "| **Page-load total** | **")
+        .expect("the README publishes a page-load total");
+    let published_install_only = grouped_number(&readme, "| **Install-only total** | **")
+        .expect("the README publishes an install-only total");
+    let published_precache = grouped_number(&readme, "| **Install pre-cache total** | **")
+        .expect("the README publishes an install pre-cache total");
+    let published_ceiling = grouped_number(&readme, "The install pre-cache ceiling is **")
+        .expect("the README publishes an install pre-cache ceiling");
     assert_eq!(
-        published_total, report.first_load_total,
-        "the published first-load total is not the measured one"
+        published_page_load, report.page_load_total,
+        "the published page-load total is not the measured one"
+    );
+    assert_eq!(
+        published_install_only, report.install_only_total,
+        "the published install-only total is not the measured one"
+    );
+    assert_eq!(
+        published_precache,
+        published_page_load + published_install_only,
+        "the published pre-cache total is not the sum of the two published sections — a \
+         reader adding the numbers up must arrive at the number the ceiling bounds"
+    );
+    assert_eq!(
+        published_precache,
+        report.precache_total(),
+        "the published pre-cache total is not the measured one"
+    );
+    assert!(
+        published_page_load < published_precache,
+        "the page load must cost strictly less than the install pre-cache — publishing them \
+         as one number is the defect this split exists to close"
     );
     assert_eq!(
         published_ceiling,
-        first_load_ceiling(report.first_load_total),
+        precache_ceiling(report.precache_total()),
         "the published ceiling is not the derived one"
     );
     assert_eq!(
         published_ceiling,
-        published_total * FIRST_LOAD_CEILING_FACTOR,
+        published_precache * PRECACHE_CEILING_FACTOR,
         "the ratio between the two published numbers is not the declared factor"
     );
     assert!(
-        readme.contains(&format!("× {FIRST_LOAD_CEILING_FACTOR} ")),
+        readme.contains(&format!("× {PRECACHE_CEILING_FACTOR} ")),
         "the published sentence must STATE the factor it is derived with, so a reader can \
          check the two numbers above it against each other"
     );
     assert!(
         readme.contains(&format!(
             "({} % of headroom)",
-            (FIRST_LOAD_CEILING_FACTOR - 1) * 100
+            (PRECACHE_CEILING_FACTOR - 1) * 100
         )),
         "the published headroom percentage must be generated from the same factor — the \
          hard-coded 'plus ten percent' that this replaced contradicted the numbers above it"
+    );
+}
+
+/// The npm README and the SITE README are different documents, and each describes only its
+/// own distribution.
+///
+/// The published tarball shipped the site's document verbatim: it documented a service
+/// worker, a PWA manifest, four icons, a byte table full of `assets/…` rows and a dev-only
+/// smoke lane, and the package contains none of that. The site-only sections are substituted
+/// by the producer now, so the authored document — which is what npm packs — carries the
+/// marker and nothing else.
+#[test]
+fn the_site_readme_carries_the_site_sections_and_the_authored_one_does_not() {
+    let authored = include_str!("../assets/console/README.md");
+    assert!(
+        authored.contains(SITE_SECTIONS_MARKER),
+        "the authored README must carry the site-sections marker"
+    );
+    for site_only in [
+        "## Offline",
+        "## Measured bytes",
+        "__GMEOW_CONSOLE_BYTE_TABLE__",
+        "assets/purrdf/",
+        "icon-maskable-512.png",
+    ] {
+        assert!(
+            !authored.contains(site_only),
+            "the authored README — the bytes npm publishes — documents {site_only}, which \
+             the package does not ship"
+        );
+    }
+
+    let files = console_files(&interactive_exec());
+    let site = String::from_utf8(files["console/README.md"].clone()).unwrap();
+    assert!(
+        !site.contains(SITE_SECTIONS_MARKER),
+        "the site README still carries the unsubstituted site-sections marker"
+    );
+    for site_only in ["## Offline", "## Measured bytes", "assets/purrdf/"] {
+        assert!(
+            site.contains(site_only),
+            "the site README is missing the substituted section {site_only}"
+        );
+    }
+    // The shared half is in both, and the substitution kept the document's order.
+    for shared in ["## Panes", "## The four verbs", "## Install"] {
+        assert!(authored.contains(shared) && site.contains(shared));
+    }
+    assert!(
+        site.find("## Measured bytes") < site.find("## Install"),
+        "the site sections must be substituted where the marker sits, above Install"
+    );
+}
+
+/// Every backticked path a SHIPPED README names exists in the distribution that ships it.
+///
+/// The byte table is already gated this way — every measured row is published — and this is
+/// the same rule over the prose. On the site the one reference that dangled was
+/// `assets/purrdf/PROVENANCE.md`: the producer emits three purrdf files and never that one,
+/// so the sentence pointing a reader at it was a 404 for every deployed reader.
+#[test]
+fn every_path_the_site_readme_names_exists_in_the_site_tree() {
+    let files = console_files(&interactive_exec());
+    let readme = String::from_utf8(files["console/README.md"].clone()).unwrap();
+    let distribution: BTreeSet<String> = files.keys().cloned().collect();
+    let missing = common::unresolved_readme_paths(&readme, &distribution, CONSOLE_PREFIX, &[]);
+    assert!(
+        missing.is_empty(),
+        "the deployed console README names paths the assembled tree does not carry: \
+         {missing:?}"
     );
 }
 

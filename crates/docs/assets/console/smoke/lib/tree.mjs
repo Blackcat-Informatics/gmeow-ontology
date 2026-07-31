@@ -152,9 +152,9 @@ export async function removeFile(root, relPath) {
  * The generated service worker's `SHELL` array, read back out of the ASSEMBLED tree.
  *
  * The producer generates that array from the emitted key set, so it is the single authority
- * for "what a first load is". Every assertion in this lane that needs the first-load tier
- * reads it from here rather than restating the partition in JavaScript, which would be a
- * second source of truth for exactly the thing the producer exists to own.
+ * for "what the worker pre-caches at install". Every assertion in this lane that needs the
+ * pre-cached tiers reads it from here rather than restating the partition in JavaScript,
+ * which would be a second source of truth for exactly the thing the producer exists to own.
  */
 export async function generatedShell(root) {
   const source = await fs.readFile(join(root, "console", "sw.mjs"), "utf8");
@@ -187,9 +187,22 @@ export function shellEntryPaths(entry) {
   return { url: url.pathname, file: url.pathname.replace(/^\//, "") };
 }
 
-/** The generated first-load ceiling and total, parsed out of the assembled README's measured table. */
+/** The assembled console README, as text. */
+async function assembledReadme(root) {
+  return fs.readFile(join(root, "console", "README.md"), "utf8");
+}
+
+/**
+ * The four generated numbers, parsed out of the assembled README's measured table.
+ *
+ * They are separate numbers because they answer separate questions. The document used to
+ * publish ONE — headed "First load — everything fetched before any pane runs" over a table
+ * that also carried 8 MB of vendored purrdf, a PWA manifest and four icons, none of which a
+ * page load fetches. `pageLoadTotal` is what a reader pays to open the console;
+ * `precacheTotal` is what the worker stores at install, and the ceiling bounds that.
+ */
 export async function publishedByteBudget(root) {
-  const readme = await fs.readFile(join(root, "console", "README.md"), "utf8");
+  const readme = await assembledReadme(root);
   const number = (pattern, what) => {
     const found = pattern.exec(readme);
     if (found === null) {
@@ -197,8 +210,38 @@ export async function publishedByteBudget(root) {
     }
     return Number(found[1].replace(/\s/g, ""));
   };
+  const total = (label, what) =>
+    number(new RegExp(`\\|\\s*\\*\\*${label}\\*\\*\\s*\\|\\s*\\*\\*([\\d\\s]+)\\*\\*\\s*\\|`), what);
   return {
-    firstLoadTotal: number(/\|\s*\*\*First-load total\*\*\s*\|\s*\*\*([\d\s]+)\*\*\s*\|/, "first-load total"),
-    ceiling: number(/first-load ceiling is \*\*([\d\s]+)\*\*/, "first-load ceiling"),
+    pageLoadTotal: total("Page-load total", "page-load total"),
+    installOnlyTotal: total("Install-only total", "install-only total"),
+    precacheTotal: total("Install pre-cache total", "install pre-cache total"),
+    ceiling: number(/install pre-cache ceiling is \*\*([\d\s]+)\*\*/, "install pre-cache ceiling"),
   };
+}
+
+/**
+ * The PAGE-LOAD table's rows, as `{ key, bytes }` — the set the producer publishes as what a
+ * first visit fetches.
+ *
+ * Read back out of the shipped document rather than recomputed, because the assertion this
+ * feeds is that the published claim and a real browser agree. A row published here that no
+ * page load asks for is exactly the phantom the one-directional check let through.
+ */
+export async function publishedPageLoadAssets(root) {
+  const readme = await assembledReadme(root);
+  const start = readme.indexOf("**Page load** —");
+  if (start < 0) {
+    throw new Error("the assembled console README publishes no page-load table");
+  }
+  const next = readme.indexOf("\n**", start + "**Page load**".length);
+  const section = readme.slice(start, next < 0 ? undefined : next);
+  const rows = [...section.matchAll(/^\|\s*`([^`]+)`\s*\|\s*([\d\s]+?)\s*\|$/gm)].map((row) => ({
+    key: row[1],
+    bytes: Number(row[2].replace(/\s/g, "")),
+  }));
+  if (rows.length === 0) {
+    throw new Error("the assembled console README's page-load table has no rows");
+  }
+  return rows;
 }

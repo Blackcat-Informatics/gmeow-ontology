@@ -27,6 +27,10 @@ const GATED_DOCUMENTS: &[&str] = &[
     "README.md",
     "crates/README.md",
     "crates/docs/assets/console/README.md",
+    // The console's dev lanes document themselves, and it is the document that names the
+    // `make` targets a reader is told to run. It lives beside the lane rather than in the
+    // shipped README because neither distribution carries a Playwright config or a lockfile.
+    "crates/docs/assets/console/smoke/README.md",
     "docs/design/external-docs-distribution.md",
 ];
 

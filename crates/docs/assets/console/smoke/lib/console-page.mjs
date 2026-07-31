@@ -13,7 +13,7 @@
 // in exactly the part it would skip.
 //
 // Service workers are BLOCKED in these contexts. The console registers one, and a
-// cache-first worker that pre-caches the whole first-load tier on install would fetch every
+// cache-first worker that pre-caches its whole shell on install would fetch every
 // shell member a second time — which would make the byte measurement a measurement of the
 // harness. The worker's own generated `SHELL` is asserted separately, over the emitted
 // bytes.

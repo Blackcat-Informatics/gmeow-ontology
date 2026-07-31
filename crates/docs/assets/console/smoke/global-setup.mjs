@@ -7,7 +7,7 @@
 //
 //   `/`           the pristine assembled console tree (`$CONSOLE_OUT`);
 //   `/truncated/` the same tree with `console/element.mjs` cut off mid-file;
-//   `/missing/`   the same tree with a required first-load engine asset deleted;
+//   `/missing/`   the same tree with a required pre-cached engine asset deleted;
 //   `/installed/` a scratch project into which the REAL `npm pack` tarball was installed,
 //                 carrying the page the shipped README's Install section prescribes.
 //
@@ -116,7 +116,7 @@ ${snippet
 /** Build the two perturbed trees the negative tests drive. */
 async function perturbedTrees(root) {
   const shell = await generatedShell(root);
-  // The removed asset is chosen out of the GENERATED first-load set rather than named
+  // The removed asset is chosen out of the GENERATED pre-cache set rather than named
   // here: whatever the producer says the console must have before a pane can run is what
   // gets taken away. The ontology snapshot is the one the transport fetches through its
   // verified reader, so its absence is the case where a NAMED refusal is the contract.

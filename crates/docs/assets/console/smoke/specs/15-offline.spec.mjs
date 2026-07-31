@@ -4,7 +4,7 @@
 // The OFFLINE contract, driven with the service worker actually running.
 //
 // Every other context in this lane is created with `serviceWorkers: "block"`, for a good
-// reason: a cache-first worker that pre-caches the whole first-load tier on install would
+// reason: a cache-first worker that pre-caches its whole shell on install would
 // fetch every shell member a second time and turn the byte measurement into a measurement of
 // the harness. But the console ships `sw.mjs`, ships a `manifest.webmanifest` that declares a
 // PWA, and publishes an "Offline" section telling a reader the console works with no network.
@@ -23,7 +23,7 @@
 // three things the published section claims:
 //
 //   1. the registration reaches `activated` and takes control of the page;
-//   2. the cache holds EXACTLY the generated first-load tier — set equality in both
+//   2. the cache holds EXACTLY the generated pre-cache set — set equality in both
 //      directions, so neither a missing member (an install that half-succeeded) nor an extra
 //      one (the demand-loaded `assets/mcp/` segment) passes;
 //   3. with the network gone, the console loads again and answers a real tool call.
@@ -99,7 +99,7 @@ async function activatedRegistration(page) {
   });
 }
 
-test("the service worker installs, caches exactly the first-load tier, and serves the console offline", async ({
+test("the service worker installs, caches exactly the pre-cache set, and serves the console offline", async ({
   browser,
   assembled,
 }) => {
@@ -134,7 +134,7 @@ test("the service worker installs, caches exactly the first-load tier, and serve
     // a reload against a dead origin would go straight to the dead origin.
     //
     // Awaited in the page rather than polled: `install` holds activation open until `addAll`
-    // over the whole first-load tier resolves, so this is the point — and the only point — at
+    // over the whole pre-cache set resolves, so this is the point — and the only point — at
     // which "the pre-cache finished" is a fact rather than a guess.
     const registration = await activatedRegistration(page);
     expect(registration.state, "the registration must reach activated").toBe("activated");
@@ -148,7 +148,7 @@ test("the service worker installs, caches exactly the first-load tier, and serve
     expect(consoleCaches.length, "the worker opens exactly one content-keyed console cache").toBe(1);
     expect(
       paths,
-      "the pre-cache must EQUAL the generated first-load tier — a missing member is a half-installed " +
+      "the pre-cache must EQUAL the generated pre-cache set — a missing member is a half-installed " +
         "offline surface, an extra one is a tier the producer says is demand-loaded",
     ).toEqual(shell);
     for (const path of paths) {

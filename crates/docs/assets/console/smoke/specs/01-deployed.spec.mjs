@@ -4,7 +4,7 @@
 // The title criterion: DEPLOYED.
 //
 // The assembled tree, served over plain static HTTP with no COOP/COEP, reaches a ready
-// console; every member of the generated first-load set answers 200 with the bytes that
+// console; every member of the generated pre-cache set answers 200 with the bytes that
 // were assembled; and a first-load run of a real tool answers.
 //
 // The integrity claim is checked on BOTH surfaces the console has: for the two assets the

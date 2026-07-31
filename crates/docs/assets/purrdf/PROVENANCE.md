@@ -27,10 +27,23 @@ path a reader's page or an embedder's module imports.
 | `UPSTREAM.txt` | `<package>@<version>` — the release these bytes came from. | no |
 | `DIGESTS.blake3` | BLAKE3 content-digest manifest over every file above. | no |
 
-Each file that does not carry an inline SPDX header carries a `.license` REUSE sidecar, and
-every one of them states **`MIT OR Apache-2.0`** — upstream purrdf's license. Vendoring
-bytes does not relicense them, and a sidecar claiming this repository's AGPL over an
-upstream package would be a licensing claim nobody made.
+Licensing here follows AUTHORSHIP, not the directory. The six files above that are upstream
+purrdf's own bytes — `index.mjs`, `index.d.ts`, `pkg/purrdf_wasm.js`, `pkg/purrdf_wasm.d.ts`,
+`pkg/purrdf_wasm_bg.wasm` and `pkg/purrdf_wasm_bg.wasm.d.ts` — state **`MIT OR Apache-2.0`**,
+inline where the file can carry a header and in a `.license` REUSE sidecar where it cannot.
+Vendoring bytes does not relicense them, and a sidecar claiming this repository's AGPL over
+an upstream package would be a licensing claim nobody made.
+
+The two remaining files are **not** upstream bytes. `UPSTREAM.txt` and `DIGESTS.blake3` are
+written by this repository's own refresh lane; they describe the vendoring rather than
+belonging to purrdf, so their sidecars state **`AGPL-3.0-only`**, like every other record
+this repository authors. Claiming purrdf's license over them would be the same mistake in
+the other direction.
+
+`crates/docs/tests/purrdf_asset.rs` asserts each file's stated identifier against which of
+the two it is, so this paragraph cannot drift from the sidecars beside it — which is what it
+had already done, by stating that every sidecar said `MIT OR Apache-2.0` while two of the
+six said `AGPL-3.0-only`.
 
 ## What it is for, and what it is not
 
@@ -77,7 +90,7 @@ The floor starts at the npm version built from the same purrdf source tree the w
 `purrdf` Cargo dependency is pinned to, so the browser engine can never be older than the
 native engine gmeow links.
 
-Three gates guard the result, all on `make check`:
+Four gates guard the result, all on `make check`:
 
 - `crates/docs/tests/purrdf_asset.rs` drives the shared vendored-wasm-asset harness
   (`gmeow_docs::vendored_asset`): the `.wasm` is a real WebAssembly module of plausible
@@ -87,6 +100,9 @@ Three gates guard the result, all on `make check`:
   a byte length;
 - the same test proves `UPSTREAM.txt` satisfies the declared `PURRDF_NPM_MIN`, so the floor
   is a checked fact rather than a comment;
+- and it reads every file's stated SPDX identifier — inline or from its `.license` sidecar —
+  and asserts it against whether that file is upstream purrdf's bytes or a record this
+  repository generated, which is the split the section above states;
 - `crates/docs/tests/refresh_targets_exist.rs` proves `make maint-refresh-purrdf-asset` is a
   real, maintainer-scoped, `make help`-listed target — the instruction every failure message
   above prints has to be one a reader can actually follow.

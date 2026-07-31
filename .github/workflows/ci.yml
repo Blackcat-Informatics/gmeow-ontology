@@ -680,7 +680,7 @@ jobs:
       # HTTP with NO COOP/COEP — exactly what GitHub Pages provides — and drives /console/ in
       # headless Chromium: the derived pane set, every read tool through the assembled
       # worker, RDF-1.2 through every target, the single-threaded contract bound to the wasm
-      # bytes, the measured first-load ceiling, and the REAL `npm pack` tarball installed
+      # bytes, the measured page load and pre-cache ceiling, and the REAL `npm pack` tarball installed
       # into a scratch project and booted the way the shipped README prescribes. It rides
       # this job because it needs the same Node + materialized-bundle preconditions
       # `wasm-parity` does. It hard-fails everywhere; there is no skip branch.
