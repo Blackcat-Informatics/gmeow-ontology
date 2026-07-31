@@ -28,10 +28,12 @@ import { fileURLToPath } from "node:url";
 
 import {
   GMEOW_NS,
+  LOGIC_RESULT_INFORMATION,
   actionPolicyPanes,
   callTool,
   conjectureLibrary,
   configure,
+  derivationsFrom,
   listTools,
   parseNQuads,
 } from "../../mcp-transport.mjs";
@@ -255,39 +257,58 @@ test("integrity_hard_fails_on_a_tampered_snapshot", async () => {
 
 // ── 4 ───────────────────────────────────────────────────────────────────────
 
-test("session_annotations_are_quoted_triples", () => {
-  const session = new ConsoleSession({ id: "t4", now: (i) => `2026-01-01T00:00:0${i}Z` });
-  session.record({
-    tool: "lookup_term",
-    schema: "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/lookupTerm",
-    args: { term: "gmeow:ToolCall" },
-    result: { ok: true },
-    // Every term DECLARES its kind. `{iri: …}` is an IRI; a bare string is a plain
-    // literal. Nothing is inferred from the text of a value.
-    derived: [
-      {
-        subject: { iri: "https://example.org/a" },
-        predicate: { iri: "https://example.org/p" },
-        object: { iri: "https://example.org/b" },
-        antecedents: [{ iri: "https://blackcatinformatics.ca/gmeow/ToolCall" }],
-      },
-      {
-        subject: { iri: "https://example.org/c" },
-        predicate: { iri: "https://example.org/q" },
-        object: "a literal answer",
-        antecedents: [{ iri: "https://example.org/a" }, { iri: "https://example.org/b" }],
-      },
-    ],
+const REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+const DERIVED_BY = `${GMEOW_NS}derivedBy`;
+const WAS_DERIVED_FROM = `${GMEOW_NS}wasDerivedFrom`;
+
+/** A one-subsumption graph whose closure the chase must derive a type from. */
+const SUBSUMPTION = `@prefix ex:   <https://example.org/gmeow/console/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:Recorded rdfs:subClassOf ex:Audited .
+ex:call a ex:Recorded .
+`;
+
+/**
+ * Record one LIVE tool call into a session, exactly as the shipped worker does.
+ *
+ * The point of the helper is what it does NOT take: a `derived` argument. The worker's
+ * `invoke` reads the derivation off the answer through the shipped `derivationsFrom`, and
+ * so does this — so a test can only observe an annotation the production path would also
+ * have produced. A `derived` array composed here would prove nothing about the console,
+ * which is precisely how the whole annotation surface stayed dark while a test passed.
+ */
+async function recordLive(session, tool, args) {
+  const answer = await callTool(tool, args);
+  const call = session.record({
+    tool,
+    schema: `https://example.org/gmeow/console/schema/${tool}`,
+    args,
+    result: answer,
+    ...derivationsFrom(answer),
   });
+  return { answer, call };
+}
+
+test("session_annotations_are_quoted_triples", async () => {
+  // DRIVEN, not composed. The engine reasons over a real graph, and the annotations below
+  // are whatever the shipped reader found in the answer it gave back.
+  const session = new ConsoleSession({ id: "t4", now: (i) => `2026-01-01T00:00:0${i}Z` });
+  const { answer } = await recordLive(session, "reason_graph", {
+    data: SUBSUMPTION,
+    format: "turtle",
+  });
+  assert.ok(answer.entailed_count > 0, "the chase must entail something to annotate");
+
   const nquads = session.trajectoryNQuads();
   const quads = parseNQuads(nquads);
 
-  const REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
-  const DERIVED_BY = "https://blackcatinformatics.ca/gmeow/derivedBy";
-  const FROM = "https://blackcatinformatics.ca/gmeow/wasDerivedFrom";
-
   const reifiers = quads.filter((q) => q.predicate === REIFIES);
-  assert.equal(reifiers.length, 2, "every derived statement gets exactly one reifier");
+  assert.equal(
+    reifiers.length,
+    answer.entailed_count,
+    "every entailed statement the engine returned is annotated, and nothing else is",
+  );
+  const antecedents = new Set();
   for (const quad of reifiers) {
     // The annotation is an RDF-1.2 TRIPLE TERM, not a blank-node reification.
     assert.equal(quad.object.kind, "triple", "the annotation must be a quoted triple");
@@ -295,15 +316,40 @@ test("session_annotations_are_quoted_triples", () => {
     const subject = quad.subject.value;
     // … whose reifier names the call it came out of …
     const by = quads.filter((q) => q.subject.value === subject && q.predicate === DERIVED_BY);
-    assert.equal(by.length, 1, `${subject} must name exactly one gmeow:derivedBy call`);
+    assert.ok(by.length > 0, `${subject} must name the gmeow:derivedBy call it came out of`);
     // … and its ANTECEDENT SET, non-empty.
-    const from = quads.filter((q) => q.subject.value === subject && q.predicate === FROM);
+    const from = quads.filter((q) => q.subject.value === subject && q.predicate === WAS_DERIVED_FROM);
     assert.ok(from.length > 0, `${subject} must carry at least one antecedent`);
+    for (const term of from) antecedents.add(term.object.value);
   }
-  // Every derived RESULT triple in the trajectory is annotated: the asserted statement and
-  // its reifier are both present, so no derived triple stands unattributed.
-  const asserted = quads.filter((q) => q.subject.value.startsWith("https://example.org/"));
-  assert.ok(asserted.length >= 2, "the derived statements are asserted as well as annotated");
+
+  // The antecedents are the ENGINE's, not a stand-in: every one is a subject the answer's
+  // own judgment carries, which is what makes the provenance chain followable back into
+  // the reasoning run rather than into something this console invented.
+  const judgment = parseNQuads(answer.judgment_nquads);
+  const judged = new Set(judgment.map((q) => q.subject.value));
+  for (const antecedent of antecedents) {
+    assert.ok(judged.has(antecedent), `antecedent ${antecedent} is not named by the engine's judgment`);
+  }
+  // …and the run's Belnap information state rides with it, on the engine's own subject.
+  const information = quads.filter((q) => q.predicate === LOGIC_RESULT_INFORMATION);
+  assert.equal(information.length, 1, "the recorded session carries the run's Belnap verdict");
+  assert.ok(antecedents.has(information[0].subject.value), "…about the antecedent run itself");
+
+  // Every derived RESULT triple is asserted as well as annotated, so no derived triple
+  // stands unattributed — and the assertion is the engine's own closure, quad for quad.
+  const closure = parseNQuads(answer.closure_nquads);
+  for (const entailed of closure) {
+    assert.ok(
+      quads.some(
+        (q) =>
+          q.subject.value === entailed.subject.value &&
+          q.predicate === entailed.predicate &&
+          q.object.value === entailed.object.value,
+      ),
+      `the entailed quad ${entailed.subject.value} is not asserted in the trajectory`,
+    );
+  }
 
   // A derived statement with NO antecedents is refused outright.
   assert.throws(
@@ -322,6 +368,237 @@ test("session_annotations_are_quoted_triples", () => {
         ],
       }) && session.trajectoryNQuads(),
     /names no antecedents/,
+  );
+});
+
+test("a_reasoned_session_exports_quoted_triples_that_parse", async () => {
+  // The EXPORT is the artifact a reader keeps, so the annotations have to survive into it
+  // and the result has to be RDF. A shipped export carrying zero `rdf:reifies` over a
+  // session that reasoned is the defect this pins.
+  const session = new ConsoleSession({ id: "t4g", now: (i) => `2026-01-01T00:00:0${i}Z` });
+  await recordLive(session, "reason_graph", { data: SUBSUMPTION, format: "turtle" });
+
+  const store = storeReading(await callTool("store_segment", {}), await callTool("list_candidates", {}));
+  const gts = exportSegment(session, store);
+  const body = gts.split("\n").filter((line) => !line.startsWith("#")).join("\n");
+  const quads = parseNQuads(body);
+
+  const reifiers = quads.filter((q) => q.predicate === REIFIES);
+  assert.ok(reifiers.length > 0, "a reasoned session must export at least one rdf:reifies");
+  assert.ok(
+    reifiers.every((q) => q.object.kind === "triple"),
+    "every exported reifier annotates an RDF-1.2 triple term",
+  );
+  assert.ok(
+    quads.some((q) => q.predicate === DERIVED_BY),
+    "the export carries the call each statement came out of",
+  );
+  assert.ok(
+    quads.some((q) => q.predicate === WAS_DERIVED_FROM),
+    "the export carries the antecedent set each statement rests on",
+  );
+
+  // It PARSES — and it parses through the ENGINE, not only through the console's reader:
+  // a triple term the console emitted but the engine cannot read back is not RDF-1.2, it
+  // is a string that resembles it.
+  const canonical = await callTool("convert", { data: body, from: "nquads", to: "nquads" });
+  const reread = parseNQuads(canonical.output).filter((q) => q.predicate === REIFIES);
+  assert.equal(
+    reread.length,
+    reifiers.length,
+    "every quoted triple survives a round trip through the engine's own serializer",
+  );
+});
+
+test("a_session_of_underived_answers_exports_no_annotation_at_all", async () => {
+  // The negative direction, and it is not decoration: a reader that fabricated an
+  // annotation wherever it could not find one would satisfy every assertion above while
+  // making the provenance claim worthless. A transcode and a term lookup state no basis,
+  // so the session must record none.
+  const session = new ConsoleSession({ id: "t4h", now: (i) => `2026-01-01T00:00:0${i}Z` });
+  const transcoded = await recordLive(session, "convert", {
+    data: SUBSUMPTION,
+    from: "turtle",
+    to: "nquads",
+  });
+  const looked = await recordLive(session, "lookup_term", { term: "gmeow:ToolCall" });
+  // Both calls ANSWERED — the emptiness below is "no derivation stated", never "no answer".
+  assert.ok(transcoded.answer.bytes > 0, "the transcode produced output");
+  assert.ok(looked.answer !== null && typeof looked.answer === "object", "the lookup answered");
+  assert.deepEqual(transcoded.call.derived, [], "a transcode derives nothing");
+  assert.deepEqual(looked.call.derived, [], "a term lookup derives nothing");
+
+  const store = storeReading(await callTool("store_segment", {}), await callTool("list_candidates", {}));
+  const gts = exportSegment(session, store);
+  const quads = parseNQuads(gts.split("\n").filter((line) => !line.startsWith("#")).join("\n"));
+  assert.equal(quads.filter((q) => q.predicate === REIFIES).length, 0, "no reifier is invented");
+  assert.equal(quads.filter((q) => q.predicate === DERIVED_BY).length, 0, "no derivedBy is invented");
+  assert.equal(
+    quads.filter((q) => q.predicate === WAS_DERIVED_FROM).length,
+    0,
+    "no antecedent is invented",
+  );
+  // …and the trajectory is still fully recorded, so this is emptiness of ANNOTATION, not
+  // of the session.
+  assert.equal(
+    quads.filter((q) => q.predicate.endsWith("#type") && q.object.value === `${GMEOW_NS}ToolCall`).length,
+    2,
+    "both calls are still recorded as bound tool calls",
+  );
+});
+
+test("the_derivation_structure_of_a_reasoned_session_has_edges", async () => {
+  // The pane the annotations feed. It used to render an edgeless DAG for every user
+  // always, because its only edge source was a predicate nothing emitted; with the
+  // recorded derivation it renders the structure the session actually holds.
+  const session = new ConsoleSession({ id: "t4i", now: (i) => `2026-01-01T00:00:0${i}Z` });
+  await recordLive(session, "reason_graph", { data: SUBSUMPTION, format: "turtle" });
+  const nquads = session.trajectoryNQuads();
+
+  // `element.mjs` declares a custom element, so its module body needs an `HTMLElement` to
+  // extend. A QUERY-STRING import gives this test its own module instance, so the host
+  // substitution below cannot perturb the one the element test builds later.
+  const hadHtmlElement = Object.hasOwn(globalThis, "HTMLElement");
+  globalThis.HTMLElement ??= class {};
+  const { derivationStructure } = await import(`../element.mjs?structure=${Date.now()}`);
+  if (!hadHtmlElement) delete globalThis.HTMLElement;
+
+  const structure = derivationStructure(nquads);
+  assert.ok(structure.edges.length > 0, "a reasoned session must draw a derivation DAG with edges");
+  assert.ok(structure.nodes.length > 0, "…over the nodes those edges run between");
+  // Every edge is drawable: both endpoints are nodes of the diagram, so no edge is
+  // silently dropped by the renderer.
+  const ids = new Set(structure.nodes.map((node) => node.id));
+  for (const edge of structure.edges) {
+    assert.ok(ids.has(edge.from), `edge from ${edge.from} names no node`);
+    assert.ok(ids.has(edge.to), `edge to ${edge.to} names no node`);
+  }
+  // The recorded call reaches the statements it produced, and the statements reach the
+  // antecedent they rest on — that is the whole claim the pane makes.
+  const reachable = new Set(structure.edges.map((edge) => edge.to));
+  assert.ok(reachable.size > 0, "at least one node is derived from another");
+  assert.deepEqual(structure.cut, [], "no call failed, so there is nothing to cut");
+  assert.deepEqual(structure.gluts, [], "the engine reported no contradiction, so no glut is claimed");
+
+  // The trajectory of a session with NO derivation draws no edge — the pane reports the
+  // absence rather than inventing one.
+  const bare = new ConsoleSession({ id: "t4j", now: () => "2026-01-01T00:00:00Z" });
+  bare.record({ tool: "lookup_term", schema: "https://example.org/s", args: {} });
+  assert.deepEqual(derivationStructure(bare.trajectoryNQuads()).edges, []);
+});
+
+/**
+ * The FIRST derived axiom of a governed bundle chase, read off the judgment it returned.
+ *
+ * DERIVED, never pinned: the quad is whatever this bundle's own governed run derived, so
+ * the assertion below survives a regeneration that changes the closure. A pinned target
+ * would rot into a test that passes because it explains nothing.
+ */
+function firstDerivedAxiom(judgmentNQuads) {
+  const LOGIC = "https://blackcatinformatics.ca/logic/";
+  const rows = new Map();
+  for (const quad of parseNQuads(judgmentNQuads)) {
+    if (quad.subject.kind !== "bnode") continue;
+    const row = rows.get(quad.subject.value) ?? {};
+    if (quad.predicate === `${LOGIC}axiomSubject`) row.subject = quad.object;
+    if (quad.predicate === `${LOGIC}axiomPredicate`) row.predicate = quad.object;
+    if (quad.predicate === `${LOGIC}axiomObject`) row.object = quad.object;
+    if (quad.predicate === `${LOGIC}axiomWorld`) row.world = quad.object;
+    rows.set(quad.subject.value, row);
+  }
+  return (
+    [...rows.values()].find(
+      (row) =>
+        row.subject?.kind === "iri" &&
+        row.predicate?.kind === "iri" &&
+        row.object?.kind === "iri" &&
+        row.world?.kind === "iri",
+    ) ?? null
+  );
+}
+
+test("a_proof_carrying_answer_records_the_premises_the_engine_cited", async () => {
+  // The strongest form the annotation takes: the antecedents are the premise QUADS the
+  // engine's own faithfulness-checked proof skeleton names, not a reference to the run.
+  //
+  // The target is derived from the engine, in two steps and by construction: the governed
+  // bundle chase reports what it derived, and the first of those is explained. `max_steps`
+  // is held to the smallest run that derives anything, because the assertion is about the
+  // SHAPE of a proof-carrying answer and a larger chase would only cost time.
+  const verdict = await callTool("verify_graph", { data: "", format: "turtle", max_steps: 2 });
+  const target = firstDerivedAxiom(verdict.judgment_nquads);
+  assert.ok(target !== null, "the governed bundle chase must derive an axiom to explain");
+
+  const args = {
+    subject: target.subject.value,
+    predicate: target.predicate.value,
+    object_value: target.object.value,
+    object_kind: "iri",
+    graph: target.world.value,
+    max_steps: 2,
+  };
+  const session = new ConsoleSession({ id: "t4k", now: (i) => `2026-01-01T00:00:0${i}Z` });
+  const answer = await callTool("explain_quad", args);
+  assert.equal(answer.ok, true, `explain_quad refused its own derived quad: ${answer.error}`);
+  assert.equal(answer.faithful, true, "the engine re-checked every citation");
+  const call = session.record({
+    tool: "explain_quad",
+    schema: "https://example.org/gmeow/console/schema/explain_quad",
+    args,
+    result: answer,
+    ...derivationsFrom(answer),
+  });
+
+  // Every derived statement is a NON-asserted step of the skeleton, and its antecedents are
+  // the steps that skeleton says it rests on — read back against the engine's own array.
+  const bySkeleton = new Map(answer.step_skeleton.map((step) => [step.derivation_id, step]));
+  assert.ok(call.derived.length > 0, "a proof tree with a derived step must record one");
+  for (const statement of call.derived) {
+    for (const antecedent of statement.antecedents) {
+      assert.ok(antecedent.statement !== undefined, "a proof antecedent is a PREMISE STATEMENT");
+      assert.ok(
+        answer.step_skeleton.some(
+          (step) => step.subject_iri === antecedent.statement.subject.iri &&
+            step.predicate_iri === antecedent.statement.predicate.iri,
+        ),
+        "…and every premise is a step the engine returned, never one composed here",
+      );
+    }
+  }
+  const explained = answer.step_skeleton.filter(
+    (step) => Array.isArray(step.source_step_ids) && step.source_step_ids.length > 0,
+  );
+  assert.equal(call.derived.length, explained.length, "one record per step that cites a premise");
+  assert.ok(bySkeleton.size >= 2, "a proof of a derived quad carries the step it rests on");
+
+  // The emitted RDF: the conclusion AND each premise are quoted triples, and the
+  // `gmeow:wasDerivedFrom` edge runs between those two statement nodes — so a reader
+  // recovers the premise itself rather than a name for it.
+  const quads = parseNQuads(session.trajectoryNQuads());
+  const reifiers = new Map(
+    quads.filter((q) => q.predicate === REIFIES).map((q) => [q.subject.value, q.object]),
+  );
+  assert.ok(reifiers.size >= 2, "both the conclusion and its premise are reified");
+  for (const term of reifiers.values()) {
+    assert.equal(term.kind, "triple", "every reifier annotates an RDF-1.2 triple term");
+  }
+  const cited = quads.filter((q) => q.predicate === WAS_DERIVED_FROM);
+  assert.ok(cited.length > 0, "the conclusion names its premise");
+  for (const edge of cited) {
+    assert.ok(
+      reifiers.has(edge.object.value),
+      `the antecedent ${edge.object.value} is not a reified statement in the trajectory`,
+    );
+  }
+  // A premise is reified but NOT asserted: a triple term does not assert, and the session
+  // records that the engine cited the premise rather than claiming it independently.
+  const premise = reifiers.get(cited[0].object.value).value;
+  assert.ok(
+    !quads.some(
+      (q) => q.subject.value === premise[0].value && q.predicate === premise[1].value && q.graph === null &&
+        q.object.kind === premise[2].kind && q.object.value === premise[2].value,
+    ),
+    "a cited premise is reified, never asserted into the session's own graph",
   );
 });
 

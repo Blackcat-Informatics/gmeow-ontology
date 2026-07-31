@@ -35,6 +35,18 @@
 // came out of) and one `gmeow:wasDerivedFrom` per ANTECEDENT. Quoted triples are the
 // mechanism because the annotation is about the STATEMENT, not about an entity — exactly
 // the distinction `gmeow:derivedBy`'s own definition draws against `gmeow:wasGeneratedBy`.
+//
+// The annotations are NOT something a caller composes. They are read off the engine's own
+// answer by `derivationsFrom` in `assets/mcp-transport.mjs` — a pure function of the
+// derivation-shaped FIELDS a payload carries — and the worker hands the result straight to
+// [`ConsoleSession.record`]. Nothing in this module, and nothing in the console's
+// JavaScript at all, keys that decision on a tool NAME.
+//
+// A reifier is CONTENT-ADDRESSED over the statement it reifies ([`statementIri`]), so the
+// same statement is the same node however many calls reach it. That is what makes the
+// annotations a graph rather than a pile: an antecedent one call cites and a conclusion
+// another call reached join at one node, which is exactly the join the derivation-structure
+// pane walks.
 
 const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC_NS = "https://blackcatinformatics.ca/logic/";
@@ -146,12 +158,27 @@ function literal(value, { datatype = null, language = null } = {}) {
   return `"${escaped}"`;
 }
 
+/** A blank-node label, refusing one the `BLANK_NODE_LABEL` production cannot express. */
+function blankNode(value) {
+  const text = String(value);
+  if (!/^_:[^\s<>"{}|^`\\]+$/.test(text)) {
+    throw new Error(
+      `session: \`${text}\` is not a well-formed N-Quads blank node label — it must read ` +
+        "`_:` followed by a label carrying no whitespace and no IRI delimiter.",
+    );
+  }
+  return text;
+}
+
 /**
  * Serialize a DECLARED term: the caller states the kind, this function never infers it.
  *
- *   * `{iri: "…"}`                                   — an IRI;
+ *   * `{iri: "…"}`                                     — an IRI;
  *   * `{literal: "…", datatype?: "…", language?: "…"}` — a literal;
- *   * a plain string                                 — a plain literal, the common case.
+ *   * `{bnode: "_:…"}`                                 — a blank node;
+ *   * `{triple: [s, p, o]}`                            — an RDF-1.2 triple term, each
+ *     component itself a declared term;
+ *   * a plain string                                   — a plain literal, the common case.
  *
  * The heuristic this replaced was `object.startsWith("http") ? iri : literal`, which is
  * wrong in BOTH directions and silently: a prose answer that quotes a URL was emitted as
@@ -159,21 +186,42 @@ function literal(value, { datatype = null, language = null } = {}) {
  * `file:` IRI was emitted as a literal, which is not the same statement. The caller knows
  * which it produced — an emitter that guesses is a second, wrong source of truth for term
  * kind.
+ *
+ * The kind set is TOTAL over what the shipped N-Quads reader can hand back
+ * (`assets/mcp-transport.mjs`'s `parseNQuads`), because the derivations a session records
+ * are read straight off engine answers: a closure carrying a blank node or a nested triple
+ * term must be recordable as what it IS, not dropped or flattened into a literal.
  */
 function declaredTerm(value, where) {
   if (typeof value === "string") return literal(value);
   if (value !== null && typeof value === "object") {
     if (typeof value.iri === "string") return iri(value.iri);
+    if (typeof value.bnode === "string") return blankNode(value.bnode);
     if (typeof value.literal === "string") {
       return literal(value.literal, {
         datatype: value.datatype ?? null,
         language: value.language ?? null,
       });
     }
+    if (Array.isArray(value.triple)) {
+      if (value.triple.length !== 3) {
+        throw new Error(
+          `session: ${where} declares a triple term of ${value.triple.length} component(s) — ` +
+            "an RDF-1.2 triple term carries exactly three",
+        );
+      }
+      const [s, p, o] = value.triple;
+      return tripleTerm(
+        declaredSubject(s, `${where}: triple-term subject`),
+        declaredIri(p, `${where}: triple-term predicate`),
+        declaredTerm(o, `${where}: triple-term object`),
+      );
+    }
   }
   throw new Error(
     `session: ${where} is not a declared RDF term. Pass {iri: "…"} for an IRI, ` +
-      '{literal: "…", datatype?, language?} or a plain string for a literal. The term kind is ' +
+      '{literal: "…", datatype?, language?} or a plain string for a literal, {bnode: "_:…"} ' +
+      "for a blank node, or {triple: [s, p, o]} for an RDF-1.2 triple term. The term kind is " +
       "never inferred from the text of the value.",
   );
 }
@@ -187,6 +235,34 @@ function declaredIri(value, where) {
     `session: ${where} must be a declared IRI — pass {iri: "…"}. This position cannot carry a ` +
       "literal, so a bare string is refused rather than promoted.",
   );
+}
+
+/**
+ * [`declaredTerm`] restricted to the SUBJECT position: an IRI or a blank node.
+ *
+ * A closure the engine returns may well name a blank node (or a Skolem the chase minted)
+ * as the subject of a derived quad, so refusing everything but an IRI here would make the
+ * console unable to record a real answer. A literal still cannot occupy the position.
+ */
+function declaredSubject(value, where) {
+  if (value !== null && typeof value === "object") {
+    if (typeof value.iri === "string") return iri(value.iri);
+    if (typeof value.bnode === "string") return blankNode(value.bnode);
+  }
+  throw new Error(
+    `session: ${where} must be a declared IRI or blank node — pass {iri: "…"} or ` +
+      '{bnode: "_:…"}. This position cannot carry a literal, so a bare string is refused ' +
+      "rather than promoted.",
+  );
+}
+
+/** One declared `{subject, predicate, object}` as its three serialized terms. */
+function serializeStatement(statement, at) {
+  return [
+    declaredSubject(statement?.subject, `${at}: subject`),
+    declaredIri(statement?.predicate, `${at}: predicate`),
+    declaredTerm(statement?.object, `${at}: object`),
+  ];
 }
 
 /** An RDF-1.2 triple term (`<<( s p o )>>`) over three already-serialized terms. */
@@ -283,8 +359,19 @@ export class ConsoleSession {
    * positions carries a DECLARED kind — `{iri: "…"}`, `{literal: "…", datatype?, language?}`
    * or a plain string for a plain literal — because the caller knows what its tool
    * returned and [`declaredTerm`] must never infer a kind from the text of a value.
+   *
+   * `judgment` is the list of `{subject, predicate, object}` statements the ENGINE made
+   * about its own derivation record — the graded `logic:` judgment a reasoning answer
+   * carries alongside its closure. They are recorded VERBATIM, about the engine's own
+   * subject: the Belnap information state of an answer is the engine's claim about that
+   * answer, and re-attributing it to each conclusion would be the console inventing a
+   * per-statement verdict the engine never gave.
+   *
+   * Neither list is ever built by a caller from a tool NAME. Both come from
+   * `derivationsFrom` in `assets/mcp-transport.mjs`, which reads whatever
+   * derivation-shaped fields an answer actually carries.
    */
-  record({ tool, schema, args, result, derived = [], storeSegment = null }) {
+  record({ tool, schema, args, result, derived = [], judgment = [], storeSegment = null }) {
     if (typeof tool !== "string" || tool.length === 0) {
       throw new Error("session.record: `tool` is required");
     }
@@ -303,6 +390,7 @@ export class ConsoleSession {
       args: args ?? {},
       result: result ?? null,
       derived,
+      judgment,
       atTime: this.now(index),
       storeSegment: storeSegment ?? String(index).padStart(4, "0"),
     };
@@ -351,8 +439,26 @@ export class ConsoleSession {
       lines.push(quad(c, iri(`${GMEOW_NS}sessionStoreSegment`), literal(call.storeSegment)));
       lines.push(...this.annotationsFor(call));
     }
-    lines.sort();
-    return `${lines.join("\n")}\n`;
+    // DEDUPLICATED, because an RDF graph is a SET and the annotations genuinely repeat: a
+    // statement two calls both derived, or a premise cited by several conclusions, is ONE
+    // node reified ONCE. Emitting the same line twice would make the export claim a
+    // multiplicity RDF does not have, and would break every "asserted exactly once"
+    // reading of the recorded trajectory.
+    return `${[...new Set(lines)].sort().join("\n")}\n`;
+  }
+
+  /**
+   * The IRI of the reifier for one statement — CONTENT-ADDRESSED over the statement.
+   *
+   * Statement identity, not call-and-index identity. That is what makes a derivation
+   * chain joinable: a conclusion one call reached and an antecedent another call cited
+   * are the SAME statement, so they must be the same node, and a reifier keyed on
+   * `<call>/statement/<n>` makes them two unrelated nodes by construction — which is why
+   * the derivation DAG could never have had an edge in it.
+   */
+  statementIri(subject, predicate, object) {
+    const address = contentAddress(`${subject} ${predicate} ${object}`);
+    return `${SESSION_BASE}${this.id}/statement/${address.slice("fnv1a128:".length)}`;
   }
 
   /**
@@ -364,35 +470,59 @@ export class ConsoleSession {
    * assertion this annotation exists to prevent.
    *
    * Every term is DECLARED by the caller and serialized by [`declaredTerm`] /
-   * [`declaredIri`] — the subject and predicate positions accept `{iri: …}` alone, because
-   * neither can carry a literal. The object and each antecedent accept `{iri: …}`,
-   * `{literal: …}` or a plain string.
+   * [`declaredIri`] / [`declaredSubject`]. The predicate position accepts `{iri: …}`
+   * alone; the subject position also accepts `{bnode: …}`; the object and each antecedent
+   * accept any declared term.
+   *
+   * An antecedent may additionally be declared as a STATEMENT —
+   * `{statement: {subject, predicate, object}}` — which is what a proof tree hands back:
+   * the premise is a QUAD, not an entity. Such an antecedent is minted as its own reifier
+   * and reified through its own triple term, so the annotation says "this conclusion was
+   * derived from THAT statement" and a reader recovers the premise itself rather than a
+   * name for it. The premise is reified, never ASSERTED: a triple term does not assert,
+   * and the session records that the engine cited the premise, not that the console
+   * independently claims it.
    */
   annotationsFor(call) {
     const lines = [];
     for (const [n, statement] of call.derived.entries()) {
-      const { subject, predicate, object, antecedents } = statement;
       const at = `derived statement ${n} of \`${call.tool}\``;
+      const { antecedents } = statement;
       if (!Array.isArray(antecedents) || antecedents.length === 0) {
         throw new Error(
           `session: ${at} names no antecedents — a derived ` +
             "result triple must carry the set it was derived from",
         );
       }
-      const s = declaredIri(subject, `${at}: subject`);
-      const p = declaredIri(predicate, `${at}: predicate`);
-      const o = declaredTerm(object, `${at}: object`);
+      const [s, p, o] = serializeStatement(statement, at);
+      const reifier = iri(this.statementIri(s, p, o));
       lines.push(quad(s, p, o));
-      const reifier = iri(`${call.iri}/statement/${n}`);
       lines.push(quad(reifier, iri(RDF_REIFIES), tripleTerm(s, p, o)));
       lines.push(quad(reifier, iri(`${GMEOW_NS}derivedBy`), iri(call.iri)));
       for (const [k, antecedent] of antecedents.entries()) {
-        lines.push(
-          quad(reifier, iri(`${GMEOW_NS}wasDerivedFrom`), declaredTerm(antecedent, `${at}: antecedent ${k}`)),
-        );
+        const where = `${at}: antecedent ${k}`;
+        const cited = this.citeAntecedent(antecedent, where);
+        lines.push(...cited.lines);
+        lines.push(quad(reifier, iri(`${GMEOW_NS}wasDerivedFrom`), cited.term));
       }
     }
+    // The engine's own judgment about its derivation record, recorded verbatim about the
+    // engine's own subject.
+    for (const [n, statement] of call.judgment.entries()) {
+      const [s, p, o] = serializeStatement(statement, `judgment ${n} of \`${call.tool}\``);
+      lines.push(quad(s, p, o));
+    }
     return lines;
+  }
+
+  /** One antecedent as the term `gmeow:wasDerivedFrom` points at, plus any lines it needs. */
+  citeAntecedent(antecedent, where) {
+    if (antecedent !== null && typeof antecedent === "object" && antecedent.statement !== undefined) {
+      const [s, p, o] = serializeStatement(antecedent.statement, where);
+      const cited = iri(this.statementIri(s, p, o));
+      return { term: cited, lines: [quad(cited, iri(RDF_REIFIES), tripleTerm(s, p, o))] };
+    }
+    return { term: declaredTerm(antecedent, where), lines: [] };
   }
 
   // ── Permalink ─────────────────────────────────────────────────────────────
@@ -460,8 +590,12 @@ export function decodePermalink(fragment) {
 export function sessionFromPermalink(fragment, options = {}) {
   const decoded = decodePermalink(fragment);
   const session = new ConsoleSession({ id: decoded.id, ...options });
+  // No `derived`, and that is not an omission: a permalink deliberately carries the
+  // INVOCATIONS and not the results, so a replayed session has recorded no answer yet and
+  // therefore has nothing derived to annotate. The annotations reappear when the reader's
+  // own engine runs the calls.
   for (const call of decoded.calls) {
-    session.record({ tool: call.tool, schema: call.schema, args: call.args, derived: [] });
+    session.record({ tool: call.tool, schema: call.schema, args: call.args });
   }
   return session;
 }

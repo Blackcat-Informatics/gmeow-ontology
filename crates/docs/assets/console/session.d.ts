@@ -13,24 +13,50 @@ export interface LiteralTerm {
   language?: string;
 }
 
+/** A blank node, declared as one by the caller. */
+export interface BlankNodeTerm {
+  bnode: string;
+}
+
+/** An RDF-1.2 triple term (`<<( s p o )>>`) over three declared components. */
+export interface TripleTermValue {
+  triple: [DeclaredTerm, DeclaredTerm, DeclaredTerm];
+}
+
 /**
  * One term in a declared position.
  *
- * The kind is DECLARED, never inferred: `{iri}` is an IRI, `{literal}` is a literal, and a
- * bare string is the shorthand for a plain literal. There is deliberately no rule that
- * reads a term's kind out of its text — a prose answer that quotes a URL is a literal, and
- * a `urn:`/`did:` IRI is an IRI, and only the caller knows which it produced.
+ * The kind is DECLARED, never inferred: `{iri}` is an IRI, `{literal}` is a literal,
+ * `{bnode}` is a blank node, `{triple}` is an RDF-1.2 triple term, and a bare string is the
+ * shorthand for a plain literal. There is deliberately no rule that reads a term's kind out
+ * of its text — a prose answer that quotes a URL is a literal, and a `urn:`/`did:` IRI is
+ * an IRI, and only the caller knows which it produced.
  */
-export type DeclaredTerm = IriTerm | LiteralTerm | string;
+export type DeclaredTerm = IriTerm | LiteralTerm | BlankNodeTerm | TripleTermValue | string;
 
-/** One result statement a recorded invocation produced. */
-export interface DerivedStatement {
-  /** The statement's subject. Only an IRI can occupy this position. */
-  subject: IriTerm;
-  /** The statement's predicate. Only an IRI can occupy this position. */
+/** A term that may occupy the subject position: an IRI or a blank node, never a literal. */
+export type SubjectTerm = IriTerm | BlankNodeTerm;
+
+/** One `{subject, predicate, object}` statement, every term declared. */
+export interface DeclaredStatement {
+  subject: SubjectTerm;
   predicate: IriTerm;
   object: DeclaredTerm;
-  antecedents?: DeclaredTerm[];
+}
+
+/**
+ * One antecedent a derived statement rests on.
+ *
+ * A term names an entity the conclusion was derived from; `{statement}` names a QUAD — the
+ * shape a proof tree hands back, where the premise is itself a statement. A statement
+ * antecedent is reified through its own RDF-1.2 triple term and cited by that reifier, so a
+ * reader recovers the premise rather than a name for it.
+ */
+export type Antecedent = DeclaredTerm | { statement: DeclaredStatement };
+
+/** One result statement a recorded invocation produced. */
+export interface DerivedStatement extends DeclaredStatement {
+  antecedents?: Antecedent[];
 }
 
 /** One recorded invocation, as `ConsoleSession.record` returns it. */
@@ -42,6 +68,7 @@ export interface RecordedCall {
   args: Record<string, unknown>;
   result: unknown;
   derived: DerivedStatement[];
+  judgment: DeclaredStatement[];
   atTime: string;
   storeSegment: string;
 }
@@ -52,7 +79,10 @@ export interface RecordInput {
   schema: string;
   args?: Record<string, unknown>;
   result?: unknown;
+  /** The result statements the call derived, read off its answer by `derivationsFrom`. */
   derived?: DerivedStatement[];
+  /** The engine's own judgment about its derivation record, recorded verbatim. */
+  judgment?: DeclaredStatement[];
   storeSegment?: string | null;
 }
 
@@ -142,8 +172,12 @@ export class ConsoleSession {
   record(input: RecordInput): RecordedCall;
   /** The recorded trajectory as N-Quads, in the exact shape the shipped auditor discovers. */
   trajectoryNQuads(): string;
+  /** The reifier IRI of one statement — content-addressed over the statement itself. */
+  statementIri(subject: string, predicate: string, object: string): string;
   /** The RDF-1.2 quoted-triple annotations for one recorded call. */
   annotationsFor(call: RecordedCall): string[];
+  /** One antecedent as the term `gmeow:wasDerivedFrom` points at, plus the lines it needs. */
+  citeAntecedent(antecedent: Antecedent, where: string): { term: string; lines: string[] };
   /** `<content-address>.<base64url payload>` over the invocation list only. */
   permalink(): string;
 }

@@ -800,59 +800,101 @@ export function hasseSvg(nodes, edges) {
   return svg;
 }
 
+/** An IRI's last path segment. */
+function localName(iri) {
+  return iri.slice(iri.lastIndexOf("/") + 1);
+}
+
+/**
+ * A node label: the local name, or `<kind>/<prefix>` when the local name is a long digest.
+ *
+ * A content-addressed statement reifier and a content-addressed reasoning result both end
+ * in 32 or 64 hex characters, which renders as an unreadable box and tells the reader
+ * nothing the first eight do not. The segment BEFORE the digest is what says which kind of
+ * node it is, so it is kept.
+ */
+function nodeLabel(iri) {
+  const local = localName(iri);
+  if (local.length <= 16) return local;
+  const rest = iri.slice(0, iri.lastIndexOf("/"));
+  return `${localName(rest)}/${local.slice(0, 8)}…`;
+}
+
 /**
  * The derivation structure of a recorded trajectory, read straight off its N-Quads.
  *
- * * DAG — one node per recorded call, one edge per `gmeow:wasDerivedFrom` between the
- *   statements two calls produced.
+ * * DAG — the recorded derivation, at the level the session actually records it. A node is
+ *   a recorded CALL, an annotated STATEMENT (the subject of an `rdf:reifies`), or a term a
+ *   statement was derived from; an edge runs from a `gmeow:wasDerivedFrom` antecedent to
+ *   the statement resting on it, and from a call to the statements it produced
+ *   (`gmeow:derivedBy`, read in the direction the derivation flows).
+ *
+ *   Calls ALONE is what this used to draw, lifting every statement edge to the call that
+ *   produced it and dropping the ones it could not lift. That collapses the whole recorded
+ *   structure to nothing whenever a session's derivations live inside one call — which is
+ *   the ordinary case, since one reasoning call answers with a whole closure — so the pane
+ *   rendered an edgeless DAG over a trajectory that had recorded a perfectly good one.
+ *   The statement layer is where the derivation IS; drawing it is not extra detail, it is
+ *   the subject of the pane.
+ *
  * * Minimal fatal cut — the smallest set of calls whose removal disconnects every failed
  *   statement from the anchor. With a linear trajectory that is the failing calls
  *   themselves; the computation is over the recorded edges, not assumed.
  * * Anchor cluster — the `logic:properPartOf` grouping.
- * * Belnap gluts — statements annotated BOTH supported and opposed.
+ * * Belnap gluts — nodes recorded BOTH supported and opposed. The session records the
+ *   engine's `logic:resultInformation` verdict on its own reasoning result, so a run the
+ *   engine reports as `logic:InfoBoth` shows up here as the glut it is.
  */
 export function derivationStructure(nquads) {
   const G = "https://blackcatinformatics.ca/gmeow/";
   const L = "https://blackcatinformatics.ca/logic/";
+  const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
   const lines = nquads.split("\n").map((l) => l.trim()).filter(Boolean);
   const calls = new Set();
+  const statements = new Set();
+  const cited = new Set();
   const anchors = new Map();
   const edges = [];
   const supported = new Set();
   const opposed = new Set();
   const failed = new Set();
-  const derivedBy = new Map();
   for (const line of lines) {
     const m = /^<([^>]*)>\s+<([^>]*)>\s+(.*)\s\.$/.exec(line);
     if (m === null) continue;
     const [, s, p, o] = m;
     const objectIri = /^<([^>]*)>$/.exec(o)?.[1] ?? null;
     if (p === `${G}ToolCall` || (p.endsWith("#type") && objectIri === `${G}ToolCall`)) calls.add(s);
+    if (p === `${RDF}reifies`) statements.add(s);
     if (p === `${L}properPartOf` && objectIri !== null) {
       anchors.set(objectIri, (anchors.get(objectIri) ?? 0) + 1);
     }
-    if (p === `${G}derivedBy` && objectIri !== null) derivedBy.set(s, objectIri);
-    if (p === `${G}wasDerivedFrom` && objectIri !== null) edges.push({ from: objectIri, to: s });
+    // The call PRODUCED the statement, so the derivation flows call → statement even
+    // though the recorded edge points the other way.
+    if (p === `${G}derivedBy` && objectIri !== null) {
+      cited.add(objectIri);
+      edges.push({ from: objectIri, to: s });
+    }
+    if (p === `${G}wasDerivedFrom` && objectIri !== null) {
+      cited.add(objectIri);
+      edges.push({ from: objectIri, to: s });
+    }
     if (p === `${L}resultInformation` && objectIri !== null) {
       if (objectIri.endsWith("InfoSupported") || objectIri.endsWith("InfoBoth")) supported.add(s);
       if (objectIri.endsWith("InfoOpposed") || objectIri.endsWith("InfoBoth")) opposed.add(s);
     }
     if (p === `${G}toolResult` && /"\{?\s*"?error/.test(o)) failed.add(s);
   }
-  // Lift statement-level edges to call-level edges through `gmeow:derivedBy`.
-  const callEdges = [];
-  for (const edge of edges) {
-    const from = derivedBy.get(edge.from) ?? (calls.has(edge.from) ? edge.from : null);
-    const to = derivedBy.get(edge.to) ?? (calls.has(edge.to) ? edge.to : null);
-    if (from !== null && to !== null && from !== to) callEdges.push({ from, to });
-  }
-  const short = (iri) => iri.slice(iri.lastIndexOf("/") + 1);
+  const ids = new Set([...calls, ...statements, ...cited]);
+  // An edge whose endpoints are both drawn. A `gmeow:wasDerivedFrom` may name a term that
+  // is nothing else in this graph — that term IS a node (it is in `cited`), so this only
+  // ever drops an edge the recorded trajectory did not fully carry.
+  const drawn = edges.filter((edge) => ids.has(edge.from) && ids.has(edge.to) && edge.from !== edge.to);
   return {
-    nodes: [...calls].sort().map((c) => ({ id: c, label: short(c) })),
-    edges: callEdges,
-    cut: [...failed].sort().map(short),
-    anchors: [...anchors].sort().map(([anchor, members]) => ({ anchor: short(anchor), members })),
-    gluts: [...supported].filter((s) => opposed.has(s)).sort().map(short),
+    nodes: [...ids].sort().map((id) => ({ id, label: nodeLabel(id) })),
+    edges: drawn,
+    cut: [...failed].sort().map(localName),
+    anchors: [...anchors].sort().map(([anchor, members]) => ({ anchor: localName(anchor), members })),
+    gluts: [...supported].filter((s) => opposed.has(s)).sort().map(nodeLabel),
   };
 }
 

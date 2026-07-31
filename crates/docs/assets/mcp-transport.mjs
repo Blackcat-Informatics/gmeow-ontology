@@ -632,6 +632,254 @@ export function actionPolicyPanes(nquads) {
   return { panes, excluded, byTool };
 }
 
+// ── The derivation reader ───────────────────────────────────────────────────
+//
+// The console records an agentic trajectory, and a recorded answer that cannot say what it
+// rests on is exactly the unattributable assertion the session's RDF-1.2 annotations exist
+// to prevent. This is where an engine answer becomes those annotations.
+//
+// # Shape-driven, never name-driven
+//
+// [`derivationsFrom`] keys on the FIELDS a payload carries, never on the tool that produced
+// it. That is the same rule the pane set follows (`actionPolicyPanes` derives the whole
+// surface from the shipped action theory) and the same rule `toolPayload` follows, and for
+// the same reason: a name-keyed table is a second, stale copy of the tool surface, and the
+// console's whole design forbids one. A tool that grows a derivation-shaped answer starts
+// carrying annotations with no edit here.
+//
+// Two shapes are recognized, because two are what the shipped engine actually returns:
+//
+//   * a CLOSURE (`closure_nquads` + `judgment_nquads`) — the entailed quads of a forward
+//     chase, together with the content-addressed `logic:ReasoningResult` the same answer
+//     minted. Every conclusion `gmeow:wasDerivedFrom` that result node, which is the
+//     engine's OWN idiom for this predicate: the shipped `conjecture_test` judgment writes
+//     `<conjecture> gmeow:wasDerivedFrom <…/graph/reasoning/result/…>` itself. The result
+//     node is not a placeholder — it is addressed over the input validity, the evaluation,
+//     the completeness, the consumed budget, the engine identity and the derived-axiom
+//     rows of that exact run, so two runs that differ in any of those are different
+//     antecedents.
+//   * a PROOF TREE (`step_skeleton`) — the reconstructed, faithfulness-checked derivation
+//     skeleton, in which each step names the steps it was derived from. Here the
+//     antecedents are the premise QUADS themselves, which is the strongest form the
+//     annotation takes.
+//
+// What is deliberately NOT read: the `entailments` surface. Its `conclusion` and `premises`
+// are rendered CURIE prose (`"gmeow:ToolCall rdfs:subClassOf gmeow:Event"`), and turning
+// that back into terms needs a prefix map the payload does not carry — which the console
+// would have to author, making it a second source of truth for what `gmeow:` abbreviates.
+// A surface that does not declare its term kinds is not one this module may guess at; that
+// is the same rule `declaredTerm` enforces on the other side.
+
+/** The `logic:` derivation vocabulary the reader joins on. */
+export const LOGIC_REASONING_RESULT = `${LOGIC_NS}ReasoningResult`;
+export const LOGIC_RESULT_INFORMATION = `${LOGIC_NS}resultInformation`;
+
+/**
+ * One parsed term ([`parseNQuads`]'s `{kind, value, …}`) as the DECLARED term the session
+ * emitter takes.
+ *
+ * TOTAL over the reader's kind set — IRI, blank node, literal (with its datatype or its
+ * language tag), and RDF-1.2 triple term, whose components are converted recursively. An
+ * unknown kind is a HARD failure rather than a coerced literal: the whole point of a
+ * declared term is that nothing downstream infers a kind, and a converter that quietly
+ * flattened a triple term into a string would be the inference it exists to prevent.
+ */
+export function declaredFromTerm(term, where = "term") {
+  switch (term?.kind) {
+    case "iri":
+      return { iri: term.value };
+    case "bnode":
+      return { bnode: term.value };
+    case "literal":
+      if (term.datatype !== null && term.datatype !== undefined) {
+        return { literal: term.value, datatype: term.datatype };
+      }
+      if (term.language !== null && term.language !== undefined) {
+        return { literal: term.value, language: term.language };
+      }
+      return { literal: term.value };
+    case "triple":
+      return { triple: term.value.map((part, i) => declaredFromTerm(part, `${where}[${i}]`)) };
+    default:
+      throw new Error(
+        `derivation: ${where} is a \`${term?.kind}\` term, which is not an N-Quads term kind`,
+      );
+  }
+}
+
+/**
+ * The content-addressed `logic:ReasoningResult` node an answer's judgment minted, plus the
+ * judgment's own Belnap information statements about it.
+ *
+ * Exactly ONE result node is required. A judgment naming none cannot say what its closure
+ * rests on, and one naming several cannot say which — both are hard failures rather than an
+ * arbitrary pick, because an arbitrary pick would attribute a conclusion to a run that did
+ * not produce it.
+ */
+function reasoningJudgment(nquads, where) {
+  const quads = parseNQuads(nquads);
+  const nodes = [
+    ...new Set(
+      quads
+        .filter(
+          (quad) =>
+            quad.predicate === RDF_TYPE &&
+            quad.subject.kind === "iri" &&
+            quad.object.kind === "iri" &&
+            quad.object.value === LOGIC_REASONING_RESULT,
+        )
+        .map((quad) => quad.subject.value),
+    ),
+  ];
+  if (nodes.length !== 1) {
+    throw new Error(
+      `derivation: ${where} carries a closure but its judgment names ${nodes.length} ` +
+        "logic:ReasoningResult nodes; a conclusion can only be attributed to exactly one " +
+        "reasoning run, so neither none nor several may be resolved by picking",
+    );
+  }
+  const node = nodes[0];
+  // The Belnap axis is the engine's claim ABOUT THE RUN, so it is recorded with the run as
+  // its subject. Re-stamping it on each conclusion would be the console inventing a
+  // per-statement verdict: an `InfoBoth` answer says the closure contains a contradiction,
+  // not that every member of it is both supported and opposed.
+  const information = quads
+    .filter(
+      (quad) =>
+        quad.subject.kind === "iri" &&
+        quad.subject.value === node &&
+        quad.predicate === LOGIC_RESULT_INFORMATION &&
+        quad.object.kind === "iri",
+    )
+    .map((quad) => ({
+      subject: { iri: node },
+      predicate: { iri: LOGIC_RESULT_INFORMATION },
+      object: { iri: quad.object.value },
+    }));
+  return { node, information };
+}
+
+/** The closure shape: entailed quads + the reasoning result they came out of. */
+function closureDerivations(answer) {
+  if (typeof answer.closure_nquads !== "string") return null;
+  if (typeof answer.judgment_nquads !== "string") {
+    throw new Error(
+      "derivation: an answer carrying `closure_nquads` carries no `judgment_nquads`, so its " +
+        "conclusions name no reasoning run — refusing to record an unattributable closure",
+    );
+  }
+  const judgment = reasoningJudgment(answer.judgment_nquads, "the answer");
+  const derived = parseNQuads(answer.closure_nquads).map((quad, i) => ({
+    subject: declaredFromTerm(quad.subject, `closure quad ${i} subject`),
+    predicate: { iri: quad.predicate },
+    object: declaredFromTerm(quad.object, `closure quad ${i} object`),
+    antecedents: [{ iri: judgment.node }],
+  }));
+  return { derived, judgment: judgment.information };
+}
+
+/**
+ * Read one step's object out of its canonical N3 surface, through the SHIPPED reader.
+ *
+ * `obj_n3` is a term, not a value: `<iri>`, `"lexical"^^<datatype>`, `_:b`. It is read by
+ * putting it in the object position of a throwaway statement and running [`parseNQuads`],
+ * so the console keeps ONE N-Quads term reader. Writing a second one here — even a small
+ * one — is how the term kinds start disagreeing.
+ */
+function stepObject(objN3, where) {
+  const probe = "<urn:gmeow:console:term-probe>";
+  let quads;
+  try {
+    quads = parseNQuads(`${probe} ${probe} ${objN3} .\n`);
+  } catch (cause) {
+    throw new Error(`derivation: ${where} object surface ${JSON.stringify(objN3)} is not an ` +
+      `N-Quads term: ${cause?.message ?? cause}`, { cause });
+  }
+  if (quads.length !== 1) {
+    throw new Error(
+      `derivation: ${where} object surface ${JSON.stringify(objN3)} read as ${quads.length} ` +
+        "statements, so it is not one term",
+    );
+  }
+  return declaredFromTerm(quads[0].object, `${where} object`);
+}
+
+/** One step's subject: a bare IRI, or the blank node a chase Skolemized. */
+function stepSubject(value, where) {
+  const text = String(value);
+  return text.startsWith("_:") ? { bnode: text } : { iri: text };
+}
+
+/** One proof-tree step as the statement it concludes. */
+function stepStatement(step, where) {
+  return {
+    subject: stepSubject(step.subject_iri, where),
+    predicate: { iri: step.predicate_iri },
+    object: stepObject(step.obj_n3, where),
+  };
+}
+
+/**
+ * The proof-tree shape: each step, and the steps the engine says it was derived from.
+ *
+ * A step with no antecedent step is an ASSERTED premise — it concluded nothing, so it
+ * contributes no derived statement of its own and appears only as somebody else's
+ * antecedent. A step naming an antecedent the skeleton does not carry is a HARD failure:
+ * the skeleton is the engine's own faithfulness-checked trace, so a dangling reference
+ * means it was misread, and recording the conclusion without that premise would drop
+ * exactly the basis the annotation exists to carry.
+ */
+function proofTreeDerivations(answer) {
+  if (!Array.isArray(answer.step_skeleton)) return null;
+  const byId = new Map(answer.step_skeleton.map((step) => [String(step.derivation_id), step]));
+  const derived = [];
+  for (const step of answer.step_skeleton) {
+    const sources = Array.isArray(step.source_step_ids) ? step.source_step_ids : [];
+    if (sources.length === 0) continue;
+    const where = `proof step ${step.derivation_id}`;
+    derived.push({
+      ...stepStatement(step, where),
+      antecedents: sources.map((id) => {
+        const source = byId.get(String(id));
+        if (source === undefined) {
+          throw new Error(
+            `derivation: ${where} names antecedent step \`${id}\`, which the returned proof ` +
+              "skeleton does not carry — refusing to record the conclusion without the premise " +
+              "the engine says it rests on",
+          );
+        }
+        return { statement: stepStatement(source, `${where} antecedent ${id}`) };
+      }),
+    });
+  }
+  // A proof tree is reconstructed FROM a reasoning run, and carries that run's judgment
+  // alongside it, so the Belnap verdict rides here for the same reason it does on a
+  // closure — read off the same field, by the same function.
+  const judgment =
+    typeof answer.judgment_nquads === "string"
+      ? reasoningJudgment(answer.judgment_nquads, "the proof skeleton").information
+      : [];
+  return { derived, judgment };
+}
+
+/**
+ * The derived statements and engine judgment carried by one tool answer.
+ *
+ * Returns `{derived, judgment}`, both possibly EMPTY — and empty is the honest answer for
+ * a tool that derived nothing (a transcode, a lookup, a search). Fabricating an annotation
+ * where the engine stated no basis would be worse than the dark surface this replaced: a
+ * recorded provenance claim nothing backs.
+ *
+ * A payload the recognizers do not match contributes nothing and is not an error. A payload
+ * they DO match but that is malformed — a closure with no judgment, a judgment naming no
+ * single run, a proof step citing a premise that is not there — is a hard failure naming
+ * what was wrong, never a quietly reduced annotation set.
+ */
+export function derivationsFrom(answer) {
+  if (answer === null || typeof answer !== "object") return { derived: [], judgment: [] };
+  return closureDerivations(answer) ?? proofTreeDerivations(answer) ?? { derived: [], judgment: [] };
+}
+
 // ── The curated conjecture library ──────────────────────────────────────────
 // The shipped `logic:Conjecture` corpus, read back as structured records. Before this
 // existed the corpus was fetched, byte-verified and then NEVER PARSED, while the demo

@@ -27,6 +27,7 @@ import {
   callTool,
   configure,
   conjectureLibrary,
+  derivationsFrom,
   ensureMcp,
   listTools,
 } from "./pkg/mcp-transport.mjs";
@@ -94,21 +95,26 @@ const OPS = {
   },
 
   /**
-   * Invoke one tool and record the invocation into the session trajectory.
+   * Invoke one tool and record the invocation — with whatever derivation it returned —
+   * into the session trajectory.
    *
-   * `derived` is the caller's list of `{subject, predicate, object, antecedents}` result
-   * statements, and every term in it DECLARES its kind — `{iri: "…"}`,
-   * `{literal: "…", datatype?, language?}`, or a bare string for a plain literal. The
-   * session emitter refuses an undeclared term rather than inferring a kind from its text:
-   * a tool that answers with a `urn:` IRI and a tool that answers with prose quoting a URL
-   * are making different statements, and only the caller knows which one it got.
+   * The derivation is read off the ANSWER by [`derivationsFrom`], here, on the one path
+   * every invocation takes. It is deliberately NOT a parameter: a `derived` argument was
+   * exactly the seam that made the whole RDF-1.2 annotation surface dark, because no UI
+   * call site had the answer yet when it made the request and every one of them passed an
+   * empty list. The only caller that could have filled it was a test, which is what
+   * "test-only" means.
+   *
+   * A tool that derived nothing contributes nothing, and that is the honest outcome — a
+   * transcode or a lookup states no basis, so it gets no annotation.
    */
-  async invoke({ tool, args, derived }) {
+  async invoke({ tool, args }) {
     const schema = await schemaFor(tool);
     const value = await callTool(tool, args, ({ phase, tool: deferred, segment }) => {
       post({ event: "segment", phase, tool: deferred, segment });
     });
-    session.record({ tool, schema, args, result: value, derived: derived ?? [] });
+    const { derived, judgment } = derivationsFrom(value);
+    session.record({ tool, schema, args, result: value, derived, judgment });
     return value;
   },
 
@@ -128,21 +134,25 @@ const OPS = {
       try {
         const out = await callTool("convert", { data, from, to });
         rows.push({ format: to, ok: true, bytes: out.bytes, output: out.output, loss: out.loss ?? [] });
+        // The SAME reader as `invoke`, over the same answer, so a transcode is annotated by
+        // the same rule everything else is. It states no derivation, so it gets none — that
+        // is read off the payload here rather than asserted by a hard-coded empty list.
         session.record({
           tool: "convert",
           schema,
           args: { from, to },
           result: { bytes: out.bytes, loss: out.loss ?? [] },
-          derived: [],
+          ...derivationsFrom(out),
         });
       } catch (error) {
         rows.push({ format: to, ok: false, error: String(error?.message ?? error), loss: [] });
+        // A refused transcode produced no answer at all, so there is nothing to read a
+        // derivation off. The failure itself is what the recorded call carries.
         session.record({
           tool: "convert",
           schema,
           args: { from, to },
           result: { error: String(error?.message ?? error) },
-          derived: [],
         });
       }
     }
