@@ -158,8 +158,19 @@ use session_common::*;
 /// whole file, so the raw-source content digest folded into this descriptor moves. No engine
 /// capability, withhold, or decider registration changed — the diff is comment lines only, so
 /// no reasoning verdict on any input changes.
+/// Re-blessed once more for a FURTHER `reason/dl.rs` comment correction on the same two
+/// notes: the previous wording still claimed those two `math:compilesToLogicFormula`
+/// companions were the committed bundle's ONLY plain cardinality restrictions, which the
+/// `logic:` grounding-surface demonstrators (`ex:minMemberRestriction` /
+/// `ex:maxLeadRestriction`) falsify. Both notes now state the REACH condition that actually
+/// keeps the withholds quiet (never in a class-definition position; never `owl:onProperty`
+/// an `owl:DatatypeProperty`) instead of an unqualified corpus census.
+/// `native_contract_hash()` `include_str!`s the whole file, so the raw-source content digest
+/// folded into this descriptor moves. No engine capability, withhold, or decider
+/// registration changed — the diff is comment lines only, so no reasoning verdict on any
+/// input changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "df8bbed01be1daa68e2ff3c74b9866140749c6b7178c3c82c4eb21fefcc7b124";
+    "36025c46c8ec7f8f49a39f1805390777c786fcc52f3d5b35f25c013323f45003";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -221,8 +232,15 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `native_contract_hash()` `include_str!`s the whole file, so a comment-only edit moves the
 /// raw-source content digest and with it this fixed-input session identity. No engine
 /// capability changed and the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the FURTHER `reason/dl.rs` comment correction (see the
+/// engine-descriptor golden above — the two notes now state the reach condition rather than
+/// an unqualified "only plain cardinality restrictions in the bundle" census): the native
+/// contract hash is one of the seven folded identity axes and `native_contract_hash()`
+/// `include_str!`s the whole file, so a comment-only edit moves the raw-source content
+/// digest and with it this fixed-input session identity. No engine capability changed and
+/// the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "77df660af7c216a2c649c18e14f4271052e44d95f511e1bfced7a3c94820aec3";
+    "7583ffcb565b9bd3a82aa04f2b75af1b36695194941f9bb81be4e3487b154c56";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
