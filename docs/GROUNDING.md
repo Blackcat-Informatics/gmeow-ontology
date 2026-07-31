@@ -97,7 +97,15 @@ The shipped grounding surface is split by semantic owner:
   upper ontology: the prescription and enactment bridges
   (`logic:Plan` → OBI protocol, `logic:Enactment` → OBI planned process) are
   authored there once, and every downstream `obi:` surface is a generated
-  projection of them.
+  projection of them. The same ownership carries the remaining process-model
+  surfaces: 37 by-reference rows for P-Plan, PROV-O, schema.org HowTo/Recipe,
+  OPMW, BPMN, the RO-Crate Workflow-Run profile, the workflow engines (Airflow,
+  CWL, WDL, Temporal, Nextflow), and openEHR Task Planning in
+  [`plan-enactment-bridges.ttl`](../slices/grounding/logic/mappings/plan-enactment-bridges.ttl).
+  A work-orchestration or process-authoring slice consumes `logic:Plan`,
+  `logic:ActionSchema`, `logic:Enactment`, `logic:precondition`,
+  `logic:effect` and `logic:planBody` together with these correspondences; it
+  never mints a second alignment onto the same external term.
 - `math:` carries its identity catalog, six direct quantity/value bridges to
   SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
   [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),

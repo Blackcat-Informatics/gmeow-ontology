@@ -1,357 +1,61 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic:   <https://blackcatinformatics.ca/logic/> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv:  <https://w3id.org/semapv/vocab/> .
-@prefix schema:  <https://schema.org/> .
-@prefix prov:    <http://www.w3.org/ns/prov#> .
-@prefix pplan:   <http://purl.org/net/p-plan#> .
-@prefix opmw:    <https://www.opmw.org/ontology/> .
-@prefix bpmn:    <http://www.omg.org/spec/BPMN/20100524/MODEL#> .
-@prefix ro_crate: <https://w3id.org/ro/crate/#> .
-# Prescription / enactment / step alignments — GMEOW authoring source.
-# Re-keyed from the retired process-model slice onto the canonical logic:
-# spine: every target, confidence, justification and comment is preserved,
-# because only the GMEOW-side term was retired, never the alignment.
-# Compiled to mappings/gmeow-work-orchestration.sssom.tsv by `gmeow compile-mappings`.
-# Projections live in dsl/mappings/projections/schema-org-procedures.ttl.
+# Work-orchestration alignments — GMEOW authoring source.
+# Compiled to mappings/gmeow-work-orchestration.sssom.tsv by the mappings stage.
 #
-# NOTE: BPMN 2.0, CWL, WDL, RO-Crate Workflow-Run, and the workflow engines
-# Airflow / Temporal / Nextflow do not publish canonical RDF ontologies with
-# stable term IRIs; alignments to them are carried as skos:relatedMatch to
-# informal concept URIs (by-reference logic:BridgeView lowerings of logic:Plan)
-# and will be refined when stable vocabularies emerge.
+# This slice authors NO alignment onto an external formalism. Every external
+# process-model surface the prescription / enactment spine is bridged to —
+# P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, the RO-Crate Workflow-Run
+# profile, the workflow engines (Airflow / CWL / WDL / Temporal / Nextflow),
+# openEHR Task Planning, and OBI's planned-process backbone — is grounded once by
+# the logic: grounding slice, which owns those catalogs
+# (slices/grounding/logic/mappings/plan-enactment-bridges.ttl for the process-model
+# surfaces, mappings/foundation-bridges.ttl for OBI). This slice CONSUMES the
+# logic: term and those correspondences rather than minting a second alignment
+# onto the same external term (docs/GROUNDING.md, "External grounding ownership").
+#
+# What remains here is the one kind of cell that is NOT external grounding: the
+# INTERNAL structural correspondence from a control-flow edge's branch-guard VALUE
+# onto the canonical structured-program COMBINATOR class the guarded edge realizes.
+# Both endpoints are GMEOW-side, so no external formalism is being grounded and no
+# ownership boundary is crossed.
 
 gmeow:mapsetWorkOrchestration a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/work-orchestration" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, and openEHR Task Planning (PROC). The OBI protocol / planned-process pair is NOT re-asserted here: OBI's catalog is owned by the logic: grounding slice, which authors logic:Plan skos:closeMatch obi:0000272 and logic:Enactment skos:closeMatch obi:0000011 once in mappings/foundation-bridges.ttl, and this slice consumes the logic: term and that one correspondence rather than minting a second alignment (docs/GROUNDING.md, \"External grounding ownership\"). logic:Plan is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5). openEHR Task Planning is the higher-fidelity target — it carries loops and guarded branching — and its distinctive DLM constructs are subsumed natively (currency → logic:FreshnessGuard's logic:freshnessHorizon age axis AND time_window → its logic:freshnessWindow explicit valid-time-interval axis — both orthogonal axes of one guard, manual-notification → logic:NotificationWaitSchema, ISM linkage → logic:instantiatesPlan)." .
+    gmeow:setComment "Internal structural correspondences from a control-flow edge's branch-guard value onto the canonical logic: program combinator the guarded edge realizes. This set AUTHORS no external alignment: the plan ⟂ execution bridges onto P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate Workflow-Run, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, openEHR Task Planning, and OBI are owned by the logic: grounding slice and are CONSUMED here through the logic: term (docs/GROUNDING.md, \"External grounding ownership\"). Both endpoints of every row below are GMEOW-side, which is why they stay in the domain slice." .
 
 # --------------------------------------------------------------------------- #
-# P-Plan — the closest peer model for plan / step / input / output / precedence
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:closeMatch pplan:Plan {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "P-Plan Plan; GMEOW Procedure is broader (includes recipes, CI, business processes)."
-|} .
-
-logic:ActionSchema skos:closeMatch pplan:Step {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "P-Plan Step; GMEOW ProcedureStep adds stepType values and subprocess composition."
-|} .
-
-logic:Enactment skos:closeMatch pplan:Activity {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "P-Plan Activity is the execution of a Step; GMEOW Execution is the event that enacts a Procedure or Step."
-|} .
-
-logic:precondition skos:closeMatch pplan:Input {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "P-Plan Input variable; GMEOW stepInput is a property pointing to any entity."
-|} .
-
-logic:effect skos:closeMatch pplan:Output {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "P-Plan Output variable; GMEOW stepOutput is a property pointing to any entity."
-|} .
-
-logic:ControlFlowEdge skos:relatedMatch pplan:precededBy {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "P-Plan precededBy is a direct property between steps; GMEOW ControlFlow is a reified relator."
-|} .
-
-# --------------------------------------------------------------------------- #
-# PROV-O — prov:Plan and prov:Activity
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:closeMatch prov:Plan {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "PROV-O Plan; GMEOW Procedure is typed as InformationObject and carries step structure."
-|} .
-
-logic:Enactment skos:closeMatch prov:Activity {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "PROV-O Activity; GMEOW Execution is the event occurrence that enacts a plan."
-|} .
-
-logic:precondition skos:closeMatch prov:used {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "PROV-O used — an activity consumes an entity; GMEOW stepInput is the plan-level consumption."
-|} .
-
-logic:effect skos:closeMatch prov:wasGeneratedBy {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "PROV-O wasGeneratedBy — an entity is produced by an activity; GMEOW stepOutput is the plan-level production."
-|} .
-
-# --------------------------------------------------------------------------- #
-# schema.org — HowTo / HowToStep / HowToTool / HowToSupply / Recipe
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:closeMatch schema:HowTo {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org HowTo; GMEOW Procedure is broader (includes protocols, CI, business processes)."
-|} .
-
-logic:Plan skos:closeMatch schema:Recipe {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "schema.org Recipe is a Procedure of type recipe."
-|} .
-
-logic:ActionSchema skos:closeMatch schema:HowToStep {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org HowToStep; GMEOW ProcedureStep adds control-flow and data-flow relators."
-|} .
-
-logic:precondition skos:closeMatch schema:supply {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "schema.org supply — a consumable input to a HowToStep."
-|} .
-
-logic:precondition skos:closeMatch schema:tool {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "schema.org tool — a tool used in a HowToStep."
-|} .
-
-logic:effect skos:closeMatch schema:result {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "schema.org result — the output of a HowTo."
-|} .
-
-logic:planBody skos:closeMatch schema:step {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org step — the steps of a HowTo."
-|} .
-
-# --------------------------------------------------------------------------- #
-# OPMW — WorkflowTemplate vs WorkflowExecution (the plan ⟂ execution split)
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:closeMatch opmw:WorkflowTemplate {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OPMW WorkflowTemplate; GMEOW Procedure is the plan side of the de-conflation."
-|} .
-
-logic:Enactment skos:closeMatch opmw:WorkflowExecution {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OPMW WorkflowExecution; GMEOW Execution is the execution side of the de-conflation."
-|} .
-
-logic:ActionSchema skos:closeMatch opmw:WorkflowTemplateProcess {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "OPMW WorkflowTemplateProcess; GMEOW ProcedureStep is the atomic step in a plan."
-|} .
-
-# ---------------------------------------------------------------------------- #
-# BPMN# BPMN — conceptual alignments (no canonical RDF ontology with stable IRIs)
-# --------------------------------------------------------------------------- #
-
-gmeow:stepTypeBranch skos:relatedMatch bpmn:gateway {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "BPMN gateway; GMEOW stepTypeBranch is a value on a ProcedureStep."
-|} .
-
-logic:ControlFlowEdge skos:relatedMatch bpmn:sequenceFlow {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "BPMN sequenceFlow; GMEOW ControlFlow is a reified relator with optional guard."
-|} .
-
-logic:DataFlowEdge skos:relatedMatch bpmn:dataAssociation {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "BPMN dataAssociation; GMEOW DataFlow is a reified relator carrying the flowing entity."
-|} .
-
-# --------------------------------------------------------------------------- #
-# RO-Crate Workflow-Run — reproducibility profile
-# --------------------------------------------------------------------------- #
-
-logic:Enactment skos:relatedMatch ro_crate:CreateAction {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "RO-Crate Workflow-Run CreateAction; GMEOW Execution is the event that enacts a procedure."
-|} .
-
-# --------------------------------------------------------------------------- #
-# Workflow-engine surfaces — Airflow / CWL / WDL / Temporal / Nextflow.        #
+# Guard value → structured-program combinator (the combinator TREE).           #
 #                                                                              #
-# These engines publish no canonical RDF ontologies with stable term IRIs, so  #
-# each alignment is a BY-REFERENCE bridge (logic:BridgeView, Principle 5):     #
-# skos:relatedMatch to an informal concept IRI (a full IRI, not a registered   #
-# CURIE), NOT an equivalence. As lowerings of the canonical logic:Plan process #
-# model they are commitment-shifting and lossy — preservation polarity         #
-# validation-only, never exact. The recurring drops the engine surfaces impose #
-# on the canonical model: a logic:Iteration loop is unrolled or rejected (most #
-# DAG engines forbid cycles), a logic:ConcurrentComposition is serialized where #
-# the engine has no parallel gateway, and a per-outcome logic:compensation is  #
-# omitted where the engine has no compensation primitive. Each such drop is    #
-# stated as a STRUCTURED gmeow:lossyDrop on the bridge below (not only prose),  #
-# which the mappings stage folds into the per-correspondence residue ledger in #
-# generated/logic/projection-report.                                          #
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:relatedMatch <https://airflow.apache.org/concept/DAG> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Apache Airflow DAG (by reference, no canonical RDF): a procedure is a DAG of tasks. Lossy lowering — Airflow forbids cycles (a logic:Iteration loop must unroll or error) and has no per-outcome compensation (omitted)." ;
-    gmeow:lossyDrop "logic:Iteration loop: unrolls or errors (an Airflow DAG forbids cycles)" ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted (Airflow has no compensation primitive)"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://airflow.apache.org/concept/Task> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Apache Airflow Task (by reference): a procedure step is an Airflow task node in the DAG."
-|} .
-
-logic:Plan skos:relatedMatch <https://w3id.org/cwl/cwl#Workflow> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Common Workflow Language Workflow (by reference, no stable RDF term IRIs): a procedure is a CWL workflow. Lossy — CWL is acyclic dataflow (a logic:Iteration loop must unroll) and carries no compensation (omitted)." ;
-    gmeow:lossyDrop "logic:Iteration loop: unrolls (CWL is acyclic dataflow)" ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted (CWL has no compensation primitive)"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://w3id.org/cwl/cwl#WorkflowStep> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Common Workflow Language WorkflowStep (by reference): a procedure step is a CWL workflow step."
-|} .
-
-logic:Plan skos:relatedMatch <https://openwdl.org/concept/Workflow> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Workflow Description Language (WDL) workflow (by reference, no canonical RDF): a procedure is a WDL workflow of calls. Lossy lowering of the canonical plan." ;
-    gmeow:lossyDrop "logic:Iteration loop: unrolls (a WDL call graph is acyclic)" ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted (WDL has no compensation primitive)"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://openwdl.org/concept/Task> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Workflow Description Language (WDL) task (by reference): a procedure step is a WDL task."
-|} .
-
-logic:Plan skos:relatedMatch <https://temporal.io/concept/Workflow> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ;
-    gmeow:comment "Temporal Workflow (by reference, no canonical RDF): a procedure is a Temporal workflow definition. Temporal DOES express loops and compensation (saga) imperatively, so the lowering is closer for control flow but is a code surface, not a declarative spec — carried by reference only." ;
-    gmeow:lossyDrop "logic:Iteration loop and per-outcome logic:compensation: expressible only as imperative Temporal/saga code, not a declarative spec — carried by reference, so the canonical declarative structure is not preserved"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://temporal.io/concept/Activity> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ;
-    gmeow:comment "Temporal Activity (by reference): a procedure step is a Temporal activity invoked by the workflow."
-|} .
-
-logic:Plan skos:relatedMatch <https://www.nextflow.io/concept/Workflow> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Nextflow workflow (by reference, no canonical RDF): a procedure is a Nextflow dataflow workflow of processes. Lossy — Nextflow concurrency is channel-implicit (a logic:ConcurrentComposition serializes in the spec view) and there is no compensation primitive (omitted)." ;
-    gmeow:lossyDrop "logic:ConcurrentComposition: serializes (Nextflow concurrency is channel-implicit, no explicit parallel gateway)" ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted (Nextflow has no compensation primitive)"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://www.nextflow.io/concept/Process> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "Nextflow process (by reference): a procedure step is a Nextflow process node consuming/producing channels."
-|} .
-
-# --------------------------------------------------------------------------- #
-# Guard → structured-program combinator (the combinator TREE).                #
+# logic: carries control flow in TWO complementary forms, not one              #
+# (LOGIC.md, the logic:ControlFlowEdge definition): logic:ControlFlowEdge is    #
+# the binary-edge flow-GRAPH form the DAG-workflow acyclicity certifier runs    #
+# Tarjan SCC over, while logic:Choice / logic:Iteration /                       #
+# logic:ConcurrentComposition / logic:Fallback are the program-TREE combinators #
+# an interpreter walks from a plan's logic:planBody root. The flow-graph        #
+# alignments live with the other logic:-subject bridges in the grounding slice; #
+# this block carries the complementary layer they do not: which COMBINATOR a    #
+# given branch-guard value on a reified edge indicates.                         #
 #                                                                              #
-# The DAG profile minted the flow-GRAPH layer:                                #
-# logic:ControlFlowEdge ⊑ logic:ControlFlowEdge,                                  #
-# the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC  #
-# over. This block adds the COMPLEMENTARY layer the flow-graph alignment did   #
-# NOT carry: the correspondence from a control-flow edge's guard VALUE        #
-# (gmeow:flowGuard, a gmeow:BranchConditionType) onto the canonical           #
-# structured-program COMBINATOR class an interpreter walks as a program TREE  #
-# (logic:Choice / logic:Iteration / logic:ConcurrentComposition /            #
-# logic:Fallback). The two forms are complementary, NOT duplicates            #
-# (LOGIC.md logic:ControlFlowEdge definition): the graph edge is what the     #
-# certifier reads; the combinator is what an interpreter walks.               #
+# Each cell is a skos:relatedMatch, never an equivalence: a guard value is a    #
+# marker on a reified edge that INDICATES which combinator the edge realizes,   #
+# it is not the combinator class itself, so equivalence would overclaim. They   #
+# lower through the same SSSOM/EDOAL/SPARQL pipeline and fold into the          #
+# per-correspondence loss ledger (validation-only) like every other cell.       #
 #                                                                              #
-# These are INTERNAL structural correspondences (gmeow → logic: core, the     #
-# same gmeow→gmeow idiom the deception/narrative slices already use), each a   #
-# skos:relatedMatch — NOT an equivalence: a guard value is a marker on a      #
-# reified edge that INDICATES which combinator the edge realizes; it is not   #
-# the combinator class itself, so equivalence would overclaim. They lower     #
-# through the same SSSOM/EDOAL/SPARQL pipeline and fold into the per-          #
-# correspondence loss ledger (validation-only) like every other cell.         #
-#                                                                              #
-# switch → logic:Choice (n-ary): logic:Choice is the BINARY co-equal-operand  #
-# choice combinator (logic:leftOperand / logic:rightOperand). An n-way switch #
-# corresponds to a right-nested cascade of binary logic:Choice nodes, so the  #
-# single canonical target is logic:Choice; the n-ary nesting is the lossy     #
-# drop recorded on the cell (the flat switch arity is not preserved by the    #
-# binary combinator). The implicit fallback / else arm of an if or a switch   #
-# corresponds to logic:Fallback (try the guarded arm, else the default arm);  #
-# it is recorded as the residue note on those two cells rather than as a      #
-# separate guard value, because the procedures vocabulary has no distinct     #
-# "else" guard — the default arm is the un-guarded ControlFlow edge out of    #
-# the branch step.                                                            #
+# switch → logic:Choice (n-ary): logic:Choice is the BINARY co-equal-operand    #
+# choice combinator (logic:leftOperand / logic:rightOperand). An n-way switch   #
+# corresponds to a right-nested cascade of binary logic:Choice nodes, so the    #
+# single canonical target is logic:Choice; the n-ary nesting is the lossy drop  #
+# recorded on the cell. The implicit fallback / else arm of an if or a switch   #
+# corresponds to logic:Fallback (try the guarded arm, else the default arm); it #
+# is recorded as the residue note on those two cells rather than as a separate  #
+# guard value, because the default arm is the UN-guarded control-flow edge out  #
+# of the branch node and therefore carries no guard value of its own.           #
 # --------------------------------------------------------------------------- #
 
 gmeow:branchConditionIf skos:relatedMatch logic:Choice {|
@@ -366,8 +70,8 @@ gmeow:branchConditionLoop skos:relatedMatch logic:Iteration {|
     gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "A loop-back guard on a logic:ControlFlowEdge edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a procedure carrying a loop guard is outside the acyclic DAG fragment the certifier accepts." ;
-    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the procedure outside the DAG fragment"
+    gmeow:comment "A loop-back guard on a logic:ControlFlowEdge edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a plan carrying a loop guard is outside the acyclic DAG fragment the certifier accepts." ;
+    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the plan outside the DAG fragment"
 |} .
 
 gmeow:branchConditionParallel skos:relatedMatch logic:ConcurrentComposition {|
@@ -385,52 +89,4 @@ gmeow:branchConditionSwitch skos:relatedMatch logic:Choice {|
     gmeow:comment "An n-way switch guard on a logic:ControlFlowEdge edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback." ;
     gmeow:lossyDrop "implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
     gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator"
-|} .
-
-# --------------------------------------------------------------------------- #
-# openEHR Task Planning (PROC) — a HIGHER-fidelity by-reference bridge.        #
-#                                                                              #
-# openEHR PROC publishes no canonical RDF ontology with stable term IRIs, so   #
-# each alignment is a BY-REFERENCE bridge (logic:BridgeView, Principle 5):     #
-# skos:relatedMatch to a spec-anchored concept IRI, NOT an equivalence. Unlike #
-# the acyclic workflow engines above, openEHR TP-VML/DLM natively expresses    #
-# BOTH loops and guarded branching on real conditions, so — for a logic:Plan   #
-# carrying a logic:Iteration or a logic:Choice — this lowering is faithful     #
-# where the DAG engines must unroll or reject. It under-approximates only where #
-# TP-VML lacks logic:'s explicit concurrency-serializability guarantee and its  #
-# per-outcome logic:compensation. GMEOW moreover SUBSUMES the distinctive DLM   #
-# constructs natively rather than merely bridging them: DLM `currency`          #
-# (max datum age) is logic:FreshnessGuard's logic:freshnessHorizon axis and DLM #
-# `time_window` (an explicit named valid-time interval) is its orthogonal       #
-# logic:freshnessWindow axis; manual-notification /                             #
-# callback-driven completion is logic:NotificationWaitSchema; the Instruction-  #
-# State-Machine plan→execution linkage is the logic:instantiatesSchema +        #
-# logic:instantiatesPlan in-band witness. Each residual drop is a STRUCTURED    #
-# gmeow:lossyDrop the mappings stage folds into the per-correspondence residue  #
-# ledger in generated/logic/projection-report.                                #
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#WORK_PLAN> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "openEHR Task Planning WORK_PLAN (by reference, no canonical RDF): a top-level procedure is an openEHR work plan. Higher fidelity than the acyclic engines — TP-VML/DLM carries loops and guarded branching, so a logic:Iteration or logic:Choice in the plan projects faithfully rather than unrolling. Lossy only where TP-VML lacks logic:'s concurrency-serializability and per-outcome compensation." ;
-    gmeow:lossyDrop "logic:ConcurrentComposition: under-approximated where TP-VML has no explicit concurrency-serializability guarantee (logic:ConcurrentHistory / logic:serializabilityCriterion are derived natively, not carried)" ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome"
-|} .
-
-logic:Plan skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK_PLAN> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.65 ;
-    gmeow:comment "openEHR Task Planning TASK_PLAN / SUB_PLAN (by reference): a constituent sub-procedure (gmeow:hasSubProcedure) is an openEHR task plan nested under a work plan. The sub-plan nesting round-trips; the same concurrency / compensation drops as the work-plan bridge apply." ;
-    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome"
-|} .
-
-logic:ActionSchema skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK> {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "openEHR Task Planning TASK / TASK_ACTION (by reference): a procedure step is an openEHR task. A DLM-gated task maps to a guarded logic:Choice step (preserved, not unrolled); a manual-notification task maps to logic:NotificationWaitSchema (subsumed natively); a DLM currency-guarded task input maps to logic:FreshnessGuard (subsumed natively) — BOTH its axes: `currency` (max age) to logic:freshnessHorizon and `time_window` (an explicit valid-time interval) to logic:freshnessWindow / logic:freshnessWindowStart / logic:freshnessWindowEnd." ;
-    gmeow:lossyDrop "TP-VML task scheduling annotations (planned time / wait windows) are not carried by a bare logic:ActionSchema; scheduling is a solver-layer concern (Principle 12)"
 |} .

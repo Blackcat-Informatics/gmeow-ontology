@@ -377,14 +377,17 @@ second engine on every build.
   imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
 - **DOLCE/DUL** is linked by reference, never imported; its six shipped rows are
   commitment-shifting views, not equivalence axioms.
-- **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, PATO,
+- **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, OBI, PATO,
   YAMATO, and OpenCyc are explicit
   `BridgeView` + `CommitmentShiftingBridge` correspondences, so no equivalence can be fabricated.
   BFO IRIs and labels are verified against `imports/targets/bfo.ttl`; BFO/OBO/SUMO target axioms
   stay outside object-level closure. OWL/RDFS is a `SoundUnderApproximation` compiler dialect and
-  SHACL Core/AF is `ValidationOnly`. The 140-row core and 23-row additive sources are
+  SHACL Core/AF is `ValidationOnly`. The 140-row core and 25-row additive sources are
   `slices/grounding/logic/mappings/grounding-bridges.ttl` and
-  `slices/grounding/logic/mappings/foundation-bridges.ttl`; full guide:
+  `slices/grounding/logic/mappings/foundation-bridges.ttl`; the 37-row process-model
+  catalog (P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate Workflow-Run,
+  Airflow/CWL/WDL/Temporal/Nextflow, openEHR Task Planning) is
+  `slices/grounding/logic/mappings/plan-enactment-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 - **The peer grounding slices ship their laws too.** `math:` owns reusable mathematical structure
   (including computational topology, sheaves/Hodge, Hamiltonian systems, reduction/information,
