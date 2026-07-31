@@ -222,4 +222,5 @@ ASK {
     UNION
     { gmeow:axisDimension a owl:InverseFunctionalProperty }
 }""" ;
+    gmeow:saFailWitness "tests/counter-examples/assessment-axis-aliased-to-dimension.ttl" ;
     gmeow:saRationale "Several axes deliberately publish under one ISO dimension, so the axis-to-dimension map is many-to-one; declaring the axis a sub-property or equivalent of the dimension — or the dimension map injective — would assert a bijection the rubric does not have and would license recovering the axis from the dimension." .

@@ -14,6 +14,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The target under assessment: an example slice being scored. ---------------
@@ -51,3 +53,35 @@ ex:translationGrade a gmeow:QualityAssessment ;
 ex:translationScore a math:Quantity ;
     math:hasDimension math:dimensionless ;
     math:quantityValue "0.42"^^xsd:decimal .
+
+# --- The roll-up: the unweighted lattice meet, which names NO single axis. ------
+# It spans every axis, so it carries neither gmeow:assessmentAxis nor
+# gmeow:qualityDimension; its grade is the least of the per-axis grades above.
+ex:rollupGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:advisor ;
+    gmeow:observationResult ex:rollupScore .
+
+ex:rollupScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.42"^^xsd:decimal .
+
+# --- The record schema the three grades above instantiate. ---------------------
+# gmeow:assessmentAxis is a DESCRIPTOR of the grade record, not a presentation
+# detail: a reader who has only the record must still recover which axis produced
+# the score. gmeow:qualityDimension is listed beside it and cannot replace it —
+# sixteen axes publish under twelve dimensions, so the dimension does not
+# determine the axis. The roll-up above conforms to the same profile with the two
+# axis-keyed descriptors absent, which is why neither is required.
+ex:profilePerAxisGradeRecord a gmeow:Profile ;
+    rdfs:label "Per-axis slice-quality grade record"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema of one slice-quality grade record: the entity graded, the rubric axis measured, the ISO dimension that axis publishes under, and the dimensioned result. A roll-up grade instantiates the same schema with the axis and dimension descriptors absent, because the lattice meet spans every axis and names none."@x-gmeow-english ;
+    gmeow:profileAppliesTo   gmeow:QualityAssessment ;
+    gmeow:profileDescriptor  gmeow:assessedEntity , gmeow:assessmentAxis ,
+                             gmeow:qualityDimension , gmeow:observationResult ;
+    gmeow:profileOpenValue   gmeow:QualityAxis , gmeow:QualityDimension .
+
+ex:groundingGrade   gmeow:hasProfile ex:profilePerAxisGradeRecord .
+ex:translationGrade gmeow:hasProfile ex:profilePerAxisGradeRecord .
+ex:rollupGrade      gmeow:hasProfile ex:profilePerAxisGradeRecord .

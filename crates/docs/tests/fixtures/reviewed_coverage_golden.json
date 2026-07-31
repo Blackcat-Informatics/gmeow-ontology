@@ -5508,6 +5508,9 @@
     "https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2004/02/skos/core#scopeNote",
     "https://blackcatinformatics.ca/gmeow/axisAdviceTemplate|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/axisAdviceTemplate|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label",
@@ -5920,6 +5923,9 @@
     "https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy|http://www.w3.org/2004/02/skos/core#definition"
   ],
   "slices/core/slice-quality-rubric/i18n/zh.po": [
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/assessmentAxis|http://www.w3.org/2004/02/skos/core#scopeNote",
     "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#example",
