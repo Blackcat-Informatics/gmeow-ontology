@@ -103,18 +103,25 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
 # The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
 # close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
-#
-# `math_conformance_discharge` joins them for the same reason, and its history is the
-# clearest statement of why the backstop is not a concession: it used to finish almost
-# instantly because its SHACL channel degraded to a non-failing "unverified" bucket when
-# the generated shape surface was absent, and its owl-axiom tier had no execution channel
-# at all. Now that a missing shape surface hard-fails and the disjointness conflations are
-# decided from the reasoned closure, the harness runs real DL reasoning, real SHACL and
-# real projection producers over the whole 13-section matrix (~40-110s, and past the 120s
-# ceiling under gate parallelism). The elapsed time IS the coverage.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(math_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# `math_conformance_discharge` gets its own, larger backstop, and its history is the
+# clearest statement of why that is not a concession. It used to finish almost instantly
+# because its SHACL channel degraded to a non-failing "unverified" bucket when the
+# generated shape surface was absent, and its owl-axiom tier had no execution channel at
+# all. A missing shape surface now hard-fails, the disjointness conflations are decided
+# from the reasoned closure, and — the dominant cost — the reasoned-graph channel takes a
+# REAL DL closure per counter-example instead of reading the asserted graph. It has to:
+# the kernel authors an existential restriction on `math:withRespectTo`, so the chase
+# invents dimension read-set edges no asserted read can see, and the surface-leak half
+# needs the same closure. That is one closure per fixture across the whole 13-section
+# matrix (~670s standalone, more under gate parallelism), and the elapsed time IS the
+# coverage: every second of it is an entailment the gate would otherwise have missed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge)'
+slow-timeout = { period = "600s", "terminate-after" = 4, "grace-period" = "60s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
