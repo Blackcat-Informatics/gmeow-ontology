@@ -2452,7 +2452,7 @@ struct DeclaredGtsProducer {
 /// repo-relative source file it claims through `gmeow:producerCallSite`, together with
 /// the `gmeow:mediumSourceKind` its `gmeow:producerMedium` resolves to.
 ///
-/// The source kind is resolved THROUGH the medium rather than re-declared on the
+/// The source kind is resolved THROUGH the medium rather than redeclared on the
 /// producer: a producer that carried its own copy of the resolution rule would be a
 /// second source of truth for a fact the medium already states (Principle 4), and the
 /// two could then disagree about the same artifact.
@@ -3048,6 +3048,28 @@ const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
     "math.graph.no-cells",
     "math.graph.read",
     "math.index.out-of-range",
+    // ── MERGE RE-BASELINE: the `crates/math-lift` ingestion kinds ─────────────
+    // These eight entered this branch through the merge of `origin/main`, in the
+    // commit that first shipped `crates/math-lift` (the executable R/ONNX/TSTP
+    // front-ends). They were authored BEFORE the `failure_class` clause and this
+    // census existed — the mechanism is this branch's own — so they were never once
+    // subject to this ratchet, and no reviewer ever declined to classify them.
+    //
+    // Recording them here is a BASELINE EXTENSION, not a weakening: the census is the
+    // grandfathering record of kinds the ontology names no typed failure class for,
+    // and it is exactly the eighteen sibling `math.*` kinds' situation (all pinned
+    // above rather than minted). It leaves the shrink-only invariant untouched — the
+    // ratchet holds from here, a NEW unannotated kind still reds, and the honest
+    // discharge is still to mint the failure class in the owning `math:` slice (with
+    // the `logic:` constraint that enforces it) and delete the entry.
+    "math.lift.empty-codomain",
+    "math.lift.onnx.unliftable",
+    "math.lift.onnx.wire",
+    "math.lift.proof.parse",
+    "math.lift.proof.unliftable",
+    "math.lift.r.parse",
+    "math.lift.r.unliftable",
+    "math.lift.source.not-utf8",
     "math.rational.domain",
     "math.rational.overflow",
     "math.scale.degenerate",

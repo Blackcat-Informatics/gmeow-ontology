@@ -732,13 +732,13 @@ gmeow:Medium
     rdfs:label "Medium"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "A lawful (encode, decode) PAIR — a section/retraction (enc, dec) with dec ∘ enc = id on a DECLARED content domain — not a codec configuration record. The law is the medium's identity; the codec (gmeow:mediumCodec), level, dictionary, and composition chain are its coordinates. The losslessness claim rides on gmeow:mediumCorrespondence as a logic:Correspondence carrying an identity preservation judgment (logic:SectionRetraction + logic:ExactPreservation), NEVER a boolean flag: 'this medium round-trips' is a judged crossing with named endpoints and an executed discharge, exactly as a translation crossing is. An OPEN value vocabulary: media are individuals, so a deployment adds a medium without touching this module (Principle 9). A medium also declares the reader capability it demands (gmeow:requiresReaderCapability), because raising the reader contract is a property of the deliverable (Principle 13), never a silent assumption."@x-gmeow-english ;
-    skos:example "gmeow:mediumProfileDistL12 a gmeow:ZstdDictMedium ; gmeow:mediumCodec gmeow:codecZstdRsyncable ; gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 a gmeow:Medium , gmeow:ZstdDictMedium ; gmeow:mediumCodec gmeow:codecZstdRsyncable ; gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid modelling a medium as a settings bag with a lossless boolean (the judgment is the gmeow:mediumCorrespondence), avoid minting media as subclasses (they are individuals on an open axis), and avoid letting a frame fall through to 'no medium' — absence of a dictionary is a NAMED medium (gmeow:mediumProfileBaselineL12), never an unstated default."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Mint a medium individual carrying exactly one gmeow:mediumCodec, one gmeow:mediumSourceKind, and one gmeow:mediumCorrespondence; declare every reader capability it demands with gmeow:requiresReaderCapability, and model a stacked codec chain with gmeow:mediumComposedOf rather than a flattened codec string."@x-gmeow-english ;
+    gmeow:howToUse "Mint a medium individual typed gmeow:Medium AND its specialization (gmeow:ZstdDictMedium for a zstd medium) — the registry is read closed-world, so a medium that declares only the specialization is not a DECLARED gmeow:Medium for the assignments that must resolve to one — carrying exactly one gmeow:mediumCodec, one gmeow:mediumSourceKind, and one gmeow:mediumCorrespondence; declare every reader capability it demands with gmeow:requiresReaderCapability, and model a stacked codec chain with gmeow:mediumComposedOf rather than a flattened codec string."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use whenever bytes cross the encode/decode boundary and the round-trip must be a CLAIM someone can check — the named, judged pair a frame's payload was written through."@x-gmeow-english .
 
@@ -785,7 +785,7 @@ gmeow:GtsProducer
     skos:definition "A reified row of the producer-to-medium map: one production site that AUTHORS GMEOW GTS bytes, and the gmeow:Medium it writes through. It carries the production source file(s) it governs (gmeow:producerCallSite) and exactly one gmeow:producerMedium; the medium's own gmeow:mediumSourceKind then selects which declared-media audit branch applies to what that site emits. It exists because the medium audit is a three-way split, and a split is a TOTAL FUNCTION over producers only if every producer is in its domain — a producer with no row would have no branch, so it would be audited by nothing while the split still looked complete. A repo-static census enumerates every production call of a mandated-profile authorship door and HARD-fails on a call site no row claims, and on a row that claims no call site."@x-gmeow-english ;
     skos:example "gmeow:gtsProducerDistBundle a gmeow:GtsProducer ; gmeow:producerCallSite \"crates/pipeline/src/stages/carrier.rs\" ; gmeow:producerMedium gmeow:mediumProfileDistL12 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid re-declaring gmeow:mediumSourceKind on the producer (the medium already states it, and two copies could disagree about the same artifact), avoid a row with several gmeow:producerMedium values (a site writes through one medium), and avoid leaving a row in place after its file is renamed — a stale call site classifies nothing while making the map look complete."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid redeclaring gmeow:mediumSourceKind on the producer (the medium already states it, and two copies could disagree about the same artifact), avoid a row with several gmeow:producerMedium values (a site writes through one medium), and avoid leaving a row in place after its file is renamed — a stale call site classifies nothing while making the map look complete."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox ;
@@ -817,7 +817,7 @@ gmeow:ZstdDictMedium
     rdfs:label "Zstd Dictionary Medium"@x-gmeow-english ;
     logic:subClassOf gmeow:Medium ;
     skos:definition "The zstd specialization of gmeow:Medium: a lawful (encode, decode) pair realized by a zstd-family codec at a declared compression level (gmeow:mediumZstdLevel) with an OPTIONAL dictionary set (gmeow:mediumDictionary). Optional means EXPLICITLY DECLARED, not absent: the dictionary-less medium is itself a named individual (gmeow:mediumProfileBaselineL12), so 'no dictionary' is a selection a frame makes, never a hole it falls into. The level is part of the declared medium because a level change is a byte-level change to every artifact the medium produces."@x-gmeow-english ;
-    skos:example "gmeow:mediumProfileBaselineL12 a gmeow:ZstdDictMedium ; gmeow:mediumZstdLevel 12 ."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileBaselineL12 a gmeow:Medium , gmeow:ZstdDictMedium ; gmeow:mediumZstdLevel 12 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid treating an absent gmeow:mediumDictionary as 'unknown' (it is the declared no-dictionary selection of that medium) and avoid varying the level per call — the level is declared on the medium precisely so it cannot drift per invocation."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
@@ -969,7 +969,7 @@ gmeow:dictionaryTargetLength
     rdfs:label "dictionary target length"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The dictionary size in bytes REQUESTED of the trainer on a gmeow:CompressionDictionary, and the size the trainer reports having targeted on a gmeow:CompressionDictionaryRealization (domain stated in prose). Functional per subject. It is a request, not a measurement: the achieved size is gmeow:dictionaryByteLength."@x-gmeow-english ;
-    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength 65536 ."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength \"65536\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid reading it as the achieved size (that is gmeow:dictionaryByteLength) and avoid asserting several per subject."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
@@ -1342,7 +1342,7 @@ gmeow:producerMedium
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "producer medium"@x-gmeow-english ;
     rdfs:range gmeow:Medium ;
-    skos:definition "The gmeow:Medium a production GTS-authoring site writes through. Exactly one per producer: a site that wrote through two media would leave its declared-media audit branch underivable, which is the per-call decision the medium axis removes. The audit branch is resolved THROUGH this medium's gmeow:mediumSourceKind rather than re-declared on the producer, so the resolution rule has exactly one source."@x-gmeow-english ;
+    skos:definition "The gmeow:Medium a production GTS-authoring site writes through. Exactly one per producer: a site that wrote through two media would leave its declared-media audit branch underivable, which is the per-call decision the medium axis removes. The audit branch is resolved THROUGH this medium's gmeow:mediumSourceKind rather than redeclared on the producer, so the resolution rule has exactly one source."@x-gmeow-english ;
     skos:example "gmeow:gtsProducerRuntimeStores gmeow:producerMedium gmeow:mediumProfileStoreL12 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid naming a medium the slice does not declare and avoid asserting several per producer — an artifact is written through one medium, and there is nothing to pick between two."@x-gmeow-english ;
@@ -1599,9 +1599,28 @@ gmeow:stratumWholePayload
         gmeow:boxConfigBox .
 
 # --- The two declared media ------------------------------------------------- #
+# Each medium DECLARES BOTH gmeow:ZstdDictMedium and gmeow:Medium.
+#
+# The subsumption gmeow:ZstdDictMedium ⊑ gmeow:Medium is authored ONCE, canonically,
+# as the logic:subClassOf axiom on the class; it is deliberately NOT restated as
+# rdfs:subClassOf, which would be a second source of truth for an axiom logic: already
+# owns. But the medium registry is read CLOSED-WORLD — the logic:ClosureEntry records
+# below turn the gmeow:Medium range of gmeow:payloadSchemaMedium (and the class-qualified
+# gmeow:producerMedium obligation) into a validation obligation whose words are "a
+# DECLARED gmeow:Medium, never an untyped node standing in for one". A closed-world
+# reading asks what an individual DECLARES, never what a reasoner could derive about it,
+# so each medium says it.
+#
+# The general type is therefore an ASSERTION OF THE ENTAILMENT, never an alternative to
+# the axis: dropping the zstd specialization would lose the level/dictionary coordinates
+# its own shape enforces, and dropping the general type would leave every rep-to-medium
+# and producer-to-medium assignment unresolvable against the very obligation that
+# assignment exists to discharge. gmeow_pipeline::medium::registry::read_media already
+# reads the UNION of both spellings for exactly this reason.
 
 gmeow:mediumProfileBaselineL12
-    a gmeow:ZstdDictMedium ;
+    a gmeow:Medium ,
+        gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "baseline medium — zstd-rsyncable level 12, no dictionary"@x-gmeow-english ;
     skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
@@ -1614,7 +1633,8 @@ gmeow:mediumProfileBaselineL12
         gmeow:boxConfigBox .
 
 gmeow:mediumProfileDistL12
-    a gmeow:ZstdDictMedium ;
+    a gmeow:Medium ,
+        gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dist medium — zstd-rsyncable level 12, dictionary-primed"@x-gmeow-english ;
     skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the five shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
@@ -1633,7 +1653,8 @@ gmeow:mediumProfileDistL12
         gmeow:boxConfigBox .
 
 gmeow:mediumProfileStoreL12
-    a gmeow:ZstdDictMedium ;
+    a gmeow:Medium ,
+        gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "store medium — zstd-rsyncable level 12, header-pinned dictionary"@x-gmeow-english ;
     skos:definition "The medium the APPEND-ONLY RUNTIME STORES are written through: zstd-rsyncable at level 12, resolving its dictionary from the entry the SEGMENT HEADER pins (gmeow:mediumSourceHeaderDict) rather than per registered payload schema. A store carries no gmeow:PayloadSchema registry and no graph/medium-registry — it cites bundle dictionaries by id, obtained from the shipped pack's in-band \"dct\" map — so a per-rep rule would be unresolvable there and the dictionary-less gmeow:mediumProfileBaselineL12 would silently discard the priming an agent-memory record most benefits from (a few hundred bytes of claim against a shared vocabulary). Its gmeow:mediumDictionary bound is exactly the two memory dictionaries: a store primed with a dictionary the bundle does not ship could never be re-primed by a consumer holding only that bundle."@x-gmeow-english ;
@@ -1954,7 +1975,7 @@ gmeow:dictGmeowCoreV1
     gmeow:dictionaryId "gmeow-core-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1967,7 +1988,7 @@ gmeow:dictGmeowLogicV1
     gmeow:dictionaryId "gmeow-logic-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowLogicV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1980,7 +2001,7 @@ gmeow:dictGmeowMemoryCompactV1
     gmeow:dictionaryId "gmeow-memory-compact-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTermTable ;
-    gmeow:dictionaryTargetLength 16384 ;
+    gmeow:dictionaryTargetLength "16384"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryCompactV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1993,7 +2014,7 @@ gmeow:dictGmeowMemoryHotV1
     gmeow:dictionaryId "gmeow-memory-hot-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 4096 ;
+    gmeow:dictionaryTargetLength "4096"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryHotV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -2006,7 +2027,7 @@ gmeow:dictGmeowProoftraceV1
     gmeow:dictionaryId "gmeow-prooftrace-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowProoftraceV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -2799,7 +2820,7 @@ logic:msmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PayloadSchema ] .
 logic:msmNot a logic:Formula ; logic:not logic:msmEx .
 logic:msmEx a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "envB" ] , [ logic:termIndex 2 ; logic:termVariable "medA" ] , [ logic:termIndex 3 ; logic:termVariable "medB" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "envB" ] , [ logic:termIndex 2 ; logic:termVariable "mediumA" ] , [ logic:termIndex 3 ; logic:termVariable "mediumB" ] ;
     logic:exists logic:msmBody .
 logic:msmBody a logic:Formula ; logic:and logic:msmSchemaA , logic:msmSchemaB , logic:msmMediumA , logic:msmMediumB , logic:msmDistinct .
 logic:msmSchemaA a logic:Formula ; logic:relation gmeow:envelopeSchema ;
@@ -2807,11 +2828,11 @@ logic:msmSchemaA a logic:Formula ; logic:relation gmeow:envelopeSchema ;
 logic:msmSchemaB a logic:Formula ; logic:relation gmeow:envelopeSchema ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 logic:msmMediumA a logic:Formula ; logic:relation gmeow:envelopeMedium ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "medA" ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "mediumA" ] .
 logic:msmMediumB a logic:Formula ; logic:relation gmeow:envelopeMedium ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "medB" ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "mediumB" ] .
 logic:msmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "medA" ] , [ logic:termIndex 1 ; logic:termVariable "medB" ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mediumA" ] , [ logic:termIndex 1 ; logic:termVariable "mediumB" ] .
 
 # Every EMITTED dictionary version is retained by its authored definition.
 # Dropping a version orphans every artifact already primed with it — those bytes

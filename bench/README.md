@@ -101,7 +101,7 @@ steer a trainer for a dictionary the bundle no longer ships).
 
 ## The criterion: a two-part code, with no threshold
 
-```
+```text
 two_part_code(d) = Σ_f |enc_d(f)|  +  |dict_d|         (the frames, then the model)
 baseline(d)      = Σ_f |enc_base(f)|                   (gmeow:mediumProfileBaselineL12)
 d ships  ⟺  two_part_code(d) < baseline(d)             (strictly; a tie is a loss)
