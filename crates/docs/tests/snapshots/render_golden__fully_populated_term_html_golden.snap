@@ -93,7 +93,7 @@ expression: "to_html(&model, &Page::Term(slug))"
 </ul>
 <h2>Profiles</h2>
 <ul>
-<li><code>full</code></li>
+<li><code>claims</code> · <code>full</code> · <code>purremb</code></li>
 </ul>
 <h2>Formal &amp; academic</h2>
 <h2>Description-Logic axioms</h2>

@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 294
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity
@@ -84,7 +83,7 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 ## Profiles
 
-- `full`
+- `claims` · `full` · `purremb`
 
 ## Formal & academic
 

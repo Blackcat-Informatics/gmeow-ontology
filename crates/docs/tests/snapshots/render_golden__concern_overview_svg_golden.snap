@@ -5,25 +5,25 @@ expression: "svg::concern_overview_svg(&model)"
 <svg xmlns="http://www.w3.org/2000/svg" width="708" height="244" viewBox="0 0 708 244" role="img" aria-label="Concerns by term count">
   <title>Concerns by term count</title>
   <rect width="708" height="244" fill="#ffffff" />
-  <text x="256" y="42" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">standpoints</text>
+  <text x="256" y="42" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">GTS packaging</text>
   <rect x="264" y="28" width="360" height="18" rx="3" fill="#5b78c0" />
-  <text x="630" y="42" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
-  <text x="256" y="70" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">statement metadata</text>
-  <rect x="264" y="56" width="360" height="18" rx="3" fill="#5b78c0" />
-  <text x="630" y="70" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
-  <text x="256" y="98" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">disclosure and suppression</text>
-  <rect x="264" y="84" width="168" height="18" rx="3" fill="#5b78c0" />
-  <text x="438" y="98" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
-  <text x="256" y="126" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">provenance and evidence</text>
-  <rect x="264" y="112" width="168" height="18" rx="3" fill="#5b78c0" />
-  <text x="438" y="126" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
-  <text x="256" y="154" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">frames and units</text>
-  <rect x="264" y="140" width="96" height="18" rx="3" fill="#5b78c0" />
-  <text x="366" y="154" font-family="sans-serif" font-size="12" fill="#1b2436">4</text>
-  <text x="256" y="182" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">GTS packaging</text>
-  <rect x="264" y="168" width="72" height="18" rx="3" fill="#5b78c0" />
-  <text x="342" y="182" font-family="sans-serif" font-size="12" fill="#1b2436">3</text>
+  <text x="630" y="42" font-family="sans-serif" font-size="12" fill="#1b2436">65</text>
+  <text x="256" y="70" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">standpoints</text>
+  <rect x="264" y="56" width="83" height="18" rx="3" fill="#5b78c0" />
+  <text x="353" y="70" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
+  <text x="256" y="98" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">statement metadata</text>
+  <rect x="264" y="84" width="83" height="18" rx="3" fill="#5b78c0" />
+  <text x="353" y="98" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
+  <text x="256" y="126" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">disclosure and suppression</text>
+  <rect x="264" y="112" width="38" height="18" rx="3" fill="#5b78c0" />
+  <text x="308" y="126" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
+  <text x="256" y="154" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">provenance and evidence</text>
+  <rect x="264" y="140" width="38" height="18" rx="3" fill="#5b78c0" />
+  <text x="308" y="154" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
+  <text x="256" y="182" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">frames and units</text>
+  <rect x="264" y="168" width="22" height="18" rx="3" fill="#5b78c0" />
+  <text x="292" y="182" font-family="sans-serif" font-size="12" fill="#1b2436">4</text>
   <text x="256" y="210" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">identifiers and coreference</text>
-  <rect x="264" y="196" width="72" height="18" rx="3" fill="#5b78c0" />
-  <text x="342" y="210" font-family="sans-serif" font-size="12" fill="#1b2436">3</text>
+  <rect x="264" y="196" width="16" height="18" rx="3" fill="#5b78c0" />
+  <text x="286" y="210" font-family="sans-serif" font-size="12" fill="#1b2436">3</text>
 </svg>

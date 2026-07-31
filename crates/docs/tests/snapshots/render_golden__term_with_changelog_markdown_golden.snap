@@ -2,33 +2,29 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Assessment
+# Account Status
 
-`gmeow:Assessment` · Class
+`gmeow:AccountStatus` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:Assessment` |
-| IRI | `https://blackcatinformatics.ca/gmeow/Assessment` |
+| CURIE | `gmeow:AccountStatus` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AccountStatus` |
 | Category | Class |
-| Slice | [GMEOW Observations Module](../../slices/observations/index.md) |
+| Slice | [GMEOW Accounts Module](../../slices/accounts/index.md) |
 
-![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
 
 ## Definition
 
-An observation that scores a target against a criterion \(or whole rubric\) — vantage = the judge, human or model: an LLM judge is just a vantage, and two models disagreeing are two coexisting cells with no winner \(Principle 9\)\. The judge model's identity and prompt digest travel as observation provenance\. gmeow:assessmentCriterion / gmeow:assessmentRubric play the observationMethod ROLE but are deliberately not subproperties of it \(observationMethod is functional with a QualityValue range; Criterion and Rubric are Entities — the claimModality axiom pattern\)\. Scoring\-density expectations by target granularity reuse kernel gmeow:hasGranularity on the target\.
+The usage status of an account from its holder's standpoint — a VALUE vocabulary \(active, dormant, historical, …\); open set\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:Assessment ;
-    gmeow:assessmentCriterion <...> ;  # gmeow:Criterion
-    gmeow:assessmentRubric <...> ;  # gmeow:Rubric
-    gmeow:assessmentScoreValue "..." ;  # xsd:decimal
-    gmeow:assessmentTarget "..." .
+<subject> a gmeow:AccountStatus .
 ```
 
 ## Example in multiple syntaxes
@@ -36,11 +32,7 @@ An observation that scores a target against a criterion \(or whole rubric\) — 
 **Turtle**
 
 ```turtle
-<subject> a gmeow:Assessment ;
-    gmeow:assessmentCriterion <...> ;  # gmeow:Criterion
-    gmeow:assessmentRubric <...> ;  # gmeow:Rubric
-    gmeow:assessmentScoreValue "..." ;  # xsd:decimal
-    gmeow:assessmentTarget "..." .
+<subject> a gmeow:AccountStatus .
 ```
 
 **JSON\-LD**
@@ -53,44 +45,20 @@ An observation that scores a target against a criterion \(or whole rubric\) — 
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/Assessment"
+          "@id": "https://blackcatinformatics.ca/gmeow/AccountStatus"
         }
-      ],
-      "https://blackcatinformatics.ca/gmeow/assessmentCriterion": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/assessmentRubric": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/assessmentScoreValue": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/assessmentTarget": {
-        "@value": "..."
-      }
+      ]
     }
   ]
 }
 ```
 
-## Neighborhood
-
-![Term neighborhood](../../diagrams/terms/assessment.svg)
-
-## Super\-classes
-
-- [`gmeow:Observation`](../observation-class/index.md)
-
 ## Usage Advice
 
-- **Example:** ex:as1 a gmeow:Assessment ; gmeow:assessmentTarget ex:chapter3 ; gmeow:assessmentCriterion ex:agency ; gmeow:assessmentScoreValue 0\.9 \.
-- **Use when:** Use for a score of a target against a criterion or rubric — an observation whose vantage is the judge, human or model; disagreeing judges are coexisting cells with no winner\.
-- **Avoid when:** Avoid treating a model's score as ground truth \(an LLM judge is just a vantage — Principle 9\) and avoid omitting a zero score; a zero is a score, not an absence \(false positives are worse than zeros\)\.
-- **How to use:** Mint one Assessment per criterion \(a 21\-axis pass is 21 Assessments\), naming the target with gmeow:assessmentTarget, the criterion/rubric with gmeow:assessmentCriterion / gmeow:assessmentRubric, the score with gmeow:assessmentScoreValue, and the judge as observation vantage\.
-
-## Examples using this term
-
-- [HARD verdict on G: PII contract held](../../slices/preference/index.md) — `examples/hard-fails-soft-high.ttl`
+- **Example:** ex:accountStatusHistorical a gmeow:AccountStatus \.
+- **Use when:** Use as the value vocabulary for an account's usage state from the holder's standpoint — the open set \(active, dormant, historical, …\) an OnlineAccount declares through gmeow:accountStatus\.
+- **Avoid when:** Avoid for the underlying service's liveness \(use gmeow:ServiceStatus\) and avoid per\-status subclasses; statuses are individuals on an open value vocabulary\.
+- **How to use:** Reference the seeded gmeow:AccountStatus individuals from an account via gmeow:accountStatus; a retired account takes the historical value and is kept on record rather than deleted \(P10\)\.
 
 ## Profiles
 
@@ -98,27 +66,17 @@ An observation that scores a target against a criterion \(or whole rubric\) — 
 
 ## Formal & academic
 
-## Description\-Logic axioms
-
-```text
-gmeow:Assessment ⊑ gmeow:Observation
-```
-
 ## Logic stereotypes
 
-`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
-## Formalized by
-
-- `gmeow:AssessmentMethodConstraint`
-
 ## Documentation coverage
 
-- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
@@ -132,8 +90,8 @@ gmeow:Assessment ⊑ gmeow:Observation
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/Assessment>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/Assessment@blake3:67d03555ac5b7e055f75bdd749432122c867244c85e2c8a4c9163f5113ea7268`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AccountStatus>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AccountStatus@blake3:3897d1a6b630b6a9cfad9926d32c2efa54969c4ec96c01c156bb25e56c5bb977`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---
