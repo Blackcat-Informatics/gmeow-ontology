@@ -129,8 +129,8 @@ pub mod synth_corpus;
 pub mod teleology;
 /// The shared structured-term arena's façade (`ContentKey` / `TermArena` / `StructNode` /
 /// `InterningStats`, re-exported from the reasoner-free [`gmeow_term_arena`] crate) plus
-/// [`term_arena::MathGraphInterning`] — the thin `math:`-graph interning wrapper, which
-/// lives here because it needs this crate's `purrdf`-backed `math:` expression lowering.
+/// [`term_arena::intern_math_root`] — the `math:`-graph interning seam, which lives here
+/// because it needs this crate's `purrdf`-backed `math:` expression lowering.
 pub mod term_arena;
 mod term_codec;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general

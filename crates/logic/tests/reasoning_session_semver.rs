@@ -232,12 +232,13 @@ use session_common::*;
 /// `physical/lower.rs` and `term_arena.rs` are both `BACKWARD_SOURCE` members, so
 /// `math_expression_structural_keys` calling `term_arena::intern_math_root` — and the
 /// removal of the uncalled `MathGraphInterning` Turtle-bytes wrapper beside it, the
-/// `alpha_class_iri` wrapper deletion, and the alpha-class materializer moving onto the
-/// asserted graph — moves the backward-source digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
+/// `alpha_class_iri` wrapper deletion, the alpha-class materializer moving onto the asserted
+/// graph, and the doc-link repairs those deletions required — moves the backward-source
+/// digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
 /// verbatim, and both routes now fold through the single `fold_content_key`), so no
 /// reasoning verdict moves with it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "004347f959ce3e999137addd24a8c8c3414615ece694cc13e0ea2476a812b163";
+    "8d006de7c5b1e1b31bb0914e07a361dc69934322d2457ddfdc53703aa152909a";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -315,8 +316,8 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `math:` expression graph) has an unchanged reasoning verdict.
 /// Re-blessed once more for the α-equivalence-class term reaching a production call site
 /// (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`'s
-/// dropped `#[allow(dead_code)]` on `alpha_class_iri` /
-/// `alpha_class_iri_for_digest` moves the native contract hash, one of the seven folded
+/// dropped `#[allow(dead_code)]` on the alpha-class minting helpers moves the native
+/// contract hash, one of the seven folded
 /// identity axes, while the fixed edge-only input (authoring no `math:` expression graph)
 /// has an unchanged reasoning verdict.
 /// Re-blessed once more for the real generating α-equivalence property-test module
@@ -338,7 +339,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// fixed edge-only input (authoring no `math:` expression graph) has an unchanged
 /// reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f50ad78351363d358b3ef8c4039217f87ddd84d858a85f827904698ca2b56059";
+    "211627d9c18bdfb554aff756d468cc308f22217cde3add401afd967284859ffc";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -4,8 +4,8 @@
 # Single violation: a math:NormalizationDeclaration correctly naming its (source,
 # target) pair through math:normalizes/math:normalizesTo, but declaring NO
 # math:normalizationStrength at all — the bare, strength-less declaration the
-# module.ttl math:normalizationStrength min-qualified-cardinality-1 restriction on
-# math:NormalizationDeclaration exists to forbid. Before that restriction, this
+# module.ttl math:normalizationStrength unqualified min/max-cardinality-1 restriction
+# pair on math:NormalizationDeclaration exists to forbid. Before that restriction, this
 # declaration satisfied NEITHER math:FalseStructuralNormalizationClaimConstraint's
 # structural-strength guard NOR math:UnattributedNormalizationConstraint's
 # coarser-than-structural guard (both are gated on an ASSERTED
@@ -13,7 +13,7 @@
 # math:UndeclaredNormalFormConstraint was ALREADY discharged by the mere presence of
 # the (normalizes, normalizesTo) pair — so a strength-less, procedure-less,
 # unattributed declaration satisfied the entire normal-form contract for free. It no
-# longer does: the min-qualified-cardinality-1 restriction now fires a named, typed
+# longer does: the min-cardinality-1 half now fires a named, typed
 # math:UndeclaredNormalizationStrength violation, bound through the restriction's own
 # gmeow:enforcesFailureClass.
 @prefix math: <https://blackcatinformatics.ca/math/> .

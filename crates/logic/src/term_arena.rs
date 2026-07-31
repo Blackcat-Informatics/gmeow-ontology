@@ -171,7 +171,7 @@ _:{s1}v a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
 
     /// An unliftable expression graph is a typed hard failure, never a partial lift.
     #[test]
-    fn intern_math_graph_hard_fails_on_a_malformed_slot_sequence() {
+    fn intern_math_root_hard_fails_on_a_malformed_slot_sequence() {
         // slotIndex 0 and 2 — non-contiguous, so the argument order is undecidable.
         let turtle = format!(
             r#"@prefix math: <{MATH}> .
@@ -195,7 +195,7 @@ _:bv a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
 
     /// Unparsable bytes are a typed hard failure too — no empty-graph fallback.
     #[test]
-    fn intern_math_graph_hard_fails_on_unparsable_turtle() {
+    fn intern_math_root_hard_fails_on_unparsable_turtle() {
         let mut arena = TermArena::new();
         intern_turtle(&mut arena, b"this is not turtle {{{", "_:e")
             .expect_err("unparsable input must hard-fail");

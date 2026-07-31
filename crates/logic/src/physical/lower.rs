@@ -642,9 +642,9 @@ impl std::fmt::Display for MathLoweringError {
     }
 }
 
-/// A lowering rejection is a real error, not just something printable: the shared term
-/// arena's `intern_math_graph` propagates it with `?` into `gmeow_errors::Result`, which
-/// needs the `Diag` conversion this unlocks. `Display` already carries the whole message,
+/// A lowering rejection is a real error, not just something printable: a caller that works in
+/// `gmeow_errors::Result` propagates it with `?`, which needs the `Diag` conversion this
+/// unlocks. `Display` already carries the whole message,
 /// so there is no source chain to expose.
 impl std::error::Error for MathLoweringError {}
 
@@ -942,8 +942,7 @@ fn fold_content_key(content_key: &str) -> String {
     hasher.finalize().to_hex().to_string()
 }
 
-/// Lower one root through the arena seam ([`crate::term_arena::intern_math_root`] — the single
-/// implementation the public [`crate::term_arena::MathGraphInterning`] facade also calls) and fold the
+/// Lower one root through the arena seam ([`crate::term_arena::intern_math_root`]) and fold the
 /// [`gmeow_term_arena::ContentKey`] the arena returns into the published digest.
 ///
 /// The shipped structural key is therefore computed by the very seam a downstream consumer
@@ -956,7 +955,7 @@ fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<String> {
         .map(|(_, key)| fold_content_key(key.as_str()))
 }
 
-/// Namespace segment under which [`alpha_class_iri`]/[`alpha_class_iri_for_digest`] mint
+/// Namespace segment under which [`alpha_class_iri_for_digest`] mints
 /// one content-addressed IRI per distinct [`structural_digest`] — the individual every
 /// α-equivalent expression's authored `math:alphaEquivalenceClass` edge
 /// (`slices/grounding/math/module.ttl`) resolves to. Minted directly under the slice's
@@ -2101,7 +2100,7 @@ mod tests {
         );
     }
 
-    // ── math: structural_digest / alpha_class_iri are deterministic and distinguish ────
+    // ── math: structural_digest / alpha_class_iri_for_digest are deterministic ─────────
 
     #[test]
     fn structural_digest_matches_for_alpha_equivalent_roots_and_differs_otherwise() {

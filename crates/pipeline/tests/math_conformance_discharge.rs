@@ -406,6 +406,35 @@ fn math_module_dataset() -> Arc<RdfDataset> {
         .expect("math module.ttl parses")
 }
 
+/// Run a `SELECT ?class WHERE { ... }` query and render EVERY binding — blank nodes and
+/// literals included, not only IRIs.
+///
+/// The entailment guards below need this: an OWL restriction is an anonymous node, so a probe
+/// that binds `?class` to the restriction itself produces a blank-node solution. Projecting
+/// only IRIs silently dropped exactly those rows, which made both guards pass while a
+/// `[ a owl:Restriction ; owl:onProperty … ; owl:someValuesFrom … ]` axiom — the dominant
+/// authoring shape in the very module they probe — went unseen.
+fn select_any_binding(ds: &Arc<RdfDataset>, query: &str) -> BTreeSet<String> {
+    match gmeow_slicetest::native_query::query(ds, query).expect("query runs") {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
+            let idx = variables
+                .iter()
+                .position(|v| v == "class")
+                .expect("query projects ?class");
+            rows.iter()
+                .filter_map(|row| row.get(idx).cloned().flatten())
+                .map(|t| match t {
+                    TermValue::Iri(iri) => local_name(&iri),
+                    other => gmeow_slicetest::native_query::render_term(&other),
+                })
+                .collect()
+        }
+        other => panic!("expected SELECT solutions, got {other:?}"),
+    }
+}
+
 /// Run a `SELECT ?class WHERE { ... }` query and collect the local names of every IRI bound
 /// to `?class`.
 fn select_class_local_names(ds: &Arc<RdfDataset>, query: &str) -> BTreeSet<String> {
@@ -739,6 +768,95 @@ fn native_check_channel(class: &str) -> Option<Channel> {
     }
 }
 
+/// The DERIVED edges the dimension gate needs — computed for real, but only where the chase
+/// can actually invent one of its read-set predicates.
+///
+/// `dimension_gate_markers`' contract is that taking the derived edges is what keeps a DERIVED
+/// dimension triple inside the hard-fail gate's domain, and production
+/// (`crates/logic/src/verify.rs`) honours it. Passing an empty slice here did not: the grounding
+/// kernel authors existential restrictions on `math:withRespectTo` and `math:integrand`
+/// (`owl:minQualifiedCardinality 1`), so the chase really does invent read-set edges, and
+/// `dimension_gate_inputs_have_no_entailment_path` fails on exactly those axioms.
+///
+/// Reasoning every fixture costs ~4s each — over ten minutes across the corpus — and almost all
+/// of it is wasted: the chase can only invent a read-set edge for a node typed into a class that
+/// CARRIES such a restriction. That trigger set is read out of the module here rather than
+/// hand-listed, so a newly authored restriction widens it automatically, and the membership test
+/// is deliberately over-approximate (any mention of a trigger class IRI, no subclass reasoning)
+/// so it can only ever reason MORE fixtures than strictly necessary, never fewer.
+fn dimension_derived_edges(ds: &RdfDataset, fixture_only: &RdfDataset) -> Vec<purrdf::RdfQuad> {
+    // The trigger probe reads the FIXTURE, never the union: the union carries the whole grounding
+    // kernel, which mentions every carrier class by construction, so probing it would answer
+    // "yes" for all 188 fixtures and narrow nothing. Reasoning still runs over the union — the
+    // TBox is what drives the chase — but only when the fixture itself put a node into a
+    // carrier class for the chase to act on.
+    if !mentions_a_dimension_existential_carrier(fixture_only) {
+        return Vec::new();
+    }
+    let Ok(result) = gmeow_logic::reason::reason_all(ds) else {
+        return Vec::new();
+    };
+    // The same projection production performs (`crates/logic/src/verify.rs`): every INFERRED,
+    // non-EDB axiom as an all-IRI quad.
+    result
+        .inferred()
+        .iter()
+        .filter(|ax| !ax.is_edb)
+        .map(|ax| {
+            purrdf::RdfQuad::new(
+                purrdf::RdfTerm::iri(bare_iri(&ax.subject)),
+                bare_iri(&ax.predicate),
+                purrdf::RdfTerm::iri(bare_iri(&ax.object)),
+            )
+        })
+        .collect()
+}
+
+/// Strip `<`/`>` from an IRI the reasoner renders in angle brackets — the same normalization
+/// `crates/logic/src/verify.rs` applies before building its derived-edge quads.
+fn bare_iri(term: &str) -> &str {
+    term.strip_prefix('<')
+        .and_then(|t| t.strip_suffix('>'))
+        .unwrap_or(term)
+}
+
+/// Every class the module gives an EXISTENTIAL restriction on a dimension-gate read-set
+/// predicate — the only classes whose instances the chase can hand an invented read-set edge.
+fn dimension_existential_carriers() -> &'static BTreeSet<String> {
+    static CARRIERS: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
+    CARRIERS.get_or_init(|| {
+        let module = math_module_dataset();
+        select_class_local_names(
+            &module,
+            "PREFIX math: <https://blackcatinformatics.ca/math/>
+             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+             PREFIX logic: <https://blackcatinformatics.ca/logic/>
+             PREFIX owl: <http://www.w3.org/2002/07/owl#>
+             SELECT ?class WHERE {
+               { ?class rdfs:subClassOf ?r } UNION { ?class logic:subClassOf ?r }
+               { { ?r owl:onProperty ?dimP } UNION { ?r logic:onProperty ?dimP } }
+               { { ?r owl:someValuesFrom ?f } UNION { ?r logic:someValuesFrom ?f }
+                 UNION { ?r owl:minCardinality ?n } UNION { ?r logic:minCardinality ?n }
+                 UNION { ?r owl:minQualifiedCardinality ?q }
+                 UNION { ?r logic:minQualifiedCardinality ?q } }
+               VALUES ?dimP {
+                 math:hasDimension math:homogeneousOperand math:integrand math:withRespectTo
+                 math:baseDimensionExponent math:exponentOfDimension
+                 math:exponentNumerator math:exponentDenominator
+               }
+             }",
+        )
+    })
+}
+
+/// Whether `ds` mentions any [`dimension_existential_carriers`] class at all.
+fn mentions_a_dimension_existential_carrier(ds: &RdfDataset) -> bool {
+    dimension_existential_carriers().iter().any(|local| {
+        ds.term_id_by_value(&purrdf::TermValue::iri(format!("{MATH_NS}{local}")))
+            .is_some()
+    })
+}
+
 /// The `math:` classes the native structural lint raises over the already-merged `ds`.
 fn native_lint_tripped(ds: &RdfDataset) -> BTreeSet<String> {
     let report = structural_lint_dataset(ds, &minimal_lint_config());
@@ -772,7 +890,7 @@ fn native_lint_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 /// chase) — never a missing-fixture condition. this propagates that as a hard panic
 /// instead of silently dropping it via `if let Ok(...)`, which would misattribute a real
 /// engine failure as "the gate found nothing".
-fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
+fn reasoned_tripped(ds: &RdfDataset, fixture_only: &RdfDataset) -> BTreeSet<String> {
     let mut classes = BTreeSet::new();
 
     // BOTH halves read the ASSERTED fixture union. In production
@@ -794,7 +912,10 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
             .collect();
     classes.extend(native_failure_classes(&expr_messages, "math"));
 
-    match gmeow_logic::reason::math_gate::dimension_gate_markers(ds, &[]) {
+    match gmeow_logic::reason::math_gate::dimension_gate_markers(
+        ds,
+        &dimension_derived_edges(ds, fixture_only),
+    ) {
         Ok(markers) => {
             for (_, class_iri) in markers {
                 classes.insert(local_name(&class_iri));
@@ -810,94 +931,48 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
     classes
 }
 
-/// Guards the one claim [`reasoned_tripped`] rests on: that reading the ASSERTED fixture
-/// union is indistinguishable from reading a DL closure, for the surface-leak half of
-/// `check_math_expression_findings`.
+/// The dimension gate's derived-edge trigger set is REAL and non-empty.
 ///
-/// That check consults exactly four graph facts — `rdf:type math:NormalizationDeclaration`,
-/// `math:rendersAs`, `math:normalizes`, `math:normalizesTo`. A closure can only produce one
-/// of them by an axiom that ENTAILS it. The probe below enumerates every such shape the native
-/// reasoner actually materializes, in BOTH the `owl:` and `logic:` spellings the kernel admits:
-/// subclass and equivalent-class into the declaration class; domain, range, and the restriction
-/// consequents (`someValuesFrom`/`allValuesFrom`/`onClass`) that type a node as one; and
-/// subproperty, equivalent-property, inverse, property-chain, or a restriction `onProperty`
-/// touching any of the three predicates. None is authored today, so the closure is provably
-/// redundant here — and closing the whole grounding kernel once per fixture is not free.
+/// `reasoned_tripped` hands `dimension_gate_markers` genuine derived edges, exactly as
+/// production does — but computes them only for a fixture that puts a node into a class the
+/// module gives an EXISTENTIAL restriction on one of the gate's read-set predicates. That is
+/// sound (the chase can only invent a read-set edge for an instance of such a class) and it is
+/// the difference between a 162s gate and a 700s one.
 ///
-/// The moment such an axiom IS authored, this test fails and says so, rather than letting the
-/// conformance matrix quietly under-report leaks that only inference can see.
-/// Every `###` gate-matrix heading in the charter is REGISTERED, and every registered heading
-/// still exists in the charter.
-///
-/// [`SECTIONS`] is hand-maintained, and [`matrix_rows`] is driven by it — so a wholly new
-/// `###` section could be added to the charter carrying class-bearing rows, and the
-/// completeness gate would simply never read them while staying green. That is the precise
-/// shape of charter drift the whole-matrix registration exists to make impossible, and the
-/// registry cannot police itself. This compares the two sets directly, in both directions.
-/// The dimension gate's read-set has no entailment path either — the twin of
-/// [`leak_check_inputs_have_no_entailment_path`], for the OTHER shortcut [`reasoned_tripped`]
-/// takes.
-///
-/// [`gmeow_logic::reason::math_gate::dimension_gate_markers`] is called there with an EMPTY
-/// derived-edge slice, while production (`crates/logic/src/verify.rs`) hands it the real
-/// closure. Its own contract says why that matters: taking the derived edges is what keeps a
-/// DERIVED dimension triple — one reached by subproperty or class inference — inside the
-/// hard-fail gate's domain. Passing `&[]` is only sound while nothing can derive one, and that
-/// premise was previously asserted in a comment and checked by nothing.
+/// The failure mode it cannot survive is the trigger set going EMPTY — a renamed predicate, a
+/// re-spelled restriction idiom, a query that stops matching. Then every fixture skips
+/// reasoning, `dimension_gate_markers` is back to an empty slice, and the channel silently
+/// degrades to exactly the unsound shortcut this replaced, with the whole matrix still green.
+/// So assert the set is non-empty and that it really does name carriers of the read-set
+/// predicates, rather than trusting the query to keep matching.
 #[test]
-fn dimension_gate_inputs_have_no_entailment_path() {
-    let ds = gmeow_slicetest::native_query::dataset_from_files(
-        &gmeow_slicetest::paths::conformance_module_files(&math_root()),
-    )
-    .expect("math conformance module trio parses");
-
-    let entailing = select_class_local_names(
-        &ds,
-        "PREFIX math: <https://blackcatinformatics.ca/math/>
-         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-         PREFIX logic: <https://blackcatinformatics.ca/logic/>
-         PREFIX owl: <http://www.w3.org/2002/07/owl#>
-         SELECT ?class WHERE {
-           { ?class rdfs:subPropertyOf     ?p }
-           UNION { ?class logic:subPropertyOf    ?p }
-           UNION { ?class owl:equivalentProperty ?p }
-           UNION { ?p owl:equivalentProperty     ?class }
-           UNION { ?class owl:inverseOf          ?p }
-           UNION { ?p owl:inverseOf              ?class }
-           UNION { ?class logic:inverseOf        ?p }
-           UNION { ?p logic:inverseOf            ?class }
-           UNION { ?class logic:onProperty       ?p }
-           UNION { ?class owl:propertyChainAxiom ?p }
-           UNION { ?class rdfs:subClassOf        ?c }
-           UNION { ?class logic:subClassOf       ?c }
-           UNION { ?class owl:equivalentClass    ?c }
-           UNION { ?c owl:equivalentClass        ?class }
-           UNION { ?class logic:someValuesFrom   ?c }
-           UNION { ?class logic:allValuesFrom    ?c }
-           UNION { ?class logic:onClass          ?c }
-           UNION { ?class rdfs:domain            ?c }
-           UNION { ?class rdfs:range             ?c }
-           UNION { ?class logic:domain           ?c }
-           UNION { ?class logic:range            ?c }
-           VALUES ?p {
-             math:hasDimension math:homogeneousOperand math:integrand math:withRespectTo
-             math:baseDimensionExponent math:exponentOfDimension
-             math:exponentNumerator math:exponentDenominator
-           }
-           VALUES ?c { math:DerivedDimension math:Dimensionless }
-         }",
+fn the_dimension_gate_trigger_set_is_derived_and_non_empty() {
+    let carriers = dimension_existential_carriers();
+    assert!(
+        !carriers.is_empty(),
+        "the dimension gate's existential-carrier set is EMPTY, so no fixture would ever be \
+         reasoned and `dimension_gate_markers` would silently fall back to an empty derived-edge \
+         slice — the exact unsound shortcut passing real derived edges replaced. The query in \
+         `dimension_existential_carriers` has stopped matching the module's restriction idiom."
     );
 
-    assert!(
-        entailing.is_empty(),
-        "the grounding kernel now authors {} axiom(s) that can DERIVE one of the dimension \
-         gate's read-set predicates or its two classified dimension types ({}). \
-         `reasoned_tripped` calls `dimension_gate_markers(ds, &[])` on the strength of no such \
-         axiom existing; that is now unsound, and a derived dimension triple would fall \
-         outside the hard-fail gate's domain. Hand it the real derived edges, as \
-         `crates/logic/src/verify.rs` does.",
-        entailing.len(),
-        entailing.iter().cloned().collect::<Vec<_>>().join(", ")
+    // A carrier must be a class the module really does restrict existentially on a read-set
+    // predicate — pin one end-to-end so an over-broad query cannot pad the set with unrelated
+    // classes and keep this test green.
+    let module = std::fs::read_to_string(math_root().join("module.ttl")).expect("module readable");
+    let mut confirmed = 0usize;
+    for local in carriers {
+        if module.contains(&format!("math:{local}")) {
+            confirmed += 1;
+        }
+    }
+    assert_eq!(
+        confirmed,
+        carriers.len(),
+        "every existential-carrier class must be authored in module.ttl; {} of {} were not, so \
+         the query is matching something other than this slice's own restrictions",
+        carriers.len() - confirmed,
+        carriers.len()
     );
 }
 
@@ -934,6 +1009,22 @@ fn every_charter_gate_matrix_section_is_registered() {
     );
 }
 
+/// Guards the one claim [`reasoned_tripped`] rests on: that reading the ASSERTED fixture
+/// union is indistinguishable from reading a DL closure, for the surface-leak half of
+/// `check_math_expression_findings`.
+///
+/// That check consults exactly four graph facts — `rdf:type math:NormalizationDeclaration`,
+/// `math:rendersAs`, `math:normalizes`, `math:normalizesTo`. A closure can only produce one
+/// of them by an axiom that ENTAILS it. The probe below enumerates every such shape the native
+/// reasoner actually materializes, in BOTH the `owl:` and `logic:` spellings the kernel admits:
+/// subclass and equivalent-class into the declaration class; domain, range, and the restriction
+/// consequents (`someValuesFrom`/`allValuesFrom`/`onClass`) that type a node as one; and
+/// subproperty, equivalent-property, inverse, property-chain, or a restriction `onProperty`
+/// touching any of the three predicates. None is authored today, so the closure is provably
+/// redundant here — and closing the whole grounding kernel once per fixture is not free.
+///
+/// The moment such an axiom IS authored, this test fails and says so, rather than letting the
+/// conformance matrix quietly under-report leaks that only inference can see.
 #[test]
 fn leak_check_inputs_have_no_entailment_path() {
     let ds = gmeow_slicetest::native_query::dataset_from_files(
@@ -941,36 +1032,54 @@ fn leak_check_inputs_have_no_entailment_path() {
     )
     .expect("math conformance module trio parses");
 
-    let entailing = select_class_local_names(
+    let entailing = select_any_binding(
         &ds,
         "PREFIX math: <https://blackcatinformatics.ca/math/>
          PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
          PREFIX logic: <https://blackcatinformatics.ca/logic/>
          PREFIX owl: <http://www.w3.org/2002/07/owl#>
          SELECT ?class WHERE {
-           { ?class rdfs:subClassOf            math:NormalizationDeclaration }
-           UNION { ?class logic:subClassOf     math:NormalizationDeclaration }
-           UNION { ?class owl:equivalentClass  math:NormalizationDeclaration }
-           UNION { math:NormalizationDeclaration owl:equivalentClass ?class }
-           UNION { ?class rdfs:domain          math:NormalizationDeclaration }
-           UNION { ?class rdfs:range           math:NormalizationDeclaration }
-           UNION { ?class logic:domain         math:NormalizationDeclaration }
-           UNION { ?class logic:range          math:NormalizationDeclaration }
-           UNION { ?class logic:someValuesFrom math:NormalizationDeclaration }
-           UNION { ?class logic:allValuesFrom  math:NormalizationDeclaration }
-           UNION { ?class logic:onClass        math:NormalizationDeclaration }
+           # (a) anything that can DERIVE `rdf:type math:NormalizationDeclaration`.
+           { ?class rdfs:subClassOf             math:NormalizationDeclaration }
+           UNION { ?class logic:subClassOf      math:NormalizationDeclaration }
+           UNION { ?class owl:equivalentClass   math:NormalizationDeclaration }
+           UNION { math:NormalizationDeclaration owl:equivalentClass   ?class }
+           UNION { ?class logic:equivalentClass math:NormalizationDeclaration }
+           UNION { math:NormalizationDeclaration logic:equivalentClass ?class }
+           UNION { ?class owl:sameAs            math:NormalizationDeclaration }
+           UNION { ?class rdfs:domain           math:NormalizationDeclaration }
+           UNION { ?class rdfs:range            math:NormalizationDeclaration }
+           UNION { ?class logic:domain          math:NormalizationDeclaration }
+           UNION { ?class logic:range           math:NormalizationDeclaration }
+           UNION { ?class owl:someValuesFrom    math:NormalizationDeclaration }
+           UNION { ?class owl:allValuesFrom     math:NormalizationDeclaration }
+           UNION { ?class owl:onClass           math:NormalizationDeclaration }
+           UNION { ?class logic:someValuesFrom  math:NormalizationDeclaration }
+           UNION { ?class logic:allValuesFrom   math:NormalizationDeclaration }
+           UNION { ?class logic:onClass         math:NormalizationDeclaration }
 
-           UNION { ?class rdfs:subPropertyOf     ?p }
-           UNION { ?class logic:subPropertyOf    ?p }
-           UNION { ?class owl:equivalentProperty ?p }
-           UNION { ?p owl:equivalentProperty     ?class }
-           UNION { ?class owl:inverseOf          ?p }
-           UNION { ?p owl:inverseOf              ?class }
-           UNION { ?class logic:inverseOf        ?p }
-           UNION { ?p logic:inverseOf            ?class }
-           UNION { ?class logic:onProperty       ?p }
-           UNION { ?class owl:propertyChainAxiom ?p }
-           VALUES ?p { math:rendersAs math:normalizes math:normalizesTo }
+           # (b) anything that can DERIVE one of the three predicates. A restriction counts
+           # only when its consequent is EXISTENTIAL — that is what makes the chase invent the
+           # edge; a max/allValuesFrom restriction on the same property invents nothing.
+           UNION { ?class rdfs:subPropertyOf       ?leakP }
+           UNION { ?class logic:subPropertyOf      ?leakP }
+           UNION { ?class owl:equivalentProperty   ?leakP }
+           UNION { ?leakP owl:equivalentProperty   ?class }
+           UNION { ?class logic:equivalentProperty ?leakP }
+           UNION { ?leakP logic:equivalentProperty ?class }
+           UNION { ?class owl:inverseOf            ?leakP }
+           UNION { ?leakP owl:inverseOf            ?class }
+           UNION { ?class logic:inverseOf          ?leakP }
+           UNION { ?leakP logic:inverseOf          ?class }
+           UNION { ?class owl:propertyChainAxiom   ?leakP }
+           UNION { ?class logic:propertyChainAxiom ?leakP }
+           UNION { ?class owl:onProperty   ?leakP . ?class owl:someValuesFrom   ?anyF }
+           UNION { ?class logic:onProperty ?leakP . ?class logic:someValuesFrom ?anyF }
+           UNION { ?class owl:onProperty   ?leakP . ?class owl:minCardinality   ?anyN }
+           UNION { ?class logic:onProperty ?leakP . ?class logic:minCardinality ?anyN }
+           UNION { ?class owl:onProperty   ?leakP . ?class owl:minQualifiedCardinality   ?anyQ }
+           UNION { ?class logic:onProperty ?leakP . ?class logic:minQualifiedCardinality ?anyQ }
+           VALUES ?leakP { math:rendersAs math:normalizes math:normalizesTo }
          }",
     );
 
@@ -1487,8 +1596,10 @@ fn total_math_conformance_matrix_is_discharged() {
         // owl-axiom, SHACL) instead of re-parsing/re-unioning per channel.
         let fixture_ds = gmeow_slicetest::native_query::dataset_from_file(fixture)
             .unwrap_or_else(|e| panic!("parse counter-example {}: {e}", fixture.display()));
-        let ds =
-            gmeow_slicetest::native_query::union(&[Arc::clone(&conformance_modules), fixture_ds]);
+        let ds = gmeow_slicetest::native_query::union(&[
+            Arc::clone(&conformance_modules),
+            Arc::clone(&fixture_ds),
+        ]);
 
         // The native structural-lint channel — credited under the channel its OWN
         // emitting function actually implements, never the charter's declared tier fed
@@ -1514,7 +1625,7 @@ fn total_math_conformance_matrix_is_discharged() {
 
         // The reasoned-graph channel: every class it can raise is declared `rust-validator`
         // in the charter, so it is credited there directly (no tier-selection ambiguity).
-        for class in reasoned_tripped(&ds) {
+        for class in reasoned_tripped(&ds, &fixture_ds) {
             class_channel_fixtures
                 .entry(class)
                 .or_default()

@@ -154,7 +154,7 @@ const ALPHA_EQUIVALENCE_DRIFT_JOIN: &str = include_str!(
 #[test]
 fn alpha_equivalent_drifted_expressions_cite_the_same_alpha_class_iri() {
     // Drives ONLY the real production entry point, `check_math_expression_findings` —
-    // never `crate::physical::lower::alpha_class_iri` directly — over two
+    // never the minting helper directly — over two
     // independently-authored, alpha-equivalent expressions.
     let f = findings(ALPHA_EQUIVALENCE_DRIFT_JOIN);
 
