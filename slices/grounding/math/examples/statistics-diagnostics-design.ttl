@@ -63,10 +63,13 @@ ex:interactionOccurrence a math:VariableOccurrence ;
     math:declaredVariable ex:interactionDeclaration .
 
 ex:relapseDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "relapse — the response"@x-gmeow-english .
 ex:treatmentDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "treatment — the design factor"@x-gmeow-english .
 ex:interactionDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "treatment * age — the interaction term"@x-gmeow-english .
 
 # --- Model diagnostics: anchored to a fit AND a method ----------------------- #
@@ -118,3 +121,9 @@ ex:analysisPlan a math:AnalysisPlan ;
 ex:confirmatoryRun a math:InferenceRun , gmeow:Activity ;
     rdfs:label "The confirmatory analysis run"@x-gmeow-english ;
     math:usedAnalysisPlan ex:analysisPlan .
+
+# The value set every model variable in this formula ranges over. math:FreeVariableDeclaration
+# requires a math:variableDomain: a declaration with no domain says which symbol is free but
+# not what it may take, which is half a declaration.
+ex:modelVariableDomain a math:Set ;
+    rdfs:label "the observed value set of a model variable"@x-gmeow-english .

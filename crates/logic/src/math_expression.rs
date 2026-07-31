@@ -112,7 +112,7 @@ pub fn check_math_expression_findings(
 
     check_malformed_structural_key(&usage, &mut findings);
     check_structural_key_drift(&keys, &usage, &mut findings);
-    check_expression_lowering_rejected(&keys, &mut findings);
+    check_expression_lowering_rejected(&keys, &usage, &mut findings);
     check_structural_key_on_rejected_expression(&keys, &usage, &mut findings);
     check_surface_leak_in_normal_form(&leak_index, &mut findings);
     report_alpha_equivalence_classes(&keys, &mut findings);
@@ -284,12 +284,24 @@ fn check_expression_lowering_rejected(
         String,
         Result<String, crate::physical::lower::MathLoweringError>,
     >,
+    usage: &StructuralKeyUsage,
     findings: &mut Vec<Finding>,
 ) {
     for (subj, keyed) in keys {
         let Err(err) = keyed else {
             continue;
         };
+        // Report each rejected root ONCE. Where the root also authored a
+        // `math:structuralKey`, [`check_structural_key_on_rejected_expression`] already
+        // reports it and carries strictly more: the same typed class token PLUS the
+        // identity-claim violation stacked on top of it. Emitting both would double-report
+        // one defect and break the conformance cells' failure-class isolation for no
+        // additional information. The guarantee that matters is unchanged — every rejected
+        // root is reported, by the wrapper when an identity was claimed for it and by this
+        // check otherwise, rather than only when an identity was claimed.
+        if usage.clean.contains_key(subj) {
+            continue;
+        }
         let class_local = failure_class_local_name(err.failure_class());
         findings.push(error(
             CODE_EXPRESSION_LOWERING_REJECTED,

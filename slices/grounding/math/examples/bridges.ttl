@@ -95,10 +95,13 @@ ex:wtOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:wtDeclarat
 ex:hpOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:hpDeclaration .
 
 ex:mpgDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "mpg — the response"@x-gmeow-english .
 ex:wtDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "wt — weight, a predictor"@x-gmeow-english .
 ex:hpDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
     rdfs:label "hp — horsepower, a predictor"@x-gmeow-english .
 
 # The data, held BY REFERENCE (never inlined).
@@ -293,3 +296,9 @@ ex:qedObservation a gmeow:Observation ;
     gmeow:vantage ex:leanChecker ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:leanChecker a gmeow:Standpoint .
+
+# The value set every model variable in this formula ranges over. math:FreeVariableDeclaration
+# requires a math:variableDomain: a declaration with no domain says which symbol is free but
+# not what it may take, which is half a declaration.
+ex:modelVariableDomain a math:Set ;
+    rdfs:label "the observed value set of a model variable"@x-gmeow-english .
