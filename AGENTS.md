@@ -153,6 +153,8 @@ The build's architecture — the in-memory carrier spine, the single `gmeow.gts`
 
 **One producer, one run.** `make check-sync` is the ONLY Make target that runs the regeneration pipeline, and `make check` drives it (in update mode) as the first node of the gate DAG. So the normal answer to "my generated tree is stale" is simply `make check`: it materializes and then gates, inside ONE hold of the host-global gate lock. Materializing separately first and then gating runs the whole pipeline twice and — because the second run must wait for the lock — queues the machine behind you. `make regen` was that second entry point; it is poisoned and refuses.
 
+The doctrine behind the gate — why there is exactly one producer, why the host-global lock has no override, why the pipeline records while the gate grades, when a gate may read a record instead of recomputing it, and what puts a lane on `make heavy` instead of `make check` — is [`docs/GATE-AND-PIPELINE.md`](./docs/GATE-AND-PIPELINE.md). Read it before adding or moving a `make check` task, changing a nextest budget, blessing a ratchet baseline, or writing a comment that claims a gate enforces something; each of its rules carries the real defect in this repository that produced it, and it ends with a checklist for adding a gate task or a pipeline stage.
+
 ```bash
 make check                                   # THE entry point: materialize, then gate
 make check-sync SYNC_MODE=update             # Artifacts only, no gate (rarely what you want)
