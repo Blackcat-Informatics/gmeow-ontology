@@ -15,8 +15,10 @@
 # The sibling operand is a fully-formed free variable (occurrence -> declaration -> domain),
 # so the ONLY defect here is the missing occurrence edge on ex:scopelessVar. This class was
 # previously reachable only as incidental scaffolding inside counter-examples authored for
-# other defects; it is decided by the native lowering and has no SHACL derivation, so a
-# fixture that exists to trip it is the only thing that keeps it live.
+# other defects. The class DOES have a derived SHACL-SPARQL gate (the charter names it as the
+# primary one); what has no derivation is this NATIVE route to it — the lowering's own
+# VariableExpressionMissingOccurrence rejection — so a fixture that exists to trip it is what
+# keeps that route live rather than reachable only by accident.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

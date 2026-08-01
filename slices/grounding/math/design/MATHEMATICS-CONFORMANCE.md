@@ -103,6 +103,8 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | A `math:Number` declares the number system it belongs to | SHACL Core | `math:UnsituatedNumber` |
+| An exact-numeric builtin never divides by zero — an integer `//` or exact `/` by 0, or a dimensioned magnitude divided by the zero rational, has no value to return, so the evaluator faults rather than inventing one | Rust cross-check (`crates/conformance/tests/numeric_builtin_oracle_gold.rs`, the frozen engine-independent oracle corpus, against `BuiltinError::ZeroDivisor` in `crates/logic/src/physical/builtin_eval.rs` anchored through `BuiltinError::math_class`) | `math:ZeroDivisor` |
+| An exact-numeric builtin never silently exceeds its exact carrier — a checked integer `+ - *` or `//` past the `i64` range, or an exact rational normalization past it, faults instead of wrapping, because a wrapped value is a WRONG answer presented as a right one | Rust cross-check (`crates/conformance/tests/numeric_builtin_oracle_gold.rs`, the frozen engine-independent oracle corpus, against `BuiltinError::Overflow` in `crates/logic/src/physical/builtin_eval.rs` anchored through `BuiltinError::math_class`) | `math:Overflow` |
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
 | A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL-SPARQL (`math:ExtendedRealValueConstraint`, a literal-or-one-of-two-poles disjunction) | `math:MalformedExtendedReal` |

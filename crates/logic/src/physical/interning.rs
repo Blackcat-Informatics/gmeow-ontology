@@ -497,9 +497,13 @@ proptest! {
             "re-lowering the SAME graph into the SAME dag must re-intern to the \
              SAME node"
         );
-        let digest_same_dag = arena_structural_key(&graph, &rendered.root)
-            .unwrap_or_else(|e| panic!("digest over the shared dag must succeed: {e:?}"));
+        // The digest a dag that ALREADY holds the term yields, taken through the test-only
+        // `TermDag` seam — this is the half `arena_structural_key` cannot express, since it
+        // builds a fresh arena every call.
+        let digest_same_dag = structural_digest(&dag, node_1);
 
+        // ... and the digest the PRODUCTION route yields, twice, over independently built
+        // arenas.
         let digest_a = arena_structural_key(&graph, &rendered.root)
             .unwrap_or_else(|e| panic!("digest through an independent arena must succeed: {e:?}"));
         let digest_b = arena_structural_key(&graph, &rendered.root)
@@ -511,7 +515,8 @@ proptest! {
         );
         prop_assert_eq!(
             digest_same_dag, digest_a,
-            "digest is stable regardless of which dag instance computed it"
+            "a dag that already holds the term and a freshly built one must agree — the \
+             digest is a function of the TERM, never of the arena instance or its history"
         );
     }
 }

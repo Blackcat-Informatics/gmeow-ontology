@@ -783,6 +783,14 @@ impl MathGraph {
                     || self.has_type(subject, M_BINDING)
                     || self.has_type(subject, M_VARIABLE_EXPRESSION)
                     || self.has_type(subject, M_NUMBER_LITERAL)
+                    // The abstract base too. It is `math:structuralKey`'s DECLARED domain, and
+                    // leaving it out of the root population meant an authored key on such a node
+                    // reached no digest to be compared against: `check_structural_key_drift`
+                    // found no entry and skipped it, so a hand-guessed digest — the exact thing
+                    // the property's own `gmeow:avoidWhen` forbids — passed the gate silently.
+                    // Included here, an undecomposed one lowers to its IRI leaf and its key is
+                    // checked like any other; a decomposed one is rejected and reported.
+                    || self.has_type(subject, M_MATHEMATICAL_EXPRESSION)
             })
             .cloned()
             .collect()
@@ -876,7 +884,7 @@ pub(crate) fn lower_math_expression(
     lower_math_node(dag, graph, root, &mut env, &mut visiting, 0)
 }
 
-/// Compute the structural digest ([`structural_digest`]) of every "root" `math:`
+/// Compute the structural digest ([`arena_structural_key`]) of every "root" `math:`
 /// expression in `ds` ([`MathGraph::expression_roots`]) — the seam a later reasoned-
 /// graph gate calls to derive a content-stable α-equivalence identity per authored
 /// expression. Each root is lowered independently (a fresh [`TermDag`] and a fresh
@@ -913,7 +921,7 @@ pub(crate) fn math_expression_structural_keys(
     out
 }
 
-/// Domain-separation tag for [`structural_digest`]'s framed `blake3` hash — mirrors the
+/// Domain-separation tag for [`fold_content_key`]'s framed `blake3` hash — mirrors the
 /// length-prefixed, domain-tagged framing `crates/errors/src/ledger.rs`'s `feed` uses for
 /// its own content-address fingerprints (never a bare-concatenation hash, so a field-
 /// boundary shift can never collide two structurally-distinct keys).
@@ -929,11 +937,6 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(bytes);
 }
 
-/// The content-addressed structural-identity digest of the term DAG node `id`: `dag`'s
-/// own injective (but unbounded-length) [`TermDag::key`] content key, folded through a
-/// framed, domain-tagged `blake3` hash into a fixed-width hex digest. Two nodes with the
-/// SAME digest are alpha-equivalent by construction (the arena is locally-nameless and
-/// hash-consed); two with different digests are structurally distinct.
 /// Fold a `TermDag` node's content key into the published digest — TEST SCAFFOLDING ONLY.
 ///
 /// Production never calls this: the shipped `math:structuralKey` is computed by
@@ -944,13 +947,13 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// entry point cannot express. `#[cfg(test)]` so it can never become a second production
 /// surface — the duplicate-entry-point condition the arena facade was deleted for.
 #[cfg(test)]
-fn structural_digest(dag: &TermDag, id: NodeId) -> String {
+pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
     fold_content_key(dag.key(id))
 }
 
 /// Fold an arena content key into the published fixed-width digest.
 ///
-/// Split out of [`structural_digest`] so the [`TermDag`]-facing and
+/// Split out so the [`TermDag`]-facing (test-only) and
 /// [`crate::term_arena::TermArena`]-facing routes cannot drift: both end here, over the same
 /// bytes ([`gmeow_term_arena::Arena::key`] returns `dag.key` verbatim).
 fn fold_content_key(content_key: &str) -> String {
@@ -973,7 +976,7 @@ pub(crate) fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<
 }
 
 /// Namespace segment under which [`alpha_class_iri_for_digest`] mints
-/// one content-addressed IRI per distinct [`structural_digest`] — the individual every
+/// one content-addressed IRI per distinct [`arena_structural_key`] — the individual every
 /// α-equivalent expression's authored `math:alphaEquivalenceClass` edge
 /// (`slices/grounding/math/module.ttl`) resolves to. Minted directly under the slice's
 /// OWN `math:` namespace (never the generic n-ary-reifier convention: `mint_nary_reifier`
@@ -987,11 +990,11 @@ pub(crate) fn arena_structural_key(graph: &MathGraph, root: &str) -> MathResult<
 const ALPHA_CLASS_NS: &str = "https://blackcatinformatics.ca/math/alphaClass/";
 
 /// Mint the content-stable IRI naming the α-equivalence class identified by an
-/// already-computed [`structural_digest`] — the entry point
+/// already-computed [`arena_structural_key`] — the entry point
 /// [`crate::math_expression::check_math_expression_findings`] uses, since
 /// [`math_expression_structural_keys`] already folds each root down to its digest
 /// string before this is ever called (no [`TermDag`]/[`NodeId`] survives that far).
-/// Two equal digests (α-equivalent expressions, by [`structural_digest`]'s own
+/// Two equal digests (α-equivalent expressions, by [`arena_structural_key`]'s own
 /// contract) mint the IDENTICAL IRI — the whole point: a consumer of the reasoned
 /// graph can JOIN on it rather than compare opaque digest literals.
 pub(crate) fn alpha_class_iri_for_digest(digest: &str) -> String {
@@ -1089,10 +1092,27 @@ fn lower_math_node_dispatch(
         // decomposed. That is a POSITIVE typing meaning "unspecified form", not the unknown
         // typing the hard fail exists for, so it interns on its own IRI. Rejecting it reported
         // the slice's own conforming examples as ill-typed.
-        let is_abstract_expression = math_types
-            .iter()
-            .all(|t| t.as_str() == M_MATHEMATICAL_EXPRESSION)
-            && !math_types.is_empty();
+        //
+        // ONLY when it really is undecomposed. A node carrying one of the four structured-child
+        // edges — the same four `math:StringOnlyComputableExpression` names — HAS structure the
+        // abstract type gives the lowering no production to walk. Interning it on its IRI would
+        // silently DROP that subtree, and two expressions differing only inside it would share
+        // one digest and one `math:AlphaEquivalenceClass`: a content key computed over content
+        // the lowering refused to read. Structure present with no concrete form to interpret it
+        // is exactly `UnrecognizedExpressionType`.
+        const STRUCTURED_CHILD_EDGES: [&str; 4] = [
+            M_ARGUMENT_SLOT,
+            M_BOUND_VARIABLE,
+            M_HAS_MATHEMATICAL_SYMBOL,
+            M_LITERAL_VALUE,
+        ];
+        let is_abstract_expression = !math_types.is_empty()
+            && math_types
+                .iter()
+                .all(|t| t.as_str() == M_MATHEMATICAL_EXPRESSION)
+            && STRUCTURED_CHILD_EDGES
+                .iter()
+                .all(|edge| graph.refs(node, edge).is_empty());
         let is_constant_operand = !node.starts_with("_:")
             && (math_types.is_empty()
                 || is_abstract_expression

@@ -8,7 +8,8 @@
 //! typed-formalization-governance obligation checks. It recomputes every authored
 //! `math:structuralKey` through the ONE `math:` expression lowering
 //! ([`crate::physical::lower::math_expression_structural_keys`], itself built on the
-//! content-addressed, hash-consed term DAG's [`crate::physical::lower::structural_digest`]),
+//! content-addressed, hash-consed term DAG, folded through
+//! [`crate::physical::lower::arena_structural_key`]),
 //! never trusting the authored string as an independent second source, and checks that a
 //! `math:NormalizationDeclaration`'s structural-identity computation never leaks a
 //! surface-stratum (rendered) predicate.
@@ -264,13 +265,14 @@ fn check_structural_key_on_rejected_expression(
 /// Report EVERY root the `math:` expression lowering refuses, carrying the typed `math:`
 /// failure class it decided — independent of whether anything else was authored about it.
 ///
-/// The grammar rules this publishes (`math:CyclicExpressionGraph`,
+/// Four of the classes it publishes — `math:CyclicExpressionGraph`,
 /// `math:ExpressionDepthExceeded`, `math:UnrecognizedExpressionType`,
-/// `math:NumberLiteralMissingValue`, and the argument-slot/binding/operator families) are
-/// declared "Rust validator" in the charter and have no SHACL or Datalog derivation: a cycle
-/// through `math:slotExpression` is a graph traversal, not a flat relational join, and every
-/// node in a cyclic component is individually well-formed. So this is the only channel that
-/// can decide them at all.
+/// `math:NumberLiteralMissingValue` — have NO SHACL or Datalog derivation, so this is the only
+/// channel that can decide them at all: a cycle through `math:slotExpression` is a graph
+/// traversal rather than a flat relational join, and every node in a cyclic component is
+/// individually well-formed. The argument-slot, binding and operator families DO carry derived
+/// gates as their charter-declared primary tier; for those this is a second, independent
+/// channel that reaches the same defect from the grammar rather than from a shape.
 ///
 /// It used to run only through [`check_structural_key_on_rejected_expression`], which iterates
 /// authored `math:structuralKey` subjects. That made an ill-formed expression reportable only

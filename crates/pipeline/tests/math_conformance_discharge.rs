@@ -503,18 +503,54 @@ fn native_source_message_classes() -> BTreeSet<String> {
 /// engine; every constant in that block IS, by the block's own documented invariant, one of
 /// [`crate::physical::lower::MathLoweringError::failure_class`]'s ten decided classes.
 fn native_source_iri_constant_classes() -> BTreeSet<String> {
-    let path = repo_root().join("crates/logic/src/physical/lower.rs");
+    let mut out = BTreeSet::new();
+    // The lowering's typed rejection algebra, scoped to its `mod failure_class` block.
+    scan_math_class_iris(
+        &block_of(
+            "crates/logic/src/physical/lower.rs",
+            "mod failure_class {",
+            "\n}\n",
+        ),
+        &mut out,
+    );
+    // The moded-builtin evaluator's arithmetic failure anchors (`math:ZeroDivisor`,
+    // `math:Overflow`). These are decided in Rust and returned as bare `math:` IRIs from
+    // `BuiltinError::math_class`, never as a `math:<Class>:` message token, so the
+    // message-token scan cannot see them — and until this arm existed neither could anything
+    // else: they were authored, emitted, and absent from every charter section at once, which
+    // is precisely the charter drift the whole-matrix registration exists to prevent.
+    scan_math_class_iris(
+        &block_of(
+            "crates/logic/src/physical/builtin_eval.rs",
+            "pub(crate) fn math_class(&self) -> &'static str {",
+            "\n    }\n",
+        ),
+        &mut out,
+    );
+    out
+}
+
+/// The source text from `marker` up to the first `terminator` after it, in `rel`.
+///
+/// Scoped extraction, never the whole file: these sources also carry ordinary domain-class
+/// IRIs unrelated to any failure class, and a whole-file scan would manufacture a false
+/// "reachable" claim for them.
+fn block_of(rel: &str, marker: &str, terminator: &str) -> String {
+    let path = repo_root().join(rel);
     let text = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("read native validator source {}: {e}", path.display()));
     let start = text
-        .find("mod failure_class {")
-        .expect("physical/lower.rs declares mod failure_class");
+        .find(marker)
+        .unwrap_or_else(|| panic!("{rel} declares `{marker}`"));
     let body = &text[start..];
     let end = body
-        .find("\n}\n")
-        .expect("mod failure_class has a closing brace");
-    let block = &body[..end];
-    let mut out = BTreeSet::new();
+        .find(terminator)
+        .unwrap_or_else(|| panic!("`{marker}` in {rel} is terminated by `{terminator}`"));
+    body[..end].to_owned()
+}
+
+/// Collect every `math:`-namespaced CLASS local name (upper-camel) named in `block`.
+fn scan_math_class_iris(block: &str, out: &mut BTreeSet<String>) {
     for line in block.lines() {
         if let Some(idx) = line.find(MATH_NS) {
             let rest = &line[idx + MATH_NS.len()..];
@@ -527,7 +563,6 @@ fn native_source_iri_constant_classes() -> BTreeSet<String> {
             }
         }
     }
-    out
 }
 
 /// The reconciliation set the previous harness omitted (the single most important fix in
@@ -1522,6 +1557,21 @@ fn total_math_conformance_matrix_is_discharged() {
             .unwrap_or_default();
 
         if observed_channels.is_empty() {
+            // A class whose ONLY declared tier is the Rust cross-check is decided inside the
+            // engine, not over a graph: `math:ZeroDivisor` and `math:Overflow` are numeric
+            // faults the moded-builtin evaluator raises while computing, so no authored
+            // counter-example TTL can trip them through any of the graph channels this harness
+            // executes. Their coverage lives in the frozen oracle corpus, and the tier loop
+            // below verifies that corpus NAMES them — a citation-without-coverage row is still
+            // a hard gap there. Demanding a fixture too would make the row undischargeable by
+            // any honest means, which is how a real obligation gets quietly deleted instead.
+            if declared == &BTreeSet::from([Channel::NativeTest]) {
+                prose_notes.push(format!(
+                    "[{sections_str}] math:{class}: engine-decided, discharged by the cited \
+                     Rust cross-check corpus rather than by a graph fixture"
+                ));
+                continue;
+            }
             hard_gaps.push(format!(
                 "[{sections_str}] math:{class}: reachable, declared {}, but NO on-disk \
                  counter-example fixture tripped it via any executed channel (charter cell: \
@@ -1638,6 +1688,38 @@ fn total_math_conformance_matrix_is_discharged() {
                     ));
                 } else {
                     prose_notes.push(format!("[{section}] flagship_manifest cross-check (green)"));
+                }
+            } else if row.gate.contains("numeric_builtin_oracle_gold.rs") {
+                // The frozen engine-independent numeric oracle corpus. Verify BOTH that the
+                // cited file exists AND that it actually names this row's class — a file
+                // reference alone would let the row cite a real test that covers something
+                // else entirely, which is the citation-without-coverage shape this whole
+                // harness exists to refuse.
+                let path =
+                    repo_root().join("crates/conformance/tests/numeric_builtin_oracle_gold.rs");
+                match std::fs::read_to_string(&path) {
+                    Err(e) => hard_gaps.push(format!(
+                        "[{section}] Rust cross-check row cites {} which cannot be read: {e}",
+                        path.display()
+                    )),
+                    Ok(text) => {
+                        let unnamed: Vec<&String> =
+                            row.classes.iter().filter(|c| !text.contains(*c)).collect();
+                        if unnamed.is_empty() {
+                            prose_notes.push(format!(
+                                "[{section}] Rust cross-check row {:?} named by the frozen \
+                                 numeric oracle corpus — its own test governs its pass/fail",
+                                row.classes
+                            ));
+                        } else {
+                            hard_gaps.push(format!(
+                                "[{section}] Rust cross-check row cites {unnamed:?}, but {} \
+                                 never names them — the citation claims a coverage the corpus \
+                                 does not carry",
+                                path.display()
+                            ));
+                        }
+                    }
                 }
             } else if row.gate.contains("math_flagship_discharge.rs") {
                 let path = repo_root().join("crates/pipeline/tests/math_flagship_discharge.rs");
