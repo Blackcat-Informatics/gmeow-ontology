@@ -66,6 +66,23 @@ const DLMF: &str = "https://dlmf.nist.gov/";
 const OEIS: &str = "https://oeis.org/";
 const RDF_TEST_MANIFEST: &str = "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#";
 const OWL_TEST_ONTOLOGY: &str = "http://www.w3.org/2007/OWL/testOntology#";
+// The process-model catalogs the prescription / enactment spine grounds onto. They are
+// authored on the logic: owner surface (slices/grounding/logic/mappings/plan-enactment-bridges.ttl)
+// because an external formalism has exactly one authoring home, so each one is a registered
+// catalog family here exactly like the upper-ontology families above.
+const PPLAN: &str = "http://purl.org/net/p-plan#";
+const PROV: &str = "http://www.w3.org/ns/prov#";
+const SCHEMA_ORG: &str = "https://schema.org/";
+const OPMW: &str = "https://www.opmw.org/ontology/";
+const BPMN: &str = "http://www.omg.org/spec/BPMN/20100524/MODEL#";
+const RO_CRATE: &str = "https://w3id.org/ro/crate/#";
+const AIRFLOW: &str = "https://airflow.apache.org/concept/";
+const CWL: &str = "https://w3id.org/cwl/cwl#";
+const WDL: &str = "https://openwdl.org/concept/";
+const TEMPORAL: &str = "https://temporal.io/concept/";
+const NEXTFLOW: &str = "https://www.nextflow.io/concept/";
+const OPENEHR_TASK_PLANNING: &str =
+    "https://specifications.openehr.org/releases/PROC/latest/task_planning.html#";
 const CORRESPONDENCE_LAWS_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
 
@@ -235,6 +252,18 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
         ("OEIS", &[OEIS], 3),
         ("RDF Test Manifest", &[RDF_TEST_MANIFEST], 2),
         ("OWL Test Ontology", &[OWL_TEST_ONTOLOGY], 2),
+        ("P-Plan", &[PPLAN], 6),
+        ("PROV-O", &[PROV], 4),
+        ("schema.org HowTo", &[SCHEMA_ORG], 7),
+        ("OPMW", &[OPMW], 3),
+        ("BPMN", &[BPMN], 3),
+        ("RO-Crate", &[RO_CRATE], 1),
+        ("Apache Airflow", &[AIRFLOW], 2),
+        ("CWL", &[CWL], 2),
+        ("WDL", &[WDL], 2),
+        ("Temporal", &[TEMPORAL], 2),
+        ("Nextflow", &[NEXTFLOW], 2),
+        ("openEHR Task Planning", &[OPENEHR_TASK_PLANNING], 3),
     ];
     let mut target_families = std::collections::BTreeMap::<&str, usize>::new();
     let mut source_namespaces = std::collections::BTreeMap::<&str, usize>::new();

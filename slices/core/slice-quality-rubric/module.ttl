@@ -1502,6 +1502,236 @@ gmeow:projVocab-glottolog
         "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
         "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
 
+gmeow:projVocab-pplan
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — P-Plan"@x-gmeow-english ;
+    skos:definition "The P-Plan plan/step/variable vocabulary guarded by the projection-vocabulary ratchet — a process-model surface the logic: prescription/enactment spine bridges onto by reference, owned by the logic: grounding slice (the owner docs/GROUNDING.md's domain table assigns to process and upper-ontology formalisms, and the slice that authors the bridge). Counted by TYPED AXIOM over the P-Plan namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL P-Plan object, and only on that owner surface; a domain slice that re-mints a P-Plan alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "pplan" ;
+    gmeow:vocabularyNamespace "http://purl.org/net/p-plan#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-opmw
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OPMW"@x-gmeow-english ;
+    skos:definition "The OPMW workflow-template / workflow-execution vocabulary guarded by the projection-vocabulary ratchet — a scientific-workflow process surface the logic: prescription/enactment spine bridges onto by reference, owned by the logic: grounding slice. Counted by TYPED AXIOM over the OPMW ontology namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL OPMW object, and only on that owner surface; a domain slice that re-mints an OPMW alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "opmw" ;
+    gmeow:vocabularyNamespace "https://www.opmw.org/ontology/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-bpmn
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — BPMN"@x-gmeow-english ;
+    skos:definition "The BPMN 2.0 MODEL vocabulary guarded by the projection-vocabulary ratchet — the business-process notation the logic: prescription/enactment spine bridges onto by reference, owned by the logic: grounding slice. BPMN publishes no canonical RDF ontology with stable term IRIs, so its bridge rows are skos:relatedMatch onto the OMG MODEL namespace and never equivalences. Counted by TYPED AXIOM over that namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL BPMN object, and only on that owner surface; a domain slice that re-mints a BPMN alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "bpmn" ;
+    gmeow:vocabularyNamespace "http://www.omg.org/spec/BPMN/20100524/MODEL#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-ro-crate
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — RO-Crate"@x-gmeow-english ;
+    skos:definition "The RO-Crate profile vocabulary guarded by the projection-vocabulary ratchet — the Workflow-Run packaging convention the logic: prescription/enactment spine bridges onto by reference, owned by the logic: grounding slice. RO-Crate is a JSON-LD packaging profile over schema.org rather than a term ontology with class semantics, so its bridge row is a skos:relatedMatch. Counted by TYPED AXIOM over the RO-Crate profile namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL RO-Crate object, and only on that owner surface; a domain slice that re-mints an RO-Crate alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "ro_crate" ;
+    gmeow:vocabularyNamespace "https://w3id.org/ro/crate/#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-airflow
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Apache Airflow"@x-gmeow-english ;
+    skos:definition "The Apache Airflow concept vocabulary guarded by the projection-vocabulary ratchet — a workflow-engine lowering target of the logic: plan program model, owned by the logic: grounding slice. Airflow publishes no canonical RDF ontology, so its bridge rows name informal spec-anchored concept IRIs under a single authority path and are skos:relatedMatch, never equivalences. Counted by TYPED AXIOM over that concept namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL Airflow object, and only on that owner surface; a domain slice that re-mints an Airflow alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "airflow" ;
+    gmeow:vocabularyNamespace "https://airflow.apache.org/concept/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-cwl
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — CWL"@x-gmeow-english ;
+    skos:definition "The Common Workflow Language vocabulary guarded by the projection-vocabulary ratchet — a workflow-engine lowering target of the logic: plan program model, owned by the logic: grounding slice. Its bridge rows are skos:relatedMatch onto the CWL schema namespace, never equivalences: CWL is an acyclic execution description, so a logic:Iteration is unrolled or rejected and a per-outcome logic:compensation has no counterpart. Counted by TYPED AXIOM over that namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL CWL object, and only on that owner surface; a domain slice that re-mints a CWL alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "cwl" ;
+    gmeow:vocabularyNamespace "https://w3id.org/cwl/cwl#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-wdl
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — WDL"@x-gmeow-english ;
+    skos:definition "The Workflow Description Language vocabulary guarded by the projection-vocabulary ratchet — a workflow-engine lowering target of the logic: plan program model, owned by the logic: grounding slice. WDL publishes no canonical RDF ontology, so its bridge rows name informal spec-anchored concept IRIs and are skos:relatedMatch, never equivalences. Counted by TYPED AXIOM over that concept namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL WDL object, and only on that owner surface; a domain slice that re-mints a WDL alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "wdl" ;
+    gmeow:vocabularyNamespace "https://openwdl.org/concept/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-temporal-io
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Temporal"@x-gmeow-english ;
+    skos:definition "The Temporal workflow-engine concept vocabulary guarded by the projection-vocabulary ratchet — a durable-execution lowering target of the logic: plan program model, owned by the logic: grounding slice. Temporal publishes no canonical RDF ontology, so its bridge rows name informal spec-anchored concept IRIs and are skos:relatedMatch, never equivalences. Counted by TYPED AXIOM over that concept namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL Temporal object, and only on that owner surface; a domain slice that re-mints a Temporal alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "temporal-io" ;
+    gmeow:vocabularyNamespace "https://temporal.io/concept/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-nextflow
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Nextflow"@x-gmeow-english ;
+    skos:definition "The Nextflow concept vocabulary guarded by the projection-vocabulary ratchet — a dataflow workflow-engine lowering target of the logic: plan program model, owned by the logic: grounding slice. Nextflow publishes no canonical RDF ontology, so its bridge rows name informal spec-anchored concept IRIs and are skos:relatedMatch, never equivalences. Counted by TYPED AXIOM over that concept namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL Nextflow object, and only on that owner surface; a domain slice that re-mints a Nextflow alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "nextflow" ;
+    gmeow:vocabularyNamespace "https://www.nextflow.io/concept/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-openehr-tp
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — openEHR Task Planning"@x-gmeow-english ;
+    skos:definition "The openEHR Task Planning (PROC) vocabulary guarded by the projection-vocabulary ratchet — the clinical work-plan surface the logic: prescription/enactment spine bridges onto by reference, owned by the logic: grounding slice. openEHR PROC publishes no canonical RDF ontology, so its bridge rows are skos:relatedMatch onto spec-anchored concept IRIs. Counted by TYPED AXIOM over that spec namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL openEHR PROC object, and only on that owner surface; a domain slice that re-mints an openEHR Task Planning alignment keeps it in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "openehr-tp" ;
+    gmeow:vocabularyNamespace "https://specifications.openehr.org/releases/PROC/latest/task_planning.html#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
 #################################################################
 # Committed projection-ceiling commitments (ontology-resident,
 # gate-enforced)

@@ -125,8 +125,15 @@ fn every_guarded_projection_vocabulary_is_reproduced_exactly() {
     let rows = golden_rows("projection-vocabularies.golden.tsv");
     assert_eq!(
         rows.len(),
-        37,
-        "the frozen projection-vocabulary golden has 37 rows"
+        47,
+        // 47, not 37: the ten process-model catalogs the logic: prescription/enactment spine
+        // grounds onto — P-Plan, OPMW, BPMN, RO-Crate, Airflow, CWL, WDL, Temporal, Nextflow
+        // and openEHR Task Planning — became GUARDED when their correspondences moved into
+        // the grounding kernel. Registering a vocabulary only ever ADDS teeth (its default
+        // ceiling is 0, so the first ungrounded use anywhere reds); each of the ten measures
+        // a residue of 0 on every slice, so not one carries a ceiling commitment. No frozen
+        // historical row moved.
+        "the frozen projection-vocabulary golden has 47 rows"
     );
     assert_eq!(
         ceilings.vocabularies.len(),
