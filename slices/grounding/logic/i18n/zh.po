@@ -14442,6 +14442,10 @@ msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://
 msgid "ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
 msgstr "示例：ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:nestedAttribution rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> ; logic:expressivenessBoundary logic:FirstOrder ."
+msgstr "示例：ex:nestedAttribution rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> ; logic:expressivenessBoundary logic:FirstOrder ."
+
 msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
 msgstr "示例：ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
@@ -17853,6 +17857,10 @@ msgstr "这是八项中的第七项，也是最常被推迟的一项：凭证、
 msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Without it a gap can be closed by something that merely claims the capability. The method is what converts a provider's assertion into a check somebody can run before depending on it."
 msgstr "若无此项，缺口便可能被一个仅仅声称具备该能力之物所填补。此方法把提供方的自我声明，转换为在依赖它之前有人可以实际执行的检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Two withholds, not one, and they fail for different reasons: a nested triple term has no non-term component to decompose into, while the statement's term identity is absent from every lowering however flat the statement is. Reporting either as the other would misdescribe what a rule may quantify over."
+msgstr "是两样弃判而非一样，二者失效的缘由也各不相同：嵌套的三元组词项没有任何非词项的分量可供分解；而陈述作为词项的同一性，则无论陈述多么扁平，都不见于任何一次下降变换。把其中一者报告为另一者，会错误地描述规则所能量化的对象。"
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Multi-valued, since a report may rest on a provider response, a signed acknowledgement and an observed state change at once. The receipt states what happened and this states why anyone should believe it."

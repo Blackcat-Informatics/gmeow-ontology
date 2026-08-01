@@ -14442,6 +14442,10 @@ msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://
 msgid "ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
 msgstr "Exemple : ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:nestedAttribution rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> ; logic:expressivenessBoundary logic:FirstOrder ."
+msgstr "Exemple : ex:nestedAttribution rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> ; logic:expressivenessBoundary logic:FirstOrder ."
+
 msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
 msgstr "Exemple : ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
@@ -17853,6 +17857,10 @@ msgstr "Septième champ sur huit, et le plus souvent différé : identifiants, i
 msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Without it a gap can be closed by something that merely claims the capability. The method is what converts a provider's assertion into a check somebody can run before depending on it."
 msgstr "Sans elle, une lacune peut être comblée par ce qui se contente de revendiquer la capacité. La méthode convertit l'affirmation d'un fournisseur en un contrôle que l'on peut exécuter avant d'en dépendre."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Two withholds, not one, and they fail for different reasons: a nested triple term has no non-term component to decompose into, while the statement's term identity is absent from every lowering however flat the statement is. Reporting either as the other would misdescribe what a rule may quantify over."
+msgstr "Deux abstentions et non une seule, qui échouent pour des raisons distinctes : un terme de triplet imbriqué n'a aucune composante non-terme en quoi se décomposer, tandis que l'identité de l'énoncé en tant que terme est absente de tout abaissement, si plat que soit l'énoncé. Rapporter l'une pour l'autre décrirait mal ce sur quoi une règle peut quantifier."
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Multi-valued, since a report may rest on a provider response, a signed acknowledgement and an observed state change at once. The receipt states what happened and this states why anyone should believe it."
