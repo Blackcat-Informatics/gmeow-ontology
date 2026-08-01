@@ -492,6 +492,12 @@ fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, St
     let registry = crate::registry::default_registry();
     let bound = crate::loader::bind(&spec, &graph, &registry)?;
     let mut ctx = crate::scheduler::RunContext::open_uncached(root, jobs);
+    // This module reads INTERMEDIATE carriers after the DAG finishes — the terminal
+    // dataset comes off `stage-snapshot`'s bundle, and `stage-snapshot` has declared
+    // consumers — so it explicitly retains every carrier. `run_full` selects
+    // `DropAfterLastConsumer` instead; both produce the identical products, they differ
+    // only in what stays resident once the last consumer has run.
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::RetainAll;
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
     Ok(result.products)
 }

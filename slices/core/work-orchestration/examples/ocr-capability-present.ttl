@@ -9,7 +9,10 @@
 #
 #  1. Refinement selects a decomposition and pins it as an IMMUTABLE executable
 #     subgraph: inspect -> prepare -> OCR -> verify -> store receipt. Pinning is
-#     what makes the plan that was approved the plan that runs.
+#     what makes the plan that was approved the plan that runs. The pin here is
+#     DERIVED, not asserted: the roster carries a candidate and a proof licenses
+#     it, and the six shipped pin rules read the freeze off the method the
+#     candidate came from.
 #  2. Policy-maximal automation. Every step whose effects the policy already
 #     authorizes is labelled ready-and-authorized, and ONLY the genuinely
 #     approval-gated step is labelled approval-required. A system that marks
@@ -80,12 +83,20 @@ ex:refineRun78 a logic:RefinementEpisode ;
     logic:refinementWorldSnapshot ex:scanBatch78 ;
     logic:refinementBudget ex:generousSearchBudget ;
     logic:searchFragment logic:FragmentAcyclicMethod ;
-    logic:producedCandidateSet ex:run78Candidates ;
-    logic:selectedPin ex:pinnedOcrPlan .
+    logic:producedCandidateSet ex:run78Candidates .
 
 ex:run78Candidates a logic:RefinementCandidateSet ;
     rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
-    logic:refinementCandidate ex:pinnedOcrPlan .
+    logic:refinementCandidate ex:ocrByStageCandidate .
+
+# The roster's one member, and it is a CANDIDATE — not a pin. What the search
+# recorded about it is the only thing the search could honestly record: which
+# method application produced it. Everything a pin needs beyond that (the frozen
+# sequence, the content address, the authority) is read off that method, so it is
+# derived rather than typed here.
+ex:ocrByStageCandidate
+    rdfs:label "Candidate: the OCR step decomposed stage by stage"@x-gmeow-english ;
+    logic:candidateInstantiatesMethod ex:scannedIngestMethod .
 
 ex:generousSearchBudget a logic:ResourcePolicy ;
     rdfs:label "Refinement search budget: 1000 method applications"@x-gmeow-english .
@@ -163,16 +174,26 @@ ex:verifyStep a logic:TransactionStep ;
 ex:storeReceiptStep a logic:TransactionStep ;
     rdfs:label "Store the ingest receipt"@x-gmeow-english .
 
-# --- The pinned subgraph: immutable and content-addressed, so what was
-#     validated is what executes. That sentence is only true if the pin CARRIES
-#     the fragment: it freezes the very list the method yields, addresses it with
-#     a digest, and names the method version it instantiated. A pin holding only a
-#     label is a promise about content it does not have.
-ex:pinnedOcrPlan a logic:PinnedExecutableSubgraph ;
-    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english ;
-    logic:pinInstantiatesMethod ex:scannedIngestMethod ;
-    logic:pinnedStepSequence ex:scannedIngestCell1 ;
-    logic:pinDigest "b3:7d1e4a96c05b83f27ae6410d9c3b8524f70a1e6d38c95b02f4a7d6e18c53920b" .
+# --- The authorization: the organizational act that turns a roster member into a
+#     commitment. It is the LAST thing in this scene that cannot be derived, and
+#     that is exactly why it is authored: a search can find a decomposition, but
+#     only somebody with the authority to be wrong about it can license one.
+#
+#     Note what is NOT written anywhere in this file: no logic:PinnedExecutableSubgraph
+#     type, no logic:pinnedStepSequence, no logic:pinDigest, no logic:pinAuthority,
+#     no logic:selectedPin. All five are DERIVED, by the six authored pin rules, off
+#     the join candidate -> method: the frozen sequence IS logic:methodYields, the
+#     content address IS logic:methodDigest, and the authority IS this proof. A pin
+#     whose every field was hand-typed is a freeze nothing could be wrong about; a
+#     derived one cannot name a method its steps never came from, because the steps
+#     and the method are read out of one join.
+#
+#     The engine reproduces it over this very file:
+#       gmeow logic refine <this file> --task …/ocrStep
+#     prints `pins: 1`, with the derivation and its proof height.
+ex:run78PinAuthorization a logic:AuthorizationProof ;
+    rdfs:label "Authorization: the stage-by-stage OCR decomposition is licensed for batch 78"@x-gmeow-english ;
+    logic:proofEstablishes ex:ocrByStageCandidate .
 
 # --- The frontier. Four authorized steps, ONE approval-gated step.
 ex:run78Frontier a logic:ActionableFrontier ;

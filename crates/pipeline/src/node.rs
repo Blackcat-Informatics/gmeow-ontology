@@ -68,6 +68,21 @@ pub struct StageProduct {
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
     pub bundle: Arc<PipelineBundle<PipelineHandle>>,
+    /// Whether this product's CARRIER has been released (drop-after-last-consumer).
+    ///
+    /// `false` for every product a stage emits and for every product the cache serves.
+    /// The scheduler sets it — and replaces `bundle` with
+    /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
+    /// byte-artifact lane only) — once the LAST stage declaring this one in `consumes()`
+    /// has run, under [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
+    /// `digest` is preserved verbatim across the release: it is the identity witness of
+    /// the carrier that was released, so `combined()` is byte-identical either way.
+    ///
+    /// A released product's dataset / handles / blob records / internal `pipeline/`
+    /// artifacts are GONE. Anything reaching for them is reaching past the declared
+    /// dataflow and MUST hard-fail on this flag rather than read an empty carrier — see
+    /// [`crate::stages::carrier::snapshot_dataset`].
+    pub carrier_released: bool,
 }
 
 impl StageProduct {
@@ -85,6 +100,7 @@ impl StageProduct {
                 BTreeMap::new(),
                 DatasetProvenance::new(),
             )),
+            carrier_released: false,
         }
     }
 
@@ -120,7 +136,31 @@ impl StageProduct {
             stage_id: stage_id.into(),
             digest,
             bundle,
+            carrier_released: false,
         }
+    }
+
+    /// This product with its carrier RELEASED: the frozen dataset, typed handles,
+    /// blob records, provenance, and internal `pipeline/` byte artifacts are dropped;
+    /// only the COMMITTED byte-artifact lane survives, for the post-run reconcile.
+    ///
+    /// `stage_id` and `digest` are preserved VERBATIM — the digest is the identity
+    /// witness of the released carrier, never a fold over the residue — so the run's
+    /// `combined_digest` is byte-identical whether or not the release happened. The
+    /// scheduler calls this at the stage's drop-after-last-consumer point; releasing an
+    /// already-released product is idempotent.
+    ///
+    /// # Errors
+    /// Propagates [`release_carrier`](crate::bundle::release_carrier)'s hard failure on
+    /// a corrupt byte-artifact lane.
+    pub fn into_carrier_released(self) -> Result<Self, gmeow_errors::Diag> {
+        let bundle = crate::bundle::release_carrier(&self.bundle)?;
+        Ok(Self {
+            stage_id: self.stage_id,
+            digest: self.digest,
+            bundle: Arc::new(bundle),
+            carrier_released: true,
+        })
     }
 
     /// Borrow the structured carrier this product emitted.

@@ -43,18 +43,18 @@ prescriptionDigest("https://blackcatinformatics.ca/gmeow/conformance/enactment/i
 prescriptionOf("https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestV2", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ingest", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep", 'Inspect the scanned batch', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrAuthProof", "https://blackcatinformatics.ca/logic/AuthorizationProof", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrAuthProof", 'Authorization: the stage-by-stage OCR decomposition is licensed for batch 78', "default").
+proofEstablishes("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrAuthProof", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrPlanCandidate", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", "https://blackcatinformatics.ca/logic/DecompositionMethod", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", 'Method: inspect / prepare / OCR / verify / store', "default").
 methodDecomposes("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep", "default").
 methodDigest("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", 'b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca', "default").
 methodYields("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrCell1", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrPlanCandidate", 'Candidate: the OCR step decomposed stage by stage', "default").
+candidateInstantiatesMethod("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrPlanCandidate", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep", 'Extract text', "default").
-type("https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph", "default").
-label("https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", 'Pinned: inspect -> prepare -> OCR -> verify -> store receipt', "default").
-pinDigest("https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", 'b3:7d1e4a96c05b83f27ae6410d9c3b8524f70a1e6d38c95b02f4a7d6e18c53920b', "default").
-pinInstantiatesMethod("https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod", "default").
-pinnedStepSequence("https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrCell1", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep", 'Prepare pages for extraction', "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78", "https://blackcatinformatics.ca/logic/RefinementEpisode", "default").
@@ -63,14 +63,13 @@ refinementServesGoal("https://blackcatinformatics.ca/gmeow/conformance/enactment
 refinementWorldSnapshot("https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78", "https://blackcatinformatics.ca/gmeow/conformance/enactment/batch78", "default").
 refinesStep("https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep", "default").
 searchFragment("https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78", "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod", "default").
-selectedPin("https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78", "https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78", "https://blackcatinformatics.ca/logic/Enactment", "default").
 enactmentInputSnapshot("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78", "https://blackcatinformatics.ca/gmeow/conformance/enactment/batch78", "default").
 enactmentState("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78", "https://blackcatinformatics.ca/logic/EnactmentRunning", "default").
 enactsPrescriptionVersion("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestV2", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates", "https://blackcatinformatics.ca/logic/RefinementCandidateSet", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates", 'Closed roster for the batch 78 OCR refinement', "default").
-refinementCandidate("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates", "https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan", "default").
+refinementCandidate("https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrPlanCandidate", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78", "https://blackcatinformatics.ca/logic/SaturationWitness", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78", 'Saturation witness — all frontier predicates reached fixpoint within budget', "default").
 consumedBudget("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78", '64', "default").
@@ -86,6 +85,36 @@ type("https://blackcatinformatics.ca/gmeow/conformance/enactment/verifyStep", "h
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/verifyStep", 'Verify the extracted text', "default").
 
 % === Rules ===
+type(?candidate, "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph", ?C) :-
+    producedCandidateSet(?episode, ?roster, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
+pinAuthority(?candidate, ?proof, ?C) :-
+    producedCandidateSet(?episode, ?roster, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
+pinDigest(?candidate, ?digest, ?C) :-
+    candidateInstantiatesMethod(?candidate, ?method, ?C),
+    producedCandidateSet(?episode, ?roster, ?C),
+    methodDigest(?method, ?digest, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
+pinInstantiatesMethod(?candidate, ?method, ?C) :-
+    candidateInstantiatesMethod(?candidate, ?method, ?C),
+    producedCandidateSet(?episode, ?roster, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
+pinnedStepSequence(?candidate, ?cell, ?C) :-
+    candidateInstantiatesMethod(?candidate, ?method, ?C),
+    producedCandidateSet(?episode, ?roster, ?C),
+    methodYields(?method, ?cell, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
 entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource", ?C) :-
     entryAction(?entry, ?step, ?C),
     entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C),
@@ -134,6 +163,11 @@ entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierTerminallyFaile
 entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput", ?C) :-
     entryAwaits(?entry, ?awaited, ?C),
     entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C).
+selectedPin(?episode, ?candidate, ?C) :-
+    producedCandidateSet(?episode, ?roster, ?C),
+    type(?proof, "https://blackcatinformatics.ca/logic/AuthorizationProof", ?C),
+    proofEstablishes(?proof, ?candidate, ?C),
+    refinementCandidate(?roster, ?candidate, ?C).
 methodStep(?method, ?step, ?C) :-
     first(?cell, ?step, ?C),
     methodYieldCell(?method, ?cell, ?C).

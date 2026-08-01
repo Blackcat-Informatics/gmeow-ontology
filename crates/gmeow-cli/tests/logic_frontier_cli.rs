@@ -387,6 +387,60 @@ fn refine_returns_the_authored_five_step_decomposition_with_its_approval_rejecti
         ));
 }
 
+/// The PIN half of the same shipped scene: `pins: 1`, and every field of it DERIVED.
+///
+/// The example hand-authors no `logic:PinnedExecutableSubgraph`, no
+/// `logic:pinnedStepSequence`, no `logic:pinDigest`, no `logic:pinAuthority` and no
+/// `logic:selectedPin` — it authors a roster candidate, that candidate's method
+/// provenance, and the `logic:AuthorizationProof` that licenses it. Everything printed
+/// below is the six pin rules reading the freeze off the method the candidate came from,
+/// which is why the digest asserted is the METHOD version's own: a derived pin never
+/// invents a second name for one fragment.
+///
+/// This is the acceptance test for the shipped surface rather than a fixture: a scene in
+/// `examples/` that prints `pins: 0` means the pin laws govern nothing anybody ships.
+#[test]
+fn refine_derives_the_pin_from_the_authorized_candidate_on_the_shipped_example() {
+    const NS: &str =
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/";
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            shipped_example("ocr-capability-present.ttl")
+                .to_str()
+                .expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/ocrStep",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("pins:        1"))
+        .stdout(predicate::str::contains(format!(
+            "[0] <{NS}ocrByStageCandidate> selected by <{NS}refineRun78>"
+        )))
+        .stdout(predicate::str::contains(format!(
+            "instantiates: <{NS}scannedIngestMethod>"
+        )))
+        // The frozen sequence IS the method's yielded list, in the authored order —
+        // alphabetised, this plan verifies before it extracts.
+        .stdout(predicate::str::contains(format!(
+            "frozen steps: {NS}inspectStep -> {NS}prepareStep -> {NS}extractTextStep -> \
+             {NS}verifyStep -> {NS}storeReceiptStep"
+        )))
+        .stdout(predicate::str::contains(
+            "digest:       \
+             b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca",
+        ))
+        .stdout(predicate::str::contains(format!(
+            "authority:    <{NS}run78PinAuthorization>"
+        )))
+        .stdout(predicate::str::contains(
+            "derived by <https://blackcatinformatics.ca/logic/rulePinnedStepSequenceFromMethod> \
+             (proof height 1)",
+        ));
+}
+
 #[test]
 fn refine_refuses_an_out_of_fragment_method_set_rather_than_reporting_a_thin_result() {
     let dir = tempfile::tempdir().expect("tempdir");

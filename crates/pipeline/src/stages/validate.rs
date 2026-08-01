@@ -55,10 +55,13 @@ pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
 /// The canonical digest of everything the merged-SHACL pass consumed: the authored
 /// source corpus and the shape union.
 ///
-/// `members` is a sequence of `(repo-relative path, bytes)` pairs; the digest sorts
-/// them, so a caller may assemble the two halves in any order. Each entry folds its
-/// path, its byte length, and its bytes, so a rename, a truncation, and a content edit
-/// are all distinguishable.
+/// `members` is a sequence of `(repo-relative path, `[`ShaclInputMember`]`)` pairs; the
+/// digest sorts them, so a caller may assemble the two halves in any order. Each entry
+/// folds its path, its byte length, and its bytes, so a rename, a truncation, and a
+/// content edit are all distinguishable. Bytes are supplied BY REFERENCE — a resident
+/// member borrows this run's carrier bytes and an on-disk member is read at its turn and
+/// released immediately — so the fold's peak residency is ONE member, not the whole
+/// validated corpus.
 ///
 /// The SHAPE half is what makes this the drift detector `generated/shapes/*.ttl` needs.
 /// `stage-validate` structurally never reads that directory — it validates against THIS
@@ -68,41 +71,74 @@ pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
 /// still equal what the pipeline produced and validated with. That is the one thing the
 /// old duplicate whole-corpus SHACL run caught and nothing else did; it is preserved
 /// here rather than lost.
-#[must_use]
-pub fn shacl_input_digest(members: &[(String, Vec<u8>)]) -> String {
-    let mut sorted: Vec<&(String, Vec<u8>)> = members.iter().collect();
-    sorted.sort_by(|a, b| a.0.cmp(&b.0));
+///
+/// # Errors
+/// A member whose bytes must be read from disk and cannot be. A missing input makes the
+/// digest meaningless, so it is a hard failure rather than a shorter fold.
+pub fn shacl_input_digest(
+    mut members: Vec<(String, ShaclInputMember<'_>)>,
+) -> Result<String, gmeow_errors::Diag> {
+    // Stable sort by path: a caller may assemble the two halves in any order, and two
+    // members sharing a path (an authored shape file listed by both halves) keep their
+    // assembly order, so the fold is exactly the one the whole-corpus `Vec` produced.
+    members.sort_by(|a, b| a.0.cmp(&b.0));
     let mut hasher = blake3::Hasher::new();
     hasher.update(b"gmeow-shacl-input-v1\x1e");
-    for (path, bytes) in sorted {
+    for (path, member) in &members {
+        // ONE member's bytes are resident at a time: an on-disk member is read, folded,
+        // and dropped before the next is opened. Materializing the whole corpus first
+        // (authored sources + the shape union) peaked at the full byte size of every
+        // validated input simultaneously, on top of the already-resident source graph.
+        let bytes: std::borrow::Cow<'_, [u8]> = match member {
+            ShaclInputMember::Resident(bytes) => std::borrow::Cow::Borrowed(bytes),
+            ShaclInputMember::OnDisk(path) => {
+                std::borrow::Cow::Owned(std::fs::read(path).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("digesting SHACL input {}: {e}", path.display()),
+                    })
+                })?)
+            }
+        };
         hasher.update(path.as_bytes());
         hasher.update(b"\x1f");
         hasher.update(&(bytes.len() as u64).to_le_bytes());
-        hasher.update(bytes);
+        hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
-    format!("blake3:{}", hasher.finalize().to_hex())
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
 }
 
-/// Read `(repo-relative path, bytes)` for each of `paths`, for [`shacl_input_digest`].
-fn read_digest_members(
+/// One member of the [`shacl_input_digest`] fold, carried BY REFERENCE so the fold never
+/// materializes the whole validated corpus at once.
+#[derive(Debug, Clone)]
+pub enum ShaclInputMember<'a> {
+    /// Bytes already resident in this run's carrier — a shape surface THIS run produced
+    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]). Folding
+    /// borrows them; nothing is copied.
+    Resident(&'a [u8]),
+    /// A file whose bytes the fold reads at its turn and releases immediately after.
+    OnDisk(std::path::PathBuf),
+}
+
+/// The repo-relative, forward-slashed logical path of `path` under `root` — the key each
+/// [`shacl_input_digest`] member folds under.
+pub(crate) fn digest_member_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+/// `paths` as on-disk [`shacl_input_digest`] members, keyed repo-relative.
+fn on_disk_members(
     root: &Path,
-    paths: &[std::path::PathBuf],
-) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
+    paths: Vec<std::path::PathBuf>,
+) -> Vec<(String, ShaclInputMember<'static>)> {
     paths
-        .iter()
+        .into_iter()
         .map(|path| {
-            let rel = path
-                .strip_prefix(root)
-                .unwrap_or(path)
-                .to_string_lossy()
-                .replace('\\', "/");
-            let bytes = std::fs::read(path).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!("digesting SHACL input {}: {e}", path.display()),
-                })
-            })?;
-            Ok((rel, bytes))
+            let rel = digest_member_path(root, &path);
+            (rel, ShaclInputMember::OnDisk(path))
         })
         .collect()
 }
@@ -121,15 +157,14 @@ fn read_digest_members(
 /// member cannot be read. A missing input makes the digest meaningless, so it is a
 /// hard failure rather than a shorter fold.
 pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::Diag> {
-    let mut members =
-        read_digest_members(root, &crate::stages::source_load::authored_files(root)?)?;
+    let mut members = on_disk_members(root, crate::stages::source_load::authored_files(root)?);
     let shape_files = purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("listing the committed shape union: {e}"),
         })
     })?;
-    members.extend(read_digest_members(root, &shape_files)?);
-    Ok(shacl_input_digest(&members))
+    members.extend(on_disk_members(root, shape_files));
+    shacl_input_digest(members)
 }
 
 /// Convert the native SHACL engine report into the canonical diagnostics report.
@@ -407,16 +442,16 @@ impl Stage for ValidateStage {
         // what carries forward the `generated/shapes` drift detection the duplicate run
         // used to provide.
         {
-            let mut members = read_digest_members(
+            let mut members = on_disk_members(
                 input.root,
-                &crate::stages::source_load::authored_files(input.root)?,
-            )?;
+                crate::stages::source_load::authored_files(input.root)?,
+            );
             members.extend(crate::stages::shape_union_fresh::effective_union_members(
                 input.root, &fresh,
             )?);
             report.metadata.insert(
                 SHACL_INPUT_DIGEST_KEY.to_owned(),
-                json!(shacl_input_digest(&members)),
+                json!(shacl_input_digest(members)?),
             );
         }
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare

@@ -35,6 +35,7 @@ use purrdf::shapes::text_ingest::extract_prefixes;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::node::StageProduct;
+use crate::stages::validate::ShaclInputMember;
 
 /// The repo-relative prefix of the produced shape-union members.
 const GENERATED_SHAPES_PREFIX: &str = "generated/shapes/";
@@ -234,10 +235,11 @@ pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeo
     Ok(files)
 }
 
-/// The EFFECTIVE shape-union member set as `(repo-relative path, bytes)` — exactly the
+/// The EFFECTIVE shape-union member set as `(repo-relative path, member)` — exactly the
 /// bytes [`load_shapes_fresh`] parses, in the same order: authored `shapes/*.ttl` and
-/// `slices/*/*/shapes.ttl` read from disk, generated members taken from THIS run's
-/// product bytes.
+/// `slices/*/*/shapes.ttl` named as on-disk members, generated members BORROWED from
+/// THIS run's product bytes. No member's bytes are read or copied here; the digest fold
+/// resolves each one in turn and releases it (see [`ShaclInputMember`]).
 ///
 /// This is the shape half of `stage-validate`'s recorded input digest
 /// ([`crate::stages::validate::shacl_input_digest`]). Because the generated members
@@ -246,12 +248,12 @@ pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeo
 /// the one capability the removed duplicate whole-corpus SHACL run uniquely had.
 ///
 /// # Errors
-/// If an authored member cannot be read, or a `fresh` key does not lie under
+/// If the authored member list cannot be built, or a `fresh` key does not lie under
 /// `generated/shapes/`.
-pub fn effective_union_members(
+pub fn effective_union_members<'a>(
     root: &Path,
-    fresh: &BTreeMap<String, Vec<u8>>,
-) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
+    fresh: &'a BTreeMap<String, Vec<u8>>,
+) -> Result<Vec<(String, ShaclInputMember<'a>)>, gmeow_errors::Diag> {
     for key in fresh.keys() {
         if !key.starts_with(GENERATED_SHAPES_PREFIX) {
             return Err(parse_err(format!(
@@ -261,21 +263,15 @@ pub fn effective_union_members(
             )));
         }
     }
-    let mut out: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut out: Vec<(String, ShaclInputMember<'a>)> = Vec::new();
     for path in authored_shape_files(root)? {
-        let rel = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
-        let bytes = std::fs::read(&path)
-            .map_err(|e| parse_err(format!("failed to read shape file {}: {e}", path.display())))?;
-        out.push((rel, bytes));
+        let rel = crate::stages::validate::digest_member_path(root, &path);
+        out.push((rel, ShaclInputMember::OnDisk(path)));
     }
     out.extend(
         fresh
             .iter()
-            .map(|(rel, bytes)| (rel.clone(), bytes.clone())),
+            .map(|(rel, bytes)| (rel.clone(), ShaclInputMember::Resident(bytes.as_slice()))),
     );
     Ok(out)
 }

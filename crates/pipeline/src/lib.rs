@@ -82,7 +82,7 @@ pub use run::{
     RunMode, RunOutputScope, RunReport, full_spec, run_full, run_full_scoped,
     run_full_scoped_with_progress,
 };
-pub use scheduler::{RunContext, RunResult, run};
+pub use scheduler::{CarrierRetention, RunContext, RunResult, run};
 
 #[cfg(test)]
 mod tests;

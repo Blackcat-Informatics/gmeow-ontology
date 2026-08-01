@@ -15,7 +15,10 @@
 # claim about them. The decomposition is derived too: the method yields ONE
 # ORDERED rdf:List and the shipped list rules walk it into the method's steps and
 # the task's expansion, which is what makes the pin below a commitment to
-# content rather than to a name.
+# content rather than to a name. The PIN is derived as well: the case authors a
+# roster candidate, that candidate's method provenance, and the authorization
+# proof that licenses it — and the six pin rules conclude the type, the frozen
+# sequence, the digest, the authority and the selection.
 
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -72,23 +75,32 @@ e:refine78 a logic:RefinementEpisode ;
     logic:refinementServesGoal e:textExtracted ;
     logic:refinementWorldSnapshot e:batch78 ;
     logic:searchFragment logic:FragmentAcyclicMethod ;
-    logic:producedCandidateSet e:run78Candidates ;
-    logic:selectedPin e:pinnedPlan .
+    logic:producedCandidateSet e:run78Candidates .
 
 e:run78Candidates a logic:RefinementCandidateSet ;
     rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
-    logic:refinementCandidate e:pinnedPlan .
+    logic:refinementCandidate e:ocrPlanCandidate .
 
+# The roster's one member is a CANDIDATE, not a pin. The only thing the search
+# can honestly record about it is which method application produced it.
+e:ocrPlanCandidate
+    rdfs:label "Candidate: the OCR step decomposed stage by stage"@x-gmeow-english ;
+    logic:candidateInstantiatesMethod e:ocrMethod .
+
+# The authorization — the organizational act that turns a roster member into a
+# commitment, and the last thing in this scene that cannot be derived.
+#
 # The pin is immutable and content-addressed, so what was validated is what
-# executes — a sentence that is only true if the pin CARRIES the fragment. It
-# freezes the very list the method yields, addresses it with a digest, and names
-# the method it instantiated. A pin holding only a label is a promise about
-# content it does not have.
-e:pinnedPlan a logic:PinnedExecutableSubgraph ;
-    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english ;
-    logic:pinInstantiatesMethod e:ocrMethod ;
-    logic:pinnedStepSequence e:ocrCell1 ;
-    logic:pinDigest "b3:7d1e4a96c05b83f27ae6410d9c3b8524f70a1e6d38c95b02f4a7d6e18c53920b" .
+# executes — a sentence that is only true if the pin CARRIES the fragment. It is
+# true here BY DERIVATION: nothing below asserts logic:PinnedExecutableSubgraph,
+# logic:pinnedStepSequence, logic:pinDigest, logic:pinAuthority or
+# logic:selectedPin. The six pin rules named in profile.json read all five off the
+# join candidate -> method, so the frozen list IS logic:methodYields and the
+# content address IS logic:methodDigest. A pin whose every field was hand-typed is
+# a freeze nothing could be wrong about.
+e:ocrAuthProof a logic:AuthorizationProof ;
+    rdfs:label "Authorization: the stage-by-stage OCR decomposition is licensed for batch 78"@x-gmeow-english ;
+    logic:proofEstablishes e:ocrPlanCandidate .
 
 e:frontier78 a logic:ActionableFrontier ;
     logic:frontierSaturationWitness e:sat78 ;

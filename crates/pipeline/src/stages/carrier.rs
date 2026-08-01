@@ -1800,10 +1800,27 @@ fn snapshot_product(
 /// statements, imports, metadata, alignments, slice-analysis, verify, documentation,
 /// diagnostics, conformance, projection-ledger, provenance, logic, relational-core,
 /// correspondence, reasoning).
+///
+/// A product whose carrier has been RELEASED
+/// ([`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released)) is a
+/// HARD FAIL, never an empty dataset: reaching for a released carrier means reading past
+/// the drop-after-last-consumer point, exactly as a post-drop `span_index()` read does.
+/// Inside the DAG that cannot happen (the release runs only after the last declared
+/// consumer); it is the guard for an out-of-band whole-run reader that took
+/// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention) and
+/// then reached for an intermediate carrier.
 pub(crate) fn snapshot_dataset(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    Ok(snapshot_product(upstream)?.bundle().dataset_arc())
+    let product = snapshot_product(upstream)?;
+    if product.carrier_released {
+        return Err(stage_err(
+            "the stage-snapshot product's carrier was RELEASED at its \
+             drop-after-last-consumer point; a reader of the terminal carrier must run \
+             inside the DAG or select CarrierRetention::RetainAll",
+        ));
+    }
+    Ok(product.bundle().dataset_arc())
 }
 
 // ── Archive blobs (regression fix) ──────────────────────────────────────────────

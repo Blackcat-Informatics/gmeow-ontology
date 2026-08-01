@@ -94,6 +94,12 @@ fn run_sink() -> Vec<u8> {
     let cache_dir = tempfile::tempdir().unwrap();
     let mut ctx = RunContext::open(&root, 4).expect("ctx");
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
+    // The PRODUCER's retention profile, for the same reason the spec is the production
+    // one: `run_full` releases each stage's carrier at its drop-after-last-consumer point,
+    // so folding the terminal bundle under any other profile would prove the fold of a run
+    // the producer never performs. The sink's `gmeow.gts` artifact is a committed output
+    // and survives every release untouched.
+    ctx.carrier_retention = gmeow_pipeline::CarrierRetention::DropAfterLastConsumer;
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
     let sink = result.products.get("stage-gts-sink").expect("sink product");
     sink.artifact("generated/dist/gmeow.gts")

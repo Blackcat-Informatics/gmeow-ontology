@@ -39,6 +39,12 @@ jobs:
   # cache and rebuild it. No consumer is compiled before generated/dist/gmeow.gts exists.
   producer-build:
     runs-on: ubuntu-latest
+    # Every long job carries an explicit budget. Without one, a job that is OOM-killed
+    # and a job that hangs are INDISTINGUISHABLE from the outside — both surface only as
+    # a runner that stopped responding. A named timeout makes "it ran out of time" a
+    # different signal from "the kernel killed it", which is what a 16 GB runner does to
+    # a build whose peak residency grows with the corpus.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -98,6 +104,7 @@ jobs:
       matrix:
         generation: [a, b]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -114,8 +121,11 @@ jobs:
 
       # Update mode runs the superset, declared-inventory completeness, fanout-
       # bijection, drift, orphan, and internal-tag-leak gates while materializing.
+      # SYNC_VERBOSE=1 streams each DAG stage as it starts and ends. On a runner that
+      # dies mid-pipeline the last streamed stage NAMES the resident stage, which is the
+      # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
-        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_VERBOSE=1
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
         run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check
@@ -138,6 +148,7 @@ jobs:
   producer:
     needs: [generation]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
       bundle_digest: ${{ steps.digest.outputs.sha256 }}
     steps:
@@ -175,6 +186,7 @@ jobs:
   lint:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -245,6 +257,7 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     # security-events: write lets shard 1's rust-category SARIF surface in the
     # Security tab via upload-sarif.
     permissions:
@@ -393,6 +406,7 @@ jobs:
   ontology-validate:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -441,6 +455,7 @@ jobs:
   ontology-generated:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -479,6 +494,7 @@ jobs:
   ontology-reason:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -525,6 +541,7 @@ jobs:
   ontology-misc:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -596,6 +613,7 @@ jobs:
   heavy:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -676,6 +694,7 @@ jobs:
     needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       id-token: write

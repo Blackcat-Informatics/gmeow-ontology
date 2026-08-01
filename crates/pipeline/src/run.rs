@@ -38,7 +38,7 @@ use gmeow_logic::result::ReasoningResult;
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
 use crate::registry::default_registry;
-use crate::scheduler::{RunContext, run};
+use crate::scheduler::{CarrierRetention, RunContext, run};
 
 /// The stage id every drift/superset diagnostic is attributed to on the carrier
 /// ledger (pin-on-attach).
@@ -748,6 +748,14 @@ pub fn run_full_scoped_with_progress(
     // multi-gigabyte duplicate state and measured slower than recomputation. On a
     // manifest miss, execute the DAG once with no per-stage cache I/O.
     let mut ctx = RunContext::open_uncached(root, jobs);
+    // Bound peak residency: release each stage's carrier once its last declared consumer
+    // has run. This path is the whole-repository build — ~47 stages, each emitting a
+    // CUMULATIVE carrier snapshot — so retaining every product's bundle for the run's life
+    // makes peak memory the SUM over the DAG rather than the live frontier, which is what
+    // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
+    // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
+    // written/compared bytes and `combined_digest` are byte-identical either way.
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     if let Some(progress) = progress.as_ref() {
         ctx = ctx.with_progress(Arc::clone(progress));
         progress.stage_start("pipeline:dag");
@@ -830,7 +838,9 @@ pub fn run_full_scoped_with_progress(
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.
-            if path.starts_with("pipeline/") {
+            // ONE constant with the scheduler's carrier release, which drops exactly
+            // these once their last declared consumer has run.
+            if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
                 continue;
             }
             output_paths.push(path.clone());

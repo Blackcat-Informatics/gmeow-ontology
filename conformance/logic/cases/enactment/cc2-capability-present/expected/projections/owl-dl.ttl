@@ -16,12 +16,13 @@
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestV2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PrescriptionVersion> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep> <http://www.w3.org/2000/01/rdf-schema#label> "Inspect the scanned batch"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrAuthProof> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/AuthorizationProof> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrAuthProof> <http://www.w3.org/2000/01/rdf-schema#label> "Authorization: the stage-by-stage OCR decomposition is licensed for batch 78"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/DecompositionMethod> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod> <http://www.w3.org/2000/01/rdf-schema#label> "Method: inspect / prepare / OCR / verify / store"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrPlanCandidate> <http://www.w3.org/2000/01/rdf-schema#label> "Candidate: the OCR step decomposed stage by stage"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <http://www.w3.org/2000/01/rdf-schema#label> "Extract text"@x-gmeow-english .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph> .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan> <http://www.w3.org/2000/01/rdf-schema#label> "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep> <http://www.w3.org/2000/01/rdf-schema#label> "Prepare pages for extraction"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RefinementEpisode> .
