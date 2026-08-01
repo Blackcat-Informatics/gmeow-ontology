@@ -1313,6 +1313,30 @@ mod tests {
             report.is_clean(),
             "superset gate not clean after the seam refactor: {report:?}"
         );
+
+        // ── The inventory's OTHER direction. `project_bundle` proves authored ⊆ produced
+        // (`check_expected_completeness`); nothing proved produced ⊆ authored, so an output
+        // the pipeline emits could stay absent from the hand-authored oracle indefinitely —
+        // and one did (`generated/mappings/gmeow-preference.sssom.tsv`, produced from the
+        // preference slice's MappingSet but never declared). An undeclared output is a real
+        // hole, not a harmless omission: the completeness anchor is the ONLY gate that catches
+        // a stage silently ceasing to emit a file, so a path missing from the inventory is a
+        // path that can vanish from a clean clone unnoticed. Closing the loop here makes the
+        // inventory EXACTLY the produced set: authored ⊆ produced (project_bundle, above)
+        // plus produced ⊆ authored (here) = equality. Free — the projection is already in hand.
+        let authored = authored_expected();
+        let undeclared: Vec<&str> = proj
+            .files
+            .keys()
+            .map(String::as_str)
+            .filter(|p| !EXCLUDED.contains(p) && !authored.contains(*p))
+            .collect();
+        assert!(
+            undeclared.is_empty(),
+            "the bundle produces generated/ output(s) absent from the authored \
+             gmeow:expectsGeneratedOutput inventory in slices/core/pipeline/module.ttl, so the \
+             completeness oracle would not notice them disappearing: {undeclared:?}"
+        );
     }
 
     #[test]
@@ -1575,7 +1599,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            397,
+            407,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {

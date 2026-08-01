@@ -1706,6 +1706,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-ontouml.sssom.tsv",
     "generated/mappings/gmeow-openmath.sssom.tsv",
     "generated/mappings/gmeow-places.sssom.tsv",
+    "generated/mappings/gmeow-preference.sssom.tsv",
     "generated/mappings/gmeow-privacy.sssom.tsv",
     "generated/mappings/gmeow-properties.sssom.tsv",
     "generated/mappings/gmeow-provenance.sssom.tsv",
