@@ -845,6 +845,81 @@ fn run_conformance_cell(
                     }));
                 }
             }
+            // EXHAUSTIVENESS. Everything above is an EXISTENCE check: some finding
+            // carries the expected code, and some finding carrying it comes from the
+            // pinned shape. Neither can fail on a fixture that ALSO trips three other
+            // laws — which is exactly what a rationale saying "and NO other finding"
+            // claims it does not. That claim was therefore unfalsifiable: it could
+            // only ever have been established by measuring the fixture once, by hand,
+            // and nothing kept it true afterwards. `gmeow:expectedSoleFinding true`
+            // makes it checkable. Deliberately opt-in: the phrase appears on ~240
+            // cells across seven slices, and turning the check on for all of them by
+            // default would red slices whose fixtures were never measured — the check
+            // has to be adopted cell by cell, with the finding set actually read.
+            //
+            // "Sole" is per-LAW, and the LAW is the `sh:sourceShape` — not the finding
+            // code and not the result count. The unit matters, and getting it wrong in
+            // either direction makes the check useless:
+            //
+            // * Per-RESULT would forbid a single defect from being reported twice, which
+            //   it legitimately is — once per kernel class the offending node is typed
+            //   by, once per focus node a class shape targets.
+            // * Per-CODE would split ONE shape's report of ONE defect into a failure
+            //   whenever the shape raises two components over it (a class shape reporting
+            //   a missing member as both sh:minCount and sh:qualifiedMinCount is one law
+            //   saying one thing twice).
+            //
+            // So: every violation-severity result must originate from ONE shape, and that
+            // shape must be the pinned one when `gmeow:expectedSourceShape` is bound. Any
+            // second shape is a second authored law, which is exactly the claim "and NO
+            // other finding" makes and could not previously fail on.
+            if ec.expected_sole_finding == Some(true) {
+                let intruders: Vec<String> = report
+                    .results
+                    .iter()
+                    .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+                    .filter(|r| {
+                        let shape = strip_angle(&r.source_shape.to_string()).to_owned();
+                        ec.expected_source_shape.as_deref().map_or_else(
+                            // Unpinned: the sole law is whichever shape produced the
+                            // finding the cell DID pin by code, so a second shape — even
+                            // one raising the same component — is a second law.
+                            || {
+                                report
+                                    .results
+                                    .iter()
+                                    .filter(|other| finding_from_shacl(other).code == expected)
+                                    .all(|other| {
+                                        strip_angle(&other.source_shape.to_string()) != shape
+                                    })
+                            },
+                            |pinned| !source_shape_matches(&shape, pinned),
+                        )
+                    })
+                    .map(|r| {
+                        format!(
+                            "{} on {} (shape {})",
+                            finding_from_shacl(r).code,
+                            r.focus_node,
+                            r.source_shape
+                        )
+                    })
+                    .collect();
+                if !intruders.is_empty() {
+                    return Err(Diag::of_kind(ConformanceCell {
+                        detail: format!(
+                            "cell {} declares gmeow:expectedSoleFinding, so the shape raising \
+                             {expected} ({}) must be the ONLY law this fixture trips; it also \
+                             raised: [{}]",
+                            ec.iri,
+                            ec.expected_source_shape
+                                .as_deref()
+                                .unwrap_or("unpinned — inferred from the matching finding"),
+                            intruders.join(", "),
+                        ),
+                    }));
+                }
+            }
             Ok(())
         }
     }
@@ -1317,5 +1392,74 @@ mod tests {
         );
 
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// `gmeow:expectedSoleFinding` can FAIL, on the production conformance surface.
+    ///
+    /// The red half drives the shipped `compensation-typed-as-its-forward-receipt.ttl`
+    /// counter-example — the one fixture in the enactment corpus whose single authored
+    /// defect is MEASURED to cascade into three laws — through the real
+    /// `run_conformance_cell`, against the real generated shape surface, with the
+    /// sole-finding flag set. Without the flag the cell passes, because every check
+    /// before it is an EXISTENCE check: some finding carries the code, and some finding
+    /// carrying it came from the pinned shape. That is precisely the gap that made
+    /// "and NO other finding" unfalsifiable everywhere it is written, so the green half
+    /// is the SAME cell with the flag unbound, and the difference between them is the
+    /// whole of what the new field buys.
+    #[test]
+    fn the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law() {
+        let slice_dir = paths::repo_root().join("slices/grounding/logic");
+        let shape_paths = paths::shapes_files(&slice_dir);
+        let shapes_ttl = shape_paths
+            .iter()
+            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
+        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
+            .expect("the logic module parses");
+        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+            .expect("the grounding kernel modules parse");
+        let local_shapes = slice_dir.join("shapes.ttl");
+        let shapes = scope_shapes_to_slice(
+            shapes,
+            &shapes_ttl,
+            &owned_module,
+            local_shapes.is_file().then_some(local_shapes.as_path()),
+        )
+        .expect("shape ownership scopes to the logic slice");
+
+        let cell = |sole: Option<bool>| ExampleConformance {
+            iri: "https://example.org/ecSoleFindingProbe".to_owned(),
+            file: "tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl".to_owned(),
+            outcome: Outcome::Violates,
+            violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
+            expected_source_shape: Some(
+                "https://blackcatinformatics.ca/logic/\
+                 CompensationNotInverseConstraintProceduralConstraintShape"
+                    .to_owned(),
+            ),
+            expected_sole_finding: sole,
+            rationale: None,
+        };
+
+        run_conformance_cell(&cell(None), &slice_dir, &module, &shapes).expect(
+            "without the flag the cell passes on the existence checks alone — which is the \
+             behaviour every unmigrated cell keeps",
+        );
+
+        let err = run_conformance_cell(&cell(Some(true)), &slice_dir, &module, &shapes)
+            .expect_err("the cascade must be caught once the cell claims sole-ness");
+        let message = err.message();
+        assert!(
+            message.contains("expectedSoleFinding") && message.contains("also raised"),
+            "the failure must name the flag and enumerate the intruding findings, so an \
+             author can see WHICH other law fired; got: {message}"
+        );
+        assert!(
+            message.contains("ReceiptRequiresAttemptConstraint")
+                || message.contains("CompensationBindsExactForwardEffectConstraint"),
+            "the intruder list must name the cascading laws by shape; got: {message}"
+        );
     }
 }

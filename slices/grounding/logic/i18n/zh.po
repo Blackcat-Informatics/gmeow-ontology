@@ -2230,6 +2230,10 @@ msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|
 msgid "Entangled Existential + Cardinality Boundary"
 msgstr "存在与基数纠缠边界"
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nested Triple Term Boundary"
+msgstr "嵌套三元组词项边界"
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "external relation admitted rows"
 msgstr "外部关系已接纳行数"
@@ -7078,6 +7082,10 @@ msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|
 msgid "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."
 msgstr "针对纠缠的全 DL 存在加基数配置的保留弃判记录：在同一属性上将见证生成与计数相耦合，内核只在两者各自独立时才予以认证。"
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for the RDF 1.2 statement-metadata lowering: exactly what decomposing an rdf:reifies triple term into three joinable component edges does not preserve. NARROW on purpose — a flat reified statement IS reasoned over, and the blanket claim that RDF 1.2 statement metadata lies outside the reasoner is no longer true. Two things are withheld: a nested triple term, which has no non-term component to decompose into and is therefore not lowered at all; and the statement's identity as a TERM, since the lowering yields three edges about the reifier rather than a name for the statement, so a rule can join on the components and cannot quantify over the statement itself."
+msgstr "针对 RDF 1.2 陈述元数据下降变换的保留弃判记录：把一个 rdf:reifies 三元组词项分解为三条可连接的分量边时，究竟有什么未被保全。刻意「狭窄」——扁平的被具体化陈述「是」可被推理的，而「RDF 1.2 陈述元数据处于推理器之外」这一笼统说法已不再成立。被弃置的只有两样：嵌套的三元组词项，它没有任何非词项的分量可供分解，因而根本不被下降；以及陈述作为「词项」的同一性，因为下降变换给出的是关于具体化器的三条边，而不是陈述的一个名字，故规则可以在分量上连接，却无法对陈述本身进行量化。"
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The number of unique, complete, validated provider rows admitted by an invocation or across a query receipt. Failed, incomplete, cancelled, over-budget, and malformed batches admit zero."
 msgstr "一次调用或跨一份查询回执所接纳的唯一、完整、经验证的提供方行数。失败的、不完整的、已取消的、超预算的和格式错误的批次接纳零行。"
@@ -11858,6 +11866,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "attempt of intent"
 msgstr "意图的尝试"
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "candidate instantiates method"
+msgstr "候选实例化方法"
+
 msgctxt "https://blackcatinformatics.ca/logic/certifiesDeadlockFreedom|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "certifies deadlock freedom"
 msgstr "证明无死锁"
@@ -11929,6 +11941,10 @@ msgstr "补偿效应"
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "compensation receipt"
 msgstr "补偿回执"
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contested by attribution"
+msgstr "被归属所争议"
 
 msgctxt "https://blackcatinformatics.ca/logic/deadlineExhausted|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "deadline exhausted"
@@ -12317,6 +12333,18 @@ msgstr "细化世界快照"
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "refines step"
 msgstr "细化所属步骤"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement object"
+msgstr "被具体化陈述的宾语"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement predicate"
+msgstr "被具体化陈述的谓词"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement subject"
+msgstr "被具体化陈述的主语"
 
 msgctxt "https://blackcatinformatics.ca/logic/rejectedCandidate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "rejected candidate"
@@ -13242,6 +13270,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "Relates a logic:EffectAttempt to the logic:DispatchIntent it carried out. Functional. Several attempts of one intent are legal only where the idempotency contract licenses them."
 msgstr "把 logic:EffectAttempt 关联到它所执行的那份 logic:DispatchIntent。函数性。对同一意图的多次尝试，唯有在幂等契约许可之处才是合法的。"
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one logic:refinementCandidate of a roster to the logic:DecompositionMethod whose application produced it. Domain a roster candidate — a subplan or action schema (stated in prose, as for logic:refinementCandidate itself). Functional: a candidate produced by two methods would have two step sequences and two provenances, so which decomposition was authorized would be undecidable at the moment of authorization. It is what makes a pin DERIVABLE rather than hand-authored: with the method named, the frozen sequence and the content address of an authorized candidate are read off the method it came from, and a pin whose steps its method never yielded becomes unconstructible instead of merely condemned after the fact."
+msgstr "把某份名册中的一个 logic:refinementCandidate 关联到其应用产生了该候选的 logic:DecompositionMethod。定义域为名册中的候选——一个子计划或动作模式（以散文陈述，一如 logic:refinementCandidate 本身）。函数性：由两个方法产生的候选将拥有两条步骤序列与两份来源，于是在授权的那一刻，究竟哪一种分解获得了授权便无从判定。正是它使固定成为「可推导的」而非手写的：方法一经指明，获授权候选的冻结序列与内容地址便可从其所出的方法上读出，而步骤从未由其方法产出的固定将根本无法构造，而不只是事后受到谴责。"
+
 msgctxt "https://blackcatinformatics.ca/logic/certifiesDeadlockFreedom|http://www.w3.org/2004/02/skos/core#definition"
 msgid "True when every non-terminal tuple of axis positions has at least one enabled next move under the authored transition laws. False names a stuck tuple rather than merely reporting failure."
 msgstr "当在成文的转移律之下，每个非终局的轴位置元组都至少有一个可行的下一步时为真。为假时须指明那个卡住的元组，而不仅仅是报告失败。"
@@ -13313,6 +13345,10 @@ msgstr "把 logic:CompensationAttempt 关联到它所针对的确切正向回执
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:CompensationOutcome to the receipt establishing what the compensation achieved. Functional and MANDATORY for a successful outcome: without it the record asserts an achievement nobody observed."
 msgstr "把 logic:CompensationOutcome 关联到确立该补偿所成就之事的那份回执。函数性，且对「成功」这一结果为必备：若无它，该记录便断言了一项无人观测到的成就。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one statement attribution to a DIFFERENT attribution of the SAME statement whose support status is the opposite of its own — the derived record that a claim is contested rather than settled. Symmetric in effect (each of the two disagreeing attributions derives the edge to the other), because contestation is a relation between vantages and neither is the privileged one: adjudicating requires knowing both parties, and an edge in one direction would name a challenger without naming what it challenges. It is what the statement-metadata lowering is FOR: before it, two co-equal vantages opposing each other over one statement were two unrelated nodes with unrelated opinions, because the only thing that said they were about the same claim was the rdf:reifies triple term the reasoner could not read."
+msgstr "把一项陈述归属关联到同一条陈述的「另一项」归属，且后者的支持状态与前者相反——这是一条派生记录，表明某项主张处于争议之中而非已成定论。效果上是对称的（两项相左的归属各自都会推导出指向对方的边），因为争议是立场之间的关系，二者谁也不居于优位：裁断需要知晓双方，而单向的边只会指名挑战者，却不指名它所挑战之物。这正是陈述元数据下降变换的「用途所在」：在它之前，就同一条陈述彼此对立的两个同等立场，不过是两个互不相干的节点带着互不相干的意见，因为唯一能说明它们谈的是同一项主张的，是推理器读不了的 rdf:reifies 三元组词项。"
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a continuation record to the exactly-one logic:ContinuationKind it is. Domain a continuation record (stated in prose). Functional: a record carrying two kinds is the conflation the disjointness constraint rejects."
@@ -13742,6 +13778,18 @@ msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004
 msgid "Relates a logic:RefinementEpisode to the abstract step it is trying to make executable. Range a plan step (stated in prose). Functional: one episode refines one step, so a multi-step refinement is several episodes and each carries its own budget and outcome."
 msgstr "把 logic:RefinementEpisode 关联到它试图使之可执行的那个抽象步骤。值域为一个计划步骤（以散文陈述）。函数性：一个片段细化一个步骤，故涉及多个步骤的细化即是多个片段，各有自己的预算与结果。"
 
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the OBJECT of the statement it reifies. Derived, never asserted. Completes the triple that identifies which claim an attribution is about, so two vantages can be shown to be speaking about one statement rather than two."
+msgstr "把 RDF 1.2 具体化器关联到它所具体化陈述的「宾语」。派生所得，从不断言。它补全了用以判明某项归属所针对之主张的那个三元组，从而可以显示两个立场谈论的是同一条陈述，而非两条。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the PREDICATE of the statement it reifies, as an IRI in object position. Derived, never asserted. It is the third of the lowering that stops two attributions about DIFFERENT relations between the same two things from being joined as though they were about one: 'rollback is strictly preferred to hotfix' and 'rollback supersedes hotfix' share both endpoints and are not the same claim."
+msgstr "把 RDF 1.2 具体化器关联到它所具体化陈述的「谓词」，以 IRI 的形式置于宾语位置。派生所得，从不断言。它正是下降变换中阻止下述情形的那三分之一：把两项关于同样两个事物之间「不同」关系的归属，当作谈论同一件事而连接起来；「回滚严格优先于热修复」与「回滚取代热修复」共享两个端点，却并非同一项主张。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the SUBJECT of the statement it reifies — one third of the lowering that makes rdf:reifies joinable. Derived, never asserted: it is read off the authored rdf:reifies triple term on the way into the reasoning world, so the canonical RDF 1.2 form stays the single source and the authored data is not rewritten. Multi-valued only in the sense that one reifier reifies one statement; two reifiers over the SAME statement each carry their own copy, which is precisely what lets a rule join two attributions that disagree."
+msgstr "把 RDF 1.2 具体化器关联到它所具体化陈述的「主语」——这是使 rdf:reifies 变得可连接的那个下降变换的三分之一。派生所得，从不断言：它是在进入推理世界的途中，从所撰写的 rdf:reifies 三元组词项上读出的，因此规范的 RDF 1.2 形式仍是唯一来源，所撰写的数据也不会被改写。它之为多值，仅在于一个具体化器具体化一条陈述；针对「同一条」陈述的两个具体化器各自带有自己的一份，而这恰恰正是规则得以连接两项相左归属的凭借。"
+
 msgctxt "https://blackcatinformatics.ca/logic/rejectedCandidate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:RefinementRejection to the candidate it declined. Range a subplan or action schema (stated in prose). Functional."
 msgstr "把 logic:RefinementRejection 关联到它所拒绝的那个候选。值域为一个子计划或动作模式（以散文陈述）。函数性。"
@@ -14102,6 +14150,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
 msgstr "示例：ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrCandidate logic:candidateInstantiatesMethod ex:ocrByPagePartition ."
+msgstr "示例：ex:ocrCandidate logic:candidateInstantiatesMethod ex:ocrByPagePartition ."
+
 msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
 msgstr "示例：ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
@@ -14161,6 +14213,10 @@ msgstr "示例：ex:closeValve logic:compensatesEffect ex:valveResult ."
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
 msgstr "示例：ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:contestedByAttribution ex:onCallOnRollbackOverHotfix ."
+msgstr "示例：ex:cmdrOnRollbackOverHotfix logic:contestedByAttribution ex:onCallOnRollbackOverHotfix ."
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:returnEntry logic:continuationKind logic:ContinuationResume ."
@@ -14425,6 +14481,18 @@ msgstr "示例：ex:subGoal logic:refinesGoal ex:topGoal ."
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:episode logic:refinesStep ex:ocrStep ."
 msgstr "示例：ex:episode logic:refinesStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementObject ex:hotfix ."
+msgstr "示例：ex:cmdrOnRollbackOverHotfix logic:reifiedStatementObject ex:hotfix ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementPredicate gmeow:strictlyOver ."
+msgstr "示例：ex:cmdrOnRollbackOverHotfix logic:reifiedStatementPredicate gmeow:strictlyOver ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementSubject ex:rollback ."
+msgstr "示例：ex:cmdrOnRollbackOverHotfix logic:reifiedStatementSubject ex:rollback ."
 
 msgctxt "https://blackcatinformatics.ca/logic/snapshotDigest|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:corpusW13 logic:snapshotDigest \"b3:93e5c1…\" ."
@@ -17470,6 +17538,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "Functional per attempt, and several attempts of one intent are legal only where the idempotency contract licenses them. The relation records that the attempt carried out this intent, never that it was entitled to."
 msgstr "就每一次尝试而言它是函数性的；同一意图的多次尝试，仅在幂等契约予以许可之处才属合法。该关系记录的是这次尝试执行了这一意图，而绝非它有权这样做。"
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The provenance edge from a roster candidate back to the schema that produced it. Functional, because a candidate reached by two methods would carry two possible step sequences and the authorization could not say which one it licensed."
+msgstr "从名册中的候选回溯到产生它的模式的来源边。函数性，因为经由两个方法抵达的候选会带有两条可能的步骤序列，而授权无从说明它许可的是哪一条。"
+
 msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A different annotation algebra changes how derived annotations combine, so a resumed run would fold evidence differently from the run it claims to continue. The digest gates that rather than leaving the divergence to be discovered in the output."
 msgstr "不同的注解代数会改变派生注解的组合方式，因此恢复后的运行折叠证据的方式，将与它自称所续之运行不同。此摘要在此设闸，而不是把这种分歧留待从输出中被发现。"
@@ -17529,6 +17601,10 @@ msgstr "它绑定的是那份确切的原始回执，而非动作图式，也非
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional and MANDATORY for a successful outcome: without it the record asserts an achievement nobody observed. A compensation that was attempted and produced no receipt has an unknown outcome, not a successful one."
 msgstr "对于成功的结局，它既是函数性的也是强制的：没有它，该记录便是在断言无人观察到的成就。已被尝试却未产生回执的补偿，其结局是未知，而非成功。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Derived, never asserted. The two attributions must reify the SAME statement — same subject, same predicate, same object — because two vantages disagreeing about different claims are not in conflict at all."
+msgstr "派生所得，从不断言。两项归属必须具体化「同一条」陈述——主语相同、谓词相同、宾语相同——因为在不同主张上意见相左的两个立场，根本谈不上冲突。"
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional, because a record carrying two kinds is the conflation the disjointness constraint rejects. Resuming and repeating make incompatible identity claims, so a record asserting both says nothing determinate about which enactment is running."
@@ -17841,6 +17917,18 @@ msgstr "若无此项，名册的封闭性便不可证伪，因为日后的读者
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional: one episode refines one step, so a multi-step refinement is several episodes and each carries its own budget and snapshot. Sharing one episode across steps would make the budget's attribution meaningless."
 msgstr "它是函数性的：一次episode只精化一个步骤，因此多步骤的精化就是多次episode，各自携带自己的预算与快照。若让多个步骤共用一次episode，预算的归属便失去意义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The third of the reifier-to-statement lowering. A statement whose object is itself a triple term is NOT lowered — that residue is recorded at logic:rdf12-nested-triple-term rather than silently flattened."
+msgstr "从具体化器到陈述的下降变换的第三部分。若某条陈述的宾语本身即是一个三元组词项，则它「不会」被下降——该残余记录在 logic:rdf12-nested-triple-term，而不是被悄然压平。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Carried in OBJECT position as an ordinary IRI, because the engine's fact surface has no predicate-variable slot. That is what makes the reified predicate joinable at all."
+msgstr "以普通 IRI 的形式承载在「宾语」位置，因为引擎的事实面没有谓词变量槽位。正是这一点，才使被具体化的谓词根本上成为可连接的。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One third of the reifier-to-statement lowering. Decomposed rather than carried as a term because the engine's fact surface is (subject, predicate, object) over IRIs, blank nodes and literals — a triple term has no place in it, and forcing one in returns a malformed IRI."
+msgstr "从具体化器到陈述的下降变换的三分之一。之所以分解而非作为词项承载，是因为引擎的事实面是 IRI、空节点与字面量之上的（主语、谓词、宾语）——三元组词项在其中无处安放，硬塞进去只会得到一个格式错误的 IRI。"
 
 msgctxt "https://blackcatinformatics.ca/logic/restoreDescriptorHash|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Computed at restore time and INDEPENDENTLY of the checkpoint, over the seven axes as the restoring engine finds them. Independence is the point: a value copied from the checkpoint would compare equal to itself and gate nothing."
@@ -18222,6 +18310,22 @@ msgctxt "https://blackcatinformatics.ca/logic/retryOfAttempt|http://www.w3.org/2
 msgid "ex:chargeRetry logic:retryOfAttempt ex:chargeAttempt ."
 msgstr "示例：ex:chargeRetry logic:retryOfAttempt ex:chargeAttempt 。"
 
+msgctxt "https://blackcatinformatics.ca/logic/ruleAttributionContestedByOpposingVantage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contested: two vantages, one statement, opposite support"
+msgstr "争议：两个立场、一条陈述、相反的支持"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleAttributionContestedByOpposingVantage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:contestedByAttribution between two DISTINCT reifiers of the SAME statement whose gmeow:standpointSupportStatus values are gmeow:supportSupported and gmeow:supportOpposed. Positive Horn, joined over the three lowered statement components. It is the proof that the statement-metadata lowering is not decorative: the join is over logic:reifiedStatementSubject / Predicate / Object, none of which existed before it, and without them the rule's body cannot be written at all — the two attributions have no shared variable, and a rule that dropped the join would declare every affirmation in the graph contested by every opposition anywhere in it."
+msgstr "在同一条陈述的两个「相异」具体化器之间推导出 logic:contestedByAttribution，其 gmeow:standpointSupportStatus 取值分别为 gmeow:supportSupported 与 gmeow:supportOpposed。正 Horn 规则，在三个下降所得的陈述分量上连接。它证明了陈述元数据下降变换并非装饰：连接是在 logic:reifiedStatementSubject / Predicate / Object 之上进行的，而在此之前它们一个也不存在；没有它们，这条规则的主体根本无从写起——两项归属没有任何共享变量，而一条舍弃了连接的规则，会宣称图中的每一项肯定都被图中任何一处的每一项反对所争议。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleEpisodeSelectsItsAuthorizedPin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the episode selected the pin its own roster carried"
+msgstr "固定：片段所选中的，正是其自身名册所载的那次固定"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleEpisodeSelectsItsAuthorizedPin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:selectedPin from the episode that produced the roster to the authorized candidate inside it. Positive Horn. It is what makes logic:RefinementPinComesFromCandidateSetConstraint true by construction for a derived pin: the selection is read out of the roster rather than asserted next to it, so an episode cannot be recorded as committing to something its own search never found. The law keeps its teeth against an authored logic:selectedPin, which is the only place a pin from outside the roster could ever enter."
+msgstr "从产出名册的片段，向名册之内获授权的候选推导出 logic:selectedPin。正 Horn 规则。正是它使 logic:RefinementPinComesFromCandidateSetConstraint 对被推导出的固定按构造即为真：选择是从名册中读出的，而不是在名册旁边断言的，因而不可能把某个片段记录为承诺于其自身搜索从未找到之物。该法则的锋芒仍指向手写的 logic:selectedPin——那是名册之外的固定唯一可能溜进来的地方。"
+
 msgctxt "https://blackcatinformatics.ca/logic/ruleMethodStep|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "method step: the rdf:first of every reached cell"
 msgstr "方法步骤：每个已达单元的 rdf:first"
@@ -18245,6 +18349,46 @@ msgstr "产出单元：已达单元的每个 rdf:rest"
 msgctxt "https://blackcatinformatics.ca/logic/ruleMethodYieldCellRest|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Derives logic:methodYieldCell for the rdf:rest of any cell already reached — the recursive case that walks the ordered carrier to rdf:nil. Positive Horn and recursive. This is where the SEQUENCE stops being a parser's private business: the whole list is in the closure, so the steps past the head are as visible to a query as the first one."
 msgstr "为任何已达单元的 rdf:rest 推导出 logic:methodYieldCell——这是把有序载体一路走到 rdf:nil 的递归情形。正 Horn 规则，且是递归的。正是在此处，序列不再是解析器的私事：整个列表都进入闭包，头单元之后的各步骤对查询而言与第一个同样可见。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinAuthorityFromEstablishingProof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the authority is the proof that established the candidate"
+msgstr "固定：授权即确立了该候选的那份证明"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinAuthorityFromEstablishingProof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinAuthority for an authorized candidate as the logic:AuthorizationProof whose logic:proofEstablishes named it. Positive Horn. The guard requires the licensing record to BE an authorization proof, so a logic:Advisory pointed at a candidate derives no authority at all — advice can motivate a pin and never licenses one. An advisory ALSO typed a proof still derives, and is still condemned, by logic:AdvisoryNeverAuthorityConstraint: the derivation does not launder the double typing, it inherits it."
+msgstr "把获授权候选的 logic:pinAuthority 推导为其 logic:proofEstablishes 指名了该候选的那份 logic:AuthorizationProof。正 Horn 规则。守卫要求发出许可的那条记录必须「就是」一份授权证明，因此指向某候选的 logic:Advisory 根本推导不出任何授权——建议可以促成固定，却从不许可固定。一份「同时」被类型化为证明的建议仍会触发推导，并仍被 logic:AdvisoryNeverAuthorityConstraint 所谴责：推导不会把这重双重类型化洗白，而是承接了它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinDigestFromMethodDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the content address is the method version's own"
+msgstr "固定：内容地址即方法版本自身的地址"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinDigestFromMethodDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinDigest for an authorized candidate from the logic:methodDigest of the method that produced it. Positive Horn. A derived pin freezes exactly one thing — the method's yielded sequence — so the address of that content is the address of the method version, and computing a second one would create two names for one fragment. A method carrying no digest therefore yields no pin digest and the pin is REFUSED by the completeness law rather than quietly addressed by a fabricated value, which is the honest failure: 'content-addressed' is a claim about the method, and a method that never made it cannot lend it."
+msgstr "从产生某获授权候选的方法的 logic:methodDigest，为该候选推导出 logic:pinDigest。正 Horn 规则。被推导出的固定只冻结一样东西——方法所产出的序列——因此该内容的地址就是方法版本的地址，另行计算一个只会让同一个片段有两个名字。故不带摘要的方法不会给出任何固定摘要，该固定将被完备性法则「拒绝」，而不是被一个杜撰的值悄悄寻址；这才是诚实的失败：「按内容寻址」是一项关于方法的主张，而从未作出该主张的方法无从出借它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinInstantiatesAuthorizedMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the instantiated method is the candidate's own provenance"
+msgstr "固定：所实例化的方法即候选自身的来源"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinInstantiatesAuthorizedMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinInstantiatesMethod for an authorized candidate from the logic:candidateInstantiatesMethod edge the search recorded when it produced the candidate. Positive Horn. The method is not chosen at pin time — it is the one whose application produced this candidate — so deriving it closes the gap a hand-authored pin leaves open: naming a method the frozen steps never came from."
+msgstr "从搜索在产出候选时所记录的 logic:candidateInstantiatesMethod 边，为获授权的候选推导出 logic:pinInstantiatesMethod。正 Horn 规则。方法并非在固定之时才选定——它就是其应用产生了该候选的那一个——因而推导出它，正好堵上了手写固定所留下的缺口：指名一个冻结步骤从未由之而来的方法。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedStepSequenceFromMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the frozen sequence IS the method's yielded sequence"
+msgstr "固定：冻结的序列「就是」方法所产出的序列"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedStepSequenceFromMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinnedStepSequence for an authorized candidate as the very logic:methodYields list of the method that produced it. Positive Horn. It is the rule that makes logic:PinStepsMatchInstantiatedMethodConstraint unviolatable by a DERIVED pin: the frozen list and the instantiated method are read off one join, so the two cannot disagree. The law keeps its teeth against hand-authored pins, which is where the mismatch was ever possible."
+msgstr "把获授权候选的 logic:pinnedStepSequence 推导为产生它的那个方法的 logic:methodYields 列表本身。正 Horn 规则。正是这条规则使得「被推导出的」固定不可能违反 logic:PinStepsMatchInstantiatedMethodConstraint：冻结列表与所实例化的方法读自同一次连接，二者因而不可能相左。该法则的锋芒仍指向手写的固定——那才是不一致曾经可能发生的地方。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedSubgraphFromAuthorizedCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: an authorized roster candidate IS a pinned executable subgraph"
+msgstr "固定：名册中获授权的候选「就是」一个被固定的可执行子图"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedSubgraphFromAuthorizedCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Types a logic:refinementCandidate of an episode's roster as a logic:PinnedExecutableSubgraph once a logic:AuthorizationProof establishes it. Positive Horn. The authorization is the act that turns a candidate into a commitment, so it is the guard rather than an annotation: a roster member nobody licensed stays a candidate, and typing it a pin would assert a freeze that never happened."
+msgstr "一旦某个 logic:AuthorizationProof 确立了某片段名册中的 logic:refinementCandidate，便把它类型化为 logic:PinnedExecutableSubgraph。正 Horn 规则。授权正是把候选转化为承诺的那一行为，故它是守卫而非注解：无人许可的名册成员仍旧只是候选，把它类型化为固定，等于断言了一次从未发生的冻结。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ruleRefinementCandidateMethod|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "refinement candidate: every method that decomposes the task"

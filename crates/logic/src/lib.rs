@@ -114,6 +114,7 @@ pub mod runtime;
 pub mod seam;
 pub mod slme;
 pub mod stablemodel;
+pub mod statement_lowering;
 pub mod store;
 /// Synthetic relational-core Datalog generators (transitive closure, SCC, same
 /// generation, reachability) for the engine benchmark harness: each returns

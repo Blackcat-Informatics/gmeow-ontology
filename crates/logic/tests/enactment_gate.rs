@@ -1712,6 +1712,228 @@ ex:payVendorApproval a logic:ApprovalCommitment ;
     );
 }
 
+// ── The four laws that compiled, ran, and had never condemned anything ────────────────
+//
+// Each of the four below occurred ONLY in the compiled-law census and the translation
+// catalogues: no counter-example named them, no conformance cell pinned them, and no
+// assertion here drove them. A law in that position is prose that happens to lower into a
+// rule — it is indistinguishable, from every artifact in the repository, from a law whose
+// body can never be satisfied. Each pair therefore drives a SHIPPED single-defect fixture
+// through the production entrypoint and then the same fixture with the one missing binding
+// supplied, and each red also asserts that the sibling law governing the same record kind
+// stays SILENT, so the red cannot be a neighbouring law picking up the slack.
+
+/// A `logic:CompensationAttempt` with no `logic:compensatesEffect`.
+const COMPENSATION_NAMING_NO_FORWARD_EFFECT: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/compensation-names-no-forward-effect.ttl"
+);
+
+/// A `logic:ContextAssembly` with no `logic:assemblyForEnactment`.
+const CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/context-assembly-serving-no-enactment.ttl"
+);
+
+/// A `logic:JournalEntry` carrying its prior head and no new head.
+const JOURNAL_ENTRY_ESTABLISHING_NO_HEAD: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/journal-entry-establishing-no-head.ttl"
+);
+
+/// A `logic:RetryDispatch` licensed by a `logic:ReconciliationResult` with no verdict.
+const RETRY_LICENSED_BY_A_VERDICTLESS_PROBE: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/retry-licensed-by-a-verdictless-probe.ttl"
+);
+
+/// The refund that counteracts nothing nameable.
+///
+/// The forward charge is receipted and attributed in the same scene, so the effect laws
+/// pass and the ONLY defect is the empty binding — which is what makes the exactness
+/// sibling's silence informative rather than incidental.
+#[test]
+fn a_compensation_naming_no_forward_effect_fires_on_verify() {
+    let report = run_verify(COMPENSATION_NAMING_NO_FORWARD_EFFECT);
+    assert_condemns_under(
+        &report,
+        "invoice901Refund",
+        "CompensationNamesForwardEffectConstraint",
+    );
+    assert_law_silent(
+        &report,
+        "CompensationBindsExactForwardEffectConstraint",
+        "the exactness law DEREFERENCES the binding, so its guard requires one; a \
+         compensation naming nothing falls outside it and only the presence law can speak",
+    );
+    assert_law_silent(
+        &report,
+        "CompensationNotInverseConstraint",
+        "the refund is not typed as the receipt it addresses, so the prohibition holds and \
+         the red above cannot be the double-typing law wearing another law's name",
+    );
+    assert_law_silent(
+        &report,
+        "ReceiptRequiresAttemptConstraint",
+        "the forward receipt in the scene names the attempt it reports on, so the effect \
+         record beside the refund is well-formed",
+    );
+}
+
+#[test]
+fn a_compensation_naming_its_forward_receipt_passes_on_verify() {
+    let repaired = COMPENSATION_NAMING_NO_FORWARD_EFFECT.replace(
+        "ex:invoice901Refund a logic:CompensationAttempt ;",
+        "ex:invoice901Refund a logic:CompensationAttempt ;\n    logic:compensatesEffect \
+         ex:invoice901ChargeReceipt ;",
+    );
+    assert_ne!(
+        repaired, COMPENSATION_NAMING_NO_FORWARD_EFFECT,
+        "the edit must actually change the fixture, or the green half proves nothing"
+    );
+    let report = run_verify(&repaired);
+    assert_clean(
+        &report,
+        "the SAME scene with the refund bound to the receipt of the charge it undoes is \
+         exactly what the compensation layer models, and the kernel must raise nothing",
+    );
+}
+
+/// The assembly that answers the audit question about nobody.
+#[test]
+fn an_assembly_naming_no_enactment_fires_on_verify() {
+    let report = run_verify(CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT);
+    assert_condemns_under(
+        &report,
+        "assemblyServingNobody",
+        "ContextAssemblyNamesItsEnactmentConstraint",
+    );
+    assert_law_silent(
+        &report,
+        "ContextAssemblyRecordsExclusionsConstraint",
+        "the withheld item carries its reason, so the exclusion law is GUARDED here and \
+         passes on its merits rather than vacuously — the assembly's defect is its subject, \
+         not its bookkeeping",
+    );
+    assert_law_silent(
+        &report,
+        "ContextAssemblyExclusionIsNotInclusionConstraint",
+        "the surfaced item and the withheld item are different items, so the disjointness \
+         law is guarded and holds",
+    );
+}
+
+#[test]
+fn an_assembly_naming_the_run_it_served_passes_on_verify() {
+    let repaired = CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT.replace(
+        "ex:assemblyServingNobody a logic:ContextAssembly ;",
+        "ex:assemblyServingNobody a logic:ContextAssembly ;\n    logic:assemblyForEnactment \
+         ex:adrReviewWeek13 ;",
+    );
+    assert_ne!(
+        repaired, CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT,
+        "the edit must actually change the fixture, or the green half proves nothing"
+    );
+    let report = run_verify(&repaired);
+    assert_clean(
+        &report,
+        "an assembly bound to the run it surfaced material to is the record the kernel \
+         models, and the kernel must raise nothing on it",
+    );
+}
+
+/// The entry nothing can ever be appended after.
+///
+/// Its one link is CORRECT — the prior head reproduces the predecessor's new head — so
+/// the chain-integrity law is guarded and passes, and the red can only be the presence
+/// law. That is the whole discipline of this pair: an entry may be perfectly chained to
+/// its past and still be unchainable to its future.
+#[test]
+fn a_journal_entry_establishing_no_head_fires_on_verify() {
+    let report = run_verify(JOURNAL_ENTRY_ESTABLISHING_NO_HEAD);
+    assert_condemns_under(
+        &report,
+        "journalEntry9",
+        "JournalEntryNamesBothHeadsConstraint",
+    );
+    assert_law_silent(
+        &report,
+        "JournalChainIntegrityConstraint",
+        "the entry's prior head IS its predecessor's new head, so the hash-chain invariant \
+         holds where it can be evaluated and the missing end is the only defect",
+    );
+}
+
+#[test]
+fn a_journal_entry_naming_both_of_its_heads_passes_on_verify() {
+    let repaired = JOURNAL_ENTRY_ESTABLISHING_NO_HEAD.replace(
+        "    logic:journalPredecessor ex:journalEntry8 ;",
+        "    logic:journalPredecessor ex:journalEntry8 ;\n    logic:journalNewHead \
+         \"b3:3fb1a7c05e29d648b03c7a15f9e02d84c76b1350ae42f9d867b0c31de5a4028f\" ;",
+    );
+    assert_ne!(
+        repaired, JOURNAL_ENTRY_ESTABLISHING_NO_HEAD,
+        "the edit must actually change the fixture, or the green half proves nothing"
+    );
+    let report = run_verify(&repaired);
+    assert_clean(
+        &report,
+        "an entry naming the head it was applied against AND the head it established is \
+         chainable in both directions, which is the whole of what the presence law asks",
+    );
+}
+
+/// The retry that proceeded on a probe with no verdict.
+///
+/// Every licensing law in the scene is guarded and passes on its merits: the undetermined
+/// outcome names its attempt, the retry names both its attempt and its licence, and the
+/// licence covers that exact attempt. Only the licence's CONTENT is absent — which is the
+/// same shape of defect as the content-free saturation witness, in the other layer.
+#[test]
+fn a_reconciliation_result_carrying_no_verdict_fires_on_verify() {
+    let report = run_verify(RETRY_LICENSED_BY_A_VERDICTLESS_PROBE);
+    assert_condemns_under(
+        &report,
+        "invoice903ProbeResult",
+        "ReconciliationResultCarriesVerdictConstraint",
+    );
+    assert_law_silent(
+        &report,
+        "RetryRequiresLicenceConstraint",
+        "the retry NAMES a licence, so the presence half of the retry discipline passes — \
+         which is exactly why a licence that records nothing had to become its own law",
+    );
+    assert_law_silent(
+        &report,
+        "NoBlindRetryConstraint",
+        "the licence carries logic:licenceCoversAttempt for the very attempt being \
+         re-sent, so the coverage relation holds and the retry is not a BORROWED licence \
+         but an EMPTY one",
+    );
+    assert_law_silent(
+        &report,
+        "UnknownOutcomeNamesItsAttemptConstraint",
+        "the undetermined position names the attempt it is undetermined about, so the \
+         precondition of the whole probe-and-retry discipline is met",
+    );
+}
+
+#[test]
+fn a_reconciliation_result_carrying_its_verdict_passes_on_verify() {
+    let repaired = RETRY_LICENSED_BY_A_VERDICTLESS_PROBE.replace(
+        "    logic:resultOfProbe ex:invoice903Probe ;",
+        "    logic:resultOfProbe ex:invoice903Probe ;\n    logic:reconciliationVerdict \
+         logic:ReconciledNotCommitted ;",
+    );
+    assert_ne!(
+        repaired, RETRY_LICENSED_BY_A_VERDICTLESS_PROBE,
+        "the edit must actually change the fixture, or the green half proves nothing"
+    );
+    let report = run_verify(&repaired);
+    assert_clean(
+        &report,
+        "a probe that established the charge never committed, recorded as the verdict it \
+         reached, is the licence the retry was entitled to proceed under — and the kernel \
+         must raise nothing on it",
+    );
+}
+
 // ── The absence siblings reach their PRESENCE law, and only it ────────────────────────
 //
 // The adjudication these six mismatch fixtures rest on, pinned rather than asserted. Each

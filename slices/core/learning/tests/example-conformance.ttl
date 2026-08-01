@@ -46,6 +46,7 @@ ex:ecTeachingSelf a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/teaching-self.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's gmeow:teacher and gmeow:learner are the same agent (ex:alice). gmeow:TeachingShape's sh:sparql constraint forbids teacher = learner, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. Mirrors test_teacher_equals_learner_is_flagged." .
 
 # --- Violating: learner is not a gmeow:Agent --------------------------------
@@ -53,4 +54,5 @@ ex:ecTeachingNonAgentLearner a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/teaching-non-agent-learner.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's gmeow:learner (ex:tool) is a gmeow:Artifact, not a gmeow:Agent. The learner property shape carries sh:class gmeow:Agent, so validation MUST emit shacl.ClassConstraintComponent and NO other finding. Mirrors test_non_agent_learner_is_flagged." .

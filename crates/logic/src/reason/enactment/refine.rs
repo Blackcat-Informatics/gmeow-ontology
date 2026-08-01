@@ -133,6 +133,31 @@ const MEANS_END_PREDICATES: [&str; 9] = [
     "https://blackcatinformatics.ca/logic/refinementRejectedOnResource",
 ];
 
+/// The authored pin-derivation rules, selected by IRI rather than by head predicate.
+///
+/// By IRI because one of them heads `rdf:type`, and selecting THAT predicate would drag in
+/// every unrelated rule in the module that concludes a type — turning the refinement's
+/// sub-program into an arbitrary slice of the whole ontology. The six are closed under
+/// their own bodies: every body atom names an asserted property, and none reads another pin
+/// rule's conclusion, so selecting them by name cannot drop a rule one of them depends on.
+const PIN_RULES: [&str; 6] = [
+    "ruleEpisodeSelectsItsAuthorizedPin",
+    "rulePinAuthorityFromEstablishingProof",
+    "rulePinDigestFromMethodDigest",
+    "rulePinInstantiatesAuthorizedMethod",
+    "rulePinnedStepSequenceFromMethod",
+    "rulePinnedSubgraphFromAuthorizedCandidate",
+];
+
+/// The pin predicates the closure is read back through, once the rules above have fired.
+const PIN_INSTANTIATES_METHOD: &str = "https://blackcatinformatics.ca/logic/pinInstantiatesMethod";
+/// `logic:pinnedStepSequence` — derived to the HEAD CELL of the method's yielded list.
+const PINNED_STEP_SEQUENCE: &str = "https://blackcatinformatics.ca/logic/pinnedStepSequence";
+/// `logic:pinAuthority` — derived from the proof that established the candidate.
+const PIN_AUTHORITY: &str = "https://blackcatinformatics.ca/logic/pinAuthority";
+/// `logic:selectedPin` — derived from the episode that produced the roster.
+const SELECTED_PIN: &str = "https://blackcatinformatics.ca/logic/selectedPin";
+
 /// One typed reason a step is not freely executable, mirroring the shipped
 /// `logic:RejectionKind` vocabulary one for one.
 ///
@@ -242,6 +267,38 @@ pub struct RefineRejection {
     pub witness: ProofWitness,
 }
 
+/// One DERIVED `logic:PinnedExecutableSubgraph`: the commitment an authorized candidate
+/// becomes, read entirely out of the closure.
+///
+/// Nothing here is asserted by the caller. The input carries a roster, the provenance edge
+/// from each candidate back to the method that produced it, and a
+/// `logic:AuthorizationProof` naming the candidate it licenses; the pin's type, its
+/// instantiated method, its frozen sequence, its content address and its authority are all
+/// concluded by the six authored pin rules. That is the half of "validate the selected
+/// refinement AND pin its executable subgraph" that had no derivation at all: a pin could
+/// previously only be hand-authored, so the three laws reading one were laws about an
+/// author's self-consistency.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RefinePin {
+    /// The episode the pin was selected by (`logic:selectedPin`, derived).
+    pub episode: String,
+    /// The pin — the roster candidate the authorization turned into a commitment.
+    pub pin: String,
+    /// The method the pin instantiates (`logic:pinInstantiatesMethod`, derived).
+    pub method: String,
+    /// The frozen steps, in the AUTHORED `rdf:List` order of the method's
+    /// `logic:methodYields` — the same carrier read the roster rows use, because
+    /// `logic:pinnedStepSequence` derives to the list HEAD and the order lives in the list.
+    pub steps: Vec<String>,
+    /// The content address (`logic:pinDigest`, derived from the method's own digest).
+    pub digest: String,
+    /// The proof that licensed it (`logic:pinAuthority`, derived).
+    pub authority: String,
+    /// The chase witness for `logic:pinnedStepSequence(pin, cell)` — the derivation that
+    /// froze the content, which is the one an approval binds against.
+    pub witness: ProofWitness,
+}
+
 /// The result of one bounded, chase-derived refinement.
 #[derive(Debug)]
 pub struct RefineReport {
@@ -258,6 +315,10 @@ pub struct RefineReport {
     /// Every subtask the refined task decomposes into, at any depth
     /// (`logic:refinementReaches`).
     pub reached: Vec<String>,
+    /// Every DERIVED pin the closure carries, in pin IRI order. Empty when no candidate in
+    /// scope was authorized — which is the informative absence `logic:selectedPin`'s own
+    /// definition names, not a missing feature.
+    pub pins: Vec<RefinePin>,
     /// The tasks that reach THEMSELVES — decomposition cycles, named concretely. Empty
     /// for a well-formed method set; non-empty is what puts the method set outside
     /// `logic:FragmentAcyclicMethod`.
@@ -289,6 +350,7 @@ fn invalid(task: &str, fragment: &str, detail: impl Into<String>) -> RefineRepor
         rejections: Vec::new(),
         reached: Vec::new(),
         cycles: Vec::new(),
+        pins: Vec::new(),
         outcome: OperationOutcome::Invalid {
             fault: IntegrityFault::MalformedRequest {
                 detail: detail.into(),
@@ -306,6 +368,7 @@ fn engine_failure(task: &str, fragment: &str, diagnostic: gmeow_errors::Diag) ->
         rejections: Vec::new(),
         reached: Vec::new(),
         cycles: Vec::new(),
+        pins: Vec::new(),
         outcome: OperationOutcome::EngineFailure { diagnostic },
     }
 }
@@ -359,7 +422,14 @@ fn build_means_end_program() -> gmeow_errors::Result<gmeow_logic_compile::ir::Lo
     let selected: Vec<gmeow_logic_compile::ir::LogicRule> = program
         .rules
         .iter()
-        .filter(|rule| MEANS_END_PREDICATES.contains(&rule.head.predicate.as_str()))
+        .filter(|rule| {
+            MEANS_END_PREDICATES.contains(&rule.head.predicate.as_str())
+                || rule.scope.provenance.as_deref().is_some_and(|iri| {
+                    PIN_RULES
+                        .iter()
+                        .any(|name| iri.ends_with(&format!("/{name}")))
+                })
+        })
         .cloned()
         .collect();
     if selected.is_empty() {
@@ -615,6 +685,98 @@ fn closure_pairs(session: &ReasoningSession, predicate: &str) -> Vec<(String, St
     out
 }
 
+/// The `logic:methodDigest` each method carries, read off the input carrier.
+///
+/// A CARRIER READ, in the same sense as [`method_orders`] — and for a sharper reason. The
+/// incremental session's EDB is IRI-object only (`crate::reason::build_edb_facts` drops
+/// every literal-valued quad before a fact is built), so a datatype property is invisible
+/// to this lane's engine by construction. `logic:rulePinDigestFromMethodDigest` is
+/// therefore authored, compiled and selected here, and CONCLUDES on the full-reasoner lane
+/// where literals survive; on this lane its premise never arrives.
+///
+/// Reading the value here rather than inventing one is what keeps that honest: the digest a
+/// pin carries is the method version's own, byte for byte, and if the method carries none
+/// then neither does the pin — which is why [`collect_pins`] reports no pin at all rather
+/// than an unaddressed one.
+fn method_digests(rows: &[(String, String, String)]) -> BTreeMap<String, String> {
+    let digest_p = format!("{LOGIC_NS}methodDigest");
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    for (subject, predicate, object) in rows {
+        if *predicate == digest_p {
+            out.insert(subject.clone(), object.clone());
+        }
+    }
+    out
+}
+
+/// Assemble the derived pins out of the settled closure.
+///
+/// A pin is reported only when ALL FIVE of its derived triples are present. That is not
+/// defensiveness: the completeness law requires the method, the sequence and the digest
+/// together, so a partial row would be a pin the kernel is about to condemn, and printing
+/// it as a commitment would tell an operator that something was frozen when nothing was.
+/// The commonest cause is a method carrying no `logic:methodDigest` — an honest gap in the
+/// method, reported as "no pin", never as a pin with a fabricated address.
+fn collect_pins(
+    session: &ReasoningSession,
+    scope: &BTreeSet<String>,
+    orders: &BTreeMap<String, Vec<String>>,
+    digests: &BTreeMap<String, String>,
+    witnesses: &BTreeMap<(String, String, String), ProofWitness>,
+) -> Vec<RefinePin> {
+    let methods: BTreeMap<String, String> = closure_pairs(session, PIN_INSTANTIATES_METHOD)
+        .into_iter()
+        .collect();
+    let sequences: BTreeMap<String, String> = closure_pairs(session, PINNED_STEP_SEQUENCE)
+        .into_iter()
+        .collect();
+    let authorities: BTreeMap<String, String> =
+        closure_pairs(session, PIN_AUTHORITY).into_iter().collect();
+
+    let mut pins: Vec<RefinePin> = Vec::new();
+    for (episode, pin) in closure_pairs(session, SELECTED_PIN) {
+        let (Some(method), Some(cell), Some(authority)) = (
+            methods.get(&pin),
+            sequences.get(&pin),
+            authorities.get(&pin),
+        ) else {
+            continue;
+        };
+        let Some(digest) = digests.get(method) else {
+            continue;
+        };
+        // In scope through the METHOD's task: a pin is this refinement's business when the
+        // method it instantiates decomposes something the expansion reached.
+        let steps = orders.get(method).cloned().unwrap_or_default();
+        if !steps.iter().any(|step| scope.contains(step)) && !scope.contains(method) {
+            continue;
+        }
+        let witness = witnesses
+            .get(&(
+                displayed(&pin),
+                PINNED_STEP_SEQUENCE.to_owned(),
+                displayed(cell),
+            ))
+            .cloned()
+            .unwrap_or_else(|| ProofWitness {
+                rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+                premises: Vec::new(),
+                proof_height: 0,
+            });
+        pins.push(RefinePin {
+            episode,
+            pin,
+            method: method.clone(),
+            steps,
+            digest: digest.clone(),
+            authority: authority.clone(),
+            witness,
+        });
+    }
+    pins.sort_by(|a, b| (&a.pin, &a.episode).cmp(&(&b.pin, &b.episode)));
+    pins
+}
+
 /// Run a bounded means–end refinement of `task` over the method set carried by `input`.
 ///
 /// `fragment` is the declared `logic:SearchFragment` IRI and `budget` is the
@@ -701,11 +863,19 @@ pub fn refine(input: &RdfDataset, task: &str, fragment: &str, budget: u32) -> Re
             rejections: Vec::new(),
             reached: Vec::new(),
             cycles: Vec::new(),
+            pins: Vec::new(),
             outcome,
         };
     }
 
-    collect(&session, task, fragment, &orders, outcome)
+    collect(
+        &session,
+        task,
+        fragment,
+        &orders,
+        &method_digests(&rows),
+        outcome,
+    )
 }
 
 /// Project the settled closure into the report.
@@ -714,6 +884,7 @@ fn collect(
     task: &str,
     fragment: &str,
     orders: &BTreeMap<String, Vec<String>>,
+    digests: &BTreeMap<String, String>,
     outcome: OperationOutcome,
 ) -> RefineReport {
     let witnesses = witness_index(session);
@@ -819,6 +990,7 @@ fn collect(
         outcome
     };
     let closed = matches!(outcome, OperationOutcome::Applied { .. });
+    let pins = collect_pins(session, &scope, orders, digests, &witnesses);
 
     RefineReport {
         task: task.to_owned(),
@@ -826,6 +998,7 @@ fn collect(
         candidates: if closed { candidates } else { Vec::new() },
         rejections: if closed { rejections } else { Vec::new() },
         reached: if closed { reached } else { Vec::new() },
+        pins: if closed { pins } else { Vec::new() },
         cycles,
         outcome,
     }
@@ -897,6 +1070,36 @@ e:c5 rdf:first e:store   ; rdf:rest rdf:nil .
             missing.is_empty(),
             "these authored means–end rules are not in the sub-program the refinement runs, so \
              the expansion silently does less than the module says: {missing:?}"
+        );
+    }
+
+    /// The six pin-derivation rules reach the sub-program the refinement runs.
+    ///
+    /// Selected by IRI rather than head predicate, so a rename in the module would silently
+    /// drop one and the refinement would report a roster with no commitment — which reads
+    /// exactly like "nothing was authorized".
+    #[test]
+    fn every_authored_pin_rule_is_selected_into_the_program() {
+        let program = means_end_program();
+        let selected: Vec<&str> = program
+            .rules
+            .iter()
+            .filter_map(|rule| rule.scope.provenance.as_deref())
+            .collect();
+        let missing: Vec<&str> = super::PIN_RULES
+            .iter()
+            .copied()
+            .filter(|name| {
+                !selected
+                    .iter()
+                    .any(|iri| iri.ends_with(&format!("/{name}")))
+            })
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "these authored pin rules are not in the sub-program, so an authorized candidate \
+             would produce no commitment while the roster looked complete: {missing:?}; \
+             selected: {selected:?}"
         );
     }
 
@@ -1280,6 +1483,149 @@ e:probe a logic:GateProbe ;
                 "every rejection must carry the chase premises that established it: {rejection:?}"
             );
         }
+    }
+
+    // ── The pin half: an authorized candidate becomes a commitment ON THE CHASE ────────
+    //
+    // Three laws read a logic:PinnedExecutableSubgraph and nothing in the repository could
+    // produce one: `logic:rule…Pin…` matched no rule, and `gmeow logic refine` emitted no
+    // pin, so a pin could only ever be hand-authored — the same defect the kernel condemns
+    // for frontier labels, at the other end of the same episode. These two tests are the
+    // red/green pair for the six rules that close it.
+
+    /// A roster whose candidate carries its method and its licensing proof — every input
+    /// the pin derivation needs. Nothing here IS a pin: no `logic:PinnedExecutableSubgraph`
+    /// type, no `logic:pinnedStepSequence`, no `logic:pinDigest`, no `logic:pinAuthority`,
+    /// no `logic:selectedPin`. All five are derived.
+    const AUTHORIZED_CANDIDATE: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/refinetest/> .
+
+e:byPagePartition a logic:DecompositionMethod ;
+    logic:methodDecomposes e:ocr ;
+    logic:methodYields e:c1 ;
+    logic:methodDigest "b3:4f1d0a97c25e6b3810df7a49b6c02e5318da7c4095b2ae6d3417f08c25be9d61" .
+e:c1 rdf:first e:inspect ; rdf:rest e:c2 .
+e:c2 rdf:first e:extract ; rdf:rest e:c3 .
+e:c3 rdf:first e:verify  ; rdf:rest rdf:nil .
+
+e:episode a logic:RefinementEpisode ;
+    logic:refinesStep e:ocr ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:producedCandidateSet e:roster .
+e:roster a logic:RefinementCandidateSet ;
+    logic:refinementCandidate e:ocrByPagePartitionCandidate .
+e:ocrByPagePartitionCandidate logic:candidateInstantiatesMethod e:byPagePartition .
+
+e:ocrAuthProof a logic:AuthorizationProof ;
+    logic:proofEstablishes e:ocrByPagePartitionCandidate .
+"#;
+
+    /// GREEN — the authorized candidate yields a complete pin, and every field of it is
+    /// concluded by an authored rule the witness names.
+    #[test]
+    fn an_authorized_candidate_yields_a_derived_pin_on_the_chase() {
+        let input = dataset(AUTHORIZED_CANDIDATE);
+        let report = refine(input.as_ref(), &format!("{NS}ocr"), ACYCLIC, 100_000);
+        assert!(report.is_closed(), "{:?}", report.outcome);
+        assert_eq!(
+            report.pins.len(),
+            1,
+            "the authorized candidate must yield exactly one pin: {:?}",
+            report.pins
+        );
+        let pin = &report.pins[0];
+        assert_eq!(pin.pin, format!("{NS}ocrByPagePartitionCandidate"));
+        assert_eq!(pin.episode, format!("{NS}episode"));
+        assert_eq!(pin.method, format!("{NS}byPagePartition"));
+        assert_eq!(
+            pin.steps,
+            vec![
+                format!("{NS}inspect"),
+                format!("{NS}extract"),
+                format!("{NS}verify"),
+            ],
+            "the frozen sequence IS the method's yielded sequence, in the authored order — \
+             which is what makes the steps-match-method law unviolatable by a derived pin"
+        );
+        assert_eq!(
+            pin.digest, "b3:4f1d0a97c25e6b3810df7a49b6c02e5318da7c4095b2ae6d3417f08c25be9d61",
+            "the content address is the method version's own; a derived pin never invents one"
+        );
+        assert_eq!(pin.authority, format!("{NS}ocrAuthProof"));
+        assert!(
+            pin.witness
+                .rule_iri
+                .ends_with("/rulePinnedStepSequenceFromMethod"),
+            "the frozen content must name the authored rule that concluded it, got {}",
+            pin.witness.rule_iri
+        );
+        assert!(
+            !pin.witness.premises.is_empty(),
+            "a pin whose derivation cites no premises is a pin nobody can check"
+        );
+    }
+
+    /// RED — the SAME roster with the authorization withdrawn derives no pin at all.
+    ///
+    /// The only edit is the proof's type: the record still exists, still names the
+    /// candidate, still sits in the same graph. Deleting it would make the scene pin-free
+    /// for a reason that has nothing to do with authority — no record, no join, no pin —
+    /// and would leave rules that fire on any roster equally well. What changes here is
+    /// whether the thing that licensed the candidate IS an authorization proof, which is
+    /// the whole content of "an AUTHORIZED candidate".
+    #[test]
+    fn an_unauthorized_candidate_yields_no_pin() {
+        let unlicensed = AUTHORIZED_CANDIDATE.replace(
+            "e:ocrAuthProof a logic:AuthorizationProof ;",
+            "e:ocrAuthProof a logic:Advisory ;",
+        );
+        assert_ne!(
+            unlicensed, AUTHORIZED_CANDIDATE,
+            "the edit must actually change the fixture, or the red half proves nothing"
+        );
+        let input = dataset(&unlicensed);
+        let report = refine(input.as_ref(), &format!("{NS}ocr"), ACYCLIC, 100_000);
+        assert!(report.is_closed(), "{:?}", report.outcome);
+        assert!(
+            report.pins.is_empty(),
+            "advice may motivate a pin and never licenses one, so a candidate whose only \
+             backing is a logic:Advisory must freeze nothing: {:?}",
+            report.pins
+        );
+        assert!(
+            !report.candidates.is_empty(),
+            "the roster must still be there — otherwise the red half is 'the search found \
+             nothing', which is a different claim entirely"
+        );
+    }
+
+    /// A method with no content address yields NO pin, rather than an unaddressed one.
+    ///
+    /// The completeness law requires the digest, so a pin derived without one would be a
+    /// commitment the kernel is about to condemn. Refusing to report it is the honest
+    /// failure: 'content-addressed' is a claim about the METHOD, and a method that never
+    /// made it cannot lend it to a pin.
+    #[test]
+    fn a_method_with_no_digest_yields_no_pin_rather_than_an_unaddressed_one() {
+        let undigested = AUTHORIZED_CANDIDATE.replace(
+            " ;\n    logic:methodDigest \"b3:4f1d0a97c25e6b3810df7a49b6c02e5318da7c4095b2ae6d3417f08c25be9d61\" .",
+            " .",
+        );
+        assert_ne!(
+            undigested, AUTHORIZED_CANDIDATE,
+            "the edit must remove the digest"
+        );
+        let input = dataset(&undigested);
+        let report = refine(input.as_ref(), &format!("{NS}ocr"), ACYCLIC, 100_000);
+        assert!(report.is_closed(), "{:?}", report.outcome);
+        assert!(
+            report.pins.is_empty(),
+            "an unaddressed fragment is not a pin, and reporting one would tell an operator \
+             something was frozen when nothing was: {:?}",
+            report.pins
+        );
     }
 
     /// A rejection standing outside the refined task's expansion is not this refinement's

@@ -42,6 +42,7 @@ ex:ecCandidateMissingSourceHash a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/candidate-missing-sourcehash.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateSourceHash (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # --- Violating: FormalizationCandidate missing candidateCategory -------------
@@ -49,6 +50,7 @@ ex:ecCandidateMissingCategory a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/candidate-missing-category.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateCategory (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # =========================================================================== #
@@ -66,6 +68,7 @@ ex:ecPlanMissingSuccessMode a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/plan-missing-successmode.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:planSuccessMode (sh:minCount 1 on logic:PlanShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # --- Conforming: a well-formed GoalEvaluation --------------------------------
@@ -79,6 +82,7 @@ ex:ecGoalEvaluationMissingFeasibility a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/goalevaluation-missing-feasibility.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:feasibilityStatus, one of the four required factored axes (sh:minCount 1 on logic:GoalEvaluationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # --- Conforming: a well-formed ActionSchema ----------------------------------
@@ -92,6 +96,7 @@ ex:ecActionSchemaMissingCapability a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/actionschema-missing-capability.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:capability, one of the two required facets (sh:minCount 1 on logic:ActionSchemaShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # --- Conforming: an MCP-action schema under the governance profile -----------
@@ -105,6 +110,7 @@ ex:ecMcpActionMissingCompensation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/mcp-action-missing-compensation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's ex:mcpActionMissingCompensation (typed logic:McpActionSchema) omits logic:compensation (sh:minCount 1 on logic:McpActionPolicyShape — an MCP tool that mutates state with no rollback), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # --- Conforming: satisfiedBy backed by a vantage-scoped GoalEvaluation -------
@@ -118,6 +124,7 @@ ex:ecSatisfiedByUnbacked a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/satisfiedby-unbacked.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example asserts a conclusive gmeow:satisfiedBy(goal, situation) edge with NO backing logic:GoalEvaluation under any vantage, so the vantage-scoped dual-authority sh:sparql constraint on logic:SatisfiedByBackedByEvaluationShape fires and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. The check is never a global verdict: it fires only because no vantage backs the edge at all (Principle 9)." .
 
 # --- Conforming: a STRONG-CYCLIC plan is valid canonically (DAG profile case) -
@@ -144,6 +151,7 @@ ex:ecClosureEmpty a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/closure-witness-empty.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:closureEntailedAtom (sh:minCount 1 on logic:ClosureAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:IncompleteClosure)." .
 
 # --- FS2 correspondenceSection --------------------------------------------- #
@@ -156,6 +164,7 @@ ex:ecSectionUnobligated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/section-witness-unobligated.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:dischargesSectionObligation (sh:minCount 1 on logic:SectionAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:SectionObligationViolated)." .
 
 # --- FS3 counterfactualStratumC -------------------------------------------- #
@@ -168,6 +177,7 @@ ex:ecCounterfactualUnentrenched a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/counterfactual-witness-unentrenched.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:selectedByEntrenchment (sh:minCount 1 on logic:CounterfactualAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnentrenchedCounterfactual)." .
 
 # --- FS4 symmetricConjecture ----------------------------------------------- #
@@ -180,6 +190,7 @@ ex:ecRefutationUnwitnessed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/refutation-witness-unwitnessed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:namesContradictionWitness (sh:minCount 1 on logic:RefutationAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnwitnessedRefutation)." .
 
 # --- FS5 chaseTerminationCertificate --------------------------------------- #
@@ -192,6 +203,7 @@ ex:ecChaseUncertified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/chase-witness-uncertified.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:carriesTerminationCertificate (sh:minCount 1 on logic:ChaseAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UncertifiedChase)." .
 
 # --- The thin logic:FlagshipScenarioShape failure-range pair ---------------- #
@@ -268,17 +280,30 @@ ex:ecTypedIrDatatypeWithoutLiteral a gmeow:ExampleConformance ;
 # (crates/slicetest/src/exec.rs, gmeow:expectedSourceShape branch) now rejects a
 # fixture that trips a DIFFERENT constraint sharing the generic component code.
 #
-# SCOPE OF THE PIN — what it does and does not prove. It proves the named law DID
-# fire. It does NOT prove nothing else fired: the harness's `violates` branch requires
-# only that SOME finding carry the expected code AND originate from the pinned shape;
-# it never asserts the finding set is a singleton. The isolation was therefore
-# established by MEASUREMENT rather than assumed — every fixture's full finding set was
-# enumerated by driving it through the production verify() entrypoint, and all but one
-# emit exactly one enactment-integrity finding, from their own law. The exception is
-# ex:ecCompensationAsInverse, which emits three, all entailed by its single authored
-# defect; its rationale states that outright instead of claiming an isolation the data
-# does not have. ex:ecAdvisoryAsAProof emits one finding carrying two ROWS — the same
-# law and subject reported once per kernel class the node is typed by — and says so.
+# SCOPE OF THE PIN — what each of the three fields proves.
+#
+# gmeow:expectedViolationCode proves a finding of that COMPONENT was raised, which for a
+# logic:Constraint is nearly no information at all: every one of them projects to
+# shacl.SPARQLConstraintComponent. gmeow:expectedSourceShape proves the SPECIFIC named
+# law was among those that fired. Neither says nothing ELSE fired — both are existence
+# checks — so a rationale ending "and NO other finding" used to be an unfalsifiable
+# sentence: it could only ever be established by measuring the fixture once, by hand,
+# and nothing kept it true as the corpus grew.
+#
+# gmeow:expectedSoleFinding is the EXHAUSTIVENESS half, and every cell below that makes
+# the claim now carries it: the harness requires EVERY violation-severity result to
+# carry the pinned code and come from the pinned shape, so a fixture that acquires a
+# second breakage reds the cell that claimed it had none. Several rows of the SAME law
+# still conform — a single defect legitimately reports once per kernel class the
+# offending node is typed by, which is what ex:ecAdvisoryAsAProof's doubled row is.
+#
+# Two cells deliberately do NOT claim sole-ness, and say why in their own rationale
+# rather than quietly enjoying an existence check. ex:ecCompensationAsInverse emits
+# three findings, all ENTAILED by its one authored defect (the double typing puts one
+# node in scope of two record kinds). ex:ecOcrStepDispatchedIntoAnUnansweredGap emits
+# two, because dispatching into an unremedied gap presupposes the gap is unremedied —
+# the two laws are not independently satisfiable on one scene, which is exactly why the
+# unanswered gap was split out into its own single-defect fixture next to it.
 
 # PRESENCE / RELATIONAL PAIRING — read this before editing a pin below.
 #
@@ -302,6 +327,7 @@ ex:ecCheckpointNoFoldedIdentity a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:CheckpointCarriesFoldedIdentityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:EnactmentCheckpoint with no logic:checkpointDescriptorHash. Restore is identity-gated across seven axes and the fold is what the gate compares first, so an unfolded checkpoint cannot be gated at all. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointCarriesFoldedIdentityConstraint — the law that MAKES the fold available — and NO other finding. It is deliberately NOT pinned to logic:CheckpointRestoreIdentityConstraint, whose guard binds the restore's fold and the checkpoint's before it compares them: a checkpoint carrying no fold falls outside that guard, so the comparison law is silent here and the mismatch case is registered separately as ex:ecCheckpointFoldDrift." .
 
 ex:ecCheckpointFoldDrift a gmeow:ExampleConformance ;
@@ -309,6 +335,7 @@ ex:ecCheckpointFoldDrift a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:CheckpointRestoreIdentityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:CheckpointRestore whose logic:restoreDescriptorHash is not the logic:checkpointDescriptorHash of the logic:EnactmentCheckpoint it restores — the identity gate FAILING, which is the case the gate exists for. The checkpoint carries its fold and names its run; the restore carries its own fold and resumes that same run, so both presence laws and the second identity axis (logic:RestoreStaysWithinItsEnactmentConstraint) pass. Resuming anyway executes against drifted rules and records the result as a continuation of the run that was reviewed. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointRestoreIdentityConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecContinuationConflated a gmeow:ExampleConformance ;
@@ -316,6 +343,7 @@ ex:ecContinuationConflated a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:ContinuationKindDisjointnessConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A continuation record claiming both logic:ContinuationResume and logic:ContinuationRepeat. The two carry different required bindings and different consequences, so a record claiming both has not said which happened. MUST emit shacl.SPARQLConstraintComponent for logic:ContinuationKindDisjointnessConstraint and NO other finding." .
 
 ex:ecPrescriptionNotAddressed a gmeow:ExampleConformance ;
@@ -323,6 +351,7 @@ ex:ecPrescriptionNotAddressed a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:PrescriptionVersionIsContentAddressedConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:PrescriptionVersion with no logic:prescriptionDigest. Content addressing is the PRECONDITION of immutability rather than immutability itself, so an unaddressed version makes in-place revision undetectable. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionIsContentAddressedConstraint and NO other finding. It is deliberately NOT pinned to logic:PrescriptionVersionImmutabilityConstraint, whose guard binds the version's current address, the run that enacts it and the address that run froze: a version with no address falls outside that guard, and the overwrite case is registered separately as ex:ecPrescriptionRevisedInPlace." .
 
 ex:ecPrescriptionRevisedInPlace a gmeow:ExampleConformance ;
@@ -330,6 +359,7 @@ ex:ecPrescriptionRevisedInPlace a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:PrescriptionVersionImmutabilityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A landed logic:PrescriptionVersion whose logic:prescriptionDigest no longer equals the logic:enactedPrescriptionDigest a running logic:Enactment froze at pin time — the mutable history overwritten IN PLACE. The version is content-addressed and the enactment pins both its version and its input snapshot, so every presence law passes and the version pointer still resolves; nothing else in the record looks wrong. A version and its own address agree by construction however many times the bytes were rewritten, which is why the only possible witness is a value frozen elsewhere before the edit. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionImmutabilityConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecReceiptWithoutAttempt a gmeow:ExampleConformance ;
@@ -337,6 +367,7 @@ ex:ecReceiptWithoutAttempt a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:ReceiptRequiresAttemptConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:ExternalEffectReceipt with no logic:receiptOfAttempt, asserting an outcome nobody caused — the shape a fabricated or mis-imported effect record takes. MUST emit shacl.SPARQLConstraintComponent for logic:ReceiptRequiresAttemptConstraint and NO other finding." .
 
 ex:ecUnknownWithoutAttempt a gmeow:ExampleConformance ;
@@ -344,6 +375,7 @@ ex:ecUnknownWithoutAttempt a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:UnknownOutcomeNamesItsAttemptConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:ExternalOutcomeUnknown naming no attempt. Retry from an undetermined position is licensed only through the attempt, so this record can never be resolved and can never license the retry it invites. MUST emit shacl.SPARQLConstraintComponent for logic:UnknownOutcomeNamesItsAttemptConstraint — the precondition of the no-blind-retry discipline — and NO other finding. It is deliberately NOT pinned to logic:NoBlindRetryConstraint, which governs a logic:RetryDispatch and its licence: this fixture contains no retry at all, so that law has nothing to bind here, and the retry case is registered separately as ex:ecUnknownOutcomeRetried." .
 
 ex:ecUnknownOutcomeRetried a gmeow:ExampleConformance ;
@@ -351,6 +383,7 @@ ex:ecUnknownOutcomeRetried a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:NoBlindRetryConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "An undetermined outcome treated as an ordinary failure AND RETRIED: the logic:RetryDispatch re-sends ex:invoice901Charge under a logic:IdempotencyContract whose logic:licenceCoversAttempt names ex:invoice902Charge. Every record is individually well-formed — the unknown outcome names its attempt, the retry names both its attempt and a licence, and the contract binds all five of its fields — so the presence laws (logic:UnknownOutcomeNamesItsAttemptConstraint, logic:RetryRequiresLicenceConstraint, logic:IdempotencyContractCompletenessConstraint) all pass. A licence borrowed from a neighbouring dispatch reads identically to a real one and permits exactly the double charge the commitment layer exists to prevent. MUST emit shacl.SPARQLConstraintComponent for logic:NoBlindRetryConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecCompensationAsInverse a gmeow:ExampleConformance ;
@@ -365,6 +398,7 @@ ex:ecCompensationNoReceipt a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:CompensationSuccessRequiresReceiptConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:CompensationOutcome with no logic:compensationReceipt. Coded separately from the not-an-inverse fixture because the two are independent obligations and a corpus must be able to trip each alone. MUST emit shacl.SPARQLConstraintComponent for logic:CompensationSuccessRequiresReceiptConstraint and NO other finding." .
 
 ex:ecApprovalDetached a gmeow:ExampleConformance ;
@@ -372,6 +406,7 @@ ex:ecApprovalDetached a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:ApprovalCommitmentCompletenessConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:ApprovalCommitment binding no logic:approvalIntentDigest. Exact binding is what stops an authorization for one thing licensing another; a commitment with no digest detaches against anything. MUST emit shacl.SPARQLConstraintComponent for logic:ApprovalCommitmentCompletenessConstraint and NO other finding." .
 
 ex:ecAdvisoryAuthorizesPin a gmeow:ExampleConformance ;
@@ -379,6 +414,7 @@ ex:ecAdvisoryAuthorizesPin a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:Advisory occupying the logic:pinAuthority position. Model output is attributed evidence and may never license an action; the separation is structural rather than conventional because a convention is what fails under time pressure. logic:AdvisoryNeverAuthorityConstraint bars an advisory from all three authority positions logic:Advisory's definition names — authorizing a pin, carrying a proof, deciding an approval — and this cell isolates the PIN leg: the pin is otherwise impeccable, freezing the exact ordered steps its method yields and addressing them with a digest, so the only thing wrong is who authorized it. MUST emit shacl.SPARQLConstraintComponent for logic:AdvisoryNeverAuthorityConstraint and NO other finding." .
 
 ex:ecAdvisoryAsAProof a gmeow:ExampleConformance ;
@@ -386,6 +422,7 @@ ex:ecAdvisoryAsAProof a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A model recommendation asserted AS PROOF: the same node typed logic:Advisory and logic:AuthorizationProof, carrying logic:proofEstablishes for the intent whose licensing it claims to settle. This is the PROOF leg of logic:AdvisoryNeverAuthorityConstraint, and no pin is involved — which is what makes it the more dangerous substitution of the two, because nothing about the record looks like an authorization. Downstream, 'the intent has a proof' is true, checkable, and worthless: a checker asked to recompute the proof term can only re-run the model. MUST emit shacl.SPARQLConstraintComponent from logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape and NO finding from any other law. Measured through the production verify() entrypoint the scene yields exactly one enactment-integrity finding, whose detail carries TWO rows — one per kernel class the node is typed by, logic:Advisory and logic:AuthorizationProof — both naming this same law and this same subject; the doubled row is the double typing being reported, not a second defect." .
 
 ex:ecFrontierUnwitnessed a gmeow:ExampleConformance ;
@@ -393,6 +430,7 @@ ex:ecFrontierUnwitnessed a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:FrontierCarriesSaturationWitnessConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:ActionableFrontier with no logic:frontierSaturationWitness. An unwitnessed closure claim is exactly how a roster truncated by a budget cut passes for complete, after which the system confidently omits the action it should have taken. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierCarriesSaturationWitnessConstraint — the law that requires the witness to be PRESENT — and NO other finding. It is deliberately NOT pinned to logic:FrontierClosureRequiresSaturationConstraint, which READS a witness and whose guard therefore binds one: a frontier citing nothing falls outside that guard, and the two ways of citing a witness that certifies nothing are registered separately as ex:ecFrontierContentFreeWitness and ex:ecFrontierBudgetCutWitness." .
 
 ex:ecFrontierBudgetCutWitness a gmeow:ExampleConformance ;
@@ -400,6 +438,7 @@ ex:ecFrontierBudgetCutWitness a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The incomplete roster PRESENTED AS CLOSED, with the witness that says so: a logic:ActionableFrontier citing a logic:SaturationWitness that names its settled predicate, states its consumed budget, and carries logic:resultEvaluation logic:BudgetExhausted. The search stopped at its declared bound rather than at a fixed point, so the closure claim certifies the truncation it denies. The presence law (logic:FrontierCarriesSaturationWitnessConstraint) passes and the witness's content legs pass, which is why only a law that READS the evaluation status can see this. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecFrontierContentFreeWitness a gmeow:ExampleConformance ;
@@ -407,6 +446,7 @@ ex:ecFrontierContentFreeWitness a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:ActionableFrontier citing a logic:SaturationWitness that names no logic:settledPredicate and states no logic:consumedBudget. It passes every law that merely counts the citation, so an operator reads a certified-closed roster backed by evidence that records nothing which could be false. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding." .
 
 ex:ecPinStepsMismatchMethod a gmeow:ExampleConformance ;
@@ -414,6 +454,7 @@ ex:ecPinStepsMismatchMethod a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:PinStepsMatchInstantiatedMethodConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:PinnedExecutableSubgraph whose logic:pinnedStepSequence is not the logic:methodYields sequence of the logic:DecompositionMethod it names. The refinement was validated against one decomposition and the pin dispatches another, so the approval licenses a step nobody reviewed — and every record involved is individually well-formed, which is why only a relational law sees it. MUST emit shacl.SPARQLConstraintComponent for logic:PinStepsMatchInstantiatedMethodConstraint and NO other finding." .
 
 ex:ecCapabilityGapNoStep a gmeow:ExampleConformance ;
@@ -421,14 +462,72 @@ ex:ecCapabilityGapNoStep a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:OperationalGapNamesBlockedStepConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A logic:OperationalCapabilityGap naming no blocked step, so an absent capability is reported as a general provisioning complaint rather than a concrete blockage a proposal could close. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapNamesBlockedStepConstraint and NO other finding. It is deliberately NOT pinned to logic:OperationalGapCarriesProposalConstraint, which joins a gap to its remedy THROUGH the shared step and whose guard therefore binds that step: a gap naming none falls outside that guard, and the substitution case is registered separately as ex:ecOcrGapRemediedElsewhere." .
 
 ex:ecOcrGapRemediedElsewhere a gmeow:ExampleConformance ;
-    gmeow:exampleFile "tests/counter-examples/ocr-gap-remedied-for-a-different-step.ttl" ;
+    gmeow:exampleFile "tests/counter-examples/ocr-gap-with-a-proposal-for-another-step.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:OperationalGapCarriesProposalConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "The silent substitution, caught where it leaves a trace: an absent OCR capability, a logic:OperationalCapabilityGap correctly naming ex:ocrStep, a complete eight-field logic:CapabilityGapProposal whose logic:proposalBlockedStep is a DIFFERENT step, and a nine-field logic:DispatchIntent recording that ex:ocrStep was dispatched anyway against a plain-text extractor. Nothing is missing — the gap names its step, the proposal binds all eight fields, the intent binds all nine — so logic:OperationalGapNamesBlockedStepConstraint, logic:CapabilityGapProposalCompletenessConstraint and logic:DispatchIntentCompletenessConstraint all pass, and a reader counting proposals against gaps sees a backlog being attended to. The defect is the JOIN: no proposal answers the OCR blockage, which is what makes an unanswered gap indistinguishable from a system that degraded quietly instead. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The unanswered blockage, alone: an absent OCR capability, a logic:OperationalCapabilityGap correctly naming ex:ocrStep, and a complete eight-field logic:CapabilityGapProposal whose logic:proposalBlockedStep is a DIFFERENT step. Nothing is missing — the gap names its step and the proposal binds all eight fields — so logic:OperationalGapNamesBlockedStepConstraint and logic:CapabilityGapProposalCompletenessConstraint both pass, and a reader counting proposals against gaps sees a backlog being attended to. The defect is the JOIN: no proposal answers the OCR blockage, which is what makes an unanswered gap indistinguishable from a system that degraded quietly instead. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding — a claim this cell now CHECKS through gmeow:expectedSoleFinding rather than asserting. The dispatch that went ahead against the blocked step lives in the sibling fixture ex:ecOcrStepDispatchedIntoAnUnansweredGap, split out precisely because it is a second, separately-named condemnation and cannot honour a sole-finding claim." .
+
+ex:ecOcrStepDispatchedIntoAnUnansweredGap a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ocr-gap-remedied-for-a-different-step.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:NoDispatchAgainstAnUnremediedGapConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The silent substitution itself, condemned at the record that carries it: the unanswered OCR gap of ex:ecOcrGapRemediedElsewhere PLUS the nine-field logic:DispatchIntent recording that ex:ocrStep was dispatched anyway, against a plain-text extractor that cannot read a scanned page. logic:DispatchIntentCompletenessConstraint passes — the intent binds all nine of its carriers — so the substitution leaves a complete, well-formed record behind it, and every presence law in the scene is green. MUST emit shacl.SPARQLConstraintComponent from logic:NoDispatchAgainstAnUnremediedGapConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. It deliberately does NOT claim gmeow:expectedSoleFinding, and the reason is structural rather than incidental: dispatching into an UNREMEDIED gap presupposes the gap is unremedied, so logic:OperationalGapCarriesProposalConstraint necessarily fires on the same scene. The two laws are not independently satisfiable over one graph — which is why the unanswered gap is registered separately, on a fixture with the dispatch removed, as the cell that CAN carry the sole-finding claim." .
+
+# --- The continuing goal a successful occurrence may not close ---------------
+ex:ecMaintenanceGoalClosedByOneGoodWeek a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/maintenance-goal-closed-by-one-good-week.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:MaintenanceGoalNeverConclusivelySatisfiedConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "One good week presented as the permanent closure of a standing commitment: a logic:GoalEvaluation of a goal whose logic:hasGoalCondition is logic:MaintenanceGoal-kinded, carrying logic:Satisfied together with logic:GoalEvaluationCompleted. That pair is exactly what generates a conclusive gmeow:satisfiedBy edge, so the cluster reads as finished while its recurrence keeps issuing occurrences against a goal the record says ended months ago. Every record in the scene is individually well-formed — all four factored axes bound, the criterion and the evaluation time present, the goal carrying a well-formed condition — so only the JOIN between the condition's KIND and the evaluation's CONCLUSIVENESS is wrong, and only a relational law can see it. MUST emit shacl.SPARQLConstraintComponent for logic:MaintenanceGoalNeverConclusivelySatisfiedConstraint and NO other finding, a claim gmeow:expectedSoleFinding checks. The two ways the law must NOT over-reach are pinned in crates/logic/tests/enactment_gate.rs rather than here, because each is a CONFORMING edit of this same scene: the maintenance target that conclusively FAILED (logic:Violated with logic:GoalEvaluationCompleted) stays expressible, and a maintenance target under a closing logic:DeadlineWindowGoal may conclude." .
+
+# --- The four laws that compiled, ran, and had never condemned anything -------
+#
+# Each of these four occurred ONLY in the compiled-law census and the translation
+# catalogues before this corpus reached them: no counter-example named them and no
+# cell pinned them, which makes a law indistinguishable — from every artifact in the
+# repository — from one whose body can never be satisfied. Each fixture is a single
+# defect, and each cell claims and CHECKS sole-ness.
+
+ex:ecCompensationNamesNoForwardEffect a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/compensation-names-no-forward-effect.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:CompensationNamesForwardEffectConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A logic:CompensationAttempt binding no logic:compensatesEffect at all — the empty half of the exactness discipline. The charge it was raised to undo is in the same scene, receipted and attributed to a real logic:EffectAttempt, so logic:ReceiptRequiresAttemptConstraint passes and the ONLY defect is that the refund names nothing: read later, 'a refund happened' is true and answers nothing about WHICH committed effect was counteracted, so the effect stays outstanding while the ledger reads as settled. MUST emit shacl.SPARQLConstraintComponent for logic:CompensationNamesForwardEffectConstraint and NO other finding. It is deliberately NOT pinned to logic:CompensationBindsExactForwardEffectConstraint, which DEREFERENCES the binding and whose guard therefore requires one: a compensation naming nothing falls outside it, and the loose-binding case is exercised on the production verify() entrypoint in crates/logic/tests/enactment_gate.rs." .
+
+ex:ecContextAssemblyServesNoRun a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/context-assembly-serving-no-enactment.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ContextAssemblyNamesItsEnactmentConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A logic:ContextAssembly that records what was surfaced, what was withheld and why it was withheld, and never says WHOSE run it served. Unbound, it answers the audit question about nobody: the guidance versions it names were surfaced to some occurrence and no later reader can say which, so 'the operator saw the objection and proceeded' is unrecoverable for every run at once. Both exclusion laws are GUARDED here and pass on their merits rather than vacuously — the withheld item carries its logic:assemblyExclusionReason, and the included and excluded items are different items — so logic:ContextAssemblyRecordsExclusionsConstraint and logic:ContextAssemblyExclusionIsNotInclusionConstraint stay silent. MUST emit shacl.SPARQLConstraintComponent for logic:ContextAssemblyNamesItsEnactmentConstraint and NO other finding." .
+
+ex:ecJournalEntryEstablishesNoHead a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/journal-entry-establishing-no-head.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:JournalEntryNamesBothHeadsConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A logic:JournalEntry that says what state it was applied AGAINST and never what state it ESTABLISHED. The link it does have is CORRECT — its logic:journalPrevHead reproduces its predecessor's logic:journalNewHead exactly — so logic:JournalChainIntegrityConstraint is guarded here and PASSES, and that is the point: an entry can be perfectly chained to its past and unchainable to its future. Nothing can ever be appended after it, and an append that silently starts a second chain from the last complete entry forks the journal with every link individually valid. MUST emit shacl.SPARQLConstraintComponent for logic:JournalEntryNamesBothHeadsConstraint — the PRECONDITION of chain integrity — and NO other finding." .
+
+ex:ecRetryLicensedByAVerdictlessProbe a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/retry-licensed-by-a-verdictless-probe.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ReconciliationResultCarriesVerdictConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A retry licensed by a probe that established NOTHING. The undetermined charge names its attempt, the logic:RetryDispatch names both the attempt it re-sends and the licence it proceeded under, and the licence — a logic:ReconciliationResult naming its probe — carries logic:licenceCoversAttempt for that exact attempt, so logic:UnknownOutcomeNamesItsAttemptConstraint, logic:RetryRequiresLicenceConstraint and logic:NoBlindRetryConstraint all pass on their merits and not vacuously. The one thing the result never records is what the probe FOUND, and the difference is a second charge: logic:ReconciledNotCommitted licenses the retry, logic:ReconciledCommitted forbids it, and a verdictless result reads as a licence to any checker that merely counts one. It is the same defect as the content-free saturation witness, one layer over. MUST emit shacl.SPARQLConstraintComponent for logic:ReconciliationResultCarriesVerdictConstraint and NO other finding." .
 
 # --- The closure census, positive and negative -------------------------------
 ex:ecEnactmentClosurePredicateCensus a gmeow:ExampleConformance ;
@@ -441,7 +540,7 @@ ex:ecSaturationCensusOmitsItsBudget a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "The same one-hundred-and-fifty-nine-predicate census with the logic:consumedBudget removed. A fixed point is a claim relative to a bound, so an enumeration with no budget records what the chase reached and never that it had nowhere left to go; the size of the list is what makes the omission hard to see. The presence law passes (a witness is cited and does carry content), so only the law that READS the witness can reject it. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint." .
+    gmeow:conformanceRationale "The same one-hundred-and-sixty-four-predicate census with the logic:consumedBudget removed. A fixed point is a claim relative to a bound, so an enumeration with no budget records what the chase reached and never that it had nowhere left to go; the size of the list is what makes the omission hard to see. The presence law passes (a witness is cited and does carry content), so only the law that READS the witness can reject it. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint." .
 
 # --- The axis transition laws, positive and negative -------------------------
 ex:ecAxisTransitionLaws a gmeow:ExampleConformance ;
@@ -478,4 +577,5 @@ ex:ecEnactmentRunUnattributedClock a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:ClockAttributionRequiredConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The complete run with one binding removed: the logic:ClockAttribution records THAT the settlement window was judged and never says by whose clock. Every other kernel obligation in the scene is still discharged, so the record reads as correct to a reviewer scanning it — which is the property this cell tests and the one-defect negatives cannot. The provider's clock is even present in the graph, named and pointed at by nothing, because in practice the clock is rarely missing and often unattributed; two parties judging the same window against their own clocks both record that it held, and once neither says WHICH clock, the disagreement can never be reconstructed. MUST emit shacl.SPARQLConstraintComponent from logic:ClockAttributionRequiredConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI, and no finding from any other law." .

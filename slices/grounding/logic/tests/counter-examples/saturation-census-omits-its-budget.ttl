@@ -6,7 +6,7 @@
 #
 # This is the failure mode a content-free witness cannot illustrate. A witness that
 # names nothing is obviously worthless once anyone looks; this one names one hundred
-# and fifty-nine settled predicates and looks like the most thorough evidence in the
+# and sixty-four settled predicates and looks like the most thorough evidence in the
 # system. But a fixed point is a claim RELATIVE to a bound — "no further rule
 # application adds a tuple" is only meaningful alongside how many applications were
 # tried — so an enumeration with no budget records what the chase happened to reach,
@@ -33,6 +33,12 @@ ex:unboundedCensusFrontier a logic:ActionableFrontier ;
 ex:unboundedCensusSaturation a logic:SaturationWitness ;
     rdfs:label "a saturation witness that enumerates everything and bounds nothing"@en ;
     logic:resultEvaluation logic:EvaluationCompleted ;
+    # The census enumerates what the chase SETTLED. Its complement is the roster of
+    # constructs the kernel does not decide at all, and the one an operator reading an
+    # RDF 1.2 attribution here will meet is the nested triple term: the statement-metadata
+    # lowering below is what puts logic:reifiedStatementSubject / Predicate / Object in
+    # this list, and logic:rdf12-nested-triple-term is exactly what it does not reach.
+    rdfs:seeAlso logic:rdf12-nested-triple-term ;
     logic:settledPredicate
         logic:adjudicatesAttempt ,
         logic:advisoryAbout ,
@@ -56,6 +62,7 @@ ex:unboundedCensusSaturation a logic:SaturationWitness ;
         logic:checkpointAnnotationDigest ,
         logic:checkpointContractDigest ,
         logic:checkpointDataDigest ,
+        logic:candidateInstantiatesMethod ,
         logic:checkpointDescriptorHash ,
         logic:checkpointEngineDigest ,
         logic:checkpointFragmentDigest ,
@@ -68,6 +75,7 @@ ex:unboundedCensusSaturation a logic:SaturationWitness ;
         logic:cohortMember ,
         logic:compensatesEffect ,
         logic:compensationReceipt ,
+        logic:contestedByAttribution ,
         logic:continuationKind ,
         logic:deadlineExhausted ,
         logic:deadlineOfEnactment ,
@@ -180,6 +188,9 @@ ex:unboundedCensusSaturation a logic:SaturationWitness ;
         logic:requiredPriorState ,
         logic:restoreDescriptorHash ,
         logic:restoreOfEnactment ,
+        logic:reifiedStatementObject ,
+        logic:reifiedStatementPredicate ,
+        logic:reifiedStatementSubject ,
         logic:restoresCheckpoint ,
         logic:resultOfProbe ,
         logic:retryLicence ,

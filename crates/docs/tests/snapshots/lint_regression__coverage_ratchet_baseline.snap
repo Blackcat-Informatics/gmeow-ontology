@@ -4,7 +4,7 @@ expression: coverage
 ---
 {
   "docs/missing-annotation-coat": 3772,
-  "docs/missing-competency-rationale": 6049,
+  "docs/missing-competency-rationale": 6046,
   "docs/missing-definition": 1,
   "docs/missing-example": 3715,
   "docs/missing-fixture-pair": 6124,
@@ -12,7 +12,7 @@ expression: coverage
   "docs/missing-prose-quality": 6302,
   "docs/missing-realized-state": 79,
   "docs/missing-scope-note": 5474,
-  "docs/missing-test-reach": 5606,
+  "docs/missing-test-reach": 5603,
   "docs/missing-translation-coverage": 4115,
   "docs/missing-usage-advice": 3704,
   "docs/missing-worked-instance": 5608

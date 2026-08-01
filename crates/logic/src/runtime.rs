@@ -295,6 +295,10 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("query_ir.rs", include_str!("query_ir.rs")),
     ("rule_ir.rs", include_str!("rule_ir.rs")),
     ("seam.rs", include_str!("seam.rs")),
+    (
+        "statement_lowering.rs",
+        include_str!("statement_lowering.rs"),
+    ),
     ("term_codec.rs", include_str!("term_codec.rs")),
     (
         "physical/annotation.rs",

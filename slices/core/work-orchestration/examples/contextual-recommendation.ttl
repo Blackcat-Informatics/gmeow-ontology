@@ -367,6 +367,12 @@ ex:remediationFrontier a logic:ActionableFrontier ;
 
 ex:rollbackEntry a logic:FrontierEntry ;
     rdfs:label "Roll back — ready, authorized"@x-gmeow-english ;
+    # The entry names the ACTION it positions. Without it the entry is a label about
+    # nothing an operator can act on, and — the reason it is bound here specifically —
+    # nothing joins the recommendation to the preference edge the two vantages below
+    # disagree about, so the derived contestation over `rollback ≻ hotfix` could never
+    # be attributed to the recommendation that rests on it.
+    logic:entryAction ex:rollback ;
     logic:entryLabel logic:FrontierReadyAuthorized ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 

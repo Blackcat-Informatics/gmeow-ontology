@@ -172,8 +172,13 @@ use session_common::*;
 /// side — taking a side here would pin a hash that no build actually produces. Every
 /// contributing change is individually verdict-preserving on the fixed edge-only input, so
 /// only the identity moved.
+/// Re-blessed once more for the RDF 1.2 statement-metadata lowering: `statement_lowering.rs`
+/// is a NEW folded engine-source axis (the reasoning-session contract hashes the bytes of
+/// every engine source, and the lowering is one), and `reason/refute.rs` moved with the
+/// nested-triple-term boundary record. The fixed edge-only input carries no RDF 1.2
+/// statement metadata at all, so its reasoning verdict is unchanged; only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "6d61c466e55e52f1889839fcf8e53c806c9e01264aefff893869b07d285fdb71";
+    "88bd0edee8ed553dae65e4bb1f5b00c871fbc3f49ec6c87d616c52a4a35b35d5";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -251,8 +256,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed on integrating main, for the same reason as the engine descriptor above: both
 /// sides had moved this golden away from the merge base, so the merged identity is a third
 /// value recomputed from the merged engine rather than a choice between the two sides.
+/// Re-blessed once more for the same reason as the engine descriptor above: the RDF 1.2
+/// statement-metadata lowering adds a folded engine-source axis and the nested-triple-term
+/// boundary moved `reason/refute.rs`, so the fixed-input session identity moves with them.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "85d02e07d4fb9234121c0ad4971f207c982ea4959ce32411c14825d45b49cb7c";
+    "57c9494feaa31e3dd6931a4dbe4a5e314f710512c5b368188c0a81158a7903a3";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -35,6 +35,12 @@ ex:censusSaturation a logic:SaturationWitness ;
     rdfs:label "saturation witness for the enactment-kernel chase"@en ;
     logic:resultEvaluation logic:EvaluationCompleted ;
     logic:consumedBudget "steps=41208;pages=96;wallclock-ms=1873" ;
+    # The census enumerates what the chase SETTLED. Its complement is the roster of
+    # constructs the kernel does not decide at all, and the one an operator reading an
+    # RDF 1.2 attribution here will meet is the nested triple term: the statement-metadata
+    # lowering below is what puts logic:reifiedStatementSubject / Predicate / Object in
+    # this list, and logic:rdf12-nested-triple-term is exactly what it does not reach.
+    rdfs:seeAlso logic:rdf12-nested-triple-term ;
     logic:settledPredicate
         logic:adjudicatesAttempt ,
         logic:advisoryAbout ,
@@ -58,6 +64,7 @@ ex:censusSaturation a logic:SaturationWitness ;
         logic:checkpointAnnotationDigest ,
         logic:checkpointContractDigest ,
         logic:checkpointDataDigest ,
+        logic:candidateInstantiatesMethod ,
         logic:checkpointDescriptorHash ,
         logic:checkpointEngineDigest ,
         logic:checkpointFragmentDigest ,
@@ -70,6 +77,7 @@ ex:censusSaturation a logic:SaturationWitness ;
         logic:cohortMember ,
         logic:compensatesEffect ,
         logic:compensationReceipt ,
+        logic:contestedByAttribution ,
         logic:continuationKind ,
         logic:deadlineExhausted ,
         logic:deadlineOfEnactment ,
@@ -182,6 +190,9 @@ ex:censusSaturation a logic:SaturationWitness ;
         logic:requiredPriorState ,
         logic:restoreDescriptorHash ,
         logic:restoreOfEnactment ,
+        logic:reifiedStatementObject ,
+        logic:reifiedStatementPredicate ,
+        logic:reifiedStatementSubject ,
         logic:restoresCheckpoint ,
         logic:resultOfProbe ,
         logic:retryLicence ,

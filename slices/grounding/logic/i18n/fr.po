@@ -2230,6 +2230,10 @@ msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|
 msgid "Entangled Existential + Cardinality Boundary"
 msgstr "Frontière d'existentiel et de cardinalité enchevêtrés"
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nested Triple Term Boundary"
+msgstr "Frontière des termes de triplet imbriqués"
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "external relation admitted rows"
 msgstr "lignes admises de relation externe"
@@ -7078,6 +7082,10 @@ msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|
 msgid "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."
 msgstr "L'enregistrement d'abstention conservée pour les configurations pleinement-DL d'existentiel-plus-cardinalité enchevêtrés : la génération de témoins couplée au comptage sur une même propriété, que le noyau ne certifie qu'isolément."
 
+msgctxt "https://blackcatinformatics.ca/logic/rdf12-nested-triple-term|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for the RDF 1.2 statement-metadata lowering: exactly what decomposing an rdf:reifies triple term into three joinable component edges does not preserve. NARROW on purpose — a flat reified statement IS reasoned over, and the blanket claim that RDF 1.2 statement metadata lies outside the reasoner is no longer true. Two things are withheld: a nested triple term, which has no non-term component to decompose into and is therefore not lowered at all; and the statement's identity as a TERM, since the lowering yields three edges about the reifier rather than a name for the statement, so a rule can join on the components and cannot quantify over the statement itself."
+msgstr "L'enregistrement d'abstention conservée pour l'abaissement des métadonnées d'énoncé RDF 1.2 : exactement ce que la décomposition d'un terme de triplet rdf:reifies en trois arêtes de composantes joignables ne préserve pas. ÉTROIT à dessein — un énoncé réifié plat EST bel et bien raisonné, et l'affirmation globale selon laquelle les métadonnées d'énoncé RDF 1.2 se situent hors du raisonneur n'est plus vraie. Deux choses sont retenues : un terme de triplet imbriqué, qui n'a aucune composante non-terme en quoi se décomposer et n'est donc pas abaissé du tout ; et l'identité de l'énoncé en tant que TERME, puisque l'abaissement donne trois arêtes portant sur le réificateur plutôt qu'un nom pour l'énoncé, si bien qu'une règle peut joindre sur les composantes et ne peut quantifier sur l'énoncé lui-même."
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The number of unique, complete, validated provider rows admitted by an invocation or across a query receipt. Failed, incomplete, cancelled, over-budget, and malformed batches admit zero."
 msgstr "Le nombre de lignes de fournisseur uniques, complètes et validées admises par une invocation ou à travers un reçu de requête. Les lots en échec, incomplets, annulés, hors budget et mal formés en admettent zéro."
@@ -11858,6 +11866,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "attempt of intent"
 msgstr "tentative de l'intention"
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "candidate instantiates method"
+msgstr "le candidat instancie la méthode"
+
 msgctxt "https://blackcatinformatics.ca/logic/certifiesDeadlockFreedom|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "certifies deadlock freedom"
 msgstr "certifie l'absence d'interblocage"
@@ -11929,6 +11941,10 @@ msgstr "compense l'effet"
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "compensation receipt"
 msgstr "reçu de compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contested by attribution"
+msgstr "contesté par attribution"
 
 msgctxt "https://blackcatinformatics.ca/logic/deadlineExhausted|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "deadline exhausted"
@@ -12317,6 +12333,18 @@ msgstr "instantané du monde pour le raffinement"
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "refines step"
 msgstr "raffine l'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement object"
+msgstr "objet de l'énoncé réifié"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement predicate"
+msgstr "prédicat de l'énoncé réifié"
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reified statement subject"
+msgstr "sujet de l'énoncé réifié"
 
 msgctxt "https://blackcatinformatics.ca/logic/rejectedCandidate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "rejected candidate"
@@ -13242,6 +13270,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "Relates a logic:EffectAttempt to the logic:DispatchIntent it carried out. Functional. Several attempts of one intent are legal only where the idempotency contract licenses them."
 msgstr "Relie une logic:EffectAttempt à la logic:DispatchIntent qu'elle a exécutée. Fonctionnelle. Plusieurs tentatives d'une même intention ne sont licites que là où le contrat d'idempotence les autorise."
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one logic:refinementCandidate of a roster to the logic:DecompositionMethod whose application produced it. Domain a roster candidate — a subplan or action schema (stated in prose, as for logic:refinementCandidate itself). Functional: a candidate produced by two methods would have two step sequences and two provenances, so which decomposition was authorized would be undecidable at the moment of authorization. It is what makes a pin DERIVABLE rather than hand-authored: with the method named, the frozen sequence and the content address of an authorized candidate are read off the method it came from, and a pin whose steps its method never yielded becomes unconstructible instead of merely condemned after the fact."
+msgstr "Relie un logic:refinementCandidate d'un répertoire à la logic:DecompositionMethod dont l'application l'a produit. Domaine : un candidat du répertoire — un sous-plan ou un schéma d'action (énoncé en prose, comme pour logic:refinementCandidate lui-même). Fonctionnelle : un candidat produit par deux méthodes aurait deux suites d'étapes et deux provenances, si bien que la décomposition autorisée serait indécidable au moment même de l'autorisation. C'est elle qui rend un épinglage DÉRIVABLE plutôt qu'écrit à la main : la méthode étant nommée, la suite figée et l'adresse de contenu d'un candidat autorisé se lisent sur la méthode dont il provient, et un épinglage dont la méthode n'a jamais produit les étapes devient inconstructible au lieu d'être seulement condamné après coup."
+
 msgctxt "https://blackcatinformatics.ca/logic/certifiesDeadlockFreedom|http://www.w3.org/2004/02/skos/core#definition"
 msgid "True when every non-terminal tuple of axis positions has at least one enabled next move under the authored transition laws. False names a stuck tuple rather than merely reporting failure."
 msgstr "Vrai lorsque tout n-uplet non terminal de positions d'axes dispose d'au moins un mouvement suivant activé sous les lois de transition rédigées. Faux nomme un n-uplet bloqué au lieu de se contenter de signaler un échec."
@@ -13313,6 +13345,10 @@ msgstr "Relie une logic:CompensationAttempt au reçu aller EXACT qu'elle vise �
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:CompensationOutcome to the receipt establishing what the compensation achieved. Functional and MANDATORY for a successful outcome: without it the record asserts an achievement nobody observed."
 msgstr "Relie un logic:CompensationOutcome au reçu établissant ce que la compensation a accompli. Fonctionnelle et OBLIGATOIRE pour une issue réussie : sans lui, le relevé affirme un accomplissement que personne n'a observé."
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one statement attribution to a DIFFERENT attribution of the SAME statement whose support status is the opposite of its own — the derived record that a claim is contested rather than settled. Symmetric in effect (each of the two disagreeing attributions derives the edge to the other), because contestation is a relation between vantages and neither is the privileged one: adjudicating requires knowing both parties, and an edge in one direction would name a challenger without naming what it challenges. It is what the statement-metadata lowering is FOR: before it, two co-equal vantages opposing each other over one statement were two unrelated nodes with unrelated opinions, because the only thing that said they were about the same claim was the rdf:reifies triple term the reasoner could not read."
+msgstr "Relie une attribution d'énoncé à une attribution DIFFÉRENTE du MÊME énoncé dont le statut de soutien est l'opposé du sien — l'enregistrement dérivé indiquant qu'une affirmation est contestée plutôt que réglée. Symétrique dans les faits (chacune des deux attributions divergentes dérive l'arête vers l'autre), car la contestation est une relation entre points de vue et aucun n'est le point de vue privilégié : trancher exige de connaître les deux parties, et une arête à sens unique nommerait un contestataire sans nommer ce qu'il conteste. C'est ce à quoi SERT l'abaissement des métadonnées d'énoncé : avant lui, deux points de vue co-égaux s'opposant sur un même énoncé n'étaient que deux nœuds sans lien portant des opinions sans lien, car la seule chose qui disait qu'ils traitaient de la même affirmation était le terme de triplet rdf:reifies que le raisonneur ne pouvait pas lire."
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a continuation record to the exactly-one logic:ContinuationKind it is. Domain a continuation record (stated in prose). Functional: a record carrying two kinds is the conflation the disjointness constraint rejects."
@@ -13742,6 +13778,18 @@ msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004
 msgid "Relates a logic:RefinementEpisode to the abstract step it is trying to make executable. Range a plan step (stated in prose). Functional: one episode refines one step, so a multi-step refinement is several episodes and each carries its own budget and outcome."
 msgstr "Relie un logic:RefinementEpisode à l'étape abstraite qu'il cherche à rendre exécutable. Portée : une étape de plan (énoncée en prose). Fonctionnelle : un épisode raffine une étape, de sorte qu'un raffinement portant sur plusieurs étapes constitue plusieurs épisodes, chacun avec son propre budget et sa propre issue."
 
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the OBJECT of the statement it reifies. Derived, never asserted. Completes the triple that identifies which claim an attribution is about, so two vantages can be shown to be speaking about one statement rather than two."
+msgstr "Relie un réificateur RDF 1.2 à l'OBJET de l'énoncé qu'il réifie. Dérivée, jamais affirmée. Elle complète le triplet qui identifie l'affirmation dont une attribution traite, si bien que l'on peut montrer que deux points de vue parlent d'un seul énoncé et non de deux."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the PREDICATE of the statement it reifies, as an IRI in object position. Derived, never asserted. It is the third of the lowering that stops two attributions about DIFFERENT relations between the same two things from being joined as though they were about one: 'rollback is strictly preferred to hotfix' and 'rollback supersedes hotfix' share both endpoints and are not the same claim."
+msgstr "Relie un réificateur RDF 1.2 au PRÉDICAT de l'énoncé qu'il réifie, sous forme d'IRI en position d'objet. Dérivée, jamais affirmée. C'est le tiers de l'abaissement qui empêche deux attributions portant sur des relations DIFFÉRENTES entre les deux mêmes choses d'être jointes comme si elles n'en visaient qu'une : « le retour arrière est strictement préféré au correctif à chaud » et « le retour arrière supplante le correctif à chaud » partagent leurs deux extrémités sans être la même affirmation."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an RDF 1.2 reifier to the SUBJECT of the statement it reifies — one third of the lowering that makes rdf:reifies joinable. Derived, never asserted: it is read off the authored rdf:reifies triple term on the way into the reasoning world, so the canonical RDF 1.2 form stays the single source and the authored data is not rewritten. Multi-valued only in the sense that one reifier reifies one statement; two reifiers over the SAME statement each carry their own copy, which is precisely what lets a rule join two attributions that disagree."
+msgstr "Relie un réificateur RDF 1.2 au SUJET de l'énoncé qu'il réifie — un tiers de l'abaissement qui rend rdf:reifies joignable. Dérivée, jamais affirmée : elle se lit sur le terme de triplet rdf:reifies rédigé, à l'entrée du monde du raisonnement, si bien que la forme canonique RDF 1.2 demeure la source unique et que les données rédigées ne sont pas réécrites. Multivaluée seulement au sens où un réificateur réifie un énoncé ; deux réificateurs portant sur le MÊME énoncé en portent chacun leur propre copie, ce qui est précisément ce qui permet à une règle de joindre deux attributions qui divergent."
+
 msgctxt "https://blackcatinformatics.ca/logic/rejectedCandidate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:RefinementRejection to the candidate it declined. Range a subplan or action schema (stated in prose). Functional."
 msgstr "Relie un logic:RefinementRejection au candidat qu'il a écarté. Portée : un sous-plan ou un schéma d'action (énoncée en prose). Fonctionnelle."
@@ -14102,6 +14150,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
 msgstr "Exemple : ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrCandidate logic:candidateInstantiatesMethod ex:ocrByPagePartition ."
+msgstr "Exemple : ex:ocrCandidate logic:candidateInstantiatesMethod ex:ocrByPagePartition ."
+
 msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
 msgstr "Exemple : ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
@@ -14161,6 +14213,10 @@ msgstr "Exemple : ex:closeValve logic:compensatesEffect ex:valveResult ."
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
 msgstr "Exemple : ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:contestedByAttribution ex:onCallOnRollbackOverHotfix ."
+msgstr "Exemple : ex:cmdrOnRollbackOverHotfix logic:contestedByAttribution ex:onCallOnRollbackOverHotfix ."
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:returnEntry logic:continuationKind logic:ContinuationResume ."
@@ -14425,6 +14481,18 @@ msgstr "Exemple : ex:subGoal logic:refinesGoal ex:topGoal ."
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:episode logic:refinesStep ex:ocrStep ."
 msgstr "Exemple : ex:episode logic:refinesStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementObject ex:hotfix ."
+msgstr "Exemple : ex:cmdrOnRollbackOverHotfix logic:reifiedStatementObject ex:hotfix ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementPredicate gmeow:strictlyOver ."
+msgstr "Exemple : ex:cmdrOnRollbackOverHotfix logic:reifiedStatementPredicate gmeow:strictlyOver ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementSubject ex:rollback ."
+msgstr "Exemple : ex:cmdrOnRollbackOverHotfix logic:reifiedStatementSubject ex:rollback ."
 
 msgctxt "https://blackcatinformatics.ca/logic/snapshotDigest|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:corpusW13 logic:snapshotDigest \"b3:93e5c1…\" ."
@@ -17470,6 +17538,10 @@ msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/
 msgid "Functional per attempt, and several attempts of one intent are legal only where the idempotency contract licenses them. The relation records that the attempt carried out this intent, never that it was entitled to."
 msgstr "Fonctionnelle par tentative, plusieurs tentatives d'une même intention n'étant licites que là où le contrat d'idempotence les autorise. La relation consigne que la tentative a exécuté cette intention, jamais qu'elle en avait le droit."
 
+msgctxt "https://blackcatinformatics.ca/logic/candidateInstantiatesMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The provenance edge from a roster candidate back to the schema that produced it. Functional, because a candidate reached by two methods would carry two possible step sequences and the authorization could not say which one it licensed."
+msgstr "L'arête de provenance qui remonte d'un candidat du répertoire au schéma qui l'a produit. Fonctionnelle, car un candidat atteint par deux méthodes porterait deux suites d'étapes possibles et l'autorisation ne pourrait dire laquelle elle a permise."
+
 msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A different annotation algebra changes how derived annotations combine, so a resumed run would fold evidence differently from the run it claims to continue. The digest gates that rather than leaving the divergence to be discovered in the output."
 msgstr "Une autre algèbre d'annotations change la façon dont les annotations dérivées se combinent : une exécution reprise plierait donc les preuves autrement que celle qu'elle prétend poursuivre. L'empreinte barre cela au lieu de laisser la divergence se découvrir en sortie."
@@ -17529,6 +17601,10 @@ msgstr "Se lie au reçu initial EXACT, non au schéma d'action ni à l'intention
 msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional and MANDATORY for a successful outcome: without it the record asserts an achievement nobody observed. A compensation that was attempted and produced no receipt has an unknown outcome, not a successful one."
 msgstr "Fonctionnelle et OBLIGATOIRE pour une issue réussie : sans elle, l'enregistrement affirme une réussite que nul n'a observée. Une compensation tentée sans reçu a une issue inconnue, non une issue réussie."
+
+msgctxt "https://blackcatinformatics.ca/logic/contestedByAttribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Derived, never asserted. The two attributions must reify the SAME statement — same subject, same predicate, same object — because two vantages disagreeing about different claims are not in conflict at all."
+msgstr "Dérivée, jamais affirmée. Les deux attributions doivent réifier le MÊME énoncé — même sujet, même prédicat, même objet — car deux points de vue divergeant sur des affirmations différentes ne sont pas du tout en conflit."
 
 msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional, because a record carrying two kinds is the conflation the disjointness constraint rejects. Resuming and repeating make incompatible identity claims, so a record asserting both says nothing determinate about which enactment is running."
@@ -17841,6 +17917,18 @@ msgstr "Sans lui, la clôture d'un répertoire est infalsifiable, un lecteur ult
 msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional: one episode refines one step, so a multi-step refinement is several episodes and each carries its own budget and snapshot. Sharing one episode across steps would make the budget's attribution meaningless."
 msgstr "Fonctionnelle : un épisode raffine une étape, si bien qu'un raffinement multi-étapes est plusieurs épisodes, chacun avec son budget et son instantané. Partager un épisode entre étapes rendrait l'imputation du budget dénuée de sens."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The third of the reifier-to-statement lowering. A statement whose object is itself a triple term is NOT lowered — that residue is recorded at logic:rdf12-nested-triple-term rather than silently flattened."
+msgstr "Le tiers de l'abaissement du réificateur vers l'énoncé. Un énoncé dont l'objet est lui-même un terme de triplet n'est PAS abaissé — ce résidu est consigné à logic:rdf12-nested-triple-term plutôt qu'aplati en silence."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Carried in OBJECT position as an ordinary IRI, because the engine's fact surface has no predicate-variable slot. That is what makes the reified predicate joinable at all."
+msgstr "Porté en position d'OBJET comme un IRI ordinaire, car la surface de faits du moteur n'a pas d'emplacement de variable de prédicat. C'est cela, tout simplement, qui rend le prédicat réifié joignable."
+
+msgctxt "https://blackcatinformatics.ca/logic/reifiedStatementSubject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One third of the reifier-to-statement lowering. Decomposed rather than carried as a term because the engine's fact surface is (subject, predicate, object) over IRIs, blank nodes and literals — a triple term has no place in it, and forcing one in returns a malformed IRI."
+msgstr "Un tiers de l'abaissement du réificateur vers l'énoncé. Décomposé plutôt que porté comme terme, car la surface de faits du moteur est (sujet, prédicat, objet) sur des IRI, des nœuds vides et des littéraux — un terme de triplet n'y a pas sa place, et l'y forcer renvoie un IRI malformé."
 
 msgctxt "https://blackcatinformatics.ca/logic/restoreDescriptorHash|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Computed at restore time and INDEPENDENTLY of the checkpoint, over the seven axes as the restoring engine finds them. Independence is the point: a value copied from the checkpoint would compare equal to itself and gate nothing."
@@ -18222,6 +18310,22 @@ msgctxt "https://blackcatinformatics.ca/logic/retryOfAttempt|http://www.w3.org/2
 msgid "ex:chargeRetry logic:retryOfAttempt ex:chargeAttempt ."
 msgstr "Exemple : ex:chargeRetry logic:retryOfAttempt ex:chargeAttempt ."
 
+msgctxt "https://blackcatinformatics.ca/logic/ruleAttributionContestedByOpposingVantage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contested: two vantages, one statement, opposite support"
+msgstr "contesté : deux points de vue, un énoncé, des soutiens opposés"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleAttributionContestedByOpposingVantage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:contestedByAttribution between two DISTINCT reifiers of the SAME statement whose gmeow:standpointSupportStatus values are gmeow:supportSupported and gmeow:supportOpposed. Positive Horn, joined over the three lowered statement components. It is the proof that the statement-metadata lowering is not decorative: the join is over logic:reifiedStatementSubject / Predicate / Object, none of which existed before it, and without them the rule's body cannot be written at all — the two attributions have no shared variable, and a rule that dropped the join would declare every affirmation in the graph contested by every opposition anywhere in it."
+msgstr "Dérive logic:contestedByAttribution entre deux réificateurs DISTINCTS du MÊME énoncé dont les valeurs de gmeow:standpointSupportStatus sont gmeow:supportSupported et gmeow:supportOpposed. Horn positive, jointe sur les trois composantes d'énoncé abaissées. C'est la preuve que l'abaissement des métadonnées d'énoncé n'est pas décoratif : la jointure porte sur logic:reifiedStatementSubject / Predicate / Object, dont aucun n'existait avant lui, et sans eux le corps de la règle ne peut même pas s'écrire — les deux attributions n'ont aucune variable commune, et une règle qui abandonnerait la jointure déclarerait chaque affirmation du graphe contestée par chaque opposition qui s'y trouve, où qu'elle soit."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleEpisodeSelectsItsAuthorizedPin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the episode selected the pin its own roster carried"
+msgstr "épinglage : l'épisode a sélectionné l'épinglage que portait son propre répertoire"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleEpisodeSelectsItsAuthorizedPin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:selectedPin from the episode that produced the roster to the authorized candidate inside it. Positive Horn. It is what makes logic:RefinementPinComesFromCandidateSetConstraint true by construction for a derived pin: the selection is read out of the roster rather than asserted next to it, so an episode cannot be recorded as committing to something its own search never found. The law keeps its teeth against an authored logic:selectedPin, which is the only place a pin from outside the roster could ever enter."
+msgstr "Dérive logic:selectedPin depuis l'épisode qui a produit le répertoire jusqu'au candidat autorisé qui s'y trouve. Horn positive. C'est ce qui rend logic:RefinementPinComesFromCandidateSetConstraint vraie par construction pour un épinglage dérivé : la sélection se lit dans le répertoire au lieu d'être affirmée à côté de lui, si bien qu'un épisode ne peut être consigné comme s'engageant sur quelque chose que sa propre recherche n'a jamais trouvé. La loi conserve ses dents face à un logic:selectedPin écrit à la main, seul endroit par où un épinglage extérieur au répertoire pourrait jamais entrer."
+
 msgctxt "https://blackcatinformatics.ca/logic/ruleMethodStep|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "method step: the rdf:first of every reached cell"
 msgstr "étape de méthode : le rdf:first de chaque cellule atteinte"
@@ -18245,6 +18349,46 @@ msgstr "cellule de production : chaque rdf:rest d'une cellule déjà atteinte"
 msgctxt "https://blackcatinformatics.ca/logic/ruleMethodYieldCellRest|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Derives logic:methodYieldCell for the rdf:rest of any cell already reached — the recursive case that walks the ordered carrier to rdf:nil. Positive Horn and recursive. This is where the SEQUENCE stops being a parser's private business: the whole list is in the closure, so the steps past the head are as visible to a query as the first one."
 msgstr "Dérive logic:methodYieldCell pour le rdf:rest de toute cellule déjà atteinte — le cas récursif qui parcourt le porteur ordonné jusqu'à rdf:nil. Horn positive et récursive. C'est ici que la SÉQUENCE cesse d'être l'affaire privée d'un analyseur : la liste entière est dans la clôture, si bien que les étapes situées au-delà de la tête sont aussi visibles à une requête que la première."
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinAuthorityFromEstablishingProof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the authority is the proof that established the candidate"
+msgstr "épinglage : l'autorité est la preuve qui a établi le candidat"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinAuthorityFromEstablishingProof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinAuthority for an authorized candidate as the logic:AuthorizationProof whose logic:proofEstablishes named it. Positive Horn. The guard requires the licensing record to BE an authorization proof, so a logic:Advisory pointed at a candidate derives no authority at all — advice can motivate a pin and never licenses one. An advisory ALSO typed a proof still derives, and is still condemned, by logic:AdvisoryNeverAuthorityConstraint: the derivation does not launder the double typing, it inherits it."
+msgstr "Dérive logic:pinAuthority pour un candidat autorisé comme étant la logic:AuthorizationProof dont le logic:proofEstablishes l'a nommé. Horn positive. La garde exige que l'enregistrement autorisant SOIT une preuve d'autorisation : un logic:Advisory pointant vers un candidat ne dérive donc aucune autorité — un avis peut motiver un épinglage et ne l'autorise jamais. Un avis AUSSI typé comme preuve dérive malgré tout, et reste condamné par logic:AdvisoryNeverAuthorityConstraint : la dérivation ne blanchit pas le double typage, elle en hérite."
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinDigestFromMethodDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the content address is the method version's own"
+msgstr "épinglage : l'adresse de contenu est celle de la version de méthode elle-même"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinDigestFromMethodDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinDigest for an authorized candidate from the logic:methodDigest of the method that produced it. Positive Horn. A derived pin freezes exactly one thing — the method's yielded sequence — so the address of that content is the address of the method version, and computing a second one would create two names for one fragment. A method carrying no digest therefore yields no pin digest and the pin is REFUSED by the completeness law rather than quietly addressed by a fabricated value, which is the honest failure: 'content-addressed' is a claim about the method, and a method that never made it cannot lend it."
+msgstr "Dérive logic:pinDigest pour un candidat autorisé à partir du logic:methodDigest de la méthode qui l'a produit. Horn positive. Un épinglage dérivé fige exactement une chose — la suite produite par la méthode — de sorte que l'adresse de ce contenu est l'adresse de la version de méthode, et en calculer une seconde donnerait deux noms à un même fragment. Une méthode dépourvue d'empreinte ne donne donc aucune empreinte d'épinglage et l'épinglage est REFUSÉ par la loi de complétude, plutôt que discrètement adressé par une valeur fabriquée : c'est là l'échec honnête, car « adressé par le contenu » est une affirmation portant sur la méthode, et une méthode qui ne l'a jamais faite ne peut la prêter."
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinInstantiatesAuthorizedMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the instantiated method is the candidate's own provenance"
+msgstr "épinglage : la méthode instanciée est la provenance propre du candidat"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinInstantiatesAuthorizedMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinInstantiatesMethod for an authorized candidate from the logic:candidateInstantiatesMethod edge the search recorded when it produced the candidate. Positive Horn. The method is not chosen at pin time — it is the one whose application produced this candidate — so deriving it closes the gap a hand-authored pin leaves open: naming a method the frozen steps never came from."
+msgstr "Dérive logic:pinInstantiatesMethod pour un candidat autorisé à partir de l'arête logic:candidateInstantiatesMethod que la recherche a consignée en produisant le candidat. Horn positive. La méthode n'est pas choisie au moment de l'épinglage — c'est celle dont l'application a produit ce candidat — de sorte que la dériver comble la faille que laisse ouverte un épinglage écrit à la main : nommer une méthode dont les étapes figées ne sont jamais issues."
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedStepSequenceFromMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: the frozen sequence IS the method's yielded sequence"
+msgstr "épinglage : la suite figée EST la suite produite par la méthode"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedStepSequenceFromMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:pinnedStepSequence for an authorized candidate as the very logic:methodYields list of the method that produced it. Positive Horn. It is the rule that makes logic:PinStepsMatchInstantiatedMethodConstraint unviolatable by a DERIVED pin: the frozen list and the instantiated method are read off one join, so the two cannot disagree. The law keeps its teeth against hand-authored pins, which is where the mismatch was ever possible."
+msgstr "Dérive logic:pinnedStepSequence pour un candidat autorisé comme étant la liste logic:methodYields même de la méthode qui l'a produit. Horn positive. C'est la règle qui rend logic:PinStepsMatchInstantiatedMethodConstraint inviolable par un épinglage DÉRIVÉ : la liste figée et la méthode instanciée se lisent sur une seule jointure, si bien que les deux ne peuvent diverger. La loi conserve ses dents face aux épinglages écrits à la main, seul endroit où l'écart ait jamais été possible."
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedSubgraphFromAuthorizedCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin: an authorized roster candidate IS a pinned executable subgraph"
+msgstr "épinglage : un candidat autorisé du répertoire EST un sous-graphe exécutable épinglé"
+
+msgctxt "https://blackcatinformatics.ca/logic/rulePinnedSubgraphFromAuthorizedCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Types a logic:refinementCandidate of an episode's roster as a logic:PinnedExecutableSubgraph once a logic:AuthorizationProof establishes it. Positive Horn. The authorization is the act that turns a candidate into a commitment, so it is the guard rather than an annotation: a roster member nobody licensed stays a candidate, and typing it a pin would assert a freeze that never happened."
+msgstr "Type un logic:refinementCandidate du répertoire d'un épisode comme logic:PinnedExecutableSubgraph dès qu'une logic:AuthorizationProof l'établit. Horn positive. L'autorisation est l'acte qui fait d'un candidat un engagement : elle est donc la garde et non une annotation, car un membre du répertoire que personne n'a autorisé reste un candidat, et le typer comme épinglage affirmerait un gel qui n'a jamais eu lieu."
 
 msgctxt "https://blackcatinformatics.ca/logic/ruleRefinementCandidateMethod|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "refinement candidate: every method that decomposes the task"

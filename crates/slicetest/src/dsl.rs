@@ -143,6 +143,16 @@ pub struct ExampleConformance {
     /// is component-code-only, exactly as before (backward-compatible: a cell that
     /// does not set it is unaffected).
     pub expected_source_shape: Option<String>,
+    /// `gmeow:expectedSoleFinding` — OPTIONAL (violates cells only). The
+    /// EXHAUSTIVENESS half, which neither of the two fields above can express: they
+    /// pin that a particular law DID fire, and the harness's violates branch asks
+    /// only that SOME finding match, so a rationale claiming the fixture isolates
+    /// one defect is unfalsifiable while this is absent. When `Some(true)`, EVERY
+    /// violation-severity result must carry `violation_code` and (when
+    /// `expected_source_shape` is bound) originate from that shape — several rows of
+    /// the SAME law still conform, one finding from another law is a hard failure.
+    /// Absent → unchanged behaviour, so no cell that omits it is affected.
+    pub expected_sole_finding: Option<bool>,
     pub rationale: Option<String>,
 }
 
@@ -234,12 +244,13 @@ SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
 }";
 
 const Q_CONFORMANCE: &str = "
-SELECT ?ec ?file ?outcome ?code ?shape ?rationale WHERE {
+SELECT ?ec ?file ?outcome ?code ?shape ?sole ?rationale WHERE {
   ?ec a gmeow:ExampleConformance ;
       gmeow:exampleFile ?file ;
       gmeow:expectedOutcome ?outcome .
   OPTIONAL { ?ec gmeow:expectedViolationCode ?code }
   OPTIONAL { ?ec gmeow:expectedSourceShape ?shape }
+  OPTIONAL { ?ec gmeow:expectedSoleFinding ?sole }
   OPTIONAL { ?ec gmeow:conformanceRationale ?rationale }
 }";
 
@@ -442,6 +453,7 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
             // An IRI object; term_iri keeps it as the resolved absolute IRI so it
             // compares directly against the finding's `sh:sourceShape` term.
             expected_source_shape: sol.get("shape").and_then(term_iri),
+            expected_sole_finding: opt_bool(&sol, "sole")?,
             rationale: opt_string(&sol, "rationale"),
         });
     }

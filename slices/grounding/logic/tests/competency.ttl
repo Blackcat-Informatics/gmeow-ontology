@@ -2235,7 +2235,7 @@ ex:cqRuleAtomPredicates a gmeow:CompetencyQuestion ;
     gmeow:cqRationale "The derivation rules are data too, and their head and body atoms name predicates in the rdf:predicate position. This roster is therefore the answer to what the kernel actually DERIVES as opposed to what it merely constrains: a predicate here is written or read by a rule, and the frontier label, axis witness and refinement rejection predicates dominate the list for exactly that reason. Read against the law-predicate roster it makes a real distinction visible — a predicate constrained but never derived must be asserted by an author, and a predicate derived but never constrained is produced under no check at all." ;
     gmeow:cqResultShape ex:cqKernelRosterShape ;
     gmeow:cqExactRows true ;
-    gmeow:cqExpectRow ex:cqRuleAtomPredicatesRowassessedAgent , ex:cqRuleAtomPredicatesRowassessmentDimension , ex:cqRuleAtomPredicatesRowassessmentLevel , ex:cqRuleAtomPredicatesRowassessmentSubject , ex:cqRuleAtomPredicatesRowentryAction , ex:cqRuleAtomPredicatesRowentryAwaits , ex:cqRuleAtomPredicatesRowentryAxisWitness , ex:cqRuleAtomPredicatesRowentryExcludes , ex:cqRuleAtomPredicatesRowentryLabel , ex:cqRuleAtomPredicatesRowgapBlockedStep , ex:cqRuleAtomPredicatesRowgateVerdict , ex:cqRuleAtomPredicatesRowhasThresholdRow , ex:cqRuleAtomPredicatesRowleaseScope , ex:cqRuleAtomPredicatesRowlevelAtOrAbove , ex:cqRuleAtomPredicatesRowmethodDecomposes , ex:cqRuleAtomPredicatesRowmethodStep , ex:cqRuleAtomPredicatesRowmethodYieldCell , ex:cqRuleAtomPredicatesRowmethodYields , ex:cqRuleAtomPredicatesRowprecondition , ex:cqRuleAtomPredicatesRowprobesSchema , ex:cqRuleAtomPredicatesRowprojectsLadderEdge , ex:cqRuleAtomPredicatesRowproposalBlockedStep , ex:cqRuleAtomPredicatesRowproposalMissingCapability , ex:cqRuleAtomPredicatesRowrefinementCandidateMethod , ex:cqRuleAtomPredicatesRowrefinementExpands , ex:cqRuleAtomPredicatesRowrefinementReaches , ex:cqRuleAtomPredicatesRowrefinementRejectedOnApproval , ex:cqRuleAtomPredicatesRowrefinementRejectedOnCapability , ex:cqRuleAtomPredicatesRowrefinementRejectedOnPrecondition , ex:cqRuleAtomPredicatesRowrefinementRejectedOnResource , ex:cqRuleAtomPredicatesRowskipReason , ex:cqRuleAtomPredicatesRowsourceDimension , ex:cqRuleAtomPredicatesRowthresholdLevel  .
+    gmeow:cqExpectRow ex:cqRuleAtomPredicatesRowassessedAgent , ex:cqRuleAtomPredicatesRowassessmentDimension , ex:cqRuleAtomPredicatesRowassessmentLevel , ex:cqRuleAtomPredicatesRowassessmentSubject , ex:cqRuleAtomPredicatesRowentryAction , ex:cqRuleAtomPredicatesRowentryAwaits , ex:cqRuleAtomPredicatesRowentryAxisWitness , ex:cqRuleAtomPredicatesRowentryExcludes , ex:cqRuleAtomPredicatesRowentryLabel , ex:cqRuleAtomPredicatesRowgapBlockedStep , ex:cqRuleAtomPredicatesRowgateVerdict , ex:cqRuleAtomPredicatesRowhasThresholdRow , ex:cqRuleAtomPredicatesRowleaseScope , ex:cqRuleAtomPredicatesRowlevelAtOrAbove , ex:cqRuleAtomPredicatesRowmethodDecomposes , ex:cqRuleAtomPredicatesRowmethodStep , ex:cqRuleAtomPredicatesRowmethodYieldCell , ex:cqRuleAtomPredicatesRowmethodYields , ex:cqRuleAtomPredicatesRowprecondition , ex:cqRuleAtomPredicatesRowprobesSchema , ex:cqRuleAtomPredicatesRowprojectsLadderEdge , ex:cqRuleAtomPredicatesRowproposalBlockedStep , ex:cqRuleAtomPredicatesRowproposalMissingCapability , ex:cqRuleAtomPredicatesRowrefinementCandidateMethod , ex:cqRuleAtomPredicatesRowrefinementExpands , ex:cqRuleAtomPredicatesRowrefinementReaches , ex:cqRuleAtomPredicatesRowrefinementRejectedOnApproval , ex:cqRuleAtomPredicatesRowrefinementRejectedOnCapability , ex:cqRuleAtomPredicatesRowrefinementRejectedOnPrecondition , ex:cqRuleAtomPredicatesRowrefinementRejectedOnResource , ex:cqRuleAtomPredicatesRowskipReason , ex:cqRuleAtomPredicatesRowsourceDimension , ex:cqRuleAtomPredicatesRowthresholdLevel , ex:cqRuleAtomPredicatesRowcandidateInstantiatesMethod , ex:cqRuleAtomPredicatesRowcontestedByAttribution , ex:cqRuleAtomPredicatesRowmethodDigest , ex:cqRuleAtomPredicatesRowpinAuthority , ex:cqRuleAtomPredicatesRowpinDigest , ex:cqRuleAtomPredicatesRowpinInstantiatesMethod , ex:cqRuleAtomPredicatesRowpinnedStepSequence , ex:cqRuleAtomPredicatesRowproducedCandidateSet , ex:cqRuleAtomPredicatesRowproofEstablishes , ex:cqRuleAtomPredicatesRowrefinementCandidate , ex:cqRuleAtomPredicatesRowreifiedStatementObject , ex:cqRuleAtomPredicatesRowreifiedStatementPredicate , ex:cqRuleAtomPredicatesRowreifiedStatementSubject , ex:cqRuleAtomPredicatesRowselectedPin  .
 
 ex:cqRuleAtomPredicatesRowassessedAgent a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assessedAgent ] .
@@ -2303,6 +2303,34 @@ ex:cqRuleAtomPredicatesRowsourceDimension a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sourceDimension ] .
 ex:cqRuleAtomPredicatesRowthresholdLevel a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:thresholdLevel ] .
+ex:cqRuleAtomPredicatesRowcandidateInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:candidateInstantiatesMethod ] .
+ex:cqRuleAtomPredicatesRowcontestedByAttribution a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contestedByAttribution ] .
+ex:cqRuleAtomPredicatesRowmethodDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodDigest ] .
+ex:cqRuleAtomPredicatesRowpinAuthority a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinAuthority ] .
+ex:cqRuleAtomPredicatesRowpinDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinDigest ] .
+ex:cqRuleAtomPredicatesRowpinInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinInstantiatesMethod ] .
+ex:cqRuleAtomPredicatesRowpinnedStepSequence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinnedStepSequence ] .
+ex:cqRuleAtomPredicatesRowproducedCandidateSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:producedCandidateSet ] .
+ex:cqRuleAtomPredicatesRowproofEstablishes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proofEstablishes ] .
+ex:cqRuleAtomPredicatesRowrefinementCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidate ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementObject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementObject ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementPredicate ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementSubject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementSubject ] .
+ex:cqRuleAtomPredicatesRowselectedPin a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:selectedPin ] .
 
 ex:cqEffectProtocolCarriersRowInformationStateknowledgePrecedes a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:InformationState ] ;
@@ -2377,3 +2405,33 @@ ex:cqLawObjectReferentsRowFormularecoveryTransform a gmeow:ExpectedRow ;
 ex:cqLawObjectReferentsRowFormulaverdictProbe a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:verdictProbe ] .
+
+# --- The retained withholds, as a roster ------------------------------------ #
+#
+# The dual of every decided-fragment roster above: not what the kernel decides but
+# what it deliberately declines to. These four records are the ONLY honest
+# withholds the logic slice ships, and the reason the roster is pinned EXACTLY is
+# that both directions of drift are silent failures. A withhold that disappears
+# turns a documented limitation into an undocumented one, and a withhold that
+# arrives unannounced lets a capability be dropped with a record that reads like it
+# was always missing. The Rust twin (crates/logic/src/reason/refute.rs,
+# retained_boundaries) is checked against these records in both directions, so this
+# roster is also what keeps the engine's own registry and the shipped ontology from
+# describing two different kernels.
+
+ex:cqRetainedBoundaries a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT DISTINCT ?term WHERE { ?term logic:expressivenessBoundary ?position . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Four constructs the kernel does not decide, each carrying a technical reason rather than an apology. Three are classical DL boundaries — an XSD regular-expression facet, an n-ary role composition, an existential entangled with a cardinality bound — and the fourth is the residue of the RDF 1.2 statement-metadata lowering, which is the one an operator is most likely to meet: flat statement metadata IS reasoned over, so a blanket disclaimer about triple terms would now be false, and a nested triple term is the narrow case that genuinely is not lowered. Pinning the roster exactly is what makes both directions of drift visible: a withhold that vanishes turns a documented limitation into an undocumented one, and a withhold that appears unannounced lets a capability be dropped behind a record that reads as though it was never there." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRetainedBoundariesRowEntangled , ex:cqRetainedBoundariesRowNestedTripleTerm , ex:cqRetainedBoundariesRowNonBinaryChain , ex:cqRetainedBoundariesRowXsdPattern .
+
+ex:cqRetainedBoundariesRowEntangled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entangled-existential-cardinality ] .
+ex:cqRetainedBoundariesRowNestedTripleTerm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rdf12-nested-triple-term ] .
+ex:cqRetainedBoundariesRowNonBinaryChain a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:non-binary-property-chain ] .
+ex:cqRetainedBoundariesRowXsdPattern a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:xsd-pattern-facet ] .

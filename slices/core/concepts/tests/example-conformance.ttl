@@ -58,6 +58,7 @@ ex:ecCategorizationResultNotConcept a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/categorization-result-not-concept.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's gmeow:observationResult (ex:vehicle) is a gmeow:Entity but NOT a gmeow:Concept (sh:class gmeow:Concept), so validation MUST emit shacl.ClassConstraintComponent and NO other finding. Mirrors test_categorization_result_not_concept_is_flagged." .
 
 # --- Violating: typicality out of the closed interval [0,1] ------------------
@@ -65,6 +66,7 @@ ex:ecCategorizationTypicalityOutOfRange a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/categorization-typicality-out-of-range.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's gmeow:typicality is 1.5, above sh:maxInclusive 1 (sh:minInclusive 0 and sh:datatype xsd:decimal are both satisfied), so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding. Mirrors test_categorization_typicality_out_of_range_is_flagged." .
 
 # --- Violating: ConceptTenure missing duringInterval -------------------------

@@ -1345,8 +1345,10 @@ fn logic_module_fixture() -> PathBuf {
 /// family with its `logic:RefutationPattern` and completeness bound and (2) their
 /// dual, the retained `logic:expressivenessBoundary` records with their technical
 /// reasons. The assertions pin representative real manifest content (falsifiable, not
-/// tautological): the eight decided families under their patterns and the three
-/// retained boundaries with their reasons.
+/// tautological): the eight decided families under their patterns and the FOUR
+/// retained boundaries with their reasons — three classical DL withholds and the
+/// residue of the RDF 1.2 statement-metadata lowering, which is the one an operator
+/// meeting a nested triple term needs the verb to name.
 #[test]
 fn logic_fragments_lists_decided_families_and_retained_boundaries() {
     gmeow()
@@ -1356,9 +1358,9 @@ fn logic_fragments_lists_decided_families_and_retained_boundaries() {
         .assert()
         .success()
         .stdout(
-            // The two section headers with their exact counts (8 decided, 3 retained).
+            // The two section headers with their exact counts (8 decided, 4 retained).
             predicate::str::contains("decided-fragments 8")
-                .and(predicate::str::contains("retained-boundaries 3"))
+                .and(predicate::str::contains("retained-boundaries 4"))
                 // Decided families keyed to their patterns.
                 .and(predicate::str::contains("fragment complement-refutation"))
                 .and(predicate::str::contains("pattern complement-clash"))
@@ -1380,7 +1382,7 @@ fn logic_fragments_lists_decided_families_and_retained_boundaries() {
                 .and(predicate::str::contains(
                     "math-grounded finite-cardinality table",
                 ))
-                // The three retained boundaries with their technical reasons.
+                // The four retained boundaries with their technical reasons.
                 .and(predicate::str::contains("boundary xsd-pattern-facet"))
                 .and(predicate::str::contains(
                     "XML Schema regular-expression dialect",
@@ -1393,6 +1395,12 @@ fn logic_fragments_lists_decided_families_and_retained_boundaries() {
                 ))
                 .and(predicate::str::contains(
                     "couples witness generation with counting",
+                ))
+                .and(predicate::str::contains(
+                    "boundary rdf12-nested-triple-term",
+                ))
+                .and(predicate::str::contains(
+                    "has no non-term component to decompose into",
                 )),
         );
 }

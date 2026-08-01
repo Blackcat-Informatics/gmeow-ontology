@@ -5818,18 +5818,28 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
             .or_default()
             .0 = true;
     }
-    if !world.unreasoned.is_empty() {
+    // The residue, and ONLY the residue. The rule set now DOES run over flat statement
+    // metadata: `gmeow_logic::statement_lowering` decomposes each `rdf:reifies` triple term
+    // into three ordinary joinable edges before the world is built, so an attribution's
+    // subject, predicate and object are premises like any other. What survives as a
+    // withhold is exactly what `logic:rdf12-nested-triple-term` records — a statement whose
+    // own subject or object is itself a triple term, which has no non-term component to
+    // decompose into. The `rdf:reifies` rows themselves are still reported unreasoned,
+    // because the TERM is not a fact; that is the second half of the same boundary.
+    if !world.nested_statements.is_empty() {
         emit_warning(
             reporter,
-            &format!("{code}.statement-metadata-not-reasoned"),
+            &format!("{code}.nested-triple-term-not-lowered"),
             format!(
-                "{} carries {} RDF 1.2 statement-metadata fact(s) whose term is a triple term \
-                 (`<<( … )>>`). They are reported in full below, but the shipped rule set was \
-                 NOT run over them: the reasoner's EDB-echo term surface \
-                 (gmeow_logic::term_codec) has no triple-term form, so feeding one in returns \
-                 it as a malformed IRI. Nothing derived here is a conclusion about them.",
+                "{} carries {} RDF 1.2 attribution(s) reifying a statement that NESTS a triple \
+                 term. Flat statement metadata IS reasoned over — the rule set joins on the \
+                 lowered logic:reifiedStatementSubject / logic:reifiedStatementPredicate / \
+                 logic:reifiedStatementObject edges — but a nested statement has no non-term \
+                 component to decompose into, so it is not lowered and nothing derived here \
+                 is a conclusion about it. This is the residue recorded at \
+                 logic:rdf12-nested-triple-term, and nothing wider.",
                 path.display(),
-                world.unreasoned.len()
+                world.nested_statements.len()
             ),
         );
     }
@@ -5903,7 +5913,15 @@ struct CliWorld {
     edb: Arc<purrdf::RdfDataset>,
     /// `(subject, predicate, object)` facts carried to the caller but WITHHELD from the
     /// reasoning world — every one of them a triple-term-bearing statement-metadata fact.
+    ///
+    /// The `rdf:reifies` rows stay here even for a statement that WAS lowered: the term is
+    /// not a fact, and reporting it as reasoned-over would claim the engine quantified over
+    /// the statement itself. What it CAN do is join the three lowered components, which is
+    /// the derivation `logic:contestedByAttribution` rests on.
     unreasoned: Vec<(RdfTerm, String, RdfTerm)>,
+    /// The reifiers whose statement NESTS a triple term, and which therefore carry no
+    /// lowering at all — the narrow residue `logic:rdf12-nested-triple-term` records.
+    nested_statements: Vec<RdfTerm>,
 }
 
 /// True when `term` is (or contains) an RDF 1.2 triple term.
@@ -5970,6 +5988,15 @@ fn cli_world_dataset(
             RdfTerm::Triple(Box::new(reifier.statement)),
         );
     }
+    // The statement-metadata LOWERING (Principle 17): the `rdf:reifies` term above stays
+    // withheld — a term is not a fact — while its three components enter the world as
+    // ordinary triples, so a rule can join a reifier to the statement it reifies. The
+    // authored dataset is untouched; this is derived from it, on the way in.
+    let lowering = gmeow_logic::statement_lowering::lower_reifiers(parsed);
+    for (subject, predicate, object) in lowering.rows {
+        push(&mut builder, &mut unreasoned, subject, predicate, object);
+    }
+    let nested_statements = lowering.nested;
     for annotation in parsed.owned_annotations() {
         if let Some(g) = &annotation.graph {
             named_graphs.insert(RowTerm::from_rdf_term(g).display());
@@ -6014,7 +6041,11 @@ fn cli_world_dataset(
             ),
         )
     })?;
-    Ok(CliWorld { edb, unreasoned })
+    Ok(CliWorld {
+        edb,
+        unreasoned,
+        nested_statements,
+    })
 }
 
 /// Materialize the shipped rule set over one CLI world.
@@ -6855,6 +6886,21 @@ pub fn logic_refine(
                         })).collect::<Vec<_>>()
                     } else { Vec::new() },
                     "reached": if closed { report.reached.clone() } else { Vec::new() },
+                    // The PIN half of "validate the selected refinement and pin its
+                    // executable subgraph". Empty when nothing in scope was authorized —
+                    // which is the informative absence logic:selectedPin's own definition
+                    // names, not a missing field.
+                    "pins": if closed {
+                        report.pins.iter().map(|p| serde_json::json!({
+                            "episode": p.episode,
+                            "pin": p.pin,
+                            "method": p.method,
+                            "steps": p.steps,
+                            "digest": p.digest,
+                            "authority": p.authority,
+                            "witness": refine_witness_json(&p.witness),
+                        })).collect::<Vec<_>>()
+                    } else { Vec::new() },
                 }),
             );
         }
@@ -6960,6 +7006,19 @@ pub fn logic_refine(
     for step in &report.reached {
         println!("  <{step}>");
     }
+
+    // The PIN half. A refinement that validated a selection and froze nothing has done
+    // half of what it claims to do, so the count is printed even at zero: an operator must
+    // be able to tell "no candidate was authorized" from "pins are not reported here".
+    println!("pins:        {}", report.pins.len());
+    for (i, pin) in report.pins.iter().enumerate() {
+        println!("  [{i}] <{}> selected by <{}>", pin.pin, pin.episode);
+        println!("       instantiates: <{}>", pin.method);
+        println!("       frozen steps: {}", pin.steps.join(" -> "));
+        println!("       digest:       {}", pin.digest);
+        println!("       authority:    <{}>", pin.authority);
+        print_refine_witness("       ", &pin.witness);
+    }
     0
 }
 
@@ -6974,6 +7033,53 @@ const EXPLANATION_ELEMENTS: [(&str, &str); 5] = [
     ("explanationCriterion", "criterion"),
     ("explanationDissent", "dissent"),
 ];
+
+/// The DERIVED contestations bearing on one action: pairs of statement attributions that
+/// take opposite stances on a statement the action is part of.
+///
+/// This is the surfaced end of the RDF 1.2 statement-metadata lowering. Each row exists
+/// only because `logic:ruleAttributionContestedByOpposingVantage` could join two reifiers
+/// through `logic:reifiedStatementSubject` / `Predicate` / `Object` — edges that did not
+/// exist before the lowering, and without which the rule's two halves share no variable at
+/// all. It is the derived counterpart of the AUTHORED `gmeow:explanationDissent`: the
+/// authored one is somebody's note that there was an objection, this one is the objection
+/// standing in the graph against the very claim the recommendation rests on.
+fn derived_contestations(rows: &[FactRow], action: &str) -> Vec<(String, String, String, String)> {
+    let subjects = iri_pairs(rows, &format!("{LOGIC_NS}reifiedStatementSubject"));
+    let predicates = iri_pairs(rows, &format!("{LOGIC_NS}reifiedStatementPredicate"));
+    let objects = iri_pairs(rows, &format!("{LOGIC_NS}reifiedStatementObject"));
+    let component = |pairs: &[(String, String)], reifier: &str| -> Option<String> {
+        pairs
+            .iter()
+            .find(|(r, _)| r == reifier)
+            .map(|(_, value)| value.clone())
+    };
+    let mut out: Vec<(String, String, String, String)> = Vec::new();
+    for (affirming, opposing) in iri_pairs(rows, &format!("{LOGIC_NS}contestedByAttribution")) {
+        let (Some(subject), Some(predicate), Some(object)) = (
+            component(&subjects, &affirming),
+            component(&predicates, &affirming),
+            component(&objects, &affirming),
+        ) else {
+            continue;
+        };
+        // Scoped to the action: a disagreement elsewhere in the graph is not this
+        // recommendation's business, and attributing one to it would be the mirror image
+        // of hiding the one that IS.
+        if subject != action && object != action {
+            continue;
+        }
+        out.push((
+            affirming,
+            opposing,
+            subject,
+            format!("{predicate} {object}"),
+        ));
+    }
+    out.sort();
+    out.dedup();
+    out
+}
 
 /// `gmeow logic explain` — R3.5's five elements for one action.
 pub fn logic_explain(
@@ -7051,6 +7157,19 @@ pub fn logic_explain(
                 "input": input.display().to_string(),
                 "action": action,
                 "explanations": explanations,
+                // The DERIVED counterpart of the authored dissent element, and the
+                // surfaced end of the RDF 1.2 statement-metadata lowering.
+                "contested": derived_contestations(&rows, action)
+                    .into_iter()
+                    .map(|(affirming, opposing, subject, rest)| serde_json::json!({
+                        "affirming_attribution": affirming,
+                        "opposing_attribution": opposing,
+                        "statement": format!("{subject} {rest}"),
+                        "derived_by": format!(
+                            "{LOGIC_NS}ruleAttributionContestedByOpposingVantage"
+                        ),
+                    }))
+                    .collect::<Vec<_>>(),
                 "facts": rows_json(&rows),
             }),
         );
@@ -7107,6 +7226,23 @@ pub fn logic_explain(
                 for v in vals {
                     println!("{heading:<12} {v}");
                 }
+            }
+        }
+        // The DERIVED sixth line. Printed even at zero, because "no vantage contests the
+        // claim this rests on" and "contestation is not reported here" are different
+        // things, and the second is what an operator assumes when a section is missing.
+        let contested = derived_contestations(&rows, action);
+        if contested.is_empty() {
+            println!("contested    <none derived>");
+        } else {
+            for (affirming, opposing, subject, rest) in &contested {
+                println!("contested    {subject} {rest}");
+                println!("             affirmed by {affirming}");
+                println!("             opposed  by {opposing}");
+                println!(
+                    "             (derived by <{LOGIC_NS}ruleAttributionContestedByOpposing\
+                     Vantage> over the lowered RDF 1.2 statement components)"
+                );
             }
         }
     }

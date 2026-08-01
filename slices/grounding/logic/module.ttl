@@ -10009,6 +10009,19 @@ logic:refinementCandidate
     skos:scopeNote "Membership means applicability held, not that the candidate was selected. A roster is a record of what the search found admissible, and reading it as a recommendation skips the authorization step entirely."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:candidateInstantiatesMethod
+    a owl:ObjectProperty ;
+    rdfs:range logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate instantiates method"@x-gmeow-english ;
+    skos:definition "Relates one logic:refinementCandidate of a roster to the logic:DecompositionMethod whose application produced it. Domain a roster candidate — a subplan or action schema (stated in prose, as for logic:refinementCandidate itself). Functional: a candidate produced by two methods would have two step sequences and two provenances, so which decomposition was authorized would be undecidable at the moment of authorization. It is what makes a pin DERIVABLE rather than hand-authored: with the method named, the frozen sequence and the content address of an authorized candidate are read off the method it came from, and a pin whose steps its method never yielded becomes unconstructible instead of merely condemned after the fact."@x-gmeow-english ;
+    skos:example "ex:ocrCandidate logic:candidateInstantiatesMethod ex:ocrByPagePartition ."@x-gmeow-english ;
+    gmeow:useWhen "Use on every roster candidate, to name the method application that produced it, so the candidate's step sequence and content address have a source the reasoner can read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming two methods on one candidate, and avoid leaving it unbound on a candidate that may be authorized: an authorized candidate with no method yields no pin at all, which reads exactly like an episode that found nothing."@x-gmeow-english ;
+    gmeow:howToUse "Bind it as the search records each candidate; the pin-derivation rules join through it to reach logic:methodYields and logic:methodDigest."@x-gmeow-english ;
+    skos:scopeNote "The provenance edge from a roster candidate back to the schema that produced it. Functional, because a candidate reached by two methods would carry two possible step sequences and the authorization could not say which one it licensed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:producedCandidateSet
     a owl:ObjectProperty ;
     rdfs:domain logic:RefinementEpisode ;
@@ -10893,6 +10906,228 @@ logic:ruleRefinementRejectedOnApproval
         rdf:subject   "?entry" ;
         rdf:predicate logic:entryAxisWitness ;
         rdf:object    logic:ApprovalCreated
+    ] .
+
+# ── The pin half of refinement: validate the selection, and PIN it ────────────────────
+#
+# Three laws already read an authored logic:PinnedExecutableSubgraph — its completeness,
+# its steps against its method, and its membership in the roster it was chosen from. Every
+# one of them presupposes a pin somebody typed by hand, which is the defect this kernel
+# condemns everywhere else: a record whose whole content is asserted is a record whose
+# content nothing can be wrong about, and the laws over it only ever check that an author
+# was self-consistent.
+#
+# The six rules below derive the pin instead. What stays AUTHORED is exactly what cannot be
+# derived and should not be: the roster the search produced, the provenance edge from each
+# candidate back to the method that produced it, and the logic:AuthorizationProof — the
+# organizational act of licensing one candidate. Everything the pin laws read is then read
+# off the method: the frozen sequence IS logic:methodYields, the content address IS
+# logic:methodDigest, the instantiated method IS the candidate's own provenance, and the
+# authority IS the proof that established the candidate.
+#
+# That construction is what makes the pin laws bite on real data rather than on fixtures.
+# logic:PinStepsMatchInstantiatedMethodConstraint can no longer be violated by a DERIVED
+# pin at all, because the sequence and the method come from the same join — which is the
+# right relationship between a derivation and a law: the law now governs the pins an author
+# writes by hand, and the derived ones are correct by construction.
+#
+# Six rules rather than one conjunctive head, because the authored rule surface is binary
+# Horn: one head triple per rule. They share one guard, so they fire together or not at all,
+# and each names itself in logic:provenance so a derived pin's every triple carries the rule
+# that concluded it.
+
+logic:rulePinnedSubgraphFromAuthorizedCandidate
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: an authorized roster candidate IS a pinned executable subgraph"@x-gmeow-english ;
+    skos:definition "Types a logic:refinementCandidate of an episode's roster as a logic:PinnedExecutableSubgraph once a logic:AuthorizationProof establishes it. Positive Horn. The authorization is the act that turns a candidate into a commitment, so it is the guard rather than an annotation: a roster member nobody licensed stays a candidate, and typing it a pin would assert a freeze that never happened."@x-gmeow-english ;
+    logic:provenance logic:rulePinnedSubgraphFromAuthorizedCandidate ;
+    logic:head [
+        rdf:subject   "?candidate" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:PinnedExecutableSubgraph
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
+    ] .
+
+logic:rulePinInstantiatesAuthorizedMethod
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: the instantiated method is the candidate's own provenance"@x-gmeow-english ;
+    skos:definition "Derives logic:pinInstantiatesMethod for an authorized candidate from the logic:candidateInstantiatesMethod edge the search recorded when it produced the candidate. Positive Horn. The method is not chosen at pin time — it is the one whose application produced this candidate — so deriving it closes the gap a hand-authored pin leaves open: naming a method the frozen steps never came from."@x-gmeow-english ;
+    logic:provenance logic:rulePinInstantiatesAuthorizedMethod ;
+    logic:head [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:pinInstantiatesMethod ;
+        rdf:object    "?method"
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:candidateInstantiatesMethod ;
+        rdf:object    "?method"
+    ] .
+
+logic:rulePinnedStepSequenceFromMethod
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: the frozen sequence IS the method's yielded sequence"@x-gmeow-english ;
+    skos:definition "Derives logic:pinnedStepSequence for an authorized candidate as the very logic:methodYields list of the method that produced it. Positive Horn. It is the rule that makes logic:PinStepsMatchInstantiatedMethodConstraint unviolatable by a DERIVED pin: the frozen list and the instantiated method are read off one join, so the two cannot disagree. The law keeps its teeth against hand-authored pins, which is where the mismatch was ever possible."@x-gmeow-english ;
+    logic:provenance logic:rulePinnedStepSequenceFromMethod ;
+    logic:head [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:pinnedStepSequence ;
+        rdf:object    "?cell"
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:candidateInstantiatesMethod ;
+        rdf:object    "?method"
+    ] , [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYields ;
+        rdf:object    "?cell"
+    ] .
+
+logic:rulePinDigestFromMethodDigest
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: the content address is the method version's own"@x-gmeow-english ;
+    skos:definition "Derives logic:pinDigest for an authorized candidate from the logic:methodDigest of the method that produced it. Positive Horn. A derived pin freezes exactly one thing — the method's yielded sequence — so the address of that content is the address of the method version, and computing a second one would create two names for one fragment. A method carrying no digest therefore yields no pin digest and the pin is REFUSED by the completeness law rather than quietly addressed by a fabricated value, which is the honest failure: 'content-addressed' is a claim about the method, and a method that never made it cannot lend it."@x-gmeow-english ;
+    logic:provenance logic:rulePinDigestFromMethodDigest ;
+    logic:head [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:pinDigest ;
+        rdf:object    "?digest"
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:candidateInstantiatesMethod ;
+        rdf:object    "?method"
+    ] , [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodDigest ;
+        rdf:object    "?digest"
+    ] .
+
+logic:rulePinAuthorityFromEstablishingProof
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: the authority is the proof that established the candidate"@x-gmeow-english ;
+    skos:definition "Derives logic:pinAuthority for an authorized candidate as the logic:AuthorizationProof whose logic:proofEstablishes named it. Positive Horn. The guard requires the licensing record to BE an authorization proof, so a logic:Advisory pointed at a candidate derives no authority at all — advice can motivate a pin and never licenses one. An advisory ALSO typed a proof still derives, and is still condemned, by logic:AdvisoryNeverAuthorityConstraint: the derivation does not launder the double typing, it inherits it."@x-gmeow-english ;
+    logic:provenance logic:rulePinAuthorityFromEstablishingProof ;
+    logic:head [
+        rdf:subject   "?candidate" ;
+        rdf:predicate logic:pinAuthority ;
+        rdf:object    "?proof"
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
+    ] .
+
+logic:ruleEpisodeSelectsItsAuthorizedPin
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin: the episode selected the pin its own roster carried"@x-gmeow-english ;
+    skos:definition "Derives logic:selectedPin from the episode that produced the roster to the authorized candidate inside it. Positive Horn. It is what makes logic:RefinementPinComesFromCandidateSetConstraint true by construction for a derived pin: the selection is read out of the roster rather than asserted next to it, so an episode cannot be recorded as committing to something its own search never found. The law keeps its teeth against an authored logic:selectedPin, which is the only place a pin from outside the roster could ever enter."@x-gmeow-english ;
+    logic:provenance logic:ruleEpisodeSelectsItsAuthorizedPin ;
+    logic:head [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:selectedPin ;
+        rdf:object    "?candidate"
+    ] ;
+    logic:body [
+        rdf:subject   "?episode" ;
+        rdf:predicate logic:producedCandidateSet ;
+        rdf:object    "?roster"
+    ] , [
+        rdf:subject   "?roster" ;
+        rdf:predicate logic:refinementCandidate ;
+        rdf:object    "?candidate"
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate rdf:type ;
+        rdf:object    logic:AuthorizationProof
+    ] , [
+        rdf:subject   "?proof" ;
+        rdf:predicate logic:proofEstablishes ;
+        rdf:object    "?candidate"
     ] .
 
 logic:CapabilityGapProposalCompletenessConstraint
@@ -16566,6 +16801,125 @@ logic:has-self-membership
     skos:definition "The certified-complete owl:hasSelf membership-refutation family: a self-restriction in a disjointness position clashed by a self-edge, decided under the counting pigeonhole pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# ══ The RDF 1.2 statement-metadata lowering ═══════════════════════════════════════════
+#
+# RDF 1.2 attributes a claim to a vantage by REIFYING a statement: a reifier node carries
+# rdf:reifies <<( s p o )>> plus ordinary annotations (who says it, with what polarity, with
+# what support). The annotations are plain triples and always reached the reasoner. The one
+# thing it could not see was the OBJECT of rdf:reifies — WHICH statement an attribution is
+# about — because that object is a triple TERM, and the engine's EDB carries IRIs, blank
+# nodes and literals.
+#
+# The consequence was not a nuance. Two co-equal vantages taking opposite stances on one
+# statement is the canonical governed situation the standpoint layer exists for, and to the
+# reasoner it read as two unrelated nodes with unrelated opinions: nothing joined them,
+# because the only edge that says they are about the same claim was the invisible one.
+#
+# The three predicates below are that edge, DECOMPOSED. They are a GENERATED LOWERING in the
+# Principle-17 sense, exactly as SSSOM, EDOAL and FnO are: canonical RDF 1.2 stays the
+# authority, the authored data is never rewritten, and the lowering is derived from it on
+# the way into the reasoning world (gmeow_logic::statement_lowering). What the lowering
+# does not preserve is recorded, narrowly, as logic:rdf12-nested-triple-term below — not as
+# a blanket claim that RDF 1.2 is outside the reasoner, which is what the CLI used to say
+# and is no longer true.
+
+logic:reifiedStatementSubject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reified statement subject"@x-gmeow-english ;
+    skos:definition "Relates an RDF 1.2 reifier to the SUBJECT of the statement it reifies — one third of the lowering that makes rdf:reifies joinable. Derived, never asserted: it is read off the authored rdf:reifies triple term on the way into the reasoning world, so the canonical RDF 1.2 form stays the single source and the authored data is not rewritten. Multi-valued only in the sense that one reifier reifies one statement; two reifiers over the SAME statement each carry their own copy, which is precisely what lets a rule join two attributions that disagree."@x-gmeow-english ;
+    skos:example "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementSubject ex:rollback ."@x-gmeow-english ;
+    gmeow:useWhen "Read it in a rule body that must join a statement attribution to the claim it is about; never author it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand: an authored copy that disagrees with the rdf:reifies term is a second source of truth for the same statement, and the reasoner would join on the wrong one."@x-gmeow-english ;
+    gmeow:howToUse "Author the canonical rdf:reifies <<( s p o )>> form; the lowering supplies this edge, and a rule joins two reifiers by matching all three."@x-gmeow-english ;
+    skos:scopeNote "One third of the reifier-to-statement lowering. Decomposed rather than carried as a term because the engine's fact surface is (subject, predicate, object) over IRIs, blank nodes and literals — a triple term has no place in it, and forcing one in returns a malformed IRI."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reifiedStatementPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reified statement predicate"@x-gmeow-english ;
+    skos:definition "Relates an RDF 1.2 reifier to the PREDICATE of the statement it reifies, as an IRI in object position. Derived, never asserted. It is the third of the lowering that stops two attributions about DIFFERENT relations between the same two things from being joined as though they were about one: 'rollback is strictly preferred to hotfix' and 'rollback supersedes hotfix' share both endpoints and are not the same claim."@x-gmeow-english ;
+    skos:example "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementPredicate gmeow:strictlyOver ."@x-gmeow-english ;
+    gmeow:useWhen "Read it in a rule body that must join attributions about the SAME relation, not merely the same endpoints."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it from a join over the other two: subject and object alone identify a pair of things, not a claim."@x-gmeow-english ;
+    gmeow:howToUse "Match it alongside logic:reifiedStatementSubject and logic:reifiedStatementObject; all three together identify the statement."@x-gmeow-english ;
+    skos:scopeNote "Carried in OBJECT position as an ordinary IRI, because the engine's fact surface has no predicate-variable slot. That is what makes the reified predicate joinable at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reifiedStatementObject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reified statement object"@x-gmeow-english ;
+    skos:definition "Relates an RDF 1.2 reifier to the OBJECT of the statement it reifies. Derived, never asserted. Completes the triple that identifies which claim an attribution is about, so two vantages can be shown to be speaking about one statement rather than two."@x-gmeow-english ;
+    skos:example "ex:cmdrOnRollbackOverHotfix logic:reifiedStatementObject ex:hotfix ."@x-gmeow-english ;
+    gmeow:useWhen "Read it in a rule body joining a statement attribution to the claim it is about."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand, for the same reason as its two siblings: the rdf:reifies term is the authority."@x-gmeow-english ;
+    gmeow:howToUse "Match it as the third of the three; the lowering emits all three or none."@x-gmeow-english ;
+    skos:scopeNote "The third of the reifier-to-statement lowering. A statement whose object is itself a triple term is NOT lowered — that residue is recorded at logic:rdf12-nested-triple-term rather than silently flattened."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:contestedByAttribution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contested by attribution"@x-gmeow-english ;
+    skos:definition "Relates one statement attribution to a DIFFERENT attribution of the SAME statement whose support status is the opposite of its own — the derived record that a claim is contested rather than settled. Symmetric in effect (each of the two disagreeing attributions derives the edge to the other), because contestation is a relation between vantages and neither is the privileged one: adjudicating requires knowing both parties, and an edge in one direction would name a challenger without naming what it challenges. It is what the statement-metadata lowering is FOR: before it, two co-equal vantages opposing each other over one statement were two unrelated nodes with unrelated opinions, because the only thing that said they were about the same claim was the rdf:reifies triple term the reasoner could not read."@x-gmeow-english ;
+    skos:example "ex:cmdrOnRollbackOverHotfix logic:contestedByAttribution ex:onCallOnRollbackOverHotfix ."@x-gmeow-english ;
+    gmeow:useWhen "Read it to find claims that two vantages disagree about, so a recommendation resting on one of them can be presented as contested rather than as settled."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it: a hand-written contestation is an opinion about a disagreement rather than the disagreement itself, and it would survive the withdrawal of the objection that caused it."@x-gmeow-english ;
+    gmeow:howToUse "Author the two attributions in canonical RDF 1.2 form with their support statuses; logic:ruleAttributionContestedByOpposingVantage derives the edge."@x-gmeow-english ;
+    skos:scopeNote "Derived, never asserted. The two attributions must reify the SAME statement — same subject, same predicate, same object — because two vantages disagreeing about different claims are not in conflict at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ruleAttributionContestedByOpposingVantage
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contested: two vantages, one statement, opposite support"@x-gmeow-english ;
+    skos:definition "Derives logic:contestedByAttribution between two DISTINCT reifiers of the SAME statement whose gmeow:standpointSupportStatus values are gmeow:supportSupported and gmeow:supportOpposed. Positive Horn, joined over the three lowered statement components. It is the proof that the statement-metadata lowering is not decorative: the join is over logic:reifiedStatementSubject / Predicate / Object, none of which existed before it, and without them the rule's body cannot be written at all — the two attributions have no shared variable, and a rule that dropped the join would declare every affirmation in the graph contested by every opposition anywhere in it."@x-gmeow-english ;
+    logic:provenance logic:ruleAttributionContestedByOpposingVantage ;
+    logic:head [
+        rdf:subject   "?affirming" ;
+        rdf:predicate logic:contestedByAttribution ;
+        rdf:object    "?opposing"
+    ] ;
+    logic:body [
+        rdf:subject   "?affirming" ;
+        rdf:predicate gmeow:standpointSupportStatus ;
+        rdf:object    gmeow:supportSupported
+    ] , [
+        rdf:subject   "?opposing" ;
+        rdf:predicate gmeow:standpointSupportStatus ;
+        rdf:object    gmeow:supportOpposed
+    ] , [
+        rdf:subject   "?affirming" ;
+        rdf:predicate logic:reifiedStatementSubject ;
+        rdf:object    "?s"
+    ] , [
+        rdf:subject   "?opposing" ;
+        rdf:predicate logic:reifiedStatementSubject ;
+        rdf:object    "?s"
+    ] , [
+        rdf:subject   "?affirming" ;
+        rdf:predicate logic:reifiedStatementPredicate ;
+        rdf:object    "?p"
+    ] , [
+        rdf:subject   "?opposing" ;
+        rdf:predicate logic:reifiedStatementPredicate ;
+        rdf:object    "?p"
+    ] , [
+        rdf:subject   "?affirming" ;
+        rdf:predicate logic:reifiedStatementObject ;
+        rdf:object    "?o"
+    ] , [
+        rdf:subject   "?opposing" ;
+        rdf:predicate logic:reifiedStatementObject ;
+        rdf:object    "?o"
+    ] ;
+    logic:distinctBody [
+        rdf:subject "?affirming" ;
+        rdf:object  "?opposing"
+    ] .
+
 # ── Retained-withhold records (constructs the kernel deliberately does NOT decide) ─
 # Reuse logic:expressivenessBoundary: each record inhabits logic:FirstOrder (these
 # constructs are first-order-expressible, but the kernel declines to certify them)
@@ -16596,6 +16950,20 @@ logic:entangled-existential-cardinality
     logic:expressivenessBoundary logic:FirstOrder ;
     logic:fragmentBoundaryReason "A configuration entangling an existential owl:someValuesFrom filler with a number or qualified-cardinality bound on the same property couples witness generation with counting; the family sub-deciders certify each in isolation only, so the entangled full-DL case lies outside the certified fragment." ;
     skos:definition "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:rdf12-nested-triple-term
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Nested Triple Term Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "The statement-metadata lowering decomposes an RDF 1.2 reifier's rdf:reifies term into logic:reifiedStatementSubject / logic:reifiedStatementPredicate / logic:reifiedStatementObject, which is exact for a statement whose subject and object are IRIs, blank nodes or literals and preserves exactly two things it cannot: a NESTED triple term (a reified statement whose own subject or object is itself a triple term has no non-term component to decompose into, so it is not lowered and no component edge is emitted for it), and the reified statement's identity AS A TERM (the three components are joinable, but nothing in the fact surface denotes the statement itself, so a rule may quantify over the components and may not quantify over the statement)." ;
+    skos:definition "The retained-withhold record for the RDF 1.2 statement-metadata lowering: exactly what decomposing an rdf:reifies triple term into three joinable component edges does not preserve. NARROW on purpose — a flat reified statement IS reasoned over, and the blanket claim that RDF 1.2 statement metadata lies outside the reasoner is no longer true. Two things are withheld: a nested triple term, which has no non-term component to decompose into and is therefore not lowered at all; and the statement's identity as a TERM, since the lowering yields three edges about the reifier rather than a name for the statement, so a rule can join on the components and cannot quantify over the statement itself."@x-gmeow-english ;
+    skos:example "ex:nestedAttribution rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> ; logic:expressivenessBoundary logic:FirstOrder ."@x-gmeow-english ;
+    gmeow:useWhen "Cite it when reporting that a particular RDF 1.2 attribution was NOT reasoned over, so the withhold names its exact cause instead of arriving as a blanket disclaimer about statement metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid citing it for a FLAT reified statement: those are lowered and reasoned over, and quoting this record there would report a withhold that did not happen — the failure mode the record was written to end."@x-gmeow-english ;
+    gmeow:howToUse "Read it alongside logic:reifiedStatementSubject / logic:reifiedStatementPredicate / logic:reifiedStatementObject: those three are what the lowering DOES yield, and this is the residue beside them."@x-gmeow-english ;
+    skos:scopeNote "Two withholds, not one, and they fail for different reasons: a nested triple term has no non-term component to decompose into, while the statement's term identity is absent from every lowering however flat the statement is. Reporting either as the other would misdescribe what a rule may quantify over."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:formalizes

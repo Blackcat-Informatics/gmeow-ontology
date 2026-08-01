@@ -969,13 +969,115 @@ fn structured_frontier_carries_every_term_kind_and_reports_what_it_did_not_reaso
         }),
         "the reifier's attributing annotation must be carried, got:\n{stdout}"
     );
-    // Carrying it is not enough: the run must SAY that the shipped rule set was not run
-    // over the triple-term facts, or the operator reads the frontier as a conclusion about
-    // a world the reasoner only partly saw.
+    // Carrying it is not enough: the reasoner must be able to JOIN the attribution to the
+    // statement it is about. The `rdf:reifies` term itself is not a fact, so the lowering
+    // decomposes it into three ordinary edges — and those three are what a rule reads.
+    // Before them, `e:sensorClaim` and `e:ocrStep` were two unrelated nodes and no rule
+    // could relate an attribution to what it attributes.
+    for (predicate, object) in [
+        (
+            "https://blackcatinformatics.ca/logic/reifiedStatementSubject",
+            "https://blackcatinformatics.ca/gmeow/clitest/ocrStep",
+        ),
+        (
+            "https://blackcatinformatics.ca/logic/reifiedStatementPredicate",
+            "https://blackcatinformatics.ca/logic/stepState",
+        ),
+        (
+            "https://blackcatinformatics.ca/logic/reifiedStatementObject",
+            "https://blackcatinformatics.ca/logic/StepWaiting",
+        ),
+    ] {
+        assert!(
+            facts.iter().any(|f| {
+                f["subject"]["value"].as_str()
+                    == Some("https://blackcatinformatics.ca/gmeow/clitest/sensorClaim")
+                    && f["predicate"].as_str() == Some(predicate)
+                    && f["object"]["value"].as_str() == Some(object)
+            }),
+            "the statement-metadata lowering must emit {predicate} for the reifier, or a rule \
+             cannot join an attribution to the statement it is about; got:\n{stdout}"
+        );
+    }
+    // And it must NOT claim a withhold that did not happen. This statement is FLAT, so it
+    // is lowered and reasoned over; the blanket "the rule set was NOT run over your
+    // statement metadata" warning would now be false, and a false disclaimer is worse than
+    // none — it tells an operator to distrust a conclusion the engine actually reached.
+    // The narrow residue warning is reserved for a NESTED triple term, which this is not.
     assert!(
-        stderr.contains("statement-metadata-not-reasoned")
-            && stderr.contains("RDF 1.2 statement-metadata fact"),
-        "the withheld statement metadata must be reported, not silently withheld, got:\n{stderr}"
+        !stderr.contains("nested-triple-term-not-lowered"),
+        "a FLAT reified statement is lowered, so no residue warning may be raised for it, \
+         got:\n{stderr}"
+    );
+}
+
+/// The RESIDUE half: a NESTED triple term is not lowered, and the run says exactly that.
+///
+/// The green half above proves the warning is not raised on a statement that WAS reasoned
+/// over. This proves it is still raised on the one case that genuinely is not — and that
+/// the flat attribution sitting beside it in the same file still lowers, so the withhold is
+/// the narrow one `logic:rdf12-nested-triple-term` records rather than the blanket claim
+/// about RDF 1.2 it replaced.
+#[test]
+fn a_nested_triple_term_is_reported_as_the_narrow_residue_it_is() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(
+        &dir,
+        "nested.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:ocr   a logic:FrontierEntry ; logic:entryAxisWitness logic:StepWaiting ; logic:entryAction e:ocrStep .
+e:ocrStep a logic:TransactionStep .
+e:gap  a logic:OperationalCapabilityGap ; logic:gapBlockedStep e:ocrStep .
+e:prop a logic:CapabilityGapProposal ;
+    logic:proposalBlockedStep e:ocrStep ;
+    logic:proposalMissingCapability e:ocrCap .
+e:flatClaim rdf:reifies <<( e:ocrStep logic:stepState logic:StepWaiting )>> ;
+    logic:attestedBy e:opsSensor .
+e:nestedClaim rdf:reifies <<( e:auditor logic:attestedBy <<( e:ocrStep logic:stepState logic:StepWaiting )>> )>> ;
+    logic:attestedBy e:auditTrail .
+"#,
+    );
+    let assert = gmeow()
+        .args([
+            "--console",
+            "text",
+            "logic",
+            "frontier",
+            p.to_str().expect("utf-8"),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .success();
+    let out = assert.get_output();
+    let stdout = String::from_utf8(out.stdout.clone()).expect("utf-8 stdout");
+    let stderr = String::from_utf8(out.stderr.clone()).expect("utf-8 stderr");
+    assert!(
+        stderr.contains("nested-triple-term-not-lowered") && stderr.contains("NESTS a triple term"),
+        "the nested attribution must be reported as the residue it is, got:\n{stderr}"
+    );
+    let doc: serde_json::Value = serde_json::from_str(&stdout).expect("stdout is one JSON doc");
+    let facts = doc["facts"].as_array().expect("facts array");
+    let lowered_subjects: Vec<&str> = facts
+        .iter()
+        .filter(|f| {
+            f["predicate"].as_str()
+                == Some("https://blackcatinformatics.ca/logic/reifiedStatementSubject")
+        })
+        .filter_map(|f| f["subject"]["value"].as_str())
+        .collect();
+    assert!(
+        lowered_subjects.contains(&"https://blackcatinformatics.ca/gmeow/clitest/flatClaim"),
+        "the FLAT attribution beside the nested one must still lower — the withhold is \
+         narrow, not a blanket refusal; got:\n{stdout}"
+    );
+    assert!(
+        !lowered_subjects.contains(&"https://blackcatinformatics.ca/gmeow/clitest/nestedClaim"),
+        "not one component edge may be emitted for a nested statement: a partial lowering \
+         would let two different nested claims join as one; got:\n{stdout}"
     );
 }
 
@@ -1083,6 +1185,67 @@ fn structured_explain_carries_all_five_elements_including_dissent() {
         doc["explanations"][0]["label_verdicts"][0]["provenance"].as_str(),
         Some("derived (input agrees)"),
         "the explanation's re-derived label must carry its own provenance"
+    );
+}
+
+/// The DERIVED sixth element, on a SHIPPED example: a recommendation resting on a claim
+/// two co-equal vantages take opposite stances on.
+///
+/// `gmeow:explanationDissent` above is AUTHORED — somebody's note that there was an
+/// objection. This is derived: `contextual-recommendation.ttl` carries two RDF 1.2
+/// attributions of the one statement `rollback ≻ hotfix`, one supporting and one opposing,
+/// and `logic:ruleAttributionContestedByOpposingVantage` joins them through the lowered
+/// statement components. Before that lowering the rule could not be WRITTEN — its two
+/// halves shared no variable, because the only thing saying the two attributions were
+/// about the same claim was the `rdf:reifies` triple term the engine could not read.
+#[test]
+fn structured_explain_derives_the_contested_claim_a_recommendation_rests_on() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "explain",
+        shipped_example("contextual-recommendation.ttl")
+            .to_str()
+            .expect("utf-8"),
+        "--action",
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/rollback",
+        "--format",
+        "json",
+    ]);
+    let contested = doc["contested"].as_array().expect("contested array");
+    assert_eq!(
+        contested.len(),
+        1,
+        "the two co-equal vantages over `rollback ≻ hotfix` must derive exactly one \
+         contestation, got:\n{doc}"
+    );
+    let row = &contested[0];
+    assert_eq!(
+        row["affirming_attribution"].as_str(),
+        Some(
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/cmdrOnRollbackOverHotfix"
+        )
+    );
+    assert_eq!(
+        row["opposing_attribution"].as_str(),
+        Some(
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/onCallOnRollbackOverHotfix"
+        )
+    );
+    assert!(
+        row["statement"]
+            .as_str()
+            .is_some_and(|s| s.contains("/rollback")
+                && s.contains("gmeow/strictlyOver")
+                && s.contains("/hotfix")),
+        "the contested STATEMENT must be named — 'somebody disagrees' without saying about \
+         what is not something an operator can weigh; got:\n{doc}"
+    );
+    assert_eq!(
+        row["derived_by"].as_str(),
+        Some("https://blackcatinformatics.ca/logic/ruleAttributionContestedByOpposingVantage"),
+        "the contestation must name the authored rule that concluded it"
     );
 }
 
