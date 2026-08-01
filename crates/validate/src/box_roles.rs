@@ -377,15 +377,23 @@ mod tests {
     const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the audit dispatches on the
+    /// `.ttl` extension and on file stems.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     #[test]
     fn box_role_audit_passes_for_explicit_typed_role() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_box_roles_pass.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix ex: <https://example.org/> .\n\
@@ -396,14 +404,13 @@ mod tests {
                  gmeow:graphBoxRole ex:tbox .\n",
         );
         let report = audit_box_roles(std::slice::from_ref(&path), ONTOLOGY_IRI, NS).unwrap();
-        std::fs::remove_file(&path).ok();
         assert!(report.ok());
         assert_eq!(report.role_counts.get("https://example.org/tbox"), Some(&1));
     }
 
     #[test]
     fn box_role_audit_reports_missing_and_invalid_roles() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_box_roles_missing_invalid.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix ex: <https://example.org/> .\n\
@@ -414,7 +421,6 @@ mod tests {
                  gmeow:graphBoxRole ex:notTypedAsRole .\n",
         );
         let report = audit_box_roles(std::slice::from_ref(&path), ONTOLOGY_IRI, NS).unwrap();
-        std::fs::remove_file(&path).ok();
         assert!(!report.ok());
         assert_eq!(
             report
@@ -439,7 +445,7 @@ mod tests {
 
     #[test]
     fn to_diagnostics_report_maps_missing_and_invalid() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_box_roles_diag.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix ex: <https://example.org/> .\n\
@@ -450,7 +456,6 @@ mod tests {
                  gmeow:graphBoxRole ex:notTypedAsRole .\n",
         );
         let audit = audit_box_roles(std::slice::from_ref(&path), ONTOLOGY_IRI, NS).unwrap();
-        std::fs::remove_file(&path).ok();
         let report = to_diagnostics_report(&audit, ONTOLOGY_IRI, NS);
 
         assert_eq!(report.tool, "box-roles");

@@ -1214,9 +1214,8 @@ mod tests {
     /// pattern). This is the teeth of the teeth check.
     #[test]
     fn structural_fail_witness_requires_the_ban_to_trip() {
-        let dir =
-            std::env::temp_dir().join(format!("slicetest-failwitness-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        let tmp = tempfile::tempdir().expect("temp slice dir");
+        let dir = tmp.path();
         // The real module never carries the banned triple.
         std::fs::write(
             dir.join("module.ttl"),
@@ -1254,7 +1253,7 @@ mod tests {
         };
         // A tripping witness: normal check passes (module clean) AND the teeth check passes.
         let (mut mo, mut mae) = (None, None);
-        run_structural_cell(&tripping, &dir, &mut mo, &mut mae)
+        run_structural_cell(&tripping, dir, &mut mo, &mut mae)
             .expect("a witness that supplies the banned pattern trips the mustNot ban");
 
         // An inert witness: the teeth check must hard-fail.
@@ -1263,7 +1262,7 @@ mod tests {
             ..tripping.clone()
         };
         let (mut mo2, mut mae2) = (None, None);
-        let err = run_structural_cell(&inert, &dir, &mut mo2, &mut mae2)
+        let err = run_structural_cell(&inert, dir, &mut mo2, &mut mae2)
             .expect_err("a witness that fails to supply the banned pattern must hard-fail");
         assert!(
             err.message().contains("did NOT trip") && err.message().contains("vacuous"),
@@ -1339,8 +1338,8 @@ mod tests {
     /// untouched by construction), and (c) be rejected outright in the RDFS lane.
     #[test]
     fn cq_data_file_overlay_applies_and_is_removed() {
-        let dir = std::env::temp_dir().join(format!("slicetest-overlay-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        let tmp = tempfile::tempdir().expect("temp slice dir");
+        let dir = tmp.path();
         let fixture = "@prefix ex: <https://example.org/test/> .\n\
                        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
                        ex:event1 a gmeow:Event .\n";
@@ -1374,7 +1373,7 @@ mod tests {
             rationale: None,
         };
 
-        run_competency_cell(&store, &cq, &dir).expect("overlay cell must pass");
+        run_competency_cell(&store, &cq, dir).expect("overlay cell must pass");
         assert_eq!(
             store.quad_count(),
             0,
@@ -1384,14 +1383,12 @@ mod tests {
         // Same cell in the RDFS lane: hard-fail, never silently under-answer.
         let mut rdfs_cq = cq.clone();
         rdfs_cq.reasoning = ReasoningProfile::Rdfs;
-        let err = run_competency_cell(&store, &rdfs_cq, &dir)
+        let err = run_competency_cell(&store, &rdfs_cq, dir)
             .expect_err("cqDataFile + reasoningRdfs must be rejected");
         assert!(
             err.message().contains("reasoningNone"),
             "unexpected error: {err}"
         );
-
-        std::fs::remove_dir_all(&dir).ok();
     }
 
     /// `gmeow:expectedSoleFinding` can FAIL, on the production conformance surface.

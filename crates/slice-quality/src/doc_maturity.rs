@@ -339,14 +339,18 @@ mod tests {
     }
 
     /// Scaffold a temp repo root carrying exactly one real slice (copied from the
-    /// committed `gmeow-docs` single-slice fixture). Returns the root and the slice
-    /// directory. No `generated/` tree is created.
-    fn scaffold_single_slice_root(tag: u32) -> (std::path::PathBuf, std::path::PathBuf) {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-docmaturity-det-{}-{tag}",
-            std::process::id()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+    /// committed `gmeow-docs` single-slice fixture). Returns the owning
+    /// [`tempfile::TempDir`], the root, and the slice directory. No `generated/`
+    /// tree is created.
+    ///
+    /// Two scaffolded roots never collide because each owns a distinct
+    /// `TempDir`, and each tree is removed when its guard drops — on success, on
+    /// panic, and on early return. The caller must bind the guard
+    /// (`let (_tmp, root, slice) = scaffold_single_slice_root();`); a bare `_`
+    /// binding would drop it at once and delete the tree out from under the test.
+    fn scaffold_single_slice_root() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let root = guard.path().join("gmeow-docmaturity-det");
         let slice_dir = root.join("slices").join("fixture").join("single");
         std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
         // The committed fixture lives in the sibling gmeow-docs crate.
@@ -360,7 +364,7 @@ mod tests {
             std::fs::copy(fixture.join(file), slice_dir.join(file))
                 .unwrap_or_else(|e| panic!("copy fixture {file}: {e}"));
         }
-        (root, slice_dir)
+        (guard, root, slice_dir)
     }
 
     /// Minimal but valid constraint-catalog N-Quads: one `gmeow:ValidationRule` with a
@@ -393,13 +397,13 @@ mod tests {
         let slice_iri = "https://blackcatinformatics.ca/gmeow/slices/fixture-single".to_owned();
 
         // COLD tree: no generated/ on disk, catalog primed from LIVE bytes.
-        let (live_root, live_slice) = scaffold_single_slice_root(line!());
+        let (_live_tmp, live_root, live_slice) = scaffold_single_slice_root();
         prime_repo_facts(&live_root, Some(&catalog));
         let live_ctx = ScoreContext::new(slice_iri.clone(), live_slice, &empty, ScoringEnv::Repo);
         let live = DocMaturity::axis(&live_ctx);
 
         // WARM tree: the SAME catalog bytes on disk, sourced by the disk path (None).
-        let (warm_root, warm_slice) = scaffold_single_slice_root(line!());
+        let (_warm_tmp, warm_root, warm_slice) = scaffold_single_slice_root();
         std::fs::create_dir_all(warm_root.join("generated").join("catalog"))
             .expect("mkdir generated");
         std::fs::write(
@@ -430,9 +434,6 @@ mod tests {
                 .any(|f| f.message.contains("documentation model could not be built")),
             "the live-bytes path must build the model, never the model-unavailable fallback"
         );
-
-        std::fs::remove_dir_all(&live_root).ok();
-        std::fs::remove_dir_all(&warm_root).ok();
     }
 
     #[test]

@@ -763,8 +763,10 @@ mod tests {
     /// still raises `UncoveredTerm` → `CLASS_UNCOVERED_TERM`, so the gate keeps its teeth.
     #[test]
     fn gate_reds_on_a_deliberately_uncovered_construct() {
-        let dir =
-            std::env::temp_dir().join(format!("gmeow-gmn1-gate-negative-{}", std::process::id()));
+        // RAII: the fixture tree is removed when `tmp` drops, including on a failed
+        // assertion below (which unwinds) or an early `expect`.
+        let tmp = tempfile::tempdir().expect("create temp fixture root");
+        let dir = tmp.path();
         let lang_dir = dir.join("slices/grounding/lang");
         let logic_dir = dir.join("slices/grounding/logic");
         let math_dir = dir.join("slices/grounding/math");
@@ -806,8 +808,7 @@ mod tests {
         )
         .unwrap();
 
-        let report = check_gmn1_roundtrip(&dir).expect("gate runs without a hard I/O error");
-        std::fs::remove_dir_all(&dir).ok();
+        let report = check_gmn1_roundtrip(dir).expect("gate runs without a hard I/O error");
 
         assert!(
             !report.is_clean(),

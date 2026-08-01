@@ -1326,23 +1326,26 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 mod gating_tests {
     use super::*;
 
-    /// A throwaway case directory under the system temp dir, removed on drop.
-    struct TmpCase(std::path::PathBuf);
+    /// A throwaway case directory whose whole tree is removed when the `TmpCase`
+    /// is dropped — on success, on panic, and on early return — because it owns
+    /// the `tempfile::TempDir` its scratch root lives in.
+    struct TmpCase {
+        /// The case directory itself: `<scratch root>/category/<tag>`. The
+        /// `category/` segment is load-bearing — `run_case` derives the case id
+        /// from the `<category>/<case>` path tail.
+        dir: std::path::PathBuf,
+        /// Owns the scratch root; dropping it removes `dir` with it.
+        _root: tempfile::TempDir,
+    }
     impl TmpCase {
         fn new(tag: &str) -> Self {
-            let dir = std::env::temp_dir()
-                .join("category")
-                .join(format!("gmeow-run-gate-{tag}-{}", std::process::id()));
+            let root = tempfile::tempdir().expect("create temp dir");
+            let dir = root.path().join("category").join(tag);
             std::fs::create_dir_all(&dir).expect("mkdir case dir");
-            Self(dir)
+            Self { dir, _root: root }
         }
         fn write(&self, name: &str, body: &str) {
-            std::fs::write(self.0.join(name), body).expect("write case file");
-        }
-    }
-    impl Drop for TmpCase {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
+            std::fs::write(self.dir.join(name), body).expect("write case file");
         }
     }
 
@@ -1370,7 +1373,7 @@ mod gating_tests {
             "profile.json",
             r#"{"reasoning_contract":{"preset":"StableModelProfile"},"expect_unsupported":true,"mode":"native"}"#,
         );
-        let out = run_case(&case.0).expect("expect_unsupported case must pass");
+        let out = run_case(&case.dir).expect("expect_unsupported case must pass");
         // The program was never evaluated: no quads, no answers, empty verdicts.
         assert!(out.materialized_nquads.is_empty());
         assert!(out.answers.is_empty());
@@ -1393,7 +1396,7 @@ mod gating_tests {
             "profile.json",
             r#"{"expect_unsupported":true,"mode":"native"}"#,
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("expect_unsupported"), "{err}");
         assert!(err.message().contains("no UNSUPPORTED_CONTRACT"), "{err}");
     }
@@ -1408,7 +1411,7 @@ mod gating_tests {
             "profile.json",
             r#"{"reasoning_contract":{"preset":"StableModelProfile"},"mode":"native"}"#,
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("Severity::Error"), "{err}");
         assert!(err.message().contains("UNSUPPORTED_CONTRACT"), "{err}");
     }
@@ -1436,7 +1439,7 @@ mod gating_tests {
             &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
         );
         case.write("input.nq", "");
-        let out = run_case(&case.0).expect("shipped_rules case must run");
+        let out = run_case(&case.dir).expect("shipped_rules case must run");
         // The rule reached the compiled program, so its Datalog projection carries it.
         let datalog = out
             .projections
@@ -1458,7 +1461,7 @@ mod gating_tests {
             "profile.json",
             r#"{"mode":"native","shipped_rules":["https://blackcatinformatics.ca/logic/ruleThatWasDeleted"]}"#,
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("ruleThatWasDeleted"), "{err}");
         assert!(
             err.message()
@@ -1487,7 +1490,7 @@ mod gating_tests {
             "profile.json",
             &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(
             err.message().contains("redeclares the shipped rule"),
             "{err}"
@@ -1526,7 +1529,7 @@ mod gating_tests {
         nq.push_str(&q(B, DISJOINT, C));
         case.write("input.nq", &nq);
 
-        let out = run_case(&case.0).expect("consistency case runs");
+        let out = run_case(&case.dir).expect("consistency case runs");
         assert_eq!(
             out.verdicts[W]["status"], "inconsistent",
             "populated clash must be inconsistent: {}",
@@ -1545,7 +1548,7 @@ mod gating_tests {
         nq.push_str(&q(A, SUBCLASS, B));
         case.write("input.nq", &nq);
 
-        let out = run_case(&case.0).expect("consistency case runs");
+        let out = run_case(&case.dir).expect("consistency case runs");
         assert_eq!(
             out.verdicts[W]["status"], "consistent",
             "clash-free world must be consistent: {}",
@@ -1558,7 +1561,7 @@ mod gating_tests {
         // No input.nq ⇒ hard fail (no silent skip / empty verdict).
         let case = TmpCase::new("noedb");
         case.write("profile.json", CONSISTENCY_PROFILE);
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("requires input.nq"), "{err}");
     }
 }

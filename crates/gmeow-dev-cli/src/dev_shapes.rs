@@ -3373,7 +3373,8 @@ mod tests {
 
         // A synthetic tree: an authored declarer is found; a generated/ declarer and a
         // non-declaring .ttl are not.
-        let tmp = std::env::temp_dir().join(format!("gmeow-shape-scan-{}", std::process::id()));
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
         let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
              <https://ex/S> a sh:NodeShape ; sh:targetClass <https://ex/C> .\n";
         std::fs::create_dir_all(tmp.join("generated")).expect("mkdir");
@@ -3385,8 +3386,7 @@ mod tests {
         )
         .expect("write");
         let mut found = Vec::new();
-        collect_legacy_shape_files(&tmp, &mut found);
-        let _ = std::fs::remove_dir_all(&tmp);
+        collect_legacy_shape_files(tmp, &mut found);
         assert_eq!(found, vec![tmp.join("a.ttl")], "{found:?}");
     }
 
@@ -3444,12 +3444,8 @@ mod tests {
         // registered as a `gmeow:saFailWitness`, one is not. The registration is the whole
         // difference: a witness that proves the ban has teeth must not be punished by the
         // scan, and a shape nobody registered must not hide behind that fact.
-        let tmp = std::env::temp_dir().join(format!(
-            "gmeow-fail-witness-scan-{}-{:?}",
-            std::process::id(),
-            std::thread::current().id()
-        ));
-        let _ = std::fs::remove_dir_all(&tmp);
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
         let ce = tmp.join("tests/counter-examples");
         std::fs::create_dir_all(&ce).expect("mkdir");
         std::fs::write(
@@ -3471,8 +3467,7 @@ mod tests {
         std::fs::write(ce.join("smuggled.ttl"), declarer).expect("write");
 
         let mut found = Vec::new();
-        collect_legacy_shape_files(&tmp, &mut found);
-        let _ = std::fs::remove_dir_all(&tmp);
+        collect_legacy_shape_files(tmp, &mut found);
 
         assert!(
             found.contains(&ce.join("smuggled.ttl")),
@@ -3491,12 +3486,8 @@ mod tests {
         // `gmeow:expectedOutcome gmeow:conforms` is not a fail-witness: the fixture is
         // supposed to VALIDATE, so it has no reason to hand-author a shape and registering
         // it must not buy one an exemption.
-        let tmp = std::env::temp_dir().join(format!(
-            "gmeow-conforming-cell-scan-{}-{:?}",
-            std::process::id(),
-            std::thread::current().id()
-        ));
-        let _ = std::fs::remove_dir_all(&tmp);
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
         let ce = tmp.join("tests/counter-examples");
         std::fs::create_dir_all(&ce).expect("mkdir");
         std::fs::write(
@@ -3522,8 +3513,7 @@ mod tests {
         std::fs::write(ce.join("violating.ttl"), declarer).expect("write");
 
         let mut found = Vec::new();
-        collect_legacy_shape_files(&tmp, &mut found);
-        let _ = std::fs::remove_dir_all(&tmp);
+        collect_legacy_shape_files(tmp, &mut found);
 
         assert!(
             found.contains(&ce.join("conforming.ttl")),

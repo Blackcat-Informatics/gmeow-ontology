@@ -1320,7 +1320,10 @@ mod tests {
         use std::io::Write;
         // Authority is the PROJECTION. Materialize a disk tree of three files under
         // generated/, then inject a projection whose keys diverge from it.
-        let dir = std::env::temp_dir().join(format!("gmeow-superset-sweep-{}", std::process::id()));
+        // RAII: the materialized tree is removed when `tmp` drops, including on a
+        // failed assertion below.
+        let tmp = tempfile::tempdir().expect("create temp materialized root");
+        let dir = tmp.path();
         let gen_dir = dir.join("generated/x");
         std::fs::create_dir_all(&gen_dir).unwrap();
         let write = |name: &str, bytes: &[u8]| {
@@ -1343,8 +1346,7 @@ mod tests {
         files.insert("generated/x/missing.ttl".to_string(), b"GONE".to_vec());
         let projection = BundleProjection { files };
 
-        let report = sweep_against_materialized(&projection, &dir).unwrap();
-        let _ = std::fs::remove_dir_all(&dir);
+        let report = sweep_against_materialized(&projection, dir).unwrap();
 
         assert_eq!(report.missing, vec!["generated/x/missing.ttl".to_string()]);
         assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
@@ -1363,12 +1365,12 @@ mod tests {
         files.insert("generated/y/b.ttl".to_string(), b"B".to_vec());
         let projection = BundleProjection { files };
 
-        // (a) An empty-but-present generated/ directory.
-        let empty_dir =
-            std::env::temp_dir().join(format!("gmeow-superset-empty-{}", std::process::id()));
+        // (a) An empty-but-present generated/ directory. RAII: removed when
+        // `empty_tmp` drops, including on a failed assertion below.
+        let empty_tmp = tempfile::tempdir().expect("create empty materialized root");
+        let empty_dir = empty_tmp.path();
         std::fs::create_dir_all(empty_dir.join("generated")).unwrap();
-        let report = sweep_against_materialized(&projection, &empty_dir).unwrap();
-        let _ = std::fs::remove_dir_all(&empty_dir);
+        let report = sweep_against_materialized(&projection, empty_dir).unwrap();
         assert_eq!(
             report.missing,
             vec![
@@ -1383,11 +1385,10 @@ mod tests {
         );
 
         // (b) A wholly absent generated/ tree (fresh clone) is equally not clean.
-        let absent_dir =
-            std::env::temp_dir().join(format!("gmeow-superset-absent-{}", std::process::id()));
-        std::fs::create_dir_all(&absent_dir).unwrap();
-        let report = sweep_against_materialized(&projection, &absent_dir).unwrap();
-        let _ = std::fs::remove_dir_all(&absent_dir);
+        // The root exists but carries no `generated/` child at all.
+        let absent_tmp = tempfile::tempdir().expect("create absent-generated root");
+        let absent_dir = absent_tmp.path();
+        let report = sweep_against_materialized(&projection, absent_dir).unwrap();
         assert_eq!(report.missing.len(), 2);
         assert!(!report.is_clean());
     }

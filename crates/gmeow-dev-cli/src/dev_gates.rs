@@ -824,19 +824,18 @@ pub fn quality(foops_url: &str, strict: bool) -> i32 {
 mod vendored_corpus_license_tests {
     use super::vendored_corpus_license_findings;
 
-    /// A unique temp directory under the system temp dir; the caller removes it.
-    fn tempdir(slug: &str) -> std::path::PathBuf {
-        let mut path = std::env::temp_dir();
-        path.push(format!(
-            "gmeow-dev-cli-vendored-license-{slug}-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_nanos())
-                .unwrap_or(0)
-        ));
-        std::fs::create_dir_all(&path).expect("create temp dir");
-        path
+    /// A fresh temp directory owned by the returned [`tempfile::TempDir`].
+    ///
+    /// Bind the guard to a live local (`let (_tmp, root) = tempdir("slug");`): when it
+    /// drops the directory and everything written under it is removed, on success, on
+    /// early return, and on panic alike.
+    fn tempdir(slug: &str) -> (tempfile::TempDir, std::path::PathBuf) {
+        let tmp = tempfile::Builder::new()
+            .prefix(&format!("gmeow-dev-cli-vendored-license-{slug}-"))
+            .tempdir()
+            .expect("create temp dir");
+        let path = tmp.path().to_path_buf();
+        (tmp, path)
     }
 
     fn write_descriptor(root: &std::path::Path, crate_name: &str, corpus_name: &str, json: &str) {
@@ -881,7 +880,7 @@ mod vendored_corpus_license_tests {
     /// unit tests.
     #[test]
     fn unfenced_cc_by_sa_descriptor_yields_one_error_finding() {
-        let root = tempdir("unfenced");
+        let (_tmp, root) = tempdir("unfenced");
         write_descriptor(
             &root,
             "some-crate",
@@ -905,14 +904,13 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the unfenced CC-BY-SA descriptor: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-violation");
-        std::fs::remove_dir_all(&root).ok();
     }
 
     /// Negative: a CC-BY-SA-4.0 descriptor with empty attribution likewise fails the exception
     /// and is folded as an Error finding.
     #[test]
     fn unattributed_cc_by_sa_descriptor_yields_one_error_finding() {
-        let root = tempdir("unattributed");
+        let (_tmp, root) = tempdir("unattributed");
         write_descriptor(
             &root,
             "some-crate",
@@ -936,14 +934,13 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the unattributed CC-BY-SA descriptor: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-violation");
-        std::fs::remove_dir_all(&root).ok();
     }
 
     /// A descriptor missing a required field (`ring_fenced`) is itself a HARD FAIL — no
     /// optionality, no silent skip.
     #[test]
     fn descriptor_missing_required_field_is_hard_fail() {
-        let root = tempdir("missing-field");
+        let (_tmp, root) = tempdir("missing-field");
         write_descriptor(
             &root,
             "some-crate",
@@ -962,6 +959,5 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the descriptor missing ring_fenced: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-invalid");
-        std::fs::remove_dir_all(&root).ok();
     }
 }

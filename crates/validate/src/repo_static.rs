@@ -99,6 +99,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
+    check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
     report
@@ -1161,19 +1162,26 @@ fn generated_read_ok_marked(orig_lines: &[&str], idx: usize) -> bool {
     false
 }
 
-/// Return `text` blanked two ways in parallel, both with (a) all comments and (b) every
-/// `#[cfg(test)]`-attributed item body replaced by spaces, preserving newlines (so line numbers
-/// and column offsets are unchanged): `.0` KEEPS string-literal contents (so
-/// `.join("generated"…)` stays visible to the generated/-read-ban scanner) and `.1` also blanks
-/// string/char literal contents (CODE ONLY, for the `Result<_, String>` scan — a mention inside
-/// a string literal is prose, not a type occurrence). A Rust-aware char scanner — handling
+/// Return `text` blanked three ways in parallel, all replacing regions with spaces and
+/// preserving newlines (so line numbers and column offsets are unchanged):
+///
+/// * `.0` — comments and `#[cfg(test)]` bodies blanked, string-literal contents KEPT (so
+///   `.join("generated"…)` stays visible to the generated/-read-ban scanner).
+/// * `.1` — comments, string/char literals, AND `#[cfg(test)]` bodies all blanked (CODE
+///   ONLY, for the `Result<_, String>` scan — a mention inside a string literal is prose,
+///   not a type occurrence).
+/// * `.2` — comments and string/char literals blanked but `#[cfg(test)]` bodies KEPT (CODE
+///   ONLY, tests included, for the unmanaged-temp-dir ban — the leaked scratch paths that
+///   filled a developer host's `/tmp` lived almost entirely inside test modules).
+///
+/// A Rust-aware char scanner — handling
 /// line/block comments, string / raw-string / byte-string literals, char literals
 /// **distinguished from lifetimes** (`'a`, `'static`), and byte prefixes — builds `.1` (a
 /// `skeleton`, strings + comments blanked) so the `#[cfg(test)]` item body can be brace-matched
 /// without being fooled by braces inside strings/comments, and reuses the same brace-matched
 /// span to blank both variants identically. Works entirely in CHAR indices (never byte
 /// offsets), so multi-byte chars (→, ∪, ×) never misalign it.
-fn blank_regions(text: &str) -> (String, String) {
+fn blank_regions(text: &str) -> (String, String, String) {
     let src: Vec<char> = text.chars().collect();
     let n = src.len();
     let mut out: Vec<char> = src.clone();
@@ -1308,6 +1316,12 @@ fn blank_regions(text: &str) -> (String, String) {
         i += 1;
     }
 
+    // Snapshot the code-only skeleton BEFORE `#[cfg(test)]` bodies are blanked. The
+    // unmanaged-temp-dir ban scans test bodies too — a leaked temp directory in a
+    // `#[cfg(test)]` module is exactly the litter that filled the developer host's
+    // `/tmp`, so exempting test code would exempt the entire defect.
+    let skeleton_with_tests: Vec<char> = skeleton.clone();
+
     // On the skeleton, blank every `#[cfg(test)]`-attributed item body. After the attribute,
     // the item's brace-delimited body is the region from the next `{` to its matching `}`
     // (fn / mod / impl); items with no body before a `;` (a `use`/`const`) carry no read.
@@ -1350,13 +1364,26 @@ fn blank_regions(text: &str) -> (String, String) {
         }
         m = k;
     }
-    (out.iter().collect(), skeleton.iter().collect())
+    (
+        out.iter().collect(),
+        skeleton.iter().collect(),
+        skeleton_with_tests.iter().collect(),
+    )
 }
 
 /// Comments and `#[cfg(test)]` bodies blanked, string/char literal CONTENTS kept — the
 /// generated/-read ban's view (it must still see `.join("generated"…)` string literals).
 fn blank_comments_and_cfg_test_modules(text: &str) -> String {
     blank_regions(text).0
+}
+
+/// Comments and string/char literals blanked, `#[cfg(test)]` bodies KEPT — CODE ONLY,
+/// tests included. Used by the unmanaged-temp-dir ban: the hand-rolled
+/// `env::temp_dir()` scratch paths that filled a developer host's `/tmp` with hundreds
+/// of gigabytes lived almost entirely inside `#[cfg(test)]` modules, so a scanner that
+/// blanks test bodies would see none of them.
+fn blank_comments_and_strings_keeping_tests(text: &str) -> String {
+    blank_regions(text).2
 }
 
 /// Comments, string/char literals, AND `#[cfg(test)]` bodies all blanked — CODE ONLY. Used by
@@ -1880,6 +1907,130 @@ fn check_no_string_result_error_type(root: &Path, report: &mut RepoStaticReport)
         };
         let detect = blank_comments_strings_and_cfg_test_modules(&text);
         scan_result_string_error_type(&rel, &text, &detect, report);
+    }
+}
+
+// ── temp-directory hygiene: every temporary path is RAII-managed ─────────
+
+/// The banned spellings of the system temp-directory accessor, as they appear in CODE
+/// (comments and string literals are blanked before the scan, so a mention in prose — such
+/// as the doc comment you are reading — never trips the gate). Both the fully-qualified
+/// `std::env::temp_dir` and the `use std::env;`-shortened `env::temp_dir` are matched;
+/// matching on the `temp_dir` call itself would also catch a bare `use std::env::temp_dir;`
+/// import, which is why the import form is listed too.
+const TEMP_DIR_ACCESSORS: &[&str] = &["std::env::temp_dir", "env::temp_dir"];
+
+/// The `TempDir`/`NamedTempFile` escape hatches that convert an RAII guard back into a bare
+/// path and thereby re-introduce the leak. `into_path` is the historical name and `keep` the
+/// current one; both consume the guard and disarm its `Drop`.
+const TEMP_GUARD_DISARMERS: &[&str] = &["into_path", "keep"];
+
+/// Temp-directory hygiene invariant: no first-party Rust source may build a scratch path out
+/// of the system temp directory by hand, and no source may disarm an RAII temp guard.
+///
+/// The defect this encodes is concrete and was paid for in disk: the repository used to
+/// hand-roll `std::env::temp_dir().join(format!("gmeow-…-{}", std::process::id()))` in 72
+/// places across 12 crates. Every one created the directory, wrote into it, and never removed
+/// it; keying on the pid guaranteed a *fresh* directory on every invocation, so a full gate
+/// run left hundreds of gigabytes of `gmeow-*` directories behind and the host's `/tmp` had to
+/// be cleared by hand. A manual `remove_dir_all` at the end of the function is not a fix — it
+/// does not run when an assertion fails, an `expect` fires, or the process is killed, which is
+/// precisely when a test leaves the most litter.
+///
+/// The gate therefore bans the *pattern*, not the symptom, and scans `#[cfg(test)]` bodies
+/// along with production code (via [`blank_comments_and_strings_keeping_tests`]) because the
+/// leaks were overwhelmingly in test modules. `tempfile::TempDir` / `tempfile::NamedTempFile`
+/// remove their path on `Drop` — on success, on early return, and while unwinding from a
+/// panic — so they are the only sanctioned way to obtain a temporary path.
+///
+/// A path that must genuinely outlive the process (a durable lock, a cache) does not belong in
+/// the system temp directory at all and is spelled as an explicit absolute path elsewhere; the
+/// host gate lock at `/var/tmp/gmeow-task/host-runner.lock` is the live example, and it never
+/// reaches for `temp_dir()`.
+fn check_no_unmanaged_temp_dir(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    files.sort();
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        let detect = blank_comments_and_strings_keeping_tests(&text);
+        scan_unmanaged_temp_dir(&rel, &text, &detect, report);
+    }
+}
+
+/// Scan one file's `detect` text (comments and string/char literals blanked, `#[cfg(test)]`
+/// bodies KEPT, exactly char-aligned with `orig_text`) for a hand-rolled system-temp path or a
+/// disarmed RAII temp guard.
+fn scan_unmanaged_temp_dir(
+    rel: &str,
+    orig_text: &str,
+    detect: &str,
+    report: &mut RepoStaticReport,
+) {
+    let orig_lines: Vec<&str> = orig_text.lines().collect();
+    let line_of = |byte_idx: usize| detect[..byte_idx].matches('\n').count();
+    let snippet_at = |line_no: usize| {
+        orig_lines
+            .get(line_no)
+            .map(|l| l.trim())
+            .unwrap_or("")
+            .to_owned()
+    };
+
+    for accessor in TEMP_DIR_ACCESSORS {
+        for (idx, _) in detect.match_indices(accessor) {
+            // `std::env::temp_dir` also contains the substring `env::temp_dir`; count the
+            // longest match once by skipping a short match that is part of the long one.
+            if *accessor == "env::temp_dir"
+                && idx >= 5
+                && detect.is_char_boundary(idx - 5)
+                && &detect[idx - 5..idx] == "std::"
+            {
+                continue;
+            }
+            let line_no = line_of(idx);
+            report.error(format!(
+                "{rel}:{}: builds a scratch path from the system temp directory by hand — \
+                 nothing removes it, so every run leaks a directory (this pattern left \
+                 hundreds of GB of gmeow-* litter in the host's temp dir). Use \
+                 `tempfile::TempDir` (via `tempfile::tempdir()`) or `tempfile::NamedTempFile`, \
+                 which delete on Drop including while unwinding from a panic. Bind the guard \
+                 to a NAMED variable (`let _tmp = tempfile::tempdir()?;`) — a bare `let _ =` \
+                 drops it immediately and the directory is gone before you use it — and join \
+                 any meaningful subdirectory or filename under `_tmp.path()`. A path that must \
+                 outlive the process belongs at an explicit durable location, not in the \
+                 system temp dir: {}",
+                line_no + 1,
+                snippet_at(line_no)
+            ));
+        }
+    }
+
+    for disarmer in TEMP_GUARD_DISARMERS {
+        let needle = format!(".{disarmer}()");
+        for (idx, _) in detect.match_indices(&needle) {
+            let line_no = line_of(idx);
+            let snippet = snippet_at(line_no);
+            report.error(format!(
+                "{rel}:{}: `.{disarmer}()` consumes an RAII temp guard and disarms its Drop, \
+                 turning a self-cleaning temporary back into a permanent leak — the exact \
+                 defect the unmanaged-temp-dir ban exists to prevent. Keep the `TempDir` / \
+                 `NamedTempFile` alive in a named binding for as long as the path is needed \
+                 instead: {snippet}",
+                line_no + 1
+            ));
+        }
     }
 }
 
@@ -3237,5 +3388,164 @@ mod tests {
         let (args, end) = parse_top_level_generic_args(&text, 0).expect("balanced");
         assert_eq!(args, vec!["BTreeMap<String, String>", "Diag"]);
         assert_eq!(end, text.len());
+    }
+
+    // ── temp-directory hygiene: every temporary path is RAII-managed ──────
+
+    fn temp_dir_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_no_unmanaged_temp_dir(root, &mut report);
+        report.errors
+    }
+
+    /// The regression this whole gate exists for: the LIVE repository must contain zero
+    /// hand-rolled system-temp scratch paths. This is the check that actually stops the
+    /// leak from growing back — the synthetic cases below only prove the scanner has teeth.
+    #[test]
+    fn live_tree_has_no_unmanaged_temp_dir() {
+        let errs = temp_dir_errors(live_repo_root());
+        assert!(
+            errs.is_empty(),
+            "the live tree must build every temporary path through tempfile's RAII guards; \
+             {} site(s) hand-roll one instead: {errs:#?}",
+            errs.len()
+        );
+    }
+
+    #[test]
+    fn hand_rolled_temp_dir_in_production_code_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn scratch() -> PathBuf {\n    \
+                 std::env::temp_dir().join(format!(\"gmeow-x-{}\", std::process::id()))\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("tempfile::TempDir"), "{errs:?}");
+        assert!(
+            errs[0].contains("crates/gmeow-foo/src/lib.rs:2"),
+            "{errs:?}"
+        );
+    }
+
+    /// The leaks that filled the host's `/tmp` were almost all inside `#[cfg(test)]`
+    /// modules, so — unlike the `Result<_, String>` scan — this gate must NOT exempt test
+    /// bodies. A gate that ignored them would have caught none of the original 72 sites.
+    #[test]
+    fn hand_rolled_temp_dir_inside_cfg_test_module_still_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn real() {}\n\
+             #[cfg(test)]\nmod tests {\n    \
+                 fn fixture() -> PathBuf { std::env::temp_dir().join(\"gmeow-y\") }\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    /// The `use std::env;`-shortened spelling is the same defect and must not be a bypass.
+    /// It is reported ONCE, not twice, even though `std::env::temp_dir` contains
+    /// `env::temp_dir` as a substring.
+    #[test]
+    fn shortened_env_temp_dir_spelling_fails_once() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "use std::env;\nfn s() -> PathBuf { env::temp_dir().join(\"gmeow-z\") }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(
+            errs.len(),
+            1,
+            "the shortened spelling must fail exactly once: {errs:?}"
+        );
+
+        let temp2 = tempfile::tempdir().unwrap();
+        crate_src(
+            temp2.path(),
+            "gmeow-foo",
+            "lib.rs",
+            "fn s() -> PathBuf { std::env::temp_dir().join(\"gmeow-z\") }\n",
+        );
+        let errs2 = temp_dir_errors(temp2.path());
+        assert_eq!(
+            errs2.len(),
+            1,
+            "the qualified spelling must not double-report via its own substring: {errs2:?}"
+        );
+    }
+
+    /// Disarming an RAII guard re-creates the leak, so `.into_path()` / `.keep()` are banned
+    /// too — otherwise the gate would be trivially bypassable by one method call.
+    #[test]
+    fn disarming_an_raii_temp_guard_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn a() -> PathBuf { tempfile::tempdir().unwrap().into_path() }\n\
+             fn b() -> PathBuf { tempfile::tempdir().unwrap().keep() }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 2, "{errs:?}");
+        assert!(
+            errs.iter().all(|e| e.contains("disarms its Drop")),
+            "{errs:?}"
+        );
+    }
+
+    /// Prose must never trip the gate: a comment or a string literal that NAMES the banned
+    /// accessor (this gate's own doc comments and error text do exactly that) is not a use.
+    #[test]
+    fn temp_dir_named_in_comment_or_string_literal_is_ignored() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "// Never call std::env::temp_dir() by hand; use tempfile::TempDir.\n\
+             /// Doc: `std::env::temp_dir()` is banned.\n\
+             const MSG: &str = \"do not use std::env::temp_dir()\";\n\
+             fn ok() { let _tmp = tempfile::tempdir().unwrap(); }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn raii_tempdir_usage_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn fixture() {\n    \
+                 let tmp = tempfile::tempdir().expect(\"tempdir\");\n    \
+                 let case = tmp.path().join(\"foundation\").join(\"free-role\");\n    \
+                 std::fs::create_dir_all(&case).unwrap();\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn temp_dir_gate_skips_a_repo_without_crates() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(temp_dir_errors(temp.path()).is_empty());
     }
 }

@@ -69,6 +69,13 @@ pub struct RunContext {
     pub progress: Option<Arc<dyn Reporter>>,
     /// The provenance sidecar: one unit per stage (capability-derived origin).
     pub provenance: DatasetProvenance,
+    /// RAII owner of an ephemeral cache directory, when this context was built by
+    /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
+    /// leaking a pid-salted path under the system temp dir — is what makes the cache
+    /// die with the run that created it, on success, on error, and on panic. `None`
+    /// for the persistent ([`Self::open`]) and inert ([`Self::open_uncached`])
+    /// boundaries, which own no temporary directory.
+    _ephemeral_cache_dir: Option<tempfile::TempDir>,
 }
 
 impl RunContext {
@@ -100,33 +107,34 @@ impl RunContext {
             stage_cache_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
+            // Persistent boundary: the cache lives under the repo's `.cache/`, not a
+            // temporary directory, so there is nothing to tear down.
+            _ephemeral_cache_dir: None,
         })
     }
 
-    /// Construct a run context whose cache lives in a FRESH, process-unique temp
+    /// Construct a run context whose cache lives in a FRESH, run-unique temp
     /// directory rather than the persistent `.cache/gmeow-sync/pipeline/`.
     ///
     /// Used by tests that want a clean, isolated cache per run (no cross-test or
     /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses
     /// [`Self::open_uncached`] because cumulative carrier snapshots are the wrong
     /// persistence boundary; unified sync owns whole-run reuse instead.
+    ///
+    /// The directory is a [`tempfile::TempDir`] OWNED by the returned context, so it
+    /// is removed when the run ends — including on error and on panic. It is
+    /// deliberately not a pid-salted path the process merely happens to know about:
+    /// a fresh name per invocation with no owner is an unbounded disk leak, which is
+    /// exactly what this boundary used to be.
     pub fn open_ephemeral(
         root: impl Into<PathBuf>,
         jobs: usize,
     ) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
-        // A process- + nanosecond-unique cache dir under the system temp root, so
-        // concurrent runs never collide and nothing leaks into the repo tree.
-        let nonce = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0);
-        let dir = std::env::temp_dir().join(format!(
-            "gmeow-pipeline-cache-{}-{}",
-            std::process::id(),
-            nonce
-        ));
-        let cache = PipelineCache::open(dir)?;
+        // `TempDir` supplies the uniqueness the old pid+nanosecond salt hand-rolled,
+        // and — unlike that salt — it also supplies the teardown.
+        let dir = tempfile::tempdir()?;
+        let cache = PipelineCache::open(dir.path())?;
         Ok(Self {
             root,
             jobs: jobs.max(1),
@@ -134,6 +142,7 @@ impl RunContext {
             stage_cache_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
+            _ephemeral_cache_dir: Some(dir),
         })
     }
 
@@ -150,6 +159,8 @@ impl RunContext {
             stage_cache_enabled: false,
             progress: None,
             provenance: DatasetProvenance::new(),
+            // Inert boundary: no cache I/O at all, so no temporary directory.
+            _ephemeral_cache_dir: None,
         }
     }
 

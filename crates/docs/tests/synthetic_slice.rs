@@ -127,19 +127,17 @@ ex:a a gmeow:Foo .
 // ── Fixture materialization ──────────────────────────────────────────────────
 
 /// A fresh, unique temp directory for one test's synthetic slice.
-fn fresh_dir(tag: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "gmeow-synth-slice-{}-{}-{}",
-        tag,
-        std::process::id(),
-        // A monotonic-ish disambiguator so parallel tests never share a dir.
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0)
-    ));
-    std::fs::remove_dir_all(&dir).ok();
-    dir
+///
+/// The path is a not-yet-created child of the returned [`tempfile::TempDir`]
+/// (`write_slice` creates it), and the guard removes the whole tree when it
+/// drops — on success, on panic, and on early return. Uniqueness comes from the
+/// guard, so `tag` is only a readable label. Callers must bind the guard
+/// (`let (_tmp, dir) = fresh_dir("…");`); a bare `_` binding would drop it
+/// immediately and delete the tree out from under the test.
+fn fresh_dir(tag: &str) -> (tempfile::TempDir, PathBuf) {
+    let guard = tempfile::tempdir().expect("create temp dir");
+    let dir = guard.path().join(format!("gmeow-synth-slice-{tag}"));
+    (guard, dir)
 }
 
 /// Write a synthetic slice directory with the given `docs.md` and optional design
@@ -157,14 +155,13 @@ fn write_slice(dir: &Path, guide: &str, design: Option<&[u8]>) {
 }
 
 /// Build the canonical rich model (guide + design child) from a freshly
-/// materialized synthetic slice, then delete the temp dir (the loader reads all
-/// bytes into the in-memory model, so nothing on disk is consulted afterwards).
+/// materialized synthetic slice. The temp dir is deleted when the guard drops at
+/// the end of this function — the loader reads all bytes into the in-memory
+/// model, so nothing on disk is consulted afterwards.
 fn rich_model(tag: &str) -> DocsModel {
-    let dir = fresh_dir(tag);
+    let (_tmp, dir) = fresh_dir(tag);
     write_slice(&dir, GUIDE_MD, Some(DESIGN_MD.as_bytes()));
-    let model = DocsModel::from_slice_dir(&dir).expect("discover synthetic slice");
-    std::fs::remove_dir_all(&dir).ok();
-    model
+    DocsModel::from_slice_dir(&dir).expect("discover synthetic slice")
 }
 
 /// The rendered site page body (`.md`) at a site-relative page dir.
@@ -506,7 +503,7 @@ fn search_and_llms_cover_the_child_document() {
 /// materially changes the model.
 #[test]
 fn changed_design_doc_bytes_change_the_model_digest() {
-    let dir = fresh_dir("digest");
+    let (_tmp, dir) = fresh_dir("digest");
     write_slice(&dir, GUIDE_MD, Some(DESIGN_MD.as_bytes()));
     let model_a = DocsModel::from_slice_dir(&dir).expect("discover A");
 
@@ -514,7 +511,6 @@ fn changed_design_doc_bytes_change_the_model_digest() {
     let mutated = DESIGN_MD.replace("motivating constraints", "revised motivating rationale");
     std::fs::write(dir.join("design").join("ARCHITECTURE.md"), &mutated).expect("rewrite design");
     let model_b = DocsModel::from_slice_dir(&dir).expect("discover B");
-    std::fs::remove_dir_all(&dir).ok();
 
     let design_digest = |m: &DocsModel| -> String {
         m.slices[0]
@@ -540,12 +536,11 @@ fn changed_design_doc_bytes_change_the_model_digest() {
 /// `DocsError::MarkdownUtf8` naming the offending slice-relative path.
 #[test]
 fn invalid_utf8_markdown_hard_fails_with_source_path() {
-    let dir = fresh_dir("utf8");
+    let (_tmp, dir) = fresh_dir("utf8");
     // A lone 0xFF byte is not valid UTF-8.
     let bad: &[u8] = b"# Architecture\n\n\xff\xfe not utf8\n";
     write_slice(&dir, GUIDE_MD, Some(bad));
     let err = DocsModel::from_slice_dir(&dir).expect_err("invalid UTF-8 must hard-fail");
-    std::fs::remove_dir_all(&dir).ok();
 
     match &err {
         DocsError::MarkdownUtf8 { source_path, .. } => {
@@ -623,12 +618,11 @@ fn colliding_page_path_hard_fails_naming_both() {
 /// rendering, and the panic message names the source path AND the offending link.
 #[test]
 fn dangling_internal_link_hard_fails_naming_path_and_link() {
-    let dir = fresh_dir("dangling");
+    let (_tmp, dir) = fresh_dir("dangling");
     let guide = "# Guide\n\nSee [x](design/NOPE.md) which does not exist.\n";
     // No design child on disk → the link dangles within the slice corpus.
     write_slice(&dir, guide, None);
     let model = DocsModel::from_slice_dir(&dir).expect("model builds; links resolve at render");
-    std::fs::remove_dir_all(&dir).ok();
 
     let msg = capture_panic(|| {
         let _ = render_site(&model);
@@ -649,11 +643,10 @@ fn dangling_internal_link_hard_fails_naming_path_and_link() {
 /// (H6→H7 is illegal), and the panic message names the source path.
 #[test]
 fn h6_source_heading_overflows_the_graft_naming_path() {
-    let dir = fresh_dir("h6");
+    let (_tmp, dir) = fresh_dir("h6");
     let guide = "# Guide\n\n###### Deep Note\n\nBody.\n";
     write_slice(&dir, guide, None);
     let model = DocsModel::from_slice_dir(&dir).expect("model builds; demotion at render");
-    std::fs::remove_dir_all(&dir).ok();
 
     let msg = capture_panic(|| {
         let _ = to_markdown(&model, &Page::Slice(SLICE_SLUG.to_string()));

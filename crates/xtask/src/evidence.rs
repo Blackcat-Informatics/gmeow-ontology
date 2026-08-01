@@ -160,7 +160,8 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
         let commit = git(root, ["rev-parse", "HEAD"]).expect("resolve HEAD");
         let tree = git(root, ["rev-parse", "HEAD^{tree}"]).expect("resolve HEAD tree");
-        let out = std::env::temp_dir().join(format!("gmeow-receipt-{}.txt", std::process::id()));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let out = tmp.path().join("receipt.txt");
 
         create_receipt(
             root,
@@ -171,7 +172,6 @@ mod tests {
         )
         .expect("create receipt");
         let body = std::fs::read_to_string(&out).expect("read receipt");
-        let _ = std::fs::remove_file(&out);
 
         for expected in [
             format!("schema={RECEIPT_SCHEMA}"),
@@ -197,16 +197,14 @@ mod tests {
     #[test]
     fn the_receipt_body_is_order_independent() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let pid = std::process::id();
-        let first = std::env::temp_dir().join(format!("gmeow-receipt-a-{pid}.txt"));
-        let second = std::env::temp_dir().join(format!("gmeow-receipt-b-{pid}.txt"));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let first = tmp.path().join("receipt-a.txt");
+        let second = tmp.path().join("receipt-b.txt");
 
         create_receipt(root, &first, "r", "t", &["sync", "audit", "validate"]).expect("first");
         create_receipt(root, &second, "r", "t", &["validate", "sync", "audit"]).expect("second");
         let a = std::fs::read_to_string(&first).expect("read first");
         let b = std::fs::read_to_string(&second).expect("read second");
-        let _ = std::fs::remove_file(&first);
-        let _ = std::fs::remove_file(&second);
         assert_eq!(
             a, b,
             "receipt bytes must depend on the task SET, not its order"

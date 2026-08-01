@@ -464,7 +464,13 @@ fn run_empty_shapes_ttl() -> String {
 /// Write one minimal, well-formed source Turtle file so `ValidationRun::run`'s
 /// syntax/sameAs pre-gates pass and the run reaches Phase 5b/5c. Its content is
 /// irrelevant to the fold under test.
-fn write_run_probe_source(name: &str) -> PathBuf {
+///
+/// The returned [`tempfile::TempDir`] owns the directory holding the probe: it
+/// is removed on drop, including on panic and early return. Bind it to a named
+/// `_tmp` (never a bare `_`, which would drop it immediately) so it outlives the
+/// returned path. The `.ttl` file *name* is preserved because the run dispatches
+/// on the extension.
+fn write_run_probe_source(name: &str) -> (tempfile::TempDir, PathBuf) {
     let ttl = format!(
         "@prefix gmeow: <{RUN_NS}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -475,12 +481,12 @@ fn write_run_probe_source(name: &str) -> PathBuf {
            skos:definition \"A probe class for the run-level authoring-integrity test.\"@en ;\n\
            rdfs:isDefinedBy <{RUN_NS}> .\n"
     );
-    let path = std::env::temp_dir().join(format!(
-        "gmeow_authoring_integrity_{name}_{}.ttl",
-        std::process::id()
-    ));
+    let dir = tempfile::tempdir().expect("probe tempdir");
+    let path = dir
+        .path()
+        .join(format!("gmeow_authoring_integrity_{name}.ttl"));
     std::fs::write(&path, &ttl).expect("write probe source");
-    path
+    (dir, path)
 }
 
 /// `ValidationRun::run`-level proof that Phase 5b (`validate.authoring_integrity`)
@@ -494,7 +500,7 @@ fn write_run_probe_source(name: &str) -> PathBuf {
 #[test]
 fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
     let farm = build_planted_defect_farm();
-    let probe = write_run_probe_source("planted");
+    let (_probe_tmp, probe) = write_run_probe_source("planted");
 
     let options = ValidateOptions {
         project_root: Some(farm.path().to_path_buf()),
@@ -510,8 +516,6 @@ fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
         &options,
     )
     .expect("orchestration must complete over the planted-defect farm");
-
-    std::fs::remove_file(&probe).ok();
 
     let missing_tier_errors: Vec<&gmeow_errors::Finding> = run
         .report
@@ -557,7 +561,7 @@ fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
 #[test]
 fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
     let root = repo_root();
-    let probe = write_run_probe_source("clean");
+    let (_probe_tmp, probe) = write_run_probe_source("clean");
 
     let options = ValidateOptions {
         project_root: Some(root),
@@ -574,8 +578,6 @@ fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
         &options,
     )
     .expect("orchestration must complete over the real repository root");
-
-    std::fs::remove_file(&probe).ok();
 
     // NOTE on why this is NOT a blanket "zero Severity::Error over the whole
     // report" assertion: it was tried and observed NOT robust. `probe` (the

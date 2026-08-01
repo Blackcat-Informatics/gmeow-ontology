@@ -2321,10 +2321,8 @@ mod base_monotonicity_git_tests {
     use super::*;
     use gmeow_slice_quality::gate::axis_floor_monotonicity;
     use std::process::Command;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
     /// A structurally-complete minimal rubric module (a two-rung ladder, one axis, one
     /// threshold) — the CENTRALIZED authority the base reconstruction reads from the
@@ -2359,13 +2357,12 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
     }
 
+    /// A git repo fixture whose tree lives in an owned temp directory: dropping the
+    /// fixture drops the [`tempfile::TempDir`], which removes the tree — on success,
+    /// on early return, and on panic alike.
     struct GitFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for GitFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// Run a git command in `root`, isolated from user/system config (never signs).
@@ -2390,12 +2387,15 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
     /// non-rubric floor at `base_floor`, commit it (the merge base), and return the
     /// fixture and the base commit SHA. The caller then rewrites the working tree.
     fn fixture_with_base_floor(base_floor: &str) -> (GitFixture, String) {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-basemono-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let fx = GitFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-basemono-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = GitFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
 
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
@@ -2509,27 +2509,25 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
 mod gate_enforcement_tests {
     use super::*;
     use gmeow_slice_quality::gate::evaluate_axis_floor;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
+    /// A fixture repo whose tree lives in an owned temp directory: dropping the fixture
+    /// drops the [`tempfile::TempDir`], which removes the tree — on success, on early
+    /// return, and on panic alike.
     struct TempFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for TempFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// A minimal on-disk fixture repo (no git): a complete rubric slice plus a
     /// non-rubric demo slice authoring one `gmeow:AxisFloorCommitment` at `floor`.
     fn fixture_with_non_rubric_floor(floor: &str) -> TempFixture {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-gate-enforce-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-gate-enforce-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(&rubric_dir).unwrap();
@@ -2566,7 +2564,7 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
         .unwrap();
         std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
-        TempFixture { root }
+        TempFixture { _tmp: tmp, root }
     }
 
     #[test]

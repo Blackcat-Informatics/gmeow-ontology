@@ -4697,12 +4697,8 @@ mod tests {
     /// a tolerated read — the model build fails and names the offending path.
     #[test]
     fn competency_query_outside_the_hashed_roots_hard_fails() {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-cq-root-test-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-cq-root-test");
         std::fs::create_dir_all(root.join("dsl")).expect("mkdir");
         // The file EXISTS and is readable — only its location is illegal, so this
         // proves the boundary itself rejects, not a dangling-path fallback.
@@ -4733,7 +4729,6 @@ mod tests {
             model.competencies[0].query_text.as_deref(),
             Some("SELECT * {}")
         );
-        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
@@ -4824,12 +4819,8 @@ gmeow:hasOwner a owl:ObjectProperty ;
     /// a silent empty that would drop every relocated linkage's `MappingSet`).
     #[test]
     fn central_mapping_sets_absent_ok_but_malformed_hard_fails() {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-mapsets-test-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-mapsets-test");
         let dir = root.join("dsl").join("mappings");
         std::fs::create_dir_all(&dir).expect("mkdir");
 
@@ -4850,8 +4841,6 @@ gmeow:hasOwner a owl:ObjectProperty ;
         let err = read_central_mapping_sets(&root)
             .expect_err("a malformed central mapping-sets.ttl must hard-fail, not return empty");
         assert!(matches!(err, DocsError::MappingSets(_)));
-
-        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
@@ -5282,12 +5271,8 @@ ex:uniformProbability a math:ProbabilityMeasure ;
     fn discover_with_catalog_bootstraps_cold_tree_and_matches_disk_path() {
         // A temp repo root carrying exactly one real slice (copied from the committed
         // single-slice fixture) and — deliberately — NO generated/ tree.
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-catalog-bootstrap-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-catalog-bootstrap");
         let slice_dir = root.join("slices").join("fixture").join("single");
         std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
         let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -5371,7 +5356,5 @@ ex:uniformProbability a math:ProbabilityMeasure ;
             (0.0..=1.0).contains(&fraction),
             "the fixture slice earns a bounded, non-vacuous coverage fraction, got {fraction}"
         );
-
-        std::fs::remove_dir_all(&root).ok();
     }
 }

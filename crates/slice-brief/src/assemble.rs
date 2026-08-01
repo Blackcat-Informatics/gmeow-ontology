@@ -847,12 +847,16 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
 #[cfg(test)]
 mod collect_ttl_tests {
     use super::collect_ttl;
-    use std::path::PathBuf;
 
-    /// A deterministic (non-random) scratch path under the process temp dir,
-    /// namespaced by test name so parallel tests never collide.
-    fn scratch_path(test_name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("gmeow-slice-brief-collect_ttl-{test_name}"))
+    /// A fresh scratch directory owned by the returned [`tempfile::TempDir`]: it is
+    /// unique per test by construction (so parallel tests never collide), and dropping
+    /// the guard removes it and everything under it — on success, on early return, and
+    /// on panic alike.
+    fn scratch_dir() -> tempfile::TempDir {
+        tempfile::Builder::new()
+            .prefix("gmeow-slice-brief-collect_ttl-")
+            .tempdir()
+            .expect("create scratch dir")
     }
 
     /// A missing directory is a legitimate "absent" input: `Ok(())`, nothing
@@ -860,9 +864,9 @@ mod collect_ttl_tests {
     /// empty.
     #[test]
     fn absent_directory_is_ok_and_empty() {
-        let dir = scratch_path("absent_directory_is_ok_and_empty");
-        // Idempotent: make sure no leftover state from a prior aborted run exists.
-        let _ = std::fs::remove_dir_all(&dir);
+        let tmp = scratch_dir();
+        // A path INSIDE the fresh scratch directory that is deliberately never created.
+        let dir = tmp.path().join("absent");
         assert!(!dir.exists(), "precondition: {dir:?} must not exist");
 
         let mut out = Vec::new();
@@ -885,8 +889,8 @@ mod collect_ttl_tests {
     /// permission-bits test, which root would bypass).
     #[test]
     fn unreadable_non_directory_parent_errors() {
-        let marker_file = scratch_path("unreadable_non_directory_parent_errors");
-        let _ = std::fs::remove_file(&marker_file);
+        let tmp = scratch_dir();
+        let marker_file = tmp.path().join("marker");
         std::fs::write(&marker_file, b"not a directory").expect("write marker file");
 
         // `marker_file` is a plain file, so `marker_file/mappings` cannot be a
@@ -903,8 +907,6 @@ mod collect_ttl_tests {
             out.is_empty(),
             "no paths must be collected on the error path, got {out:?}"
         );
-
-        let _ = std::fs::remove_file(&marker_file);
     }
 }
 

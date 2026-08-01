@@ -2201,10 +2201,18 @@ mod tests {
 
     use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the validation run dispatches
+    /// on the `.ttl` extension.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     /// The per-example `base ∪ example` merge dedups shared base quads and adds the
@@ -2221,12 +2229,11 @@ mod tests {
         let base_quads: Vec<purrdf::RdfQuad> = base.owned_quads().collect();
 
         // An example carrying one duplicate of the base quad plus one new quad.
-        let example_path = write_tmp(
+        let (_tmp, example_path) = write_tmp(
             "gmeow_validate_example_merge.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
         );
         let example = store::parse_file_dataset(&example_path).unwrap();
-        std::fs::remove_file(&example_path).ok();
 
         let mut builder = RdfDatasetBuilder::new();
         for q in &base_quads {
@@ -2785,7 +2792,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// Ok early-return path, not the vacuous build-store-failure path.
     #[test]
     fn early_return_path_emits_no_advisory() {
-        let banned_ttl_path = write_tmp(
+        let (_tmp, banned_ttl_path) = write_tmp(
             "gmeow_validate_advisory_early_return_sameas.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -2796,8 +2803,6 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         let options = ValidateOptions::default();
         let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
             .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
-
-        std::fs::remove_file(&banned_ttl_path).ok();
 
         // The run hard-failed (the sameAs ban is an error), proving we hit the
         // short-circuit early-return path.

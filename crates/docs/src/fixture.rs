@@ -522,16 +522,17 @@ mod tests {
     use super::*;
 
     /// A fresh, empty temp root (cache_key over absent discovery roots = salt
-    /// only, so these stay cheap). The process id keeps it unique under nextest's
-    /// process-per-test model; the tag keeps tests within a process disjoint.
-    fn temp_root(tag: &str) -> PathBuf {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-docs-fixture-test-{}-{tag}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&root);
+    /// only, so these stay cheap). The root is owned by the returned
+    /// [`tempfile::TempDir`], which removes the whole tree when it drops — on
+    /// success, on panic, and on early return. Uniqueness comes from the guard,
+    /// so the tag is purely a readable name for the root inside it. Callers must
+    /// bind the guard (`let (_tmp, root) = temp_root("key");`); binding it to a
+    /// bare `_` drops it immediately and deletes the root out from under the test.
+    fn temp_root(tag: &str) -> (tempfile::TempDir, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let root = guard.path().join(tag);
         fs::create_dir_all(&root).expect("create temp root");
-        root
+        (guard, root)
     }
 
     #[test]
@@ -557,7 +558,7 @@ mod tests {
 
     #[test]
     fn cache_key_is_deterministic_and_content_sensitive() {
-        let root = temp_root("key");
+        let (_tmp, root) = temp_root("key");
         fs::create_dir_all(root.join("slices")).unwrap();
         fs::write(root.join("slices/a.ttl"), b"v1").unwrap();
         let k1 = cache_key(&root);
@@ -588,7 +589,7 @@ mod tests {
     /// between an edit to one of them and a stale cached model.
     #[test]
     fn every_hashed_crate_root_moves_the_key() {
-        let root = temp_root("crate-roots");
+        let (_tmp, root) = temp_root("crate-roots");
         for krate in HASHED_CRATE_ROOTS {
             let src = root.join("crates").join(krate).join("src");
             fs::create_dir_all(&src).unwrap();
@@ -673,7 +674,7 @@ mod tests {
     fn competency_query_roots_are_hashed() {
         for boundary in COMPETENCY_QUERY_ROOTS {
             let dir = boundary.trim_end_matches('/');
-            let root = temp_root(&format!("cq-{dir}"));
+            let (_tmp, root) = temp_root(&format!("cq-{dir}"));
             fs::create_dir_all(root.join(dir)).unwrap();
             let before = cache_key(&root);
             fs::write(root.join(dir).join("q.rq"), b"SELECT * {}").unwrap();
@@ -687,7 +688,7 @@ mod tests {
 
     #[test]
     fn model_and_site_cache_paths_share_the_key_with_distinct_suffix() {
-        let root = temp_root("paths");
+        let (_tmp, root) = temp_root("paths");
         let key = cache_key(&root);
         assert_eq!(
             cache_path(&root).file_name().unwrap().to_string_lossy(),
@@ -719,7 +720,7 @@ mod tests {
 
     #[test]
     fn per_language_site_paths_are_tagged_and_distinct() {
-        let root = temp_root("lang-paths");
+        let (_tmp, root) = temp_root("lang-paths");
         let key = cache_key(&root);
         // English keeps the bare suffix; translations are tagged by language.
         assert_eq!(
@@ -746,7 +747,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture cache")]
     fn present_but_corrupt_model_cache_panics() {
-        let root = temp_root("corrupt-model");
+        let (_tmp, root) = temp_root("corrupt-model");
         let cp = cache_path(&root);
         fs::create_dir_all(cp.parent().unwrap()).unwrap();
         fs::write(&cp, b"{ not valid json").unwrap();
@@ -756,7 +757,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture site cache")]
     fn present_but_corrupt_site_cache_panics() {
-        let root = temp_root("corrupt-site");
+        let (_tmp, root) = temp_root("corrupt-site");
         let sp = site_cache_path(&root, ENGLISH);
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
@@ -766,7 +767,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture book cache")]
     fn present_but_corrupt_book_cache_panics() {
-        let root = temp_root("corrupt-book");
+        let (_tmp, root) = temp_root("corrupt-book");
         let bp = book_cache_path(&root);
         fs::create_dir_all(bp.parent().unwrap()).unwrap();
         fs::write(&bp, b"{ not valid json").unwrap();
