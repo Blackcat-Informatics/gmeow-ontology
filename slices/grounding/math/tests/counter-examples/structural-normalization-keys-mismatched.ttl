@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
+# The two keys are the REAL recomputed digests of their own expressions, not placeholder
+# strings. That is what isolates this counter-example: a fabricated key is
+# math:StructuralKeyDrift, a different failure entirely, and it would fire alongside the one
+# under test. Here each expression's key is correct FOR ITSELF, and the defect is that the
+# declaration claims math:structuralNormalization over a (source, target) pair whose correct
+# keys differ — 4 and 5 are not the same number, so no structural normalization relates them.
+#
 # Single violation: a math:NormalizationDeclaration held at math:structuralNormalization
 # whose math:normalizes source and math:normalizesTo target carry DIFFERENT
 # math:structuralKey values — a false structural-identity claim
@@ -14,13 +21,13 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:mismatchedSource a math:MathematicalExpression ;
+ex:mismatchedSource a math:NumberLiteral ;
     math:normalForm ex:mismatchedTarget ;
-    math:structuralKey "key-a" ;
+    math:structuralKey "69ba4365e15af0a207c212fa93abbb9abb2c58a2fced3818116e66908159d8a9" ;
     math:literalValue "4"^^xsd:integer .
 
-ex:mismatchedTarget a math:MathematicalExpression ;
-    math:structuralKey "key-b" ;
+ex:mismatchedTarget a math:NumberLiteral ;
+    math:structuralKey "509fff70bbe577c22eefc46ee71bc97c855ca8ef2631585c4ace81a61278f77e" ;
     math:literalValue "5"^^xsd:integer .
 
 ex:mismatchedDecl a math:NormalizationDeclaration ;

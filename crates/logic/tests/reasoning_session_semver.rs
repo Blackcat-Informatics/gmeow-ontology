@@ -235,12 +235,12 @@ use session_common::*;
 /// `alpha_class_iri` wrapper deletion, the alpha-class materializer moving onto the asserted
 /// graph, the unconditional typed-rejection emitter, and the lowering now accepting both
 /// authored `math:literalValue` idioms and the abstract expression base as an operand — the
-/// last only where it is genuinely undecomposed, and with that base joining the root
-/// population so a key authored on it is checked — moves the backward-source digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
+/// last only where it is genuinely undecomposed, so a value-bearing node can no longer be
+/// interned on its name — moves the backward-source digest. The published digest bytes are unchanged (`Arena::key` returns `TermDag::key`
 /// verbatim, and both routes now fold through the single `fold_content_key`), so no
 /// reasoning verdict moves with it.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "13280ed9a8fbdf77882216fa1a2df6c7e038027382636ac8798e6779c9a08ce6";
+    "c982951b99eaf1bc46f559c3a5d3e73d9953b91903b0562f270b278981560a7a";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -341,7 +341,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// fixed edge-only input (authoring no `math:` expression graph) has an unchanged
 /// reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "42ab6f25d59d30884c459e36b9ce2a2843b946882dcc2fd5e08ae68321690527";
+    "d5a8ad6357f6238d1075dddbb2479beb07628b5b3d890c169ad43620dd15caf6";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -783,14 +783,6 @@ impl MathGraph {
                     || self.has_type(subject, M_BINDING)
                     || self.has_type(subject, M_VARIABLE_EXPRESSION)
                     || self.has_type(subject, M_NUMBER_LITERAL)
-                    // The abstract base too. It is `math:structuralKey`'s DECLARED domain, and
-                    // leaving it out of the root population meant an authored key on such a node
-                    // reached no digest to be compared against: `check_structural_key_drift`
-                    // found no entry and skipped it, so a hand-guessed digest — the exact thing
-                    // the property's own `gmeow:avoidWhen` forbids — passed the gate silently.
-                    // Included here, an undecomposed one lowers to its IRI leaf and its key is
-                    // checked like any other; a decomposed one is rejected and reported.
-                    || self.has_type(subject, M_MATHEMATICAL_EXPRESSION)
             })
             .cloned()
             .collect()
@@ -1110,9 +1102,14 @@ fn lower_math_node_dispatch(
             && math_types
                 .iter()
                 .all(|t| t.as_str() == M_MATHEMATICAL_EXPRESSION)
-            && STRUCTURED_CHILD_EDGES
-                .iter()
-                .all(|edge| graph.refs(node, edge).is_empty());
+            && STRUCTURED_CHILD_EDGES.iter().all(|edge| {
+                // IRI/blank objects AND literal objects both count as structure: a
+                // `math:literalValue "4"^^xsd:integer` is content, and `refs` alone (which
+                // sees only IRI/blank objects) would let a value-bearing node through as
+                // "undecomposed" and intern it on its IRI — dropping the value, so two such
+                // nodes carrying 4 and 5 would be told apart only by their names.
+                graph.refs(node, edge).is_empty() && graph.first_lit_typed(node, edge).is_none()
+            });
         let is_constant_operand = !node.starts_with("_:")
             && (math_types.is_empty()
                 || is_abstract_expression
