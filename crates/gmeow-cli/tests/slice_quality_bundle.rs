@@ -307,9 +307,10 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     let bundle = score_external_slice(&std, &slice_dir).expect("bundle score");
 
     // Repo run against the SAME standard (loaded via the public rubric API), scored
-    // in Repo mode. Off-repo, gmn1 + DocMaturity legitimately go vacuous (1.0),
-    // while GMN glyph optimality fails closed because its canonical lang authority
-    // cannot be assembled. Every other axis must be identical to the Bundle run.
+    // in Repo mode. Off-repo, gmn1 + advice-coverage legitimately go vacuous (1.0),
+    // while GMN glyph optimality and DocMaturity fail CLOSED (0.0) because neither's
+    // authority — the canonical lang audit graph, the repo documentation model — can be
+    // assembled. Every other axis must be identical to the Bundle run.
     let ds = purrdf::gts::flattened_dataset_from_bytes(gmeow_cli::BUNDLE_GTS)
         .expect("flatten bundle dataset");
     let std_meas: MeasurementStandard = gmeow_slice_quality::rubric::load_rubric(&ds)
@@ -324,8 +325,10 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     )
     .expect("repo score");
 
-    // The four env-DIVERGENT axes: three are vacuous off-repo; glyph optimality is
-    // deliberately non-vacuous because losing its audit authority must be visible.
+    // The four env-DIVERGENT axes: two are vacuous off-repo; glyph optimality and
+    // DocMaturity are deliberately non-vacuous because losing their measuring authority
+    // must be VISIBLE. An axis that could not be measured is a defect to fix, never a
+    // grade to bank — scoring it 1.0 would launder "nothing was known" into the maximum.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
         1.0,
@@ -333,8 +336,15 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     );
     assert_eq!(
         grade_for(&repo, AXIS_DOC_MATURITY).score,
-        1.0,
-        "DocMaturity goes vacuous 1.0 in Repo mode off-repo"
+        0.0,
+        "DocMaturity fails closed at 0.0 in Repo mode off-repo: the repo documentation model \
+         cannot be built there, so its coverage is UNMEASURED — never vacuously maximal"
+    );
+    assert!(
+        advisory_codes(&repo)
+            .iter()
+            .any(|code| code == "slice-quality.doc-maturity.model-unavailable"),
+        "the failed-closed DocMaturity score names the model it could not build"
     );
     assert_eq!(
         grade_for(&repo, AXIS_ADVICE_COVERAGE).score,

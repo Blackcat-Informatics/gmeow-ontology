@@ -66,7 +66,7 @@ pub(crate) fn catalog_triples(
     if catalog.is_empty() {
         return Err(err(format!(
             "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
-             distribution catalog is missing; re-materialize the bundle with `make regen`"
+             distribution catalog is missing; re-materialize the bundle with `make check`"
         )));
     }
     Ok(catalog)

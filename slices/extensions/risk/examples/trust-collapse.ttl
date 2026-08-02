@@ -46,7 +46,7 @@ ex:betrayalHazard a gmeow:Hazard ;
     gmeow:hazardSeverity gmeow:severityCatastrophic .
 
 # Open-range measure: the oath norm plugs in with no
-# extension→extension axiom — the IRI is reference, not dependency.
+# axiom coupling — the IRI is a reference, not a dependency.
 ex:oathMitigation a gmeow:Mitigation ;
     gmeow:mitigationMeasure ex:oathNorm ;
     gmeow:mitigationCounters ex:linkBetrayalToDissolution , ex:betrayalHazard ;

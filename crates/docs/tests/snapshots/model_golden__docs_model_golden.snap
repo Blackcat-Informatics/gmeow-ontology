@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 6521,
-  "dependency_edge_count": 1345,
+  "term_count": 6868,
+  "dependency_edge_count": 1393,
   "term_count_by_category": {
-    "Class": 1822,
+    "Class": 1881,
     "Datatype": 1,
-    "Individual": 1584,
-    "Property": 3114
+    "Individual": 1694,
+    "Property": 3292
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -81,7 +81,6 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
     "https://blackcatinformatics.ca/gmeow/slices/preference",
-    "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
     "https://blackcatinformatics.ca/gmeow/slices/provenance",
     "https://blackcatinformatics.ca/gmeow/slices/quality",
@@ -99,7 +98,8 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/teleology",
     "https://blackcatinformatics.ca/gmeow/slices/temporal",
     "https://blackcatinformatics.ca/gmeow/slices/trust",
-    "https://blackcatinformatics.ca/gmeow/slices/versions"
+    "https://blackcatinformatics.ca/gmeow/slices/versions",
+    "https://blackcatinformatics.ca/gmeow/slices/work-orchestration"
   ],
   "sample_slice": {
     "iri": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -341,9 +341,9 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 100,
-  "linkage_count": 2121,
-  "example_count": 193,
+  "mapping_set_count": 109,
+  "linkage_count": 2119,
+  "example_count": 203,
   "concern_count": 7,
   "external_term_count": 1802,
   "sample_mapping_set": {
@@ -442,8 +442,8 @@ expression: summary
       "graph-rag-dataset-lineage"
     ],
     "example_paths": [
+      "slices/core/agentic/examples/agent-trajectory.ttl",
       "slices/core/ai/examples/grounded-claim.ttl",
-      "slices/extensions/agentic/examples/agent-trajectory.ttl",
       "slices/extensions/graphrag/examples/lillith-dataset.ttl",
       "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
     ],
@@ -461,7 +461,7 @@ expression: summary
     ]
   },
   "shape_count": 144,
-  "competency_count": 295,
+  "competency_count": 342,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

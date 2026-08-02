@@ -50,7 +50,7 @@ distributions + checksums, the DCAT catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`generated/queries/*.rq` by `make regen`. A
+`generated/queries/*.rq` by `make check`. A
 target-by-target summary with spec links is in the
 [README projection-targets table](../README.md#projection-targets).
 
@@ -138,8 +138,8 @@ algebra** (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` +
 alt/seq/zero-or-more property paths) — **no raw SPARQL** appears in the source.
 
 ```sh
-make regen        # render registered generated artifacts from canonical sources
-make check-sync   # CI gate: fail if a committed artifact is stale
+make check-sync SYNC_MODE=update   # render registered generated artifacts from canonical sources
+make check-sync                    # CI gate: fail if a materialized artifact is stale
 ```
 
 Two properties hold **by construction**, eliminating the bug classes review used
@@ -252,7 +252,7 @@ Key authoring choices, each a single field on the pattern or binding:
   traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
   projection is structural / SSSOM-backed (no EDOAL cell).
 
-After any change, run `make regen` or the registered generator in check mode; the
+After any change, run `make check` or the registered generator in check mode; the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
 violation. Never hand-edit generated mapping artifacts under `generated/mappings/`,
 `generated/projections/`, or `generated/queries/` — `make check-sync` fails on drift.

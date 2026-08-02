@@ -413,7 +413,7 @@ pub fn check_gmn1_shipped_projections(
         if doc.text.as_bytes() != bytes.as_slice() {
             return Err(stage_err(&format!(
                 "shipped GMN-1 projection {path} is stale — its bytes differ from the current \
-                 projection of its source (run `make regen`)"
+                 projection of its source (run `make check`)"
             )));
         }
         // The production classifier over the shipped artifact (its full document, whose text
@@ -763,8 +763,10 @@ mod tests {
     /// still raises `UncoveredTerm` → `CLASS_UNCOVERED_TERM`, so the gate keeps its teeth.
     #[test]
     fn gate_reds_on_a_deliberately_uncovered_construct() {
-        let dir =
-            std::env::temp_dir().join(format!("gmeow-gmn1-gate-negative-{}", std::process::id()));
+        // RAII: the fixture tree is removed when `tmp` drops, including on a failed
+        // assertion below (which unwinds) or an early `expect`.
+        let tmp = tempfile::tempdir().expect("create temp fixture root");
+        let dir = tmp.path();
         let lang_dir = dir.join("slices/grounding/lang");
         let logic_dir = dir.join("slices/grounding/logic");
         let math_dir = dir.join("slices/grounding/math");
@@ -806,8 +808,7 @@ mod tests {
         )
         .unwrap();
 
-        let report = check_gmn1_roundtrip(&dir).expect("gate runs without a hard I/O error");
-        std::fs::remove_dir_all(&dir).ok();
+        let report = check_gmn1_roundtrip(dir).expect("gate runs without a hard I/O error");
 
         assert!(
             !report.is_clean(),

@@ -293,6 +293,22 @@ pub enum DocsError {
     /// silent empty — a dropped `MappingSet` would leave relocated linkage
     /// resolving its set IRI to the raw filename.
     MappingSets(String),
+    /// A slice-owned mapping artifact (`mappings/*.ttl`, `ArtifactRole::Mapping`)
+    /// is present but will not parse as Turtle. Carries the owning slice IRI, the
+    /// slice-relative source path, and the parser diagnostic. A mapping file that
+    /// cannot be read contributes ZERO `gmeow:MappingSet` headers and ZERO
+    /// alignment cells; swallowing the parse error would silently subtract its
+    /// whole contribution from the published linkage index (the term-equivalence
+    /// count that evidences a relocation preserved the grounding corpus), so the
+    /// defect is raised here rather than absorbed into a smaller number.
+    MappingParse {
+        /// The owning slice IRI.
+        slice_iri: String,
+        /// The offending slice-relative mapping source path.
+        source_path: String,
+        /// The underlying Turtle parser diagnostic, preserved verbatim.
+        detail: String,
+    },
     /// The committed term content manifest
     /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
     /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
@@ -346,6 +362,16 @@ impl std::fmt::Display for DocsError {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
+            DocsError::MappingParse {
+                slice_iri,
+                source_path,
+                detail,
+            } => write!(
+                f,
+                "mapping artifact `{source_path}` in slice {slice_iri} will not parse as Turtle \
+                 (its mapping sets and alignment cells would silently vanish from the linkage \
+                 index): {detail}"
+            ),
             DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
             DocsError::CompetencyQuery(msg) => write!(f, "competency query file error: {msg}"),
             DocsError::MarkdownUtf8 {
@@ -2213,9 +2239,19 @@ impl DocsModel {
                 if artifact.role != ArtifactRole::Mapping {
                     continue;
                 }
-                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
-                    continue;
-                };
+                // Fail closed. A `mappings/*.ttl` that will not parse carries an
+                // unknown number of `gmeow:MappingSet` headers and alignment cells;
+                // skipping it silently subtracts every one of them from the linkage
+                // index with no diagnostic, so the published equivalence count drops
+                // and nothing says why. The count IS the evidence that the grounding
+                // corpus survived a relocation, so it may never be quietly wrong.
+                let store = parse_turtle_lenient(&artifact.content).map_err(|e| {
+                    DocsError::MappingParse {
+                        slice_iri: owner.clone(),
+                        source_path: artifact.logical_path.clone(),
+                        detail: e.to_string(),
+                    }
+                })?;
                 let (sets, links) = extract_mappings(&store, owner);
                 mapping_sets.extend(sets);
                 linkages.extend(links);
@@ -2818,6 +2854,29 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
     }
 }
 
+/// The repo-root-relative directory roots a `gmeow:cqQueryFile` may resolve into:
+/// the shared root-level SPARQL tree and a slice's own committed queries.
+///
+/// Both are content-addressed by `crate::fixture::cache_key` (which walks `queries`
+/// and `slices` in full), which is what makes the documentation-model fixture cache
+/// sound with respect to competency-query text. `crate::fixture` re-exports this as
+/// its own boundary constant so the two can never drift.
+pub const COMPETENCY_QUERY_ROOTS: &[&str] = &["queries/", "slices/"];
+
+/// Whether `rel` is a legal `gmeow:cqQueryFile` value: repo-root-relative (never
+/// absolute), free of any `..` component (which could escape the hashed roots
+/// while still passing a naive prefix test), and under one of
+/// [`COMPETENCY_QUERY_ROOTS`].
+fn is_competency_query_path(rel: &str) -> bool {
+    if rel.starts_with('/') || rel.starts_with('\\') {
+        return false;
+    }
+    if rel.split(['/', '\\']).any(|seg| seg == "..") {
+        return false;
+    }
+    COMPETENCY_QUERY_ROOTS.iter().any(|r| rel.starts_with(r))
+}
+
 /// Resolve each [`DocCompetency::query_file`] to its [`DocCompetency::query_text`]
 /// by reading the repo-root-relative `.rq` path. `query_file` is
 /// REPO-ROOT-RELATIVE regardless of whether it happens to start with
@@ -2832,12 +2891,31 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
 /// A CQ with `query_file` set but no readable file at that path is a hard
 /// fail — `cqQueryFile` existing is the ontology's own claim that the file
 /// resolves; a dangling reference is a data bug, not an honest absence.
+///
+/// A `cqQueryFile` that resolves OUTSIDE [`COMPETENCY_QUERY_ROOTS`] is likewise a
+/// hard fail. Two reasons, both structural: it is outside the resolution contract
+/// `crates/slicetest/src/paths.rs::query_file` documents (so the executing
+/// competency harness and the docs model would disagree about where the query
+/// lives), and it is outside the content-addressed input set
+/// `crate::fixture::cache_key` folds — a query whose TEXT changed under an
+/// unhashed path would be served stale from `.cache/docs-fixture` forever. Making
+/// the boundary an error keeps the cache sound BY CONSTRUCTION rather than by the
+/// authoring convention that today's values all happen to satisfy.
 fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
     for cq in &mut model.competencies {
         if cq.query_text.is_some() {
             continue;
         }
         let Some(rel) = &cq.query_file else { continue };
+        if !is_competency_query_path(rel) {
+            return Err(DocsError::CompetencyQuery(format!(
+                "competency question <{}> declares gmeow:cqQueryFile {rel:?}, which is outside \
+                 the resolution contract: the path must be repo-root-relative, free of `..`, and \
+                 under one of {}",
+                cq.iri,
+                COMPETENCY_QUERY_ROOTS.join(" / "),
+            )));
+        }
         let path = root.join(rel);
         let text = std::fs::read_to_string(&path).map_err(|e| {
             DocsError::CompetencyQuery(format!(
@@ -4687,6 +4765,62 @@ mod tests {
         parse_turtle_lenient(ttl.as_bytes()).expect("parse")
     }
 
+    /// The `cqQueryFile` resolution boundary: repo-root-relative, `..`-free, and
+    /// under one of the content-addressed roots. Anything else is a hard fail —
+    /// see `apply_competency_query_text`.
+    #[test]
+    fn competency_query_paths_are_confined_to_the_hashed_roots() {
+        assert!(is_competency_query_path("queries/competency/agents.rq"));
+        assert!(is_competency_query_path(
+            "slices/core/kernel/queries/competency/k.rq"
+        ));
+        // Outside the hashed roots: unhashed text would be served stale forever.
+        assert!(!is_competency_query_path("dsl/competency/agents.rq"));
+        assert!(!is_competency_query_path("generated/queries/agents.rq"));
+        // Absolute, and `..` escapes that would pass a naive prefix test.
+        assert!(!is_competency_query_path("/etc/passwd"));
+        assert!(!is_competency_query_path("queries/../dsl/agents.rq"));
+        assert!(!is_competency_query_path("slices/..\\dsl\\agents.rq"));
+    }
+
+    /// A `cqQueryFile` outside the boundary is an ERROR, not a silent skip and not
+    /// a tolerated read — the model build fails and names the offending path.
+    #[test]
+    fn competency_query_outside_the_hashed_roots_hard_fails() {
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-cq-root-test");
+        std::fs::create_dir_all(root.join("dsl")).expect("mkdir");
+        // The file EXISTS and is readable — only its location is illegal, so this
+        // proves the boundary itself rejects, not a dangling-path fallback.
+        std::fs::write(root.join("dsl/escape.rq"), b"SELECT * {}").expect("write");
+
+        let mut model = DocsModel {
+            competencies: vec![DocCompetency {
+                iri: "https://blackcatinformatics.ca/gmeow/cq/escape".to_owned(),
+                query_file: Some("dsl/escape.rq".to_owned()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let err = apply_competency_query_text(&mut model, &root)
+            .expect_err("a cqQueryFile outside the hashed roots must hard-fail");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("dsl/escape.rq") && msg.contains("outside the resolution contract"),
+            "the error must name the offending path and the contract, got: {msg}"
+        );
+
+        // The legal location, same bytes, resolves.
+        std::fs::create_dir_all(root.join("queries/competency")).expect("mkdir");
+        std::fs::write(root.join("queries/competency/ok.rq"), b"SELECT * {}").expect("write");
+        model.competencies[0].query_file = Some("queries/competency/ok.rq".to_owned());
+        apply_competency_query_text(&mut model, &root).expect("a query under queries/ resolves");
+        assert_eq!(
+            model.competencies[0].query_text.as_deref(),
+            Some("SELECT * {}")
+        );
+    }
+
     #[test]
     fn thesis_sentence_detection_is_structural() {
         assert!(detect_thesis_sentence(
@@ -4775,12 +4909,8 @@ gmeow:hasOwner a owl:ObjectProperty ;
     /// a silent empty that would drop every relocated linkage's `MappingSet`).
     #[test]
     fn central_mapping_sets_absent_ok_but_malformed_hard_fails() {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-mapsets-test-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-mapsets-test");
         let dir = root.join("dsl").join("mappings");
         std::fs::create_dir_all(&dir).expect("mkdir");
 
@@ -4801,8 +4931,6 @@ gmeow:hasOwner a owl:ObjectProperty ;
         let err = read_central_mapping_sets(&root)
             .expect_err("a malformed central mapping-sets.ttl must hard-fail, not return empty");
         assert!(matches!(err, DocsError::MappingSets(_)));
-
-        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
@@ -5223,7 +5351,7 @@ ex:uniformProbability a math:ProbabilityMeasure ;
     /// Cold-tree bootstrap + determinism: [`DocsModel::discover_with_catalog`] builds
     /// the whole model from LIVE constraint-catalog bytes with NO
     /// `generated/catalog/constraint-catalog.nq` on disk — the state a fresh clone /
-    /// cold `make regen` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
+    /// cold `make check` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
     /// Once the SAME bytes are written to disk, the disk path yields byte-identical
     /// constraint rules AND identical per-slice DocMaturity coverage facts. This pins
     /// the guarantee the in-pipeline DocMaturity axis relies on: cold (live bytes) ==
@@ -5233,12 +5361,8 @@ ex:uniformProbability a math:ProbabilityMeasure ;
     fn discover_with_catalog_bootstraps_cold_tree_and_matches_disk_path() {
         // A temp repo root carrying exactly one real slice (copied from the committed
         // single-slice fixture) and — deliberately — NO generated/ tree.
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-catalog-bootstrap-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-catalog-bootstrap");
         let slice_dir = root.join("slices").join("fixture").join("single");
         std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
         let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -5322,7 +5446,5 @@ ex:uniformProbability a math:ProbabilityMeasure ;
             (0.0..=1.0).contains(&fraction),
             "the fixture slice earns a bounded, non-vacuous coverage fraction, got {fraction}"
         );
-
-        std::fs::remove_dir_all(&root).ok();
     }
 }

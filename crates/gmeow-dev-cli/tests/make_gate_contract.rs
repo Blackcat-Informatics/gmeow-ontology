@@ -63,10 +63,12 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 }
 
 /// CHECK_DAG targets that are legitimately NOT invoked as a `make <target>`
-/// step in ci.yml because CI runs them through another surface it does invoke:
-///   - `rust-build`, `rust-gate`: the `rust` job runs
-///     `cargo nextest run --profile ci --workspace` and
-///     `cargo test --doc --workspace` directly.
+/// step in ci.yml because they are exercised by a dedicated CI job through a
+/// different surface instead of the ontology-lane `make` steps:
+///   - `rust-build`, `nextest`, `doctests`, `clippy`, `carrier-purity`: the
+///     `rust` job runs `cargo nextest run --profile ci --workspace`,
+///     `cargo test --doc --workspace`, and `cargo clippy --all-targets -- -D
+///     warnings` directly (sharded 3×; the whole-workspace gates on shard 1).
 ///   - `check-lint`: the `lint` job runs `cargo clippy --all-targets -- -D
 ///     warnings` directly and `make lint` (the standalone, non-scoped
 ///     target) covers the rest of the pre-commit hygiene suite.
@@ -85,7 +87,21 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 /// assertion of its own below: the Makefile prerequisite the exemption rests on
 /// must still be declared, so dropping that edge fails here rather than
 /// silently leaving the console assembled by nothing.
-const CI_JOB_COVERED: &[&str] = &["rust-build", "rust-gate", "check-lint", "console"];
+const CI_JOB_COVERED: &[&str] = &[
+    "rust-build",
+    "nextest",
+    "doctests",
+    "clippy",
+    "carrier-purity",
+    "check-lint",
+    "console",
+];
+
+/// The tasks lifted off `make check` onto the CI-only `make heavy` lane. Moving a
+/// task there is a SCHEDULING decision, so it must still run on every PR:
+/// `the_heavy_lane_still_runs_on_every_pr` proves ci.yml invokes `make heavy` and
+/// that the Makefile's `HEAVY_TASKS` is exactly this set.
+const HEAVY_TASKS: &[&str] = &["wasm-parity", "acceptance", "bench-soak"];
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -94,6 +110,10 @@ fn every_check_dag_target_is_exercised_by_ci() {
     assert!(
         dag_targets.len() >= 19,
         "CHECK_DAG target extraction looks broken: found {dag_targets:?}"
+    );
+    assert!(
+        !dag_targets.iter().any(|target| target == "rust-gate"),
+        "rust-gate is the aggregate ALIAS; the DAG must schedule its four parts"
     );
 
     let ci_source = ci_workflow();
@@ -181,26 +201,26 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
     let expected = vec![
         "sync",
         "check-lint",
+        "crate-check",
+        "i18n-lint",
         "rust-build",
-        "rust-gate",
+        "carrier-purity",
+        "clippy",
+        "nextest",
+        "doctests",
+        "coherence-gate-teeth",
         "validate",
         "constitution-check",
-        "crate-check",
         "audit",
         "wikidata",
         "coverage",
-        "acceptance",
         "reason-verify",
-        "wasm-parity",
         "console-test",
         "console",
         "console-smoke",
         "lint-alignment",
-        "i18n-lint",
         "doc-lint",
-        "coherence-gate-teeth",
         "slice-quality-gate",
-        "bench-soak",
         "compliance-report",
     ];
     let targets = source
@@ -218,6 +238,12 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "mappings",
         "bench-golden-gate",
         "gts-frame-profile-gate",
+        // The aggregate alias must never be scheduled alongside its four parts.
+        "rust-gate",
+        // The CI-only breadth lane.
+        "wasm-parity",
+        "acceptance",
+        "bench-soak",
     ] {
         assert!(
             !targets.contains(&redundant),
@@ -226,41 +252,235 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
     }
 }
 
+/// `sync` is the gate's longest single stage. A task may depend on it ONLY if it
+/// reads a `generated/` artifact; the tasks below were each verified to read
+/// authored sources only, so they must sit at the DAG root and run CONCURRENTLY
+/// with synchronization rather than behind it.
+#[test]
+fn sync_is_not_a_blanket_prerequisite_of_the_gate() {
+    let source = xtask();
+    // The blanket edge is gone: a strict MINORITY of the DAG waits on sync, and the
+    // root wave is non-empty beyond sync itself.
+    let after_sync = source.matches("dependencies: AFTER_SYNC").count();
+    let root = source.matches("dependencies: ROOT").count();
+    assert!(
+        root >= 4,
+        "at least sync plus the three authored-source gates must start immediately \
+         (found {root} ROOT tasks)"
+    );
+    assert!(
+        after_sync < check_dag_targets(&source).len() - 1,
+        "AFTER_SYNC is a blanket prerequisite again ({after_sync} tasks wait on sync)"
+    );
+    for task in ["check-lint", "crate-check", "i18n-lint"] {
+        let declaration = source
+            .split(&format!("name: \"{task}\""))
+            .nth(1)
+            .unwrap_or_else(|| panic!("CHECK_DAG declares {task}"));
+        let dependencies = declaration
+            .split("dependencies: ")
+            .nth(1)
+            .and_then(|tail| tail.split(',').next())
+            .unwrap_or_else(|| panic!("{task} declares dependencies"));
+        assert_eq!(
+            dependencies.trim(),
+            "ROOT",
+            "{task} reads no generated/ artifact, so it must not wait for sync"
+        );
+    }
+}
+
+/// The four Rust lanes are siblings under `rust-build`, never chained to each other.
+#[test]
+fn the_rust_gate_is_split_into_independent_dag_nodes() {
+    let source = xtask();
+    for task in ["carrier-purity", "clippy", "nextest", "doctests"] {
+        let declaration = source
+            .split(&format!("name: \"{task}\""))
+            .nth(1)
+            .unwrap_or_else(|| panic!("CHECK_DAG declares {task}"));
+        let dependencies = declaration
+            .split("dependencies: ")
+            .nth(1)
+            .and_then(|tail| tail.split(',').next())
+            .unwrap_or_else(|| panic!("{task} declares dependencies"));
+        assert_eq!(
+            dependencies.trim(),
+            "AFTER_RUST_BUILD",
+            "{task} must be a sibling under rust-build, not chained behind another lane"
+        );
+    }
+
+    let makefile = makefile();
+    for target in ["nextest", "doctests", "clippy", "carrier-purity"] {
+        assert!(
+            !target_recipe(&makefile, target).trim().is_empty(),
+            "{target} must be a real, independently runnable Make target"
+        );
+        assert!(
+            target_header(&makefile, target).contains("rust-build"),
+            "{target} must declare rust-build as its prerequisite"
+        );
+    }
+    assert!(
+        target_recipe(&makefile, "nextest").contains("cargo nextest run --profile ci"),
+        "the nextest lane owns the workspace suite"
+    );
+    assert!(
+        target_recipe(&makefile, "doctests").contains("cargo test --doc"),
+        "the doctests lane owns the doctests"
+    );
+    // The alias remains, so a human can still ask for the whole Rust surface.
+    let alias = target_header(&makefile, "rust-gate");
+    for part in ["carrier-purity", "clippy", "nextest", "doctests"] {
+        assert!(
+            alias.contains(part),
+            "the rust-gate alias must still compose {part}"
+        );
+    }
+}
+
+/// Moving a task to `make heavy` is a SCHEDULING decision, never a coverage cut:
+/// the lane must still run on every PR, and it must refuse to run outside CI.
+#[test]
+fn the_heavy_lane_still_runs_on_every_pr() {
+    let makefile = makefile();
+    let declared = makefile
+        .lines()
+        .find_map(|line| line.strip_prefix("HEAVY_TASKS := "))
+        .expect("the Makefile declares HEAVY_TASKS")
+        .split_whitespace()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        declared, HEAVY_TASKS,
+        "the heavy lane's membership changed without updating this contract"
+    );
+    for task in HEAVY_TASKS {
+        assert!(
+            !target_recipe(&makefile, task).trim().is_empty(),
+            "{task} must remain individually runnable by name"
+        );
+    }
+
+    let heavy = target_recipe(&makefile, "heavy");
+    assert!(
+        heavy.contains("\"$${CI:-}\" != \"true\""),
+        "the heavy lane must hard-fail when CI is unset or false"
+    );
+    assert!(
+        heavy.contains("GITHUB_ACTIONS"),
+        "CI alone is a variable a developer may already export; the refusal must also \
+         require a CI-vendor marker"
+    );
+    assert!(
+        heavy.contains("$(MAKE) $$t"),
+        "the heavy lane must actually run every HEAVY_TASKS entry"
+    );
+
+    let ci = ci_workflow();
+    assert!(
+        ci_make_targets(&ci).contains("heavy"),
+        "ci.yml must invoke `make heavy` so nothing moved off `make check` stops running \
+         on PRs"
+    );
+    for task in HEAVY_TASKS {
+        assert!(
+            !ci_make_targets(&ci).contains(*task),
+            "ci.yml still runs `make {task}` directly; the heavy lane now owns it, so the \
+             duplicate step must go"
+        );
+    }
+    assert!(
+        ci.contains("needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"),
+        "the aggregate quality gate must require the heavy job"
+    );
+}
+
 #[test]
 fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     let source = makefile();
 
     assert!(
-        target_recipe(&source, "check").contains("CHECK_SYNC_MODE=update cargo xtask check"),
+        target_recipe(&source, "check").contains("SYNC_MODE=update cargo xtask check"),
         "local check owns update-mode synchronization"
     );
+    // There is ONE local gate. The receipt-backed impact profile and its `check-full`
+    // escape hatch are gone: `make check` physically runs every CHECK_DAG task.
     assert!(
-        target_recipe(&source, "check-full").contains("CHECK_SYNC_MODE=update cargo xtask check"),
-        "forced-full local check owns update-mode synchronization"
+        !target_recipe(&source, "check").contains("--profile"),
+        "the local gate has a single profile; --profile must not return"
     );
-    // `make sync` is removed: the standalone regenerate lane is `make regen`; `make check`
-    // owns its own sync pass, so agents run ONLY `make check` for the gate.
-    assert!(target_recipe(&source, "regen").contains("$(GMEOW_DEV) sync"));
     assert!(
-        !source.lines().any(|line| line.starts_with("sync:")),
-        "the standalone `make sync` target must be removed (it duplicated `make check`'s sync pass)"
+        !source.lines().any(|line| line.starts_with("check-full:")),
+        "check-full existed only to force past the impact profile, which is removed"
     );
+    // ONE PRODUCER. `check-sync` is the only Make target that runs the regeneration
+    // pipeline: `make check`'s DAG, CI's cold materialization, and every non-gate lane
+    // (install/commit/release/release-publish/Pages) all drive it. A second invocable
+    // pipeline target does not merely duplicate the work — `gmeow-dev sync` takes the
+    // HOST-GLOBAL gate lock, so the second run blocks on the first.
     assert!(
         target_recipe(&source, "check-sync")
-            .contains("sync --mode $(CHECK_SYNC_MODE) --outputs generated"),
-        "aggregate sync must select its explicit update/check operation"
-    );
-    assert!(
-        source.contains("CHECK_SYNC_MODE ?= check"),
-        "direct and CI check-sync invocations must remain read-only by default"
+            .contains("$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS)"),
+        "the single producer must select its mode and output scope explicitly"
     );
     assert_eq!(
         source
             .lines()
-            .filter(|line| line.starts_with("regen:"))
+            .filter(|line| line.contains("$(GMEOW_DEV) sync --mode"))
             .count(),
         1,
-        "standalone regenerate lane (`make regen`) has one Make authority"
+        "exactly one Make recipe line may run the pipeline; a second entry point queues \
+         the whole host behind itself on the gate lock"
+    );
+    assert!(
+        !source.lines().any(|line| line.starts_with("sync:")),
+        "the standalone `make sync` target must stay removed (it duplicated the producer)"
+    );
+    assert!(
+        source.contains("SYNC_MODE ?= check"),
+        "direct and CI producer invocations must remain read-only by default"
+    );
+    assert!(
+        !source.contains("CHECK_SYNC_MODE"),
+        "the producer's mode has ONE variable name (SYNC_MODE); the CHECK_SYNC_MODE alias \
+         was a second name for the same selector"
+    );
+
+    // `make regen` is POISONED, not merely removed: it stays present so the habit fails
+    // LOUDLY and names its replacement, and it must never run the pipeline again.
+    let regen = target_recipe(&source, "regen");
+    assert!(
+        !regen.contains("$(GMEOW_DEV) sync"),
+        "make regen must not run the pipeline: it was the second producer entry point"
+    );
+    assert!(
+        regen
+            .lines()
+            .any(|line| line.trim_start_matches('\t').trim() == "@exit 1"),
+        "make regen must hard-fail unconditionally, not warn — a banner left the double \
+         run reachable"
+    );
+    for alternative in [
+        "make check",
+        "make check-sync SYNC_MODE=update",
+        "make install",
+    ] {
+        assert!(
+            regen.contains(alternative),
+            "the refusal must name the correct alternative {alternative:?}"
+        );
+    }
+    assert!(
+        !regen
+            .lines()
+            .any(|line| line.trim_start_matches('\t').starts_with("@if")
+                || line.trim_start_matches('\t').starts_with("if ")),
+        "the refusal must be unconditional: any escape hatch restores the double run"
+    );
+    assert!(
+        !source.lines().any(|line| line.contains("$(MAKE) regen")),
+        "no Make target may still invoke the poisoned regen lane"
     );
 
     assert_eq!(
@@ -303,8 +523,14 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         "the frame-profile gate must audit through the already-built producer binary"
     );
     assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-verify"));
-    assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-verify\"]"));
-    assert!(xtask().contains("const AFTER_RUST_BUILD: &[&str] = &[\"rust-build\"]"));
+    let xtask_source = xtask();
+    assert!(xtask_source.contains("const AFTER_RUST_BUILD: &[&str] = &[\"rust-build\"]"));
+    // The whole-bundle gate-teeth proofs run their OWN reasoning; they never consumed
+    // `reason-verify`'s output, so that serial edge is removed rather than preserved.
+    assert!(
+        !xtask_source.contains("AFTER_REASON"),
+        "coherence-gate-teeth must not be chained behind reason-verify"
+    );
 }
 
 #[test]
@@ -326,10 +552,15 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
     );
     assert_eq!(
         source
-            .matches("run: make regen GMEOW_DEV=./dist/bin/gmeow-dev")
+            .matches("run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update")
             .count(),
         1,
-        "one matrix step must define both cold generations through the prebuilt producer"
+        "one matrix step must define both cold generations through the prebuilt producer, \
+         driving the SINGLE producer target"
+    );
+    assert!(
+        !source.contains("make regen"),
+        "CI must never invoke the poisoned regen lane"
     );
     assert!(
         source.contains("diff --recursive --brief --no-dereference generated-a generated-b"),
@@ -349,7 +580,7 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
     );
     assert!(
         source.contains(
-            "needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
+            "needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
         ),
         "the aggregate quality gate must require the retained quality jobs"
     );

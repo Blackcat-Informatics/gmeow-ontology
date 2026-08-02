@@ -11,9 +11,20 @@ TARGET ?= foaf
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= chore: synchronize checked-in artifacts
 GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
-SYNC_MODE ?=
-SYNC_OUTPUTS ?= all
+# The single producer's two selectors (see the `check-sync` target). ONE variable
+# names the mode: `check` is read-only verification, `update` materializes. The
+# default is deliberately read-only so a bare `make check-sync` can never mutate the
+# tree by surprise; `make check` and every materializing caller pass update
+# EXPLICITLY. `SYNC_OUTPUTS` selects the fanout scope; `generated` (the bundle + the
+# committed tree) is the default because it is what the gate needs — `docs` and `all`
+# are the wider, explicitly-selected profiles.
+SYNC_MODE ?= check
+SYNC_OUTPUTS ?= generated
 SYNC_VERBOSE ?=
+# Optional per-run timing sink for the producer (the report-only `perf-gate` lane
+# sets it). It exists so that lane can measure the pipeline THROUGH the single
+# producer target instead of opening a second `gmeow-dev sync` call site.
+SYNC_TIMINGS_JSON ?=
 CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
@@ -21,7 +32,8 @@ GTS_OUT ?= dist/gmeow.gts
 # Where `make console-assemble` writes the standalone <gmeow-console> tree. A SCRATCH
 # base by design: `gmeow-dev console-assemble` REFUSES an --out equal to or inside
 # `ontology-docs/` or `dist/gmeow-docs/`, because those have exactly one writer —
-# `make regen SYNC_OUTPUTS=docs` — which reconciles them as whole trees.
+# `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` — which reconciles them as
+# whole trees.
 CONSOLE_OUT ?= dist/console-smoke
 # The LOWER BOUND on the vendored purrdf browser engine (`crates/docs/assets/purrdf/`).
 # `maint-refresh-purrdf-asset` resolves the NEWEST published version that satisfies it and
@@ -74,9 +86,12 @@ ACCEPTANCE_MIN_RECALL ?=
 FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
-CHECK_PROFILE ?= impact
 CHECK_ARGS ?=
-CHECK_SYNC_MODE ?= check
+
+# The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
+# because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
+# than by the change under test; each remains individually runnable by name.
+HEAVY_TASKS := wasm-parity acceptance bench-soak
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -85,10 +100,10 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
+	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
 	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
@@ -114,7 +129,7 @@ help: ## Show the task plan.
 
 install: ## Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
 	$(MAKE) producer-build
-	$(MAKE) regen
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
 	$(MAKE) cli-build
 	$(MAKE) lsp-release
 
@@ -127,10 +142,12 @@ lint-issue-refs: ## Reject issue/PR number references in Rust comments, Markdown
 lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
 	pre-commit run --all-files --show-diff-on-failure
 
-# `rust-gate` owns the aggregate gate's one full clippy invocation. Keep the
+# The `clippy` DAG node owns the aggregate gate's one full clippy invocation. Keep the
 # standalone `lint` target complete, but skip only that duplicate hook when `check`
-# composes the same pre-commit suite with `rust-gate`. `lint-issue-refs` remains an
+# composes the same pre-commit suite alongside `clippy`. `lint-issue-refs` remains an
 # always-run hook and therefore still executes exactly once in both entry points.
+# `check-lint` reads only the git-tracked tree (`/generated/` is gitignored in full),
+# which is why the DAG starts it immediately rather than after `sync`.
 check-lint:
 	SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure
 
@@ -148,10 +165,7 @@ reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
-rust-test: rust-build ## Run the Rust workspace tests and doctests.
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
-	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
+rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
 
 gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
@@ -173,7 +187,7 @@ producer-build: ## Build ONLY the gmeow-dev producer release binary and stage it
 	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
 	@echo "gmeow-dev producer release binary staged at dist/bin/gmeow-dev"
 
-cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make regen' first on a clean clone).
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — on a clean clone run 'make install', which bootstraps the producer and materializes first).
 	cargo build -p gmeow-cli -p gmeow-dev-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
@@ -188,46 +202,53 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(MAKE) lsp-release
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
-check: ## Synchronize generated outputs, then run the receipt-backed impact gate.
-	CHECK_SYNC_MODE=update cargo xtask check --profile $(CHECK_PROFILE) $(CHECK_ARGS)
+check: ## Synchronize generated outputs, then run the local gate DAG (every task, accurate dependencies). THE developer entry point: it materializes generated/ AND gates, in one host-locked run.
+	SYNC_MODE=update cargo xtask check $(CHECK_ARGS)
 
-check-full: ## Synchronize generated outputs, then physically run every local gate task.
-	CHECK_SYNC_MODE=update cargo xtask check --profile full $(CHECK_ARGS)
+heavy: ## CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates lifted off `make check`. Refuses to run outside CI.
+	@# `make check` must fail fast and deterministically on THIS branch's own changes.
+	@# The tasks below fail on breadth instead: a repeat-for-confidence soak, a
+	@# whole-external-corpus recall sweep, and a four-crate release wasm build plus three
+	@# Node execution lanes that SKIP locally whenever the wasm32 target or node is
+	@# absent. Running them per-commit costs every developer minutes of wall clock for a
+	@# signal that does not track the edit under test, so they run once per PR in CI.
+	@#
+	@# The refusal checks CI *and* a CI-vendor marker, so a developer who happens to have
+	@# exported CI=true cannot trip this lane by accident. There is no override flag: to
+	@# run one of these locally, run it by NAME (`make wasm-parity`), which is explicit.
+	@if [ "$${CI:-}" != "true" ] || { [ "$${GITHUB_ACTIONS:-}" != "true" ] && [ "$${GITLAB_CI:-}" != "true" ] && [ -z "$${BUILDKITE_BUILD_ID:-}" ]; }; then \
+		echo "make heavy is CI-ONLY: it needs CI=true plus a CI-vendor marker"; \
+		echo "  (GITHUB_ACTIONS=true, GITLAB_CI=true, or BUILDKITE_BUILD_ID set)."; \
+		echo "  saw: CI=$${CI:-<unset>} GITHUB_ACTIONS=$${GITHUB_ACTIONS:-<unset>}"; \
+		echo "  These lanes are breadth-dominated, not change-dominated, so they do not"; \
+		echo "  belong on a per-commit gate. Run 'make check' locally; to exercise one of"; \
+		echo "  these deliberately, invoke it by name: $(HEAVY_TASKS)."; \
+		exit 1; \
+	fi
+	@for t in $(HEAVY_TASKS); do echo "== heavy: $$t =="; $(MAKE) $$t || exit 1; done
+	@echo "heavy lane passed: $(HEAVY_TASKS)"
 
-# The `check` DAG's root task (crates/xtask/src/main.rs CHECK_DAG). generated/
-# is now a gitignored local product, not a committed tree, so this is an
+# THE SINGLE PRODUCER. Exactly one Make target runs the regeneration pipeline, and
+# this is it: the `check` DAG's root task (crates/xtask/src/main.rs CHECK_DAG),
+# CI's cold-materialize + strict fixed-point steps, and every non-gate lane
+# (install / build / release / release-publish / Pages) all drive THIS target.
+# There is deliberately no second entry point — `gmeow-dev sync` takes the
+# HOST-GLOBAL gate lock (dev_sync.rs::host_lock_path, the same file `cargo xtask
+# check` locks), so a second invocable pipeline target does not merely repeat the
+# work: the second run BLOCKS on the first, serialising a developer against
+# themselves and against every other worktree on the machine. `make regen` was that
+# second entry point; it now refuses (see below).
+#
+# generated/ is a gitignored local product, not a committed tree, so this is an
 # INVERTED gate: it does not diff a fresh render against committed bytes, it
 # PROJECTS the bundle fresh from source (an absent generated/ is a cache MISS,
 # not a not-found error — see dev_sync.rs's manifest-hit check) and, in Check
 # mode, proves that projection reproduces byte-identically on a second pass.
-# `check`/`check-full` force CHECK_SYNC_MODE=update so this materializes the
-# bundle+fanout from a clean clone before any downstream consumer-build task
-# in the DAG runs; only a standalone `make check-sync` (mode=check by
-# default) treats a missing bundle as a hard-fail drift finding.
-check-sync:
-	$(GMEOW_DEV) sync --mode $(CHECK_SYNC_MODE) --outputs generated
-
-i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
-	$(GMEOW_DEV) i18n lint
-
-##@ Generated Artifacts And Outputs
-
-regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessary — `make check` already syncs then gates. Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. The standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
-	@# Steering banner on DIRECT invocation only (MAKELEVEL=0). `make check`'s own
-	@# regeneration runs the `check-sync` target via xtask, NOT this `regen` target, so
-	@# this banner never fires inside `make check`; and the sub-make `regen` calls from
-	@# install/build/docs/recursion run at MAKELEVEL>=1, so they stay quiet too.
-	@if [ "$(MAKELEVEL)" = "0" ]; then \
-		printf '\033[1;33m%s\033[0m\n' \
-		  "──────────────────────────────────────────────────────────────────────" \
-		  "NOTE: 'make regen' only REGENERATES generated/ + the bundle — it does NOT" \
-		  "run any gate. You almost never need it directly: 'make check' ALREADY" \
-		  "syncs (CHECK_SYNC_MODE=update) and THEN runs the full gate, so 'make regen'" \
-		  "before 'make check' just regenerates twice. Run 'make regen' alone ONLY for" \
-		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
-		  "──────────────────────────────────────────────────────────────────────" >&2; \
-		  exit 1; \
-	fi
+# `check` forces SYNC_MODE=update so this materializes the bundle+fanout from a
+# clean clone before any downstream consumer-build task in the DAG runs; a
+# standalone `make check-sync` (mode=check by default) treats a missing bundle as
+# a hard-fail drift finding instead.
+check-sync: ## The one pipeline producer: materialize (SYNC_MODE=update) or read-only verify (default) generated/ + the bundle. Scope with SYNC_OUTPUTS={generated,docs,all}, stream stages with SYNC_VERBOSE=1. You almost never want this directly — `make check` runs it for you and then gates.
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -236,15 +257,53 @@ regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessar
 	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
 	@# it alone needs an explicit materialize-then-build prerequisite here.
 	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
-		$(MAKE) regen SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
 		$(MAKE) build; \
 	fi
-	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
+	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
+
+i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
+	$(GMEOW_DEV) i18n lint
+
+##@ Generated Artifacts And Outputs
+
+regen: ## REFUSES — the pipeline has ONE producer. Run `make check` (materializes AND gates, one host-locked run) or, for artifacts without the gate, `make check-sync SYNC_MODE=update`.
+	@# POISONED, not deprecated. `regen` ran the same pipeline `make check`'s DAG runs
+	@# through `check-sync`, so the documented `make regen && make check` habit executed
+	@# the whole pipeline TWICE — and because `gmeow-dev sync` takes the host-global gate
+	@# lock, the second run did not even run concurrently: it blocked on the first, and
+	@# queued every other worktree on the machine behind both.
+	@#
+	@# Nothing is lost. The work still happens, exactly once, in `check-sync`:
+	@#   * verify your work        -> make check            (syncs in update mode, then gates)
+	@#   * artifacts, no gate      -> make check-sync SYNC_MODE=update
+	@#   * external docs fanout    -> make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	@#   * clean-clone bootstrap   -> make install
+	@#
+	@# The refusal is UNCONDITIONAL: no env marker, no MAKELEVEL escape, no override
+	@# variable. A hatch would just restore the double run under a longer name.
+	@printf '%s\n' \
+	  "make regen is REMOVED: the regeneration pipeline has exactly ONE producer target." \
+	  "" \
+	  "  'make regen' ran the same pipeline 'make check' runs through 'check-sync', and" \
+	  "  'gmeow-dev sync' takes the HOST-GLOBAL gate lock — so 'make regen && make check'" \
+	  "  did not regenerate twice in parallel, it queued the whole host behind itself." \
+	  "" \
+	  "Run instead:" \
+	  "  make check                                       verify work (materializes, THEN gates)" \
+	  "  make check-sync SYNC_MODE=update                 artifacts only, no gate" \
+	  "  make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs   external docs fanout" \
+	  "  make install                                     clean-clone bootstrap" >&2
+	@exit 1
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
-commit: regen ## Synchronize artifacts, stage generator-owned outputs, and commit.
+commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
+	@# Materialization is a recipe step, not a prerequisite: the single producer is
+	@# read-only by default, and this lane needs it in update mode over every output
+	@# family, which a prerequisite edge cannot express.
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
 	for p in $${REGENERATED_PATHS}; do \
 	  if [ -e "$$p" ]; then git add "$$p"; fi; \
@@ -267,11 +326,12 @@ project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time 
 
 release: ## Materialize from source (update mode), native-reason, build, report, docs, and emit CrossRef deposit.
 	# A release BUILDS the product from canonical sources — it must materialize, never
-	# read-only check. generated/ is a git-ignored product (#1600), so a fresh release
-	# checkout has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check`
-	# forces CHECK_SYNC_MODE=update) instead of inheriting gmeow-dev's CI default of Check,
-	# which would hard-fail the superset gate ("no carrier representative") on the absent tree.
-	$(MAKE) regen SYNC_MODE=update
+	# read-only check. generated/ is a git-ignored product, so a fresh release checkout
+	# has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check` forces
+	# it) instead of the producer's read-only default, which would hard-fail the superset
+	# gate ("no carrier representative") on the absent tree. Every output family is
+	# materialized: a release ships the docs fanout and the runtime dist/ projections.
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
 	$(MAKE) lsp-release
@@ -321,7 +381,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
-	$(MAKE) regen SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
@@ -362,13 +422,24 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
 	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
 
-slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet.
+# NOT a producer, and deliberately NOT poisoned like `regen`. The 84-slice SCORING
+# sweep this gate used to repeat now happens exactly once, inside the pipeline
+# (`stage-source-load` -> `gmeow_slice_quality::assessment_artifacts_with_catalog`,
+# projected to generated/quality/gmeow.quality-assessment.nt); this target LOADS that
+# record — hard-failing unless its `gmeow:versionFingerprint` matches the authored
+# sources on disk — and then runs the enforcement passes that exist nowhere else:
+# rubric binding/completeness/stale-exemption, coat distinctiveness, the roll-up tier
+# ratchet, the per-axis floors, residue ceilings, and floor monotonicity. It runs no
+# pipeline stage and takes no host gate lock, `make check`'s DAG spawns THIS target,
+# and CI's ontology-misc job is the only place the ratchet runs on a PR. Refusing it
+# would delete enforcement, not duplication.
+slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet (reads the recorded quality-assessment record; never re-scores).
 	$(GMEOW_DEV) slice-quality-gate
 
 slice-quality-seed-floors: ## Emit gmeow:AxisFloorCommitment TTL for live scores to seed a NEW axis's floors (one-shot). Usage: make slice-quality-seed-floors AXIS=axisShapeMigration (or ALL_AXES=1)
 	$(GMEOW_DEV) slice-quality-seed-floors $(if $(strip $(AXIS)),--axis $(AXIS),)$(if $(strip $(ALL_AXES)),--all-axes,)
 
-acceptance: ## Gate full transpile recall against external RDF snapshots.
+acceptance: ## HEAVY (CI-only lane, `make heavy`) full transpile-recall gate over every external RDF snapshot.
 	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
@@ -389,10 +460,21 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build carrier-purity ## Warm Rust once, then run carrier purity, clippy, nextest, and doctests serially.
-	cargo clippy --all-targets -- -D warnings
+# The four Rust lanes are INDEPENDENT once `rust-build` has warmed the workspace: none
+# reads another's output, so the `check` DAG schedules them as concurrent siblings
+# (crates/xtask/src/main.rs, AFTER_RUST_BUILD) instead of one serial node. `rust-gate`
+# below stays as the aggregate alias for a human who wants the whole Rust surface in
+# one command; the gate never runs it, so nothing is executed twice.
+rust-gate: rust-build carrier-purity clippy nextest doctests ## Aggregate alias: the whole Rust surface (carrier purity, clippy, nextest, doctests). `make check` schedules the four parts concurrently instead.
+	@echo "rust-gate: carrier-purity, clippy, nextest, and doctests all passed"
+
+nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
+	@# The docs-model fixture is primed once, in-process, before the suite: without it
+	@# every docs test rebuilds the same DocsModel in its own process.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+
+doctests: rust-build ## Run the Rust workspace doctests.
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 coherence-gate-teeth: rust-build ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
@@ -713,7 +795,8 @@ console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) —
 		echo "      (no console/index.html). Refusing to reconcile it. Choose a scratch --out."; exit 1; \
 	fi
 	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
-	@# dist/gmeow-docs/ (one writer: `make regen SYNC_OUTPUTS=docs`), which is why
+	@# dist/gmeow-docs/ (one writer: `make check-sync SYNC_MODE=update
+	@# SYNC_OUTPUTS=docs`), which is why
 	@# CONSOLE_OUT defaults to a scratch base.
 	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
 
@@ -782,17 +865,22 @@ npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install 
 
 console-assemble: console ## Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
 
-wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
+wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the five `*-pkg-test`
 	@# lanes RUN the shipped wasm (validate/reason/gmn/mcp/mcp-core) and assert
 	@# byte-identity to the native engine — the "every gmeow surface proven native≡wasm"
 	@# contract. The mcp-core lane additionally proves the TIERED contract end to end: the
 	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
 	@# frame to the real reasoning segment for an answer identical to the full engine's.
-	@# On-gate so the vendored digest that gates the shipped bytes is exactly the one a
-	@# parity run blessed (the `maint-refresh-*-asset` targets now depend on `*-pkg-test`,
-	@# so re-vendoring cannot re-pin bytes that never passed parity). Locally this SKIPs
-	@# when the wasm32 target or node is absent; CI hard-fails — the parity criterion is
+	@# The vendored digest that gates the shipped bytes is exactly the one a parity run
+	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
+	@# re-vendoring cannot re-pin bytes that never passed parity).
+	@#
+	@# HEAVY, not per-commit: this builds five engine crates for wasm32 in RELEASE, runs
+	@# wasm-bindgen + wasm-opt over each, and then five Node suites. Its cost is set by
+	@# that breadth, not by the edit under test — and locally it SKIPs outright whenever
+	@# the wasm32 target or node is absent, so on a developer's gate it was frequently a
+	@# no-op occupying the critical path. In CI it hard-fails: the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
@@ -842,13 +930,13 @@ bench-compare: ## Report-only perf scoreboard: live criterion run vs committed b
 bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the native engine over the committed mini corpora and hard-fail on any golden divergence (no live oracle — cheap).
 	cargo run -q -p gmeow-bench-engines -- --check-golden
 
-bench-soak: ## On-gate divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
+bench-soak: ## HEAVY (CI-only lane, `make heavy`) divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
 	cargo run -q -p gmeow-bench-engines -- --soak 3
 
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
-	$(GMEOW_DEV) sync --mode check --outputs generated --timings-json $(PERF_DIR)/sync.json
+	$(MAKE) check-sync SYNC_MODE=check SYNC_TIMINGS_JSON=$(PERF_DIR)/sync.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"

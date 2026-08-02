@@ -30,7 +30,13 @@ struct View {
 /// `owl:disjointWith` constraint (so `has_constraints` is true), optionally a
 /// hand-authored `shapes.ttl`, and optionally a triple linking a slice term to
 /// an external (non-native) namespace (so `links_out` is true).
+///
+/// The directory is owned by the [`tempfile::TempDir`] the fixture holds, so the
+/// whole tree is removed when the fixture drops — on success, on panic, and on
+/// early return.
 struct Fixture {
+    /// Owns the temp tree `dir` lives in; dropping it removes the tree.
+    _tmp: tempfile::TempDir,
     dir: PathBuf,
 }
 
@@ -40,12 +46,8 @@ const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 
 impl Fixture {
     fn new(name: &str, with_shapes_ttl: bool, with_external_link: bool) -> Self {
-        let mut dir = std::env::temp_dir();
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        dir.push(format!("gmeow-proj-{name}-{}-{nanos}", std::process::id()));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path().join(format!("gmeow-proj-{name}"));
         std::fs::create_dir_all(&dir).unwrap();
 
         // A real slice directory declares its identity in a manifest; the scorer reads
@@ -91,7 +93,7 @@ impl Fixture {
             .unwrap();
         }
 
-        Self { dir }
+        Self { _tmp: tmp, dir }
     }
 
     fn score(&self) -> View {
@@ -111,12 +113,6 @@ impl Fixture {
             score: s.score,
             codes: s.findings.iter().map(|f| f.code.clone()).collect(),
         }
-    }
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.dir);
     }
 }
 

@@ -121,6 +121,17 @@ pub struct Profile {
     /// is NOT collapsed to a pass/gap at ingest — the lossy projection is applied
     /// only at the comparison gate. `None` for endogenous/clean-control cases.
     pub documented_antipattern: Option<String>,
+    /// The `logic:Rule` IRIs this case loads FROM THE SHIPPED `logic:` module
+    /// (`slices/grounding/logic/module.ttl`), declared in `profile.json`'s
+    /// `"shipped_rules"`. Empty when the case declares none.
+    ///
+    /// This is the corpus's only sanctioned way to reason with a rule the repository
+    /// ships. Re-typing the rule inside `input.logic.ttl` would make the case green
+    /// against its own copy — a case that stays green after the shipped rule is deleted
+    /// pins nothing about what ships — so the runner resolves each IRI against the
+    /// module itself and HARD-FAILS on one it cannot find. Deleting or renaming a
+    /// shipped rule therefore reds every case that reasons with it.
+    pub shipped_rules: Vec<String>,
 }
 
 impl Profile {
@@ -205,6 +216,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> gmeow_errors::Result<Profi
     let compositions = parse_compositions(case_id, obj)?;
     let szs_status = parse_szs_status_field(case_id, obj)?;
     let documented_antipattern = parse_documented_antipattern_field(case_id, obj)?;
+    let shipped_rules = parse_shipped_rules(case_id, obj)?;
 
     Ok(Profile {
         semantic_profile,
@@ -219,7 +231,56 @@ pub fn parse_profile(case_id: &str, value: &Value) -> gmeow_errors::Result<Profi
         compositions,
         szs_status,
         documented_antipattern,
+        shipped_rules,
     })
+}
+
+/// Parse the optional `shipped_rules` array: the `logic:Rule` IRIs the case loads from
+/// the shipped `logic:` module.
+///
+/// Absent ⇒ empty. When present it MUST be a non-empty array of distinct, non-empty
+/// absolute IRI strings; a non-array, a non-string member, an empty member, a duplicate,
+/// or an empty array is a hard error (no silent coercion). An empty array is rejected
+/// rather than treated as absence because it reads as "this case loads the shipped rules"
+/// while loading none — the exact ambiguity a corpus that pins derivations cannot afford.
+fn parse_shipped_rules(
+    case_id: &str,
+    obj: &Map<String, Value>,
+) -> gmeow_errors::Result<Vec<String>> {
+    let raw = match obj.get("shipped_rules") {
+        None | Some(Value::Null) => return Ok(Vec::new()),
+        Some(v) => v.as_array().ok_or_else(|| {
+            invalid(format!(
+                "case {case_id}: profile.json shipped_rules must be a JSON array of \
+                 logic:Rule IRIs"
+            ))
+        })?,
+    };
+    if raw.is_empty() {
+        return Err(invalid(format!(
+            "case {case_id}: profile.json shipped_rules is present but empty — omit the \
+             key entirely when the case loads no shipped rule"
+        )));
+    }
+    let mut out: Vec<String> = Vec::with_capacity(raw.len());
+    for (i, entry) in raw.iter().enumerate() {
+        let iri = entry
+            .as_str()
+            .filter(|s| !s.trim().is_empty())
+            .ok_or_else(|| {
+                invalid(format!(
+                    "case {case_id}: profile.json shipped_rules[{i}] must be a non-empty \
+                     IRI string, got {entry}"
+                ))
+            })?;
+        if out.iter().any(|seen| seen == iri) {
+            return Err(invalid(format!(
+                "case {case_id}: profile.json shipped_rules lists {iri} twice"
+            )));
+        }
+        out.push(iri.to_owned());
+    }
+    Ok(out)
 }
 
 /// Parse the optional `szs_status` provenance field.

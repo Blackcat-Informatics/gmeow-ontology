@@ -1,0 +1,13 @@
+# Competency question: "Which contents must a work review projection carry?"
+# Expected: the eight content properties plus the projection receipt, so an
+# operator surface cannot silently omit effect status or dissent.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?content WHERE {
+    ?content a owl:ObjectProperty ;
+             rdfs:domain gmeow:WorkReviewProjection .
+}
+ORDER BY ?content

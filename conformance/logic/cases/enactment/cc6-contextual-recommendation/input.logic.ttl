@@ -1,0 +1,159 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc6-contextual-recommendation
+# Three policies over the same options: one orders them strictly, one leaves two
+# TIED, one leaves two INCOMPARABLE. The three are different facts and the case
+# pins that they stay different.
+#
+#   Tie          -> equally good; pick either.
+#   Incomparable -> the policy names no rule for trading these off; a human must
+#                   decide, and should know that is what they are doing.
+#
+# The three relations are AUTHORED with the shipped preference apparatus —
+# gmeow:strictlyOver, gmeow:preferentiallyEquivalentWith, gmeow:incomparableWith,
+# each hung under its own vantage-indexed gmeow:PreferenceProjection — rather than
+# described in prose. A claim carried only by a comment is a claim no query can
+# reach and no gate can fail on.
+#
+# No global winner is asserted anywhere in this case. Flattening either relation
+# into a total order manufactures a winner no policy licensed, and the third
+# policy also yields a CONFLICTING frontier classification, not merely a
+# conflicting ranking — two standpoints disagreeing about what is actionable.
+# That conflict is DERIVED: no logic:entryLabel is asserted below, and the two
+# entries reach two different labels because one names an exclusion and the other
+# names an authorized position.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:runbook a logic:Plan ;
+    logic:planGoal e:serviceRestored ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+e:serviceRestored a gmeow:Goal ; rdfs:label "Service restored"@x-gmeow-english .
+e:runbookV3 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:runbook ;
+    logic:prescriptionDigest "b3:71ac05b93e2d846f015c7a90be3d247f186a0c53be9d1740fa26c85b39e0d217" .
+e:incidentState a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:2fd80a95c17be643019a5c38be0d724f6c1a05397be2d840f5a6c19b37e0d248" .
+e:remediation a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:runbookV3 ;
+    logic:enactmentInputSnapshot e:incidentState ;
+    logic:enactmentState logic:EnactmentRunning .
+
+e:rollback a gmeow:InformationObject ; rdfs:label "Roll back"@x-gmeow-english .
+e:hotfix a gmeow:InformationObject ; rdfs:label "Ship a hotfix"@x-gmeow-english .
+e:flag a gmeow:InformationObject ; rdfs:label "Disable by feature flag"@x-gmeow-english .
+e:options a gmeow:CandidateSet ; gmeow:hasCandidate e:rollback, e:hotfix, e:flag .
+
+e:fastest a gmeow:ComparisonContext ; rdfs:label "Restore fastest — strict order"@x-gmeow-english .
+e:leastImpact a gmeow:ComparisonContext ; rdfs:label "Least customer impact — rollback and flag TIE"@x-gmeow-english .
+e:leastExposure a gmeow:ComparisonContext ; rdfs:label "Least regulatory exposure — hotfix and rollback INCOMPARABLE"@x-gmeow-english .
+
+# --- Context 1: a STRICT order. Two covering edges only; the third pair is
+#     closed transitively and appears in no triple, so a hand-added edge for it
+#     would be visible as an addition rather than absorbed as a restatement.
+e:fastestCell a gmeow:PreferenceProjection ;
+    rdfs:label "The incident commander's local order under the fastest-restore policy"@x-gmeow-english ;
+    gmeow:vantage e:incidentCommander ;
+    gmeow:projectionOrder e:fastestOrder .
+
+e:fastestOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The fastest-restore order (references its raw relation, never IS it)"@x-gmeow-english ;
+    gmeow:orderRelation e:fastestRelation ;
+    gmeow:orderEdge e:edgeFlagOverRollback, e:edgeRollbackOverHotfix .
+
+e:fastestRelation a math:Relation ;
+    rdfs:label "The raw strict-order relation over the remediation candidates"@x-gmeow-english .
+
+e:edgeFlagOverRollback a gmeow:PreferenceEdge ;
+    rdfs:label "feature flag ≻ rollback (seconds versus minutes)"@x-gmeow-english ;
+    gmeow:edgeWinner e:flag ;
+    gmeow:edgeLoser e:rollback .
+
+e:edgeRollbackOverHotfix a gmeow:PreferenceEdge ;
+    rdfs:label "rollback ≻ hotfix (minutes versus a build and a deploy)"@x-gmeow-english ;
+    gmeow:edgeWinner e:rollback ;
+    gmeow:edgeLoser e:hotfix .
+
+e:flag gmeow:strictlyOver e:rollback .
+e:rollback gmeow:strictlyOver e:hotfix .
+
+# --- Context 2: a TIE. The order carries NO strict edge between the tied pair,
+#     because a tie is a different fact from an absent comparison and from an
+#     incomparability, and the observation names no winner since a tie has none.
+e:leastImpactCell a gmeow:PreferenceProjection ;
+    rdfs:label "The support lead's local order under the least-impact policy"@x-gmeow-english ;
+    gmeow:vantage e:supportLead ;
+    gmeow:projectionOrder e:leastImpactOrder .
+
+e:leastImpactOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The least-impact order — no strict edge between the tied pair"@x-gmeow-english ;
+    gmeow:orderRelation e:leastImpactRelation .
+
+e:leastImpactRelation a math:Relation ;
+    rdfs:label "The raw relation the least-impact order references"@x-gmeow-english .
+
+e:rollback gmeow:preferentiallyEquivalentWith e:flag .
+
+# --- Context 3: a positive INCOMPARABILITY — a queryable, disclosed Pareto void,
+#     emphatically not a tie and not an absent edge. Two criterion-indexed
+#     observations point opposite ways and neither dominates.
+e:leastExposureCell a gmeow:PreferenceProjection ;
+    rdfs:label "The compliance officer's local order under the least-exposure policy"@x-gmeow-english ;
+    gmeow:vantage e:complianceOfficer ;
+    gmeow:projectionOrder e:leastExposureOrder .
+
+e:leastExposureOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The least-exposure order — no strict edge across the Pareto void"@x-gmeow-english ;
+    gmeow:orderRelation e:leastExposureRelation .
+
+e:leastExposureRelation a math:Relation ;
+    rdfs:label "The raw relation the least-exposure order references"@x-gmeow-english .
+
+e:hotfix gmeow:incomparableWith e:rollback .
+
+e:incidentCommander a gmeow:Entity ; rdfs:label "Incident commander"@x-gmeow-english .
+e:supportLead a gmeow:Entity ; rdfs:label "Support lead"@x-gmeow-english .
+e:complianceOfficer a gmeow:Entity ; rdfs:label "Compliance officer"@x-gmeow-english .
+
+# --- The frontier, bound to ONE comparison context so the roster is a
+#     recommendation under the fastest-restore policy specifically rather than a
+#     context-free winner the other two contexts contradict.
+e:frontier a logic:ActionableFrontier ;
+    rdfs:label "Remediation frontier under the fastest-restore policy"@x-gmeow-english ;
+    logic:frontierSaturationWitness e:sat ;
+    logic:frontierOfEnactment e:remediation ;
+    gmeow:frontierCandidateSet e:options ;
+    gmeow:frontierComparisonContext e:fastest ;
+    logic:hasFrontierEntry e:eRollback, e:eMutex .
+
+e:rollbackStep a logic:TransactionStep ; rdfs:label "Roll back the deploy"@x-gmeow-english .
+e:hotfixStep a logic:TransactionStep ; rdfs:label "Ship the hotfix"@x-gmeow-english .
+
+e:eRollback a logic:FrontierEntry ;
+    logic:entryAction e:rollbackStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# Under the exposure policy the same options are mutually exclusive. Exclusivity
+# is a relation between two candidates and belongs on no axis at all, so this
+# entry reaches its label by NAMING what it excludes — a derived obstruction
+# rather than a hand-asserted conflict, and a different classification of the same
+# roster from a second standpoint.
+e:eMutex a logic:FrontierEntry ;
+    logic:entryAction e:hotfixStep ;
+    logic:entryExcludes e:eRollback ;
+    logic:entryAxisWitness logic:StepReady .
+
+e:sat a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — the frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction,
+                           logic:entryExcludes ;
+    logic:consumedBudget "48"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

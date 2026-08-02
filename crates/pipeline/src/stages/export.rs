@@ -19,7 +19,7 @@ use purrdf::RdfDataset;
 
 pub use gmeow_bundle_view::export::*;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
 /// export leaf (export / okf) uses: the `stage-snapshot` product carries the
@@ -68,6 +68,7 @@ pub(crate) fn modeled_defs_from_upstream(
 /// The `stage-export-export` export-leaf stage.
 pub struct ExportStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl ExportStage {
@@ -76,12 +77,21 @@ impl ExportStage {
     /// `llms-full.txt` cards' `python_model` gate (see [`class_is_modeled`]) —
     /// without this edge the stage would only ever see the PREVIOUS run's
     /// committed schema (or none on a first run).
+    ///
+    /// It requires [`SERIALIZATION_BUFFER_RESOURCE`]: `render_all_with_languages`
+    /// materializes the whole terminal carrier as N-Quads AND as TriG (1.3 GB + 1.2 GB
+    /// of text on the shipped corpus) and holds both, so its measured peak allocation
+    /// is 9.06 GiB — the heaviest stage in the DAG. Mirrored by
+    /// `gmeow:stage-export-export gmeow:requiresResource
+    /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
+    /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-export-json-schema".to_string(),
                 "stage-snapshot".to_string(),
             ],
+            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
@@ -98,6 +108,9 @@ impl Stage for ExportStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         "export.v1"

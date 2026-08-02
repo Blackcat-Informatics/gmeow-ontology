@@ -68,3 +68,51 @@ msgstr "范围：该记录仅承载关于 gmeow:tenureInquirer 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureQuestion and nothing else. It is not a definition of gmeow:tenureQuestion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:tenureQuestion 的一项完整性义务，别无其他。它不是 gmeow:tenureQuestion 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records how the inquiry is being run, not what would count as an answer. It is orthogonal to the erotetic question type, so the two co-apply: the same wh-question can be pursued as a scan or as a deep dive without changing what would answer it."
+msgstr "它记录的是探究如何进行，而非什么才算作答复。它与问句的疑问类型彼此正交，二者可以并用：同一个特指问句既可以以浏览方式追索，也可以以深挖方式追索，而何为其答复并不因此改变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records the state of the PURSUIT and never the epistemic standing of an answer. Whether an answer is believed or known lives on the epistemics spine, so a settled inquiry may still carry an answer nobody believes."
+msgstr "它记录的是追索本身的状态，绝不涉及答复的认知地位。答复是被相信还是被知晓，属于认知论主干，因此一项已了结的探究仍可能带着无人相信的答复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Classifies the question by the operational kind of the inquiry pursuing it, drawn from an OPEN value vocabulary. It is not the erotetic question type: the two axes co-apply, and using one where the other belongs makes an answerhood condition look like a work style."
+msgstr "它按追索该问题的探究之操作类型来给问题分类，取值来自一个开放的值词汇表。它不是疑问类型：两条轴可以并用，若以此代彼，就会把成答条件说成工作方式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inquiry Kind"
+msgstr "探究种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The OPERATIONAL kind of a research inquiry — a VALUE, never a gmeow:Question subclass. Held apart from gmeow:QuestionType, which is the CLOSED erotetic classification by answerhood condition (polar / alternative / wh / why / how): this axis records how the inquiry is being run rather than what would count as an answer, so a single wh question pursued as a research plan carries one value from each vocabulary rather than one conflated kind. The set is OPEN, unlike gmeow:QuestionType — a kind not among the seeded individuals is a fresh gmeow:InquiryKind individual carrying rdfs:label, not a new class."
+msgstr "研究性探究的操作类型——它是一个取值，绝非 gmeow:Question 的子类。它与 gmeow:QuestionType 分立，后者是按成答条件划分的封闭疑问学分类（是非、选择、特指、因由、方式）：本轴记录的是探究如何进行，而非什么才算作答复，因此同一个特指问句若以研究计划方式追索，便会从两套词汇各取一值，而不是合成一个混杂的种类。与 gmeow:QuestionType 不同，本集合是开放的——若某个种类不在预置个体之列，那就新建一个带 rdfs:label 的 gmeow:InquiryKind 个体，而不是新建一个类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+msgstr "示例：ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inquiry Status"
+msgstr "探究状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working status of a research inquiry — a VALUE, never a gmeow:Question subclass. It records the state of the PURSUIT (not yet started, being worked, settled, dropped, parked), not the epistemic standing of any answer: whether an answer is believed or known stays on the epistemics spine (gmeow:accepts / gmeow:knowsThat) and is never inferred from a status value. The set is OPEN; a status not among the seeded individuals is a fresh gmeow:InquiryStatus individual, not a new class."
+msgstr "研究性探究的工作状态——它是一个取值，绝非 gmeow:Question 的子类。它记录追索本身的状态（尚未开始、正在进行、已了结、已放弃、暂时搁置），而非任何答复的认知地位：答复是被相信还是被知晓，属于认知论主干（gmeow:accepts / gmeow:knowsThat），绝不可由状态值推得。本集合是开放的；若某状态不在预置个体之列，那就新建一个 gmeow:InquiryStatus 个体，而不是新建一个类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActive ."
+msgstr "示例：ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActive 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inquiry kind"
+msgstr "探究种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Classifies a gmeow:Question by the OPERATIONAL kind of the inquiry pursuing it, drawn from the open gmeow:InquiryKind value vocabulary. NOT gmeow:questionType, which classifies the same question by its erotetic answerhood condition: the two axes are orthogonal and co-apply rather than compete. Non-functional — one question may be pursued as several kinds of inquiry at once, and competing standpoint-indexed kind claims coexist rather than contradict (Principle 9)."
+msgstr "按追索某个 gmeow:Question 之探究的操作类型对该问题分类，取值来自开放的 gmeow:InquiryKind 值词汇表。它不是 gmeow:questionType，后者按疑问学上的成答条件对同一个问题分类：两条轴彼此正交，可以并用而非相互竞争。它不是函数性的——同一个问题可以同时以多种探究类型加以追索，而按不同立场索引的种类主张彼此并存，并不构成矛盾（原则九）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+msgstr "示例：ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan 。"

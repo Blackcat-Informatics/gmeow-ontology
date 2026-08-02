@@ -36,9 +36,11 @@ use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
 use crate::loader::{PipelineSpec, StageSpec, bind};
-use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
+use crate::node::{
+    ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct,
+};
 use crate::registry::default_registry;
-use crate::scheduler::{RunContext, run};
+use crate::scheduler::{CarrierRetention, RunContext, run};
 
 /// The stage id every drift/superset diagnostic is attributed to on the carrier
 /// ledger (pin-on-attach).
@@ -395,18 +397,27 @@ pub fn full_spec() -> PipelineSpec {
     // ── fold-reading export leaves (consume THIS run's snapshot) ──
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
-        ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-okf", "okf"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
+    // The YAML-LD leaf is a fold-reading leaf like the three above, but it materializes
+    // the WHOLE carrier as JSON-LD-star and again as YAML-LD-star, so it holds the
+    // serialization-buffer permit (see `st_serializing`).
+    stages.push(st_serializing(
+        "stage-export-yaml-ld",
+        "yaml_ld",
+        &["stage-snapshot"],
+    ));
     // `stage-export-export` additionally consumes THIS run's fresh
     // `stage-export-json-schema` product: its `llms-full.txt` inlined cards gate
     // their `python_model` link on the JSON Schema `$defs` key set (a class with
     // no `$defs` entry has no generated Pydantic model), so it needs the schema
     // in hand, not only the snapshot fold.
-    stages.push(st(
+    // It also holds the serialization-buffer permit (see `st_serializing`): it
+    // materializes the whole carrier as N-Quads and again as TriG.
+    stages.push(st_serializing(
         "stage-export-export",
         "export",
         &["stage-export-json-schema", "stage-snapshot"],
@@ -645,6 +656,18 @@ fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s
 }
 
+/// A whole-dataset serialization leaf: it requires the exclusive serialization buffer
+/// ([`SERIALIZATION_BUFFER_RESOURCE`]), so the scheduler runs at most one such leaf at a
+/// time while every cheap leaf in the same level keeps full parallelism. Mirrors the
+/// declaring stages' `resources()` ([`crate::stages::export::ExportStage`] /
+/// [`crate::stages::yaml_ld::YamlLdStage`]) so the dag_dogfood parity and the loader's
+/// bind-agreement both hold.
+fn st_serializing(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.resources = vec![SERIALIZATION_BUFFER_RESOURCE.to_string()];
+    s
+}
+
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
 /// serialization) AND reads only the object-level named graphs
 /// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) from `stage-compile-logic`
@@ -748,6 +771,14 @@ pub fn run_full_scoped_with_progress(
     // multi-gigabyte duplicate state and measured slower than recomputation. On a
     // manifest miss, execute the DAG once with no per-stage cache I/O.
     let mut ctx = RunContext::open_uncached(root, jobs);
+    // Bound peak residency: release each stage's carrier once its last declared consumer
+    // has run. This path is the whole-repository build — ~47 stages, each emitting a
+    // CUMULATIVE carrier snapshot — so retaining every product's bundle for the run's life
+    // makes peak memory the SUM over the DAG rather than the live frontier, which is what
+    // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
+    // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
+    // written/compared bytes and `combined_digest` are byte-identical either way.
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     if let Some(progress) = progress.as_ref() {
         ctx = ctx.with_progress(Arc::clone(progress));
         progress.stage_start("pipeline:dag");
@@ -830,7 +861,9 @@ pub fn run_full_scoped_with_progress(
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.
-            if path.starts_with("pipeline/") {
+            // ONE constant with the scheduler's carrier release, which drops exactly
+            // these once their last declared consumer has run.
+            if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
                 continue;
             }
             output_paths.push(path.clone());

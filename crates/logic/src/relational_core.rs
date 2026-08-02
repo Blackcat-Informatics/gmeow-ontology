@@ -28,7 +28,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::TermValue;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
-use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
+use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm, RcViolationResidue};
 
 use crate::facts::sha1_hex;
 use crate::query_ir::{QBuiltin, QTerm};
@@ -238,6 +238,10 @@ fn builtin_consequent_registry() -> BTreeMap<String, DimBuiltinKind> {
 /// `rdf:type` — the marker triple's predicate.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// `logic:violatedLaw` — the authored predicate publishing WHICH law condemned a record,
+/// and the head predicate of every ordinary violation rule ([`lower_violation_rules`]).
+pub(crate) const VIOLATED_LAW: &str = "https://blackcatinformatics.ca/logic/violatedLaw";
+
 /// Lower every builtin-bound-consequent `logic:Constraint` in `program` into a
 /// VIOLATION-EMITTING [`EvalRule`], `constraint_tag`-stamped with the source constraint's
 /// IRI.
@@ -299,6 +303,199 @@ pub(crate) fn lower_constraint_violation_rules(
         });
     }
     Ok(rules)
+}
+
+/// The compiled form of a program's ORDINARY (non-builtin-bound) `logic:Constraint`
+/// corpus: the violation rules that lowered, plus the flagged residue naming every
+/// constraint that did not and why.
+///
+/// The residue travels WITH the rules deliberately. A gate that reports "N laws compiled"
+/// while discarding the residue is reporting a number nobody can audit; carrying both lets
+/// the caller state the compiled fraction and name the shortfall.
+#[derive(Debug, Clone)]
+pub(crate) struct ViolationLowering {
+    /// The violation-emitting rules — one per consequent conjunct of every constraint
+    /// that lowered — in canonical (constraint-IRI, conjunct-index) order.
+    pub(crate) rules: Vec<EvalRule>,
+    /// Every `logic:Constraint` this lowering declined, with the closed reason token.
+    pub(crate) residue: Vec<RcViolationResidue>,
+    /// Each compiled law's authored `gmeow:enforcesFailureClass`, keyed on the law's IRI.
+    ///
+    /// The failure class left the rule HEAD when the head started carrying the law
+    /// ([`lower_violation_rules`]), so it travels here instead. It is a lookup, never a
+    /// decision: the chase decides WHICH record broke WHICH law, and this map only says
+    /// what class the law's author asked that finding to be typed with.
+    pub(crate) failure_classes: BTreeMap<String, String>,
+}
+
+/// Lower `program`'s ordinary (non-builtin-bound) `logic:Constraint`s into
+/// VIOLATION-EMITTING [`EvalRule`]s: an antecedent-plus-negated-consequent body, and a head
+/// publishing the focus variable's broken law on `logic:violatedLaw`.
+///
+/// # Why the head names the LAW and not the failure class
+///
+/// The kernel deliberately shares ONE `gmeow:enforcesFailureClass`
+/// (`logic:EnactmentIntegrityViolation`) across all forty of its laws, so a head of the form
+/// `?this rdf:type logic:EnactmentIntegrityViolation` is the SAME derived tuple for every
+/// law. The chase materializes a SET of tuples and selects one winning derivation per tuple
+/// (`rule_ir::RuleRoundCandidate`'s quality-ordered total order), so a record condemned by
+/// two laws produced exactly one row carrying one law's provenance — and every other law
+/// that condemned it vanished, silently, with the gate reporting the winner as though it
+/// were the whole answer. A law is not enforced if its finding can be erased by a
+/// co-firing sibling.
+///
+/// Heading each rule with `?this logic:violatedLaw <the law>` makes the derived tuple
+/// LAW-DISTINGUISHING: two laws condemning one record are two distinct tuples, neither
+/// able to displace the other, and the law identity rides in the tuple itself rather than
+/// in provenance the chase is free to collapse. The `rdf:type` marker the operator-facing
+/// query selects on is spliced alongside it by [`crate::verify`] from
+/// [`ViolationLowering::failure_classes`] — the authored class is a property of the LAW, so
+/// looking it up is a projection of what the author wrote, not a second decision.
+///
+/// The invariant is enforced, not merely intended: [`reject_colliding_heads`] hard-fails if
+/// two constraints ever emit the same head tuple shape again.
+///
+/// The lane ([`gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc`])
+/// owns the formula analysis; this function is the thin native bridge that maps the lane's
+/// binary [`RcAtom`]s to the engine's [`EvalAtom`]s and mints the rule identity.
+///
+/// No `rdfs:seeAlso` reflection-substitution map is threaded through, unlike
+/// [`lower_constraint_violation_rules`]. That map exists because the `math:` dimension
+/// laws predicate over HiLog REFLECTION relations (`math:hasDimensionRel`, …) that no data
+/// ever asserts, so the lowered body had to be bridged to the object-level property. The
+/// ordinary constraint corpus does not: its `logic:Formula` ASTs name the object-level
+/// properties directly (`logic:fencingIdentity`, `logic:receiptOfAttempt`, `rdf:type`, …),
+/// which is exactly what the asserted data carries. Threading a substitution map here
+/// would be worse than useless — it would silently REWRITE any authored predicate that
+/// happened to carry an `rdfs:seeAlso` for an unrelated documentary reason, pointing the
+/// body at a relation the law never mentioned.
+///
+/// Every emitted rule is ALSO `constraint_tag`-stamped with its source constraint's IRI.
+/// That stamp is provenance and is used for reporting and auditing the compiled corpus; it
+/// is deliberately no longer the only place the law identity lives, because provenance is
+/// per-TUPLE and a tuple two laws share keeps only one.
+///
+/// # Errors
+///
+/// Returns `Err` if a lowered body atom carries a term with no engine form (a blank node,
+/// or a literal in subject position), or if two constraints emit the same head tuple shape
+/// (see [`reject_colliding_heads`]) — every case an internal-invariant failure, never a
+/// recoverable runtime condition.
+pub(crate) fn lower_violation_rules(
+    program: &LogicProgram,
+) -> gmeow_errors::Result<ViolationLowering> {
+    let builtin_relations: BTreeSet<String> =
+        builtin_consequent_registry().keys().cloned().collect();
+    let (rc_rules, residue) =
+        gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc(
+            program,
+            &builtin_relations,
+        );
+
+    let mut rules = Vec::with_capacity(rc_rules.len());
+    let mut failure_classes: BTreeMap<String, String> = BTreeMap::new();
+    for rc in &rc_rules {
+        let body = rc
+            .body
+            .iter()
+            .map(rc_atom_to_eval)
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        // The head names the LAW, not the shared failure class: a tuple two laws can both
+        // derive is a tuple the chase keeps once, and the loser's finding is gone.
+        let head = EvalAtom {
+            subject: rc_term_to_eval(&rc.subject, false)?,
+            predicate: VIOLATED_LAW.to_owned(),
+            object: EvalTerm::ConstNamed(rc.constraint_iri.clone()),
+            negated: false,
+        };
+        failure_classes.insert(rc.constraint_iri.clone(), rc.failure_class.clone());
+        // Conjunct-qualified identity: two conjuncts of one constraint are two rules with
+        // two different bodies, so they must not collapse onto one rule IRI.
+        let rule_iri = format!(
+            "{LOGIC_NAMESPACE}constraint-violation-rule/{}",
+            sha1_hex(&format!("{}#{}", rc.constraint_iri, rc.conjunct_index))
+        );
+        rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+            constraint_tag: Some(rc.constraint_iri.clone()),
+        });
+    }
+    reject_colliding_heads(&rules)?;
+    Ok(ViolationLowering {
+        rules,
+        residue,
+        failure_classes,
+    })
+}
+
+/// Hard-fail if two DIFFERENT laws can derive the same head tuple.
+///
+/// The chase materializes a SET of derived tuples and keeps exactly one winning derivation
+/// per tuple, so the identity of a law that shares its head tuple shape with another law
+/// survives only when it happens to win. Every losing law then reads as enforced — it
+/// compiled, it is in the census, its body ran — while contributing nothing an operator can
+/// see. That is precisely a law that reads as relational and enforces nothing, and it is
+/// invisible to any test that checks a record was condemned rather than checking WHICH law
+/// condemned it.
+///
+/// A head tuple is law-distinguishing iff its `(predicate, object)` shape is unique to the
+/// constraint that emitted it — the subject is the focus variable and is bound per record,
+/// so it cannot separate two laws firing on the SAME record, which is the whole collision
+/// case. Two rules from ONE constraint (its per-conjunct siblings) legitimately share a
+/// shape: they are the same law and one row is the correct answer.
+///
+/// # Errors
+///
+/// Returns `Err` naming each colliding head shape and the constraints that share it.
+fn reject_colliding_heads(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+    let mut owners: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for rule in rules {
+        let EvalTerm::ConstNamed(object) = &rule.head.object else {
+            return Err(rc_err(format!(
+                "violation rule <{}> heads on a non-constant object, so its derived tuple \
+                 cannot name the law that produced it",
+                rule.rule_iri
+            )));
+        };
+        let law = rule.constraint_tag.clone().ok_or_else(|| {
+            rc_err(format!(
+                "violation rule <{}> carries no source constraint, so nothing can say whose \
+                 conclusion its head tuple is",
+                rule.rule_iri
+            ))
+        })?;
+        owners
+            .entry((rule.head.predicate.clone(), object.clone()))
+            .or_default()
+            .insert(law);
+    }
+    let collisions: Vec<String> = owners
+        .iter()
+        .filter(|(_, laws)| laws.len() > 1)
+        .map(|((predicate, object), laws)| {
+            format!(
+                "<{predicate}> <{object}> shared by {}",
+                laws.iter()
+                    .map(|l| format!("<{l}>"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        })
+        .collect();
+    if collisions.is_empty() {
+        return Ok(());
+    }
+    Err(rc_err(format!(
+        "{} violation head tuple shape(s) are shared by more than one logic:Constraint, so \
+         the chase would keep one derivation per record and silently erase every other law \
+         that condemned it: {}",
+        collisions.len(),
+        collisions.join("; ")
+    )))
 }
 
 /// Map one antecedent [`RcAtom`] to an [`EvalAtom`], bridging its predicate through

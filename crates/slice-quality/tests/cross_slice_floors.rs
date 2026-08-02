@@ -38,21 +38,20 @@ fn repo_root() -> PathBuf {
 /// A throwaway temp repo root carrying a structurally-complete rubric slice
 /// (the real repo's module copied verbatim) plus whatever extra slices a test
 /// adds via [`Fixture::add_slice`].
+///
+/// The root is owned by the [`tempfile::TempDir`] the fixture holds, so the whole
+/// tree is removed when the fixture drops — on success, on panic, and on early
+/// return.
 struct Fixture {
+    /// Owns the temp tree `root` lives in; dropping it removes the tree.
+    _tmp: tempfile::TempDir,
     root: PathBuf,
 }
 
 impl Fixture {
     fn new(name: &str) -> Self {
-        let mut root = std::env::temp_dir();
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        root.push(format!(
-            "gmeow-cross-slice-floors-{name}-{}-{nanos}",
-            std::process::id()
-        ));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join(format!("gmeow-cross-slice-floors-{name}"));
         std::fs::create_dir_all(&root).unwrap();
 
         // The canonical rubric slice: copy the real repo's structurally-complete
@@ -70,7 +69,7 @@ impl Fixture {
             .unwrap_or_else(|e| panic!("real rubric module must read: {e}"));
         std::fs::write(rubric_dir.join("module.ttl"), bytes).unwrap();
 
-        Self { root }
+        Self { _tmp: tmp, root }
     }
 
     /// Author a new slice `slices/<group>/<name>/{manifest.ttl,module.ttl}`, with
@@ -89,12 +88,6 @@ impl Fixture {
 
     fn root(&self) -> &Path {
         &self.root
-    }
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.root);
     }
 }
 

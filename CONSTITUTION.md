@@ -60,7 +60,8 @@ applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for lega
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
 
-*Embodied in:* `make regen`, `queries/rdf12-project.rq` (a codec between two
+*Embodied in:* `make check-sync` (the single regeneration producer),
+`queries/rdf12-project.rq` (a codec between two
 generated forms). *Tested by:* `make check-sync` and the OWL↔RDF 1.2
 round-trip / isomorphism gate.
 

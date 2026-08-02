@@ -38,6 +38,7 @@ pub mod bundle;
 pub use gmeow_bundle_view::bundle_blobs;
 pub use gmeow_bundle_view::diagnostics_reader;
 pub mod cache;
+pub mod catalog_families;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod docs_distribution;
@@ -52,6 +53,7 @@ pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
+pub mod projection_profiles;
 pub mod projections;
 pub mod provenance;
 pub mod put_executor;
@@ -81,15 +83,15 @@ pub use graph::StageGraph;
 pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
 pub use node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct,
+    CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    Stage, StageInput, StageOutput, StageProduct,
 };
 pub use registry::{StageRegistry, default_registry};
 pub use run::{
     RunMode, RunOutputScope, RunReport, full_spec, run_full, run_full_scoped,
     run_full_scoped_with_progress,
 };
-pub use scheduler::{RunContext, RunResult, run};
+pub use scheduler::{CarrierRetention, RunContext, RunResult, run};
 
 #[cfg(test)]
 mod tests;

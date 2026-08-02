@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Under which policy do two remediation options fail to
+# compare at all, and on what does the disagreement rest?"
+#
+# An incomparability is not a tie and not an absent edge: it is the POSITIVE
+# verdict that this policy names no exchange rate between two criteria pointing
+# opposite ways. The query therefore demands the structure that MAKES it one —
+# two observations registered by the SAME context, over the same pair, each
+# preferring what the other disprefers — and only then reads the positive
+# gmeow:incomparableWith relation standing over them.
+#
+# That structural demand is what keeps the question apart from the strict-order
+# one: the fastest-restore context also compares rollback and the hotfix, but
+# its order is coherent and holds no opposed pair, so it contributes no row.
+# Over the contextual-recommendation scene exactly ONE row comes back — hotfix
+# and rollback, under minimise-regulatory-exposure — and the honest answer to
+# "which should we pick?" under that policy is that a human must decide, and
+# should know that is what they are doing.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?context ?a ?b WHERE {
+    ?context gmeow:registersObservation ?forA , ?forB .
+    ?forA gmeow:observationPrefers ?a ;
+          gmeow:observationDisprefers ?b .
+    ?forB gmeow:observationPrefers ?b ;
+          gmeow:observationDisprefers ?a .
+    ?a gmeow:incomparableWith ?b .
+}
+ORDER BY ?context ?a ?b

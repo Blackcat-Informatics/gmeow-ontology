@@ -46,8 +46,10 @@ pub const COST_LEDGER_PATH: &str = "generated/bench/cost-ledger.md";
 /// Committed, drift-gated soak-window record (the longitudinal gap-zero claim).
 pub const SOAK_RECORD_PATH: &str = "generated/bench/soak.md";
 
-/// The soak window the committed record documents and the on-gate `make bench-soak`
-/// lane enforces (`gmeow-bench-engines --soak N`). A single-run tally is not soak
+/// The soak window the committed record documents and the `make bench-soak` lane
+/// enforces (`gmeow-bench-engines --soak N`) on the required CI `make heavy` lane — a
+/// repeat-for-confidence loop does not belong on a per-commit local gate, but it still
+/// runs on every pull request. A single-run tally is not soak
 /// evidence; the window is the number of deterministic native-vs-published agreement
 /// runs whose finding-graph fingerprint must stay byte-identical. Kept in lock-step
 /// with the `bench-soak` Make target and the `--soak` default.

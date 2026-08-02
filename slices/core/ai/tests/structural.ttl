@@ -113,12 +113,11 @@ ex:saDistanceMetricNotSubclassed a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    { ?c logic:subClassOf gmeow:DistanceMetric }
-    UNION
-    { ?c rdfs:subClassOf gmeow:DistanceMetric }
+    VALUES ?sub { rdfs:subClassOf logic:subClassOf }
+    ?c ?sub gmeow:DistanceMetric .
     FILTER (?c != gmeow:DistanceMetric)
 }""" ;
-    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric is a vocabulary of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of it. New metrics extend the vocabulary as individuals. Both the canonical logic:subClassOf spelling and its rdfs:subClassOf projection are ruled out, so the prohibition cannot be evaded by choosing a surface." .
+    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric is a vocabulary of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of it under EITHER subsumption spelling (the canonical logic:subClassOf or the legacy rdfs:subClassOf), so the guard cannot be evaded by re-spelling the edge. New metrics extend the vocabulary as individuals." .
 
 # The single-valued embedding edges' declared shapes (MUST hold)
 ex:saEmbeddingFunctionalEdges a gmeow:StructuralAssertion ;

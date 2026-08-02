@@ -7164,7 +7164,7 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// projection. If slice examples ever start being folded, that test reds and must be replaced
 /// by a quad-set equality between the two copies — never relaxed.
 const MCP_ACTION_POLICY_TTL: &str =
-    include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
+    include_str!("../../../slices/core/agentic/examples/mcp-action-policy.ttl");
 
 /// The URI of the resource mirroring the `action_policy` tool. A client that reads
 /// resources rather than calling tools gets the identical projected theory, because both

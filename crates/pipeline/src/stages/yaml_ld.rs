@@ -11,6 +11,19 @@
 //! production functions in this stage are thin wrappers over it; only the
 //! stage-specific code (the stage entry, the preservation ledger, the build-time
 //! round-trip gate) lives here.
+//!
+//! # Peak residency
+//!
+//! Both codec entry points ([`jsonld::serialize_dataset_to_jsonld`] /
+//! [`jsonld::serialize_dataset_to_yamlld`]) build their own whole-carrier
+//! intermediate and return the finished document as one `String`, so this leaf's
+//! measured allocation peak is 8.37 GiB. gmeow cannot share the intermediate between
+//! the two calls (purrdf's `build_ser_graph` is crate-private) and must not grow a
+//! second serializer to work around it, so the stage instead declares
+//! [`crate::node::SERIALIZATION_BUFFER_RESOURCE`] and serializes against the other
+//! whole-dataset leaf. Retiring the peak rather than scheduling around it is a purrdf
+//! change: either expose the built serialization graph so one build feeds both
+//! documents, or give the codecs an incremental `io::Write` sink.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -19,7 +32,7 @@ use purrdf::RdfDataset;
 use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
 pub const JSON_LD_PATH: &str = "dist/gmeow.jsonld";
@@ -69,13 +82,24 @@ fn codec_err(e: purrdf::RdfDiagnostic) -> gmeow_errors::Diag {
 /// The `yaml_ld` export-leaf stage.
 pub struct YamlLdStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl YamlLdStage {
     /// Construct the stage; it consumes THIS run's snapshot fold.
+    ///
+    /// It requires [`SERIALIZATION_BUFFER_RESOURCE`]: both codec calls below build a
+    /// whole-carrier intermediate and return a whole-document `String` (870 MB of
+    /// JSON-LD-star + 673 MB of YAML-LD-star on the shipped corpus), so its measured
+    /// peak allocation is 8.37 GiB — second only to `stage-export-export`, and fatal
+    /// on a 16 GB runner if the two overlap. Mirrored by
+    /// `gmeow:stage-export-yaml-ld gmeow:requiresResource
+    /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
+    /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
         Self {
             consumes: vec!["stage-snapshot".to_string()],
+            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
@@ -92,6 +116,9 @@ impl Stage for YamlLdStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.

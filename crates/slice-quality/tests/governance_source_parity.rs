@@ -29,12 +29,12 @@ fn module_scan_governance_set_equals_the_shipped_bundle_set() {
     let root = repo_root();
     let bundle_path = root.join("generated/dist/gmeow.gts");
 
-    // The bundle is a git-ignored local product materialized by `make regen`; its ABSENCE
+    // The bundle is a git-ignored local product materialized by `make check`; its ABSENCE
     // (a fresh clone or partial checkout that has not synced yet) is the only case where
     // this parity is unknowable, so skip loudly rather than red. A PRESENT-but-stale
     // bundle is a legitimate red — it is the same regenerate-required contract the
     // migrated-floors golden test enforces, and `make check` runs this test
-    // post-`make regen`.
+    // post-`make check`.
     if !bundle_path.is_file() {
         eprintln!(
             "governance-source parity SKIPPED — {} is absent (partial checkout); the binding \

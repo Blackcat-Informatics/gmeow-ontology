@@ -20,10 +20,11 @@
 //! structurally-valid, deterministic, non-empty output faithful to the Python
 //! generator's format. Everything is sorted (BTreeMap/BTreeSet) for determinism.
 //!
-//! The lossless N-Quads / TriG forms delegate to the gmeow-gts Rust serializers
-//! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
-//! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
-//! exactly as the Python `write_nquads` / `write_trig` do.
+//! The lossless N-Quads / TriG forms delegate to purrdf's native serializer
+//! (`purrdf::serialize_dataset`, via [`serialize_public`]) over ONE
+//! public-BCP-47-retagged copy of the carrier ([`dataset_with_public_tags`]) shared by
+//! both media types — the internal `x-gmeow-*` language tags are remapped at the
+//! projection boundary, and the remap is paid once, not once per surface.
 //!
 //! SKOS ([`render_skos`]), OBO Graphs ([`render_obographs`]), and CSVW
 //! ([`render_csvw`]) are purrdf 0.7.0 native projections
@@ -2076,35 +2077,21 @@ fn dataset_with_public_tags(
     })
 }
 
-fn write_nquads(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(
-        &public,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| {
+/// Serialize an ALREADY public-tag-remapped dataset through purrdf's native
+/// serializer — the whole lossless-RDF half of this leaf, one purrdf call per media
+/// type.
+///
+/// It takes the remapped dataset rather than remapping internally so the caller
+/// builds it ONCE and serializes it twice (N-Quads + TriG). The remap is a full
+/// materialization of the terminal carrier (`owned_quads` + a rebuilt frozen
+/// dataset); doing it per media type made this leaf pay for two whole extra copies of
+/// the corpus at its allocation peak, for two byte-identical inputs.
+fn serialize_public(public: &RdfDataset, media_type: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    purrdf::serialize_dataset(public, media_type, purrdf::SerializeGraph::Dataset).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("n-quads serialize: {e}"),
+            message: format!("{media_type} serialize: {e}"),
         })
     })
-}
-
-fn write_trig(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset).map_err(
-        |e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("trig serialize: {e}"),
-            })
-        },
-    )
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2809,14 +2796,20 @@ pub fn render_all_with_languages(
         format!("{DIST_DIR}/llms-full.txt"),
         consumer_llms_full(&terms, &title, &version, modeled_defs, &primer).into_bytes(),
     );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.nq"),
-        write_nquads(dataset, view.tag_map())?,
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.trig"),
-        write_trig(dataset, view.tag_map())?,
-    );
+    // The two lossless RDF surfaces are the SAME public-tag-remapped dataset under two
+    // media types, so it is materialized once and serialized twice, then dropped before
+    // the remaining (small) surfaces are rendered.
+    {
+        let public = dataset_with_public_tags(dataset, view.tag_map())?;
+        out.insert(
+            format!("{DIST_DIR}/gmeow.nq"),
+            serialize_public(&public, "application/n-quads")?,
+        );
+        out.insert(
+            format!("{DIST_DIR}/gmeow.trig"),
+            serialize_public(&public, "application/trig")?,
+        );
+    }
     out.insert(
         format!("{DIST_DIR}/gmeow-statements.jsonl"),
         write_statements_jsonl(&view),

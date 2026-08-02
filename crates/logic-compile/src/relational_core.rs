@@ -775,6 +775,278 @@ fn flatten_and<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
     }
 }
 
+// --------------------------------------------------------------------------- //
+// Obligation / prohibition violation-rule lowering: logic:Constraint → RcViolationRule
+// --------------------------------------------------------------------------- //
+//
+// The GENERAL sibling of the builtin-bound lowering above, and the one that carries the
+// ordinary authored corpus: a `logic:Constraint` whose `logic:integrity` formula is
+// `∀ vars. antecedent → consequent`, where the consequent's conjuncts are ordinary
+// STORED-relation literals (never a builtin call), lowers to one violation-emitting rule
+// PER CONJUNCT by NEGATING that conjunct — the classic "a constraint is a rule whose body
+// is its own falsification". The antecedent becomes the ordinary positive Horn body, the
+// negated conjunct joins it as an extra literal, and the head types the focus variable
+// with the constraint's `gmeow:enforcesFailureClass`. A body whose literals ALL hold is
+// therefore exactly a datum that satisfies the guard and breaks the obligation.
+//
+// One rule per conjunct, never one rule per constraint: `φ → (ψ₁ ∧ ψ₂)` is violated by
+// breaking EITHER conjunct, and a single rule carrying `¬ψ₁ ∧ ¬ψ₂` would only fire when
+// BOTH are broken — a strictly weaker gate that would pass a record missing one mandatory
+// field. The conjuncts share the constraint's one failure class, exactly as the two
+// `math:` dimension laws share `math:DimensionalInhomogeneity`.
+//
+// Negation is negation-as-failure against the stratified store, which is the right reading
+// here and only here: a `logic:Constraint` is a CLOSED-WORLD well-formedness assertion
+// about the recorded graph ("this record does not carry a fencing identity"), not an
+// open-world entailment. The engine's existential NAF (`negated_atom_satisfied`) decides
+// `¬p(x, ?y)` with `?y` free as "no `p` row for `x`", which is the obligation's meaning.
+
+/// One conjunct of a `logic:Constraint`'s consequent, lowered to a violation-emitting
+/// rule shape: an ordinary positive/NAF Horn body whose joint satisfaction MEANS the law
+/// is broken, plus the focus subject and failure class the marker head is built from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcViolationRule {
+    /// The source `logic:Constraint` individual's IRI (provenance / rule-tag identity).
+    pub constraint_iri: String,
+    /// This conjunct's index in the (flattened) consequent conjunction — the tie-breaker
+    /// that keeps two conjuncts of one constraint distinct rules with distinct identities.
+    pub conjunct_index: usize,
+    /// The antecedent's positive [`RcAtom`]s PLUS the negation-flipped consequent
+    /// literal(s), canonically sorted. Satisfying every literal is the violation.
+    pub body: Vec<RcAtom>,
+    /// The constraint's `∀` focus variable (`vars[0]`) as an [`RcTerm::Var`] — the
+    /// violation marker's subject.
+    pub subject: RcTerm,
+    /// The constraint's `gmeow:enforcesFailureClass` IRI — the violation marker's
+    /// `rdf:type` object.
+    pub failure_class: String,
+}
+
+/// Why this lowering declined a `logic:Constraint` — the closed disclosure set that keeps
+/// the lowering a total function into `⟨ rules ⊕ flagged residue ⟩` rather than a silent
+/// filter. A caller that reports "N laws compiled" without also reporting this residue is
+/// reporting a number it cannot justify.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum RcViolationGap {
+    /// The `logic:integrity` formula is not `∀ vars. antecedent → consequent` with at
+    /// least one quantified variable — there is no focus subject to type.
+    NotUniversalImplication,
+    /// The constraint carries no `gmeow:enforcesFailureClass`, so there is no authored
+    /// class to mark the violation with. This lowering never fabricates one: a marker
+    /// class invented in Rust would be a second, unauthored source of ontology truth.
+    ///
+    /// Checked BEFORE any shape analysis, so this gap means "the constraint does not ask
+    /// to be enforced as a marker" and never doubles as a shape complaint.
+    NoFailureClass,
+    /// The consequent binds a registered native builtin — owned by
+    /// [`lower_constraints_to_rc`], which decides it by arithmetic rather than by NAF.
+    BuiltinBoundConsequent,
+    /// An antecedent conjunct is not a lowerable atom (a disjunction, a quantifier
+    /// alternation, a sequence-marker atom, a non-IRI relation).
+    UnsupportedAntecedent,
+    /// A consequent conjunct is not a single stored-relation literal or a negation of
+    /// one (a disjunction, a nested implication, a negated n-ary reification whose
+    /// De Morgan dual leaves the Horn+NAF fragment).
+    UnsupportedConsequent,
+    /// The focus variable is not bound by any POSITIVE body literal, so the rule is
+    /// unsafe: its head could not be grounded and a NAF literal cannot bind it.
+    UnsafeFocusVariable,
+}
+
+impl RcViolationGap {
+    /// The byte-stable disclosure token for this gap.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::NotUniversalImplication => "not-universal-implication",
+            Self::NoFailureClass => "no-enforces-failure-class",
+            Self::BuiltinBoundConsequent => "builtin-bound-consequent",
+            Self::UnsupportedAntecedent => "unsupported-antecedent",
+            Self::UnsupportedConsequent => "unsupported-consequent",
+            Self::UnsafeFocusVariable => "unsafe-focus-variable",
+        }
+    }
+}
+
+/// One `logic:Constraint` this lowering declined, paired with the reason.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcViolationResidue {
+    /// The declined constraint's IRI.
+    pub constraint_iri: String,
+    /// Why it was declined.
+    pub gap: RcViolationGap,
+}
+
+/// Lower every `program.constraints` whose integrity formula is a universally-quantified
+/// implication over stored relations into violation-emitting [`RcViolationRule`]s —
+/// returning BOTH the compiled rules and the flagged residue for every constraint that
+/// did not compile.
+///
+/// `builtin_relations` names the consequent relations owned by [`lower_constraints_to_rc`]
+/// (the arithmetic-decided dimension laws); a constraint whose consequent is one of them
+/// is residue here rather than double-lowered by two different semantics.
+///
+/// The lowering is ALL-OR-NOTHING per constraint: if any conjunct of the consequent (or
+/// any antecedent conjunct) is outside the fragment, the whole constraint becomes residue
+/// and NO rule is emitted for it. Emitting the lowerable half would ship a law that gates
+/// some of what it says it gates while reading, to a caller counting rules, as though it
+/// gated all of it.
+///
+/// Returns the rules in `program.constraints`' canonical (IRI-sorted) order, each
+/// constraint's conjuncts in authored order.
+#[must_use]
+pub fn lower_violation_constraints_to_rc(
+    program: &LogicProgram,
+    builtin_relations: &BTreeSet<String>,
+) -> (Vec<RcViolationRule>, Vec<RcViolationResidue>) {
+    let mut rules: Vec<RcViolationRule> = Vec::new();
+    let mut residue: Vec<RcViolationResidue> = Vec::new();
+    for constraint in &program.constraints {
+        match lower_one_violation_constraint(constraint, builtin_relations) {
+            Ok(mut lowered) => rules.append(&mut lowered),
+            Err(gap) => residue.push(RcViolationResidue {
+                constraint_iri: constraint.iri.clone(),
+                gap,
+            }),
+        }
+    }
+    (rules, residue)
+}
+
+/// Lower one constraint into its per-conjunct violation rules, or name the gap that
+/// stopped it.
+fn lower_one_violation_constraint(
+    constraint: &ConstraintIr,
+    builtin_relations: &BTreeSet<String>,
+) -> Result<Vec<RcViolationRule>, RcViolationGap> {
+    // The failure class is checked FIRST, before any shape analysis, and that ordering is
+    // part of the contract: it makes `NoFailureClass` mean exactly "this constraint does
+    // not ask to be enforced as a marker" and every OTHER gap mean "it asked and the
+    // fragment could not deliver". A caller can then hard-fail on the second kind without
+    // also condemning the many constraints whose enforcement surface is the derived SHACL.
+    let failure_class = constraint
+        .failure_class
+        .clone()
+        .ok_or(RcViolationGap::NoFailureClass)?;
+    let Formula::Forall { vars, body } = &constraint.integrity else {
+        return Err(RcViolationGap::NotUniversalImplication);
+    };
+    let focus = vars
+        .first()
+        .ok_or(RcViolationGap::NotUniversalImplication)?;
+    let Formula::Implies(antecedent, consequent) = body.as_ref() else {
+        return Err(RcViolationGap::NotUniversalImplication);
+    };
+    if let Formula::Atom {
+        relation: Term::Iri(rel),
+        ..
+    } = strip_quantifier(consequent)
+        && builtin_relations.contains(rel)
+    {
+        return Err(RcViolationGap::BuiltinBoundConsequent);
+    }
+
+    // The antecedent: ordinary positive body atoms, the same per-atom reification the
+    // formula lane uses. These are what BIND the focus variable.
+    let mut ante_conjuncts: Vec<&Formula> = Vec::new();
+    flatten_and(antecedent, &mut ante_conjuncts);
+    let mut ante_atoms: Vec<RcAtom> = Vec::new();
+    for conjunct in &ante_conjuncts {
+        let atoms = formula_atom_to_rc_atoms(strip_quantifier(conjunct), AtomPosition::Body)
+            .map_err(|_| RcViolationGap::UnsupportedAntecedent)?;
+        ante_atoms.extend(atoms);
+    }
+    let subject = RcTerm::Var(format!("?{focus}"));
+    // Safety: only a POSITIVE literal can bind the head's subject. A NAF literal is a
+    // membership test over already-bound terms, never a generator.
+    if !ante_atoms
+        .iter()
+        .any(|atom| !atom.negated && (atom.subject == subject || atom.object == subject))
+    {
+        return Err(RcViolationGap::UnsafeFocusVariable);
+    }
+
+    // The consequent: one violation rule per conjunct, each carrying the antecedent plus
+    // that conjunct's NEGATION.
+    let mut cons_conjuncts: Vec<&Formula> = Vec::new();
+    flatten_and(consequent, &mut cons_conjuncts);
+    let mut out = Vec::with_capacity(cons_conjuncts.len());
+    for (conjunct_index, conjunct) in cons_conjuncts.iter().enumerate() {
+        let flipped = negate_consequent_conjunct(conjunct)?;
+        let mut body = ante_atoms.clone();
+        body.extend(flipped);
+        body.sort_by_cached_key(rc_atom_sort_key);
+        body.dedup();
+        out.push(RcViolationRule {
+            constraint_iri: constraint.iri.clone(),
+            conjunct_index,
+            body,
+            subject: subject.clone(),
+            failure_class: failure_class.clone(),
+        });
+    }
+    Ok(out)
+}
+
+/// Peel a quantifier prefix off a formula, returning its innermost body.
+///
+/// The authored corpus writes an obligation both bare (`p(?this, ?y)`, the free variable
+/// carrying the existential force implicitly) and explicitly quantified
+/// (`∃y. p(?this, y)`). Both mean the same obligation, and both lower identically —
+/// under NAF an unbound object position is exactly the existential probe.
+fn strip_quantifier(f: &Formula) -> &Formula {
+    match f {
+        Formula::Exists { body, .. } | Formula::Forall { body, .. } => strip_quantifier(body),
+        other => other,
+    }
+}
+
+/// Negate one consequent conjunct into the body literal(s) whose satisfaction is the
+/// violation.
+///
+/// Four shapes are in the fragment:
+///
+/// * `p(s, o)` (an OBLIGATION) → the single NAF literal `¬p(s, o)`.
+/// * `¬p(s, o)` (a PROHIBITION) → the single POSITIVE literal `p(s, o)`.
+/// * `¬∃v. (p₁ ∧ … ∧ pₙ)` (a prohibited PATTERN) → the positive conjunction
+///   `p₁ ∧ … ∧ pₙ`; the De Morgan dual of a negated conjunction of positives is a
+///   conjunction, which stays inside the Horn body.
+/// * either of the first two under a quantifier prefix, stripped by
+///   [`strip_quantifier`].
+///
+/// An OBLIGATION whose atom is n-ary is refused: its reification is a CONJUNCTION of
+/// binary atoms, and `¬(a ∧ b)` is a disjunction of NAF literals, which the Horn body
+/// cannot carry. Refusing is the only honest option — a body carrying `¬a ∧ ¬b` would
+/// fire on strictly fewer records than the law forbids.
+fn negate_consequent_conjunct(conjunct: &Formula) -> Result<Vec<RcAtom>, RcViolationGap> {
+    match strip_quantifier(conjunct) {
+        // A PROHIBITION: the violation is the prohibited pattern holding, positively.
+        Formula::Not(inner) => {
+            let mut inner_conjuncts: Vec<&Formula> = Vec::new();
+            flatten_and(strip_quantifier(inner), &mut inner_conjuncts);
+            let mut atoms = Vec::with_capacity(inner_conjuncts.len());
+            for c in &inner_conjuncts {
+                atoms.extend(
+                    formula_atom_to_rc_atoms(strip_quantifier(c), AtomPosition::Body)
+                        .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+                );
+            }
+            Ok(atoms)
+        }
+        // An OBLIGATION: the violation is its absence, decided by existential NAF.
+        atom @ Formula::Atom { .. } => {
+            let mut atoms = formula_atom_to_rc_atoms(atom, AtomPosition::Body)
+                .map_err(|_| RcViolationGap::UnsupportedConsequent)?;
+            let [single] = atoms.as_mut_slice() else {
+                return Err(RcViolationGap::UnsupportedConsequent);
+            };
+            single.negated = true;
+            Ok(atoms)
+        }
+        _ => Err(RcViolationGap::UnsupportedConsequent),
+    }
+}
+
 /// Lower a top-level (already NNF + Skolemized) formula: peel the universal closure, flatten
 /// a top-level conjunction into independent clauses, and lower each clause — pushing an
 /// [`RcRule`] when it is a Horn clause of binary atoms, else recording an honest residue

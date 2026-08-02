@@ -119,10 +119,11 @@ fn target_recipe(source: &str, target: &str) -> String {
 fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
-        source.contains("run: make regen SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        source.contains("run: make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
         "AC3 (source-backed export): .github/workflows/pages.yml must render the \
-         Pages site from canonical sources via the exact step `run: make regen SYNC_MODE=update \
-         SYNC_OUTPUTS=docs` — it must never publish a stale or hand-copied tree"
+         Pages site from canonical sources via the exact step `run: make check-sync \
+         SYNC_MODE=update SYNC_OUTPUTS=docs` — the single producer target, and never a \
+         stale or hand-copied tree"
     );
     assert!(
         source.contains("uses: actions/upload-pages-artifact"),
@@ -181,14 +182,28 @@ fn interactive_exec() -> gmeow_docs::ExecutableDocsData {
 }
 
 #[test]
-fn ac3_makefile_regen_delegates_to_gmeow_dev_sync() {
+fn ac3_makefile_producer_delegates_to_gmeow_dev_sync() {
     let source = makefile();
-    // `make sync` was removed; the standalone regenerate lane is `make regen`.
-    let recipe = target_recipe(&source, "regen");
+    // ONE producer. `make sync` and `make regen` are both gone as pipeline entry
+    // points (`regen` survives only as a refusal that names its replacement), so the
+    // whole regeneration surface — including the docs fanout AC3 depends on — is
+    // owned by `check-sync`.
+    let recipe = target_recipe(&source, "check-sync");
     assert!(
-        recipe.contains("$(GMEOW_DEV) sync"),
-        "AC3: the standalone Makefile `regen:` recipe must delegate to the single \
-         `$(GMEOW_DEV) sync` producer binary invocation; recipe was: {recipe:?}"
+        recipe.contains("$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS)"),
+        "AC3: the Makefile `check-sync:` recipe must delegate to the single \
+         `$(GMEOW_DEV) sync` producer binary invocation, mode- and scope-selected; \
+         recipe was: {recipe:?}"
+    );
+    assert!(
+        recipe.contains("$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated")
+            && recipe.contains("$(MAKE) build"),
+        "AC3: the docs scope must still order materialize-then-build before the docs \
+         fanout reads dist/gmeow.jsonld / dist/gmeow.yamlld; recipe was: {recipe:?}"
+    );
+    assert!(
+        !target_recipe(&source, "regen").contains("$(GMEOW_DEV) sync"),
+        "AC3: `make regen` must no longer be a second pipeline entry point"
     );
 }
 
@@ -748,7 +763,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
         panic!(
             "cannot read the shipped bundle {} ({e}); materialize it first with \
-             `make regen SYNC_OUTPUTS=generated`",
+             `make check-sync SYNC_MODE=update`",
             bundle_path.display()
         )
     });
@@ -761,7 +776,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
 
 /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
 /// source (a pure function of committed, tracked sources — no dependency on a prior
-/// `make regen` materializing the git-ignored `generated/` tree) and fold it into a
+/// `make check` materializing the git-ignored `generated/` tree) and fold it into a
 /// minimal synthetic GTS snapshot carrying just the `queries-archive` blob, exactly
 /// as the real bundle carries it. Mirrors the equivalent private test helper in
 /// `crates/pipeline/src/docs_distribution.rs`, built here from ONLY the public API

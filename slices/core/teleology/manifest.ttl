@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ;
-    gmeow:sliceConsumer "The agent-memory flagship (an agent recording its own goals across sessions — Principle 14) and the lbox principia importer (a 21-goal hierarchy with counter-goals and tier tenure). The norms extension ranges prescribedConduct over Goal."@x-gmeow-english.
+    gmeow:sliceConsumer "The agent-memory flagship (an agent recording its own goals across sessions — Principle 14) and the lbox principia importer (a 21-goal hierarchy with counter-goals and tier tenure). The core norms slice ranges prescribedConduct over Goal."@x-gmeow-english.

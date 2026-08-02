@@ -9,7 +9,10 @@
 > occurrences, goal decomposition, and goal conflict. State change is in
 > [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md); the typed worlds these constructs reason over are
 > in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md); the deontic force that ranges over goals is the
-> norms vocabulary, aligned here. openEHR Task-Planning (PROC) ↔ `logic:Plan` is a process-axis
+> norms vocabulary, aligned here. Carrying a `logic:Plan` out durably — versioning it, enacting it,
+> refining it, and recording what it committed outside the graph — is
+> [`LOGIC-ENACTMENT.md`](LOGIC-ENACTMENT.md), which reuses `logic:Plan` unchanged and mints no second
+> plan concept. openEHR Task-Planning (PROC) ↔ `logic:Plan` is a process-axis
 > correspondence — the prescriptive↔descriptive seam is a lossy lens
 > ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md); see the canonical process model).
 
@@ -22,6 +25,16 @@ transactions: it carries the goals an agent holds, the structured conditions und
 counts as met, the actions whose execution a transaction path records, and the ways goals refine and
 collide. Means–end search — finding a plan that reaches a goal — is a solver-layer computation; the
 teleology layer is the representation that search reads and writes, not the search itself.
+
+That solver-layer search has a declared home: the **enactment lane**
+([`LOGIC-ENACTMENT.md`](LOGIC-ENACTMENT.md)), where bounded hierarchical means–end search runs over
+`logic:DecompositionMethod` applicability within a declared decidable `logic:SearchFragment` and under
+an explicit `logic:resourcePolicy` budget, returning a typed outcome that distinguishes a complete
+search from a budget cut and from an out-of-fragment method set. It lives in
+`crates/logic/src/reason/enactment/` and copies this layer's four-clause determinism contract verbatim.
+The native teleology evaluator's own purity contract is unchanged by that placement: it still performs
+no means–end search and never finds a plan — every computation it makes remains a pure function over
+the given structure.
 
 The layer is authored over GMEOW's own teleological vocabulary rather than reinvented. A
 `gmeow:Goal` is the propositional content — a described state of affairs that situations satisfy via

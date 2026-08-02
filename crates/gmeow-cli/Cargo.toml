@@ -91,3 +91,9 @@ serde_json.workspace = true
 # real-crypto verify test, in-process — never a production dependency, `purrdf`
 # (already a normal dependency above) is what `gmeow verify` actually uses.
 ed25519-dalek = "2"
+# RAII temp directories for the console session-replay lane's scratch trees. Every
+# scratch path is removed on drop — including on panic and early return — so a gate run
+# never leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path under
+# `std::env::temp_dir()` is banned by the repo-static guard (`check_no_unmanaged_temp_dir`
+# in crates/validate/src/repo_static.rs).
+tempfile.workspace = true

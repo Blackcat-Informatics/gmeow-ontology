@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc4-crash-at-effect-boundary
+# The hardest state in the kernel. An intent was persisted and an attempt was
+# transmitted; the process then died before any durable receipt. The provider may
+# or may not have acted, and nothing in our records can settle it because the
+# fact in question is not in our records.
+#
+# Both tempting answers are destructive: retry blindly gives a double effect,
+# compensate blindly reverses something that never happened. RECONCILIATION is
+# the only licensed next action, and the frontier says so. The intent carries the
+# journal head it expected, so a resubmission arrives with a stale head and is
+# structurally detectable rather than dependent on someone remembering to check.
+#
+# The frontier SAYS SO by DERIVING it. No logic:entryLabel is asserted below: the
+# entry carries the attempted position on the effect axis and the shipped rule
+# named in profile.json concludes reconciliation-required from that alone. The
+# whole shipped rule set is loaded, so what the golden does NOT contain is the
+# load-bearing half of this case — no ready-and-authorized retry and no
+# compensation-eligible counteraction appear, because neither is licensed from an
+# undetermined position, and that absence is now a fact about the rules rather
+# than about which rules happened to be present.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:settlement a logic:Plan ;
+    logic:planGoal e:invoicesSettled ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindBusinessProcess .
+e:invoicesSettled a gmeow:Goal ; rdfs:label "Due invoices settled exactly once"@x-gmeow-english .
+e:settlementV5 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:settlement ;
+    logic:prescriptionDigest "b3:5e08a3c91f7bd246015c8a370be9d24f18a6c053be7d1940fa25c86b3e097d13" .
+e:batch a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:9d720ba53e18cf46015a9c73be0d284f610ac539be8d2740f1a5c96b3e07d825" .
+
+e:run a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:settlementV5 ;
+    logic:enactmentInputSnapshot e:batch ;
+    logic:enactmentJournal e:journal ;
+    logic:enactmentState logic:EnactmentPaused .
+e:journal a logic:TransitionJournal ;
+    logic:journalHead "b3:0a75c93e18bd246f015c7a9b30e2df8461c05a37be91d4207f8a6c15b39e02d4" .
+
+e:chargeStep a logic:TransactionStep ; rdfs:label "Charge the customer"@x-gmeow-english .
+e:chargeSchema a logic:ActionSchema ;
+    logic:capability e:paymentsEndpoint ;
+    logic:precondition e:invoiceDueUnpaid .
+e:paymentsEndpoint a logic:EngineCapability ; rdfs:label "Payments charge endpoint"@x-gmeow-english .
+e:invoiceDueUnpaid a logic:Constraint ; rdfs:label "Invoice due and unsettled"@x-gmeow-english .
+e:args a logic:ArgumentNormalization ; rdfs:label "Normalized charge arguments"@x-gmeow-english .
+e:policy a logic:Constraint ; rdfs:label "Settlement dispatch policy"@x-gmeow-english .
+
+e:intent a logic:DispatchIntent ;
+    logic:intentOfEnactment e:run ;
+    logic:intentOfStep e:chargeStep ;
+    logic:intentActionSchemaVersion e:chargeSchema ;
+    logic:intentNormalizedArguments e:args ;
+    logic:intentTarget e:paymentsEndpoint ;
+    logic:intentPolicy e:policy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest "b3:6c1a80f35e97d24b013fa95c28be0d746a1c530be89d2f4071a6c85b39e0d27a" ;
+    logic:intentIdempotency e:idem ;
+    logic:expectedJournalHead "b3:0a75c93e18bd246f015c7a9b30e2df8461c05a37be91d4207f8a6c15b39e02d4" .
+
+# The retention window is a law, not documentation: a retry sent after the
+# provider forgets the key is not idempotent, it is simply a second charge.
+e:idem a logic:IdempotencyContract ;
+    logic:idempotencyKey "invoice:90233:charge:attempt-1" ;
+    logic:idempotencyScope "provider:acme:merchant-88" ;
+    logic:idempotencyRetention "PT24H"^^xsd:duration ;
+    logic:idempotencyDuplicateSemantics "Original result returned for a repeated key within 24h; afterwards a repeat is a NEW charge."@x-gmeow-english ;
+    logic:idempotencyProviderEvidence "Provider API v3 idempotency spec, section 4.2."@x-gmeow-english .
+
+e:attempt a logic:EffectAttempt ;
+    logic:attemptOfIntent e:intent ;
+    logic:providerCorrelationId "acme-req-01JQ8ZK3MF7T2XN0" .
+
+# The boundary state. Names its attempt: an unknown with no attempt is
+# unresolvable in principle and could never license the retry it invites.
+e:unknown a logic:ExternalOutcomeUnknown ;
+    logic:unknownOfAttempt e:attempt .
+
+e:frontier a logic:ActionableFrontier ;
+    logic:frontierSaturationWitness e:sat ;
+    logic:frontierOfEnactment e:run ;
+    logic:hasFrontierEntry e:eReconcile, e:eLegacyCharge .
+
+# The witness certifies the roster; it is not a member of it. Typed as a
+# logic:FrontierEntry it would join the very roster it certifies, offering the
+# operator a second action at the one position where acting on an invented row is
+# a double charge.
+e:sat a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — the frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "38"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+# The effect axis sits at ATTEMPTED, and that position alone reaches the label.
+e:eReconcile a logic:FrontierEntry ;
+    logic:entryAction e:chargeStep ;
+    logic:entryAxisWitness logic:EffectAttempted .
+
+# The position that is WORSE than an unknown, and the contrast that makes the
+# unknown legible. A second exchange on this run went to a provider that has since
+# been decommissioned: there is no query interface left to ask, so no probe can be
+# sent and no verdict can ever land. Its effect axis is ABANDONED, not attempted,
+# and one axis position apart the licensed action changes from "reconcile" to
+# "escalate". Folding the two together would send an operator after evidence that
+# cannot be obtained — so the two labels are derived from the two positions rather
+# than distinguished by a reader's judgement.
+e:eLegacyCharge a logic:FrontierEntry ;
+    logic:entryAction e:legacyChargeStep ;
+    logic:entryAxisWitness logic:EffectAbandoned .
+
+e:legacyChargeStep a logic:TransactionStep ;
+    rdfs:label "Charge the customer through the decommissioned provider"@x-gmeow-english .
+
+e:probe a logic:ReconciliationProbe ; logic:probesAttempt e:attempt .
+e:result a logic:ReconciliationResult ; logic:reconciliationVerdict logic:ReconciledCommitted .

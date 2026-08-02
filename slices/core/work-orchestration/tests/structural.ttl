@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Structural assertions for the work-orchestration slice.
+#
+# The bans here all guard the same thing: this slice BINDS the kernel and must
+# never fork it. Every mustNot cell carries a saFailWitness, because a ban over
+# a module that by construction lacks the banned triple would otherwise pass
+# vacuously whether or not the pattern is even correct.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
+
+# --- 1. No second plan or execution concept (MUST NOT) ------------------------
+ex:saNoSecondExecutionConcept a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/second-execution-concept.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  ?c a owl:Class ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> .
+  FILTER(REGEX(STR(?c), "(Execution|Procedure|ProcedureStep|Run)$"))
+}""" ;
+    gmeow:saRationale "The canonical process model is the logic: prescription/enactment spine. A domain binding that mints its own execution or procedure class recreates exactly the second source of truth the process-model retirement removed, and the two would drift the moment either changed." .
+
+# --- 2. No second recommendation model (MUST NOT) -----------------------------
+ex:saNoSecondRecommendationModel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/second-recommendation-model.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  ?c a owl:Class ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> .
+  FILTER(REGEX(STR(?c), "(Ranking|Recommendation|PreferenceOrder|Winner)$"))
+}""" ;
+    gmeow:saRationale "Contextual comparison runs through the shipped preference apparatus, which already supplies ties, positive incomparability and the no-context-free-winner discipline. A local ranking class would reintroduce the privileged global winner those constructs exist to make impossible." .
+
+# --- 3. No second budget mechanism (MUST NOT) ---------------------------------
+ex:saNoSecondBudget a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/second-budget-mechanism.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  ?p a ?k ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> .
+  VALUES ?k { owl:DatatypeProperty owl:ObjectProperty }
+  FILTER(REGEX(STR(?p), "(maxSteps|stepLimit|budgetLimit|maxAnswers)$", "i"))
+}""" ;
+    gmeow:saRationale "The engine already threads one budget mechanism end to end, and its exhaustion semantics are what make an incomplete result honest. A second budget would produce results whose completeness claim is judged against a limit the engine never saw." .
+
+# --- 4. No hand-authored shapes (MUST NOT) ------------------------------------
+ex:saNoHandAuthoredShapes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/hand-authored-shape.ttl" ;
+    gmeow:saPattern """PREFIX sh: <http://www.w3.org/ns/shacl#>
+ASK { { ?s a sh:NodeShape } UNION { ?s a sh:PropertyShape } }""" ;
+    gmeow:saRationale "Validation is authored as EL-safe axioms and logic:Constraint formula trees; the shape surface is DERIVED from them. A hand-authored shape is a second source of truth that the derivation cannot see and that will silently diverge from the constraint it duplicates." .
+
+# --- 5. No logic: -> gmeow: axiom edge in the grounding slice (MUST NOT) ------
+ex:saNoLogicToGmeowAxiomEdge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/logic-axiom-edge-into-gmeow.ttl" ;
+    gmeow:saPattern """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  ?s ?p ?o .
+  VALUES ?p { rdfs:subClassOf rdfs:domain rdfs:range }
+  FILTER(STRSTARTS(STR(?s), "https://blackcatinformatics.ca/logic/"))
+  FILTER(STRSTARTS(STR(?o), "https://blackcatinformatics.ca/gmeow/"))
+}""" ;
+    gmeow:saRationale "The kernel is declared standalone so that one algebra serves every named domain without privileging any. An axiom edge out of it would make the reasoning layer depend on a domain layer that already depends on the reasoning layer — a genuine cycle, not merely untidy. Prose mentions are the established idiom and are deliberately not banned." .
+
+# --- 6. Key terms bind the kernel rather than restating it (MUST) -------------
+ex:saBindsKernelTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  gmeow:clusterActivePrescription rdfs:range logic:PrescriptionVersion .
+  gmeow:clusterEnactment rdfs:range logic:Enactment .
+  gmeow:enactmentContextAssembly rdfs:range logic:ContextAssembly .
+}""" ;
+    gmeow:saRationale "The binding edges are the slice's reason to exist. If they were dropped the cluster would describe continuing work with no connection to the machinery that carries it out, and the kernel would have no consumer." .
+
+# --- 7. Recurrence reuses the calendar and events spine (MUST) ----------------
+ex:saRecurrenceReusesCalendar a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  gmeow:clusterSchedule rdfs:range gmeow:EventSchedule .
+  gmeow:clusterOccurrenceSeries rdfs:range gmeow:EventSeries .
+}""" ;
+    gmeow:saRationale "Recurrence is already modelled once, with a schedule that generates rather than is generated and a skipped occurrence recorded as an exception rather than an absence. Re-minting it here would lose both distinctions and split recurrence across two vocabularies." .

@@ -17,7 +17,8 @@ ex:ecDeploymentTwoArtifacts a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/deployment-two-artifacts.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares one gmeow:ModelDeployment with two gmeow:deploymentArtifact values. gmeow:ModelDeploymentShape bounds gmeow:deploymentArtifact at sh:maxCount 1 (a deployment serves exactly one artifact; two served models are two deployments), so validation MUST emit shacl.MaxCountConstraintComponent. Both artifacts are typed gmeow:ModelArtifact so the cardinality is the sole violation." .
+    gmeow:expectedSourceShape gmeow:ModelDeployment-shape ;
+    gmeow:conformanceRationale "The counter-example declares one gmeow:ModelDeployment with two gmeow:deploymentArtifact values. The derived gmeow:ModelDeployment-shape bounds gmeow:deploymentArtifact at sh:maxCount 1 (a deployment serves exactly one artifact; two served models are two deployments), so validation MUST emit shacl.MaxCountConstraintComponent from gmeow:ModelDeployment-shape, which gmeow:expectedSourceShape pins by IRI. Both artifacts are typed gmeow:ModelArtifact, so the cardinality is the only KIND of defect present. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: the same over-count is reported a second time by the residual hand-authored gmeow:ModelDeploymentShape this partially-migrated slice still ships in shapes.ttl, and a third time by the derived gmeow:deploymentArtifact-domain-shape. All three are the same bound stated by three authorities; soleness counts authorities, so it becomes declarable once the residual shapes.ttl is retired." .
 
 # NOTE: the deployment / awareness-subject disjointness is enforced at the TBox by
 # gmeow:ModelDeployment owl:disjointWith gmeow:Agent (module.ttl) and pinned by

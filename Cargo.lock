@@ -1548,6 +1548,7 @@ dependencies = [
  "purrdf",
  "rayon",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1607,6 +1608,7 @@ dependencies = [
  "indicatif",
  "serde",
  "serde_json",
+ "tempfile",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1625,6 +1627,7 @@ dependencies = [
  "gmeow-ns",
  "purrdf",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1684,6 +1687,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha1",
+ "tempfile",
 ]
 
 [[package]]
@@ -1712,6 +1716,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha1",
+ "tempfile",
 ]
 
 [[package]]
@@ -2013,6 +2018,7 @@ dependencies = [
 name = "gmeow-slice-quality"
 version = "0.2.0"
 dependencies = [
+ "blake3",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
@@ -2041,6 +2047,7 @@ dependencies = [
  "gmeow-ns",
  "gmeow-validate",
  "purrdf",
+ "tempfile",
 ]
 
 [[package]]
@@ -6091,6 +6098,7 @@ version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-logic-compile",
+ "tempfile",
 ]
 
 [[package]]

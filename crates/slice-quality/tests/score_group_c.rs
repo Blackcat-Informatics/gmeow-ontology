@@ -103,14 +103,13 @@ fn translation_reflects_the_missing_mandarin_catalog_honestly() {
 /// Build a throwaway slice dir with one term carrying `rdfs:label`,
 /// `skos:definition`, and `skos:example`, plus fr/zh catalogs that translate
 /// `label`+`definition` and — only when `translate_example` — the `example` too.
-/// Returns `(dir, slice_iri)`.
-fn literal_fixture(name: &str, translate_example: bool) -> (PathBuf, String) {
-    let mut dir = std::env::temp_dir();
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    dir.push(format!("gmeow-xlit-{name}-{}-{nanos}", std::process::id()));
+/// Returns `(guard, dir, slice_iri)`, where the [`tempfile::TempDir`] guard owns
+/// `dir` and removes the whole tree when it drops — on success, on panic, and on
+/// early return. Callers must bind it (`let (_tmp, dir, iri) = literal_fixture(…);`);
+/// a bare `_` binding would delete the fixture before the axis reads it.
+fn literal_fixture(name: &str, translate_example: bool) -> (tempfile::TempDir, PathBuf, String) {
+    let tmp = tempfile::tempdir().expect("create temp dir");
+    let dir = tmp.path().join(format!("gmeow-xlit-{name}"));
     std::fs::create_dir_all(dir.join("i18n")).unwrap();
 
     let slice_iri = "https://blackcatinformatics.ca/gmeow/slices/xlit".to_string();
@@ -161,7 +160,7 @@ fn literal_fixture(name: &str, translate_example: bool) -> (PathBuf, String) {
         )
         .unwrap();
     }
-    (dir, slice_iri)
+    (tmp, dir, slice_iri)
 }
 
 #[test]
@@ -170,7 +169,7 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     // skos:example is not. Under the widened measure this scores strictly < 1.0;
     // under the OLD label+definition-only scope it would be a perfect 1.0. This is the
     // decisive discriminator that the denominator widened past label+definition.
-    let (dir, iri) = literal_fixture("gap", false);
+    let (_tmp, dir, iri) = literal_fixture("gap", false);
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
@@ -188,7 +187,7 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     );
 
     // Control: translate the example too → every localizable literal covered → 1.0.
-    let (dir2, iri2) = literal_fixture("full", true);
+    let (_tmp2, dir2, iri2) = literal_fixture("full", true);
     let ds2 = gmeow_slice_quality::dataset_from_paths(&[&dir2.join("module.ttl")]).unwrap();
     let tr2 = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri2,
@@ -203,14 +202,11 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
         "with every localizable literal translated in fr+cmn the score is a perfect 1.0, got {}",
         tr2.score
     );
-
-    std::fs::remove_dir_all(&dir).ok();
-    std::fs::remove_dir_all(&dir2).ok();
 }
 
 #[test]
 fn translation_axis_does_not_credit_copied_english() {
-    let (dir, iri) = literal_fixture("integrity", false);
+    let (_tmp, dir, iri) = literal_fixture("integrity", false);
     let term = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
     std::fs::write(
         dir.join("module.ttl"),
@@ -257,7 +253,6 @@ fn translation_axis_does_not_credit_copied_english() {
             .count(),
         2
     );
-    std::fs::remove_dir_all(dir).ok();
 }
 
 #[test]
@@ -267,7 +262,7 @@ fn mislabeled_catalog_header_cannot_credit_copied_english() {
     // the configured target (fr/cmn), so the copy earns no credit, and the mislabeled header
     // is surfaced as an advisory rather than silently trusted. Before this fix, trusting the
     // header would let the copy pass the (English) integrity guard and falsely score 1.0.
-    let (dir, iri) = literal_fixture("mislabel", false);
+    let (_tmp, dir, iri) = literal_fixture("mislabel", false);
     let term = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
     std::fs::write(
         dir.join("module.ttl"),
@@ -317,7 +312,6 @@ fn mislabeled_catalog_header_cannot_credit_copied_english() {
         2,
         "each mislabeled catalog (fr.po and zh.po both claiming `en`) is surfaced as an advisory"
     );
-    std::fs::remove_dir_all(dir).ok();
 }
 
 const XLIT_TERM: &str = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
@@ -325,7 +319,7 @@ const XLIT_TERM: &str = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
 #[test]
 fn fuzzy_entry_does_not_count_toward_coverage() {
     // Control: a fully-reviewed fixture (label+definition+example in fr & zh) is 1.0.
-    let (dir, iri) = literal_fixture("fuzzygate", true);
+    let (_tmp, dir, iri) = literal_fixture("fuzzygate", true);
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let full = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri.clone(),
@@ -374,14 +368,13 @@ fn fuzzy_entry_does_not_count_toward_coverage() {
         ),
         "an advisory narrates the machine-seeded (fuzzy) entry awaiting review"
     );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 #[test]
 fn removing_fuzzy_flag_raises_coverage() {
     // Seed the fr label as `#, fuzzy` (machine-seeded, unreviewed) in an otherwise
     // fully-translated fixture; a human then promotes it by deleting the flag.
-    let (dir, iri) = literal_fixture("fuzzyremove", true);
+    let (_tmp, dir, iri) = literal_fixture("fuzzyremove", true);
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
 
     let fr = std::fs::read_to_string(dir.join("i18n/fr.po")).unwrap();
@@ -420,7 +413,6 @@ fn removing_fuzzy_flag_raises_coverage() {
         after, 1.0,
         "with every entry reviewed the score is a perfect 1.0, got {after}"
     );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 #[test]
@@ -428,7 +420,7 @@ fn zh_po_without_language_header_still_gets_cmn_integrity() {
     // A zh.po with NO `Language:` header and a copied-English (non-Han) translation:
     // the axis must fall back to the `cmn` tag so the integrity guard still rejects
     // the copied English rather than crediting it as coverage.
-    let (dir, iri) = literal_fixture("cmnfallback", false);
+    let (_tmp, dir, iri) = literal_fixture("cmnfallback", false);
     std::fs::write(
         dir.join("i18n/zh.po"),
         format!(
@@ -452,5 +444,4 @@ fn zh_po_without_language_header_still_gets_cmn_integrity() {
             .any(|f| f.code == "slice-quality.translation.integrity-rejected"),
         "copied English in a header-less zh.po is rejected via the cmn fallback, not credited"
     );
-    std::fs::remove_dir_all(&dir).ok();
 }

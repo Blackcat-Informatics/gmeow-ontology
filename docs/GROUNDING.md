@@ -91,13 +91,30 @@ The shipped grounding surface is split by semantic owner:
 - `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
   OWL/RDFS, and SHACL Core/AF in
   [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
-  plus 23 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  plus 25 commitment-shifting DUL, IAO, OBI, PATO, YAMATO, and OpenCyc rows in
   [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
+  OBI's catalog is `logic:`-owned because its backbone is a planned-process
+  upper ontology: the prescription and enactment bridges
+  (`logic:Plan` → OBI protocol, `logic:Enactment` → OBI planned process) are
+  authored there once, and every downstream `obi:` surface is a generated
+  projection of them. The same ownership carries the remaining process-model
+  surfaces: 37 by-reference rows for P-Plan, PROV-O, schema.org HowTo/Recipe,
+  OPMW, BPMN, the RO-Crate Workflow-Run profile, the workflow engines (Airflow,
+  CWL, WDL, Temporal, Nextflow), and openEHR Task Planning in
+  [`plan-enactment-bridges.ttl`](../slices/grounding/logic/mappings/plan-enactment-bridges.ttl).
+  A work-orchestration or process-authoring slice consumes `logic:Plan`,
+  `logic:ActionSchema`, `logic:Enactment`, `logic:precondition`,
+  `logic:effect` and `logic:planBody` together with these correspondences; it
+  never mints a second alignment onto the same external term.
 - `math:` carries its identity catalog, six direct quantity/value bridges to
   SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
   [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),
   plus 13 validation-only Data Cube, STATO, OBCS, SIO, and OBI rows in
   [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
+  The single OBI row there (`math:DataTransformation` → OBI data transformation)
+  predates the ownership split and sits off the owner boundary, so it is an
+  explicitly ceilinged residue of exactly one (`gmeow:pcc-math-obi`) that may
+  only fall — never a second OBI authoring home.
 - `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
   LexInfo, Global WordNet schema, NIF, and Web Annotation rows in
   [`lexical-bridges.ttl`](../slices/grounding/lang/mappings/lexical-bridges.ttl).
@@ -139,7 +156,7 @@ hand-maintained:
 - **The rendered table.** The always-current human table (seam, direction,
   carrying terms, owning design doc) is the generated seam-registry page
   `ontology-docs/seams/index.md`, rendered on demand by
-  `make sync SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
+  `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
   product, so the page exists only after that render). It is a direct
   projection of the same data, and a validator gate keeps it from drifting out
   of sync with the manifests.

@@ -1,0 +1,254 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the capability IS present — the positive counterpart to
+# ocr-capability-absent.ttl, and the case that proves the system can actually do
+# the work rather than only decline it well.
+#
+# Two things are demonstrated, and the second is the one usually missing:
+#
+#  1. Refinement selects a decomposition and pins it as an IMMUTABLE executable
+#     subgraph: inspect -> prepare -> OCR -> verify -> store receipt. Pinning is
+#     what makes the plan that was approved the plan that runs. The pin here is
+#     DERIVED, not asserted: the roster carries a candidate and a proof licenses
+#     it, and the six shipped pin rules read the freeze off the method the
+#     candidate came from.
+#  2. Policy-maximal automation. Every step whose effects the policy already
+#     authorizes is labelled ready-and-authorized, and ONLY the genuinely
+#     approval-gated step is labelled approval-required. A system that marks
+#     everything approval-required is not being careful, it is pushing its
+#     judgement onto an operator who will soon start approving without reading.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ingestScannedDocs a logic:Plan ;
+    rdfs:label "Ingest scanned documents"@x-gmeow-english ;
+    logic:planGoal ex:scansIngestedWithText ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindIngestion .
+
+ex:scansIngestedWithText a gmeow:Goal ;
+    rdfs:label "Scanned pages are ingested with extracted text"@x-gmeow-english .
+
+ex:ingestScannedDocsV2 a logic:PrescriptionVersion ;
+    rdfs:label "Ingest scanned documents, revision 2"@x-gmeow-english ;
+    logic:prescriptionOf ex:ingestScannedDocs ;
+    logic:prescriptionDigest "b3:83b0a45c19d7e26f014a95c3b80de274f6109ac538b2d64e07f1a5c96b3d802e" .
+
+ex:scanBatch78 a logic:InputSnapshot ;
+    rdfs:label "Scan batch 78"@x-gmeow-english ;
+    logic:snapshotDigest "b3:c4907b1ea538d26f0173b9a5c02e8df4610b73ac9d5e28f140a6c85b3e097d21" .
+
+ex:ingestRun78 a logic:Enactment ;
+    rdfs:label "Ingest run over scan batch 78"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:ingestScannedDocsV2 ;
+    logic:enactmentInputSnapshot ex:scanBatch78 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# --- The decomposition method: a REUSABLE, versioned schema, not a one-off.
+#     This is what lets a continuing cluster learn: next batch refines through
+#     the same method rather than rediscovering the decomposition.
+#
+#     The yielded steps are carried as ONE ORDERED rdf:List, because the order IS
+#     the plan: verifying before extracting verifies nothing, and storing the
+#     receipt before verifying publishes an unchecked result. Repeated
+#     logic:methodYields triples would be an unordered SET, so a reader could only
+#     guess the sequence or alphabetise it — and alphabetised, this plan runs
+#     extract, inspect, prepare, store, verify.
+#
+#     The list cells are NAMED rather than blank for the same reason the pin has a
+#     digest: a pin cannot freeze a cell it cannot name, and an executable fragment
+#     addressed by content must be addressable at all.
+ex:scannedIngestMethod a logic:DecompositionMethod ;
+    rdfs:label "Method: decompose scanned ingest into inspect/prepare/OCR/verify/store"@x-gmeow-english ;
+    logic:methodDecomposes ex:ocrStep ;
+    logic:methodDigest "b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca" ;
+    logic:methodYields ex:scannedIngestCell1 .
+
+# The ordered carrier itself: inspect -> prepare -> OCR -> verify -> store receipt.
+ex:scannedIngestCell1 rdf:first ex:inspectStep ; rdf:rest ex:scannedIngestCell2 .
+ex:scannedIngestCell2 rdf:first ex:prepareStep ; rdf:rest ex:scannedIngestCell3 .
+ex:scannedIngestCell3 rdf:first ex:extractTextStep ; rdf:rest ex:scannedIngestCell4 .
+ex:scannedIngestCell4 rdf:first ex:verifyStep ; rdf:rest ex:scannedIngestCell5 .
+ex:scannedIngestCell5 rdf:first ex:storeReceiptStep ; rdf:rest rdf:nil .
+
+ex:refineRun78 a logic:RefinementEpisode ;
+    rdfs:label "Refinement of the OCR step for batch 78"@x-gmeow-english ;
+    logic:refinesStep ex:ocrStep ;
+    logic:refinementServesGoal ex:scansIngestedWithText ;
+    logic:refinementWorldSnapshot ex:scanBatch78 ;
+    logic:refinementBudget ex:generousSearchBudget ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:producedCandidateSet ex:run78Candidates .
+
+ex:run78Candidates a logic:RefinementCandidateSet ;
+    rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
+    logic:refinementCandidate ex:ocrByStageCandidate .
+
+# The roster's one member, and it is a CANDIDATE — not a pin. What the search
+# recorded about it is the only thing the search could honestly record: which
+# method application produced it. Everything a pin needs beyond that (the frozen
+# sequence, the content address, the authority) is read off that method, so it is
+# derived rather than typed here.
+ex:ocrByStageCandidate
+    rdfs:label "Candidate: the OCR step decomposed stage by stage"@x-gmeow-english ;
+    logic:candidateInstantiatesMethod ex:scannedIngestMethod .
+
+ex:generousSearchBudget a logic:ResourcePolicy ;
+    rdfs:label "Refinement search budget: 1000 method applications"@x-gmeow-english .
+
+# --- The SAME step, the SAME method set, a TIGHTER budget — and therefore a
+#     different, still honest answer. Boundedness is definitional for means-end
+#     search: it is undecidable in general, so an episode reports what it ran
+#     under and what that bought.
+#
+#     This episode was cut. It says so on the kernel's own computation axis —
+#     the search hit its bound, the answer is incomplete relative to the
+#     fragment — and it names NO selected pin, because committing to the best
+#     option a truncated search happened to reach is exactly the silent
+#     quality loss the budget vocabulary exists to prevent. The closed episode
+#     above pins; this one declines to, and the difference between them is one
+#     number.
+#
+#     The engine reproduces this over this very file:
+#       gmeow logic refine <this file> --task …/ocrStep --budget 0
+#     prints INCOMPLETE and withholds the roster rather than showing a partial
+#     one, which would be read as the roster.
+ex:refineRun78UnderTightBudget a logic:RefinementEpisode , gmeow:Activity ;
+    rdfs:label "Refinement of the OCR step for batch 78, under the tight interactive budget"@x-gmeow-english ;
+    logic:refinesStep ex:ocrStep ;
+    logic:refinementServesGoal ex:scansIngestedWithText ;
+    logic:refinementWorldSnapshot ex:scanBatch78 ;
+    logic:refinementBudget ex:tightSearchBudget ;
+    logic:searchFragment logic:FragmentAcyclicMethod .
+
+ex:tightSearchBudget a logic:ResourcePolicy ;
+    rdfs:label "Interactive search budget: 0 method applications"@x-gmeow-english .
+
+ex:tightBudgetSearchResult a logic:ReasoningResult ;
+    rdfs:label "The tight-budget search: cut, and incomplete by construction"@x-gmeow-english ;
+    logic:resultEvaluation logic:BudgetExhausted ;
+    logic:resultCompleteness logic:Incomplete ;
+    logic:consumedBudget "0"^^xsd:nonNegativeInteger ;
+    gmeow:wasGeneratedBy ex:refineRun78UnderTightBudget .
+
+# --- Preparation is work that was already PAID FOR, and a resumed run must not
+#     pay for it twice. Staging the batch — fetching the page images out of cold
+#     storage and normalising them to 300dpi — is expensive and its outcome is
+#     not in doubt, which is exactly what separates a preparation receipt from an
+#     external-effect receipt: one records internal readiness, the other records
+#     something observed outside the system where the outcome IS in doubt.
+ex:stageForOcr a logic:PreparationStep ;
+    rdfs:label "Stage the batch: fetch page images and normalise them to 300dpi"@x-gmeow-english ;
+    logic:preparationOf ex:extractTextStep ;
+    gmeow:preparationActivity ex:stagingRun78 .
+
+ex:stagingRun78 a gmeow:Activity ;
+    rdfs:label "Staging run for batch 78"@x-gmeow-english .
+
+# The receipt is what a restore READS to skip the staging it already completed.
+# Without it, "preparation finished" is inferred from the absence of an error —
+# and a preparation that silently did nothing looks identical.
+ex:stagingReceipt78 a logic:PreparationReceipt ;
+    rdfs:label "Batch 78 staged: 412 pages normalised and readable"@x-gmeow-english ;
+    logic:receiptOfPreparation ex:stageForOcr .
+
+ex:ocrStep a logic:TransactionStep ;
+    rdfs:label "Extract text from scanned pages"@x-gmeow-english .
+
+# The five steps the method yields. They are the ABSTRACT step the frontier's five
+# entries position, which is why the decomposition and the roster below have the
+# same shape: the roster is what the decomposition became once a run existed.
+ex:inspectStep a logic:TransactionStep ;
+    rdfs:label "Inspect the scanned batch"@x-gmeow-english .
+ex:prepareStep a logic:TransactionStep ;
+    rdfs:label "Prepare pages for extraction"@x-gmeow-english .
+ex:extractTextStep a logic:TransactionStep ;
+    rdfs:label "Run OCR over the prepared pages"@x-gmeow-english .
+ex:verifyStep a logic:TransactionStep ;
+    rdfs:label "Verify the extracted text"@x-gmeow-english .
+ex:storeReceiptStep a logic:TransactionStep ;
+    rdfs:label "Store the ingest receipt"@x-gmeow-english .
+
+# --- The authorization: the organizational act that turns a roster member into a
+#     commitment. It is the LAST thing in this scene that cannot be derived, and
+#     that is exactly why it is authored: a search can find a decomposition, but
+#     only somebody with the authority to be wrong about it can license one.
+#
+#     Note what is NOT written anywhere in this file: no logic:PinnedExecutableSubgraph
+#     type, no logic:pinnedStepSequence, no logic:pinDigest, no logic:pinAuthority,
+#     no logic:selectedPin. All five are DERIVED, by the six authored pin rules, off
+#     the join candidate -> method: the frozen sequence IS logic:methodYields, the
+#     content address IS logic:methodDigest, and the authority IS this proof. A pin
+#     whose every field was hand-typed is a freeze nothing could be wrong about; a
+#     derived one cannot name a method its steps never came from, because the steps
+#     and the method are read out of one join.
+#
+#     The engine reproduces it over this very file:
+#       gmeow logic refine <this file> --task …/ocrStep
+#     prints `pins: 1`, with the derivation and its proof height.
+ex:run78PinAuthorization a logic:AuthorizationProof ;
+    rdfs:label "Authorization: the stage-by-stage OCR decomposition is licensed for batch 78"@x-gmeow-english ;
+    logic:proofEstablishes ex:ocrByStageCandidate .
+
+# --- The frontier. Four authorized steps, ONE approval-gated step.
+ex:run78Frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for ingest run 78"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:run78Saturation ;
+    logic:frontierOfEnactment ex:ingestRun78 ;
+    logic:hasFrontierEntry ex:inspectEntry, ex:prepareEntry, ex:ocrEntry,
+                           ex:verifyEntry, ex:storeReceiptEntry .
+
+ex:inspectEntry a logic:FrontierEntry ;
+    rdfs:label "Inspect — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:inspectStep ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:prepareEntry a logic:FrontierEntry ;
+    rdfs:label "Prepare — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:prepareStep ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:ocrEntry a logic:FrontierEntry ;
+    rdfs:label "OCR — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:extractTextStep ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:verifyEntry a logic:FrontierEntry ;
+    rdfs:label "Verify — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:verifyStep ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# The ONLY approval-gated step: storing the receipt publishes outside the batch
+# boundary, which the policy does gate. Note it is ready on the step axis and
+# gated on the approval axis simultaneously — two axes, not one blended state.
+ex:storeReceiptEntry a logic:FrontierEntry ;
+    rdfs:label "Store receipt — ready, but publishing requires approval"@x-gmeow-english ;
+    logic:entryAction ex:storeReceiptStep ;
+    logic:entryLabel logic:FrontierReadyApprovalRequired ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+#
+# It is a logic:SaturationWitness and emphatically NOT a logic:FrontierEntry. A
+# witness typed as an entry joins the roster it was certifying, so the operator is
+# offered a sixth action that does not exist — and, being an entry, it needs an
+# entry label, which is how "the derivation completed" came to be published as a
+# COMPLETED ACTION. The claim about the roster and the members of the roster are
+# different kinds of thing.
+ex:run78Saturation a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "64"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

@@ -1,0 +1,314 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the notes slice (core/notes) --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_notes.py. Each assertion runs
+# as a SPARQL ASK over the notes module graph (gmeow:scopeModule) under the
+# native Rust slicetest harness (crates/slicetest).
+#
+# Notes is migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
+# not gufo:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_evidence_span_is_information_object -- asserts gmeow:EvidenceSpan
+#     rdfs:subClassOf gmeow:InformationObject; EvidenceSpan is defined in the
+#     evidencespan slice, not in notes/module.ttl; scopeModule would silently
+#     miss that triple.
+#   test_selector_sub_class_of_evidence_span -- asserts gmeow:Selector
+#     rdfs:subClassOf gmeow:EvidenceSpan; Selector is defined in the
+#     evidencespan slice; cross-slice, cannot be module-scoped.
+#   test_notes_are_standpoint_indexed -- asserts gmeow:accordingTo a
+#     owl:AnnotationProperty; accordingTo is defined in the standpoint slice;
+#     cross-slice, cannot be module-scoped.
+#   test_motivation_values_are_individuals -- the len(...)==10 assertion is a
+#     dynamic whole-graph count; numeric/dynamic sweeps are not expressible as
+#     a module-scoped ASK. The 10 seed individuals and the banned-class guards
+#     are captured in cells sa10MotivationSeeds and sa11MotivationNotClasses
+#     below; the function is retained only for the count gate.
+#   test_note_with_content_passes_shacl -- SHACL validation call; ExampleConformance,
+#     not a structural TBox assertion.
+#   test_note_with_label_passes_shacl -- SHACL validation call; ExampleConformance.
+#   test_note_without_content_or_label_fails_shacl -- SHACL validation call.
+#   test_annotation_without_target_fails_shacl -- SHACL validation call.
+#   test_annotation_with_target_passes_shacl -- SHACL validation call.
+#   test_highlight_without_selector_fails_shacl -- SHACL validation call.
+#   test_highlight_with_selector_passes_shacl -- SHACL validation call.
+#   test_retracted_note_displayable_false -- SHACL validation call.
+#   test_notes_oa_projection_executable -- reads external .rq file and parses
+#     SPARQL; generated-artifact parse check, not a TBox assertion.
+#   test_notes_schema_projection_executable -- same reason.
+#   test_notes_as_projection_executable -- same reason.
+#   test_notes_markdown_projection_executable -- same reason.
+#
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notes/tests/> .
+
+# --- 1. Note is a subclass of InformationObject (MUST) -----------------------
+ex:saNoteIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Note rdfs:subClassOf gmeow:InformationObject . }""" ;
+    gmeow:saRationale "gmeow:Note MUST be rdfs:subClassOf gmeow:InformationObject -- the flat-first knowledge-graph card grounded as stored information." .
+
+# --- 2. Annotation is a logic:Kind owl:Class subclass of logic:Relator (MUST) --
+ex:saAnnotationIsKindRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Annotation a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Annotation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the W3C Web Annotation idiom expressed as a gUFO relator binding body, target, and motivation." .
+
+# --- 3. Highlight is a subclass of Annotation (MUST) -------------------------
+ex:saHighlightIsAnnotation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Highlight rdfs:subClassOf gmeow:Annotation . }""" ;
+    gmeow:saRationale "gmeow:Highlight MUST be rdfs:subClassOf gmeow:Annotation -- a highlight is an anchored-span annotation motivated by highlighting." .
+
+# --- 4. Bookmark is a subclass of Annotation (MUST) --------------------------
+ex:saBookmarkIsAnnotation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Bookmark rdfs:subClassOf gmeow:Annotation . }""" ;
+    gmeow:saRationale "gmeow:Bookmark MUST be rdfs:subClassOf gmeow:Annotation -- a bookmark is an annotation that records a target for later retrieval." .
+
+# --- 5. Comment is a subclass of Note (MUST) ---------------------------------
+ex:saCommentIsNote a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Comment rdfs:subClassOf gmeow:Note . }""" ;
+    gmeow:saRationale "gmeow:Comment MUST be rdfs:subClassOf gmeow:Note -- a comment is a note that replies to an annotation or another comment." .
+
+# --- 6. annotationBody is an ObjectProperty (MUST) -----------------
+ex:saAnnotationBodyIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:annotationBody a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:annotationBody MUST be an owl:ObjectProperty -- one body per Annotation." .
+
+# --- 7. annotationTarget is an ObjectProperty (MUST) ---------------
+ex:saAnnotationTargetIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:annotationTarget a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:annotationTarget MUST be an owl:ObjectProperty -- one target per Annotation." .
+
+# --- 8. annotationMotivation is an ObjectProperty (MUST) -----------
+ex:saAnnotationMotivationIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:annotationMotivation a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:annotationMotivation MUST be an owl:ObjectProperty -- one motivation per Annotation." .
+
+# --- 9. annotationTargetSpan is an ObjectProperty (MUST) ---------------------
+ex:saAnnotationTargetSpanIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:annotationTargetSpan a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:annotationTargetSpan MUST be an owl:ObjectProperty -- the optional span anchor within the annotation target." .
+
+# --- 10. annotationTargetSpan is NOT functional (MUST-NOT) -------------------
+ex:saAnnotationTargetSpanNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:annotationTargetSpan ; logic:characteristicSort logic:functionalProperty . }""" ;
+    gmeow:saRationale "gmeow:annotationTargetSpan MUST NOT be owl:FunctionalProperty -- an annotation may reference multiple disjoint spans in the same document." .
+
+# --- 11. commentParent is an ObjectProperty (MUST) ---------------------------
+ex:saCommentParentIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:commentParent a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:commentParent MUST be an owl:ObjectProperty -- the direct parent link in a comment thread." .
+
+# --- 12. commentParent is NOT functional (MUST-NOT) --------------------------
+ex:saCommentParentNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:commentParent ; logic:characteristicSort logic:functionalProperty . }""" ;
+    gmeow:saRationale "gmeow:commentParent MUST NOT be owl:FunctionalProperty -- hasReply is transitive, and in OWL 2 DL a transitive property and its inverse are non-simple and cannot be functional; the one-parent constraint is enforced by SHACL sh:maxCount 1." .
+
+# --- 13. hasDirectReply is inverse of commentParent (MUST) -------------------
+ex:saHasDirectReplyInverseCommentParent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:hasDirectReply a owl:ObjectProperty .
+    { gmeow:hasDirectReply owl:inverseOf gmeow:commentParent } UNION
+    { gmeow:commentParent owl:inverseOf gmeow:hasDirectReply }
+}""" ;
+    gmeow:saRationale "gmeow:hasDirectReply MUST be an owl:ObjectProperty inverse of gmeow:commentParent (in either direction) -- the non-transitive inverse enabling forward traversal of the reply tree." .
+
+# --- 14. hasReply is transitive and hasDirectReply is a subproperty (MUST) ---
+ex:saHasReplyIsTransitiveSuperproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasReply a owl:TransitiveProperty .
+    gmeow:hasDirectReply rdfs:subPropertyOf gmeow:hasReply .
+}""" ;
+    gmeow:saRationale "gmeow:hasReply MUST be owl:TransitiveProperty and gmeow:hasDirectReply MUST be rdfs:subPropertyOf gmeow:hasReply -- transitivity closes the full reply tree; the superproperty enables thread-wide traversal." .
+
+# --- 15. mentionedIn is inverse of mentions (MUST) ---------------------------
+ex:saMentionedInInverseMentions a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:mentionedIn owl:inverseOf gmeow:mentions } UNION
+    { gmeow:mentions owl:inverseOf gmeow:mentionedIn }
+}""" ;
+    gmeow:saRationale "gmeow:mentionedIn MUST be owl:inverseOf gmeow:mentions (in either direction) -- the backlink view materialized by projection or inference, never hand-maintained." .
+
+# --- 16. relatedNote is symmetric (MUST) -------------------------------------
+ex:saRelatedNoteIsSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:relatedNote a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:relatedNote MUST be owl:SymmetricProperty -- the undirected associative link between two notes is symmetric by definition (semantic sibling of relatedTag)." .
+
+# --- 17. noteContent, noteCreatedAt, noteModifiedAt are DatatypeProperties ---
+ex:saNoteDataProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:noteContent    a owl:DatatypeProperty .
+    gmeow:noteCreatedAt  a owl:DatatypeProperty .
+    gmeow:noteModifiedAt a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:noteContent, gmeow:noteCreatedAt, and gmeow:noteModifiedAt MUST all be owl:DatatypeProperty -- lightweight flat shortcuts for note text and four-clock timestamps." .
+
+# --- 18. noteAuthor is an ObjectProperty (MUST) ------------------------------
+ex:saNoteAuthorIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:noteAuthor a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:noteAuthor MUST be an owl:ObjectProperty -- the flat 80% authorship shortcut pointing to an Agent." .
+
+# --- 19. Ten AnnotationMotivation seed individuals exist (MUST) --------------
+ex:sa10MotivationSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:motivationDescribing   a gmeow:AnnotationMotivation .
+    gmeow:motivationCommenting   a gmeow:AnnotationMotivation .
+    gmeow:motivationHighlighting a gmeow:AnnotationMotivation .
+    gmeow:motivationBookmarking  a gmeow:AnnotationMotivation .
+    gmeow:motivationTagging      a gmeow:AnnotationMotivation .
+    gmeow:motivationLinking      a gmeow:AnnotationMotivation .
+    gmeow:motivationQuestioning  a gmeow:AnnotationMotivation .
+    gmeow:motivationReplying     a gmeow:AnnotationMotivation .
+    gmeow:motivationAssessing    a gmeow:AnnotationMotivation .
+    gmeow:motivationModerating   a gmeow:AnnotationMotivation .
+}""" ;
+    gmeow:saRationale "All ten W3C Web Annotation motivation seed individuals MUST be present as gmeow:AnnotationMotivation individuals -- they anchor the open value vocabulary aligned to the W3C set." .
+
+# --- 20. Banned subclass names are not owl:Class (MUST-NOT) ------------------
+ex:saMotivationNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:DescribingMotivation gmeow:CommentingMotivation }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:DescribingMotivation and gmeow:CommentingMotivation MUST NOT be typed owl:Class -- motivations are value individuals (open vocabulary, Principle 9), never subclasses." .
+
+# --- 21. No duplicate selector properties (MUST-NOT) -------------------------
+ex:saNoDuplicateSelectorProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:annotationSelectorTextQuote
+        gmeow:annotationSelectorTextPosition
+        gmeow:annotationSelectorPage
+        gmeow:highlightSelector
+    }
+    VALUES ?t { owl:DatatypeProperty owl:ObjectProperty }
+    ?banned a ?t .
+}""" ;
+    gmeow:saRationale "None of gmeow:annotationSelectorTextQuote, annotationSelectorTextPosition, annotationSelectorPage, highlightSelector MUST NOT exist as any property -- selector properties live only on EvidenceSpan/Selector; no duplicate selector model may be minted for annotations (the EvidenceSpan audit reuse doctrine)." .
+
+# --- 22. hasTag, isAbout, mentions are mutually orthogonal (MUST-NOT) --------
+ex:saNoteAxesOrthogonal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?a { gmeow:hasTag gmeow:isAbout gmeow:mentions }
+    VALUES ?b { gmeow:hasTag gmeow:isAbout gmeow:mentions }
+    FILTER (?a != ?b)
+    { ?a rdfs:subPropertyOf ?b } UNION
+    { ?a owl:equivalentProperty ?b }
+}""" ;
+    gmeow:saRationale "No inferential bridge (subPropertyOf or equivalentProperty) MUST NOT exist between gmeow:hasTag, gmeow:isAbout, and gmeow:mentions -- typing, aboutness, and backlinks are orthogonal assertion axes for notes." .
+
+# --- 23. No note-specific tag property is minted (MUST-NOT) ------------------
+ex:saNoteTaggingReusesHasTag a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:noteTag gmeow:noteTagging }
+    ?banned a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:noteTag and gmeow:noteTagging MUST NOT exist as owl:ObjectProperty -- notes reuse the universal hasTag / Tagging building block; no note-specific tag property may be minted (the no-parallel-properties doctrine)." .

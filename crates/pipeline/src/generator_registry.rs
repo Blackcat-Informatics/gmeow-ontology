@@ -11,7 +11,7 @@
 //!
 //! The registry is intentionally simple: it does not drive the pipeline (the
 //! dogfooded `gmeow:Pipeline` DAG in `slices/core/pipeline/module.ttl` does).
-//! The git-ignored `generated/` projection is materialized by `make regen`;
+//! The git-ignored `generated/` projection is materialized by `make check`;
 //! `make commit` stages only the retained products
 //! ([`RETAINED_PRODUCT_PATHS`]: `catalog-v001.xml`,
 //! `packages/python/gmeow_models/`) without importing deleted Python modules.
@@ -220,7 +220,7 @@ pub const GENERATORS: &[GeneratorInfo] = &[
 /// still stages after `generated/` became an ignored local projection.
 ///
 /// The `generated/` carrier/fanout tree is NO LONGER a committed input: it is a
-/// git-ignored local/release product materialized by `make regen` and reconstructed
+/// git-ignored local/release product materialized by `make check` and reconstructed
 /// from `generated/dist/gmeow.gts`, so it is absent here. What remains tracked are the
 /// two retained products that ride outside that projection: the root OASIS catalog and
 /// the generated Python model package. External documentation (`ontology-docs/` and
@@ -440,7 +440,7 @@ mod tests {
 
     #[test]
     fn retained_product_paths_exclude_the_ignored_generated_projection() {
-        // `generated/` is a git-ignored local projection materialized by `make regen`,
+        // `generated/` is a git-ignored local projection materialized by `make check`,
         // never staged by `make commit`; only the two retained products remain tracked.
         assert_eq!(
             retained_product_paths(),

@@ -253,7 +253,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     };
     // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
     // Python (Pydantic) + Rust example tabs actually render on this — the sole —
-    // production docs surface (`make regen SYNC_OUTPUTS=docs` fanout). The standalone render has no
+    // production docs surface (`make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout). The standalone render has no
     // live pipeline product, so the digest is sourced off the committed
     // `generated/schemas/*.json`, the projection of the same
     // `stage-export-json-schema` emitter output the in-pipeline reader consumes.

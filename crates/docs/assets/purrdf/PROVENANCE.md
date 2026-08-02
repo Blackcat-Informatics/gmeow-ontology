@@ -62,9 +62,10 @@ frame the caller hands it, not a standing dataset a page keeps and queries.
 ## Why vendored (not built at regenerate time)
 
 The regeneration pipeline is Rust — it does not invoke `cargo`, `wasm-bindgen` or `npm`. A
-browser-executable wasm engine cannot be produced during `make regen`, so it is pinned here
-as a build **input** (like `crates/docs/assets/gmeow.css`) and included with
-`include_bytes!`. Because it is a constant input, the rendered site stays byte-deterministic.
+browser-executable wasm engine cannot be produced during the synchronization pipeline
+(`make check-sync`), so it is pinned here as a build **input** (like
+`crates/docs/assets/gmeow.css`) and included with `include_bytes!`. Because it is a constant
+input, the rendered site stays byte-deterministic.
 
 Nothing here is post-processed. In particular **no local `wasm-opt` step is applied**: the
 published tarball is already optimized by purrdf's own CI, and re-optimizing on the way in

@@ -232,8 +232,8 @@ mod tests {
         // levels deep. The recursive walk must find it (the binary path missed it
         // before), assign the external/-prefixed id, and NOT mistake the case's
         // own `source/` subtree for a nested case.
-        let tmp = std::env::temp_dir().join(format!("gmeow-disc-ext-{}", std::process::id()));
-        let cases = tmp.join("cases");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let cases = tmp.path().join("cases");
         let case = cases.join("external").join("w3c-mini").join("clash");
         std::fs::create_dir_all(case.join("source")).expect("mkdir case+source");
         std::fs::write(case.join("input.logic.ttl"), "").expect("input");
@@ -246,8 +246,6 @@ mod tests {
         let found = discover_cases(&cases).expect("discovery ok");
         let ids: Vec<&str> = found.iter().map(|c| c.case_id.as_str()).collect();
         assert_eq!(ids, vec!["external/w3c-mini/clash"], "got {ids:?}");
-
-        let _ = std::fs::remove_dir_all(&tmp);
     }
 
     #[test]
@@ -260,25 +258,22 @@ mod tests {
     #[test]
     fn validate_case_rejects_dir_without_input() {
         // A profile.json-bearing dir missing input.logic.ttl is a hard failure.
-        let tmp = std::env::temp_dir().join(format!("gmeow-conf-test-{}", std::process::id()));
-        let case = tmp.join("cat").join("case");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let case = tmp.path().join("cat").join("case");
         std::fs::create_dir_all(&case).expect("mkdir");
         std::fs::write(case.join("profile.json"), "{}").expect("write");
         let err = validate_case(&case).unwrap_err();
         assert!(err.message().contains("input.logic.ttl not found"));
-        let _ = std::fs::remove_dir_all(&tmp);
     }
 
     #[test]
     fn validate_case_rejects_non_object_profile() {
-        let tmp =
-            std::env::temp_dir().join(format!("gmeow-conf-test-nonobj-{}", std::process::id()));
-        let case = tmp.join("cat").join("case");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let case = tmp.path().join("cat").join("case");
         std::fs::create_dir_all(&case).expect("mkdir");
         std::fs::write(case.join("input.logic.ttl"), "").expect("write input");
         std::fs::write(case.join("profile.json"), "[1, 2, 3]").expect("write profile");
         let err = validate_case(&case).unwrap_err();
         assert!(err.message().contains("must be a JSON object"));
-        let _ = std::fs::remove_dir_all(&tmp);
     }
 }

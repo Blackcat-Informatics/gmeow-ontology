@@ -2690,23 +2690,26 @@ mod tests {
         })
     }
 
-    /// Write a JSON artifact to a unique cost-baseline temp path.
-    fn write_baseline_doc(document: &Value) -> PathBuf {
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let mut p = std::env::temp_dir();
-        p.push(format!(
-            "gmeow-cost-baseline-test-{}-{nanos}.json",
-            std::process::id()
-        ));
+    /// Write a JSON artifact into a fresh cost-baseline temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] OWNS the artifact: bind it to a live local
+    /// (`let (_tmp, base) = write_baseline_doc(&doc);`) for as long as the path is
+    /// read; dropping it removes the directory and the artifact, on success, on early
+    /// return, and on panic alike. The artifact keeps its `.json` name — the same
+    /// shape the committed cost baseline has on disk — and the enclosing directory
+    /// now carries the uniqueness the pid/nanos salt used to.
+    fn write_baseline_doc(document: &Value) -> (tempfile::TempDir, PathBuf) {
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-cost-baseline-test-")
+            .tempdir()
+            .expect("create cost-baseline temp dir");
+        let p = tmp.path().join("cost-baseline.json");
         std::fs::write(&p, serde_json::to_string(document).unwrap()).unwrap();
-        p
+        (tmp, p)
     }
 
-    /// Write a minimal per-case cost baseline artifact to a unique temp path.
-    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+    /// Write a minimal per-case cost baseline artifact into a fresh temp directory.
+    fn write_baseline(cases: Vec<Value>) -> (tempfile::TempDir, PathBuf) {
         write_baseline_doc(&json!({ "cases": cases }))
     }
 
@@ -2863,9 +2866,8 @@ mod tests {
         // Baseline alloc_count=10000/bytes=1_000_000; a fresh run 0.5% higher is inside
         // the 1% band → no regression (the sub-ε jitter the band is designed to absorb).
         let fresh = vec![rec_alloc("c", "x", 3, 1_005_000, 10_050)];
-        let base = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
+        let (_tmp, base) = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_ok(),
             "a fresh alloc within the 1% band must not regress: {out:?}"
@@ -2894,9 +2896,8 @@ mod tests {
         // tolerance band is breached → a blocking CorpusOnly cost-regression (hard fail).
         // Proves the alloc gate BITES, not just passes vacuously.
         let fresh = vec![rec_alloc("c", "x", 3, 2_000_000, 20_000)];
-        let base = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
+        let (_tmp, base) = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_err(),
             "a fresh alloc_count far above the baseline band must be a cost regression"
@@ -2912,9 +2913,8 @@ mod tests {
         let native = stale.get_mut("native").unwrap().as_object_mut().unwrap();
         native.remove("alloc_bytes");
         native.remove("alloc_count");
-        let base = write_baseline(vec![stale]);
+        let (_tmp, base) = write_baseline(vec![stale]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_err(),
             "a baseline record missing the alloc columns must hard-fail, never skip the gate"
@@ -2924,9 +2924,8 @@ mod tests {
     #[test]
     fn regression_check_passes_on_match() {
         let fresh = vec![rec("c", "x", 3)];
-        let base = write_baseline(vec![rec("c", "x", 3)]);
+        let (_tmp, base) = write_baseline(vec![rec("c", "x", 3)]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_ok(),
             "an identical fresh run must not regress: {out:?}"
@@ -2938,9 +2937,8 @@ mod tests {
         // Fresh run has consumed_steps=3; the committed baseline recorded 4 → a
         // deterministic-count divergence is a cost regression (hard fail).
         let fresh = vec![rec("c", "x", 3)];
-        let base = write_baseline(vec![rec("c", "x", 4)]);
+        let (_tmp, base) = write_baseline(vec![rec("c", "x", 4)]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_err(),
             "a diverged deterministic count must be a cost regression"
@@ -2965,9 +2963,8 @@ mod tests {
     fn regression_check_hard_fails_on_dropped_case() {
         // The baseline has a case the fresh run does not produce → divergence.
         let fresh = vec![rec("c", "x", 3)];
-        let base = write_baseline(vec![rec("c", "x", 3), rec("c", "y", 5)]);
+        let (_tmp, base) = write_baseline(vec![rec("c", "x", 3), rec("c", "y", 5)]);
         let out = run_cost_regression_check(&base, &fresh);
-        std::fs::remove_file(&base).ok();
         assert!(
             out.is_err(),
             "a case present in the baseline but absent from the fresh run must regress"
@@ -2977,9 +2974,9 @@ mod tests {
     #[test]
     fn rule_parallelism_regression_check_is_exact_and_bites() {
         let fresh = parallelism_record();
-        let matching = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let (_matching_tmp, matching) =
+            write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
         let match_result = run_parallelism_regression_check(&matching, &fresh);
-        std::fs::remove_file(&matching).ok();
         assert!(
             match_result.is_ok(),
             "identical structural evidence must pass: {match_result:?}"
@@ -2987,17 +2984,16 @@ mod tests {
 
         let mut drifted = fresh.clone();
         drifted["critical_path_candidate_rows"] = json!(49);
-        let baseline = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let (_baseline_tmp, baseline) =
+            write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
         let drift_result = run_parallelism_regression_check(&baseline, &drifted);
-        std::fs::remove_file(&baseline).ok();
         assert!(
             drift_result.is_err(),
             "one changed structural count must produce a blocking divergence"
         );
 
-        let absent = write_baseline_doc(&json!({ "cases": [] }));
+        let (_absent_tmp, absent) = write_baseline_doc(&json!({ "cases": [] }));
         let absent_result = run_parallelism_regression_check(&absent, &fresh);
-        std::fs::remove_file(&absent).ok();
         assert!(
             absent_result.is_err(),
             "a baseline without the multi-worker record must hard-fail"

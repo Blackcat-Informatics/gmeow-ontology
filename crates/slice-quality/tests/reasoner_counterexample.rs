@@ -31,7 +31,13 @@ struct View {
 /// A throwaway slice directory: `module.ttl`, `shapes.ttl`, an
 /// `tests/example-conformance.ttl` binding one counter-example, and the
 /// counter-example fixture itself under `tests/counter-examples/`.
+///
+/// The directory is owned by the [`tempfile::TempDir`] the fixture holds, so the
+/// whole tree is removed when the fixture drops — on success, on panic, and on
+/// early return.
 struct Fixture {
+    /// Owns the temp tree `dir` lives in; dropping it removes the tree.
+    _tmp: tempfile::TempDir,
     dir: PathBuf,
     conformance: PathBuf,
     fixture: PathBuf,
@@ -49,12 +55,8 @@ impl Fixture {
     /// `with_axiom` is set the module also authors `owl:disjointWith` (the backing
     /// canonical logic); otherwise the negative space is SHACL-only (a silent hole).
     fn new(name: &str, with_axiom: bool) -> Self {
-        let mut dir = std::env::temp_dir();
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        dir.push(format!("gmeow-ce-{name}-{}-{nanos}", std::process::id()));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path().join(format!("gmeow-ce-{name}"));
         std::fs::create_dir_all(dir.join("tests/counter-examples")).unwrap();
         // A real slice directory declares its identity in a manifest; the fixture is read
         // through the same `slice_files_from_dir` entry point production uses.
@@ -120,6 +122,7 @@ impl Fixture {
         .unwrap();
 
         Self {
+            _tmp: tmp,
             dir,
             conformance,
             fixture,
@@ -150,12 +153,6 @@ impl Fixture {
             messages: s.findings.iter().map(|f| f.message.clone()).collect(),
             codes: s.findings.iter().map(|f| f.code.clone()).collect(),
         }
-    }
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.dir);
     }
 }
 
@@ -219,15 +216,8 @@ fn counterexample_that_fails_to_clash_is_reported_and_drops_score() {
 /// (its structural violation has no DL analogue), so it neither credits nor holes.
 #[test]
 fn structural_only_counterexample_is_not_a_logical_obligation() {
-    let mut dir = std::env::temp_dir();
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    dir.push(format!(
-        "gmeow-ce-structural-{}-{nanos}",
-        std::process::id()
-    ));
+    let tmp = tempfile::tempdir().expect("create temp dir");
+    let dir = tmp.path().join("gmeow-ce-structural");
     std::fs::create_dir_all(dir.join("tests/counter-examples")).unwrap();
     // A real slice directory declares its identity in a manifest; the fixture is read
     // through the same `slice_files_from_dir` entry point production uses.
@@ -294,6 +284,4 @@ fn structural_only_counterexample_is_not_a_logical_obligation() {
         "the vacuity is explicit, got {:?}",
         s.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
     );
-
-    let _ = std::fs::remove_dir_all(&dir);
 }

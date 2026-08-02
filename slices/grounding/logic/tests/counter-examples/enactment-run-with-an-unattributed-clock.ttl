@@ -1,0 +1,502 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The same enactment run as tests/conformance-fixtures/enactment-run-complete.ttl,
+# with exactly one binding removed: the source of the clock the deadline was
+# judged against.
+#
+# The other twenty-three kernel negatives isolate their defect against a scene
+# built only large enough to express it, which is the right shape for proving
+# that a law fires. This one exists to test the opposite property — that a law
+# fires in a run that looks RIGHT. Every other obligation in this file is
+# discharged: the prescription is content-addressed and the run pinned its
+# address, the intent binds all nine carriers, the approval resolves to that
+# intent by digest and is scoped to that intent's own occurrence, the retry is
+# licensed for its own attempt, the compensation is not typed as the effect it
+# counteracts, the restore's fold is the checkpoint's, the journal chains, the
+# lease is fenced and held, the pin freezes the steps its method yields, the
+# capability gap carries a buildable proposal, and the frontier closes on a
+# witness that states its budget. A reviewer scanning this record finds nothing
+# wrong, because there is one thing wrong and it is an absence.
+#
+# The absence is the interesting one. Deadline judgements are the class of fact
+# that looks self-evident and is not: two parties judging the same window
+# against their own clocks both record that it held, and once neither record
+# says WHICH clock, the disagreement can never be reconstructed. The provider's
+# clock is even present in the graph here, named and labelled and pointed at by
+# nothing — which is what the failure looks like in practice, since the clock is
+# rarely missing, only unattributed.
+#
+# MUST trip logic:ClockAttributionRequiredConstraint and no other kernel law.
+#
+# Bound by tests/example-conformance.ttl (ex:ecEnactmentRunUnattributedClock,
+# gmeow:violates). Self-contained: the harness loads the grounding modules +
+# ONLY this file, against the shapes the logic slice owns.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# =========================================================================== #
+# === The prescription, and the run that pinned it                        === #
+# =========================================================================== #
+#
+# Content addressing is the PRECONDITION of immutability rather than
+# immutability itself: the run freezes the address it saw at pin time, so an
+# in-place rewrite of the version is detectable by comparison rather than by
+# trust. Here the two agree, which is what a version nobody rewrote looks like.
+
+ex:runRunbookV7 a logic:PrescriptionVersion ;
+    rdfs:label "settlement runbook, revision 7"@en ;
+    logic:prescriptionDigest "b3:2c19f4a6083b7de5014c9a37be208d16f5a0c4b839e27d15fa06b83c951e7d04" .
+
+ex:runGeneration a logic:InputSnapshot ;
+    rdfs:label "the closed input generation this occurrence was opened against"@en .
+
+ex:runDelta a logic:SnapshotDelta ;
+    rdfs:label "what entered and left the generation since the previous occurrence"@en .
+
+ex:runEnactment a logic:Enactment ;
+    rdfs:label "settlement occurrence 41 — the run this whole file is about"@en ;
+    logic:enactsPrescriptionVersion ex:runRunbookV7 ;
+    logic:enactedPrescriptionDigest "b3:2c19f4a6083b7de5014c9a37be208d16f5a0c4b839e27d15fa06b83c951e7d04" ;
+    logic:enactmentInputSnapshot ex:runGeneration ;
+    logic:enactmentJournal ex:runJournal .
+
+# Sibling occurrences of the same prescription, grouped so the cohort is a
+# first-class record rather than a query nobody wrote down.
+ex:runCohort a logic:EnactmentCohort ;
+    rdfs:label "the settlement cohort occurrence 41 belongs to"@en .
+
+# The order constraint on starting: occurrence 41 may not open until occurrence
+# 40 has closed. Recorded as a requirement rather than enforced by scheduling
+# luck.
+ex:runPriorRequirement a logic:PriorEnactmentRequirement ;
+    rdfs:label "occurrence 40 must have closed before this one opens"@en .
+
+# What the run may still be expected to do. A liveness certificate is what turns
+# "it has not finished" into a checkable claim about whether it still can.
+ex:runLiveness a logic:LivenessCertificate ;
+    rdfs:label "no orphan intent and no unreachable step remains in occurrence 41"@en ;
+    logic:certifiesNoOrphanIntent true ;
+    logic:certifiesReachability true .
+
+# =========================================================================== #
+# === What the run was shown, and what was withheld from it               === #
+# =========================================================================== #
+#
+# The assembly records BOTH sides. A later dissent — "I would have objected had
+# I seen X" — is checkable only against a record that says whether X was shown,
+# and the exclusion carries its reason so the withholding is a judgement someone
+# can review rather than an absence nobody can see.
+
+ex:runAssembly a logic:ContextAssembly ;
+    rdfs:label "what was surfaced to occurrence 41"@en ;
+    logic:assemblyForEnactment ex:runEnactment ;
+    logic:assemblyIncluded ex:runSettlementPolicyText , ex:runReconciliationNote ;
+    logic:assemblyExcluded ex:runRetiredPolicyText ;
+    logic:assemblyExclusionReason "Superseded by the revision already in the generation; the retired text stays readable in occurrence 40."@en ;
+    logic:assemblyGuidanceVersion ex:runGuidanceV3 .
+
+ex:runSettlementPolicyText rdfs:label "the settlement policy as occurrence 41 read it"@en .
+ex:runReconciliationNote rdfs:label "standing note: the provider's retention window is 24 hours"@en .
+ex:runRetiredPolicyText rdfs:label "the superseded settlement policy text"@en .
+ex:runGuidanceV3 rdfs:label "settlement guidance, revision 3"@en .
+
+# The preparation seam: work done to make a step executable is recorded as its
+# own step with its own receipt, so a preparation that ran is never mistaken for
+# the step it prepared for.
+ex:runPreparation a logic:PreparationStep ;
+    rdfs:label "stage the settlement ledger extract"@en .
+
+ex:runPreparationReceipt a logic:PreparationReceipt ;
+    rdfs:label "receipt for the ledger extract staging"@en ;
+    logic:preparationOf ex:runPreparation .
+
+# =========================================================================== #
+# === Refining an abstract step into something executable                 === #
+# =========================================================================== #
+#
+# The episode declares the fragment it searched, so a completeness claim is
+# relative to a stated bound; its pin comes from the roster it produced rather
+# than from nowhere; and the pin freezes exactly the steps its method yields
+# rather than a sequence someone typed alongside it.
+
+ex:runMethod a logic:DecompositionMethod ;
+    rdfs:label "settlement decomposition: extract, reconcile, charge, publish"@en ;
+    logic:methodYields ex:runStepSequence .
+
+ex:runStepSequence rdfs:label "the ordered step sequence the settlement method yields"@en .
+
+ex:runAlternateMethod a logic:DecompositionMethod ;
+    rdfs:label "settlement decomposition: batch-charge then reconcile once"@en ;
+    logic:methodYields ex:runAlternateStepSequence .
+
+ex:runAlternateStepSequence rdfs:label "the ordered step sequence the batch method yields"@en .
+
+ex:runRefinement a logic:RefinementEpisode ;
+    rdfs:label "the refinement that chose the per-item settlement decomposition"@en ;
+    logic:producedCandidateSet ex:runCandidateSet ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:selectedPin ex:runPin .
+
+ex:runCandidateSet a logic:RefinementCandidateSet ;
+    rdfs:label "the two pins the bounded search reached"@en ;
+    logic:refinementCandidate ex:runPin , ex:runRejectedPin .
+
+ex:runPin a logic:PinnedExecutableSubgraph ;
+    rdfs:label "the pinned per-item settlement subgraph"@en ;
+    logic:pinInstantiatesMethod ex:runMethod ;
+    logic:pinnedStepSequence ex:runStepSequence ;
+    logic:pinDigest "b3:5e40cb72916d0a8991238c4de376f082b41c0d59e6a72f8341bc95d0e28a7f16" ;
+    logic:pinAuthority ex:runOperator .
+
+ex:runRejectedPin a logic:PinnedExecutableSubgraph ;
+    rdfs:label "the pinned batch-charge subgraph, reached and not selected"@en ;
+    logic:pinInstantiatesMethod ex:runAlternateMethod ;
+    logic:pinnedStepSequence ex:runAlternateStepSequence ;
+    logic:pinDigest "b3:6f51dc83a27e1b9aa2349d5ef487f193c52d1e6af7b8309452cda6e1f39b8027" ;
+    logic:pinAuthority ex:runOperator .
+
+# A rejection is retained rather than dropped: the roster is only evidence of a
+# search if the reason a candidate lost is still readable.
+ex:runRejection a logic:RefinementRejection ;
+    rdfs:label "batch-charge rejected: it cannot compensate a single failed item"@en .
+
+# A revision lens records how the refinement would be re-derived if the method
+# changed, so a later revision is a re-derivation rather than a fresh guess.
+ex:runRevisionLens a logic:RevisionLens ;
+    rdfs:label "how a change to the settlement method propagates to this pin"@en .
+
+# =========================================================================== #
+# === Dispatching one external effect, exactly authorized                 === #
+# =========================================================================== #
+#
+# The intent binds all nine of its carriers, and the approval binds the intent
+# by DIGEST rather than by pointer: an authorization for one thing must not be
+# reusable for another, and the only mechanism that survives an argument being
+# edited between approval and dispatch is an exact content address.
+
+ex:runChargeStep a logic:TransactionStep ;
+    rdfs:label "charge the settlement account for occurrence 41"@en .
+
+ex:runArguments a logic:ArgumentNormalization ;
+    rdfs:label "the canonical argument form the intent digest was taken over"@en .
+
+ex:runChargeIntent a logic:DispatchIntent ;
+    rdfs:label "intent to charge the settlement account"@en ;
+    logic:intentOfEnactment ex:runEnactment ;
+    logic:intentOfStep ex:runChargeStep ;
+    logic:intentActionSchemaVersion ex:runChargeSchemaV2 ;
+    logic:intentNormalizedArguments ex:runArguments ;
+    logic:intentTarget ex:runPaymentsEndpoint ;
+    logic:intentPolicy ex:runSettlementPolicy ;
+    logic:intentApprovalRequired true ;
+    logic:intentDigest "b3:7062ed94b38f2ca0b345ae6f0598a204d63e2f7b08c941a563deb7f204ac9138" ;
+    logic:expectedJournalHead "b3:8173fea5c4903db1c456bf7016a9b315e74f308c19da52b674efc8035bbda249" .
+
+ex:runChargeSchemaV2 rdfs:label "settlement charge action schema, version 2"@en .
+ex:runPaymentsEndpoint rdfs:label "the settlement provider's charge endpoint"@en .
+ex:runSettlementPolicy rdfs:label "settlement policy: charges above the threshold require an operator"@en .
+ex:runOperator rdfs:label "the duty settlement operator"@en .
+
+ex:runApproval a logic:ApprovalCommitment ;
+    rdfs:label "the operator's authorization of exactly this charge"@en ;
+    logic:approvalIntentDigest "b3:7062ed94b38f2ca0b345ae6f0598a204d63e2f7b08c941a563deb7f204ac9138" ;
+    logic:approvalEnactment ex:runEnactment ;
+    logic:approvalOperator ex:runOperator ;
+    logic:approvalPolicy ex:runSettlementPolicy ;
+    logic:approvalDecision ex:runApprovalGranted ;
+    logic:approvalValidityWindow ex:runApprovalWindow .
+
+ex:runApprovalGranted rdfs:label "granted"@en .
+ex:runApprovalWindow rdfs:label "valid from 09:00 to 09:30 UTC on the day of occurrence 41"@en .
+
+# The proof is a separate record from the decision it settles, and it is NOT an
+# advisory: model output is attributed evidence and may never occupy an
+# authority position, which is why the two are typed apart rather than
+# distinguished by convention.
+ex:runAuthorizationProof a logic:AuthorizationProof ;
+    rdfs:label "the recomputable proof that the charge was licensed"@en ;
+    logic:proofEstablishes ex:runChargeIntent .
+
+# Model output, in its only legitimate position: about the run, authorizing
+# nothing.
+ex:runAdvisory a logic:Advisory ;
+    rdfs:label "model recommendation: settle the smaller items first"@en ;
+    logic:advisoryAbout ex:runEnactment .
+
+# =========================================================================== #
+# === The boundary: an undetermined outcome, resolved rather than retried === #
+# =========================================================================== #
+#
+# The first attempt came back undetermined. That is a real answer, not a
+# failure, and the kernel refuses to let it be treated as one: the retry is
+# licensed by an idempotency contract that covers THIS attempt, and the
+# provider is probed for what actually happened rather than guessed at.
+
+ex:runChargeAttempt a logic:EffectAttempt ;
+    rdfs:label "the first charge attempt, whose outcome the provider never confirmed"@en ;
+    logic:attemptOfIntent ex:runChargeIntent .
+
+ex:runChargeUnknown a logic:ExternalOutcomeUnknown ;
+    rdfs:label "undetermined: the connection dropped before the provider answered"@en ;
+    logic:unknownOfAttempt ex:runChargeAttempt .
+
+# The probe, and what it established. A probe that completed and recorded
+# nothing is indistinguishable from a probe that never ran.
+ex:runReconciliationProbe a logic:ReconciliationProbe ;
+    rdfs:label "the probe asking the provider what happened to the first attempt"@en .
+
+ex:runReconciliationResult a logic:ReconciliationResult ;
+    rdfs:label "the provider reported no commitment for the first attempt"@en ;
+    logic:reconciliationVerdict logic:ReconciledNotCommitted .
+
+# The NOT-EVALUATED reading, kept apart from the resolvable one. Recorded here
+# for the archived provider whose retention window has elapsed, so escalation is
+# reachable rather than folded into the still-unknown case.
+ex:runArchivedProviderCase a logic:ReconciliationImpossible ;
+    rdfs:label "the archived provider exposes no query interface: reconciliation is not available"@en .
+
+# When two records disagree about what the world did, the disagreement is
+# adjudicated rather than corrected away.
+ex:runAdjudication a logic:ContradictionAdjudication ;
+    rdfs:label "adjudication of the ledger's and the provider's disagreeing readings"@en ;
+    logic:adjudicatesAttempt ex:runChargeAttempt .
+
+ex:runIdempotency a logic:IdempotencyContract ;
+    rdfs:label "the idempotency contract licensing a re-send of THIS attempt"@en ;
+    logic:idempotencyScope ex:runPaymentsEndpoint ;
+    logic:idempotencyKey "settlement:41:charge" ;
+    logic:idempotencyRetention "PT24H" ;
+    logic:idempotencyDuplicateSemantics logic:DeliveryExactlyOnce ;
+    logic:idempotencyProviderEvidence ex:runProviderIdempotencySpec ;
+    logic:licenceCoversAttempt ex:runChargeAttempt .
+
+ex:runProviderIdempotencySpec rdfs:label "the provider's published idempotency-key semantics"@en .
+
+ex:runRetry a logic:RetryDispatch ;
+    rdfs:label "the licensed re-send of the undetermined charge"@en ;
+    logic:retryOfAttempt ex:runChargeAttempt ;
+    logic:retryLicence ex:runIdempotency .
+
+ex:runRetryAttempt a logic:EffectAttempt ;
+    rdfs:label "the second charge attempt, sent under the licence"@en ;
+    logic:attemptOfIntent ex:runChargeIntent .
+
+ex:runChargeReceipt a logic:ExternalEffectReceipt ;
+    rdfs:label "the provider's confirmation that the second attempt committed"@en ;
+    logic:receiptOfAttempt ex:runRetryAttempt .
+
+# THE DEFECT. The run records THAT the settlement window was judged, and never
+# says by whose clock. The provider's clock is in the graph — it is named, it is
+# labelled, and nothing points at it — so the record reads as complete while the
+# one fact a re-check needs is absent: with no logic:clockSource there is no
+# clock to re-read the deadline against, and "the window had not expired" is an
+# assertion rather than a measurement. The failure mode this produces is the
+# quiet one: two parties each judge the same deadline against their own clock,
+# both records say the window held, and the disagreement is undetectable
+# afterwards because neither says which clock it means.
+ex:runClock a logic:ClockAttribution ;
+    rdfs:label "the settlement window was judged — against a clock nobody named"@en .
+
+ex:runProviderClock rdfs:label "the settlement provider's authoritative clock, cited by nothing"@en .
+
+ex:runDeadline a logic:DeadlineConsumption ;
+    rdfs:label "the charge consumed 11 of the 30 minutes the window allowed"@en .
+
+# =========================================================================== #
+# === Compensation: the counteraction, never the thing counteracted       === #
+# =========================================================================== #
+#
+# The compensation names the exact forward effect it counteracts, and it is NOT
+# typed as that effect: collapsing the two produces the guaranteed-inverse
+# reading in which a FAILED compensation is invisible. Its outcome carries its
+# own receipt, which is not the forward one.
+
+ex:runRefund a logic:CompensationAttempt ;
+    rdfs:label "the refund counteracting the settled charge"@en ;
+    logic:compensatesEffect ex:runChargeReceipt .
+
+ex:runRefundReceipt a logic:ExternalEffectReceipt ;
+    rdfs:label "the provider's confirmation that the refund committed"@en ;
+    logic:receiptOfAttempt ex:runRefund .
+
+ex:runRefundOutcome a logic:CompensationOutcome ;
+    rdfs:label "the refund committed"@en ;
+    logic:outcomeOfCompensation ex:runRefund ;
+    logic:compensationReceipt ex:runRefundReceipt .
+
+# =========================================================================== #
+# === Durability: the journal, the checkpoints, the lease                 === #
+# =========================================================================== #
+#
+# The journal is a CHAIN, not a bag: each entry names both heads and its
+# previous head is its predecessor's new head, so a gap or a fork is arithmetic
+# rather than an eyeball judgement.
+
+ex:runJournal a logic:TransitionJournal ;
+    rdfs:label "the transition journal of occurrence 41"@en ;
+    logic:journalHead "b3:9284afb6d5a14ec2d567c08127bac426f8504196" .
+
+ex:runJournalEntry1 a logic:JournalEntry ;
+    rdfs:label "journal entry 1 — the intent was recorded"@en ;
+    logic:journalPrevHead "b3:0000000000000000000000000000000000000000" ;
+    logic:journalNewHead "b3:8173fea5c4903db1c456bf7016a9b315e74f308c19da52b674efc8035bbda249" .
+
+ex:runJournalEntry2 a logic:JournalEntry ;
+    rdfs:label "journal entry 2 — the charge committed"@en ;
+    logic:journalPredecessor ex:runJournalEntry1 ;
+    logic:journalPrevHead "b3:8173fea5c4903db1c456bf7016a9b315e74f308c19da52b674efc8035bbda249" ;
+    logic:journalNewHead "b3:9284afb6d5a14ec2d567c08127bac426f8504196" .
+
+# The checkpoint folds seven identity axes into one comparable value, and the
+# restore carries the fold the RESTORING engine computed over its own seven. The
+# two agree here, which is what a resume that is entitled to proceed looks like.
+ex:runCheckpoint a logic:EnactmentCheckpoint ;
+    rdfs:label "the checkpoint taken when the provider stopped answering"@en ;
+    logic:checkpointOfEnactment ex:runEnactment ;
+    logic:checkpointDescriptorHash "b3:a395b0c7e6b25fd3e678d19238cbd537091615a7" .
+
+ex:runStepCheckpoint a logic:StepCheckpoint ;
+    rdfs:label "the per-step checkpoint at the charge boundary"@en .
+
+ex:runRestore a logic:CheckpointRestore ;
+    rdfs:label "the resume of occurrence 41 after the provider came back"@en ;
+    logic:continuationKind logic:ContinuationResume ;
+    logic:restoresCheckpoint ex:runCheckpoint ;
+    logic:restoreOfEnactment ex:runEnactment ;
+    logic:restoreDescriptorHash "b3:a395b0c7e6b25fd3e678d19238cbd537091615a7" .
+
+# Expiry alone does not make a lease safe — a holder paused past its expiry can
+# still attempt a write — so the lease carries a monotonic fence, and the scope
+# names it as the exclusive holder rather than merely being claimed by it.
+ex:runLease a logic:ResourceLease ;
+    rdfs:label "the exclusive lease over the settlement account"@en ;
+    logic:fencingIdentity "fence:41:0007" ;
+    logic:leaseScope ex:runLeaseScope .
+
+ex:runLeaseScope rdfs:label "the settlement account, leased exclusively"@en ;
+    logic:scopeExclusiveHolder ex:runLease .
+
+# What actually happened versus what the prescription said would. A deviation is
+# recorded, never smoothed: an occurrence that departed from its runbook and
+# succeeded is a revision candidate, not a non-event.
+ex:runDeviation a logic:Deviation ;
+    rdfs:label "the reconciliation probe was run twice, which the runbook does not describe"@en ;
+    logic:deviationFromStep ex:runChargeStep .
+
+# =========================================================================== #
+# === A capability this runtime does not have, disclosed rather than hidden ==#
+# =========================================================================== #
+
+ex:runReindexStep a logic:TransactionStep ;
+    rdfs:label "re-index the scanned settlement archive"@en .
+
+ex:runOcrGap a logic:OperationalCapabilityGap ;
+    rdfs:label "no OCR capability is available to this runtime"@en ;
+    logic:gapBlockedStep ex:runReindexStep .
+
+# The gap is only actionable with a proposal complete enough to be BUILT from:
+# the missing capability, the contract it must satisfy, its inputs, outputs and
+# effects, how it would be verified, and its security lifecycle.
+ex:runOcrProposal a logic:CapabilityGapProposal ;
+    rdfs:label "proposal for the OCR capability the archive re-index needs"@en ;
+    logic:proposalBlockedStep ex:runReindexStep ;
+    logic:proposalMissingCapability ex:runOcrCapability ;
+    logic:proposalRequiredContract ex:runOcrContract ;
+    logic:proposalExpectedInputs ex:runOcrInputs ;
+    logic:proposalExpectedOutputs ex:runOcrOutputs ;
+    logic:proposalExpectedEffects ex:runOcrEffects ;
+    logic:proposalVerificationMethod ex:runOcrVerification ;
+    logic:proposalSecurityLifecycle ex:runOcrSecurity .
+
+ex:runOcrCapability rdfs:label "page-image text extraction"@en .
+ex:runOcrContract rdfs:label "the contract an OCR provider must satisfy to be admissible here"@en .
+ex:runOcrInputs rdfs:label "scanned page images from the settlement archive"@en .
+ex:runOcrOutputs rdfs:label "extracted text with per-span confidence"@en .
+ex:runOcrEffects rdfs:label "writes into the archive index; no external effect"@en .
+ex:runOcrVerification rdfs:label "sampled re-keying against a held-out page set"@en .
+ex:runOcrSecurity rdfs:label "credentials rotated quarterly; no egress outside the archive VPC"@en .
+
+# =========================================================================== #
+# === The frontier, closed on a witness that says what it settled         === #
+# =========================================================================== #
+#
+# An unwitnessed closure claim is how a roster truncated by a budget cut passes
+# for complete. The witness names the predicates the chase drove to a fixed
+# point and the budget it did so under, so "nothing else is actionable" is a
+# claim a reader can falsify.
+
+ex:runFrontier a logic:ActionableFrontier ;
+    rdfs:label "the frontier of occurrence 41 after the charge committed"@en ;
+    logic:frontierOfEnactment ex:runEnactment ;
+    logic:frontierSaturationWitness ex:runSaturation ;
+    logic:hasFrontierEntry ex:runPublishEntry , ex:runReindexEntry .
+
+ex:runPublishEntry a logic:FrontierEntry ;
+    rdfs:label "publish the settlement statement — ready"@en ;
+    logic:entryAction ex:runPublishStep ;
+    logic:entryAxisWitness logic:StepReady .
+
+ex:runPublishStep a logic:TransactionStep ;
+    rdfs:label "publish the occurrence 41 settlement statement"@en .
+
+ex:runReindexEntry a logic:FrontierEntry ;
+    rdfs:label "re-index the archive — blocked on a capability this runtime lacks"@en ;
+    logic:entryAction ex:runReindexStep .
+
+ex:runSaturation a logic:SaturationWitness ;
+    rdfs:label "saturation witness for the occurrence 41 frontier derivation"@en ;
+    logic:resultEvaluation logic:EvaluationCompleted ;
+    logic:consumedBudget "steps=2140;pages=18;wallclock-ms=406" ;
+    logic:settledPredicate
+        logic:adjudicatesAttempt ,
+        logic:approvalDecision ,
+        logic:approvalEnactment ,
+        logic:approvalIntentDigest ,
+        logic:assemblyExcluded ,
+        logic:assemblyExclusionReason ,
+        logic:assemblyForEnactment ,
+        logic:assemblyIncluded ,
+        logic:checkpointDescriptorHash ,
+        logic:checkpointOfEnactment ,
+        logic:clockSource ,
+        logic:compensatesEffect ,
+        logic:compensationReceipt ,
+        logic:derivationIdentifier ,
+        logic:enactedPrescriptionDigest ,
+        logic:enactmentInputSnapshot ,
+        logic:enactsPrescriptionVersion ,
+        logic:entryAction ,
+        logic:expectedJournalHead ,
+        logic:fencingIdentity ,
+        logic:gapBlockedStep ,
+        logic:hasFrontierEntry ,
+        logic:idempotencyKey ,
+        logic:intentDigest ,
+        logic:intentOfEnactment ,
+        logic:journalNewHead ,
+        logic:journalPredecessor ,
+        logic:journalPrevHead ,
+        logic:leaseScope ,
+        logic:licenceCoversAttempt ,
+        logic:methodYields ,
+        logic:outcomeOfCompensation ,
+        logic:pinDigest ,
+        logic:pinInstantiatesMethod ,
+        logic:pinnedStepSequence ,
+        logic:prescriptionDigest ,
+        logic:proposalBlockedStep ,
+        logic:receiptOfAttempt ,
+        logic:reconciliationVerdict ,
+        logic:refinementCandidate ,
+        logic:restoreDescriptorHash ,
+        logic:restoreOfEnactment ,
+        logic:restoresCheckpoint ,
+        logic:retryLicence ,
+        logic:retryOfAttempt ,
+        logic:scopeExclusiveHolder ,
+        logic:searchFragment ,
+        logic:selectedPin ,
+        logic:settledPredicate ,
+        logic:unknownOfAttempt .

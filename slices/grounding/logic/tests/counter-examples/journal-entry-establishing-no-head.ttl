@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:JournalEntry that says what state it was applied AGAINST and never what state
+# it ESTABLISHED. It is not a broken link — the link it has is correct, and that is the
+# point: its logic:journalPrevHead reproduces its predecessor's logic:journalNewHead
+# exactly, so the chain integrity law is guarded here and PASSES. What the entry cannot
+# do is be succeeded. Nothing can ever be appended after it, because there is no head to
+# apply the next entry against, and an append that silently starts a second chain from
+# the last complete entry forks the journal with every link individually valid.
+# MUST trip logic:JournalEntryNamesBothHeadsConstraint — the PRECONDITION of chain
+# integrity — and NOT logic:JournalChainIntegrityConstraint, which compares the two ends
+# this entry has only one of.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:journalEntry8 a logic:JournalEntry ;
+    logic:journalPrevHead "b3:5e0a9c7f41d3268b0a17ce49d0a53f8261bd794c0e5a3f16b28d0c74a9e53127" ;
+    logic:journalNewHead "b3:9c2d61b804fa5e3719d0c847b6a2f503e18d7c40952ab6de3417f08c25be9d61" ;
+    rdfs:label "the last entry that recorded both of its ends"@en .
+
+ex:journalEntry9 a logic:JournalEntry ;
+    logic:journalPredecessor ex:journalEntry8 ;
+    logic:journalPrevHead "b3:9c2d61b804fa5e3719d0c847b6a2f503e18d7c40952ab6de3417f08c25be9d61" ;
+    rdfs:label "an entry applied against a real head and establishing none"@en .

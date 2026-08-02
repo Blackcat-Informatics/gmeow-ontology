@@ -39,6 +39,12 @@ jobs:
   # cache and rebuild it. No consumer is compiled before generated/dist/gmeow.gts exists.
   producer-build:
     runs-on: ubuntu-latest
+    # Every long job carries an explicit budget. Without one, a job that is OOM-killed
+    # and a job that hangs are INDISTINGUISHABLE from the outside — both surface only as
+    # a runner that stopped responding. A named timeout makes "it ran out of time" a
+    # different signal from "the kernel killed it", which is what a 16 GB runner does to
+    # a build whose peak residency grows with the corpus.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -98,6 +104,7 @@ jobs:
       matrix:
         generation: [a, b]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -114,11 +121,14 @@ jobs:
 
       # Update mode runs the superset, declared-inventory completeness, fanout-
       # bijection, drift, orphan, and internal-tag-leak gates while materializing.
+      # SYNC_VERBOSE=1 streams each DAG stage as it starts and ends. On a runner that
+      # dies mid-pipeline the last streamed stage NAMES the resident stage, which is the
+      # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
-        run: make regen GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_VERBOSE=1
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
-        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev CHECK_SYNC_MODE=check
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check
 
       - name: GTS frame/profile gate
         run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
@@ -138,6 +148,7 @@ jobs:
   producer:
     needs: [generation]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
       bundle_digest: ${{ steps.digest.outputs.sha256 }}
     steps:
@@ -175,6 +186,7 @@ jobs:
   lint:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -245,6 +257,7 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     # security-events: write lets shard 1's rust-category SARIF surface in the
     # Security tab via upload-sarif.
     permissions:
@@ -386,12 +399,14 @@ jobs:
   # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
   #   ontology-generated : sync, constitution-check, crate-check
-  #   ontology-reason    : reason-verify, acceptance, coverage, coherence gate teeth
+  #   ontology-reason    : reason-verify, coverage, coherence gate teeth
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
-  #                        slice-quality, golden soak, compliance-report
+  #                        slice-quality, compliance-report
+  #   heavy              : wasm-parity, acceptance, bench-soak (the CI-only lane)
   ontology-validate:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -440,6 +455,7 @@ jobs:
   ontology-generated:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -478,6 +494,7 @@ jobs:
   ontology-reason:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -512,8 +529,8 @@ jobs:
       - name: Native reason + reasoned-graph verify (one closure)
         run: make reason-verify
 
-      - name: Transpile acceptance — hard aggregate recall floor
-        run: make acceptance
+      # `make acceptance` moved to the CI-only `heavy` job below (its cost is set by
+      # the breadth of the external snapshot corpus, not by the change under test).
 
       - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
@@ -524,6 +541,7 @@ jobs:
   ontology-misc:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -571,20 +589,39 @@ jobs:
       - name: Slice-quality floors and projection-vocabulary ratchets
         run: make slice-quality-gate
 
-      - name: Deterministic native-vs-golden soak
-        run: make bench-soak
+      # `make bench-soak` moved to the CI-only `heavy` job below (a repeat-for-
+      # confidence soak window does not belong on a per-commit gate).
 
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
-  # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
-  # target is absent in CI), and the actual wasm is exercised through the public
-  # RDF/JS surface in Node — including the RDF-1.2 wedge (directional literals +
-  # quoted-triple terms) that no incumbent RDF/JS library carries.
-  wasm:
+  # === THE CI-ONLY HEAVY LANE (`make heavy`) ===
+  # Every task here was lifted OFF the local `make check` DAG because its runtime is
+  # dominated by BREADTH (a whole external corpus, five release wasm builds) or by a
+  # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
+  # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
+  #
+  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the five Node lanes
+  #                 that RUN the shipped wasm (validate / reason / gmn / mcp /
+  #                 mcp-core) and assert byte-identity to native — the "every gmeow
+  #                 surface proven native≡wasm" contract. The mcp-core lane
+  #                 additionally proves the TIERED contract end to end: the deferral
+  #                 signal is byte-pinned and the demand loader re-dispatches the
+  #                 identical frame to the real reasoning segment. `make wasm`
+  #                 hard-fails in CI if the wasm32 target is absent, so the criterion
+  #                 is never silently unverified. (The purrdf RDF/JS engine ships +
+  #                 tests its own npm package on purrdf's CI.)
+  #   acceptance  : full transpile-recall floor over every external RDF snapshot.
+  #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
+  #
+  # The two standalone-console lanes ride this job as well — not because they are
+  # breadth-dominated, but because they need exactly the same preconditions the heavy
+  # lane provisions (a current Node and the producer-materialized bundle). They are
+  # on-gate CHECK_DAG tasks (`console`, `console-smoke`) and hard-fail everywhere.
+  heavy:
     needs: [producer]
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -602,7 +639,8 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       # The Node round-trip validates a sample dataset against the materialized bundle,
-      # so the producer artifact must be present before make validate-wasm-pkg-test.
+      # and `make acceptance` reads generated/mappings + generated/projections, so the
+      # producer artifact must be present before `make heavy`.
       - name: Download the producer-materialized generated/ tree
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -615,9 +653,6 @@ jobs:
         run: |
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
-
-      - name: Build purrdf + gmeow-logic-compile + the Tier-1 validator for wasm32 (engine + bindings + purity gates)
-        run: make wasm
 
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
       # for byte, or it refuses to generate the JS bindings.
@@ -643,16 +678,12 @@ jobs:
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
           /tmp/binaryen/bin/wasm-opt --version
 
-      # ubuntu-latest ships a current Node; `make wasm-parity` is the CHECK_DAG task that
-      # builds all FIVE gmeow-owned wasm engine npm packages (validate / reason / gmn / mcp /
-      # mcp-core) and runs their Node native↔wasm parity witness lanes against the real wasm
-      # over the materialized bundle — the "every gmeow surface proven native≡wasm" contract.
-      # The mcp-core lane additionally proves the TIERED contract end to end: the deferral
-      # signal is byte-pinned and the demand loader re-dispatches the identical frame to the
-      # real reasoning segment. The purrdf RDF/wasm engine ships + tests its own npm package
-      # on purrdf's CI.
-      - name: Native≡wasm parity — all five gmeow engines (make wasm-parity)
-        run: make wasm-parity
+      # ubuntu-latest ships a current Node. `make heavy` runs the whole lane in one
+      # step: wasm-parity (which itself runs `make wasm` first, so the wasm32 build +
+      # dep-purity gates still execute), then acceptance, then bench-soak. The target
+      # hard-fails unless CI=true AND GITHUB_ACTIONS=true, both of which Actions sets.
+      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak (make heavy)
+        run: make heavy
 
       # The standalone console's DOM-free acceptance lane. It drives the SHIPPED
       # `crates/docs/assets/mcp-core/` wasm image over the materialized bundle and asserts
@@ -701,9 +732,10 @@ jobs:
   # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       id-token: write
@@ -714,14 +746,14 @@ jobs:
           PRODUCER: ${{ needs.producer.result }}
           LINT: ${{ needs.lint.result }}
           RUST: ${{ needs.rust.result }}
-          WASM: ${{ needs.wasm.result }}
+          HEAVY: ${{ needs.heavy.result }}
           ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
           ONTOLOGY_GENERATED: ${{ needs.ontology-generated.result }}
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: producer=$PRODUCER lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$PRODUCER" "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: producer=$PRODUCER lint=$LINT rust=$RUST heavy=$HEAVY ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$PRODUCER" "$LINT" "$RUST" "$HEAVY" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

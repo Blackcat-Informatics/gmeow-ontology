@@ -18,6 +18,11 @@ path = "src/lib.rs"
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
+# The project's canonical content-digest — the fingerprint the projected
+# quality-assessment corpus carries so a consumer can prove the record still
+# describes the working tree instead of re-scoring to find out. Pure-Rust, so it
+# stays on the wasm-clean side of the crate with the rest of [dependencies].
+blake3.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }
@@ -85,3 +90,10 @@ insta = { workspace = true, features = ["json"] }
 # machine-checked on native. The same seam `crates/gmn-wasm` already uses for the codec
 # legend's pin.
 gmeow-lang-bridge = { path = "../lang-bridge" }
+# NOTE on tempfile: `main` added it here as a dev-dependency for the RAII temp
+# roots the fixtures build. It is NOT restated here because this crate already
+# carries it in the `cfg(not(target_arch = "wasm32"))` dependency table above —
+# a table that is in scope for tests as well as the lib, and that additionally
+# keeps the (filesystem-less) wasm32 image free of it. Same guarantee, narrower
+# blast radius; hand-rolling a path under `std::env::temp_dir()` stays banned by
+# `check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs.

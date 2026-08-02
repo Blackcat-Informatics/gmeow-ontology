@@ -46,7 +46,7 @@ ex:betrayalHazard a gmeow:Hazard ;
     gmeow:manifestedAsType ex:etBetrayal ;
     gmeow:hazardSeverity gmeow:severityCatastrophic .
 
-# Open-range measure: the oath norm (norms extension) plugs in with no
+# Open-range measure: the oath norm (norms slice) plugs in with no
 # extension→extension axiom — the IRI is reference, not dependency.
 ex:oathMitigation a gmeow:Mitigation ;
     gmeow:mitigationMeasure ex:oathNorm ;

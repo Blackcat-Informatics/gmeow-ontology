@@ -29,19 +29,19 @@ use gmeow_mcp::storage::{ClaimStore, InMemoryClaimStore, seed_claim_store};
 use purrdf::gts::examples::agent_memory::{StoreOptions, ToolCallOptions};
 use serde_json::{Value, json};
 
-/// A fresh, unique, empty scratch directory under the system temp dir.
-fn scratch(tag: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-session-replay-{tag}-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("the host clock is after the epoch")
-            .as_nanos()
-    ));
+/// A fresh, unique, empty scratch directory, owned by the returned
+/// [`tempfile::TempDir`] guard.
+///
+/// The guard is returned rather than dropped here on purpose: it removes the whole tree
+/// when it drops — on success, on early return, and while unwinding from a panic — so a
+/// gate run leaves no `gmeow-session-replay-*` litter behind. Bind it to a NAMED variable
+/// (`let (_tmp, dir) = scratch("seeded");`); a bare `let _ =` would drop it immediately
+/// and delete the directory before the replay could use it.
+fn scratch(tag: &str) -> (tempfile::TempDir, PathBuf) {
+    let guard = tempfile::tempdir().expect("create scratch dir");
+    let dir = guard.path().join(format!("gmeow-session-replay-{tag}"));
     std::fs::create_dir_all(&dir).expect("create scratch dir");
-    dir
+    (guard, dir)
 }
 
 /// One recorded invocation of a console session: the tool, its arguments, and the payload
@@ -209,7 +209,7 @@ fn a_seeded_native_replay_answers_byte_identically_to_the_browser_session() {
         "the session under replay must actually hold store state, or the lane proves nothing"
     );
 
-    let dir = scratch("seeded");
+    let (_scratch, dir) = scratch("seeded");
     let memory = dir.join("memory.gts");
     let native = gmeow_mcp::storage::fs_claim_store(&memory).expect("a native claim package");
     let (claims, calls) = seed_claim_store(native.as_ref(), &exported)
@@ -284,7 +284,7 @@ fn an_unseeded_native_replay_diverges_and_names_the_tool() {
     let browser = browser_session_store();
     let exported = browser.segment_nquads().expect("exports");
 
-    let dir = scratch("unseeded");
+    let (_scratch, dir) = scratch("unseeded");
     let memory = dir.join("memory.gts");
 
     // Record the bundle read against THIS empty package, so the only difference between

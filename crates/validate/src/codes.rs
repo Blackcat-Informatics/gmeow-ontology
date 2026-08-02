@@ -176,8 +176,8 @@ pub const AUTHORING_MODULE_IRI_MISMATCH: &str = "authoring.module-iri-mismatch";
 /// A profile's `owl:imports` closure disagrees with the slice-tier partition
 /// (full ≠ root ∪ extensions, claims ⊄ core, or a slice outside core/ext/profile).
 pub const AUTHORING_PROFILE_CLOSURE: &str = "authoring.profile-closure";
-/// The core `rights` module references a norms-extension IRI — the graft must live
-/// on the extension side only, with zero core churn.
+/// The core `rights` module references a norms-slice IRI — the graft must live
+/// on the norms side only, with zero churn in the rights slice.
 pub const AUTHORING_GRAFT_LEAK: &str = "authoring.graft-leak";
 /// A fixture / example references a GMEOW vocabulary term that is not declared in
 /// the ontology or any slice module (an undeclared predicate SHACL leaves inert).
@@ -187,7 +187,7 @@ pub const AUTHORING_UNDECLARED_TERM: &str = "authoring.undeclared-term";
 /// untranslatable.
 pub const AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL: &str = "authoring.untagged-localizable-literal";
 /// The generated grounding seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
-/// materialized under `ontology-docs/seams/index.md` by `make sync SYNC_OUTPUTS=docs`)
+/// materialized under `ontology-docs/seams/index.md` by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`)
 /// disagrees with the canonical `gmeow:Seam` data authored in the grounding slices'
 /// manifests — a carrying term, owning doc, or seam name present in one but not the
 /// other. Only fires when the generated page is present (an absent on-demand `docs`

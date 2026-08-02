@@ -850,7 +850,7 @@ mod tests {
 
     #[test]
     fn write_docs_projection_writes_a_clean_tree() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         let mut tree = BTreeMap::new();
         tree.insert("a/b.md".to_owned(), b"hello".to_vec());
         let code = write_docs_projection(&tmp, Ok(tree));
@@ -863,7 +863,7 @@ mod tests {
 
     #[test]
     fn write_docs_projection_removes_stale_members() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         std::fs::create_dir_all(tmp.join("stale/nested")).unwrap();
         std::fs::write(tmp.join("stale/nested/old.md"), b"old").unwrap();
         let tree = BTreeMap::from([("live.md".to_owned(), b"live".to_vec())]);
@@ -875,7 +875,7 @@ mod tests {
 
     #[test]
     fn docs_projection_report_accounts_for_write_skip_and_removal() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         std::fs::write(tmp.join("same.md"), b"same").unwrap();
         std::fs::write(tmp.join("changed.md"), b"old").unwrap();
         std::fs::write(tmp.join("stale.md"), b"stale").unwrap();
@@ -901,7 +901,7 @@ mod tests {
 
     #[test]
     fn write_docs_projection_does_not_touch_equal_files() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         let tree = BTreeMap::from([("same.md".to_owned(), b"same".to_vec())]);
         assert_eq!(write_docs_projection(&tmp, Ok(tree.clone())), 0);
         let before = std::fs::metadata(tmp.join("same.md"))
@@ -919,7 +919,7 @@ mod tests {
 
     #[test]
     fn write_docs_projection_rejects_absolute_member_paths() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         let mut tree = BTreeMap::new();
         // An absolute member would replace `dir` outright under `Path::join`,
         // escaping the export directory entirely.
@@ -931,7 +931,7 @@ mod tests {
 
     #[test]
     fn write_docs_projection_rejects_parent_dir_traversal() {
-        let tmp = tempdir();
+        let (_tmp, tmp) = tempdir();
         let mut tree = BTreeMap::new();
         tree.insert("../escape.md".to_owned(), b"pwned".to_vec());
         let code = write_docs_projection(&tmp, Ok(tree));
@@ -939,16 +939,18 @@ mod tests {
         assert!(!tmp.parent().unwrap().join("escape.md").exists());
     }
 
-    /// A fresh, unique temp directory for a single test (no external crate
-    /// needed: a PID+counter-salted path under `std::env::temp_dir()`).
-    fn tempdir() -> PathBuf {
-        use std::sync::atomic::{AtomicU64, Ordering};
-        static COUNTER: AtomicU64 = AtomicU64::new(0);
-        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-        let dir =
-            std::env::temp_dir().join(format!("gmeow-cli-core-test-{}-{n}", std::process::id()));
+    /// A fresh temp directory for a single test, owned by a [`tempfile::TempDir`]
+    /// so it is removed when the guard drops — on success, on panic, and on early
+    /// return. The caller must bind the guard (`let (_tmp, dir) = tempdir();`);
+    /// binding it to a bare `_` would drop it immediately and delete the directory
+    /// out from under the test. The working root is a child of the guard's
+    /// directory, so even a path-traversal escape one level up stays inside the
+    /// cleaned-up tree.
+    fn tempdir() -> (tempfile::TempDir, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let dir = guard.path().join("gmeow-cli-core-test");
         std::fs::create_dir_all(&dir).unwrap();
-        dir
+        (guard, dir)
     }
 
     #[test]

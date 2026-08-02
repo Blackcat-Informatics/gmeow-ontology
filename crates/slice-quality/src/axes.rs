@@ -2410,7 +2410,9 @@ ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:d
         // A test corpus that names only the exercised domain term (and, adversarially,
         // one carrier — which must still be excluded regardless of being "reached").
         // The cell is an ordinary map entry: the testing axis reads its corpus straight
-        // out of `ctx.files`, so no temp directory is needed to exercise it.
+        // out of `ctx.files`, so no temp directory is needed to exercise it at all —
+        // which is also why the RAII `tempfile` guard `main` added here is gone rather
+        // than kept: there is no scratch path left for a gate run to leak.
         let mut files = no_files();
         files.insert(
             "tests/competency.rq".to_owned(),

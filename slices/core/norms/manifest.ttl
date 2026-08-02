@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/norms>
+    a gmeow:Slice ;
+    rdfs:label "norms"@x-gmeow-english ;
+    skos:definition "The norms slice of the GMEOW ontology (core tier): GMEOW Norms Module. Core by breadth of expected use — policy, authority, condition, rubric and criterion are load-bearing for approval, guidance, decision support, compliance and assessment across every prescription/enactment domain, so downstream core slices may take real rdfs:range and rdfs:subClassOf edges into these terms. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    dcterms:title "GMEOW Norms Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "narrative" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
+        <https://blackcatinformatics.ca/gmeow/slices/rights> ,
+        <https://blackcatinformatics.ca/gmeow/slices/citations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    gmeow:sliceConsumer "The lbox principia importer ( 4-tier authority hierarchy, special-directive triggers, paradigm precedence) and policy import/export (ODRL round-trip; OPA/Rego, Cedar, XACML down-projection — deferred to the compiler-arc window with the alignment set). The evaluative-primitive vocabulary (Rubric, Assessment, Criterion, Condition, EvaluationVerdict) is core-owned by the observations slice and reused by reference here (gmeow:Rubric rdfs:subClassOf gmeow:Norm is the one bridge axiom authored in this module; one canonical deontic owner, Principle 4, and the P16 DAG rule bars extension→extension dependencies, so no OTHER slice may re-mint it): consumers are the lm-eval-harness task projection, the principia RLAIF axes/score-anchor import, and LLM-judge score ingestion as vantage-indexed Assessments. The registers & personas facility also lives here (expressesNorm → Norm, activatedIn → the core Condition; same single-owner rationale): consumers are system-prompt assembly (Persona × Norms × StyleGuide — the projection that replaces principia.yaml's Jinja2 role, deferred to the compiler-arc window with the alignment set) and the principia persona_modes/paradigm-activation import."@x-gmeow-english.

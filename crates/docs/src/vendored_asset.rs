@@ -359,7 +359,9 @@ pub struct VendoredWasmAsset {
     /// committed native outputs the shipped wasm engine reproduces byte-for-byte. Their
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
     /// (F4/F5). For the gmeow-owned MCP segments the byte-identity is additionally EXECUTED
-    /// on-gate by their Node parity lanes (`make check` → `wasm-parity`).
+    /// on every pull request by their Node parity lanes (the required CI `make heavy` →
+    /// `wasm-parity`); the vendored sibling-repo purrdf engine's witness is its native
+    /// `describe` output, with wasm parity owned upstream in the purrdf repo.
     ///
     /// A SLICE, not a single optional: an engine backs as many attestations as it has
     /// proven behaviours, and "one or none" was a shape the domain never had. An empty
@@ -1024,9 +1026,11 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
 /// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
 /// REPRESENTS an interactive capability whose backing engine lacks a present, current
 /// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
-/// with two other on-gate facts — the `wasm-parity` lane, which RUNS the native≡wasm parity
-/// for the gmeow-owned engines on every `make check`, and the digest pin, which ties the
-/// shipped bytes AND the witnesses to the attested build (the `maint-refresh-*-asset`
+/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
+/// parity for the gmeow-owned engines on the required CI `make heavy` lane (every pull
+/// request; lifted off the local `make check` only because five release wasm builds plus
+/// five Node suites are breadth-dominated), and the digest pin, which ties the shipped
+/// bytes AND the witnesses to the attested build (the `maint-refresh-*-asset`
 /// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
 /// "the format declares the capability AND its engine's parity is proven-and-current."
 /// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
