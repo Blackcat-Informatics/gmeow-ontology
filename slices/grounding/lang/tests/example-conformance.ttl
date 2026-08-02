@@ -7,15 +7,43 @@
 # (crates/slicetest run_conformance_cell) validates lang/module.ttl + the one
 # bound gmeow:exampleFile against lang/shapes.ttl and compares finding codes.
 #
-# Each counter-example isolates ONE violation, so the (fixture, code) pair pins
-# the specific constraint. Conforming fixtures live under tests/conformance-fixtures/
+# Every counter-example cell pins the law it tests by IRI with
+# gmeow:expectedSourceShape, so a fixture that reds a DIFFERENT rule of the same
+# component no longer passes. Conforming fixtures live under tests/conformance-fixtures/
 # and counter-examples under tests/counter-examples/, so the global `make validate`
-# gate never loads the intentional violations as data. Every conforming fixture
-# gives each lang:Form a sign system (all lang:Form instances are gated by
-# lang:FormSituatedShape), and every counter-example satisfies all other shapes so
-# exactly the named finding fires.
+# gate never loads the intentional violations as data.
+#
+# WHICH CELLS MAY CLAIM SOLENESS, AND WHY THE REST MAY NOT.
+# Every counter-example here used to say "and NO other finding". Measured against the
+# harness, 10 of the 45 are true and now declare gmeow:expectedSoleFinding, which the
+# harness enforces: their whole violation-severity report comes from the pinned shape.
+# The other 35 are false, each rationale now enumerates the shapes it actually trips,
+# and the causes are three, none of them "the fixture tests two things":
+#
+#  1. RESIDUAL-TWIN DUPLICATION. This slice has not finished migrating, so it still
+#     ships a hand-authored shapes.ttl (lang:AnchorCompleteShape, lang:GraphemeGroundedShape,
+#     lang:TranslationUnitShape, …) ALONGSIDE the derived lang:*-shape / *ProceduralConstraintShape
+#     the pipeline projects from the same module axioms. One defect is then reported by two
+#     sh:sourceShapes, and soleness counts two authorities as two even when they agree.
+#     These cells become sole-declarable the moment the residual shapes.ttl is retired.
+#  2. SUPERCLASS/SIBLING CLASS SHAPES. A node typed lang:WordForm is in scope of both
+#     lang:WordForm-shape and lang:Form-shape, and a scene node that legitimately binds no
+#     lang:lexemeOf reds lang:WordForm-shape independently of the defect under test.
+#  3. GENUINE CASCADE. A few defects entail others by construction — an unmarked
+#     translation surface violates the source-prose, source-overclaim and target-overclaim
+#     laws at once, because the same missing marking is what each of them reads.
+#
+# Every conforming fixture gives each lang:Form a sign system (all lang:Form instances are
+# gated by lang:FormSituatedShape).
+#
+# NOTE ON SHAPE NAMES IN PROSE. A few rationales below name shapes that the residual
+# shapes.ttl no longer carries (lang:SlotIndexPresentShape, lang:TransliterationAnchorShape,
+# lang:ProjectionEmissionDeclaredShape, lang:GmnImportedPlaneAttributionShape) when
+# describing which rule a fixture breaks. Those names no longer denote a shipped shape; the
+# live shape each cell must red is the one its gmeow:expectedSourceShape binds.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
 
@@ -30,8 +58,8 @@ ex:ecFormMissingSignSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/form-missing-sign-system.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits lang:inSignSystem on a lang:WordForm (sh:minCount 1 on lang:FormSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnsituatedForm)." .
+    gmeow:expectedSourceShape lang:Form-shape ;
+    gmeow:conformanceRationale "The counter-example omits lang:inSignSystem on a lang:WordForm (sh:minCount 1 on lang:FormSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:Form-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnsituatedForm). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:FormSituatedShape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: analyzed or explicitly unanalyzed; structure matches level ======= #
 
@@ -44,8 +72,8 @@ ex:ecSurfaceLevelMismatch a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/surface-level-mismatch.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example declares lang:parsedLevel but does not lang:realize a lang:ComposedForm (the SPARQL constraint of lang:SurfaceAnalysisShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:MisdeclaredAnalysis)." .
+    gmeow:expectedSourceShape lang:SurfaceAnalysisStructureConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example declares lang:parsedLevel but does not lang:realize a lang:ComposedForm (the SPARQL constraint of lang:SurfaceAnalysisShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:SurfaceAnalysisStructureConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:MisdeclaredAnalysis). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:SurfaceAnalysisShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: slot indexes are unique per composed form ======================== #
 
@@ -58,7 +86,8 @@ ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example gives two slots of one composed form the same lang:slotIndex 0 (the SPARQL constraint of lang:SlotIndexUniqueShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DuplicateSlotIndex)." .
+    gmeow:expectedSourceShape lang:FormSlotIndexUniquenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example gives two slots of one composed form the same lang:slotIndex 0 (the SPARQL constraint of lang:SlotIndexUniqueShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:FormSlotIndexUniquenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DuplicateSlotIndex). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: slot indexes are zero-based and contiguous ======================= #
 
@@ -71,14 +100,15 @@ ex:ecSlotGap a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-gap.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example has slots at indexes 0, 1, and 3 with an internal gap at 2 (the SPARQL constraint of lang:SlotContiguityShape, which compares the max index against the slot count), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:NonContiguousSlots)." .
+    gmeow:expectedSourceShape lang:SlotContiguityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example has slots at indexes 0, 1, and 3 with an internal gap at 2 (the SPARQL constraint of lang:SlotContiguityShape, which compares the max index against the slot count), so validation MUST emit shacl.SPARQLConstraintComponent from lang:SlotContiguityConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:NonContiguousSlots). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:SlotContiguityShape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecSlotNoIndex a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-no-index.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's indexed slots are contiguous (0, 1) but one lang:FormSlot declares no lang:slotIndex at all (sh:minCount 1 on lang:SlotIndexPresentShape); the contiguity aggregate silently skips the index-less slot, so only the plain cardinality rule catches it and validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:NonContiguousSlots)." .
+    gmeow:expectedSourceShape lang:FormSlot-shape ;
+    gmeow:conformanceRationale "The counter-example's indexed slots are contiguous (0, 1) but one lang:FormSlot declares no lang:slotIndex at all (sh:minCount 1 on lang:SlotIndexPresentShape); the contiguity aggregate silently skips the index-less slot, so only the plain cardinality rule catches it and validation MUST emit shacl.MinCountConstraintComponent from lang:FormSlot-shape, which gmeow:expectedSourceShape pins by IRI (lang:NonContiguousSlots). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: dependency edges stay in their analysis, acyclic ================= #
 
@@ -91,25 +121,29 @@ ex:ecDependencyDangling a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dependency-dangling.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's lang:dependsOn head reference points at a slot in a different lang:Analysis (the SPARQL constraint of lang:DependencyIntegrityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+    gmeow:expectedSourceShape lang:DependencyLeavesAnalysisConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's lang:dependsOn head reference points at a slot in a different lang:Analysis (the SPARQL constraint of lang:DependencyIntegrityShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:DependencyLeavesAnalysisConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DanglingDependency). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:FormSlot-shape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecDependencyCycle3 a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dependency-cycle3.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "Three well-formed lang:FormSlot individuals in one lang:Analysis form a length-three lang:dependsOn cycle A->B->C->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1,2), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+    gmeow:expectedSourceShape lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Three well-formed lang:FormSlot individuals in one lang:Analysis form a length-three lang:dependsOn cycle A->B->C->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1,2), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent from lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DanglingDependency). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecDependencySelfLoop a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dependency-selfloop.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "A single well-formed lang:FormSlot in one lang:Analysis depends on itself, a length-one lang:dependsOn cycle A->A. The dangling branch does not fire (the head stays in the analysis) and the slot index is present (0), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+    gmeow:expectedSourceShape lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A single well-formed lang:FormSlot in one lang:Analysis depends on itself, a length-one lang:dependsOn cycle A->A. The dangling branch does not fire (the head stays in the analysis) and the slot index is present (0), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent from lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DanglingDependency). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecDependencyCycle2 a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dependency-cycle2.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "Two well-formed lang:FormSlot individuals in one lang:Analysis form a length-two lang:dependsOn cycle A->B->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+    gmeow:expectedSourceShape lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Two well-formed lang:FormSlot individuals in one lang:Analysis form a length-two lang:dependsOn cycle A->B->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent from lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DanglingDependency). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: morphology is typed from the feature inventory =================== #
 
@@ -122,8 +156,8 @@ ex:ecMorphologyUntyped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/morphology-untyped.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits the typed lang:featureValue on a lang:MorphFeature (sh:minCount 1 on lang:TypedMorphologyShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UntypedMorphology)." .
+    gmeow:expectedSourceShape lang:MorphFeature-shape ;
+    gmeow:conformanceRationale "The counter-example omits the typed lang:featureValue on a lang:MorphFeature (sh:minCount 1 on lang:TypedMorphologyShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:MorphFeature-shape, which gmeow:expectedSourceShape pins by IRI (lang:UntypedMorphology). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:TypedMorphologyShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: surfaces declare their material identity ========================= #
 
@@ -136,8 +170,8 @@ ex:ecSurfaceUnhashable a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/surface-unhashable.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits lang:collationLocale on a surface (sh:minCount 1 on lang:SurfaceMaterialShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnhashableSurface)." .
+    gmeow:expectedSourceShape lang:SurfaceForm-shape ;
+    gmeow:conformanceRationale "The counter-example omits lang:collationLocale on a surface (sh:minCount 1 on lang:SurfaceMaterialShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:SurfaceForm-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnhashableSurface). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:SurfaceMaterialShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: anchors declare source, span, and offset space =================== #
 
@@ -150,8 +184,8 @@ ex:ecAnchorUnanchored a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/anchor-unanchored.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits lang:offsetSpace on a lang:SurfaceAnchor (sh:minCount 1 on lang:AnchorCompleteShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredOffset)." .
+    gmeow:expectedSourceShape lang:SurfaceAnchor-shape ;
+    gmeow:conformanceRationale "The counter-example omits lang:offsetSpace on a lang:SurfaceAnchor (sh:minCount 1 on lang:AnchorCompleteShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:SurfaceAnchor-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnanchoredOffset). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:AnchorCompleteShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: structural positions hold forms, not literals ==================== #
 
@@ -164,7 +198,8 @@ ex:ecSlotFormLiteral a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-form-literal.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example gives lang:slotForm a bare string literal (sh:nodeKind sh:BlankNodeOrIRI on lang:SlotFormStructuralShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (lang:StringOnlyForm)." .
+    gmeow:expectedSourceShape lang:SlotFormStructuralShape ;
+    gmeow:conformanceRationale "The counter-example gives lang:slotForm a bare string literal (sh:nodeKind sh:BlankNodeOrIRI on lang:SlotFormStructuralShape), so validation MUST emit shacl.NodeKindConstraintComponent from lang:SlotFormStructuralShape, which gmeow:expectedSourceShape pins by IRI (lang:StringOnlyForm). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:FormSlot-shape; SPARQLConstraintComponent at lang:SlotFormNodeKindConstraintProceduralConstraintShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: graphemes are grounded in their script's repertoire ============== #
 
@@ -177,15 +212,15 @@ ex:ecGraphemeUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/grapheme-ungrounded.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares a lang:Script that does not list it through lang:hasGrapheme (the SPARQL constraint of lang:GraphemeGroundedShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .
+    gmeow:expectedSourceShape lang:GraphemeRepertoireConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares a lang:Script that does not list it through lang:hasGrapheme (the SPARQL constraint of lang:GraphemeGroundedShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:GraphemeRepertoireConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:UngroundedGrapheme). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:GraphemeGroundedShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGraphemeNoScript a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/grapheme-no-script.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares no lang:inScript at all (sh:minCount 1 on lang:GraphemeGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .
+    gmeow:expectedSourceShape lang:Grapheme-shape ;
+    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares no lang:inScript at all (sh:minCount 1 on lang:GraphemeGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:Grapheme-shape, which gmeow:expectedSourceShape pins by IRI (lang:UngroundedGrapheme). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:GraphemeGroundedShape. See the header note on why this slice's reports are wider than one shape." .
 
 # =========================================================================== #
 # Meaning-stratum fixtures — the Frege triangle, the denotation record, the
@@ -249,13 +284,14 @@ ex:ecMeaningUnderspecifiedDenotation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The denotation omits lang:denotationContext (sh:minCount 1 on lang:DenotationRecordShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedDenotation)." .
+    gmeow:expectedSourceShape lang:Denotation-shape ;
+    gmeow:conformanceRationale "The denotation omits lang:denotationContext (sh:minCount 1 on lang:DenotationRecordShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:Denotation-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnderspecifiedDenotation). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:DenotationRecordShape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningSurfaceDenotation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-surface-denotation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:DenotationNonSurfaceConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The denotation's lang:denotedForm is a lang:SurfaceForm (the SPARQL constraint of lang:DenotationNonSurfaceShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:SurfaceLevelDenotation)." .
 
@@ -263,6 +299,7 @@ ex:ecMeaningUnroutedAmbiguous a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:AmbiguousDenotationRoutingConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The denoted form's head lexeme has two senses but the denotation omits lang:viaSense (the SPARQL constraint of lang:AmbiguityRoutingShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnroutedAmbiguousDenotation)." .
 
@@ -270,37 +307,43 @@ ex:ecMeaningKindMismatch a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-kind-mismatch.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The denotesLogicFormula denotation targets a logic:Type, not a logic:Formula (the SPARQL constraint of lang:DenotationKindMatchShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DenotationKindMismatch)." .
+    gmeow:expectedSourceShape lang:DenotationKindMatchConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The denotesLogicFormula denotation targets a logic:Type, not a logic:Formula (the SPARQL constraint of lang:DenotationKindMatchShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:DenotationKindMatchConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:DenotationKindMismatch). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningUngroundedClaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-ungrounded-claim.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The observation about a reading names no gmeow:vantage (sh:minCount 1 on lang:ReadingClaimGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UngroundedReadingClaim)." .
+    gmeow:expectedSourceShape lang:ReadingClaimGroundedShape ;
+    gmeow:conformanceRationale "The observation about a reading names no gmeow:vantage (sh:minCount 1 on lang:ReadingClaimGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:ReadingClaimGroundedShape, which gmeow:expectedSourceShape pins by IRI (lang:UngroundedReadingClaim). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:ReadingClaimVantageConstraintProceduralConstraintShape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningUnanchoredIndexical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-unanchored-indexical.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The indexical denotation's interpretation act names no lang:IndexicalAnchor (the SPARQL constraint of lang:IndexicalAnchoredShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnanchoredIndexical)." .
+    gmeow:expectedSourceShape lang:IndexicalAnchoredConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The indexical denotation's interpretation act names no lang:IndexicalAnchor (the SPARQL constraint of lang:IndexicalAnchoredShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:IndexicalAnchoredConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:UnanchoredIndexical). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningConfidenceAsProbability a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-confidence-as-probability.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The reading claim carries a logic:probability with no declared logic:probabilityModel (the SPARQL constraint of lang:ConfidenceNotProbabilityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:ConfidenceAsProbability)." .
+    gmeow:expectedSourceShape lang:ConfidenceModelConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The reading claim carries a logic:probability with no declared logic:probabilityModel (the SPARQL constraint of lang:ConfidenceNotProbabilityShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:ConfidenceModelConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:ConfidenceAsProbability). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningFregeConflation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-frege-conflation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "One node is typed as both lang:Sense and lang:Denotation (the SPARQL constraint of the SECONDARY lang:FregeDisjointShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:FregeConflation)." .
+    gmeow:expectedSourceShape lang:FregeDisjointSenseConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "One node is typed as both lang:Sense and lang:Denotation (the SPARQL constraint of the SECONDARY lang:FregeDisjointShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:FregeDisjointSenseConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:FregeConflation). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at gmeow:FregeDisjointnessAxiomConstraintShape; NotConstraintComponent at lang:Denotation-shape; SPARQLConstraintComponent at lang:FregeDisjointShape; NotConstraintComponent at lang:Sense-shape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecMeaningActObservationConflation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/meaning-act-observation-conflation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
-    gmeow:conformanceRationale "A lang:InterpretationAct is typed also as a gmeow:Observation (the sh:not of the SECONDARY lang:ActObservationDisjointShape), so validation MUST emit shacl.NotConstraintComponent and NO other finding (lang:ActObservationConflation)." .
+    gmeow:expectedSourceShape lang:InterpretationAct-shape ;
+    gmeow:conformanceRationale "A lang:InterpretationAct is typed also as a gmeow:Observation (the sh:not of the SECONDARY lang:ActObservationDisjointShape), so validation MUST emit shacl.NotConstraintComponent from lang:InterpretationAct-shape, which gmeow:expectedSourceShape pins by IRI (lang:ActObservationConflation). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at gmeow:ActObservationDisjointnessAxiomConstraintShape; NotConstraintComponent at lang:ActObservationDisjointShape; MinCountConstraintComponent at lang:WordForm-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # =========================================================================== #
 # Translation-stratum fixtures — the crossing layer: renderings, transliteration
@@ -350,48 +393,49 @@ ex:ecRenderingUnderspecified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/rendering-underspecified.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The lang:Rendering omits its lang:renderedContent (sh:minCount 1 on lang:RenderingRecordShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedRendering); the self-identity SPARQL branch cannot match with no renderedContent." .
+    gmeow:expectedSourceShape lang:Rendering-shape ;
+    gmeow:conformanceRationale "The lang:Rendering omits its lang:renderedContent (sh:minCount 1 on lang:RenderingRecordShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:Rendering-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnderspecifiedRendering); the self-identity SPARQL branch cannot match with no renderedContent. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:Grammar-shape; MinCountConstraintComponent at lang:RenderingRecordShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecTranslationUnitUnderspecified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/translation-unit-underspecified.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The lang:TranslationUnit omits its single lang:translationCorrespondence (sh:minCount 1 on lang:TranslationUnitShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedTranslationUnit); the unmarked-surface SPARQL branch binds through the absent correspondence and cannot match." .
+    gmeow:expectedSourceShape lang:TranslationUnit-shape ;
+    gmeow:conformanceRationale "The lang:TranslationUnit omits its single lang:translationCorrespondence (sh:minCount 1 on lang:TranslationUnitShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:TranslationUnit-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnderspecifiedTranslationUnit); the unmarked-surface SPARQL branch binds through the absent correspondence and cannot match. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:TranslationUnitShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecTranslationUnmarkedSurface a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/translation-unmarked-surface.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The unit's lang:translationSource is a lang:SurfaceForm that realizes nothing and is not typed lang:UnanalyzedProse while its logic:Correspondence claims logic:ExactPreservation (the sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnmarkedSurfaceTranslation); the segmented analysis level keeps the surface-analysis gate quiet." .
+    gmeow:expectedSourceShape lang:UnmarkedSourceProseConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The unit's lang:translationSource is a lang:SurfaceForm that realizes nothing and is not typed lang:UnanalyzedProse while its logic:Correspondence claims logic:ExactPreservation (the sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:UnmarkedSourceProseConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:UnmarkedSurfaceTranslation); the segmented analysis level keeps the surface-analysis gate quiet. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape; SPARQLConstraintComponent at lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecTranslationUnanalyzedOverclaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/translation-unanalyzed-overclaim.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "Both surfaces ARE typed lang:UnanalyzedProse (rawLevel, realizing nothing) yet the carried logic:Correspondence claims logic:ExactPreservation — the second conjunct of the honest 'unanalyzed AND weakest-judgment' rule is violated, so the OR-structured sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnmarkedSurfaceTranslation). An AND-structured gate would miss this — an unanalyzed surface may not claim an exact crossing." .
+    gmeow:expectedSourceShape lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Both surfaces ARE typed lang:UnanalyzedProse (rawLevel, realizing nothing) yet the carried logic:Correspondence claims logic:ExactPreservation — the second conjunct of the honest 'unanalyzed AND weakest-judgment' rule is violated, so the OR-structured sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape MUST emit shacl.SPARQLConstraintComponent from lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:UnmarkedSurfaceTranslation). An AND-structured gate would miss this — an unanalyzed surface may not claim an exact crossing. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecTranslationUnattributed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/translation-unattributed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The lang:TranslationUnit declares no lang:translationMethod (sh:minCount 1 on lang:TranslationAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnattributedTranslation); the machine-attribution SPARQL branch cannot match an absent method." .
+    gmeow:expectedSourceShape lang:TranslationUnit-shape ;
+    gmeow:conformanceRationale "The lang:TranslationUnit declares no lang:translationMethod (sh:minCount 1 on lang:TranslationAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:TranslationUnit-shape, which gmeow:expectedSourceShape pins by IRI (lang:UnattributedTranslation); the machine-attribution SPARQL branch cannot match an absent method. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:TranslationAttributionShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecParaphraseUndeclaredKind a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/paraphrase-undeclared-kind.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The lang:Paraphrase names no lang:paraphraseSamenessKind (sh:minCount 1 on lang:ParaphraseKindShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UndeclaredParaphraseKind)." .
+    gmeow:expectedSourceShape lang:Paraphrase-shape ;
+    gmeow:conformanceRationale "The lang:Paraphrase names no lang:paraphraseSamenessKind (sh:minCount 1 on lang:ParaphraseKindShape), so validation MUST emit shacl.MinCountConstraintComponent from lang:Paraphrase-shape, which gmeow:expectedSourceShape pins by IRI (lang:UndeclaredParaphraseKind). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:ParaphraseKindShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecTransliterationUnanchored a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/transliteration-unanchored.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape lang:TransliterationMap-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The lang:TransliterationMap declares no lang:transliterationScheme (sh:minCount 1 on lang:TransliterationAnchorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredTransliteration); both orthographies are declared." .
 
@@ -411,6 +455,7 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/projection-missing-preservation-kind.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape lang:ProjectionEmission-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The lang:ProjectionEmission names its target but declares no logic:preservationKind (sh:minCount 1 on lang:ProjectionEmissionDeclaredShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:MissingPreservationKind); lang:projectionTargetName is present. The four join-requiring projection failure classes (lang:UndeclaredUnsupportedConstruct, lang:UnrecordedEpistemicLoss, lang:ProjectionSilentDisambiguation, lang:ExactPreservationViolated) are native Rust gates (crates/validate structural_lint) tested in-crate, not SHACL, so their counter-examples (tests/counter-examples/projection-undeclared-unsupported.ttl, projection-unrecorded-epistemic-loss.ttl, projection-silent-disambiguation.ttl, projection-exact-preservation-violated.ttl) are exercised by the native lint tests." .
 
@@ -465,12 +510,14 @@ ex:ecGmnNonCanonicalCodepoint a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-noncanonical-codepoint.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.PatternConstraintComponent" ;
-    gmeow:conformanceRationale "The grapheme's gmeow:gmnCodepoints value \"2291\" drops the canonical \"U+\" prefix (sh:pattern on lang:GmnCodepointCanonicalShape), so validation MUST emit shacl.PatternConstraintComponent and NO other finding (lang:GmnNonCanonicalCodepoint); the value is present, so the presence branch stays quiet." .
+    gmeow:expectedSourceShape lang:GmnCodepointCanonicalShape ;
+    gmeow:conformanceRationale "The grapheme's gmeow:gmnCodepoints value \"2291\" drops the canonical \"U+\" prefix (sh:pattern on lang:GmnCodepointCanonicalShape), so validation MUST emit shacl.PatternConstraintComponent from lang:GmnCodepointCanonicalShape, which gmeow:expectedSourceShape pins by IRI (lang:GmnNonCanonicalCodepoint); the value is present, so the presence branch stays quiet. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:GmnCodepointCanonicalConstraintProceduralConstraintShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGmnConfusableGlyph a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-confusable-glyph.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:GmnConfusableGlyphConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "Two distinct graphemes of gmeow:gmnScript are related by gmeow:gmnConfusableWith (the sh:sparql of lang:GmnConfusableGlyphShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnConfusableGlyph); their codepoint values are distinct and canonical, so the collision and codepoint gates stay quiet." .
 
@@ -478,6 +525,7 @@ ex:ecGmnGlyphCollision a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-glyph-collision.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:GmnGlyphCollisionConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "Two distinct graphemes of one script share the identical gmeow:gmnCodepoints \"U+03BC\" with NO gmeow:gmnSigilScope on either (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision)." .
 
@@ -485,20 +533,22 @@ ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its nine contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight fields are present." .
+    gmeow:expectedSourceShape lang:GmnEnvelopeContractShape ;
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its nine contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent from lang:GmnEnvelopeContractShape, which gmeow:expectedSourceShape pins by IRI (lang:GmnMissingEnvelopeField); the other eight fields are present. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries QualifiedMinCountConstraintComponent at gmeow:GmnEnvelope-shape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGmnEnvelopeDictionaryVersionPlural a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-dictionary-version-plural.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight contract fields are present and well-formed (R5, version-pinning is non-interchangeable)." .
+    gmeow:expectedSourceShape gmeow:GmnEnvelope-shape ;
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent from gmeow:GmnEnvelope-shape, which gmeow:expectedSourceShape pins by IRI (lang:GmnMissingEnvelopeField); the other eight contract fields are present and well-formed (R5, version-pinning is non-interchangeable). The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MaxCountConstraintComponent at lang:GmnEnvelopeContractShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGmnRingLatticeMalformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-ring-lattice-malformed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnSecurityRing carries no gmeow:gmnRingLevel at all (sh:minCount 1 on lang:GmnRingLatticeWellFormedShape), so it cannot be placed in the Denning product-order lattice — validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnRingLatticeMalformed). This gate bites the AUTHORED coordinate, proving it is not vacuous." .
+    gmeow:expectedSourceShape lang:GmnRingLatticeWellFormedShape ;
+    gmeow:conformanceRationale "The gmeow:GmnSecurityRing carries no gmeow:gmnRingLevel at all (sh:minCount 1 on lang:GmnRingLatticeWellFormedShape), so it cannot be placed in the Denning product-order lattice — validation MUST emit shacl.MinCountConstraintComponent from lang:GmnRingLatticeWellFormedShape, which gmeow:expectedSourceShape pins by IRI (lang:GmnRingLatticeMalformed). This gate bites the AUTHORED coordinate, proving it is not vacuous. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries QualifiedMinCountConstraintComponent at gmeow:GmnSecurityRing-shape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: a GMN dictionary's alias table is injective === #
 
@@ -511,8 +561,8 @@ ex:ecGmnDictionaryAliasCollision a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-dictionary-alias-collision.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "Two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary alias two DIFFERENT terms (gmeow:GmnEnvelope, gmeow:GmnCodebook) with the SAME alias string \"genv\" (the sh:sparql of lang:GmnDictionaryAliasInjectivityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnDictionaryAliasCollision) — the alias table is not a bijection, so gmeow:gmnCorrNormalToGmn's mnemomorphic claim would be silently corrupted on read-back." .
+    gmeow:expectedSourceShape lang:GmnDictionaryAliasInjectivityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary alias two DIFFERENT terms (gmeow:GmnEnvelope, gmeow:GmnCodebook) with the SAME alias string \"genv\" (the sh:sparql of lang:GmnDictionaryAliasInjectivityShape), so validation MUST emit shacl.SPARQLConstraintComponent from lang:GmnDictionaryAliasInjectivityConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:GmnDictionaryAliasCollision) — the alias table is not a bijection, so gmeow:gmnCorrNormalToGmn's mnemomorphic claim would be silently corrupted on read-back. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:GmnDictionaryAliasInjectivityShape. See the header note on why this slice's reports are wider than one shape." .
 
 # === Rule: a per-slice terminology glossary is single-valued per sense === #
 # (the derived lang:GlossaryTermConsistencyConstraintProceduralConstraintShape, the
@@ -527,6 +577,7 @@ ex:ecGlossaryTermInconsistent a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/glossary-term-inconsistent.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:GlossaryTermConsistencyConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "Two gmeow:GlossaryEntry members of one gmeow:Glossary share one gmeow:glossaryConcept but carry TWO DIFFERENT gmeow:glossaryTranslation values (\"lire\", \"lu\"), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GlossaryTermInconsistency) — one sense reads back as two divergent renderings across batches, the functional-dependency dual of a GMN alias collision." .
 
@@ -552,20 +603,21 @@ ex:ecGmnVersionOverclaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-version-overclaim.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The migration's carried correspondence claims logic:mnemomorphic true while the destination version's membership carries gmeow:versionScale gmeow:scaleMajor — a stronger-than-additive bump (the sh:sparql of lang:GmnVersionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnVersionOverclaim); the unit itself satisfies the translation-unit gates and the acceptance window is 1." .
+    gmeow:expectedSourceShape lang:GmnVersionOverclaimConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The migration's carried correspondence claims logic:mnemomorphic true while the destination version's membership carries gmeow:versionScale gmeow:scaleMajor — a stronger-than-additive bump (the sh:sparql of lang:GmnVersionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent from lang:GmnVersionOverclaimConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (lang:GmnVersionOverclaim); the unit itself satisfies the translation-unit gates and the acceptance window is 1. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries SPARQLConstraintComponent at lang:GmnVersionOverclaimShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGmnCompactionWithoutProvenance a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-compaction-without-provenance.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The gmeow:GmnCompaction names its sources through gmeow:gmnCompacts but carries no attributing gmeow:vantage (sh:minCount 1 on lang:GmnCompactionProvenanceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnCompactionWithoutProvenance); it links no correspondence, so the overclaim gate stays quiet." .
+    gmeow:expectedSourceShape gmeow:GmnCompaction-shape ;
+    gmeow:conformanceRationale "The gmeow:GmnCompaction names its sources through gmeow:gmnCompacts but carries no attributing gmeow:vantage (sh:minCount 1 on lang:GmnCompactionProvenanceShape), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:GmnCompaction-shape, which gmeow:expectedSourceShape pins by IRI (lang:GmnCompactionWithoutProvenance); it links no correspondence, so the overclaim gate stays quiet. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:GmnCompactionProvenanceShape. See the header note on why this slice's reports are wider than one shape." .
 
 ex:ecGmnCompactionOverclaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-compaction-overclaim.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:GmnCompactionOverclaimConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The gmeow:GmnCompaction's linked correspondence claims logic:ExactPreservation with a mnemomorphic witness — stronger than the logic:ValidationOnly the compaction discipline licenses (the sh:sparql of lang:GmnCompactionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnCompactionOverclaim); the compaction is fully provenance-linked, so the provenance gate stays quiet." .
 
@@ -580,6 +632,7 @@ ex:ecGmnUndispositionedFeatureValue a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-undispositioned-feature-value.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:FeatureValueDispositionConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example adds a lang:FeatureValue that no lang:Denotation targets (the sh:sparql of lang:GmnLangCoverageShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnUndispositionedTerm); it is a well-formed inventory member, so no other shape fires." .
 
@@ -594,6 +647,7 @@ ex:ecGmnPlaneMissingVersion a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-plane-missing-version.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape lang:GmnImportedPlane-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example gives a lang:GmnImportedPlane a gmeow:cites edge but omits dcterms:hasVersion (sh:minCount 1 on lang:GmnImportedPlaneAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnUnattributedPlane); the citation is present, so the cites minCount stays quiet." .
 

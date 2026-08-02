@@ -11,13 +11,20 @@
 # (logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking)
 # is carried in module.ttl, so the up-set antecedent resolves through the union.
 #
-# CODE VERIFICATION: gmeow:GateFatalUpsetShape is a sh:sparql (sh:SPARQLConstraint)
+# CODE VERIFICATION: the gate-fatal up-set rule is a sh:sparql (sh:SPARQLConstraint)
 # shape, so its violation code is shacl.SPARQLConstraintComponent — the same code
-# the learning slice's teacher≠learner sh:sparql rule emits. The conforming fixture
-# carries the fatal verdict (up-set antecedent satisfied AND findingGateVerdict
-# gateFatal present) so the FILTER NOT EXISTS arm never selects it; the violating
-# fixture omits the verdict, so the constraint fires exactly once and no other
-# shape (gmeow:FindingShape's severity/code/message min/max are all satisfied).
+# the learning slice's teacher≠learner sh:sparql rule emits. Because that code is
+# shared by every projected logic:Constraint, the violating cell pins the exact
+# sh:sourceShape it must come from with gmeow:expectedSourceShape.
+#
+# WHY THE VIOLATING CELL DOES NOT DECLARE gmeow:expectedSoleFinding. It used to claim
+# "no other finding". Measured against the harness that is false: this slice has not
+# finished migrating, so it still ships a residual hand-authored shapes.ttl carrying
+# gmeow:GateFatalUpsetShape ALONGSIDE the derived
+# gmeow:GateFatalUpsetConstraintProceduralConstraintShape the pipeline projects from
+# logic:ruleGateFatalVerdict. One defect is reported TWICE, by two sh:sourceShapes,
+# and soleness counts two authorities as two even when they say the same thing.
+# Soleness becomes declarable the moment the residual shapes.ttl is retired.
 #
 # The conforming fixture lives under tests/conformance-fixtures/ and the
 # counter-example under tests/counter-examples/, so the global make validate gate
@@ -37,4 +44,5 @@ ex:ecGateFatalMissing a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gate-fatal-verdict-missing.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The finding meets the gate-fatal up-set antecedent (severity error, category projecting to gmeow:blockingBlocking, standpoint binding) but LACKS gmeow:findingGateVerdict gmeow:gateFatal, so gmeow:GateFatalUpsetShape's sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent and no other finding — proving the shape discriminates the up-set boundary (non-vacuous)." .
+    gmeow:expectedSourceShape gmeow:GateFatalUpsetConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The finding meets the gate-fatal up-set antecedent (severity error, category projecting to gmeow:blockingBlocking, standpoint binding) but LACKS gmeow:findingGateVerdict gmeow:gateFatal, so the projected sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:GateFatalUpsetConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — proving the shape discriminates the up-set boundary (non-vacuous). The residual gmeow:GateFatalUpsetShape reports the same rule a second time, so the cell does not declare gmeow:expectedSoleFinding (see the header note)." .

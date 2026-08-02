@@ -148,10 +148,16 @@ pub struct ExampleConformance {
     /// pin that a particular law DID fire, and the harness's violates branch asks
     /// only that SOME finding match, so a rationale claiming the fixture isolates
     /// one defect is unfalsifiable while this is absent. When `Some(true)`, EVERY
-    /// violation-severity result must carry `violation_code` and (when
-    /// `expected_source_shape` is bound) originate from that shape — several rows of
-    /// the SAME law still conform, one finding from another law is a hard failure.
-    /// Absent → unchanged behaviour, so no cell that omits it is affected.
+    /// violation-severity result must originate from `expected_source_shape` —
+    /// several rows of the SAME law still conform, one finding from another law is a
+    /// hard failure. Absent → unchanged behaviour, so no cell that omits it is
+    /// affected.
+    ///
+    /// `expected_source_shape` is REQUIRED whenever this is `Some(true)`: soleness is
+    /// a claim about WHICH law is the only one, and an unnamed law cannot carry it.
+    /// A `Some(true)` with no pinned shape is a cell-configuration HARD FAIL in
+    /// [`crate::exec`], and `shapes/test-dsl-shapes.ttl` rejects the same pairing
+    /// declaratively.
     pub expected_sole_finding: Option<bool>,
     pub rationale: Option<String>,
 }

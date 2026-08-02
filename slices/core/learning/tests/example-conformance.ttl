@@ -15,15 +15,19 @@
 # each counter-example is a SEPARATE fixture isolating ONE violation, the
 # (fixture, code) pair still pins the specific constraint faithfully.
 #
-# CODE VERIFICATION (two-way, 2026-06-23): every expectedViolationCode below was
-# confirmed by running the native validator (via `make slicetest`) on
-# module + fixture + shapes and reading the FULL emitted code-set — each violator
-# emits EXACTLY its one expected code and NO other finding (the harness's
-# gmeow:violates check is a CONTAINS, so the singleton was confirmed by a
-# sentinel-flip to guard against a stray second violation masking a malformed
-# fixture). The teacher==learner case fires only the sh:sparql rule (all
-# min/maxCount + sh:class constraints are satisfied); the non-agent-learner case
-# fires only the learner sh:class rule (learner minCount 1 is satisfied by ex:tool).
+# CODE VERIFICATION. Every expectedViolationCode below is pinned to the sh:sourceShape
+# it must come from (gmeow:expectedSourceShape), which the harness enforces — a fixture
+# that reds a DIFFERENT rule of the same component no longer passes.
+#
+# WHY NEITHER CELL DECLARES gmeow:expectedSoleFinding. Both used to claim "and NO other
+# finding". Measured against the harness, both are false, and for one structural reason:
+# this slice has not finished migrating, so it still ships a residual hand-authored
+# shapes.ttl (gmeow:TeachingShape) ALONGSIDE the derived gmeow:Teaching-shape and the
+# derived gmeow:TeachingSelfTeachConstraintProceduralConstraintShape the pipeline projects
+# from the same module axioms. One defect is therefore reported TWICE, by two
+# sh:sourceShapes — which is what soleness measures, and it counts two authorities as two
+# even when they say the same thing. The duplication is the defect, not the fixtures:
+# soleness becomes declarable here the moment the residual shapes.ttl is retired.
 #
 # The conforming fixture lives under tests/conformance-fixtures/ (NOT examples/)
 # and the counter-examples under tests/counter-examples/, so the global
@@ -46,13 +50,13 @@ ex:ecTeachingSelf a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/teaching-self.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's gmeow:teacher and gmeow:learner are the same agent (ex:alice). gmeow:TeachingShape's sh:sparql constraint forbids teacher = learner, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. Mirrors test_teacher_equals_learner_is_flagged." .
+    gmeow:expectedSourceShape gmeow:TeachingSelfTeachConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's gmeow:teacher and gmeow:learner are the same agent (ex:alice). gmeow:TeachingShape's sh:sparql constraint forbids teacher = learner, so validation MUST emit shacl.SPARQLConstraintComponent from gmeow:TeachingSelfTeachConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The residual gmeow:TeachingShape carries a hand-authored twin of the same sh:sparql rule and reports it a second time, so the cell does not declare gmeow:expectedSoleFinding (see the header note). Mirrors test_teacher_equals_learner_is_flagged." .
 
 # --- Violating: learner is not a gmeow:Agent --------------------------------
 ex:ecTeachingNonAgentLearner a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/teaching-non-agent-learner.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's gmeow:learner (ex:tool) is a gmeow:Artifact, not a gmeow:Agent. The learner property shape carries sh:class gmeow:Agent, so validation MUST emit shacl.ClassConstraintComponent and NO other finding. Mirrors test_non_agent_learner_is_flagged." .
+    gmeow:expectedSourceShape gmeow:Teaching-shape ;
+    gmeow:conformanceRationale "The counter-example's gmeow:learner (ex:tool) is a gmeow:Artifact, not a gmeow:Agent. The learner property shape carries sh:class gmeow:Agent, so validation MUST emit shacl.ClassConstraintComponent from gmeow:Teaching-shape, which gmeow:expectedSourceShape pins by IRI. The residual gmeow:TeachingShape reports the same class violation a second time, and the derived shape additionally reports shacl.QualifiedMinCountConstraintComponent because a non-Agent value cannot satisfy the qualified learner restriction; the cell therefore does not declare gmeow:expectedSoleFinding (see the header note). Mirrors test_non_agent_learner_is_flagged." .

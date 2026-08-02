@@ -42,6 +42,7 @@ ex:ecCandidateMissingSourceHash a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/candidate-missing-sourcehash.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:FormalizationCandidate-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateSourceHash (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -50,6 +51,7 @@ ex:ecCandidateMissingCategory a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/candidate-missing-category.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:FormalizationCandidate-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateCategory (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -68,6 +70,7 @@ ex:ecPlanMissingSuccessMode a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/plan-missing-successmode.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:Plan-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:planSuccessMode (sh:minCount 1 on logic:PlanShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -82,6 +85,7 @@ ex:ecGoalEvaluationMissingFeasibility a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/goalevaluation-missing-feasibility.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:GoalEvaluation-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:feasibilityStatus, one of the four required factored axes (sh:minCount 1 on logic:GoalEvaluationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -96,6 +100,7 @@ ex:ecActionSchemaMissingCapability a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/actionschema-missing-capability.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ActionSchema-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:capability, one of the two required facets (sh:minCount 1 on logic:ActionSchemaShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -110,6 +115,7 @@ ex:ecMcpActionMissingCompensation a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/mcp-action-missing-compensation.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:McpActionSchema-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example's ex:mcpActionMissingCompensation (typed logic:McpActionSchema) omits logic:compensation (sh:minCount 1 on logic:McpActionPolicyShape — an MCP tool that mutates state with no rollback), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
@@ -124,6 +130,7 @@ ex:ecSatisfiedByUnbacked a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/satisfiedby-unbacked.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example asserts a conclusive gmeow:satisfiedBy(goal, situation) edge with NO backing logic:GoalEvaluation under any vantage, so the vantage-scoped dual-authority sh:sparql constraint on logic:SatisfiedByBackedByEvaluationShape fires and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. The check is never a global verdict: it fires only because no vantage backs the edge at all (Principle 9)." .
 
@@ -151,6 +158,7 @@ ex:ecClosureEmpty a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/closure-witness-empty.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ClosureAcceptanceWitness-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:closureEntailedAtom (sh:minCount 1 on logic:ClosureAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:IncompleteClosure)." .
 
@@ -164,6 +172,7 @@ ex:ecSectionUnobligated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/section-witness-unobligated.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:SectionAcceptanceWitness-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:dischargesSectionObligation (sh:minCount 1 on logic:SectionAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:SectionObligationViolated)." .
 
@@ -177,6 +186,7 @@ ex:ecCounterfactualUnentrenched a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/counterfactual-witness-unentrenched.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:CounterfactualAcceptanceWitness-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:selectedByEntrenchment (sh:minCount 1 on logic:CounterfactualAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnentrenchedCounterfactual)." .
 
@@ -190,6 +200,7 @@ ex:ecRefutationUnwitnessed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/refutation-witness-unwitnessed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:RefutationAcceptanceWitness-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:namesContradictionWitness (sh:minCount 1 on logic:RefutationAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnwitnessedRefutation)." .
 
@@ -203,6 +214,7 @@ ex:ecChaseUncertified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/chase-witness-uncertified.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ChaseAcceptanceWitness-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example omits logic:carriesTerminationCertificate (sh:minCount 1 on logic:ChaseAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UncertifiedChase)." .
 

@@ -852,49 +852,75 @@ fn run_conformance_cell(
             // claims it does not. That claim was therefore unfalsifiable: it could
             // only ever have been established by measuring the fixture once, by hand,
             // and nothing kept it true afterwards. `gmeow:expectedSoleFinding true`
-            // makes it checkable. Deliberately opt-in: the phrase appears on ~240
-            // cells across seven slices, and turning the check on for all of them by
-            // default would red slices whose fixtures were never measured — the check
-            // has to be adopted cell by cell, with the finding set actually read.
+            // makes it checkable. Deliberately opt-in: the phrase appeared on 238 cells
+            // across nine slices, and turning the check on for all of them by default
+            // would red slices whose fixtures were never measured — the check has to be
+            // adopted cell by cell, with the finding set actually read.
             //
             // "Sole" is per-LAW, and the LAW is the `sh:sourceShape` — not the finding
-            // code and not the result count. The unit matters, and getting it wrong in
-            // either direction makes the check useless:
+            // code and not the result count. The unit matters:
             //
-            // * Per-RESULT would forbid a single defect from being reported twice, which
-            //   it legitimately is — once per kernel class the offending node is typed
-            //   by, once per focus node a class shape targets.
+            // * Per-RESULT would forbid ONE shape from reporting one defect at several
+            //   focus nodes, which a class shape targeting a class legitimately does.
             // * Per-CODE would split ONE shape's report of ONE defect into a failure
             //   whenever the shape raises two components over it (a class shape reporting
             //   a missing member as both sh:minCount and sh:qualifiedMinCount is one law
             //   saying one thing twice).
             //
-            // So: every violation-severity result must originate from ONE shape, and that
-            // shape must be the pinned one when `gmeow:expectedSourceShape` is bound. Any
-            // second shape is a second authored law, which is exactly the claim "and NO
-            // other finding" makes and could not previously fail on.
+            // Per-SHAPE is therefore the STRICTEST unit that does not misfire on one law
+            // speaking more than once, and it is deliberately strict in the other
+            // direction: when one defect is reported by a class shape AND by that class's
+            // superclass shape, or by a derived shape AND by the residual hand-authored
+            // twin a partially-migrated slice still ships in its `shapes.ttl`, that IS two
+            // shapes and the cell may not claim soleness. Those are real duplications of
+            // authority, and a cell that wants to stay honest about them pins the law with
+            // `gmeow:expectedSourceShape` and says in its rationale what else speaks.
+            //
+            // So: every violation-severity result must originate from the ONE shape the
+            // cell names. Any second shape is a second authored law, which is exactly the
+            // claim "and NO other finding" makes and could not previously fail on.
+            //
+            // NAMING THE LAW IS PART OF THE CLAIM, so `gmeow:expectedSourceShape` is
+            // REQUIRED here rather than optional. The first cut let an unpinned cell fall
+            // back to "no OTHER shape raised a finding carrying the expected code", and
+            // that reading is vacuous on every generic component: `MinCountConstraintComponent`
+            // and `SPARQLConstraintComponent` are each raised by dozens of shapes, so the
+            // fallback accepted any second law that happened to raise the same code — it
+            // asserted almost nothing on 151 of the 175 cells that had adopted the flag,
+            // and 30 of those cells were in fact tripping two or three distinct laws. Two
+            // further reasons the fallback had to go rather than be repaired into "any
+            // second shape is an intruder":
+            //
+            // * A soleness claim is a claim about WHICH law is the only one. "Exactly one
+            //   law fired" without naming it still cannot fail when a fixture drifts onto
+            //   a DIFFERENT single law raising the same generic component — GAP 4 above,
+            //   which is the whole reason `gmeow:expectedSourceShape` exists.
+            // * It would give one term two meanings, selected silently by whether a
+            //   sibling property happens to be bound. A declared claim whose strength
+            //   depends on an absent input is exactly the silent degradation the
+            //   no-optionality rule forbids: a missing input is a HARD FAIL.
+            //
+            // `shapes/test-dsl-shapes.ttl` states the same requirement declaratively, so
+            // the pairing is rejected at DSL-lint time as well as here.
             if ec.expected_sole_finding == Some(true) {
+                let pinned = ec.expected_source_shape.as_deref().ok_or_else(|| {
+                    Diag::of_kind(ConformanceCell {
+                        detail: format!(
+                            "cell {} declares gmeow:expectedSoleFinding true without \
+                             gmeow:expectedSourceShape: soleness is a claim about WHICH law is \
+                             the only one, so the law must be named. Bind \
+                             gmeow:expectedSourceShape to the sh:sourceShape IRI the {expected} \
+                             finding originates from.",
+                            ec.iri
+                        ),
+                    })
+                })?;
                 let intruders: Vec<String> = report
                     .results
                     .iter()
                     .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
                     .filter(|r| {
-                        let shape = strip_angle(&r.source_shape.to_string()).to_owned();
-                        ec.expected_source_shape.as_deref().map_or_else(
-                            // Unpinned: the sole law is whichever shape produced the
-                            // finding the cell DID pin by code, so a second shape — even
-                            // one raising the same component — is a second law.
-                            || {
-                                report
-                                    .results
-                                    .iter()
-                                    .filter(|other| finding_from_shacl(other).code == expected)
-                                    .all(|other| {
-                                        strip_angle(&other.source_shape.to_string()) != shape
-                                    })
-                            },
-                            |pinned| !source_shape_matches(&shape, pinned),
-                        )
+                        !source_shape_matches(strip_angle(&r.source_shape.to_string()), pinned)
                     })
                     .map(|r| {
                         format!(
@@ -909,12 +935,9 @@ fn run_conformance_cell(
                     return Err(Diag::of_kind(ConformanceCell {
                         detail: format!(
                             "cell {} declares gmeow:expectedSoleFinding, so the shape raising \
-                             {expected} ({}) must be the ONLY law this fixture trips; it also \
-                             raised: [{}]",
+                             {expected} ({pinned}) must be the ONLY law this fixture trips; it \
+                             also raised: [{}]",
                             ec.iri,
-                            ec.expected_source_shape
-                                .as_deref()
-                                .unwrap_or("unpinned — inferred from the matching finding"),
                             intruders.join(", "),
                         ),
                     }));
@@ -1457,6 +1480,149 @@ mod tests {
             message.contains("ReceiptRequiresAttemptConstraint")
                 || message.contains("CompensationBindsExactForwardEffectConstraint"),
             "the intruder list must name the cascading laws by shape; got: {message}"
+        );
+    }
+
+    /// An UNPINNED `gmeow:expectedSoleFinding` is a hard failure, and the fixture that
+    /// proves why is one the old fallback could not fail on.
+    ///
+    /// `translation-unanalyzed-overclaim.ttl` trips TWO distinct lang laws —
+    /// `lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape` and
+    /// `lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape` — and BOTH raise
+    /// `shacl.SPARQLConstraintComponent`. The first cut's unpinned reading asked only
+    /// whether some OTHER shape raised a finding carrying the expected code, so on this
+    /// fixture every violating shape answered "yes, I am one of them" and the intruder set
+    /// came back empty: the cell claimed soleness, tripped two laws, and went green. That
+    /// is the vacuity, and it is why the pin is now REQUIRED rather than a fallback.
+    ///
+    /// The two halves are the same cell differing only in the pin: unpinned is rejected as
+    /// a cell-configuration failure that names the missing property, and pinned is rejected
+    /// for the real reason, naming the SECOND law by shape.
+    #[test]
+    fn an_unpinned_sole_finding_claim_is_a_hard_failure() {
+        let slice_dir = paths::repo_root().join("slices/grounding/lang");
+        let shape_paths = paths::shapes_files(&slice_dir);
+        let shapes_ttl = shape_paths
+            .iter()
+            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
+        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
+            .expect("the lang module parses");
+        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+            .expect("the grounding kernel modules parse");
+        let local_shapes = slice_dir.join("shapes.ttl");
+        let shapes = scope_shapes_to_slice(
+            shapes,
+            &shapes_ttl,
+            &owned_module,
+            local_shapes.is_file().then_some(local_shapes.as_path()),
+        )
+        .expect("shape ownership scopes to the lang slice");
+
+        let cell = |pin: Option<&str>| ExampleConformance {
+            iri: "https://example.org/ecUnpinnedSoleProbe".to_owned(),
+            file: "tests/counter-examples/translation-unanalyzed-overclaim.ttl".to_owned(),
+            outcome: Outcome::Violates,
+            violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
+            expected_source_shape: pin.map(ToOwned::to_owned),
+            expected_sole_finding: Some(true),
+            rationale: None,
+        };
+
+        let err = run_conformance_cell(&cell(None), &slice_dir, &module, &shapes).expect_err(
+            "a soleness claim with no named law must be rejected outright — under the old \
+             fallback this very cell passed while the fixture tripped two laws",
+        );
+        let message = err.message();
+        assert!(
+            message.contains("expectedSoleFinding")
+                && message.contains("without gmeow:expectedSourceShape"),
+            "the failure must name both properties so an author knows what to bind; got: {message}"
+        );
+
+        let err = run_conformance_cell(
+            &cell(Some(
+                "https://blackcatinformatics.ca/lang/\
+                 UnmarkedSourceOverclaimConstraintProceduralConstraintShape",
+            )),
+            &slice_dir,
+            &module,
+            &shapes,
+        )
+        .expect_err("once the law is named, the SECOND law raising the same code is an intruder");
+        let message = err.message();
+        assert!(
+            message.contains("also raised")
+                && message.contains("UnmarkedTargetOverclaimConstraintProceduralConstraintShape"),
+            "the intruder list must name the second law by shape, not merely by component code \
+             (both laws raise shacl.SPARQLConstraintComponent); got: {message}"
+        );
+    }
+
+    /// The DECLARATIVE half of the same requirement has teeth.
+    ///
+    /// `shapes/test-dsl-shapes.ttl` states the pin requirement as SHACL so a cell is
+    /// rejected at DSL-lint time, not only when the harness reaches it. That file is on
+    /// the `EXCLUDED` list of every shape union in the repository (it lints the test DSL,
+    /// never the data graph), and `dev_validate` does not yet populate
+    /// `test_dsl_shapes_ttl`, so nothing else executes it — which is exactly the shape a
+    /// rule takes when it is decorative. This runs the SHIPPED file against a synthetic
+    /// `gmeow:ExampleConformance` cell and requires it to red, so the rule cannot rot into
+    /// prose. The green half is the same cell with the pin bound.
+    #[test]
+    fn the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration() {
+        let shapes_ttl =
+            std::fs::read_to_string(paths::repo_root().join("shapes/test-dsl-shapes.ttl"))
+                .expect("the test-DSL shape file is readable");
+        let shapes = parse_shapes(&shapes_ttl).expect("the test-DSL shape file parses");
+
+        let cell = |pin: &str| {
+            format!(
+                r#"
+                @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+                @prefix ex: <https://example.org/> .
+                ex:ec a gmeow:ExampleConformance ;
+                    gmeow:exampleFile "tests/counter-examples/x.ttl" ;
+                    gmeow:expectedOutcome gmeow:violates ;
+                    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+                    {pin}
+                    gmeow:expectedSoleFinding true .
+                "#
+            )
+        };
+        let report = validate_dataset(&store_from_turtle(&cell("")), &shapes)
+            .expect("validating the DSL cell succeeds");
+        let unpinned: Vec<String> = report
+            .results
+            .iter()
+            .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            .filter_map(|r| r.message.clone())
+            .collect();
+        assert!(
+            unpinned
+                .iter()
+                .any(|m| m.contains("must also bind gmeow:expectedSourceShape")),
+            "the shape rule must reject a soleness declaration with no pinned law; got: \
+             {unpinned:?}"
+        );
+
+        let pinned = validate_dataset(
+            &store_from_turtle(&cell("gmeow:expectedSourceShape ex:SomeConstraintShape ;")),
+            &shapes,
+        )
+        .expect("validating the pinned DSL cell succeeds");
+        let remaining: Vec<String> = pinned
+            .results
+            .iter()
+            .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            .filter_map(|r| r.message.clone())
+            .collect();
+        assert!(
+            remaining.is_empty(),
+            "a pinned soleness declaration is well-formed and must raise nothing; got: \
+             {remaining:?}"
         );
     }
 }

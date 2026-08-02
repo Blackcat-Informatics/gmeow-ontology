@@ -13,8 +13,16 @@
 # owl:minQualifiedCardinality restriction on gmeow:CompilationPreservationRecord's
 # logic:preservationKind, which rejects a kind-less record with
 # shacl.MinCountConstraintComponent instead. The SPECIFIC slice failure class is named in
-# gmeow:conformanceRationale, and each counter-example isolates exactly ONE violation
-# (AND-NO-OTHER). The conformant worked example lives under examples/ and is exercised as a
+# gmeow:conformanceRationale, and every cell pins the law it tests by IRI through
+# gmeow:expectedSourceShape. SEVEN of the eleven additionally declare
+# gmeow:expectedSoleFinding, which the harness enforces: their whole violation report comes
+# from the pinned shape and nothing else. The other four do NOT, and the reason is uniform —
+# each of those fixtures binds a gmeow:CompilationPreservationRecord carrying a
+# logic:preservationKind whose value is typed logic:PreservationKind only in the logic:
+# module, which an ordinary slice's conformance run does not load as data (see the closing
+# note), so gmeow:CompilationPreservationRecord-shape reports a second, scope-induced
+# shacl.QualifiedMinCountConstraintComponent on that record. Their rationales say so.
+# The conformant worked example lives under examples/ and is exercised as a
 # competency cqDataFile and the example sweep.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -25,20 +33,23 @@ ex:ecCompilationNoCorrespondence a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-no-correspondence.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that records its preservation/loss judgment and carries its full standpoint/world/time context but records NO gmeow:CellSourceCorrespondence, so the ∀→∃(∧∧) SPARQL constraint of gmeow:CompilationMustRecordCorrespondence MUST emit shacl.SPARQLConstraintComponent and NO other finding. Every other required datum is present, isolating the missing correspondence." .
+    gmeow:expectedSourceShape gmeow:CompilationMustRecordCorrespondenceProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that records its preservation/loss judgment and carries its full standpoint/world/time context but records NO gmeow:CellSourceCorrespondence, so the ∀→∃(∧∧) SPARQL constraint of gmeow:CompilationMustRecordCorrespondence MUST emit shacl.SPARQLConstraintComponent from gmeow:CompilationMustRecordCorrespondenceProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. Every other required datum is present, isolating the missing correspondence. The cell does NOT claim gmeow:expectedSoleFinding: its fixture binds a gmeow:CompilationPreservationRecord whose logic:preservationKind value is typed logic:PreservationKind only in the logic: module, which an ordinary slice.'.s conformance run does not load (see the closing note), so gmeow:CompilationPreservationRecord-shape also reports shacl.QualifiedMinCountConstraintComponent on ex:pres. That second finding is a data-scope artifact, not a second law the counter-example trips." .
 
 # === AC: a recorded correspondence must carry a genuine row (not be empty) == #
 ex:ecCompilationCorrespondenceEmpty a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-correspondence-empty.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that DOES record a gmeow:CellSourceCorrespondence (and records its preservation/loss judgment and carries its full standpoint/world/time context) but the correspondence record carries ZERO gmeow:correspondenceCell rows, so no cell is traced to its evidence. The ∀→∃(∧∧) SPARQL constraint of gmeow:CompilationMustRecordCorrespondence MUST emit shacl.SPARQLConstraintComponent and NO other finding — an empty correspondence record is exactly as much a black box as a missing one." .
+    gmeow:expectedSourceShape gmeow:CompilationMustRecordCorrespondenceProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that DOES record a gmeow:CellSourceCorrespondence (and records its preservation/loss judgment and carries its full standpoint/world/time context) but the correspondence record carries ZERO gmeow:correspondenceCell rows, so no cell is traced to its evidence. The ∀→∃(∧∧) SPARQL constraint of gmeow:CompilationMustRecordCorrespondence MUST emit shacl.SPARQLConstraintComponent from gmeow:CompilationMustRecordCorrespondenceProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — an empty correspondence record is exactly as much a black box as a missing one. The cell does NOT claim gmeow:expectedSoleFinding: its fixture binds a gmeow:CompilationPreservationRecord whose logic:preservationKind value is typed logic:PreservationKind only in the logic: module, which an ordinary slice.'.s conformance run does not load (see the closing note), so gmeow:CompilationPreservationRecord-shape also reports shacl.QualifiedMinCountConstraintComponent on ex:pres. That second finding is a data-scope artifact, not a second law the counter-example trips." .
 
 # === AC: every compilation records a preservation/loss judgment ============= #
 ex:ecCompilationNoLossRecord a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-no-loss-record.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:CompilationMustRecordLossProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that records its correspondence (with a genuine row, so gmeow:CompilationMustRecordCorrespondence is satisfied and NOT the violation under test) and carries its full standpoint/world/time context but records NO gmeow:CompilationPreservationRecord, so the ∀→∃ SPARQL constraint of gmeow:CompilationMustRecordLoss MUST emit shacl.SPARQLConstraintComponent and NO other finding. Every other required datum is present, isolating the missing preservation/loss record." .
 
@@ -47,6 +58,7 @@ ex:ecCompilationPreservationNoKind a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-preservation-no-kind.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:CompilationPreservationRecord-shape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation with a valid correspondence (with a row) and full standpoint/world/time context that DOES record a gmeow:CompilationPreservationRecord — but that record names NO logic:preservationKind at all. The EL-safe minQualifiedCardinality 1 restriction on logic:preservationKind (onClass logic:PreservationKind), authored as logic:subClassOf and DERIVED as a qualified property shape, MUST reject it with shacl.QualifiedMinCountConstraintComponent and NO other finding: with no preservationKind bound, gmeow:CompilationPreservationBoundaryConstraint's existential guard never fires, so this is the sole violation — a hollow ledger entry is closed exactly like a missing one." .
 
@@ -55,20 +67,23 @@ ex:ecCompilationPreservationLossyNoBoundary a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-preservation-lossy-no-boundary.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation with a valid correspondence and full standpoint/world/time context whose gmeow:CompilationPreservationRecord carries EXACTLY ONE logic:preservationKind (logic:SoundUnderApproximation, satisfying the cardinality restriction and NOT the violation under test) but names NO logic:expressivenessBoundary. The ∀→∃ SPARQL constraint of gmeow:CompilationPreservationBoundaryConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding: a lossy preservation judgment naming no boundary is the honesty gap Principle 17 forbids." .
+    gmeow:expectedSourceShape gmeow:CompilationPreservationBoundaryConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation with a valid correspondence and full standpoint/world/time context whose gmeow:CompilationPreservationRecord carries EXACTLY ONE logic:preservationKind (logic:SoundUnderApproximation, satisfying the cardinality restriction and NOT the violation under test) but names NO logic:expressivenessBoundary. The ∀→∃ SPARQL constraint of gmeow:CompilationPreservationBoundaryConstraint MUST emit shacl.SPARQLConstraintComponent from gmeow:CompilationPreservationBoundaryConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI: a lossy preservation judgment naming no boundary is the honesty gap Principle 17 forbids. The cell does NOT claim gmeow:expectedSoleFinding: its fixture binds a gmeow:CompilationPreservationRecord whose logic:preservationKind value is typed logic:PreservationKind only in the logic: module, which an ordinary slice.'.s conformance run does not load (see the closing note), so gmeow:CompilationPreservationRecord-shape also reports shacl.QualifiedMinCountConstraintComponent on ex:pres. That second finding is a data-scope artifact, not a second law the counter-example trips." .
 
 # === A compilation carries its standpoint/world/time context ================ #
 ex:ecCompilationNoStandpointContext a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-no-standpoint-context.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that records its correspondence and preservation/loss judgment and carries its possible-world and time-scope context but omits its gmeow:compilationStandpoint, so the ∀→(∃∧∃∧∃) SPARQL constraint of gmeow:CompilationContextConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding (gmeow:CompilationMissingContext). Every other required datum is present, isolating the missing standpoint." .
+    gmeow:expectedSourceShape gmeow:CompilationContextConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation that records its correspondence and preservation/loss judgment and carries its possible-world and time-scope context but omits its gmeow:compilationStandpoint, so the ∀→(∃∧∃∧∃) SPARQL constraint of gmeow:CompilationContextConstraint MUST emit shacl.SPARQLConstraintComponent from gmeow:CompilationContextConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (gmeow:CompilationMissingContext). Every other required datum is present, isolating the missing standpoint. The cell does NOT claim gmeow:expectedSoleFinding: its fixture binds a gmeow:CompilationPreservationRecord whose logic:preservationKind value is typed logic:PreservationKind only in the logic: module, which an ordinary slice.'.s conformance run does not load (see the closing note), so gmeow:CompilationPreservationRecord-shape also reports shacl.QualifiedMinCountConstraintComponent on ex:pres. That second finding is a data-scope artifact, not a second law the counter-example trips." .
 
 # === The governing invariant: no raw result asserted as global truth ======== #
 ex:ecTopologyResultAssertedGlobalTruth a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/topology-result-asserted-as-global-truth.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:AssertedTopologyResultConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:TopologyComputation that asserts a global truth (gmeow:assertsGlobalTruth true) with no gmeow:TopologyClaim that gmeow:claimForComputation it, gmeow:extendsToGlobalSection, and gmeow:dischargesObstruction, so the ∀→∃(join) SPARQL constraint of gmeow:AssertedTopologyResultConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding. gmeow:producesResult points at a gmeow:TopologyResult wrapper, so the undischarged global-truth assertion is the sole violation — a computed feature is a math:LocalSection, never automatically a global truth." .
 
@@ -77,6 +92,7 @@ ex:ecTopologyClaimDischargeNotTyped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/topology-claim-discharge-not-typed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:AssertedTopologyResultConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:TopologyComputation asserting a global truth whose gmeow:producesResult correctly points at a gmeow:TopologyResult wrapper (NOT the violation under test), and a resource that carries every discharge EDGE (gmeow:claimForComputation, gmeow:dischargesObstruction, gmeow:extendsToGlobalSection) but is never asserted rdf:type gmeow:TopologyClaim. The ∀→∃(join) SPARQL constraint of gmeow:AssertedTopologyResultConstraint now requires the discharge witness be TYPED gmeow:TopologyClaim, so it MUST emit shacl.SPARQLConstraintComponent and NO other finding — any resource carrying three predicates is not a discharging claim." .
 
@@ -85,6 +101,7 @@ ex:ecTopologyClaimNoAttributedStatus a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/topology-claim-no-attributed-status.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TopologyClaimStatusConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:TopologyClaim carrying its inherited gmeow:observationMethod (satisfying the gmeow:StandpointClaim exactly-one obligation, so that is NOT the violation) and its result but carrying NO gmeow:vantage attribution, so the ∀→∃ SPARQL constraint of gmeow:TopologyClaimStatusConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding (gmeow:TopologyClaimMissingStatus). The anonymous, unattributed claim is the sole violation." .
 
@@ -93,6 +110,7 @@ ex:ecComputationResultConflated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/computation-result-conflated-with-math-object.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ResultObjectConflationConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:TopologyComputation whose gmeow:producesResult value is a raw math:PersistenceDiagram instead of a gmeow:TopologyResult wrapper, so the ∀→(∃∧¬∃) SPARQL constraint of gmeow:ResultObjectConflationConstraint (the result is not TYPED gmeow:TopologyResult, and it matches the math: namespace) MUST emit shacl.SPARQLConstraintComponent and NO other finding (gmeow:ResultObjectConflation). The computation asserts no global truth, isolating the conflation." .
 
@@ -101,6 +119,7 @@ ex:ecComputationResultUntyped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/computation-result-untyped.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ResultObjectConflationConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:TopologyComputation whose gmeow:producesResult value is a genuine, unrelated resource (gmeow:InformationObject) — never conflated with a raw math: object — but never asserted rdf:type gmeow:TopologyResult. The positive-existential arm of gmeow:ResultObjectConflationConstraint's ∀→(∃∧¬∃) SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding (gmeow:ResultObjectConflation): the gmeow:TopologyResult wrapper type is positively required, not merely permitted, and an untyped result does not satisfy it." .
 

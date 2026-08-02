@@ -448,10 +448,44 @@ harness only checked that the expected finding was **present**.
 `crates/slicetest/src/exec.rs`) makes exhaustiveness checkable, per source shape
 rather than per result row — several rows of one law are one law speaking; a
 second shape is a second law. It bit during rollout and caught a new fixture
-tripping a second slice's law. It also measured the honesty debt: 237 cells
-across seven slices make the claim, 175 now enforce it including all 36 in the
-`logic:` slice, and the remaining 62 were measured false and left countable
-rather than silently reddening five unrelated slices (commit `8aca67364`).
+tripping a second slice's law.
+
+**The second cut (a check that could not fail on most of its adopters).** The
+first cut made the pinned `gmeow:expectedSourceShape` OPTIONAL, and let an
+unpinned cell fall back to "no OTHER shape raised a finding carrying the expected
+code". On a generic component that reading asserts almost nothing:
+`shacl.MinCountConstraintComponent` and `shacl.SPARQLConstraintComponent` are each
+raised by dozens of shapes, so every violating shape answered "yes, I am one of
+them" and the intruder set came back empty. 151 of the 175 declaring cells were
+unpinned, and the branch's own mutation test only exercised the PINNED path, so
+nothing measured the fallback. Measuring it found 30 declaring cells that were
+tripping two or three distinct laws and passing anyway. The pin is therefore
+REQUIRED: soleness is a claim about WHICH law is the only one, an unnamed law
+cannot carry it, and a declared claim whose strength silently depends on an absent
+sibling property is the degradation the no-optionality rule forbids. An unpinned
+`gmeow:expectedSoleFinding` is now a hard cell-configuration failure in `exec.rs`
+and a violation of `shapes/test-dsl-shapes.ttl`, and
+`an_unpinned_sole_finding_claim_is_a_hard_failure` reds against the old fallback.
+
+**What the honest count is.** 238 cells across nine slices made the prose claim
+"and NO other finding". Every violates cell in those slices now pins its law by
+IRI (258 pins, up from 42). 145 cells declare and ENFORCE soleness — 92 in
+`math:`, 36 in `logic:`, 10 in `lang:`, 7 in `semantic-topology`; the 30
+declarations that were measured false are withdrawn. Of the 238 prose claims, 93
+were measured false and that prose is deleted, replaced by an enumeration of what
+the report actually carries. The causes are structural, not
+sloppy fixtures, and worth naming because each is a separate piece of debt:
+a partially migrated slice shipping a residual hand-authored `shapes.ttl`
+alongside the derived projection of the same axioms (`concepts:`, `learning:`,
+`diagnostics:`, `model-serving:`, much of `lang:`); one rule authored BOTH as an
+EL-safe OWL restriction and as a `logic:Constraint` (19 `math:` cells); a class
+shape and its superclass's shape both reporting one missing member; and a
+cross-slice typing gap — an ordinary slice's conformance run loads only its own
+module, so a `logic:preservationKind` value typed in the `logic:` module is
+invisible and its qualified restriction reds (all 29 `core/preference` cells, on
+two ABox individuals in `preference/module.ttl` that no fixture touches, and 4 in
+`semantic-topology`). Each of those becomes sole-declarable when its cause is
+retired; the rationales say so per cell.
 
 **The open case, stated rather than hidden.** `make validate`'s help still reads
 "Validate syntax, term annotations, SHACL, and DSL SHACL", but
