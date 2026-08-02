@@ -277,8 +277,14 @@ use session_common::*;
 /// domain — is compared against a computed digest instead of skipped. `physical/lower.rs` is a
 /// `BACKWARD_SOURCE` member; the fixed edge-only input carries no `math:` expression graph, so
 /// only the identity moved.
+/// Re-blessed once more for binder arity: a `math:BindingExpression` binds its variable over
+/// its INDEXED operand sequence, which is what the slice authors ("its body through indexed
+/// math:argumentSlot cells"; a `math:ModelFormula` is "a binder over indexed math:ArgumentSlot
+/// operands"). The one-operand case still interns the bare body, so a `math:` binder and its
+/// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
+/// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "d400e31601a44e140e713810142667beb35e131fe9d4c93aa1460dd55bd3779f";
+    "953e1db76c4b29b86cb9e093133be43a63ba47544b0fc9cbcdc78ea45219e149";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -413,8 +419,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// domain — is compared against a computed digest instead of skipped. `physical/lower.rs` is a
 /// `BACKWARD_SOURCE` member; the fixed edge-only input carries no `math:` expression graph, so
 /// only the identity moved.
+/// Re-blessed once more for binder arity: a `math:BindingExpression` binds its variable over
+/// its INDEXED operand sequence, which is what the slice authors ("its body through indexed
+/// math:argumentSlot cells"; a `math:ModelFormula` is "a binder over indexed math:ArgumentSlot
+/// operands"). The one-operand case still interns the bare body, so a `math:` binder and its
+/// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
+/// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8f1579f1c6e4c187e3ac9731fe5cf3d7c9cd81600a049da52cde21dbfc61d5f7";
+    "d943071ac995c5beabc2d1c54f5688b3273f7d61ed56e919b5a3a78a799b3e33";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

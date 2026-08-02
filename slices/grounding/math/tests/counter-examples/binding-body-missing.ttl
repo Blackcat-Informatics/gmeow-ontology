@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example for the `math:` expression lowering
-# (crates/logic/src/physical/lower.rs, MathLoweringError::BindingBodyNotSingleSlot): a
+# (crates/logic/src/physical/lower.rs, MathLoweringError::BindingMissingBody): a
 # math:BindingExpression root naming its operator and its bound variable, but NO
 # math:argumentSlot at all — a binder must bind its variable over EXACTLY ONE body slot
 # (index 0); zero slots means there is no body to bind over. Distinct from

@@ -498,10 +498,13 @@ pub(crate) enum MathLoweringError {
     BindingMultipleOperators { node: String, count: usize },
     /// A `math:BindingExpression` has no `math:boundVariable`.
     BindingMissingBoundVariable { node: String },
+    /// A `math:BindingExpression` with NO `math:argumentSlot` at all: a binder that binds its
+    /// variable over nothing. The slice says a binder names "its body through indexed
+    /// math:argumentSlot cells" — indexed and plural, but never empty.
+    BindingMissingBody { node: String },
     /// A `math:BindingExpression` carries more than one `math:boundVariable` value.
     BindingMultipleBoundVariables { node: String, count: usize },
     /// A `math:BindingExpression`'s body slot family is not exactly `{index 0}`.
-    BindingBodyNotSingleSlot { node: String, slot_count: usize },
     /// A `math:VariableExpression` has no `math:variableOccurrence`.
     VariableExpressionMissingOccurrence { node: String },
     /// A `math:VariableExpression` carries more than one `math:variableOccurrence`
@@ -594,6 +597,11 @@ impl std::fmt::Display for MathLoweringError {
                 "math:BindingExpression {node} carries {count} math:operator values; exactly \
                  one is required"
             ),
+            Self::BindingMissingBody { node } => write!(
+                f,
+                "math:BindingExpression {node} carries no math:argumentSlot; a binder binds \
+                 its variable over a body and must name at least one indexed operand cell"
+            ),
             Self::BindingMissingBoundVariable { node } => write!(
                 f,
                 "math:BindingExpression {node} missing math:boundVariable"
@@ -602,11 +610,6 @@ impl std::fmt::Display for MathLoweringError {
                 f,
                 "math:BindingExpression {node} carries {count} math:boundVariable values; \
                  exactly one is required"
-            ),
-            Self::BindingBodyNotSingleSlot { node, slot_count } => write!(
-                f,
-                "math:BindingExpression {node} must carry exactly one body slot \
-                 (math:slotIndex 0); found {slot_count} slot(s)"
             ),
             Self::VariableExpressionMissingOccurrence { node } => write!(
                 f,
@@ -676,8 +679,10 @@ impl MathLoweringError {
             Self::BindingMissingOperator { .. }
             | Self::BindingMultipleOperators { .. }
             | Self::BindingMissingBoundVariable { .. }
-            | Self::BindingMultipleBoundVariables { .. }
-            | Self::BindingBodyNotSingleSlot { .. } => failure_class::MALFORMED_BINDING_EXPRESSION,
+            | Self::BindingMissingBody { .. }
+            | Self::BindingMultipleBoundVariables { .. } => {
+                failure_class::MALFORMED_BINDING_EXPRESSION
+            }
             Self::VariableExpressionMissingOccurrence { .. }
             | Self::VariableExpressionMultipleOccurrences { .. }
             | Self::OccurrenceMissingDeclaredVariable { .. }
@@ -1294,18 +1299,46 @@ fn lower_math_binding(
         .first_ref(&declaration, M_DOMAIN)
         .unwrap_or_else(|| canon::SORT_INDIVIDUAL.to_owned());
     let sort = dag.intern_leaf(TermValue::iri(sort_iri));
-    // A binder binds over exactly one body, carried as its single index-0 argument slot.
+    // A binder binds ONE variable over its indexed operand sequence — the shape this slice
+    // authors: `math:BindingExpression` "names its body through indexed math:argumentSlot
+    // cells", and `math:ModelFormula` is "a binder over indexed math:ArgumentSlot operands"
+    // (an R `y ~ x1 + x2` lifts to exactly that). Demanding a single index-0 slot made the
+    // lowering stricter than the vocabulary it serves, so the shipped `gmeow lift r`
+    // producer's own output failed the shipped validator.
+    //
+    // ONE operand is the body itself; several are the binder's operator applied to them.
+    // That asymmetry is load-bearing, not a convenience: the arena's whole point is that a
+    // `math:` binder and an alpha-equivalent `logic:` quantifier intern to the SAME node, and
+    // a `logic:` quantifier is `bind(op, [sort], body)` with the body bare. Wrapping a
+    // single operand in a vacuous `apply(op, [x])` would break that cross-surface collapse
+    // and move every existing binder digest. For several operands there is no `logic:` twin
+    // to agree with, and the operator is exactly what combines them.
     let body_slots = collect_slots(graph, node)?;
-    if body_slots.len() != 1 {
-        return Err(MathLoweringError::BindingBodyNotSingleSlot {
+    if body_slots.is_empty() {
+        return Err(MathLoweringError::BindingMissingBody {
             node: node.to_owned(),
-            slot_count: body_slots.len(),
         });
     }
     env.push(vec![declaration]);
-    let body = lower_math_node(dag, graph, &body_slots[0], env, visiting, depth + 1);
+    let mut lowered: Vec<NodeId> = Vec::with_capacity(body_slots.len());
+    let mut failure = None;
+    for slot in &body_slots {
+        match lower_math_node(dag, graph, slot, env, visiting, depth + 1) {
+            Ok(id) => lowered.push(id),
+            Err(e) => {
+                failure = Some(e);
+                break;
+            }
+        }
+    }
     env.pop();
-    let body = body?;
+    if let Some(e) = failure {
+        return Err(e);
+    }
+    let body = match lowered.as_slice() {
+        [single] => *single,
+        _ => dag.intern_app(op, lowered),
+    };
     Ok(dag.intern_binder(op, vec![sort], body))
 }
 
@@ -2274,16 +2307,15 @@ mod tests {
                 node: "n".to_owned(),
                 count: 2,
             },
+            MathLoweringError::BindingMissingBody {
+                node: "https://example.org/binder".to_owned(),
+            },
             MathLoweringError::BindingMissingBoundVariable {
                 node: "n".to_owned(),
             },
             MathLoweringError::BindingMultipleBoundVariables {
                 node: "n".to_owned(),
                 count: 2,
-            },
-            MathLoweringError::BindingBodyNotSingleSlot {
-                node: "n".to_owned(),
-                slot_count: 2,
             },
             MathLoweringError::VariableExpressionMissingOccurrence {
                 node: "n".to_owned(),
@@ -2337,11 +2369,11 @@ mod tests {
             }
             MathLoweringError::BindingMissingOperator { .. } => "BindingMissingOperator",
             MathLoweringError::BindingMultipleOperators { .. } => "BindingMultipleOperators",
+            MathLoweringError::BindingMissingBody { .. } => "BindingMissingBody",
             MathLoweringError::BindingMissingBoundVariable { .. } => "BindingMissingBoundVariable",
             MathLoweringError::BindingMultipleBoundVariables { .. } => {
                 "BindingMultipleBoundVariables"
             }
-            MathLoweringError::BindingBodyNotSingleSlot { .. } => "BindingBodyNotSingleSlot",
             MathLoweringError::VariableExpressionMissingOccurrence { .. } => {
                 "VariableExpressionMissingOccurrence"
             }

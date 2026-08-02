@@ -2107,11 +2107,11 @@ ex:ecBindingMultipleBoundVariablesLowering a gmeow:ExampleConformance ;
     gmeow:expectedFailureClass math:MalformedBindingExpression ;
     gmeow:conformanceRationale "Wired under a real math:BindingExpression root: TWO math:boundVariable values fail math:BindingExpressionShape's sh:maxCount AND the native lowering (MathLoweringError::BindingMultipleBoundVariables) rejects it — both channels resolve to math:MalformedBindingExpression." .
 
-ex:ecBindingBodyNotSingleSlotLowering a gmeow:ExampleConformance ;
-    gmeow:exampleFile "tests/counter-examples/binding-body-not-single-slot.ttl" ;
+ex:ecBindingBodyMissingLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-body-missing.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:MalformedBindingExpression ;
-    gmeow:conformanceRationale "Wired under a real math:BindingExpression root naming its operator and bound variable but NO math:argumentSlot: fails math:BindingExpressionShape's sh:minCount AND the native lowering (MathLoweringError::BindingBodyNotSingleSlot) rejects it — both channels resolve to math:MalformedBindingExpression." .
+    gmeow:conformanceRationale "Wired under a real math:BindingExpression root naming its operator and bound variable but NO math:argumentSlot: fails math:BindingExpressionShape's sh:minCount AND the native lowering (MathLoweringError::BindingMissingBody) rejects it — a binder binds its variable over a body, so it must name at least one indexed operand cell, though it may name several (a math:ModelFormula is a binder over indexed operands) — both channels resolve to math:MalformedBindingExpression." .
 
 # --- math:UnscopedVariableOccurrence: the SAME shape reached from a REAL expression root --- #
 
