@@ -1434,7 +1434,8 @@ fn total_math_conformance_matrix_is_discharged() {
         BTreeMap::new();
     let mut fixture_used: BTreeSet<String> = BTreeSet::new();
 
-    // Each fixture takes its OWN DL closure, and 188 of them is the dominant cost of this
+    // Each fixture takes its OWN DL closure, one per on-disk counter-example, and that is
+    // the dominant cost of this
     // gate. They are completely independent — nothing crosses between fixtures — so they run
     // in parallel and the per-fixture results are folded afterwards in the fixtures' own
     // sorted order. Determinism is unaffected: the fold, not the scheduler, decides ordering,

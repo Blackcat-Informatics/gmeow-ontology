@@ -504,7 +504,6 @@ pub(crate) enum MathLoweringError {
     BindingMissingBody { node: String },
     /// A `math:BindingExpression` carries more than one `math:boundVariable` value.
     BindingMultipleBoundVariables { node: String, count: usize },
-    /// A `math:BindingExpression`'s body slot family is not exactly `{index 0}`.
     /// A `math:VariableExpression` has no `math:variableOccurrence`.
     VariableExpressionMissingOccurrence { node: String },
     /// A `math:VariableExpression` carries more than one `math:variableOccurrence`
@@ -1704,6 +1703,70 @@ mod tests {
     }
 
     // ── math: a declared bound-variable domain becomes a distinct sort child ────────────
+
+    /// A binder over SEVERAL indexed operands folds to its operator applied to them, in slot
+    /// order — and a binder over ONE keeps the bare body.
+    ///
+    /// The slice authors both shapes (`math:BindingExpression` "names its body through indexed
+    /// math:argumentSlot cells"; a `math:ModelFormula` is "a binder over indexed
+    /// math:ArgumentSlot operands"), and the many-operand fold is a canonical form nothing else
+    /// in this crate exercises: every other binder here has one slot, and the generator's
+    /// `GenExpr::Bind` carries a single body, so the proptest cannot reach it either. Without
+    /// this, a regrouping or an operand-order regression would be invisible to every direct
+    /// test and caught only end-to-end by the R-lift fixture.
+    #[test]
+    fn a_multi_operand_binder_folds_to_its_operator_applied_in_slot_order() {
+        fn multi_binder_ttl(first: &str, second: &str) -> String {
+            format!(
+                "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 @prefix op: <https://blackcatinformatics.ca/logic/dag/op/> .\n\
+                 ex:binder a math:BindingExpression ;\n\
+                 \x20 math:operator op:tilde ;\n\
+                 \x20 math:boundVariable ex:xDecl ;\n\
+                 \x20 math:argumentSlot ex:s0 , ex:s1 .\n\
+                 ex:xDecl a math:VariableDeclaration .\n\
+                 ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression {first} .\n\
+                 ex:s1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression {second} .\n\
+                 ex:a a math:SymbolReference ; math:hasMathematicalSymbol ex:symA .\n\
+                 ex:b a math:SymbolReference ; math:hasMathematicalSymbol ex:symB .\n"
+            )
+        }
+
+        let graph = MathGraph::from_turtle(multi_binder_ttl("ex:a", "ex:b").as_bytes())
+            .expect("two-operand binder parses");
+        let mut dag = TermDag::new();
+        let lowered = lower_math_expression(&mut dag, &graph, "https://example.org/binder")
+            .expect("a binder over two indexed operands lowers");
+
+        // Hand-build the SAME term: bind(op, [sort], app(op, [a, b])).
+        let op = dag.intern_leaf(TermValue::iri(
+            "https://blackcatinformatics.ca/logic/dag/op/tilde",
+        ));
+        let sort = dag.intern_leaf(TermValue::iri(canon::SORT_INDIVIDUAL));
+        let a = dag.intern_leaf(TermValue::iri("https://example.org/symA"));
+        let b = dag.intern_leaf(TermValue::iri("https://example.org/symB"));
+        let body = dag.intern_app(op, vec![a, b]);
+        let expected = dag.intern_binder(op, vec![sort], body);
+        assert_eq!(
+            lowered, expected,
+            "a binder over indexed operands must fold to its own operator applied to them"
+        );
+
+        // Operand ORDER is identity-bearing: swapping which symbol sits at index 0 is a
+        // DIFFERENT term, so the fold cannot be collapsing the slots into a set.
+        let swapped = MathGraph::from_turtle(multi_binder_ttl("ex:b", "ex:a").as_bytes())
+            .expect("the swapped binder parses");
+        let mut swapped_dag = TermDag::new();
+        let swapped_node =
+            lower_math_expression(&mut swapped_dag, &swapped, "https://example.org/binder")
+                .expect("the swapped binder lowers");
+        assert_ne!(
+            structural_digest(&dag, lowered),
+            structural_digest(&swapped_dag, swapped_node),
+            "swapping the operands at index 0 and 1 must change the structural digest"
+        );
+    }
 
     fn binder_ttl(domain: Option<&str>) -> String {
         let domain_line = match domain {

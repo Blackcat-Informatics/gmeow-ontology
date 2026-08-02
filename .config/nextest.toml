@@ -117,7 +117,7 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # existential restriction on `math:withRespectTo`, so the chase invents dimension read-set
 # edges no asserted read can see, and the surface-leak half needs the same closure.
 #
-# Those 188 closures are independent, so they run in parallel and the per-fixture results are
+# Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
 # folded in the fixtures' own sorted order — ~180s, down from ~720s sequential, which had
 # overrun even a 2400s ceiling under concurrent gate load. A test that reds on machine load is
 # broken rather than flaky, so the work got cheaper instead of the ceiling higher; this budget

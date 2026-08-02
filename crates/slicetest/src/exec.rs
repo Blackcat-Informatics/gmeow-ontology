@@ -794,8 +794,10 @@ fn run_conformance_cell(
             // SHACL is green while `check_math_expression_findings` reports an error over
             // the very same fixture — which is how three positive fixtures for the
             // content-key contract shipped carrying hand-guessed `math:structuralKey`
-            // literals that `gmeow validate --deep` rejects. A fixture the shipped CLI
-            // errors on does not conform, whichever channel decided it.
+            // literals that `gmeow validate --deep` rejects. A fixture the native
+            // expression-identity gate ERRORS on does not conform, whichever channel
+            // decided it — this arm adds that channel, and claims nothing about SHACL
+            // parity between the harness's module-unioned graph and a bare CLI run.
             let native: Vec<gmeow_errors::Finding> = check_math_expression_findings(&data, &data)
                 .into_iter()
                 .filter(|f| f.severity == Severity::Error)

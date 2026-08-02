@@ -284,7 +284,7 @@ use session_common::*;
 /// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
 /// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "953e1db76c4b29b86cb9e093133be43a63ba47544b0fc9cbcdc78ea45219e149";
+    "f3f9de74cb6795a342e645c734c4132a1072c006b78a978280fbfb4fba3b411d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -426,7 +426,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
 /// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "d943071ac995c5beabc2d1c54f5688b3273f7d61ed56e919b5a3a78a799b3e33";
+    "0f79980e097b7b6b4b80115c40ecceba72cb1ee52589a0285613eb7489ce66d5";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
