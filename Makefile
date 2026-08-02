@@ -867,7 +867,7 @@ maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-C
 	@# the two trees with two different predicates would compare nothing.
 	@#
 	@# HOW TO RUN IT:
-	@#     make regen                          # materialize THIS branch's generated/ tree
+	@#     make check-sync SYNC_MODE=update    # materialize THIS branch's generated/ tree
 	@#     make maint-medium-model-facing-diff  # regenerate the base and diff
 	@# It needs `origin/main` fetched (it resolves `git merge-base HEAD origin/main`) and
 	@# enough disk for a second full checkout + target dir. Exits non-zero on ANY set or
@@ -876,7 +876,7 @@ maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-C
 	  base="$$(git merge-base HEAD origin/main)"; \
 	  echo "merge base: $$base"; \
 	  test -d generated/projections/lang || { \
-	    echo "ERROR: this branch's generated/ tree is not materialized — run 'make regen' first."; \
+	    echo "ERROR: this branch's generated/ tree is not materialized — run 'make check-sync SYNC_MODE=update' first."; \
 	    echo "       Comparing an unmaterialized tree would report every artifact as unchanged"; \
 	    echo "       by comparing nothing."; \
 	    exit 1; \
@@ -888,7 +888,7 @@ maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-C
 	  trap 'git worktree remove --force "$$tmpdir/base" >/dev/null 2>&1 || true; rm -rf "$$tmpdir"' EXIT; \
 	  git worktree add --detach "$$tmpdir/base" "$$base" >/dev/null; \
 	  echo "regenerating the merge base in $$tmpdir/base with ITS OWN toolchain…"; \
-	  $(MAKE) -C "$$tmpdir/base" regen; \
+	  $(MAKE) -C "$$tmpdir/base" check-sync SYNC_MODE=update; \
 	  "$$lister" "$$tmpdir/base" > "$$tmpdir/base.paths"; \
 	  "$$lister" . > "$$tmpdir/head.paths"; \
 	  if ! diff -u "$$tmpdir/base.paths" "$$tmpdir/head.paths" > "$$tmpdir/paths.diff"; then \

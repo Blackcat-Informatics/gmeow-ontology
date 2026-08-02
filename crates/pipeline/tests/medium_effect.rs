@@ -62,37 +62,31 @@ fn rdf_corpus(records: usize) -> Vec<Vec<u8>> {
 
 // ── (f) the committed table ↔ the live registry ──────────────────────────────
 
-/// (f) The committed winner table and the MEASURABLE registry are a bijection, on the
+/// (f) The committed winner table and the DECLARED registry are a bijection, on the
 /// LIVE declaration rather than on a fixture.
 #[test]
 fn the_committed_winner_table_matches_the_shipped_registry() {
     let registry = live_registry();
     let baseline = committed_baseline();
     sweep::check_bijection(&registry, &baseline)
-        .expect("bench/medium-baseline.json ↔ the measurable registry must be a bijection");
+        .expect("bench/medium-baseline.json ↔ the declared registry must be a bijection");
 
-    // The exception is EXACTLY one dictionary, and it is genuinely declared: a
-    // silently-widened exception list is how a dictionary escapes measurement.
-    let declared: BTreeSet<&str> = registry
+    // NOTHING is exempt: every declared dictionary is measured. The sweep used to
+    // carve out `gmeow-memory-compact-v1` because the compaction lane derived its own
+    // bytes and a training point steered nothing; it now hands purrdf the SHIPPED
+    // bytes verbatim, so the training point steers real bytes and the carve-out is
+    // gone. An exemption list is how a dictionary escapes measurement, so there is
+    // none to widen.
+    let declared: BTreeSet<String> = registry
         .dictionaries()
         .values()
-        .map(|def| def.id.as_str())
+        .map(|def| def.id.clone())
         .collect();
-    let measurable = sweep::measurable_ids(&registry);
     assert_eq!(
-        declared.len() - measurable.len(),
-        sweep::UNMEASURABLE_DICTIONARIES.len(),
-        "the unmeasurable exception must cover exactly {:?}",
-        sweep::UNMEASURABLE_DICTIONARIES
+        sweep::measurable_ids(&registry),
+        declared,
+        "every DECLARED dictionary must be measurable — an unmeasured one is trained at a guess"
     );
-    for id in sweep::UNMEASURABLE_DICTIONARIES {
-        assert!(
-            declared.contains(id),
-            "the exception names {id:?}, which the registry does not declare — a stale exception \
-             is an exception that covers nothing and hides the next one"
-        );
-        assert!(!measurable.contains(id));
-    }
 }
 
 /// (f) It hard-fails in BOTH directions against the LIVE registry too — a dropped row

@@ -19,16 +19,17 @@
 //! sweep-free — a per-build sweep would make the shipped dictionaries a function of
 //! how much CPU the machine had.
 //!
-//! # The winner table ↔ the MEASURABLE registry is a bijection
+//! # The winner table ↔ the DECLARED registry is a bijection
 //!
 //! [`check_bijection`] hard-fails in BOTH directions: a declared dictionary with no
 //! committed row (a dictionary nobody measured) and a committed row for a dictionary
 //! the registry no longer declares (a stale winner still steering a trainer). Neither
 //! is a warning.
 //!
-//! The measurable set is every declared dictionary MINUS
-//! [`UNMEASURABLE_DICTIONARIES`], and that exception is not an allowlist of
-//! convenience — see its own documentation.
+//! The measurable set ([`measurable_ids`]) is every declared dictionary, with no
+//! exemption: what a training point steers is the SHIPPED bytes, and every declared
+//! dictionary reaches its consumer as shipped bytes — through the bundle's own payload
+//! frames, or through the in-band `"dct"` map a runtime store primes from.
 //!
 //! # Honesty: the sweep is not a held-out evaluation
 //!
@@ -95,24 +96,6 @@ pub const SWEEP_CODECS: [&str; 2] = ["zstd", "zstd-rsyncable"];
 
 /// The levels the global codec sweep compares the mandated one against.
 pub const SWEEP_LEVELS: [i32; 4] = [3, 9, 12, 19];
-
-/// The one declared dictionary the sweep CANNOT measure, and exactly why.
-///
-/// `gmeow-memory-compact-v1` primes the compaction lane, and
-/// [`crate::mcp::compact_store`] can pass purrdf only a dictionary NAME
-/// (`DictStrategy::RawContent`): purrdf then derives pack-local dictionary bytes and
-/// labels them with that id. The compacted pack is genuinely primed — but with bytes
-/// purrdf derived, not with the bytes this bundle trained, measured and pinned. A
-/// sweep over `(strategy, target length)` would therefore be measuring a knob that
-/// steers nothing: whatever the winner, the compaction lane would still derive its
-/// own. Closing it needs a `DictStrategy::Pinned` the pinned purrdf does not expose;
-/// there is no GMEOW-side edit that does it.
-///
-/// The exception is tied to the SELF-DESTRUCTING negative assertion in
-/// `crates/pipeline/tests/medium_bundle.rs`: the day purrdf gains that variant and the
-/// lane is wired, that assertion reds, and whoever wires it must delete this entry in
-/// the same change rather than leave it to rot.
-pub const UNMEASURABLE_DICTIONARIES: [&str; 1] = ["gmeow-memory-compact-v1"];
 
 /// The committed sweep artifact.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -356,28 +339,32 @@ pub fn load(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
     MediumBaseline::from_json(&text)
 }
 
-/// Every declared dictionary the sweep is required to measure: all of them minus
-/// [`UNMEASURABLE_DICTIONARIES`].
+/// Every declared dictionary the sweep is required to measure: ALL of them.
+///
+/// There is no exemption. Every declared dictionary reaches its consumer as SHIPPED
+/// bytes — the emitted-frame dictionaries through the bundle's own payload frames, the
+/// runtime-store ones through the in-band `"dct"` map a consumer primes from
+/// (`gmeow:dictionaryId` → exactly one byte sequence, including the compaction lane's,
+/// which hands purrdf the shipped bytes as `DictStrategy::Pinned`). So `(strategy,
+/// target length)` steers real bytes for every one of them, and a dictionary with no
+/// measured row would be trained at a guess.
 #[must_use]
 pub fn measurable_ids(registry: &MediumRegistry) -> BTreeSet<String> {
     registry
         .dictionaries()
         .values()
         .map(|def| def.id.clone())
-        .filter(|id| !UNMEASURABLE_DICTIONARIES.contains(&id.as_str()))
         .collect()
 }
 
-/// The winner table ↔ the MEASURABLE registry is a BIJECTION, and failing in either
+/// The winner table ↔ the DECLARED registry is a BIJECTION, and failing in either
 /// direction is a hard fail.
 ///
-/// * a measurable dictionary with no committed row would be trained at an unmeasured
+/// * a declared dictionary with no committed row would be trained at an unmeasured
 ///   `(strategy, target length)` — the state this whole lane exists to remove;
 /// * a committed row for a dictionary the registry no longer declares is a stale
 ///   winner: harmless-looking, and exactly how a retired dictionary's evidence
-///   outlives it and gets cited;
-/// * a committed row for an UNMEASURABLE dictionary is equally a defect — it would
-///   claim a measurement of a knob that steers nothing.
+///   outlives it and gets cited.
 ///
 /// # Errors
 /// `MediumUndeclaredDictionary` in either direction, naming the offending ids.
@@ -403,13 +390,12 @@ pub fn check_bijection(
         return Ok(());
     }
     Err(undeclared_dictionary(format!(
-        "the committed winner table and the MEASURABLE dictionary registry are not a bijection: \
+        "the committed winner table and the DECLARED dictionary registry are not a bijection: \
          declared-but-unmeasured {missing:?}, committed-but-undeclared {stale:?}. Both directions \
          are hard fails — an unmeasured dictionary would be trained at a guess, and a stale row \
-         would steer a trainer for a dictionary the bundle no longer ships. The ONE declared \
-         exception is {UNMEASURABLE_DICTIONARIES:?}, which the compaction lane cannot prime with \
-         the shipped bytes at all (see gmeow_pipeline::medium::sweep::UNMEASURABLE_DICTIONARIES). \
-         Re-run `make maint-medium-sweep`"
+         would steer a trainer for a dictionary the bundle no longer ships. There is no exempt \
+         dictionary: every declared one reaches its consumer as SHIPPED bytes, so every declared \
+         one is measured. Re-run `make maint-medium-sweep`"
     )))
 }
 
@@ -1166,21 +1152,27 @@ mod tests {
         assert!(stale.to_string().contains("gmeow-retired-v1"), "{stale}");
     }
 
-    /// The unmeasurable exception is scoped to exactly one id and is EXCLUDED from
-    /// the required set — a row for it would claim a measurement of a knob that
-    /// steers nothing.
+    /// The measurable set is EVERY declared dictionary — the sweep exempts none.
     #[test]
-    fn the_unmeasurable_exception_is_one_named_dictionary() {
-        assert_eq!(UNMEASURABLE_DICTIONARIES, ["gmeow-memory-compact-v1"]);
+    fn every_declared_dictionary_is_measurable() {
         let registry = registry();
-        // The fixture declares neither memory dictionary, so the measurable set is
-        // simply both of its dictionaries; the filter is exercised against the live
-        // slice in `the_committed_winner_table_matches_the_shipped_registry`.
+        let declared: BTreeSet<String> = registry
+            .dictionaries()
+            .values()
+            .map(|def| def.id.clone())
+            .collect();
         assert_eq!(
             measurable_ids(&registry),
+            declared,
+            "an id that is declared but not measurable would be trained at a guess"
+        );
+        assert_eq!(
+            declared,
             ["gmeow-core-v1".to_string(), "gmeow-terms-v1".to_string()]
                 .into_iter()
-                .collect::<BTreeSet<String>>()
+                .collect::<BTreeSet<String>>(),
+            "the fixture registry's declaration set drifted, so the equality above is not the \
+             statement it reads as"
         );
     }
 

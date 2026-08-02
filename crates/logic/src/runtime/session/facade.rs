@@ -782,5 +782,20 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
                 detail: format!("open_paged: paged source delivered invalid data: {error}"),
             }),
         },
+        // `PagedQueryError` is `#[non_exhaustive]`, so a purrdf bump can introduce a
+        // variant this mapping has never seen. An unclassified failure is a HARD FAIL,
+        // never a fold into the nearest existing bucket: mapping an unknown variant onto
+        // `Incomplete` would report a future data-corruption fault as an exhausted budget
+        // and let the operation continue on a partial answer. Classifying it as an engine
+        // failure keeps the mapping total without degrading any semantics, and the arm
+        // fires loudly enough that the next bump extends the match above instead.
+        _ => OperationOutcome::EngineFailure {
+            diagnostic: gmeow_errors::Diag::of_kind(crate::error::Engine {
+                detail: format!(
+                    "open_paged: paged source failed with a PagedQueryError variant this \
+                     mapping does not classify — extend map_paged_error: {error}"
+                ),
+            }),
+        },
     }
 }

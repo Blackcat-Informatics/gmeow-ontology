@@ -161,13 +161,15 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-# Pinned to `rust-v0.8.5`: it carries the multi-dictionary GTS writer (many named
+# Pinned to `rust-v0.12.0`: it carries the multi-dictionary GTS writer (many named
 # in-band dictionaries, per-frame selection, `zstd-rsyncable` dictionary priming, an
 # explicit training seed and a declared catalog `level`) that the medium axis consumes,
+# plus `DictStrategy::Pinned`, which lets a compaction plan carry the SHIPPED dictionary
+# bytes verbatim so one `gmeow:dictionaryId` resolves to exactly one byte sequence,
 # AND supersedes the rev pin that previously carried the ownership analyzer's
 # term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term) — that commit
 # is an ancestor of this tag, so a tag pin is once again correct.
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.8.5" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.12.0" }
 
 [workspace.package]
 version = "0.2.0"

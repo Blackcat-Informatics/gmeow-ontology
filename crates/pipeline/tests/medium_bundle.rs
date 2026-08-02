@@ -1032,18 +1032,18 @@ fn no_rep_is_primed_by_a_retired_dictionary(
 ///   and the bytes doing the priming must be the ones the bundle SHIPPED, or the shipped
 ///   copy is still dead weight and the runtime merely happens to use the same id.
 ///
-/// # The one remaining exception, named rather than allowlisted
+/// # No exceptions: both runtime dictionaries prime with the SHIPPED bytes
 ///
-/// `gmeow-memory-compact-v1` fails the second form: [`gmeow_pipeline::mcp::compact_store`]
-/// passes `purrdf::gts::compact::DictStrategy::RawContent`, so purrdf BUILDS a dictionary
-/// from the pack's own content blobs and labels it with that id — the compacted pack is
-/// genuinely primed, but with bytes it derived, not with the bytes this bundle trained,
-/// measured, pinned and projected onto `generated/medium/gmeow-memory-compact-v1.zdict`.
-/// Priming it with the shipped bytes needs a `DictStrategy::Pinned` (feed the dictionary
-/// in rather than derive it) that the pinned purrdf does not expose; there is no
-/// GMEOW-side edit that closes it. It is pinned as a NEGATIVE below rather than skipped,
-/// so the day purrdf gains that variant and the lane is wired, this assertion reds and
-/// whoever wires it must delete the exception instead of leaving it to rot.
+/// The hot lane always did — [`gmeow_pipeline::mcp::store_medium`] reads the bundle's
+/// in-band `"dct"` entry and hands it to the writer. The compaction lane now does too:
+/// [`gmeow_pipeline::mcp::compact_store`] takes the resolved
+/// [`gmeow_pipeline::mcp::StoreMedium`] and passes
+/// `purrdf::gts::compact::DictStrategy::Pinned`, which uses those bytes verbatim — no
+/// training, no corpus derivation, no truncation. So `gmeow-memory-compact-v1` names
+/// exactly ONE byte sequence everywhere it appears: the bundle header, the projected
+/// `generated/medium/gmeow-memory-compact-v1.zdict`, and the header of every compacted
+/// store. Both are asserted below as byte equalities, because "pinned something under
+/// that id" is satisfied by a re-derivation and is therefore not the claim.
 fn every_declared_dictionary_primes_an_emitted_frame(
     bundle: &[u8],
     module: &MediumRegistry,
@@ -1090,15 +1090,19 @@ fn every_declared_dictionary_primes_an_emitted_frame(
          with a re-derivation that merely reuses the id"
     );
 
-    // The exception, pinned as a negative (see this function's docs).
+    // The compaction half: `gmeow-memory-compact-v1` repacks a store with the bundle's
+    // OWN header entry too, so one gmeow:dictionaryId resolves to exactly one byte
+    // sequence — the property a derived dictionary cannot have, because it would label
+    // pack-local bytes with the shipped id.
     let shipped_compact = pinned
         .get("gmeow-memory-compact-v1")
         .expect("the header pins gmeow-memory-compact-v1");
-    assert_ne!(
+    assert_eq!(
         &runtime.compact, shipped_compact,
-        "the compaction lane now primes with the SHIPPED gmeow-memory-compact-v1 bytes — the \
-         upstream DictStrategy::Pinned gap this exception documents is CLOSED. Fold \
-         gmeow-memory-compact-v1 into the runtime clause above and delete this assertion"
+        "the compacted store must pin the SHIPPED gmeow-memory-compact-v1 bytes, not a \
+         pack-local re-derivation that merely reuses the id — that is what \
+         DictStrategy::Pinned buys, and without it one dictionary id names several byte \
+         sequences"
     );
 }
 
@@ -1359,7 +1363,7 @@ fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
         gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
-                data: b"a content blob the compaction dictionary is derived from".repeat(64),
+                data: b"a content blob carried across the repack unchanged".repeat(64),
                 media_type: "text/plain".to_string(),
                 rep: "compaction-fixture".to_string(),
             }],
@@ -1382,7 +1386,14 @@ fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
         ed25519_dalek::SigningKey::from_bytes(&[7u8; 32]),
         "medium-gate".to_string(),
     );
-    gmeow_pipeline::mcp::compact_store(&pack_path, "1970-01-01T00:00:00Z", signer)
+    // The compaction medium is resolved out of the SHIPPED bundle exactly as the hot
+    // one is, and its bytes are what the repack pins — the id → bytes function this
+    // gate then checks is single-valued.
+    let compact_medium = gmeow_pipeline::mcp::store_medium(bundle, MEMORY_COMPACT_DICTIONARY)
+        .unwrap_or_else(|err| {
+            panic!("the emitted bundle must pin {MEMORY_COMPACT_DICTIONARY} in band: {err}")
+        });
+    gmeow_pipeline::mcp::compact_store(&pack_path, "1970-01-01T00:00:00Z", &compact_medium, signer)
         .expect("the compaction lane repacks the baseline pack");
     let compacted = std::fs::read(&pack_path).expect("read the compacted pack");
     let pinned =

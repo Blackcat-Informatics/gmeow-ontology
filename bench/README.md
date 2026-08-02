@@ -264,17 +264,28 @@ Because absorbing those reps **changes `gmeow-core-v1`'s population**, the survi
 dictionaries were **re-swept over the widened frame set** rather than assumed to survive
 it. The committed table is that re-sweep.
 
-## The one dictionary with no row
+## Every declared dictionary has a row
 
-`gmeow-memory-compact-v1` is **declared unmeasurable**. `mcp::compact_store` can
-pass the pinned purrdf only a dictionary *name*, so purrdf derives pack-local
-dictionary bytes and labels them with that id: the compacted pack is genuinely
-primed, but with bytes it derived rather than the bytes this bundle trained. A
-`(strategy, target length)` sweep would be measuring a knob that steers nothing.
-The exception is tied to a **self-destructing** negative assertion in
-`crates/pipeline/tests/medium_bundle.rs`: the day purrdf exposes
-`DictStrategy::Pinned` and the lane is wired, that assertion reds, and whoever
-wires it deletes the exception in the same change.
+There is **no exempt dictionary**. `gmeow-memory-compact-v1` used to have none:
+`mcp::compact_store` could pass purrdf only a dictionary *name*, so purrdf derived
+pack-local bytes and labelled them with that id — the compacted pack was genuinely
+primed, but with bytes it derived rather than the bytes this bundle trained, and a
+`(strategy, target length)` sweep would have been measuring a knob that steered
+nothing.
+
+`compact_store` now hands purrdf the **shipped** bytes as
+`DictStrategy::Pinned` (used verbatim: no training, no corpus derivation, no
+truncation), resolved out of the loaded bundle's in-band `"dct"` map exactly as the
+hot lane resolves `gmeow-memory-hot-v1`. So the training point steers real bytes, the
+carve-out is gone, and `gmeow-memory-compact-v1` is swept over the same
+**population-B runtime-store replay** as the hot dictionary — the only faithful way to
+price a store dictionary, because its in-band cost is paid per segment header rather
+than once per artifact.
+
+`every_declared_dictionary_primes_an_emitted_frame` in
+`crates/pipeline/tests/medium_bundle.rs` asserts the consequence as a byte equality:
+the dictionary the compaction lane pins **is** the bundle's header entry, so one
+`gmeow:dictionaryId` resolves to exactly one byte sequence.
 
 ## Refreshing the sweep (maintainer only)
 
@@ -282,7 +293,7 @@ There is **one** producer — the Rust `medium-sweep --emit-baseline` path:
 
 ```sh
 make maint-medium-sweep     # runs the real DAG, then the full grid
-make regen                  # re-projects generated/medium/dictionary-effect.ttl
+make check-sync SYNC_MODE=update   # re-projects generated/medium/dictionary-effect.ttl
 git add bench/medium-baseline.json generated/medium/dictionary-effect.ttl
 ```
 
@@ -351,13 +362,13 @@ Each leg has a targeted red fixture beside it.
 The merge base carries **zero** medium axis, so this branch's test binary cannot run
 there — which is why the cross-branch comparison is a maintainer lane rather than an
 on-gate test. It checks the merge base out into a temp worktree, runs **its own**
-`make regen` with **its own** toolchain (this branch's sources are never overlaid onto
+`make check-sync SYNC_MODE=update` with **its own** toolchain (this branch's sources are never overlaid onto
 it), and compares the GMN-dialect artifact set of the two materialized trees: first as
 sets, then byte for byte. Both trees are classified by the same read-only predicate
 (`cargo run --bin gmn-dialect-paths`), because two predicates would compare nothing.
 
 ```sh
-make regen                          # materialize THIS branch's generated/ tree
+make check-sync SYNC_MODE=update    # materialize THIS branch's generated/ tree
 make maint-medium-model-facing-diff  # regenerate the base and diff
 ```
 

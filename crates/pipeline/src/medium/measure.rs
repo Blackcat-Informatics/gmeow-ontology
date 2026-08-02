@@ -391,13 +391,15 @@ pub fn population_a(
 }
 
 /// Every dictionary the EMITTED bundle must publish a reading for: the ones a
-/// registered `gmeow:PayloadSchema` selects, minus the declared-unmeasurable set.
+/// registered `gmeow:PayloadSchema` selects.
 ///
 /// DERIVED from the registry rather than listed, so a dictionary added together with
 /// the rep it primes is covered by [`check`] without anyone remembering to extend a
 /// constant. The runtime-store dictionaries are absent by construction: no bundle rep
 /// selects them, and a bundle cannot honestly publish a reading over a file a CONSUMER
-/// wrote.
+/// wrote. Their evidence lives in the sweep's population-B replay
+/// ([`super::sweep::sweep_dictionary_runtime_store`]) instead, which prices the store
+/// file a consumer actually writes — nothing is exempt, the population just differs.
 #[must_use]
 pub fn required_measurements(registry: &MediumRegistry) -> BTreeSet<String> {
     registry
@@ -411,7 +413,6 @@ pub fn required_measurements(registry: &MediumRegistry) -> BTreeSet<String> {
                 DictSelection::Baseline => None,
             },
         )
-        .filter(|id| !super::sweep::UNMEASURABLE_DICTIONARIES.contains(&id.as_str()))
         .collect()
 }
 

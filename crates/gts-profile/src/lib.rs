@@ -657,10 +657,21 @@ pub fn open_store_segment(profile: &str, medium: &StoreMedium) -> gmeow_errors::
 ///
 /// Compaction re-authors ORDERING only: content claims are rewrite-invariant, so the
 /// compacted file carries the same statements at a different layout and, here, under
-/// a different medium. The dictionary is derived from the pack's OWN content-blob
-/// corpus by `strategy`, which is what makes the result byte-reproducible from the
-/// input alone; the trained bytes ride the new header in band, so the compacted file
-/// stays self-decoding without the bundle.
+/// a different medium. Either way the dictionary rides the new header in band, so the
+/// compacted file stays self-decoding without the bundle.
+///
+/// Where the dictionary bytes come from is `strategy`'s choice, and the two cases have
+/// different reproducibility footings:
+///
+/// * a DERIVED strategy (`DictStrategy::Trained` / `DictStrategy::RawContent`) builds
+///   them from the pack's OWN content-blob corpus, so the result is byte-reproducible
+///   from `data` alone — and requires `data` to HAVE content blobs;
+/// * `DictStrategy::Pinned` uses the caller's bytes verbatim (no training, no corpus
+///   derivation, no truncation), so the result is byte-reproducible from `data` PLUS
+///   those bytes, and a blob-less pack — a `terms`/`quads`-only store log — compacts
+///   exactly like any other. That is the strategy a GMEOW runtime store uses, because
+///   a derived dictionary would bind pack-local bytes to the shipped
+///   `gmeow:dictionaryId` and leave one id naming several byte sequences.
 ///
 /// The packaging signature is MANDATORY upstream (a plain tuple, not an `Option`),
 /// and it is deliberately not widened here: an unsigned repack would be a pack whose

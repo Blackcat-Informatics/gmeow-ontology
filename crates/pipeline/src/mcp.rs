@@ -1984,6 +1984,19 @@ pub struct McpServer {
     /// ship the dictionary raises `gmeow:MediumUndeclaredDictionary` and the write
     /// refuses, because an unprimed store segment is a silent density loss.
     store_medium: OnceLock<StoreMedium>,
+    /// The medium the COMPACTION lane repacks a runtime store under: the shipped
+    /// [`MEMORY_COMPACT_DICTIONARY`] bytes read out of the loaded bundle's in-band
+    /// `"dct"` map, resolved once on first compaction and shared thereafter.
+    ///
+    /// A second `OnceLock` beside [`McpServer::store_medium`] rather than a widening
+    /// of it, for the same reason that one is resolved lazily: the compact dictionary
+    /// is a precondition of COMPACTING and of nothing else, so a session that only
+    /// stores and recalls must not be refused for bytes it will never use. On the
+    /// compaction path there is no fallback — a bundle that does not ship the
+    /// dictionary raises `gmeow:MediumUndeclaredDictionary` and the repack refuses,
+    /// because a repack primed with anything else would bind one `gmeow:dictionaryId`
+    /// to a second byte sequence.
+    compact_medium: OnceLock<StoreMedium>,
 }
 
 impl McpServer {
@@ -2013,6 +2026,7 @@ impl McpServer {
             available,
             startup_requested,
             store_medium: OnceLock::new(),
+            compact_medium: OnceLock::new(),
         })
     }
 
@@ -2325,6 +2339,21 @@ impl McpServer {
                 ],
             ),
             tool(
+                "compact_memory",
+                "Repack the agent-memory store into ONE streamable segment primed by the \
+                 SHIPPED gmeow-memory-compact-v1 dictionary bytes — the small-store maintenance \
+                 turn. A long-lived store accumulates one segment boundary per medium change \
+                 and one frame per record; this collapses that back to a single primed segment. \
+                 Content claims are rewrite-invariant, so no claim, id, or recall result \
+                 changes — only the layout and the medium. `sign_key` is REQUIRED and names an \
+                 ASCII-armored OpenPGP secret signing key file: the packaging signature over \
+                 the repack is mandatory, so there is no unsigned lane. The read → rewrite → \
+                 replace runs under the store lock and the replace is atomic, so a failure \
+                 leaves the prior store completely intact. Returns {ok, path, dictionary, \
+                 dictionary_bytes, signing_key_id, timestamp, bytes_before, bytes_after}.",
+                &[("sign_key", "string")],
+            ),
+            tool(
                 "revise_belief",
                 "Suppress a stored claim without deleting history (the store_claim \
                  compensation, P10), executed as a Transaction-Logic transaction whose \
@@ -2550,6 +2579,7 @@ impl McpServer {
             "store_conjecture" => self.tool_store_conjecture(args),
             "refute_conjecture" => self.tool_refute_conjecture(args),
             "recall" => self.tool_recall(args),
+            "compact_memory" => self.tool_compact_memory(args),
             "revise_belief" => self.tool_revise_belief(args),
             "counter_examples" => self.tool_counter_examples(args),
             "entailments" => self.tool_entailments(args),
@@ -3239,6 +3269,84 @@ impl McpServer {
         .to_string())
     }
 
+    /// `compact_memory`: repack the agent-memory store at [`memory_path`] into ONE
+    /// streamable segment primed by the SHIPPED [`MEMORY_COMPACT_DICTIONARY`] bytes.
+    ///
+    /// The store this server's own `store_claim` / `revise_belief` turns append to
+    /// accumulates one segment boundary per medium change and one frame per record.
+    /// This is the maintenance turn that collapses that back into a single primed
+    /// segment: [`compact_store`] hands upstream the bundle's own dictionary bytes as
+    /// `DictStrategy::Pinned`, so the compacted store pins the SAME bytes under
+    /// `gmeow-memory-compact-v1` that the bundle header and
+    /// `generated/medium/gmeow-memory-compact-v1.zdict` carry.
+    ///
+    /// Content claims are rewrite-invariant, so nothing a `recall` can see changes —
+    /// the LAYOUT and the MEDIUM do. It is deliberately NOT recorded as a tool call in
+    /// the store it just compacted: a maintenance turn that appended its own record
+    /// would immediately reopen a hot-dictionary segment behind the compacted one and
+    /// undo part of what it was asked to do. The next authoring turn opens that
+    /// segment when it actually has something to write, which is
+    /// [`open_store_segment_if_medium_changed`]'s job.
+    ///
+    /// `sign_key` is REQUIRED and names an ASCII-armored OpenPGP secret signing key
+    /// file: upstream takes the packaging signer as a plain tuple, never an `Option`,
+    /// so an unsigned repack — a re-ordering nobody attests — is unrepresentable, and
+    /// there is no weaker unsigned lane to fall back to.
+    ///
+    /// # Errors
+    /// `sign_key` is absent/unreadable/not an ed25519 OpenPGP secret key, the store
+    /// does not exist, the loaded bundle pins no [`MEMORY_COMPACT_DICTIONARY`], or the
+    /// repack itself refuses.
+    fn tool_compact_memory(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let sign_key = required_str(args, "sign_key")?;
+        let armor = fs::read_to_string(sign_key).map_err(|err| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "compact_memory: cannot read sign_key {sign_key:?}: {err} — the packaging \
+                     signature over the repack is mandatory, so there is nothing to fall back to"
+                ),
+            })
+        })?;
+        let signer =
+            purrdf::gts::openpgp::parse_secret_signing_key(&armor, None).map_err(|err| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "compact_memory: sign_key {sign_key:?} is not a usable ed25519 OpenPGP \
+                         secret signing key: {err}"
+                    ),
+                })
+            })?;
+        let (signing_key, kid) = signer.into_parts();
+
+        let path = memory_path()?;
+        let bytes_before = fs::metadata(&path)
+            .map_err(|err| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "compact_memory: no agent-memory store at {}: {err} — compaction repacks \
+                         an EXISTING store and never invents one",
+                        path.display()
+                    ),
+                })
+            })?
+            .len();
+        let medium = self.compact_medium()?;
+        let timestamp = gmeow_validate::time_util::utc_iso_seconds();
+        compact_store(&path, &timestamp, medium, (signing_key, kid.clone()))?;
+        let bytes_after = fs::metadata(&path)?.len();
+        Ok(json!({
+            "ok": true,
+            "path": path.display().to_string(),
+            "dictionary": medium.dictionary,
+            "dictionary_bytes": medium.bytes.len(),
+            "signing_key_id": kid,
+            "timestamp": timestamp,
+            "bytes_before": bytes_before,
+            "bytes_after": bytes_after,
+        })
+        .to_string())
+    }
+
     fn tool_revise_belief(&self, args: &Value) -> gmeow_errors::Result<String> {
         let claim_id = required_str(args, "claim_id")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
@@ -3878,6 +3986,20 @@ impl McpServer {
         }
         let resolved = store_medium(self.view.gts_bytes(), MEMORY_HOT_DICTIONARY)?;
         Ok(self.store_medium.get_or_init(|| resolved))
+    }
+
+    /// The medium the COMPACTION lane repacks a runtime store under (see
+    /// [`McpServer::compact_medium`]).
+    ///
+    /// # Errors
+    /// The loaded bundle pins no [`MEMORY_COMPACT_DICTIONARY`] — a repack cannot be
+    /// primed with an id the bundle does not carry, and there is no unprimed fallback.
+    fn compact_medium(&self) -> gmeow_errors::Result<&StoreMedium> {
+        if let Some(medium) = self.compact_medium.get() {
+            return Ok(medium);
+        }
+        let resolved = store_medium(self.view.gts_bytes(), MEMORY_COMPACT_DICTIONARY)?;
+        Ok(self.compact_medium.get_or_init(|| resolved))
     }
 
     fn memory(&self) -> gmeow_errors::Result<Memory> {
@@ -4851,6 +4973,10 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "formula"
                     | "kb"
                     | "standpoint"
+                    // `compact_memory` enforces the armored OpenPGP secret key path via
+                    // `required_str`: upstream takes the packaging signer as a plain tuple, so
+                    // an unsigned repack is unrepresentable and the schema must say so.
+                    | "sign_key"
             );
             // Carve-outs: an arg whose shared name is required everywhere else is
             // OPTIONAL for a specific tool, so marking it required THERE would advertise
@@ -5862,6 +5988,13 @@ pub const MEMORY_HOT_DICTIONARY: &str = "gmeow-memory-hot-v1";
 /// (`gmeow:dictGmeowMemoryCompactV1`) — a term table rather than a trained sample,
 /// because a compact store offers too few bytes for the COVER trainer to beat the
 /// ontology's own vocabulary.
+///
+/// Resolved out of the loaded bundle by [`store_medium`] exactly as
+/// [`MEMORY_HOT_DICTIONARY`] is, and fed to the repack VERBATIM
+/// (`purrdf::gts::compact::DictStrategy::Pinned`), so this id names exactly one byte
+/// sequence everywhere it appears: in the bundle header, in
+/// `generated/medium/gmeow-memory-compact-v1.zdict`, and in the header of every
+/// compacted store.
 pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
 
 /// Resolve a runtime store's medium out of the SHIPPED bundle's in-band `"dct"` map.
@@ -5929,28 +6062,30 @@ fn open_store_segment_if_medium_changed(
 const STORE_PROFILE: &str = "ai-package";
 
 /// Repack a GMEOW-authored GTS pack into ONE streamable segment primed by the shipped
-/// [`MEMORY_COMPACT_DICTIONARY`] — the small-store maintenance lane.
+/// [`MEMORY_COMPACT_DICTIONARY`] bytes `medium` carries — the small-store maintenance
+/// lane.
 ///
 /// A long-lived pack accumulates one segment boundary per medium change and one frame
-/// per record; compaction rewrites that into a single streamable segment whose
-/// dictionary is derived from the pack's OWN content-blob corpus, which is what makes
-/// the result byte-reproducible from the input alone and self-decoding without the
-/// bundle. The content claims are rewrite-invariant, so what changes is the LAYOUT and
-/// the MEDIUM, never a statement.
+/// per record; compaction rewrites that into a single streamable segment under a
+/// single declared medium. The content claims are rewrite-invariant, so what changes
+/// is the LAYOUT and the MEDIUM, never a statement.
 ///
-/// # The pack must carry content blobs
+/// # The dictionary is PINNED, not derived
 ///
-/// A dictionary is BUILT here rather than shipped in: that is the compaction contract
-/// upstream defines, and it is why the compacted pack needs no external artifact to
-/// decode. It also means a pack with no content blobs — an agent-memory store, whose
-/// records are `terms`/`quads` frames — has no corpus to build one from, and is
-/// REFUSED with that reason rather than quietly repacked unprimed. The refusal is the
-/// correct outcome: a store that cannot be primed should keep the medium its segments
-/// already declare, each of which decodes on its own terms.
+/// `medium` is the resolved [`StoreMedium`] — the bytes [`store_medium`] read out of
+/// the loaded bundle's in-band `"dct"` map — and they are handed to upstream as
+/// `purrdf::gts::compact::DictStrategy::Pinned`: used verbatim, no training, no corpus
+/// derivation, no truncation. That is what makes one `gmeow:dictionaryId` resolve to
+/// exactly one byte sequence. Deriving the dictionary from the pack's own content-blob
+/// corpus instead would label PACK-LOCAL bytes with the shipped id, so two compacted
+/// stores could pin different dictionaries under the same name — precisely what the
+/// envelope contract exists to make impossible.
 ///
-/// The compact dictionary is declared `gmeow:dictStrategyTermTable`, which shares the
-/// raw-content producer with `gmeow:dictStrategyRawContent` (they differ in WHAT is
-/// fed in, not in how it is built), so that is the strategy the plan names.
+/// Pinning also removes the corpus precondition the derived strategies carry: a
+/// wholly-pinned plan never touches the content-blob corpus, so an agent-memory store
+/// — whose records are `terms`/`quads` frames and which has no content blobs at all —
+/// compacts exactly like any other pack. The dictionary rides the new header in band,
+/// so the compacted file stays self-decoding without the bundle.
 ///
 /// The whole read → rewrite → replace runs under the store lock, and the replace is
 /// atomic: a compaction that fails part-way leaves the PRIOR store completely intact
@@ -5962,6 +6097,7 @@ const STORE_PROFILE: &str = "ai-package";
 pub fn compact_store(
     path: &Path,
     timestamp: &str,
+    medium: &StoreMedium,
     packaging_signer: (ed25519_dalek::SigningKey, String),
 ) -> gmeow_errors::Result<()> {
     with_conjecture_lock(path, move || {
@@ -5969,8 +6105,8 @@ pub fn compact_store(
         let compacted = crate::gts_profile::compact_gmeow_gts(
             &bytes,
             timestamp,
-            MEMORY_COMPACT_DICTIONARY,
-            purrdf::gts::compact::DictStrategy::RawContent,
+            &medium.dictionary,
+            purrdf::gts::compact::DictStrategy::Pinned(medium.bytes.clone()),
             packaging_signer,
         )?;
         let dir = path
@@ -6940,8 +7076,8 @@ mod tests {
     }
 
     /// The bundle the crate-local server tests are served from: the locally-built
-    /// `gmeow.gts` with ONE header-only segment appended, pinning the store medium
-    /// these tests write through.
+    /// `gmeow.gts` with ONE header-only segment appended, pinning BOTH runtime-store
+    /// media these tests write and repack through.
     ///
     /// The appended segment is a FIXTURE, not a fallback. A server resolves the
     /// medium of the stores it writes out of the bundle's in-band `"dct"` map, and
@@ -6950,7 +7086,9 @@ mod tests {
     /// way to say that: a GTS file is a sequence of independently-headed segments,
     /// each declaring its own catalog, so this adds a medium declaration without
     /// touching a byte of the bundle's own content — `import_gts_events` folds the
-    /// same graph either way.
+    /// same graph either way. It must be ONE segment carrying both entries, because
+    /// `segment_append_state` reports the state of the LAST segment: a second
+    /// appended header would MASK the first rather than add to it.
     ///
     /// It is deliberately UNCONDITIONAL, so these tests behave identically whether
     /// or not the local bundle happens to be current. That the SHIPPED bundle pins
@@ -6960,14 +7098,34 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let mut bytes =
             fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed snapshot");
-        bytes.extend_from_slice(
-            &open_store_segment(STORE_PROFILE, &test_medium())
-                .expect("pin the fixture store medium in an appended segment"),
-        );
+        bytes.extend_from_slice(&pin_media_segment(&[test_medium(), test_compact_medium()]));
         bytes
     }
 
-    /// The store medium the crate-local segment-authorship tests write through.
+    /// A header-only segment pinning EVERY medium in `media` — the BUNDLE fixture's
+    /// counterpart to [`open_store_segment`].
+    ///
+    /// Deliberately NOT a widening of `open_store_segment`: a STORE is written through
+    /// exactly one medium, so a store segment pinning a second dictionary would carry
+    /// in-band bytes no frame of that store can ever cite. A BUNDLE is the opposite —
+    /// it pins the whole declared dictionary family because it IS that family's
+    /// distribution channel. The two arities differ for a reason, and collapsing them
+    /// would let a store quietly grow a second dictionary.
+    fn pin_media_segment(media: &[StoreMedium]) -> Vec<u8> {
+        let options = purrdf::gts::writer::WriterOptions {
+            zstd_level: Some(gmeow_gts_profile::GMEOW_GTS_ZSTD_LEVEL),
+            dicts: media
+                .iter()
+                .map(|medium| (medium.dictionary.clone(), medium.bytes.clone()))
+                .collect(),
+            ..Default::default()
+        };
+        purrdf::gts::writer::Writer::with_options(STORE_PROFILE, options)
+            .expect("the fixture bundle segment pins its media")
+            .into_bytes()
+    }
+
+    /// The HOT store medium the crate-local segment-authorship tests write through.
     ///
     /// The dictionary bytes are trained HERE rather than read out of the committed
     /// bundle: these tests are about the WRITER — that a segment pins a dictionary,
@@ -6976,7 +7134,41 @@ mod tests {
     /// to do with the writer. The server's own resolution path (bundle `"dct"` →
     /// `StoreMedium`) is exercised where it belongs, in the whole-bundle gate.
     fn test_medium() -> StoreMedium {
-        let owned: Vec<Vec<u8>> = (0..512u32)
+        let owned = fixture_claim_corpus();
+        StoreMedium {
+            dictionary: MEMORY_HOT_DICTIONARY.to_string(),
+            bytes: crate::medium::train::build(
+                crate::medium::registry::DictionaryStrategy::Trained,
+                &fixture_claim_corpus_refs(&owned),
+                32768,
+            )
+            .expect("the fixture memory dictionary trains"),
+        }
+    }
+
+    /// The COMPACT store medium the crate-local compaction test repacks through, at
+    /// the strategy and target length `slices/core/gts/module.ttl` declares for it.
+    ///
+    /// Trained here for the same reason as [`test_medium`], and it must be DISTINCT
+    /// from the hot bytes: a fixture whose two dictionaries happened to be equal would
+    /// make "the repack pinned the COMPACT bytes" true by accident.
+    fn test_compact_medium() -> StoreMedium {
+        let owned = fixture_claim_corpus();
+        StoreMedium {
+            dictionary: MEMORY_COMPACT_DICTIONARY.to_string(),
+            bytes: crate::medium::train::build(
+                crate::medium::registry::DictionaryStrategy::TermTable,
+                &fixture_claim_corpus_refs(&owned),
+                16384,
+            )
+            .expect("the fixture compaction dictionary trains"),
+        }
+    }
+
+    /// The shared training corpus behind both fixture media: many short claims over a
+    /// small repeated vocabulary, which is the byte profile a store dictionary sees.
+    fn fixture_claim_corpus() -> Vec<Vec<u8>> {
+        (0..512u32)
             .map(|i| {
                 format!(
                     "<https://blackcatinformatics.ca/gmeow/claim{}> \
@@ -6986,17 +7178,11 @@ mod tests {
                 )
                 .into_bytes()
             })
-            .collect();
-        let corpus: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-        StoreMedium {
-            dictionary: MEMORY_HOT_DICTIONARY.to_string(),
-            bytes: crate::medium::train::build(
-                crate::medium::registry::DictionaryStrategy::Trained,
-                &corpus,
-                32768,
-            )
-            .expect("the fixture memory dictionary trains"),
-        }
+            .collect()
+    }
+
+    fn fixture_claim_corpus_refs(owned: &[Vec<u8>]) -> Vec<&[u8]> {
+        owned.iter().map(Vec::as_slice).collect()
     }
 
     fn text_payload(value: Value) -> Value {
@@ -7012,6 +7198,87 @@ mod tests {
             env::set_var("GMEOW_MEMORY_PATH", &path);
         }
         (dir, path)
+    }
+
+    /// An ASCII-armored, UNENCRYPTED v4 Ed25519 OpenPGP secret key over `seed` — the
+    /// exact artifact `compact_memory`'s `sign_key` names.
+    ///
+    /// Synthesized rather than checked in: the packaging signature is what
+    /// `tool_compact_memory` is being tested to REQUIRE, so the test has to supply a
+    /// real one, and a committed private key — even a throwaway — is a private key in
+    /// the repository. The bytes are RFC 4880 §5.5.1.3 secret-key packet material:
+    /// v4 header, EdDSA (algo 22) over the Ed25519 OID, the public MPI as
+    /// `0x40 || raw`, `s2k_usage = 0` (unencrypted), the secret scalar MPI, and the
+    /// 16-bit sum checksum over that MPI.
+    fn armored_ed25519_secret_key(seed: &[u8; 32]) -> String {
+        let signing = ed25519_dalek::SigningKey::from_bytes(seed);
+        let public = signing.verifying_key().to_bytes();
+
+        let mut body: Vec<u8> = vec![4];
+        // A fixed creation time: the fingerprint (and hence the reported key id) is a
+        // hash over this material, so a wall-clock stamp would make it unreproducible.
+        body.extend_from_slice(&0u32.to_be_bytes());
+        body.push(22);
+        let oid: [u8; 9] = [0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01];
+        body.push(oid.len() as u8);
+        body.extend_from_slice(&oid);
+        // The public MPI: 263 bits = the 0x40 prefix octet plus the 32 raw octets.
+        body.extend_from_slice(&263u16.to_be_bytes());
+        body.push(0x40);
+        body.extend_from_slice(&public);
+
+        body.push(0);
+        let secret_start = body.len();
+        // The seed's high bit is set by construction below, so its minimal big-endian
+        // encoding is exactly 32 octets and the MPI needs no leading-zero handling.
+        assert!(
+            seed[0] & 0x80 != 0,
+            "the fixture seed must have its high bit set, or the secret MPI is not 256 bits"
+        );
+        body.extend_from_slice(&256u16.to_be_bytes());
+        body.extend_from_slice(seed);
+        let checksum = body[secret_start..]
+            .iter()
+            .fold(0u16, |sum, byte| sum.wrapping_add(u16::from(*byte)));
+        body.extend_from_slice(&checksum.to_be_bytes());
+
+        // New-format packet header, tag 5 (secret key), one-octet length.
+        assert!(
+            body.len() < 192,
+            "the fixture packet fits a one-octet length"
+        );
+        let mut packet: Vec<u8> = vec![0xc0 | 5, body.len() as u8];
+        packet.extend_from_slice(&body);
+
+        const ALPHABET: &[u8; 64] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        let mut b64 = String::new();
+        for chunk in packet.chunks(3) {
+            let b0 = chunk[0];
+            let b1 = chunk.get(1).copied().unwrap_or(0);
+            let b2 = chunk.get(2).copied().unwrap_or(0);
+            b64.push(ALPHABET[(b0 >> 2) as usize] as char);
+            b64.push(ALPHABET[(((b0 & 0x03) << 4) | (b1 >> 4)) as usize] as char);
+            b64.push(if chunk.len() > 1 {
+                ALPHABET[(((b1 & 0x0f) << 2) | (b2 >> 6)) as usize] as char
+            } else {
+                '='
+            });
+            b64.push(if chunk.len() > 2 {
+                ALPHABET[(b2 & 0x3f) as usize] as char
+            } else {
+                '='
+            });
+        }
+        let mut wrapped = String::new();
+        for line in b64.as_bytes().chunks(64) {
+            wrapped.push_str(std::str::from_utf8(line).expect("base64 is ASCII"));
+            wrapped.push('\n');
+        }
+        format!(
+            "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n{wrapped}-----END PGP PRIVATE KEY \
+             BLOCK-----\n"
+        )
     }
 
     // ── mandated GTS frame profile on every gmeow-authored segment ────────────
@@ -7133,6 +7400,10 @@ mod tests {
         assert!(consumer_tools.contains("\"okf_index\""));
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
+        // `compact_memory` is CONSUMER-visible: the store it repacks is the one the
+        // consumer surface's own `store_claim` / `revise_belief` turns write, so the
+        // maintenance turn for it belongs on the same surface, not behind the dev gate.
+        assert!(consumer_tools.contains("\"compact_memory\""));
         // The AI-agent docs surface: all five new tools are CONSUMER-visible
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
@@ -7163,6 +7434,109 @@ mod tests {
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    /// `compact_memory` repacks the live store under the SHIPPED
+    /// `gmeow-memory-compact-v1` bytes — the whole point of pinning rather than
+    /// deriving, stated as an equality against the bundle's own header entry.
+    ///
+    /// "The compacted store pins SOMETHING under that id" would prove nothing: a
+    /// derived dictionary also pins something under that id, and that was exactly the
+    /// defect — one `gmeow:dictionaryId` naming several byte sequences. What is
+    /// asserted is byte-identity with the bundle's entry, plus the two things the
+    /// repack must NOT change (the claims and their recallability) and the refusal it
+    /// must NOT soften (no signing key → no repack).
+    #[test]
+    fn compact_memory_repacks_the_store_under_the_shipped_compact_dictionary() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let (dir, memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        for text in ["a claim to compact", "another claim to compact"] {
+            let stored =
+                text_payload(server.call_tool_result("store_claim", &json!({"text": text})));
+            assert_eq!(stored["ok"], true, "store_claim must commit: {stored}");
+        }
+        let before = fs::read(&memory_path).expect("the store exists after two claims");
+
+        // A repack with no signing key is REFUSED before anything is written: the
+        // packaging signature is mandatory upstream, so there is no unsigned lane.
+        let refused = text_payload(server.call_tool_result("compact_memory", &json!({})));
+        assert_eq!(
+            refused["ok"], false,
+            "an unsigned repack is refused: {refused}"
+        );
+        assert_eq!(
+            fs::read(&memory_path).expect("the store survives the refusal"),
+            before,
+            "a refused repack must leave the store byte-identical"
+        );
+
+        let key_path = dir.path().join("packaging-key.asc");
+        fs::write(&key_path, armored_ed25519_secret_key(&[0xa7; 32]))
+            .expect("write the fixture signing key");
+        let out = text_payload(server.call_tool_result(
+            "compact_memory",
+            &json!({"sign_key": key_path.to_str().expect("utf8 key path")}),
+        ));
+        assert_eq!(out["ok"], true, "the repack succeeds: {out}");
+        assert_eq!(out["dictionary"], MEMORY_COMPACT_DICTIONARY, "{out}");
+        assert_eq!(
+            out["path"],
+            memory_path.display().to_string(),
+            "the report names the store it repacked: {out}"
+        );
+        assert!(
+            out["bytes_before"].as_u64().is_some_and(|n| n > 0)
+                && out["bytes_after"].as_u64().is_some_and(|n| n > 0),
+            "the report states both sizes: {out}"
+        );
+
+        // THE claim of this change: one id, one byte sequence. The compacted store's
+        // header entry IS the entry the SERVED bundle pins.
+        let shipped = crate::gts_profile::segment_dictionaries(&bytes)
+            .expect("the bundle's header reads")
+            .remove(MEMORY_COMPACT_DICTIONARY)
+            .expect("the served bundle pins the compact dictionary");
+        assert_ne!(
+            shipped,
+            test_medium().bytes,
+            "the fixture's two dictionaries must DIFFER, or the equality below is satisfied by \
+             the hot bytes and proves nothing"
+        );
+        let compacted = fs::read(&memory_path).expect("read the compacted store");
+        let pinned = crate::gts_profile::segment_dictionaries(&compacted)
+            .expect("the compacted store's header reads");
+        assert_eq!(
+            pinned.get(MEMORY_COMPACT_DICTIONARY),
+            Some(&shipped),
+            "the compacted store must pin the SHIPPED gmeow-memory-compact-v1 bytes, not a \
+             pack-local re-derivation that merely reuses the id"
+        );
+        assert_eq!(
+            out["dictionary_bytes"].as_u64(),
+            Some(shipped.len() as u64),
+            "the report states the shipped dictionary's real size: {out}"
+        );
+
+        // Content claims are rewrite-invariant: the repack changed the layout and the
+        // medium, and nothing a reader can see.
+        let recalled = text_payload(
+            server.call_tool_result("recall", &json!({"query": "compact", "limit": 10})),
+        )
+        .to_string();
+        for text in ["a claim to compact", "another claim to compact"] {
+            assert!(
+                recalled.contains(text),
+                "{text:?} must survive the repack: {recalled}"
+            );
+        }
     }
 
     #[test]
@@ -7225,9 +7599,10 @@ mod tests {
              required: {refute_required:?}"
         );
 
-        // The authoring-factory tools enforce EXACTLY these keys via `required_str` in their
-        // bodies (see `tool_slice_quality` / `tool_slice_brief` / `tool_submit_candidate` /
-        // `tool_withdraw_candidate` / `tool_list_candidates`); every other advertised arg is
+        // The authoring-factory tools and the store-maintenance turn enforce EXACTLY these
+        // keys via `required_str` in their bodies (see `tool_slice_quality` /
+        // `tool_slice_brief` / `tool_submit_candidate` / `tool_withdraw_candidate` /
+        // `tool_list_candidates` / `tool_compact_memory`); every other advertised arg is
         // read with `optional_*`. The advertised `required` array must equal the enforced set —
         // no more (a client would get a runtime error omitting a merely-optional arg), no less.
         let expected_required: &[(&str, &[&str])] = &[
@@ -7239,6 +7614,10 @@ mod tests {
             // nothing, so it must advertise an EMPTY required array (the dishonest-`slice`-required
             // gap this asserts against).
             ("list_candidates", &[]),
+            // The packaging signature over a repack is MANDATORY upstream (a plain tuple, never
+            // an `Option`), so `sign_key` is the one enforced key and there is no optional
+            // unsigned form to advertise.
+            ("compact_memory", &["sign_key"]),
         ];
         for (name, enforced) in expected_required {
             let required = required_of(name);
