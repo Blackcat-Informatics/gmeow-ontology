@@ -112,7 +112,6 @@ pub mod rule_ir;
 /// backwards-compat freeze of the churning core.
 pub mod runtime;
 pub mod seam;
-pub mod slme;
 pub mod stablemodel;
 pub mod statement_lowering;
 pub mod store;
