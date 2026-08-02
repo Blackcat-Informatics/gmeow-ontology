@@ -112,22 +112,22 @@ ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryResult logic:subPropertyOf gmeow:observationResult .
+    gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST be logic:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The canonical logic: spelling is asserted; rdfs:subPropertyOf is its lossy OWL/RDFS projection, never a second source of truth." .
+    gmeow:saRationale "gmeow:sensoryResult MUST be a subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain, and so the isResultOf reference-frame property chain can fire. The edge is authored in the rdfs: spelling because the RL harness and this structural cell both parse raw module.ttl with no entailment: logic:subPropertyOf is normalized to rdfs:subPropertyOf only downstream, so a logic:-only edge is invisible to every raw reader." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryObservationOf logic:subPropertyOf gmeow:observedFeature .
+    gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST be logic:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations. The canonical logic: spelling is asserted; rdfs:subPropertyOf is its lossy OWL/RDFS projection, never a second source of truth." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be a subproperty of gmeow:observedFeature so generic observation-about-X queries reach sensory observations. The edge is authored in the rdfs: spelling because the RL harness and this structural cell both parse raw module.ttl with no entailment: logic:subPropertyOf is normalized to rdfs:subPropertyOf only downstream, so a logic:-only edge is invisible to every raw reader." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;

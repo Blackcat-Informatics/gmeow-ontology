@@ -716,10 +716,7 @@ pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String
 /// owns this list's contents.
 const SCORER_CRATE_ROOTS: &[&str] = &[
     "affect-ingest",
-    "bundle-view",
     "cost-measure",
-    "docs",
-    "docs-catalog",
     "docs-model",
     "errors",
     "lang-bridge",
@@ -729,11 +726,9 @@ const SCORER_CRATE_ROOTS: &[&str] = &[
     "logic-compile",
     "math",
     "math-lift",
-    "mcp",
     "ns",
     "slice-quality",
     "term-arena",
-    "transcode",
     "validate",
 ];
 
