@@ -11,7 +11,11 @@
 @prefix ex:    <http://example.org/math/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-ex:pythagoreanEq a math:MathematicalExpression ;
+# A node whose only structured child is math:hasMathematicalSymbol IS a symbol reference —
+# the concrete form the lowering has a production for. The abstract math:MathematicalExpression
+# base carrying that edge is math:UnrecognizedExpressionType: structure present with no
+# concrete form to interpret it.
+ex:pythagoreanEq a math:SymbolReference ;
     rdfs:label "Pythagorean equation lowered to a logic: formula"@x-gmeow-english ;
     math:denotationKind math:denotesProposition ;
     math:compilesToLogicFormula ex:pythagoreanFormula ;

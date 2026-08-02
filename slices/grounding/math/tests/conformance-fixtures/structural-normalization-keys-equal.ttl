@@ -1,6 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
+# The math:structuralKey values are the REAL recomputed digests of their own expressions,
+# equal on both ends because the two expressions are structurally identical — which is what
+# makes the math:structuralNormalization claim TRUE. An invented literal here would be
+# math:StructuralKeyDrift, a different failure, and this fixture is meant to CONFORM.
+#
 # Positive fixture: a math:NormalizationDeclaration held at math:structuralNormalization
 # whose math:normalizes source and math:normalizesTo target carry EQUAL math:structuralKey
 # values — a structural-identity claim decided directly against the computed digests, and
@@ -11,11 +16,11 @@
 
 ex:equalKeySource a math:NumberLiteral ;
     math:normalForm ex:equalKeyTarget ;
-    math:structuralKey "product-a-b-v1" ;
+    math:structuralKey "d55318ba850cb0610573e7ca03e7145d428b61a4a2a3eab66426488aa0e20461" ;
     math:literalValue "2"^^xsd:integer .
 
 ex:equalKeyTarget a math:NumberLiteral ;
-    math:structuralKey "product-a-b-v1" ;
+    math:structuralKey "d55318ba850cb0610573e7ca03e7145d428b61a4a2a3eab66426488aa0e20461" ;
     math:literalValue "2"^^xsd:integer .
 
 ex:equalKeyDecl a math:NormalizationDeclaration ;

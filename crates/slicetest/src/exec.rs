@@ -790,8 +790,31 @@ fn run_conformance_cell(
                     .iter()
                     .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
             };
-            if violations().next().is_none() {
+            // The NATIVE channel counts here too. A "conforms" cell that consults only
+            // SHACL is green while `check_math_expression_findings` reports an error over
+            // the very same fixture — which is how three positive fixtures for the
+            // content-key contract shipped carrying hand-guessed `math:structuralKey`
+            // literals that `gmeow validate --deep` rejects. A fixture the shipped CLI
+            // errors on does not conform, whichever channel decided it.
+            let native: Vec<gmeow_errors::Finding> = check_math_expression_findings(&data, &data)
+                .into_iter()
+                .filter(|f| f.severity == Severity::Error)
+                .collect();
+            if violations().next().is_none() && native.is_empty() {
                 Ok(())
+            } else if violations().next().is_none() {
+                Err(Diag::of_kind(ConformanceCell {
+                    detail: format!(
+                        "expected conformance, and SHACL agrees, but the native math: \
+                         expression gate reports {} error(s): {}",
+                        native.len(),
+                        native
+                            .iter()
+                            .map(|f| format!("{} {}", f.code, f.message))
+                            .collect::<Vec<_>>()
+                            .join("; ")
+                    ),
+                }))
             } else {
                 let codes: BTreeSet<String> =
                     violations().map(|r| finding_from_shacl(r).code).collect();
@@ -809,9 +832,21 @@ fn run_conformance_cell(
                     })
                     .collect::<Vec<_>>()
                     .join("; ");
+                let native_detail = if native.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "; native math: expression gate also reports: {}",
+                        native
+                            .iter()
+                            .map(|f| format!("{} {}", f.code, f.message))
+                            .collect::<Vec<_>>()
+                            .join("; ")
+                    )
+                };
                 Err(Diag::of_kind(ConformanceCell {
                     detail: format!(
-                        "expected conformance, got finding(s): {}; {}",
+                        "expected conformance, got finding(s): {}; {}{native_detail}",
                         join_codes(&codes),
                         locations
                     ),
