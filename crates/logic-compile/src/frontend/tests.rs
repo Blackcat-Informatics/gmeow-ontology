@@ -1654,6 +1654,113 @@ fn derive_owl_thing_target_lowers_to_node_kind_not_sh_class() {
 }
 
 #[test]
+fn derive_owl_thing_on_a_datatype_property_lowers_to_literal_node_kind() {
+    // The two bounded universal tops sit on opposite sides of the object/data divide:
+    // `owl:Thing` tops the INDIVIDUAL domain, `rdfs:Literal` the DATA domain. An
+    // `owl:someValuesFrom owl:Thing` authored on a declared `owl:DatatypeProperty` means "any
+    // value" in the only domain that property has, so its faithful projection is
+    // `sh:nodeKind sh:Literal`. The individual-domain reading (`sh:BlankNodeOrIRI`) there is
+    // an INVERTED constraint — it rejects every correct literal the property is declared to
+    // carry, which is exactly how the shipped `gmeow:Chunk` shape came to reject a correct
+    // integer `gmeow:spanStart` / `gmeow:spanEnd` offset.
+    let ds = shape_dataset(
+        "g:spanStart a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .\n\
+         g:Chunk a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:spanStart ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::Literal)
+        )),
+        "an owl:Thing filler on a declared owl:DatatypeProperty must emit \
+         sh:nodeKind sh:Literal: {comps:?}"
+    );
+    assert!(
+        !comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing filler on a declared owl:DatatypeProperty must never emit \
+         sh:nodeKind sh:BlankNodeOrIRI — it would reject every literal value: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_span_offset_axioms_project_the_declared_data_range() {
+    // The shipped `gmeow:Chunk` offset axioms, verbatim in shape: a data-range-qualified
+    // exact-one (`owl:onDataRange`, min + max) plus the existential that carries the same
+    // range. Both arms must land on ONE `sh:datatype xsd:nonNegativeInteger` (deduped by
+    // `merge_same_path_properties`) with `sh:minCount 1 ; sh:maxCount 1` — and on NO node
+    // kind at all, since a node kind is the strictly weaker reading and the closed-world
+    // JSON-Schema projection of a bare `sh:nodeKind sh:Literal` cannot express a numeric
+    // value (it admits only a string or a `{"@value": …}` object), so it would reject the
+    // very integer offsets the SHACL shape accepts.
+    let ds = shape_dataset(
+        "g:spanStart a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .\n\
+         g:Chunk a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:spanStart ; \
+           owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] , \
+         [ a owl:Restriction ; owl:onProperty g:spanStart ; \
+           owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] , \
+         [ a owl:Restriction ; owl:onProperty g:spanStart ; \
+           owl:someValuesFrom xsd:nonNegativeInteger ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let offsets: Vec<_> = shapes
+        .iter()
+        .flat_map(|s| s.properties.iter())
+        .filter(|p| p.path == "https://blackcatinformatics.ca/gmeow/spanStart")
+        .collect();
+    assert_eq!(
+        offsets.len(),
+        1,
+        "the three arms merge into ONE property shape: {offsets:?}"
+    );
+    let offset = offsets[0];
+    assert_eq!(offset.min_count, Some(1), "{offset:?}");
+    assert_eq!(offset.max_count, Some(1), "{offset:?}");
+    assert_eq!(
+        offset.components,
+        vec![ConstraintComponent::Datatype(
+            "http://www.w3.org/2001/XMLSchema#nonNegativeInteger".to_owned()
+        )],
+        "the offset must project exactly one sh:datatype and no node kind: {offset:?}"
+    );
+}
+
+#[test]
+fn derive_owl_thing_on_an_object_property_keeps_the_individual_top() {
+    // The redirect above is keyed on the property's OWN declaration, so it can never narrow an
+    // object-valued path: a declared `owl:ObjectProperty` keeps the individual-domain reading.
+    let ds = shape_dataset(
+        "g:chunkOf a owl:ObjectProperty .\n\
+         g:Chunk a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:chunkOf ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing filler on a declared owl:ObjectProperty must keep \
+         sh:nodeKind sh:BlankNodeOrIRI: {comps:?}"
+    );
+    assert!(
+        !comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::Literal)
+        )),
+        "an owl:Thing filler on an object property must never emit sh:nodeKind sh:Literal: \
+         {comps:?}"
+    );
+}
+
+#[test]
 fn derive_rdfs_literal_target_lowers_to_node_kind_not_sh_datatype() {
     // A someValuesFrom rdfs:Literal is an intentionally-open literal range ("any literal").
     // Under spec-conformant SHACL, sh:datatype rdfs:Literal never matches a concrete literal

@@ -160,6 +160,153 @@ e:receipt2 a logic:ExternalEffectReceipt ; logic:receiptOfAttempt e:attempt2 .
         .stdout(predicate::str::contains("duplicate effect"));
 }
 
+/// A `logic:` counter-example the slice ships, by file name.
+///
+/// Anchored on the manifest directory so the demonstration drives the SAME bytes the slice
+/// ships rather than a copy that could drift from them.
+fn shipped_counter_example(name: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/logic/tests/counter-examples")
+        .join(name)
+}
+
+/// A graph carrying effect records must NEVER produce an empty answer.
+///
+/// The shipped counter-example reaches both of its attempts only through the edges that
+/// point AT them — `logic:unknownOfAttempt`, `logic:retryOfAttempt`,
+/// `logic:licenceCoversAttempt` — and names no `logic:attemptOfIntent` at all. A roster
+/// read off `attemptOfIntent` alone therefore rendered it as ZERO BYTES with exit 0, which
+/// an operator cannot tell apart from a crashed command: "an undetermined charge is being
+/// retried under a borrowed licence" and "nothing happened" printed identically.
+#[test]
+fn saga_is_never_silent_on_a_graph_carrying_effect_records() {
+    let path = shipped_counter_example("unknown-outcome-retried-on-a-borrowed-licence.ttl");
+    let fixture = fs::read_to_string(&path).expect("the shipped counter-example is readable");
+    assert!(
+        !fixture.contains("attemptOfIntent"),
+        "the fixture must reach its attempts through NO logic:attemptOfIntent, or this test \
+         proves nothing about the roster"
+    );
+
+    let out = gmeow()
+        .args(["logic", "saga", path.to_str().expect("utf-8 path")])
+        .assert()
+        .success();
+    let stdout = String::from_utf8(out.get_output().stdout.clone()).expect("utf-8 stdout");
+    assert!(
+        !stdout.trim().is_empty(),
+        "a surface whose whole job is 'what is owed' must never print nothing on a graph \
+         full of effect records"
+    );
+    // Both attempts are rostered: the retried one and the one the licence actually covers.
+    assert!(
+        stdout.contains("invoice901Charge") && stdout.contains("invoice902Charge"),
+        "both attempts must be rostered, got:\n{stdout}"
+    );
+    // The retry and the licence it borrows are NAMED — the relation is the finding, and a
+    // reader that printed only the outcome would leave the operator to spot it themselves.
+    assert!(
+        stdout.contains("invoice901Retry")
+            && stdout.contains("invoice902Idempotency")
+            && stdout.contains("BORROWED"),
+        "the retry, its borrowed licence, and the fact that it IS borrowed must all be \
+         named, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains("UNDETERMINED") && stdout.contains("STOP THE RETRY"),
+        "the undetermined outcome and the move that must be stopped first must both be \
+         said, got:\n{stdout}"
+    );
+}
+
+/// The same graph, structured: every field the text form names must survive into JSON.
+#[test]
+fn structured_saga_carries_the_borrowed_licence_relation() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "saga",
+        shipped_counter_example("unknown-outcome-retried-on-a-borrowed-licence.ttl")
+            .to_str()
+            .expect("utf-8"),
+        "--format",
+        "json",
+    ]);
+    let attempts = doc["attempts"].as_array().expect("attempts");
+    assert_eq!(attempts.len(), 2, "both attempts are rostered:\n{doc}");
+    let retried = attempts
+        .iter()
+        .find(|a| {
+            a["attempt"]
+                .as_str()
+                .is_some_and(|s| s.ends_with("invoice901Charge"))
+        })
+        .expect("the retried attempt is rostered");
+    assert_eq!(retried["outcome"].as_str(), Some("UNDETERMINED"), "{doc}");
+    let retries = retried["retries"].as_array().expect("retries");
+    assert_eq!(retries.len(), 1, "one retry:\n{doc}");
+    assert_eq!(
+        retries[0]["borrowed_licence"].as_bool(),
+        Some(true),
+        "the licence is borrowed, and the structured form must say so:\n{doc}"
+    );
+    assert!(
+        retries[0]["licence"]
+            .as_str()
+            .is_some_and(|s| s.ends_with("invoice902Idempotency")),
+        "the borrowed licence must be named:\n{doc}"
+    );
+}
+
+/// Effect records with no attempt to hang on FAIL CLOSED, matching `logic frontier`.
+///
+/// This is the one case that must never be reported as "nothing owed": the records exist,
+/// so the boundary exists, and an empty roster means the reader could not position it.
+#[test]
+fn saga_fails_closed_when_effect_records_name_no_attempt() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = write(
+        &dir,
+        "orphan-records.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:contract a logic:IdempotencyContract ; logic:idempotencyKey "invoice:903:charge" .
+"#,
+    );
+
+    gmeow()
+        .args(["logic", "saga", path.to_str().expect("utf-8 path")])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("IdempotencyContract"))
+        .stderr(predicate::str::contains("names no logic:EffectAttempt"));
+}
+
+/// A graph with NO effect boundary at all gets a true answer, not a failure — the
+/// complement of the case above, kept apart from it so "there is no boundary here" can
+/// never be reported as "the reader broke".
+#[test]
+fn saga_reports_the_absence_of_a_boundary_as_an_answer() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = write(
+        &dir,
+        "no-boundary.ttl",
+        r#"
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix e:    <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:thing rdfs:label "a graph with no external-effect boundary" .
+"#,
+    );
+
+    gmeow()
+        .args(["logic", "saga", path.to_str().expect("utf-8 path")])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("no external-effect records"));
+}
+
 /// The refinement outcomes must stay apart. A budget cut invites a bigger budget; an
 /// out-of-fragment method set invites an authoring fix; a malformed request invites a
 /// corrected one; only a complete run may be read as exhaustive. Collapsing any pair of

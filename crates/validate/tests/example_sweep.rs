@@ -58,21 +58,22 @@ use purrdf::{RdfDataset, RdfQuad, RdfTerm, flat_dataset_from_quads, flat_rdf_qua
 /// violation the engine reports over the union: constraint component, focus node
 /// (local name), and path, up to three distinct ones.
 ///
-/// Two causes are represented, and they are not the same kind of thing:
+/// ONE cause is represented, and it is not a projection defect:
 ///
 /// * A REAL GAP IN THE EXAMPLE — the scene never binds a property the ontology
 ///   requires (a P11 reference frame, a `lang:Form`'s sign system, a frame
 ///   profile's components, a bound variable on a binder expression, a span's
 ///   offsets). The example is illustrative prose-with-triples, not instance data.
-/// * A DEFECT IN THE DERIVED SHAPE, for the `gmeow:spanStart`/`gmeow:spanEnd`
-///   node-kind entries: `generated/shapes/validation-shapes.ttl` gives
-///   `gmeow:Chunk-shape` both offsets `sh:nodeKind sh:BlankNodeOrIRI`, while
-///   `slices/core/ai/module.ttl` declares them `owl:DatatypeProperty` with
-///   `rdfs:range xsd:nonNegativeInteger` — so the OWL→SHACL projection rejects a
-///   CORRECT integer offset. The example is right and the projection is wrong.
+///
+/// A shape DEFECT is never a reason to be here. The `gmeow:spanStart`/`gmeow:spanEnd`
+/// entries that once were — `gmeow:Chunk-shape` gave both offsets
+/// `sh:nodeKind sh:BlankNodeOrIRI` while `slices/core/ai/module.ttl` declares them
+/// `owl:DatatypeProperty` with `rdfs:range xsd:nonNegativeInteger`, so the projection
+/// rejected a CORRECT integer offset — were removed by fixing the OWL→SHACL projection
+/// (`crates/logic-compile/src/frontend.rs`, `classify_on`: an `owl:Thing` filler on a
+/// declared datatype property resolves to the DATA-domain top, `sh:nodeKind sh:Literal`),
+/// not by allowlisting the examples that the defect rejected.
 const NON_CONFORMANT: &[&str] = &[
-    "slices/core/ai/examples/grounded-claim.ttl", // still non-conformant unioned with the TBox — 2 violation(s): NodeKindConstraintComponent on chunk-042 (gmeow:spanEnd); NodeKindConstraintComponent on chunk-042 (gmeow:spanStart)
-    "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // still non-conformant unioned with the TBox — 2 violation(s): NodeKindConstraintComponent on chunk1 (gmeow:spanEnd); NodeKindConstraintComponent on chunk1 (gmeow:spanStart)
     "slices/grounding/lang/examples/forms-and-sign-systems.ttl", // still non-conformant unioned with the TBox — 11 violation(s): SPARQLConstraintComponent on formulaCatsChaseMice (-); MinCountConstraintComponent on swDe (lang:lexemeOf)
     "slices/grounding/lang/examples/gmn-dialect.ttl", // still non-conformant unioned with the TBox — 12 violation(s): MinCountConstraintComponent on claimGateOpenMonday (gmeow:observationMethod); QualifiedMinCountConstraintComponent on claimGateOpenMonday (gmeow:observationMethod); SPARQLConstraintComponent on claimGateOpenMonday (-)
     "slices/grounding/math/examples/measure-and-dimension.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on expectedEnergy (math:argumentSlot); MinCountConstraintComponent on expectedEnergy (math:boundVariable)
@@ -89,7 +90,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/grounding/math/examples/pvalue-tri-slice.ttl", // still non-conformant unioned with the TBox — 12 violation(s): MinCountConstraintComponent on samplingFrame (gmeow:determinacyModel); MinCountConstraintComponent on samplingFrame (gmeow:dimensionCount); MinCountConstraintComponent on samplingFrame (gmeow:frameKind)
     "slices/core/names/examples/person-names.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on chosenForm (lang:lexemeOf)
     "slices/extensions/embedding-projection/examples/purremb-bookshelf.ttl", // still non-conformant unioned with the TBox — 4 violation(s): ClassConstraintComponent on embRowB (gmeow:embeddingOf); ClassConstraintComponent on retrievalEventOld (gmeow:againstIndex)
-    "slices/extensions/graphrag/examples/lillith-pipeline.ttl", // still non-conformant unioned with the TBox — 2 violation(s): NodeKindConstraintComponent on chunk-7 (gmeow:spanEnd); NodeKindConstraintComponent on chunk-7 (gmeow:spanStart)
+    "slices/extensions/graphrag/examples/lillith-pipeline.ttl", // still non-conformant unioned with the TBox — 1 violation(s): ClassConstraintComponent on embedding-7 (gmeow:embeddingOf, value chunk-7) — the same gmeow:embeddingOf gap purremb-bookshelf carries: gmeow:Chunk reaches gmeow:InformationObject only through the canonical logic:subClassOf edge, which the SHACL engine (an rdfs:subClassOf reader) does not traverse over the AUTHORED TBox
     "slices/extensions/images/examples/photo-metadata.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on photoExpression (gmeow:hasReferenceFrame)
     "slices/core/preference/examples/comparison-worked.ttl", // still non-conformant unioned with the TBox — 3 violation(s): MinCountConstraintComponent on prefConnection (math:connectionOn); QualifiedMinCountConstraintComponent on sheaf (math:hasStalk); QualifiedMinCountConstraintComponent on sheaf (math:restrictionMap)
     "slices/core/preference/examples/condorcet-cycle.ttl", // still non-conformant unioned with the TBox — 8 violation(s): QualifiedMinCountConstraintComponent on cellA (math:cellDimension); MinCountConstraintComponent on cycleHolonomy (math:holonomyLoop); QualifiedMinCountConstraintComponent on cycleHolonomy (math:holonomyOf)

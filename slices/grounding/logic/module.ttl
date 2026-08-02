@@ -2111,18 +2111,33 @@ logic:counterfactuallyCloser
 
 # --- Action-theory facets (domain logic:ActionSchema, stated in prose) --------
 
+# `logic:precondition` and `logic:effect` DECLARE their domain and range rather than
+# stating them in prose (the convention the six other action-theory facets keep). They
+# are the two facets that carry outward correspondences to PROV-O / P-Plan / schema.org,
+# and the correspondence-soundness domain/range direction check can only run on a term
+# that declares both — with only prose, the check records "GMEOW term declares no
+# domain/range to check against" and the direction of a shipped grounding law goes
+# unverified. The declared range is `owl:Thing`, the same bounded top the class-level
+# `logic:ActionSchema` universal carries on these paths (and the range their retired
+# `gmeow:stepInput`/`gmeow:stepOutput` predecessors carried), so declaring it adds a
+# checkable direction without narrowing what either facet admits.
+
 logic:precondition
     a owl:ObjectProperty ;
+    rdfs:domain logic:ActionSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "precondition"@x-gmeow-english ;
-    skos:definition "Relates a logic:ActionSchema to the situation that must hold for the action to apply — the gate on the elementary state transition the schema grounds. Domain logic:ActionSchema (stated in prose, matching the module's domain/range convention). One of the eight action-theory facets means–end reasoning reads."@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "Relates a logic:ActionSchema to the situation that must hold for the action to apply — the gate on the elementary state transition the schema grounds. Domain logic:ActionSchema and range owl:Thing are DECLARED (not prose-only, unlike the six sibling facets) so the correspondence-soundness direction check can run on its outward PROV-O / P-Plan / schema.org grounding laws. One of the eight action-theory facets means–end reasoning reads."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:effect
     a owl:ObjectProperty ;
+    rdfs:domain logic:ActionSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "effect"@x-gmeow-english ;
-    skos:definition "Relates a logic:ActionSchema to the change it introduces, expressed as the supersession primitives of the transaction layer (ins/del), NEVER as physical erasure — executing an occurrence is the elementary update whose ins/del a transaction path records. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "Relates a logic:ActionSchema to the change it introduces, expressed as the supersession primitives of the transaction layer (ins/del), NEVER as physical erasure — executing an occurrence is the elementary update whose ins/del a transaction path records. Domain logic:ActionSchema and range owl:Thing are DECLARED (not prose-only) so the correspondence-soundness direction check can run on its outward PROV-O / P-Plan / schema.org grounding laws. One of the eight action-theory facets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:invariant

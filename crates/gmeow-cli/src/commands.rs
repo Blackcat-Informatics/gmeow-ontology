@@ -6595,7 +6595,14 @@ fn why_not_json(
 /// any pair sends an operator to the wrong remedy.
 struct SagaAttempt {
     attempt: String,
-    intent: String,
+    /// The dispatch intent this attempt executes, when the graph names one.
+    ///
+    /// `None` is a first-class case, not a hole: an attempt reached only through the
+    /// outcome, retry, or licence edges that point AT it carries no `logic:attemptOfIntent`
+    /// of its own. Reading the roster off `attemptOfIntent` alone made exactly those
+    /// attempts invisible — the graph rendered as zero bytes even though every record in it
+    /// was about an unsettled effect.
+    intent: Option<String>,
     /// The stable outcome tag: `receipted`, `FORECLOSED`, `UNDETERMINED`, or
     /// `no-effect-record`.
     outcome: &'static str,
@@ -6603,7 +6610,57 @@ struct SagaAttempt {
     owed: Option<String>,
     /// A reconciliation probe has been issued for this attempt.
     probed: bool,
+    /// Every retry dispatched against this attempt, with the licence it rides.
+    retries: Vec<SagaRetry>,
 }
+
+/// One retry dispatched against an attempt, and the idempotency licence it rides.
+///
+/// A retry is not merely another record about the attempt: it is the one move that can turn
+/// an undetermined outcome into a duplicated external effect, and whether it is safe is
+/// decided by the licence — not by the licence's PRESENCE (a borrowed one is present too)
+/// but by whether the licence covers THIS attempt. The reader that says what is owed must
+/// carry that relation or an operator reads "retry, licensed" off a double charge.
+struct SagaRetry {
+    retry: String,
+    /// The `logic:retryLicence` this retry names, or `None` when it names none.
+    licence: Option<String>,
+    /// The attempts that licence declares it covers (`logic:licenceCoversAttempt`).
+    covers: Vec<String>,
+    /// The licence names at least one attempt and NONE of them is the retried attempt — a
+    /// licence borrowed from a neighbouring dispatch. Its idempotency key is a different
+    /// key, so the provider sees a fresh request and the effect happens twice.
+    borrowed: bool,
+}
+
+/// The `logic:` classes that make a graph an external-effect-boundary graph.
+///
+/// Used ONLY to tell "this input has no effect boundary at all" (a true answer, printed and
+/// exited 0) apart from "this input is full of effect records and the roster is still empty"
+/// (a defect in this reader, which must fail closed rather than print nothing).
+const SAGA_RECORD_TYPES: [&str; 9] = [
+    "EffectAttempt",
+    "DispatchIntent",
+    "EffectReceipt",
+    "ExternalOutcomeUnknown",
+    "ExternalOutcomeImpossible",
+    "RetryDispatch",
+    "IdempotencyContract",
+    "ReconciliationProbe",
+    "ReconciliationResult",
+];
+
+/// The `logic:` edges that NAME an attempt as their object.
+///
+/// `logic:attemptOfIntent` is handled apart because the attempt is its SUBJECT.
+const SAGA_ATTEMPT_EDGES: [&str; 6] = [
+    "receiptOfAttempt",
+    "unknownOfAttempt",
+    "impossibleOfAttempt",
+    "probesAttempt",
+    "retryOfAttempt",
+    "licenceCoversAttempt",
+];
 
 /// `gmeow logic saga` — the external-effect boundary status.
 pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -> i32 {
@@ -6623,10 +6680,109 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
     let foreclosed = iri_pairs(&rows, &format!("{LOGIC_NS}impossibleOfAttempt"));
     let probes = iri_pairs(&rows, &format!("{LOGIC_NS}probesAttempt"));
     let all_verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
+    let retry_of = iri_pairs(&rows, &format!("{LOGIC_NS}retryOfAttempt"));
+    let retry_licence = iri_pairs(&rows, &format!("{LOGIC_NS}retryLicence"));
+    let licence_covers = iri_pairs(&rows, &format!("{LOGIC_NS}licenceCoversAttempt"));
+    let types = iri_pairs(&rows, RDF_TYPE_IRI);
 
-    let empty = attempts.is_empty() && unknowns.is_empty();
+    // THE ROSTER. An attempt is owed an answer no matter which edge reaches it: its own
+    // `logic:attemptOfIntent`, an outcome record naming it, a retry re-sending it, a probe
+    // asking after it, a licence claiming to cover it, or nothing but its `rdf:type`.
+    // Enumerating only `attemptOfIntent` is what made a graph carrying two attempts, an
+    // undetermined outcome, a retry, and a borrowed licence print zero bytes and exit 0.
+    let mut roster: BTreeSet<String> = attempts.iter().map(|(a, _)| a.clone()).collect();
+    for edge in SAGA_ATTEMPT_EDGES {
+        for (_, attempt) in iri_pairs(&rows, &format!("{LOGIC_NS}{edge}")) {
+            roster.insert(attempt);
+        }
+    }
+    let attempt_type = format!("{LOGIC_NS}EffectAttempt");
+    for (subject, ty) in &types {
+        if *ty == attempt_type {
+            roster.insert(subject.clone());
+        }
+    }
+
+    // Whether the input is an effect-boundary graph AT ALL — read from the record types it
+    // carries, independent of the roster. The two conditions answer different questions and
+    // are never collapsed: an input with no boundary records has a true answer ("there is no
+    // boundary here"), while an input full of boundary records whose roster came out empty
+    // is this reader failing, and must say so with a non-zero exit rather than print nothing.
+    let record_types: Vec<&str> = SAGA_RECORD_TYPES
+        .iter()
+        .copied()
+        .filter(|local| {
+            let iri = format!("{LOGIC_NS}{local}");
+            types.iter().any(|(_, ty)| *ty == iri)
+        })
+        .collect();
+
+    if roster.is_empty() {
+        if record_types.is_empty() {
+            if matches!(format, OutputFormat::Json) {
+                return print_json(
+                    reporter,
+                    CODE,
+                    &serde_json::json!({
+                        "command": "logic saga",
+                        "input": input.display().to_string(),
+                        "has_effect_records": false,
+                        "attempts": [],
+                        "reconciliation_verdicts": [],
+                        "facts": rows_json(&rows),
+                    }),
+                );
+            }
+            println!("no external-effect records in {}", input.display());
+            return 0;
+        }
+        return fail(
+            reporter,
+            CODE,
+            format!(
+                "{} carries external-effect records ({}) but names no logic:EffectAttempt for \
+                 any of them — nothing can be said about what is owed, and saying nothing is \
+                 not an answer. Give every record an attempt to hang on.",
+                input.display(),
+                record_types.join(", ")
+            ),
+        );
+    }
+
     let mut settled_attempts: Vec<SagaAttempt> = Vec::new();
-    for (attempt, intent) in &attempts {
+    for attempt in &roster {
+        let intent = attempts
+            .iter()
+            .find(|(a, _)| a == attempt)
+            .map(|(_, i)| i.clone());
+        // The retries dispatched against THIS attempt, each carrying the licence it rides and
+        // the attempts that licence actually covers.
+        let retries: Vec<SagaRetry> = retry_of
+            .iter()
+            .filter(|(_, a)| a == attempt)
+            .map(|(retry, _)| {
+                let licence = retry_licence
+                    .iter()
+                    .find(|(r, _)| r == retry)
+                    .map(|(_, l)| l.clone());
+                let covers: Vec<String> = licence
+                    .iter()
+                    .flat_map(|l| {
+                        licence_covers
+                            .iter()
+                            .filter(move |(c, _)| c == l)
+                            .map(|(_, a)| a.clone())
+                    })
+                    .collect();
+                let borrowed = !covers.is_empty() && !covers.iter().any(|c| c == attempt);
+                SagaRetry {
+                    retry: retry.clone(),
+                    licence,
+                    covers,
+                    borrowed,
+                }
+            })
+            .collect();
         let settled = receipts.iter().any(|(_, a)| a == attempt);
         let undetermined = unknowns.iter().any(|(_, a)| a == attempt);
         let unresolvable = foreclosed.iter().any(|(_, a)| a == attempt);
@@ -6678,12 +6834,46 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
         } else {
             ("no-effect-record", None)
         };
+        // A borrowed licence outranks every other thing this attempt owes. The retry is
+        // already dispatched, so the reconciliation the outcome asks for is no longer the
+        // next move: stopping the re-send is, before the provider sees a second key and
+        // performs the effect twice. Folding it into `owed` (rather than printing it as a
+        // footnote) is what keeps the single line an operator reads true.
+        let owed = if retries.iter().any(|r| r.borrowed) {
+            let borrowed: Vec<String> = retries
+                .iter()
+                .filter(|r| r.borrowed)
+                .map(|r| {
+                    format!(
+                        "{} rides {}, which covers {}",
+                        short(&r.retry),
+                        r.licence.as_deref().map_or("no licence", |l| short(l)),
+                        r.covers
+                            .iter()
+                            .map(|c| short(c))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                })
+                .collect();
+            Some(format!(
+                "STOP THE RETRY — a retry of this attempt rides a BORROWED idempotency \
+                 licence ({}), not one covering this attempt. A borrowed licence reads \
+                 identically to a real one and protects nothing: its key is a different key, \
+                 so the provider sees a fresh request and the effect happens twice.{}",
+                borrowed.join("; "),
+                owed.map_or_else(String::new, |o| format!(" Then: {o}"))
+            ))
+        } else {
+            owed
+        };
         settled_attempts.push(SagaAttempt {
             attempt: attempt.clone(),
-            intent: intent.clone(),
+            intent,
             outcome,
             owed,
             probed,
+            retries,
         });
     }
 
@@ -6697,6 +6887,15 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
                     "outcome": a.outcome,
                     "owed": a.owed,
                     "probed": a.probed,
+                    "retries": a.retries
+                        .iter()
+                        .map(|r| serde_json::json!({
+                            "retry": r.retry,
+                            "licence": r.licence,
+                            "licence_covers": r.covers,
+                            "borrowed_licence": r.borrowed,
+                        }))
+                        .collect::<Vec<_>>(),
                 })
             })
             .collect();
@@ -6706,7 +6905,7 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
             &serde_json::json!({
                 "command": "logic saga",
                 "input": input.display().to_string(),
-                "has_effect_records": !empty,
+                "has_effect_records": true,
                 "attempts": attempts_json,
                 "reconciliation_verdicts": all_verdicts
                     .iter()
@@ -6720,19 +6919,41 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
         );
     }
 
-    if empty {
-        println!("no external-effect records in {}", input.display());
-        return 0;
-    }
-
     for a in &settled_attempts {
         println!("attempt: {}", short(&a.attempt));
-        println!("  intent:      {}", short(&a.intent));
+        // An attempt the graph never joins to a dispatch intent says so, rather than being
+        // dropped from the roster — the join is what is missing, not the attempt.
+        println!(
+            "  intent:      {}",
+            a.intent
+                .as_deref()
+                .map_or("none — no logic:attemptOfIntent names this attempt", short)
+        );
         match a.outcome {
             "no-effect-record" => {
                 println!("  outcome:     no receipt and no unknown-outcome record")
             }
             other => println!("  outcome:     {other}"),
+        }
+        for r in &a.retries {
+            println!(
+                "  retry:       {} (licence: {}{})",
+                short(&r.retry),
+                r.licence.as_deref().map_or("none", |l| short(l)),
+                if r.covers.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        ", covers {}{}",
+                        r.covers
+                            .iter()
+                            .map(|c| short(c))
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                        if r.borrowed { " — BORROWED" } else { "" }
+                    )
+                }
+            );
         }
         if let Some(owed) = &a.owed {
             println!("  owed:        {owed}");
