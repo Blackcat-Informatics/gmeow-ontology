@@ -78,6 +78,24 @@ fail-fast = false
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The schema.org HowTo projection drives the whole prescription/enactment spine
+# through the projection stage, which is pipeline-scale work, not a focused unit
+# test — but it was inheriting the 60s default and therefore a 120s ceiling.
+#
+# MEASURED on this 32-CPU host, build cached, at load average 32-47: it PASSES
+# standalone in 101s. That leaves 19s of margin against the inherited ceiling,
+# which is not a margin: it survived one full gate run purely by finishing under
+# the wire and was killed on the next. A test whose verdict turns on how busy the
+# machine is has stopped testing the code, so this is a corrected budget rather
+# than a tolerated flake.
+#
+# It gets the same 300s x 4 backstop as the sibling whole-pipeline lanes above —
+# ~12x the measured standalone cost, generous under gate parallelism, and still
+# bounding a genuine runaway.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(schema_org_procedures_projection)'
+slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
+
 # The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
 # WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
 # artifact — the same order of magnitude as the pipeline whole-run parity lanes above,
