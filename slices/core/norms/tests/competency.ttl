@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest) over the
+# full merged ontology, asserted lane (gmeow:reasoningNone).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .
+
+ex:cqDeonticValueVocabularies a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/deontic-value-vocabularies.rq" ;
+    gmeow:cqRationale "Norms are only interoperable across issuers if the deontic axes are VALUES rather than sortals: a consumer who subclasses gmeow:DeonticModality to add a local flavour of obligation, instead of attaching one of its individuals, forks the vocabulary and breaks every downstream join on modality and authority. GMEOW must answer 'which of these are value vocabularies?' from the logic:AbstractIndividualType typing in the graph, not from prose, so that retyping either one stops the question answering rather than silently changing what a norm means." ;
+    gmeow:cqResultShape ex:cqDvvShape ;
+    gmeow:cqExpectRow ex:cqDvvAuthority , ex:cqDvvModality .
+
+ex:cqDvvShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "vocabulary" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqDvvAuthority a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:AuthorityLevel ] .
+ex:cqDvvModality a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:DeonticModality ] .

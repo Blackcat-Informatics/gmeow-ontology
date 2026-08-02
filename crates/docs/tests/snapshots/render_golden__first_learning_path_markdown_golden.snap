@@ -53,8 +53,8 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 
 ## Example files
 
+- `slices/core/agentic/examples/agent-trajectory.ttl`
 - `slices/core/ai/examples/grounded-claim.ttl`
-- `slices/extensions/agentic/examples/agent-trajectory.ttl`
 - `slices/extensions/graphrag/examples/lillith-dataset.ttl`
 - `slices/extensions/graphrag/examples/lillith-pipeline.ttl`
 

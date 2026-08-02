@@ -43,7 +43,7 @@ const GROUNDING_GROUP_PREFIX: &str = "grounding/";
 /// The core `rights` module, parsed in isolation for the graft-isolation gate.
 const CORE_RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
 
-/// The norms-extension IRIs the core `rights` module must never reference (in any
+/// The norms-slice IRIs the core `rights` module must never reference (in any
 /// triple position) — the graft is asserted on the extension side only, matching
 /// the retired `test_graft_axioms_live_extension_side_only`. Matched by **exact
 /// term identity**, never substring (`normIssuer` must not match `normIssuerRole`).
@@ -295,7 +295,7 @@ fn detect_shape_collisions(files: &[(PathBuf, Dataset)], root: &Path) -> Result<
 
 // ── R4: graft isolation ──────────────────────────────────────────────────────
 
-/// The core `rights` module must reference zero norms-extension IRIs (the retired
+/// The core `rights` module must reference zero norms-slice IRIs (the retired
 /// `test_graft_axioms_live_extension_side_only`): the graft lives on the extension
 /// side only, with zero core churn.
 pub fn graft_isolation_findings(repo_root: &Path) -> Result<Vec<Finding>> {
@@ -304,7 +304,7 @@ pub fn graft_isolation_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     Ok(detect_graft_leaks(&ds, &rel(&path, repo_root)))
 }
 
-/// The pure graft-leak logic: any norms-extension IRI appearing in subject,
+/// The pure graft-leak logic: any norms-slice IRI appearing in subject,
 /// predicate, or object position by **exact term identity**.
 fn detect_graft_leaks(ds: &Dataset, source_label: &str) -> Vec<Finding> {
     // Ordered set of leaked terms → the positions they were found in.
@@ -333,7 +333,7 @@ fn detect_graft_leaks(ds: &Dataset, source_label: &str) -> Vec<Finding> {
                 Severity::Error,
                 codes::AUTHORING_GRAFT_LEAK,
                 format!(
-                    "core module {source_label} references norms-extension IRI {term} (in {pos}) \
+                    "core module {source_label} references norms-slice IRI {term} (in {pos}) \
                      — the norms graft must live on the extension side only",
                     pos = positions.join("/"),
                 ),
@@ -1448,7 +1448,7 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
 //
 // The generated seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
 // rendered as `seams/index.md` and materialized at `ontology-docs/seams/index.md`
-// by `make sync SYNC_OUTPUTS=docs`) is a pure projection of the `gmeow:Seam`
+// by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`) is a pure projection of the `gmeow:Seam`
 // individuals authored in the grounding slices' manifests (docs/GROUNDING.md,
 // "The seam registry"). This gate is a SECOND, INDEPENDENT reader of that same
 // governance data — `gmeow-validate` cannot depend on `gmeow-docs` (which itself
@@ -2046,7 +2046,8 @@ pub fn seam_registry_drift_findings(
                         "seam-registry drift NOT COMPARED against a materialized page: no \
                          {ONTOLOGY_DOCS_DIR}/ tree in this checkout, so \
                          {SEAM_REGISTRY_PAGE_PATH} does not exist (materialize it with `make \
-                         sync SYNC_OUTPUTS=docs`). The {n} declared gmeow:Seam individual(s) are \
+                         check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`). The {n} declared \
+                         gmeow:Seam individual(s) are \
                          compared unconditionally against the in-memory render by `gmeow-dev \
                          doc-lint`.",
                         n = seams.len(),
@@ -3354,7 +3355,9 @@ mod tests {
         );
         assert!(
             findings[0].message.contains("NOT COMPARED")
-                && findings[0].message.contains("make sync SYNC_OUTPUTS=docs")
+                && findings[0]
+                    .message
+                    .contains("make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs")
                 && findings[0].message.contains("doc-lint"),
             "the record must name the state, the remedy, and the unconditional leg: {}",
             findings[0].message

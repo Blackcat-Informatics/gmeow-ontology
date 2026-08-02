@@ -10,7 +10,9 @@
 //! Each resource a stage [`Stage::resources`] declares is held exclusively while
 //! it runs — two stages competing for the same resource serialize; everything
 //! else is parallel within its topological level. The reasoning stage requires
-//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive).
+//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive); the two
+//! whole-dataset serialization leaves require [`SERIALIZATION_BUFFER_RESOURCE`]
+//! (their peak residency is exclusive).
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -31,6 +33,30 @@ pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// scheduler serializes any two stages requiring the same resource (the
 /// declarative replacement for a hardcoded engine mutex).
 pub const ENGINE_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/engineResource";
+
+/// The `gmeow:serializationBufferResource` IRI: the whole-dataset serialization
+/// buffer.
+///
+/// Unlike [`ENGINE_RESOURCE`] this guards no shared mutable state — the carrier is a
+/// read-only `Arc` every export leaf shares. It is exclusive because of PEAK
+/// RESIDENCY: a stage that declares it materializes the ENTIRE terminal carrier into
+/// in-memory text buffers, so its transient footprint is a multiple of the dataset,
+/// and two such stages running concurrently add their peaks. MEASURED on the
+/// production DAG at `jobs=4` (per-stage peak allocation delta): `stage-export-export`
+/// 9.06 GiB, `stage-export-yaml-ld` 8.37 GiB, then an order-of-magnitude cliff to the
+/// next leaf (`stage-export-okf`, 0.73 GiB). Concurrently those two alone exceed a
+/// 16 GB runner. Declaring this resource makes them serialize against each other while
+/// every cheap leaf keeps full parallelism — the same declarative permit the reasoning
+/// engine uses, with no new scheduler special case.
+///
+/// This is a permit, not a fix for the underlying shape: both stages ask purrdf for a
+/// whole-document `String`/`Vec<u8>`
+/// (`purrdf::serialize_dataset`, `purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld`
+/// / `serialize_dataset_to_yamlld`). Removing the peak rather than scheduling around it
+/// needs those codecs to grow an incremental `io::Write` sink so the document never
+/// exists in memory at once — a purrdf API, never a second gmeow-side serializer.
+pub const SERIALIZATION_BUFFER_RESOURCE: &str =
+    "https://blackcatinformatics.ca/gmeow/serializationBufferResource";
 
 /// The `gmeow:sinkCapability` IRI: the single narrow-waist serialization exit. Held
 /// (via [`Stage::capabilities`] / RDF `gmeow:hasCapability`) by exactly ONE stage in
@@ -68,6 +94,21 @@ pub struct StageProduct {
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
     pub bundle: Arc<PipelineBundle<PipelineHandle>>,
+    /// Whether this product's CARRIER has been released (drop-after-last-consumer).
+    ///
+    /// `false` for every product a stage emits and for every product the cache serves.
+    /// The scheduler sets it — and replaces `bundle` with
+    /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
+    /// byte-artifact lane only) — once the LAST stage declaring this one in `consumes()`
+    /// has run, under [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
+    /// `digest` is preserved verbatim across the release: it is the identity witness of
+    /// the carrier that was released, so `combined()` is byte-identical either way.
+    ///
+    /// A released product's dataset / handles / blob records / internal `pipeline/`
+    /// artifacts are GONE. Anything reaching for them is reaching past the declared
+    /// dataflow and MUST hard-fail on this flag rather than read an empty carrier — see
+    /// [`crate::stages::carrier::snapshot_dataset`].
+    pub carrier_released: bool,
 }
 
 impl StageProduct {
@@ -85,6 +126,7 @@ impl StageProduct {
                 BTreeMap::new(),
                 DatasetProvenance::new(),
             )),
+            carrier_released: false,
         }
     }
 
@@ -120,7 +162,31 @@ impl StageProduct {
             stage_id: stage_id.into(),
             digest,
             bundle,
+            carrier_released: false,
         }
+    }
+
+    /// This product with its carrier RELEASED: the frozen dataset, typed handles,
+    /// blob records, provenance, and internal `pipeline/` byte artifacts are dropped;
+    /// only the COMMITTED byte-artifact lane survives, for the post-run reconcile.
+    ///
+    /// `stage_id` and `digest` are preserved VERBATIM — the digest is the identity
+    /// witness of the released carrier, never a fold over the residue — so the run's
+    /// `combined_digest` is byte-identical whether or not the release happened. The
+    /// scheduler calls this at the stage's drop-after-last-consumer point; releasing an
+    /// already-released product is idempotent.
+    ///
+    /// # Errors
+    /// Propagates [`release_carrier`](crate::bundle::release_carrier)'s hard failure on
+    /// a corrupt byte-artifact lane.
+    pub fn into_carrier_released(self) -> Result<Self, gmeow_errors::Diag> {
+        let bundle = crate::bundle::release_carrier(&self.bundle)?;
+        Ok(Self {
+            stage_id: self.stage_id,
+            digest: self.digest,
+            bundle: Arc::new(bundle),
+            carrier_released: true,
+        })
     }
 
     /// Borrow the structured carrier this product emitted.
@@ -298,8 +364,9 @@ pub trait Stage: Send + Sync {
     /// The IRIs of the shared resources this stage must hold exclusively while it
     /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
     /// resource serialize; the default is none (parallel-eligible). The reasoning
-    /// stage declares [`ENGINE_RESOURCE`]. The loader HARD-fails if this disagrees
-    /// with the RDF `gmeow:requiresResource` declaration.
+    /// stage declares [`ENGINE_RESOURCE`]; the two whole-dataset serialization leaves
+    /// declare [`SERIALIZATION_BUFFER_RESOURCE`]. The loader HARD-fails if this
+    /// disagrees with the RDF `gmeow:requiresResource` declaration.
     fn resources(&self) -> &[String] {
         &[]
     }
@@ -310,7 +377,7 @@ pub trait Stage: Send + Sync {
     fn cache_policy(&self) -> CachePolicy {
         CachePolicy::Persistent
     }
-    /// The typed dataflow (`gmeow:DataFlow` reified edges): for each upstream producer
+    /// The typed dataflow (`gmeow:BuildDataFlow` reified edges): for each upstream producer
     /// the stage reads only SPECIFIC named-graph entities from, a
     /// `(producer_id, sorted entity-graph IRIs)` pair, the whole list sorted by
     /// producer id. A producer ABSENT here (the default for every producer) is a
@@ -322,7 +389,7 @@ pub trait Stage: Send + Sync {
     /// Narrowing is a CORRECTNESS ASSERTION: declare an entity set only when the stage
     /// provably reads nothing else from that producer's product — a too-small set would
     /// serve a stale build. The loader HARD-fails if this disagrees with the RDF
-    /// `gmeow:DataFlow` declaration (single source of truth).
+    /// `gmeow:BuildDataFlow` declaration (single source of truth).
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
     }

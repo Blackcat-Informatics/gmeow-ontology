@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The UNANSWERED GAP, on its own — the single-defect half of the substitution scene.
+#
+# The deployment holds no OCR capability. The discipline says: raise a
+# logic:OperationalCapabilityGap naming the blocked step, and let it ARRIVE WITH the
+# logic:CapabilityGapProposal that would close it. Here a proposal is present, complete
+# in all eight facets, and about a different blockage entirely: its
+# logic:proposalBlockedStep is ex:thumbnailStep and the gap's is ex:ocrStep. Nothing is
+# missing — the gap names its step, so logic:OperationalGapNamesBlockedStepConstraint
+# passes, and the proposal binds every field, so
+# logic:CapabilityGapProposalCompletenessConstraint passes. A reader counting proposals
+# against gaps sees a backlog being attended to. The defect is the JOIN, and only a law
+# that reads it can see there is nothing here that would ever close the OCR blockage.
+#
+# It is deliberately SMALLER than its sibling. The scene it was split out of
+# (ocr-gap-remedied-for-a-different-step.ttl) adds the logic:DispatchIntent that ran the
+# blocked step anyway, and that dispatch is a SECOND condemnation under
+# logic:NoDispatchAgainstAnUnremediedGapConstraint — so that scene can never carry a
+# sole-finding claim, and this one can: what remains here is a blockage nobody is
+# provisioning for, with nothing yet dispatched into it.
+#
+# MUST trip logic:OperationalGapCarriesProposalConstraint, and nothing else.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:noOcrProvider a logic:OperationalCapabilityGap ;
+    rdfs:label "no available actor can read a scanned page"@en ;
+    logic:gapBlockedStep ex:ocrStep .
+
+# The proposal that is present, complete, and about a different blockage.
+ex:thumbnailProposal a logic:CapabilityGapProposal ;
+    rdfs:label "what it would take to render page thumbnails — a different gap entirely"@en ;
+    logic:proposalMissingCapability ex:pageThumbnailRendering ;
+    logic:proposalRequiredContract "Page image in, fixed-width preview raster out." ;
+    logic:proposalExpectedInputs "Rasterised page images, 300dpi or better." ;
+    logic:proposalExpectedOutputs "One 240px-wide preview per page." ;
+    logic:proposalExpectedEffects "Reads batch images; writes previews alongside them." ;
+    logic:proposalVerificationMethod "Byte-identical previews across two runs on the frozen corpus." ;
+    logic:proposalSecurityLifecycle "Runs inside the data boundary; retains no page content." ;
+    logic:proposalBlockedStep ex:thumbnailStep .

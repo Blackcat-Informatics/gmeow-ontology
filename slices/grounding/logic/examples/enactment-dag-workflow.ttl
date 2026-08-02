@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Generality proof: the kernel carries a data-pipeline DAG. No
+# work-orchestration vocabulary appears in this file.
+#
+# This example is deliberately the closest of the three to the kernel's original
+# motivation, and it is included precisely BECAUSE it is the easy case: if the
+# curriculum and control-plan examples read naturally and this one does too,
+# then the kernel is general rather than a workflow vocabulary with the labels
+# filed off. The tell would be a term that only makes sense here.
+#
+# It also documents the kernel's own dogfooding claim in miniature: a
+# regeneration pipeline IS a durable enactment — DAG stages, a manifest cache
+# acting as a checkpoint, external effects writing files, a budget, and a
+# cache-hit/cache-miss distinction that is exactly resume-versus-repeat.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/dag/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:nightlyIngestDag a logic:Plan ;
+    rdfs:label "Nightly ingest and aggregate — DAG"@x-gmeow-english ;
+    logic:planGoal ex:freshAggregatesPublished ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindDataPipeline .
+
+# Strong-cyclic: a transient source outage is retried, so success is required of
+# every FAIR execution rather than merely of some lucky one.
+ex:freshAggregatesPublished a gmeow:Goal ;
+    rdfs:label "Tonight's aggregates are computed and published"@x-gmeow-english .
+
+ex:nightlyIngestDagV12 a logic:PrescriptionVersion ;
+    rdfs:label "Nightly ingest DAG, revision 12"@x-gmeow-english ;
+    logic:prescriptionOf ex:nightlyIngestDag ;
+    logic:prescriptionDigest "b3:7f31d0a95c26be804173fa5c98e2d067b41a835ce09f7d2461b58a03cf7e916d" .
+
+# The closed input generation. A DAG run that cannot say which input generation
+# it consumed cannot be compared to yesterday's run, which is the entire point
+# of running it nightly.
+ex:ingestGeneration884 a logic:InputSnapshot ;
+    rdfs:label "Source generation 884, frozen at run start"@x-gmeow-english ;
+    logic:snapshotDigest "b3:2c840be71fa395d0627e18ca350bd94f7e02a61c8d539fb740ae2c81635d90a7" .
+
+ex:nightlyRun884 a logic:Enactment ;
+    rdfs:label "Nightly run over generation 884"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:nightlyIngestDagV12 ;
+    logic:enactmentInputSnapshot ex:ingestGeneration884 ;
+    logic:enactmentJournal ex:run884Journal ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:run884Journal a logic:TransitionJournal ;
+    rdfs:label "Run 884 transition journal"@x-gmeow-english ;
+    logic:journalHead "b3:6b1e37c0a95df428013c7ae5920bd684fc0a13e57b29d640f8a5c1073be29d48" .
+
+# --- Per-stage checkpoints. A DAG stage that completed does not re-run on
+#     resume; that is the cache hit. The seven-axis fold is what makes the
+#     reuse safe: matching the input data alone would happily reuse a stage
+#     output computed under last week's transformation rules.
+ex:extractStageCheckpoint a logic:StepCheckpoint ;
+    rdfs:label "Extract stage checkpoint"@x-gmeow-english ;
+    logic:checkpointOfEnactment ex:nightlyRun884 ;
+    logic:checkpointDataDigest "b3:88f0a2c5137be964025da3c1f80b7e493a6c150db28f74a1c0e39b562da70f8c" ;
+    logic:checkpointRulesDigest "b3:31c9075bea2d846f019b3c5a7de082f4c6910ab35d7e2f84095c6bd1387a0e26" ;
+    logic:checkpointSliceDigest "b3:4a7e0c93b158fd26073a9e5c81b0d4f27ce6180a9b23d75f4e08ac6135b927d0" ;
+    logic:checkpointContractDigest "b3:d20b5fa8137ce946025b8a0c73f1e6d840927ac35be104f7861d3c05972ea4b8" ;
+    logic:checkpointEngineDigest "b3:0f5a91c2e73d846b015c7f2a98e0d3b461708ca25df93b640e12a85c37bd096f" ;
+    logic:checkpointAnnotationDigest "b3:a6d10f83e5b27c94021a6e5d380cb7f942c0158b7ae936d240f5c8b1027e3da9" ;
+    logic:checkpointFragmentDigest "b3:53e802a1cf7b96d40158c3e29a7d06bf418e250c9d63ba7f012a4c85e6f309b7" ;
+    logic:checkpointDescriptorHash "b3:c1097fe5a3d2b864015e79a0c4b3d28f6501ae37c9d4b20f836a5c19e70d24bf" .
+
+# --- Resume versus repeat, which in a pipeline is exactly cache-hit versus
+#     cache-miss. Conflating them is how a system ends up unable to say whether
+#     tonight's numbers were recomputed or carried over.
+ex:run884Resume a logic:JournalEntry ;
+    rdfs:label "Resumed after transient object-store outage"@x-gmeow-english ;
+    logic:continuationKind logic:ContinuationResume ;
+    logic:journalPrevHead "b3:6b1e37c0a95df428013c7ae5920bd684fc0a13e57b29d640f8a5c1073be29d48" ;
+    logic:journalNewHead "b3:e920c47a1b385df6024a8c130e75bf9847c2a06b1de5397f406c8a52193bd7e0" ;
+    logic:journalDeltaIdentity "b3:19af5e03c7b26d84015f930ae82c47db60a3159c2ed847bf03a6c1d5928e04f7" ;
+    logic:journalOutcomeTag "resumed" .
+
+# --- A snapshot delta is what makes an incremental DAG honest: it names exactly
+#     which inputs were added and which were suppressed between generations,
+#     content-addressed and order-independent. "What changed since last night"
+#     stops being a guess derived from timestamps.
+ex:generation884Delta a logic:SnapshotDelta ;
+    rdfs:label "What changed between generation 883 and 884"@x-gmeow-english ;
+    logic:snapshotDigest "b3:76b3e01ca295df8460173ae5c02b9d84f1e6a370c85bd249f0a3c6172e5b8409" .
+
+# --- The frontier: what is actionable right now, derived rather than asserted,
+#     and carrying a saturation witness so "nothing left to do" is a certified
+#     claim rather than an artifact of a budget cut.
+ex:run884Frontier a logic:ActionableFrontier ;
+    rdfs:label "Actionable frontier for run 884"@x-gmeow-english ;
+    logic:frontierOfEnactment ex:nightlyRun884 ;
+    logic:frontierSaturationWitness ex:run884Saturation ;
+    logic:hasFrontierEntry ex:aggregateStageEntry, ex:publishStageEntry .
+
+ex:aggregateStageEntry a logic:FrontierEntry ;
+    rdfs:label "Aggregate stage — ready, no approval needed"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# The publish stage writes to a public endpoint, so policy gates it on approval.
+# Readiness and approval are SEPARATE axes: this step is ready AND requires
+# approval, and a single flat enum would have to invent a combined value for
+# every such pairing.
+ex:publishStageEntry a logic:FrontierEntry ;
+    rdfs:label "Publish stage — ready, but policy requires approval"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyApprovalRequired ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+#
+# Typed logic:SaturationWitness, never logic:FrontierEntry. The two are different
+# kinds of claim — one entry positions an ACTION, the witness certifies the roster
+# of them — and collapsing them puts a phantom row on the very list it certifies.
+ex:run884Saturation a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness ;
+    logic:consumedBudget "16"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

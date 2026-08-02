@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N6b - a compensation outcome recorded without its own receipt. Compensation is a new
+# action, so the gap between attempting and achieving applies to it exactly as to a
+# forward effect. Coded separately from N6a because the two are independent obligations.
+# MUST trip logic:CompensationSuccessRequiresReceiptConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:compensationNoReceipt a logic:CompensationOutcome ;
+    rdfs:label "a compensation outcome asserting success with no receipt"@en .

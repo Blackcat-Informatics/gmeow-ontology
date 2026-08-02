@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Given only a per-axis slice-quality grade, which rubric-owned
+# property carries the axis it measured — and is that property actually needed, or would
+# the ISO dimension already determine the axis?"
+#
+# The projected column is the join key. The unprojected witness in the body is what makes
+# the key necessary: two DISTINCT axes bound to ONE gmeow:axisDimension value. The row is
+# emitted only while that collapse is real, so the question cannot pass by declaration.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?joinKey WHERE {
+    ?joinKey a owl:ObjectProperty ;
+        rdfs:domain gmeow:QualityAssessment ;
+        rdfs:range gmeow:QualityAxis ;
+        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> .
+
+    ?axisOne gmeow:axisDimension ?sharedDimension .
+    ?axisTwo gmeow:axisDimension ?sharedDimension .
+    FILTER(STR(?axisOne) < STR(?axisTwo))
+}
+ORDER BY ?joinKey

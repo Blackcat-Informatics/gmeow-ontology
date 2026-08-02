@@ -157,6 +157,23 @@ pub struct ExampleConformance {
     /// alongside it) and is the only mechanism that reaches native (non-SHACL) failure
     /// classes at all.
     pub expected_failure_class: Option<String>,
+
+    /// `gmeow:expectedSoleFinding` — OPTIONAL (violates cells only). The
+    /// EXHAUSTIVENESS half, which neither of the two fields above can express: they
+    /// pin that a particular law DID fire, and the harness's violates branch asks
+    /// only that SOME finding match, so a rationale claiming the fixture isolates
+    /// one defect is unfalsifiable while this is absent. When `Some(true)`, EVERY
+    /// violation-severity result must originate from `expected_source_shape` —
+    /// several rows of the SAME law still conform, one finding from another law is a
+    /// hard failure. Absent → unchanged behaviour, so no cell that omits it is
+    /// affected.
+    ///
+    /// `expected_source_shape` is REQUIRED whenever this is `Some(true)`: soleness is
+    /// a claim about WHICH law is the only one, and an unnamed law cannot carry it.
+    /// A `Some(true)` with no pinned shape is a cell-configuration HARD FAIL in
+    /// [`crate::exec`], and `shapes/test-dsl-shapes.ttl` rejects the same pairing
+    /// declaratively.
+    pub expected_sole_finding: Option<bool>,
     pub rationale: Option<String>,
 }
 
@@ -248,13 +265,14 @@ SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
 }";
 
 const Q_CONFORMANCE: &str = "
-SELECT ?ec ?file ?outcome ?code ?shape ?failureClass ?rationale WHERE {
+SELECT ?ec ?file ?outcome ?code ?shape ?failureClass ?sole ?rationale WHERE {
   ?ec a gmeow:ExampleConformance ;
       gmeow:exampleFile ?file ;
       gmeow:expectedOutcome ?outcome .
   OPTIONAL { ?ec gmeow:expectedViolationCode ?code }
   OPTIONAL { ?ec gmeow:expectedSourceShape ?shape }
   OPTIONAL { ?ec gmeow:expectedFailureClass ?failureClass }
+  OPTIONAL { ?ec gmeow:expectedSoleFinding ?sole }
   OPTIONAL { ?ec gmeow:conformanceRationale ?rationale }
 }";
 
@@ -458,6 +476,7 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
             // compares directly against the finding's `sh:sourceShape` term.
             expected_source_shape: sol.get("shape").and_then(term_iri),
             expected_failure_class: sol.get("failureClass").and_then(term_iri),
+            expected_sole_finding: opt_bool(&sol, "sole")?,
             rationale: opt_string(&sol, "rationale"),
         });
     }

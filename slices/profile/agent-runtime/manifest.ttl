@@ -14,7 +14,7 @@
 # citable import target). The design's "memory" and "claims" constituents are not
 # separate slices — they are provided transitively through core/inhabitation (the
 # durable subject, the TransferManifest / MemoryView memory topology) and its
-# epistemics / standpoint dependencies (claims-as-observations); extensions/agentic
+# epistemics / standpoint dependencies (claims-as-observations); core/agentic
 # adds the tool-call / trajectory layer and core/awareness the serving modes.
 #
 # extensions/model-serving and extensions/agentic are SIBLING extensions and may
@@ -27,7 +27,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/agent-runtime>
     a gmeow:Slice ;
     rdfs:label "agent-runtime"@x-gmeow-english ;
-    skos:definition "The agent-runtime profile of the GMEOW ontology (profile tier): a pure selection for the AI-agent / MCP-developer audience — a durable subject inhabiting a served model, with its runtime provenance, tool use, serving modes, and claims/memory, loaded as one coherent, dependency-closed sub-ontology. Mints NOTHING (Principle 16); the composition rides the open gmeow:configurationFacet at the instance level. Selection: core/inhabitation + extensions/model-serving + extensions/agentic + core/awareness and their sliceDependsOn closure (which supplies the epistemics/standpoint claims layer and the memory-transfer topology)."@x-gmeow-english ;
+    skos:definition "The agent-runtime profile of the GMEOW ontology (profile tier): a pure selection for the AI-agent / MCP-developer audience — a durable subject inhabiting a served model, with its runtime provenance, tool use, serving modes, and claims/memory, loaded as one coherent, dependency-closed sub-ontology. Mints NOTHING (Principle 16); the composition rides the open gmeow:configurationFacet at the instance level. Selection: core/inhabitation + extensions/model-serving + core/agentic + core/awareness and their sliceDependsOn closure (which supplies the epistemics/standpoint claims layer and the memory-transfer topology)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agent-runtime> ;
     dcterms:title "GMEOW Agent-Runtime Profile"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;

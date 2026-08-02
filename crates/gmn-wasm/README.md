@@ -11,8 +11,9 @@ token-compact GMN-1 surface — and back — **client-side**, no server, no repo
 
 It wraps the wasm-clean [`gmeow-lang-bridge`](../lang-bridge) GMN-0↔GMN-1 codec with the
 `lang:` glyph/alias codebook embedded. Byte-exact round-trip and parity with the native
-codec are proven by the Node witness lane (`make gmn-wasm-pkg-test`, on the `make check`
-gate via `wasm-parity`). GMN-2 (lossy compaction) and the zstd-dictionary transport are
+codec are proven by the Node witness lane (`make gmn-wasm-pkg-test`, gate-enforced on
+every pull request via `wasm-parity` in the required CI `make heavy` lane). GMN-2 (lossy
+compaction) and the zstd-dictionary transport are
 NOT built here — that notation is still being developed.
 
 ## JavaScript API

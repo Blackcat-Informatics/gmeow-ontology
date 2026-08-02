@@ -120,6 +120,7 @@ pub mod runtime;
 pub mod seam;
 pub mod slme;
 pub mod stablemodel;
+pub mod statement_lowering;
 pub mod store;
 /// Synthetic relational-core Datalog generators (transitive closure, SCC, same
 /// generation, reachability) for the engine benchmark harness: each returns
@@ -151,3 +152,23 @@ pub(crate) mod oracle;
 
 // Static profile / decidability certifier.
 pub mod certify;
+
+// ---------------------------------------------------------------------------
+// Means–end refinement (RQ2/RQ3/RQ10) — public façade.
+//
+// The implementation lives in `reason::enactment::refine`, which is crate-private
+// because the reasoning internals are. This façade is the shipped surface a consumer
+// (the `gmeow logic refine` command) drives, so the refinement is a reachable
+// capability rather than a module nothing calls.
+//
+// There is deliberately NO refinement-specific status type here. A refinement reports
+// the same six-way [`runtime::OperationOutcome`] every other engine operation does, on
+// [`RefineReport::outcome`]: a private three-valued fold could express neither a
+// cancellation nor a malformed request, and inventing a second vocabulary for the same
+// question is how two parts of one engine come to disagree about what "incomplete"
+// means.
+// ---------------------------------------------------------------------------
+
+pub use reason::enactment::refine::{
+    ProofWitness, RefineCandidate, RefineRejection, RefineReport, RejectionKind, refine,
+};

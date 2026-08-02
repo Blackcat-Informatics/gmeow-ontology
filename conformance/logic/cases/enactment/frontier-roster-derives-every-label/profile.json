@@ -1,0 +1,24 @@
+{
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "decidable",
+  "shipped_rules": [
+    "https://blackcatinformatics.ca/logic/ruleFrontierBlockedPrecondition",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReadyApprovalRequired",
+    "https://blackcatinformatics.ca/logic/ruleFrontierBlockedCapability",
+    "https://blackcatinformatics.ca/logic/ruleFrontierWaitingOnEventTimeOrInput",
+    "https://blackcatinformatics.ca/logic/ruleFrontierMutuallyExclusive",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationRequired",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCompensationEligible",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCompensationRequired",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCompensationFailedForwardCommitted",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationImpossible",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCompleted",
+    "https://blackcatinformatics.ca/logic/ruleFrontierSkippedWithTypedReason",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCancelled",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCancelledWithInFlightEffects",
+    "https://blackcatinformatics.ca/logic/ruleFrontierTerminallyFailed"
+  ]
+}

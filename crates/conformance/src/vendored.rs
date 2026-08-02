@@ -328,8 +328,8 @@ mod tests {
             )
         }
 
-        let base = std::env::temp_dir().join(format!("gmeow-conf-lane-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         // External Lane-B corpus: a case here must be skipped by the native gate.
         let case_b = base.join("external/heavy-corpus/some-case");
@@ -356,7 +356,5 @@ mod tests {
         assert_eq!(lane_for_case(&case_b).unwrap(), Some(Lane::B));
         assert_eq!(lane_for_case(&case_a).unwrap(), Some(Lane::A));
         assert_eq!(lane_for_case(&endo).unwrap(), None);
-
-        let _ = fs::remove_dir_all(&base);
     }
 }

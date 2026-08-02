@@ -26,6 +26,25 @@ fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
+/// Slices RETIRED since the golden was frozen.
+///
+/// The golden TSVs are a permanent historical record and are never edited — a
+/// dropped or perturbed value must stay detectable forever. But a slice that no
+/// longer exists has no commitment to reproduce, so its frozen rows are skipped
+/// here rather than deleted there. Each entry names the slice and why it went,
+/// so the exemption is a recorded decision rather than a silent hole: every row
+/// of every LIVE slice keeps its full teeth.
+const RETIRED_SLICES: &[(&str, &str)] = &[(
+    "https://blackcatinformatics.ca/gmeow/slices/procedures",
+    "process-model slice superseded by the canonical logic: prescription/enactment \
+     spine; its terms were removed rather than kept as a second source of truth",
+)];
+
+/// True when the row belongs to a slice retired since the freeze.
+fn is_retired(slice: &str) -> bool {
+    RETIRED_SLICES.iter().any(|(iri, _)| *iri == slice)
+}
+
 /// The non-comment, non-blank rows of a golden TSV fixture.
 fn golden_rows(name: &str) -> Vec<String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -55,6 +74,9 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
             "golden axis-floor row is <slice-iri>\\t<axis-local>\\t<f64>: {row:?}"
         );
         let (slice, axis_local, floor_str) = (cols[0], cols[1], cols[2]);
+        if is_retired(slice) {
+            continue;
+        }
         let want_bits = floor_str
             .parse::<f64>()
             .unwrap_or_else(|_| panic!("golden floor {floor_str:?} parses as f64"))
@@ -111,6 +133,47 @@ fn every_pre_migration_tier_floor_is_reproduced() {
         assert!(
             rank(loaded) >= rank(tier_local),
             "slice {slice}: loaded tier floor {loaded} must reproduce or ratchet the frozen pre-migration floor {tier_local}"
+        );
+    }
+}
+
+/// The escape hatch must never be able to silence a LIVE slice.
+///
+/// `RETIRED_SLICES` skips frozen golden rows, and the golden is a permanent record whose
+/// whole value is that a dropped or perturbed commitment stays detectable forever. A slice
+/// that no longer exists genuinely has no commitment to reproduce; a slice that still ships
+/// does, and adding it here would silently drain the teeth from every one of its frozen
+/// rows while the suite kept reporting green.
+///
+/// So the list is pinned to the one thing that makes an entry legitimate: the slice is
+/// GONE. Liveness is read from the repository itself — the same
+/// `discover_slice_dirs` + `slice_iri_of_dir` pair the sweep, the ratchet gate and the
+/// pipeline carrier producer use — not from a second hand-maintained roster that could
+/// drift from it.
+#[test]
+fn no_retired_slice_entry_names_a_slice_that_still_exists() {
+    let root = repo_root();
+    let live: Vec<String> = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"))
+        .iter()
+        .map(|dir| {
+            gmeow_slice_quality::slice_iri_of_dir(dir)
+                .unwrap_or_else(|e| panic!("{} must declare a gmeow:Slice: {e}", dir.display()))
+        })
+        .collect();
+    assert!(
+        !live.is_empty(),
+        "slice discovery found no slices at all, so this guard would pass vacuously"
+    );
+    for (iri, reason) in RETIRED_SLICES {
+        assert!(
+            !live.contains(&(*iri).to_owned()),
+            "{iri} is still a LIVE slice in the repository, so its frozen floor rows must \
+             keep their full teeth; RETIRED_SLICES exempts only slices that are gone (the \
+             recorded reason was: {reason})"
+        );
+        assert!(
+            !reason.trim().is_empty(),
+            "{iri} must carry a recorded reason, or the exemption is a silent hole"
         );
     }
 }

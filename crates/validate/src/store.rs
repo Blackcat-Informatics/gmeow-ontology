@@ -310,10 +310,18 @@ pub fn read_gts_graph(bytes: &[u8]) -> gmeow_errors::Result<purrdf::gts::model::
 mod tests {
     use super::*;
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the parser dispatches on the
+    /// `.ttl` extension and the parse-error assertions match on the file name.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     use purrdf::{DatasetView, GraphMatch};
@@ -322,53 +330,47 @@ mod tests {
 
     #[test]
     fn parse_file_dataset_rejects_bad_turtle() {
-        let path = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
+        let (_tmp, path) = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         assert!(result.is_err(), "malformed Turtle must parse-error");
     }
 
     #[test]
     fn parse_file_dataset_accepts_good_turtle() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_store_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         let ds = result.expect("well-formed Turtle must parse");
         assert_eq!(ds.quad_count(), 1);
     }
 
     #[test]
     fn dataset_from_paths_loads_multiple_files() {
-        let a = write_tmp(
+        let (_tmp_a, a) = write_tmp(
             "gmeow_validate_store_multi_a.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let b = write_tmp(
+        let (_tmp_b, b) = write_tmp(
             "gmeow_validate_store_multi_b.ttl",
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
         let ds = dataset_from_paths(&[a.clone(), b.clone()]).expect("both files must load");
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
         assert_eq!(ds.quad_count(), 2);
     }
 
     #[test]
     fn dataset_from_paths_propagates_parse_error() {
-        let good = write_tmp(
+        let (_tmp_good, good) = write_tmp(
             "gmeow_validate_parsed_err_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let bad = write_tmp(
+        let (_tmp_bad, bad) = write_tmp(
             "gmeow_validate_parsed_err_bad.ttl",
             "this is not turtle @@@ <<<",
         );
         let result = dataset_from_paths(&[good.clone(), bad.clone()]);
-        std::fs::remove_file(&good).ok();
-        std::fs::remove_file(&bad).ok();
         assert!(result.is_err(), "a malformed file must propagate");
         let err = result.err().unwrap();
         let msg = err.message();

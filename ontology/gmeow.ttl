@@ -24,6 +24,7 @@
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow> ;
     owl:imports <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
         <https://blackcatinformatics.ca/gmeow/slices/affect> ,
+        <https://blackcatinformatics.ca/gmeow/slices/agentic> ,
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/ai> ,
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
@@ -61,11 +62,14 @@
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/metacognition> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
+        <https://blackcatinformatics.ca/gmeow/slices/norms> ,
         <https://blackcatinformatics.ca/gmeow/slices/notation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/notes> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/organization> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/pipeline> ,
+        <https://blackcatinformatics.ca/gmeow/slices/preference> ,
         <https://blackcatinformatics.ca/gmeow/slices/profiles> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/quality> ,
@@ -78,7 +82,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ,
-        <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     owl:versionIRI gmeow:0.1.0 ;
     owl:versionInfo "0.1.0" ;
     skos:definition "Root ontology document for GMEOW — the Global Metadata and Entity Ontology for the Web, grounding document metadata, entity descriptions, legal agreements, contacts, and person-centric data (Principle 1)."@x-gmeow-english ;

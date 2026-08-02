@@ -13,10 +13,18 @@ use purrdf::{DatasetView, GraphMatch, RdfDatasetBuilder};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
-fn write_tmp(name: &str, contents: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("{}_{}", name, std::process::id()));
+/// Write `contents` to `name` inside a fresh RAII temp directory.
+///
+/// The returned [`tempfile::TempDir`] owns the directory: it is removed on drop,
+/// including on panic and early return. Bind it to a named `_tmp` (never a bare
+/// `_`, which would drop it immediately) so it outlives the path. The file *name*
+/// is preserved because the orchestration dispatches on the `.ttl` extension and
+/// the syntax-error assertion matches on the file stem.
+fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+    let dir = tempfile::tempdir().expect("create temp dir");
+    let path = dir.path().join(name);
     std::fs::write(&path, contents).unwrap();
-    path
+    (dir, path)
 }
 
 fn lint_config() -> LintConfig {
@@ -64,7 +72,7 @@ fn store_is_reused_across_phases() {
            rdfs:label \"Undocumented\" ;\n\
            rdfs:isDefinedBy <{NS}> .\n"
     );
-    let path = write_tmp("gmeow_validate_all_reuse.ttl", &ttl);
+    let (_tmp, path) = write_tmp("gmeow_validate_all_reuse.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let run = ValidationRun::run(
@@ -76,8 +84,6 @@ fn store_is_reused_across_phases() {
         &ValidateOptions::default(),
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&path).ok();
 
     // The missing-definition error proves structural_lint ran over the store.
     assert!(
@@ -108,21 +114,19 @@ fn store_is_reused_across_phases() {
 #[test]
 fn example_merge_unions_base_and_example_without_leaking() {
     // Base graph with one triple.
-    let base_path = write_tmp(
+    let (_base_tmp, base_path) = write_tmp(
         "gmeow_validate_all_base.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
     );
     let base = build_store(&[base_path.to_string_lossy().to_string()]);
-    std::fs::remove_file(&base_path).ok();
     assert_eq!(base.quad_count(), 1, "base dataset starts with one triple");
 
     // Example carrying one duplicate of the base triple plus one new triple.
-    let example_path = write_tmp(
+    let (_example_tmp, example_path) = write_tmp(
         "gmeow_validate_all_example.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
     );
     let example = parse_file_dataset(&example_path).expect("example must parse");
-    std::fs::remove_file(&example_path).ok();
 
     // The per-example merge re-interns the base quads + the example quads into a fresh
     // dataset; duplicates dedup and the base is untouched (no shared mutable store).
@@ -155,7 +159,7 @@ fn timings_are_populated_when_requested() {
            skos:definition \"A thing.\" ;\n\
            rdfs:isDefinedBy <{NS}> .\n"
     );
-    let path = write_tmp("gmeow_validate_all_timings.ttl", &ttl);
+    let (_tmp, path) = write_tmp("gmeow_validate_all_timings.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let options = ValidateOptions {
@@ -172,8 +176,6 @@ fn timings_are_populated_when_requested() {
         &options,
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&path).ok();
 
     assert!(
         !run.timings.is_empty(),
@@ -205,7 +207,7 @@ fn test_dsl_shacl_runs_in_orchestration() {
            rdfs:isDefinedBy <{NS}> ;\n\
            gmeow:graphBoxRole gmeow:boxTBox .\n"
     );
-    let source_path = write_tmp("gmeow_validate_all_test_dsl_source.ttl", &ttl);
+    let (_source_tmp, source_path) = write_tmp("gmeow_validate_all_test_dsl_source.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let test_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -215,10 +217,10 @@ fn test_dsl_shacl_runs_in_orchestration() {
                              sh:property [ sh:path ex:name ; sh:minCount 1 ] ."
         .to_owned();
 
-    let vocab_dir = std::env::temp_dir().join(format!(
-        "gmeow_validate_all_test_dsl_vocab_{}",
-        std::process::id()
-    ));
+    // ONE RAII root holds both the vocab dir and the `slices/` tree; it is
+    // removed when `dsl_tmp` drops at end of scope, including on panic.
+    let dsl_tmp = tempfile::tempdir().expect("create temp dir");
+    let vocab_dir = dsl_tmp.path().join("vocab");
     std::fs::create_dir_all(&vocab_dir).unwrap();
     std::fs::write(
         vocab_dir.join("vocabulary.ttl"),
@@ -233,10 +235,7 @@ fn test_dsl_shacl_runs_in_orchestration() {
     )
     .unwrap();
 
-    let slices_dir = std::env::temp_dir().join(format!(
-        "gmeow_validate_all_test_dsl_slices_{}",
-        std::process::id()
-    ));
+    let slices_dir = dsl_tmp.path().join("slices");
     let slice_dir = slices_dir.join("core").join("demo");
     std::fs::create_dir_all(slice_dir.join("tests")).unwrap();
     std::fs::write(slice_dir.join("manifest.ttl"), "# manifest\n").unwrap();
@@ -264,10 +263,6 @@ fn test_dsl_shacl_runs_in_orchestration() {
     )
     .expect("orchestration must complete");
 
-    std::fs::remove_file(&source_path).ok();
-    std::fs::remove_dir_all(&vocab_dir).ok();
-    std::fs::remove_dir_all(&slices_dir).ok();
-
     assert!(
         run.errors()
             .iter()
@@ -279,7 +274,7 @@ fn test_dsl_shacl_runs_in_orchestration() {
 
 #[test]
 fn syntax_error_is_caught_before_structural_phases() {
-    let bad_path = write_tmp(
+    let (_bad_tmp, bad_path) = write_tmp(
         "gmeow_validate_all_syntax_bad.ttl",
         "this is not turtle @@@ <<<",
     );
@@ -294,8 +289,6 @@ fn syntax_error_is_caught_before_structural_phases() {
         &ValidateOptions::default(),
     );
 
-    std::fs::remove_file(&bad_path).ok();
-
     let msg = match result {
         Err(e) => e.message().to_string(),
         Ok(_) => panic!("orchestration must fail on syntax error"),
@@ -308,7 +301,7 @@ fn syntax_error_is_caught_before_structural_phases() {
 
 #[test]
 fn validate_all_short_circuits_when_sameas_ban_fails() {
-    let sameas_path = write_tmp(
+    let (_sameas_tmp, sameas_path) = write_tmp(
         "gmeow_validate_all_sameas_bad.ttl",
         "@prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -325,8 +318,6 @@ fn validate_all_short_circuits_when_sameas_ban_fails() {
         &ValidateOptions::default(),
     )
     .expect("orchestration must complete (reporting sameAs ban)");
-
-    std::fs::remove_file(&sameas_path).ok();
 
     assert!(
         run.errors().iter().any(|e| {
@@ -350,7 +341,7 @@ fn sameas_ban_allows_internal_sameas() {
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          gmeow:A owl:sameAs gmeow:B .\n"
     );
-    let path = write_tmp("gmeow_validate_all_sameas_internal.ttl", &ttl);
+    let (_tmp, path) = write_tmp("gmeow_validate_all_sameas_internal.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let run = ValidationRun::run(
@@ -362,8 +353,6 @@ fn sameas_ban_allows_internal_sameas() {
         &ValidateOptions::default(),
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&path).ok();
 
     assert!(
         !run.errors().iter().any(|e| e.contains("banned owl:sameAs")),
@@ -378,7 +367,7 @@ fn sameas_ban_respects_allowlist() {
                @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
                ex:a owl:sameAs ex:b .\n"
         .to_owned();
-    let path = write_tmp("gmeow_validate_all_sameas_allowed.ttl", &ttl);
+    let (_tmp, path) = write_tmp("gmeow_validate_all_sameas_allowed.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let options = ValidateOptions {
@@ -398,8 +387,6 @@ fn sameas_ban_respects_allowlist() {
         &options,
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&path).ok();
 
     assert!(
         run.errors().is_empty(),
@@ -443,7 +430,7 @@ fn structural_lint_flags_missing_annotations_in_orchestration() {
            rdfs:isDefinedBy <{NS}> ;\n\
            rdfs:subClassOf owl:Thing .\n"
     );
-    let path = write_tmp("gmeow_validate_all_structural.ttl", &ttl);
+    let (_tmp, path) = write_tmp("gmeow_validate_all_structural.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let run = ValidationRun::run(
@@ -455,8 +442,6 @@ fn structural_lint_flags_missing_annotations_in_orchestration() {
         &ValidateOptions::default(),
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&path).ok();
 
     assert!(
         run.errors().iter().any(|e| e.contains("skos:definition")),
@@ -477,7 +462,7 @@ fn mapping_dsl_shacl_runs_in_orchestration() {
            skos:definition \"A thing.\" ;\n\
            rdfs:isDefinedBy <{NS}> .\n"
     );
-    let source_path = write_tmp("gmeow_validate_all_mapping_source.ttl", &ttl);
+    let (_source_tmp, source_path) = write_tmp("gmeow_validate_all_mapping_source.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let mapping_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -487,10 +472,10 @@ fn mapping_dsl_shacl_runs_in_orchestration() {
                                 sh:property [ sh:path ex:source ; sh:minCount 1 ] ."
         .to_owned();
 
-    let vocab_dir = std::env::temp_dir().join(format!(
-        "gmeow_validate_all_mapping_dsl_vocab_{}",
-        std::process::id()
-    ));
+    // RAII: the vocab dir is removed when `vocab_tmp` drops at end of scope,
+    // including on panic.
+    let vocab_tmp = tempfile::tempdir().expect("create temp dir");
+    let vocab_dir = vocab_tmp.path().join("mapping-dsl-vocab");
     std::fs::create_dir_all(&vocab_dir).unwrap();
     std::fs::write(
         vocab_dir.join("vocabulary.ttl"),
@@ -525,9 +510,6 @@ fn mapping_dsl_shacl_runs_in_orchestration() {
         &options,
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&source_path).ok();
-    std::fs::remove_dir_all(&vocab_dir).ok();
 
     assert!(
         run.errors()
@@ -648,10 +630,9 @@ fn declined_correspondence_shape_has_teeth() {
 
     // NEGATIVE (a): bare acronym "EFO" — must collide with the \bEFO\b guard.
     let efo_ttl = declined_correspondence_fixture("EFO", true);
-    let efo_path = write_tmp("gmeow_validate_declined_efo.ttl", &efo_ttl);
+    let (_efo_tmp, efo_path) = write_tmp("gmeow_validate_declined_efo.ttl", &efo_ttl);
     let efo_dataset = parse_file_dataset(&efo_path).expect("EFO fixture must parse");
     let efo_report = shacl_validate_dataset(&efo_dataset, &shapes);
-    std::fs::remove_file(&efo_path).ok();
     assert!(
         !efo_report.conforms,
         "a declinedTarget of bare \"EFO\" must violate DeclinedCorrespondenceShape"
@@ -659,10 +640,9 @@ fn declined_correspondence_shape_has_teeth() {
 
     // NEGATIVE (b): a URI-shaped target — must collide with the ^https?:// guard.
     let uri_ttl = declined_correspondence_fixture("http://dead.example/term", true);
-    let uri_path = write_tmp("gmeow_validate_declined_uri.ttl", &uri_ttl);
+    let (_uri_tmp, uri_path) = write_tmp("gmeow_validate_declined_uri.ttl", &uri_ttl);
     let uri_dataset = parse_file_dataset(&uri_path).expect("URI fixture must parse");
     let uri_report = shacl_validate_dataset(&uri_dataset, &shapes);
-    std::fs::remove_file(&uri_path).ok();
     assert!(
         !uri_report.conforms,
         "a declinedTarget shaped as a URI must violate DeclinedCorrespondenceShape"
@@ -671,14 +651,13 @@ fn declined_correspondence_shape_has_teeth() {
     // NEGATIVE (c): omit gmeow:probeVerdict — must collide with the minCount 1 guard.
     let missing_probe_ttl =
         declined_correspondence_fixture("Otherwise Complete Fixture Target", false);
-    let missing_probe_path = write_tmp(
+    let (_missing_probe_tmp, missing_probe_path) = write_tmp(
         "gmeow_validate_declined_missing_probe.ttl",
         &missing_probe_ttl,
     );
     let missing_probe_dataset =
         parse_file_dataset(&missing_probe_path).expect("missing-probeVerdict fixture must parse");
     let missing_probe_report = shacl_validate_dataset(&missing_probe_dataset, &shapes);
-    std::fs::remove_file(&missing_probe_path).ok();
     assert!(
         !missing_probe_report.conforms,
         "a DeclinedCorrespondence missing gmeow:probeVerdict must violate \
@@ -698,7 +677,7 @@ fn statement_dsl_shacl_runs_in_orchestration() {
            skos:definition \"A thing.\" ;\n\
            rdfs:isDefinedBy <{NS}> .\n"
     );
-    let source_path = write_tmp("gmeow_validate_all_statement_source.ttl", &ttl);
+    let (_source_tmp, source_path) = write_tmp("gmeow_validate_all_statement_source.ttl", &ttl);
     let shapes_ttl = mini_shapes_ttl();
 
     let statement_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -708,10 +687,10 @@ fn statement_dsl_shacl_runs_in_orchestration() {
                                   sh:property [ sh:path ex:subject ; sh:minCount 1 ] ."
         .to_owned();
 
-    let vocab_dir = std::env::temp_dir().join(format!(
-        "gmeow_validate_all_statement_dsl_vocab_{}",
-        std::process::id()
-    ));
+    // RAII: the vocab dir is removed when `vocab_tmp` drops at end of scope,
+    // including on panic.
+    let vocab_tmp = tempfile::tempdir().expect("create temp dir");
+    let vocab_dir = vocab_tmp.path().join("statement-dsl-vocab");
     std::fs::create_dir_all(&vocab_dir).unwrap();
     std::fs::write(
         vocab_dir.join("vocabulary.ttl"),
@@ -746,9 +725,6 @@ fn statement_dsl_shacl_runs_in_orchestration() {
         &options,
     )
     .expect("orchestration must complete");
-
-    std::fs::remove_file(&source_path).ok();
-    std::fs::remove_dir_all(&vocab_dir).ok();
 
     assert!(
         run.errors()

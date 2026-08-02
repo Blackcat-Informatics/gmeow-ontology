@@ -25,7 +25,7 @@ Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 ## Why vendored (not built at regenerate time)
 
 The regeneration pipeline is Rust/Python only — it does not invoke `cargo` or `wasm-bindgen`.
-A browser-executable wasm engine cannot be produced during `make regen`, so it is pinned
+A browser-executable wasm engine cannot be produced during the synchronization pipeline (`make check-sync`), so it is pinned
 here as a build **input** (like `crates/docs/assets/gmeow.css` and the purrdf engine).
 Because it is a constant `include_bytes!` input, the rendered site stays byte-deterministic.
 

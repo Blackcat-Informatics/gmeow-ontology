@@ -26,7 +26,7 @@ Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 ## Why vendored (not built at regenerate time)
 
 The regeneration pipeline is Rust/Python only — it does not invoke `cargo` or `wasm-bindgen`.
-A browser-executable wasm engine cannot be produced during `make regen`, so it is pinned
+A browser-executable wasm engine cannot be produced during the synchronization pipeline (`make check-sync`), so it is pinned
 here as a build **input** (like `crates/docs/assets/gmeow.css` and the purrdf engine).
 Because it is a constant `include_bytes!` input, the rendered site stays byte-deterministic.
 
@@ -48,7 +48,8 @@ Two gates guard against a stale/broken blob:
   `make check`) asserts the vendored `.wasm` is a real wasm module, the bindings still
   export the `reason` surface, and the pinned BLAKE3 digests match the exact bytes;
 - a **Node native↔wasm parity witness** (`crates/reason-wasm/js/tests/witness.test.mjs`,
-  on `make reason-wasm-pkg-test`, now on the `make check` gate via `wasm-parity`) loads the
+  on `make reason-wasm-pkg-test`, gate-enforced on every pull request via `wasm-parity`
+  in the required CI `make heavy` lane) loads the
   built engine and asserts its reasoned closure is byte-identical to the native reasoner's.
 
 ## Size note

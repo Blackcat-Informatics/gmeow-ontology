@@ -63,7 +63,7 @@ fn describe(dataset: &purrdf::RdfDataset, subject_iri: &str) -> String {
 fn native_core_bundle_describe_matches_the_witness_attestation() {
     let root = repo_root();
     let full = std::fs::read(root.join("generated/dist/gmeow.gts"))
-        .unwrap_or_else(|e| panic!("witness needs the generated bundle (run `make regen`): {e}"));
+        .unwrap_or_else(|e| panic!("witness needs the generated bundle (run `make check`): {e}"));
     let core_nq = gmeow_validate::store::core_browser_bundle_nquads(&full, &[])
         .expect("build core browser bundle");
     let dataset = purrdf::parse_dataset(core_nq.as_bytes(), "application/n-quads", None)

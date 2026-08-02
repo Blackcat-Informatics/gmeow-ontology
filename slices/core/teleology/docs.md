@@ -49,7 +49,7 @@ ConceptNet/ATOMIC; Wikidata goal **Q4503831** (verified 2026-06-11).
   of interest. Revision by suppression, never deletion (Principle 10).
 - **Solver boundary** (Principle 12): goal decomposition, planning, and
   means–end reasoning are never triples.
-- **Deontic force lives in the norms extension**, which ranges
+- **Deontic force lives in the core norms slice**, which ranges
   `prescribedConduct` over `Goal` — dependency points extension → core only.
 
 ## Terms

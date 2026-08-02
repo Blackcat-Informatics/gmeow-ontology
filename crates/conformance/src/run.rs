@@ -189,13 +189,18 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     // isomorphism + cross-dialect equivalence) and pins their canonical rendering. It
     // does NOT materialize — branch before the compile/certify/chase, like consistency.
     if profile.verdict_mode == VerdictMode::CommonLogic {
-        return run_cl_roundtrip_case(&case_id, case_dir);
+        return run_cl_roundtrip_case(&case_id, case_dir, &profile.shipped_rules);
     }
 
     // ── Compile (frontend → canonical IR → projections + ledger) ─────────────
     // The unsupported-contract firewall lives in `compile_case_program`,
     // shared with the CL round-trip path so neither can evaluate an unsound program.
-    let program = match compile_case_program(&case_id, case_dir, profile.expect_unsupported)? {
+    let program = match compile_case_program(
+        &case_id,
+        case_dir,
+        profile.expect_unsupported,
+        &profile.shipped_rules,
+    )? {
         // An `expect_unsupported` case: the program must not proceed — return empty
         // outputs so the diff phase sees no goldens to compare (no `expected/` tree).
         CompileOutcome::Unsupported => return Ok(empty_outputs(case_id)),
@@ -464,10 +469,13 @@ enum CompileOutcome {
 /// an `expect_unsupported` case REQUIRES the flag (else the engine wrongly accepted the
 /// contract), and any other `Severity::Error` on a non-`expect_unsupported` case is a
 /// hard failure (never evaluate as if the contract were sound).
+/// `shipped_rules` names the `logic:Rule` IRIs the case loads from the shipped `logic:`
+/// module, resolved by [`load_shipped_rules`] and merged into the compiled program.
 fn compile_case_program(
     case_id: &str,
     case_dir: &Path,
     expect_unsupported: bool,
+    shipped_rules: &[String],
 ) -> gmeow_errors::Result<CompileOutcome> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
@@ -495,7 +503,117 @@ fn compile_case_program(
         )));
     }
 
+    let program = merge_shipped_rules(case_id, program, shipped_rules)?;
     Ok(CompileOutcome::Program(Box::new(program), diagnostics))
+}
+
+/// The shipped `logic:` module source — the SAME file `gmeow logic frontier` embeds via
+/// `include_str!`, so a case reasons with the rule set the CLI and the pipeline reason with
+/// rather than a restatement of it.
+///
+/// Read from the repository (anchored at `CARGO_MANIFEST_DIR`, never the process working
+/// directory) instead of embedded, because the harness is a build-time consumer of a file
+/// that lives beside it: embedding would make a rule edit invisible until the crate is
+/// rebuilt, and a corpus whose rules are a stale snapshot is exactly the failure this
+/// mechanism exists to prevent.
+fn shipped_logic_module_path() -> std::path::PathBuf {
+    crate::paths::repo_root()
+        .join("slices")
+        .join("grounding")
+        .join("logic")
+        .join("module.ttl")
+}
+
+/// The shipped `logic:Rule` set, indexed by rule IRI (`logic:provenance`), compiled ONCE
+/// per process from [`shipped_logic_module_path`].
+///
+/// The module is ~18k lines and every opted-in case needs it, so the compile is memoized;
+/// the cached value carries the graded [`Diag`] on failure so a broken module reports the
+/// same diagnostic for every case rather than only the first (`Diag` is the sole
+/// first-party error type — a bare `String` error would be a second one).
+fn shipped_rule_index()
+-> &'static Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag> {
+    static INDEX: std::sync::OnceLock<
+        Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag>,
+    > = std::sync::OnceLock::new();
+    INDEX.get_or_init(|| {
+        let path = shipped_logic_module_path();
+        let source = std::fs::read_to_string(&path)
+            .map_err(|e| run_fail(format!("cannot read {}: {e}", path.display())))?;
+        let (program, diagnostics) = parse_logic_str(&source, None)
+            .map_err(|e| run_fail(format!("cannot compile {}: {}", path.display(), e.0)))?;
+        if let Some(first) = first_error(&diagnostics) {
+            return Err(run_fail(format!(
+                "the shipped logic module {} does not compile cleanly — first error [{}]: {}",
+                path.display(),
+                first.code,
+                first.message
+            )));
+        }
+        let mut index = BTreeMap::new();
+        for rule in program.rules {
+            // A rule's identity is its `logic:provenance` IRI (the frontend's carrier for
+            // the rule node's own name, and the same IRI the chase stamps derivations
+            // with). A rule without one cannot be named by a profile, so it is skipped
+            // rather than given a synthesised key that no author could reference.
+            if let Some(iri) = rule.scope.provenance.clone() {
+                index.insert(iri, rule);
+            }
+        }
+        Ok(index)
+    })
+}
+
+/// Merge the profile-declared shipped rules into `program`.
+///
+/// Every IRI is resolved against the shipped module and HARD-FAILS when absent: that
+/// failure IS the pin. A case that re-typed the rule in its own `input.logic.ttl` would
+/// stay green after the shipped rule was deleted, so the corpus would pin its own copy
+/// rather than what ships; resolving through the module makes deletion or renaming red.
+/// Redeclaring a shipped rule locally is likewise a hard failure — two sources of truth
+/// for one rule is the condition the resolution exists to remove.
+fn merge_shipped_rules(
+    case_id: &str,
+    program: gmeow_logic_compile::ir::LogicProgram,
+    shipped_rules: &[String],
+) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
+    if shipped_rules.is_empty() {
+        return Ok(program);
+    }
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
+    let index = shipped_rule_index()
+        .as_ref()
+        .map_err(|e| prefix(e.to_string()))?;
+
+    let mut program = program;
+    for iri in shipped_rules {
+        let rule = index.get(iri).ok_or_else(|| {
+            prefix(format!(
+                "profile.json shipped_rules names {iri}, which is not a logic:Rule in the \
+                 shipped module {} (it declares {} named rules)",
+                shipped_logic_module_path().display(),
+                index.len()
+            ))
+        })?;
+        if program
+            .rules
+            .iter()
+            .any(|r| r.scope.provenance.as_deref() == Some(iri.as_str()))
+        {
+            return Err(prefix(format!(
+                "input.logic.ttl redeclares the shipped rule {iri} that profile.json \
+                 already loads — author it in exactly one place, the shipped module"
+            )));
+        }
+        program.rules.push(rule.clone());
+    }
+    // Restore the canonical rule order `LogicProgram::new` maintains, so the compiled
+    // artifacts (and every golden projected from them) do not depend on the order the
+    // profile happened to list the rules in.
+    program
+        .rules
+        .sort_by_cached_key(gmeow_logic_compile::ir::LogicRule::sort_key);
+    Ok(program)
 }
 
 /// Run one `verdict_mode = cl-roundtrip` case.
@@ -508,12 +626,16 @@ fn compile_case_program(
 /// (`expected/projections/gmeow.{clif,cgif,xcl}`) and emits the `cl-dialects.json`
 /// verdict. A CL round-trip case does NOT materialize (like consistency mode); it carries
 /// only its dialect-text goldens + the verdict.
-fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
+fn run_cl_roundtrip_case(
+    case_id: &str,
+    case_dir: &Path,
+    shipped_rules: &[String],
+) -> gmeow_errors::Result<CaseOutputs> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // A cl-roundtrip case never declares `expect_unsupported` (an unsound program cannot
     // round-trip); `compile_case_program(.., false)` therefore never yields `Unsupported`.
-    let program = match compile_case_program(case_id, case_dir, false)? {
+    let program = match compile_case_program(case_id, case_dir, false, shipped_rules)? {
         CompileOutcome::Program(program, _diagnostics) => *program,
         CompileOutcome::Unsupported => {
             unreachable!("expect_unsupported=false never yields CompileOutcome::Unsupported")
@@ -1204,23 +1326,26 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 mod gating_tests {
     use super::*;
 
-    /// A throwaway case directory under the system temp dir, removed on drop.
-    struct TmpCase(std::path::PathBuf);
+    /// A throwaway case directory whose whole tree is removed when the `TmpCase`
+    /// is dropped — on success, on panic, and on early return — because it owns
+    /// the `tempfile::TempDir` its scratch root lives in.
+    struct TmpCase {
+        /// The case directory itself: `<scratch root>/category/<tag>`. The
+        /// `category/` segment is load-bearing — `run_case` derives the case id
+        /// from the `<category>/<case>` path tail.
+        dir: std::path::PathBuf,
+        /// Owns the scratch root; dropping it removes `dir` with it.
+        _root: tempfile::TempDir,
+    }
     impl TmpCase {
         fn new(tag: &str) -> Self {
-            let dir = std::env::temp_dir()
-                .join("category")
-                .join(format!("gmeow-run-gate-{tag}-{}", std::process::id()));
+            let root = tempfile::tempdir().expect("create temp dir");
+            let dir = root.path().join("category").join(tag);
             std::fs::create_dir_all(&dir).expect("mkdir case dir");
-            Self(dir)
+            Self { dir, _root: root }
         }
         fn write(&self, name: &str, body: &str) {
-            std::fs::write(self.0.join(name), body).expect("write case file");
-        }
-    }
-    impl Drop for TmpCase {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
+            std::fs::write(self.dir.join(name), body).expect("write case file");
         }
     }
 
@@ -1248,7 +1373,7 @@ mod gating_tests {
             "profile.json",
             r#"{"reasoning_contract":{"preset":"StableModelProfile"},"expect_unsupported":true,"mode":"native"}"#,
         );
-        let out = run_case(&case.0).expect("expect_unsupported case must pass");
+        let out = run_case(&case.dir).expect("expect_unsupported case must pass");
         // The program was never evaluated: no quads, no answers, empty verdicts.
         assert!(out.materialized_nquads.is_empty());
         assert!(out.answers.is_empty());
@@ -1271,7 +1396,7 @@ mod gating_tests {
             "profile.json",
             r#"{"expect_unsupported":true,"mode":"native"}"#,
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("expect_unsupported"), "{err}");
         assert!(err.message().contains("no UNSUPPORTED_CONTRACT"), "{err}");
     }
@@ -1286,9 +1411,90 @@ mod gating_tests {
             "profile.json",
             r#"{"reasoning_contract":{"preset":"StableModelProfile"},"mode":"native"}"#,
         );
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("Severity::Error"), "{err}");
         assert!(err.message().contains("UNSUPPORTED_CONTRACT"), "{err}");
+    }
+
+    // ── profile.json `shipped_rules` ──────────────────────────────────────────
+    //
+    // These are the TEETH of the corpus's derivation claim. A case that re-typed a
+    // shipped rule inside its own `input.logic.ttl` stays green after the shipped rule
+    // is deleted, so it pins its own copy rather than what ships. Resolution through
+    // the module makes deletion red; the two refusals below are what make that true,
+    // and neither is reachable through the committed corpus (every committed case
+    // names rules that exist and declares none of them locally).
+
+    /// One shipped frontier rule, named as the corpus names it.
+    const SHIPPED_RULE: &str = "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized";
+
+    #[test]
+    fn shipped_rules_resolve_out_of_the_shipped_module() {
+        // The positive: a case whose own program declares no rule at all derives with
+        // the rule the shipped module declares.
+        let case = TmpCase::new("shipped-ok");
+        case.write("input.logic.ttl", SUPPORTED_TTL);
+        case.write(
+            "profile.json",
+            &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
+        );
+        case.write("input.nq", "");
+        let out = run_case(&case.dir).expect("shipped_rules case must run");
+        // The rule reached the compiled program, so its Datalog projection carries it.
+        let datalog = out
+            .projections
+            .text
+            .get("datalog")
+            .expect("datalog projection");
+        assert!(
+            datalog.contains("entryLabel"),
+            "the shipped rule must reach the compiled program: {datalog}"
+        );
+    }
+
+    #[test]
+    fn shipped_rule_the_module_does_not_declare_hard_fails() {
+        // Deleting or renaming a shipped rule must red every case that reasons with it.
+        let case = TmpCase::new("shipped-missing");
+        case.write("input.logic.ttl", SUPPORTED_TTL);
+        case.write(
+            "profile.json",
+            r#"{"mode":"native","shipped_rules":["https://blackcatinformatics.ca/logic/ruleThatWasDeleted"]}"#,
+        );
+        let err = run_case(&case.dir).unwrap_err();
+        assert!(err.message().contains("ruleThatWasDeleted"), "{err}");
+        assert!(
+            err.message()
+                .contains("not a logic:Rule in the shipped module"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn locally_redeclaring_a_loaded_shipped_rule_hard_fails() {
+        // Two sources of truth for one rule is the condition the resolution removes.
+        let case = TmpCase::new("shipped-dup");
+        case.write(
+            "input.logic.ttl",
+            "\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             logic:ruleFrontierReadyAuthorized a logic:Rule ;\n\
+                 logic:provenance logic:ruleFrontierReadyAuthorized ;\n\
+                 logic:head [ rdf:subject \"?e\" ; rdf:predicate logic:entryLabel ; \
+                 rdf:object logic:FrontierReadyAuthorized ] ;\n\
+                 logic:body [ rdf:subject \"?e\" ; rdf:predicate logic:entryAxisWitness ; \
+                 rdf:object logic:StepReady ] .\n",
+        );
+        case.write(
+            "profile.json",
+            &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
+        );
+        let err = run_case(&case.dir).unwrap_err();
+        assert!(
+            err.message().contains("redeclares the shipped rule"),
+            "{err}"
+        );
     }
 
     // ── verdict_mode = consistency ────────────────────────────────────────────
@@ -1323,7 +1529,7 @@ mod gating_tests {
         nq.push_str(&q(B, DISJOINT, C));
         case.write("input.nq", &nq);
 
-        let out = run_case(&case.0).expect("consistency case runs");
+        let out = run_case(&case.dir).expect("consistency case runs");
         assert_eq!(
             out.verdicts[W]["status"], "inconsistent",
             "populated clash must be inconsistent: {}",
@@ -1342,7 +1548,7 @@ mod gating_tests {
         nq.push_str(&q(A, SUBCLASS, B));
         case.write("input.nq", &nq);
 
-        let out = run_case(&case.0).expect("consistency case runs");
+        let out = run_case(&case.dir).expect("consistency case runs");
         assert_eq!(
             out.verdicts[W]["status"], "consistent",
             "clash-free world must be consistent: {}",
@@ -1355,7 +1561,7 @@ mod gating_tests {
         // No input.nq ⇒ hard fail (no silent skip / empty verdict).
         let case = TmpCase::new("noedb");
         case.write("profile.json", CONSISTENCY_PROFILE);
-        let err = run_case(&case.0).unwrap_err();
+        let err = run_case(&case.dir).unwrap_err();
         assert!(err.message().contains("requires input.nq"), "{err}");
     }
 }

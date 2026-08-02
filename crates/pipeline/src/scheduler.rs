@@ -52,6 +52,40 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
     )
 }
 
+/// What the scheduler does with a stage's carrier once its LAST declared consumer
+/// has run.
+///
+/// This is an explicit, first-class profile selection, not a degradation switch: the
+/// run's `combined_digest` and every product's committed byte-artifact lane are
+/// byte-identical under both arms (the retention test in [`crate::tests`] pins that),
+/// because a released product keeps its `stage_id` and `digest` verbatim and keeps
+/// every committed artifact. The arms differ ONLY in whether material that no declared
+/// consumer can still read stays resident for the life of the [`RunResult`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CarrierRetention {
+    /// Release each stage's carrier at its drop-after-last-consumer point
+    /// ([`last_consumer_levels`]): the frozen dataset, typed handles, blob records,
+    /// provenance, and internal `pipeline/` byte artifacts are freed as soon as no
+    /// stage can still read them, bounding peak residency to the live frontier plus
+    /// every run OUTPUT. THE profile for the whole-repository build
+    /// ([`crate::run::run_full_scoped_with_progress`]), whose reconcile reads only
+    /// committed artifacts.
+    ///
+    /// Under this profile a post-run reader of an INTERMEDIATE product's dataset,
+    /// handles, or `pipeline/` artifacts HARD-fails on
+    /// [`StageProduct::carrier_released`] — it is reaching past the declared dataflow,
+    /// exactly as a post-drop `span_index()` read does.
+    DropAfterLastConsumer,
+    /// Retain every stage's full carrier for the life of the [`RunResult`].
+    ///
+    /// Required by the out-of-band whole-run consumers that read an INTERMEDIATE
+    /// product's carrier after the DAG finishes — [`crate::docs_measure`] takes the
+    /// terminal carrier off `stage-snapshot`'s bundle, which has declared consumers and
+    /// would otherwise be released — and by tests that assert on a consumed stage's
+    /// dataset.
+    RetainAll,
+}
+
 /// The shared state of one pipeline run: the repo root, the parallelism budget,
 /// the optional content-addressed cache, live progress sink, and the provenance
 /// sidecar stages stamp into.
@@ -69,6 +103,21 @@ pub struct RunContext {
     pub progress: Option<Arc<dyn Reporter>>,
     /// The provenance sidecar: one unit per stage (capability-derived origin).
     pub provenance: DatasetProvenance,
+    /// What happens to a stage's carrier once its last declared consumer has run.
+    ///
+    /// [`CarrierRetention::RetainAll`] on every constructor — the conservative identity
+    /// — so a caller that reads an intermediate carrier post-run keeps working until it
+    /// explicitly opts in. [`crate::run::run_full_scoped_with_progress`] selects
+    /// [`CarrierRetention::DropAfterLastConsumer`]; that is the only whole-repository
+    /// path and the one whose peak residency has to be bounded.
+    pub carrier_retention: CarrierRetention,
+    /// RAII owner of an ephemeral cache directory, when this context was built by
+    /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
+    /// leaking a pid-salted path under the system temp dir — is what makes the cache
+    /// die with the run that created it, on success, on error, and on panic. `None`
+    /// for the persistent ([`Self::open`]) and inert ([`Self::open_uncached`])
+    /// boundaries, which own no temporary directory.
+    _ephemeral_cache_dir: Option<tempfile::TempDir>,
 }
 
 impl RunContext {
@@ -100,33 +149,35 @@ impl RunContext {
             stage_cache_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
+            carrier_retention: CarrierRetention::RetainAll,
+            // Persistent boundary: the cache lives under the repo's `.cache/`, not a
+            // temporary directory, so there is nothing to tear down.
+            _ephemeral_cache_dir: None,
         })
     }
 
-    /// Construct a run context whose cache lives in a FRESH, process-unique temp
+    /// Construct a run context whose cache lives in a FRESH, run-unique temp
     /// directory rather than the persistent `.cache/gmeow-sync/pipeline/`.
     ///
     /// Used by tests that want a clean, isolated cache per run (no cross-test or
     /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses
     /// [`Self::open_uncached`] because cumulative carrier snapshots are the wrong
     /// persistence boundary; unified sync owns whole-run reuse instead.
+    ///
+    /// The directory is a [`tempfile::TempDir`] OWNED by the returned context, so it
+    /// is removed when the run ends — including on error and on panic. It is
+    /// deliberately not a pid-salted path the process merely happens to know about:
+    /// a fresh name per invocation with no owner is an unbounded disk leak, which is
+    /// exactly what this boundary used to be.
     pub fn open_ephemeral(
         root: impl Into<PathBuf>,
         jobs: usize,
     ) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
-        // A process- + nanosecond-unique cache dir under the system temp root, so
-        // concurrent runs never collide and nothing leaks into the repo tree.
-        let nonce = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0);
-        let dir = std::env::temp_dir().join(format!(
-            "gmeow-pipeline-cache-{}-{}",
-            std::process::id(),
-            nonce
-        ));
-        let cache = PipelineCache::open(dir)?;
+        // `TempDir` supplies the uniqueness the old pid+nanosecond salt hand-rolled,
+        // and — unlike that salt — it also supplies the teardown.
+        let dir = tempfile::tempdir()?;
+        let cache = PipelineCache::open(dir.path())?;
         Ok(Self {
             root,
             jobs: jobs.max(1),
@@ -134,6 +185,8 @@ impl RunContext {
             stage_cache_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
+            carrier_retention: CarrierRetention::RetainAll,
+            _ephemeral_cache_dir: Some(dir),
         })
     }
 
@@ -150,6 +203,9 @@ impl RunContext {
             stage_cache_enabled: false,
             progress: None,
             provenance: DatasetProvenance::new(),
+            carrier_retention: CarrierRetention::RetainAll,
+            // Inert boundary: no cache I/O at all, so no temporary directory.
+            _ephemeral_cache_dir: None,
         }
     }
 
@@ -297,6 +353,11 @@ pub fn run(
         })
         .map(|(idx, _)| idx);
 
+    // Drop-after-last-consumer point for every stage's WHOLE carrier — the general law the
+    // span-table strip above is one early, finer-grained instance of. Computed once, from
+    // the same levelling, by exactly the same argument.
+    let carrier_drop_level = last_consumer_levels(graph, &by_id);
+
     for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; stages that
         // declare a shared resource serialize internally on that resource's permit.
@@ -407,6 +468,27 @@ pub fn run(
                 StageProduct::from_bundle(stage_id, Arc::new(stripped)),
             );
         }
+
+        // ── Drop-after-last-consumer, generalized to the WHOLE carrier ──
+        // Every stage whose LAST declared consumer ran in this level is now unreachable
+        // through the dataflow: `exec_stage` hands a stage exactly the products it names
+        // in `consumes()`, so no later stage can observe this one's carrier. Release it —
+        // dataset, typed handles, blob records, provenance, and the internal `pipeline/`
+        // byte artifacts — keeping the COMMITTED byte-artifact lane the post-run reconcile
+        // still owes the caller, and keeping `digest` verbatim so `combined()` is
+        // byte-identical to a retain-all run. Without this, peak residency is the SUM of
+        // every stage's cumulative carrier snapshot over the whole DAG.
+        if ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer {
+            for (stage_id, drop_level) in &carrier_drop_level {
+                if *drop_level != level_idx {
+                    continue;
+                }
+                let Some(product) = products.remove(stage_id.as_str()) else {
+                    continue;
+                };
+                products.insert(stage_id.clone(), product.into_carrier_released()?);
+            }
+        }
     }
 
     if profile {
@@ -451,6 +533,39 @@ pub fn run(
         level_timings,
         ledger: run_ledger,
     })
+}
+
+/// For each stage that ANY other stage consumes, the topological level of its LAST
+/// consumer — the level after whose commit the stage's carrier is provably dead.
+///
+/// A stage with NO consumer has no entry: its product is a run OUTPUT, retained for the
+/// life of the [`RunResult`]. The map is total over the consumed stages, so the
+/// retention bound is exact rather than a hand-picked special case: after level `N`, the
+/// stages still holding a live carrier are precisely `{ s : last_consumer_level(s) > N }`
+/// ∪ `{ s : s has no consumer }` — the property [`crate::tests`] pins.
+///
+/// Soundness rests on ONE fact: [`exec_stage`] assembles a stage's `StageInput` from
+/// exactly the ids the stage declares in `consumes()`. A stage therefore CANNOT read a
+/// product it did not declare, so "last declarer has run" really is "no reader remains".
+/// A consumer that is not a bound stage is ignored here — [`StageGraph::build`] already
+/// hard-fails on a dangling dependency, so it cannot occur.
+pub(crate) fn last_consumer_levels(
+    graph: &StageGraph,
+    by_id: &BTreeMap<&str, &Arc<dyn Stage>>,
+) -> BTreeMap<String, usize> {
+    let mut last: BTreeMap<String, usize> = BTreeMap::new();
+    for (level_idx, level) in graph.levels.iter().enumerate() {
+        for consumer in level {
+            let Some(stage) = by_id.get(consumer.as_str()) else {
+                continue;
+            };
+            for producer in stage.consumes() {
+                let entry = last.entry(producer.clone()).or_insert(level_idx);
+                *entry = (*entry).max(level_idx);
+            }
+        }
+    }
+    last
 }
 
 /// Execute one stage: assemble its upstream inputs, consult the cache, and run it

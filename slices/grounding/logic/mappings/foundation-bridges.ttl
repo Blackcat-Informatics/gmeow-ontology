@@ -5,6 +5,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
 @prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
 @prefix pato: <http://purl.obolibrary.org/obo/PATO_> .
 @prefix yamato: <http://www.hozo.jp/owl/YAMATO20210808.miz.owl#> .
 @prefix opencyc: <http://sw.opencyc.org/concept/> .
@@ -26,6 +27,12 @@ gmeow:mapsetLogicIao a gmeow:MappingSet ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-iao" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Bridge view from the kernel information-object sort onto IAO's information content entity." .
+
+gmeow:mapsetLogicObi a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-obi" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views from the prescription/enactment spine onto OBI's planned-process backbone. OBI's catalog is logic:-owned because that backbone is an upper-ontology surface (protocol, planned process), so these rows are authored here — the one boundary at which an OBI term may be named — and every OBI surface downstream (SSSOM, EDOAL, the alignment and correspondence-law graphs) is a generated projection of them." .
 
 gmeow:mapsetLogicPato a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-pato.sssom.tsv" ;
@@ -132,6 +139,43 @@ gmeow:InformationObject skos:closeMatch iao:0000030 {|
     gmeow:comment "IAO information content entity is a close bridge, not an identity assertion over the kernel information-object sort." ;
     logic:sourceEndpoint gmeow:InformationObject ;
     logic:targetEndpoint iao:0000030 ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# OBI's planned-process backbone. These two rows carry the prescription/enactment
+# alignments the retired process-model slice held. They are authored HERE, on the
+# logic: owner surface, because an external grounding term has exactly one
+# authoring home (docs/GROUNDING.md, "External grounding ownership"): a domain
+# slice consumes the logic: term and this one correspondence instead of asserting
+# an OBI term again.
+
+logic:Plan skos:closeMatch obi:0000272 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "OBI protocol" ;
+    gmeow:comment "OBI protocol (OBI_0000272) is a plan of action a study or an assay follows. A logic:Plan is the prescription itself — the program whose steps invoke action schemas and whose success criterion is a goal expression — so the bridge is close rather than exact: OBI scopes a protocol to investigation contexts, while logic:Plan is domain-neutral and also carries curricula, control recipes and organizational guides." ;
+    gmeow:lossyDrop "OBI's investigation-context scoping (a protocol is realized in an assay or a study design) is not carried by logic:Plan, which is deliberately domain-neutral" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint obi:0000272 ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Enactment skos:closeMatch obi:0000011 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "OBI planned process" ;
+    gmeow:comment "OBI planned process (OBI_0000011) is a process that realizes a plan specification. A logic:Enactment is one immutable occurrence of a PINNED prescription version against a CLOSED input snapshot, so the bridge is close: OBI's planned process commits to neither version immutability nor input closure, and those two bindings are precisely what make one enactment comparable to its siblings." ;
+    gmeow:lossyDrop "OBI planned process carries no prescription-version pin and no closed input snapshot, so the two bindings that make a logic:Enactment reproducible are dropped in the projection" ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint obi:0000011 ;
     logic:morphismClass logic:BridgeView ;
     logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly

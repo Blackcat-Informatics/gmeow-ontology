@@ -70,3 +70,32 @@ projection-time join on `contentDigest`.
 Depends on `documents` (the WEMI carrier tiers the metadata attaches to). Consumed by the
 claim spine's content-addressed sources and by the GTS packages' blake3 identity spine
 (Principle 14).
+
+## The canonical ingestion plan
+
+The slice carries a worked ingestion plan: six sequential steps from raw-root
+acquisition through file staging, OCR extraction, derived-claim generation and
+unresolved-lead capture, to a privacy-posture assessment whose verdict governs
+how the derived claims may subsequently be surfaced.
+
+It is modelled on the canonical process spine rather than a slice-local one. The
+plan is a `logic:Plan` carrying `logic:prescriptionKindIngestion`; its steps are
+`logic:ActionSchema` individuals; their order is carried by binary
+`logic:ControlFlowEdge` flow edges rather than by a bespoke step-sequence
+property. As a plan it declares its own success criterion through
+`logic:planGoal`, so "what counts as ingested" is stated once, on the plan,
+instead of being implied by the steps.
+
+Two steps are load-bearing beyond their mechanics. OCR extraction is the step
+whose capability may be absent, and when it is the plan blocks with a capability
+gap rather than substituting a weaker parser. Unresolved-lead capture exists so
+that what the ingestion could not resolve is recorded rather than dropped — an
+ingestion that silently discards what it failed to understand cannot be audited
+for completeness, which is the property the whole record exists to support.
+
+| Artifact | Realized state |
+|---|---|
+| `gmeow:planCanonicalIngestion` and its six action schemas | built |
+| The five control-flow edges ordering them | built |
+| `gmeow:goalCanonicalIngestion` success criterion | built |
+| Competency cell pinning ingestion enactments | built |

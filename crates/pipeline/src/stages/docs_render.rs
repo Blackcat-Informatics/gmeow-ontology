@@ -480,7 +480,7 @@ pub(crate) fn term_loss_digest_from_upstream(
 
 /// Fold the per-term JSON Schema / OpenAPI fragment digest off the COMMITTED
 /// `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json` under `root` — the
-/// disk-sourced reader for the standalone `make regen SYNC_OUTPUTS=docs` fanout
+/// disk-sourced reader for the standalone `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout
 /// (`gmeow-dev sync --mode update --outputs docs`), which builds the docs model via
 /// [`gmeow_docs::model::DocsModel::discover`] WITHOUT a live pipeline product. The
 /// two committed files are projections of the `stage-export-json-schema` emitter
@@ -688,7 +688,7 @@ pub fn render_docs_graph(
     // The per-term JSON Schema / OpenAPI fragment join, read off THIS run's
     // stage-export-json-schema product (hard-fails on a missing artifact) — never the
     // committed generated/schemas/*.json, which are the previous run's bytes until
-    // the fanout flushes (the stale-disk-fold class). The standalone `make regen SYNC_OUTPUTS=docs`
+    // the fanout flushes (the stale-disk-fold class). The standalone `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`
     // sibling reader (`schema_fragments_from_generated`) stays disk-sourced because
     // it runs post-pipeline against the fanout-refreshed committed files.
     let schema_fragments = schema_fragments_from_upstream(upstream, &model.terms)?;
@@ -1994,7 +1994,7 @@ mod tests {
         }
     }
 
-    /// The EXACT production `make regen SYNC_OUTPUTS=docs` fanout path: build the docs model via
+    /// The EXACT production `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout path: build the docs model via
     /// `DocsModel::discover` (no live pipeline product — the standalone render),
     /// source the schema-fragment digest off the committed `generated/schemas/*.json`
     /// via [`schema_fragments_from_generated`] (the production sibling reader), attach

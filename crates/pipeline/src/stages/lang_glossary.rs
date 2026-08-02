@@ -988,7 +988,7 @@ mod tests {
         // corpus folds — rendered on the production path, byte-deterministic (no clock, no
         // randomness), and provably non-drifting from the graph. Mirrors matrix.rs's
         // "module-status.md drifted from committed" drift test, but renders-and-compares
-        // in-memory (the committed generated/catalog/glossary.md is emitted by `make regen`
+        // in-memory (the committed generated/catalog/glossary.md is emitted by `make check`
         // at G6; the renderer + this test fully specify its bytes).
         let entries = build_entries(&repo_root()).expect("build entries");
         let table = render_glossary_table(&entries);
