@@ -10,7 +10,9 @@
 //! Each resource a stage [`Stage::resources`] declares is held exclusively while
 //! it runs — two stages competing for the same resource serialize; everything
 //! else is parallel within its topological level. The reasoning stage requires
-//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive).
+//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive); the two
+//! whole-dataset serialization leaves require [`SERIALIZATION_BUFFER_RESOURCE`]
+//! (their peak residency is exclusive).
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -31,6 +33,30 @@ pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// scheduler serializes any two stages requiring the same resource (the
 /// declarative replacement for a hardcoded engine mutex).
 pub const ENGINE_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/engineResource";
+
+/// The `gmeow:serializationBufferResource` IRI: the whole-dataset serialization
+/// buffer.
+///
+/// Unlike [`ENGINE_RESOURCE`] this guards no shared mutable state — the carrier is a
+/// read-only `Arc` every export leaf shares. It is exclusive because of PEAK
+/// RESIDENCY: a stage that declares it materializes the ENTIRE terminal carrier into
+/// in-memory text buffers, so its transient footprint is a multiple of the dataset,
+/// and two such stages running concurrently add their peaks. MEASURED on the
+/// production DAG at `jobs=4` (per-stage peak allocation delta): `stage-export-export`
+/// 9.06 GiB, `stage-export-yaml-ld` 8.37 GiB, then an order-of-magnitude cliff to the
+/// next leaf (`stage-export-okf`, 0.73 GiB). Concurrently those two alone exceed a
+/// 16 GB runner. Declaring this resource makes them serialize against each other while
+/// every cheap leaf keeps full parallelism — the same declarative permit the reasoning
+/// engine uses, with no new scheduler special case.
+///
+/// This is a permit, not a fix for the underlying shape: both stages ask purrdf for a
+/// whole-document `String`/`Vec<u8>`
+/// (`purrdf::serialize_dataset`, `purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld`
+/// / `serialize_dataset_to_yamlld`). Removing the peak rather than scheduling around it
+/// needs those codecs to grow an incremental `io::Write` sink so the document never
+/// exists in memory at once — a purrdf API, never a second gmeow-side serializer.
+pub const SERIALIZATION_BUFFER_RESOURCE: &str =
+    "https://blackcatinformatics.ca/gmeow/serializationBufferResource";
 
 /// The `gmeow:sinkCapability` IRI: the single narrow-waist serialization exit. Held
 /// (via [`Stage::capabilities`] / RDF `gmeow:hasCapability`) by exactly ONE stage in
@@ -338,8 +364,9 @@ pub trait Stage: Send + Sync {
     /// The IRIs of the shared resources this stage must hold exclusively while it
     /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
     /// resource serialize; the default is none (parallel-eligible). The reasoning
-    /// stage declares [`ENGINE_RESOURCE`]. The loader HARD-fails if this disagrees
-    /// with the RDF `gmeow:requiresResource` declaration.
+    /// stage declares [`ENGINE_RESOURCE`]; the two whole-dataset serialization leaves
+    /// declare [`SERIALIZATION_BUFFER_RESOURCE`]. The loader HARD-fails if this
+    /// disagrees with the RDF `gmeow:requiresResource` declaration.
     fn resources(&self) -> &[String] {
         &[]
     }

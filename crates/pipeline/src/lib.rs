@@ -76,8 +76,8 @@ pub use graph::StageGraph;
 pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
 pub use node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct,
+    CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    Stage, StageInput, StageOutput, StageProduct,
 };
 pub use registry::{StageRegistry, default_registry};
 pub use run::{

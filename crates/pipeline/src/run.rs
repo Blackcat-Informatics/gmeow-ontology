@@ -36,7 +36,9 @@ use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
 use crate::loader::{PipelineSpec, StageSpec, bind};
-use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
+use crate::node::{
+    ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct,
+};
 use crate::registry::default_registry;
 use crate::scheduler::{CarrierRetention, RunContext, run};
 
@@ -395,18 +397,27 @@ pub fn full_spec() -> PipelineSpec {
     // ── fold-reading export leaves (consume THIS run's snapshot) ──
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
-        ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-okf", "okf"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
+    // The YAML-LD leaf is a fold-reading leaf like the three above, but it materializes
+    // the WHOLE carrier as JSON-LD-star and again as YAML-LD-star, so it holds the
+    // serialization-buffer permit (see `st_serializing`).
+    stages.push(st_serializing(
+        "stage-export-yaml-ld",
+        "yaml_ld",
+        &["stage-snapshot"],
+    ));
     // `stage-export-export` additionally consumes THIS run's fresh
     // `stage-export-json-schema` product: its `llms-full.txt` inlined cards gate
     // their `python_model` link on the JSON Schema `$defs` key set (a class with
     // no `$defs` entry has no generated Pydantic model), so it needs the schema
     // in hand, not only the snapshot fold.
-    stages.push(st(
+    // It also holds the serialization-buffer permit (see `st_serializing`): it
+    // materializes the whole carrier as N-Quads and again as TriG.
+    stages.push(st_serializing(
         "stage-export-export",
         "export",
         &["stage-export-json-schema", "stage-snapshot"],
@@ -642,6 +653,18 @@ fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         "stage-source-load".to_string(),
         vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
     )];
+    s
+}
+
+/// A whole-dataset serialization leaf: it requires the exclusive serialization buffer
+/// ([`SERIALIZATION_BUFFER_RESOURCE`]), so the scheduler runs at most one such leaf at a
+/// time while every cheap leaf in the same level keeps full parallelism. Mirrors the
+/// declaring stages' `resources()` ([`crate::stages::export::ExportStage`] /
+/// [`crate::stages::yaml_ld::YamlLdStage`]) so the dag_dogfood parity and the loader's
+/// bind-agreement both hold.
+fn st_serializing(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.resources = vec![SERIALIZATION_BUFFER_RESOURCE.to_string()];
     s
 }
 
