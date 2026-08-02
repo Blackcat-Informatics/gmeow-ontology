@@ -636,6 +636,57 @@ mod tests {
         let _ = cached.into_site(Path::new("<in-memory>"));
     }
 
+    /// **The write→read proof, across the real serde boundary.** An envelope written by
+    /// [`write_cache`] and read back by the loader that serves warm hits must VERIFY.
+    ///
+    /// The in-memory `from_site(..).into_site(..)` round trip above cannot see this
+    /// class: the digest is folded over a re-serialization of the payload, so a payload
+    /// field that does not survive JSON — one whose `skip_serializing_if` has no matching
+    /// `default`, or a map whose iteration order is not the wire order — folds to one
+    /// value before the write and another after the read, and the guard fires on every
+    /// warm hit even though nothing was edited. That is exactly the failure the SHACL
+    /// verdict's own self-digest shipped with (its digest was folded over the pre-render
+    /// report while the file carried the normalized one), so the docs fixture's analogous
+    /// guard is proven here rather than assumed. Both envelope kinds are driven through
+    /// the real writer and the real loader, in one process.
+    #[test]
+    fn an_envelope_written_to_disk_verifies_when_read_back() {
+        let (_tmp, root) = temp_root("disk-round-trip");
+
+        // Site: the loader writes on the miss, then serves — and verifies — the warm hit.
+        let path = root.join(".cache/docs-fixture/site.json");
+        let mut files = BTreeMap::new();
+        files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
+        files.insert(
+            "a/b.md".to_string(),
+            "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
+        );
+        let built = Site { files };
+        let cold = load_cached_site(&path, "site", || built.clone());
+        assert_eq!(cold, built, "the cold miss returns the built site");
+        assert!(path.is_file(), "the miss wrote the envelope");
+        let warm = load_cached_site(&path, "site", || {
+            panic!("the warm hit must be served from disk, not rebuilt")
+        });
+        assert_eq!(
+            warm, built,
+            "the warm hit verifies its payload digest and reconstructs the site"
+        );
+
+        // Model: written by the same writer, read by the same deserialize + verify path
+        // `try_load` takes on a warm hit.
+        let model_path = root.join(".cache/docs-fixture/model.json");
+        let model = DocsModel::default();
+        write_cache(&model_path, &CachedModel::from_model(&model));
+        let bytes = fs::read(&model_path).expect("read back the model envelope");
+        let cached: CachedModel = serde_json::from_slice(&bytes).expect("the envelope parses");
+        let recovered = cached.into_model(&model_path);
+        assert_eq!(
+            recovered.available_languages, model.available_languages,
+            "the reattached i18n fields survive the disk round trip"
+        );
+    }
+
     /// The model envelope carries the same guard, over the whole reconstructed payload.
     #[test]
     #[should_panic(expected = "tampered docs-fixture model cache")]

@@ -226,8 +226,9 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
     // Hand-deleting a violation from `shacl.json` changes no validated input, so the input
     // digest still matches exactly — and the gate would then pass on a verdict nobody
     // produced. Recompute the verdict's fold over its own content and refuse a mismatch.
-    gmeow_pipeline::stages::validate::verify_shacl_record_digest(
+    gmeow_pipeline::stages::diag_render::verify_record_digest(
         &recorded,
+        gmeow_pipeline::stages::validate::SHACL_RECORD_DIGEST_KEY,
         &path.display().to_string(),
     )
     .map_err(|e| fail(e.to_string()))?;

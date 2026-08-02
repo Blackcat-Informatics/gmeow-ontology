@@ -886,6 +886,9 @@ impl Stage for CompileLogicStage {
             // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
             None,
             meta.as_ref(),
+            // No consumer reads this record back in place of re-running the compiler, so
+            // it carries no self-digest (a seal nobody verifies is decoration).
+            None,
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself
