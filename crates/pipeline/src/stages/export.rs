@@ -2076,10 +2076,7 @@ fn dataset_with_public_tags(
 /// materialization of the terminal carrier (`owned_quads` + a rebuilt frozen
 /// dataset); doing it per media type made this leaf pay for two whole extra copies of
 /// the corpus at its allocation peak, for two byte-identical inputs.
-fn serialize_public(
-    public: &RdfDataset,
-    media_type: &str,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+fn serialize_public(public: &RdfDataset, media_type: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
     purrdf::serialize_dataset(public, media_type, purrdf::SerializeGraph::Dataset).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("{media_type} serialize: {e}"),
