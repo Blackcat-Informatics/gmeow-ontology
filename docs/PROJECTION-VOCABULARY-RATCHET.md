@@ -116,11 +116,11 @@ in the same shape as every other registry commitment here — a typed row naming
 `gmeow:exemptRowCeiling`. The mappings stage
 (`crates/pipeline/src/catalog_families.rs::check_residue_exemptions`) hard-fails on:
 
-* a shipped count ABOVE the ceiling — the carve-out grew (and the family's raise-only
+- a shipped count ABOVE the ceiling — the carve-out grew (and the family's raise-only
   `gmeow:catalogTargetMinimum` pins the same count from below, so a silently deleted
   row is equally red);
-* an exemption for a family that IS guarded — the record may not outlive its reason;
-* an exemption naming no registered family — a dead row exempting nothing.
+- an exemption for a family that IS guarded — the record may not outlive its reason;
+- an exemption naming no registered family — a dead row exempting nothing.
 
 The current membership is exactly two rows: PROV-O (ceiling 4) and schema.org HowTo
 (ceiling 7). `gmeow:exemptRowCeiling` is LOWER-ONLY, the same polarity as
