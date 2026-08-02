@@ -65,7 +65,7 @@ gmeow:Mitigation
             owl:onProperty gmeow:mitigationCounters ;
             owl:someValuesFrom owl:Thing ;
         ] ;
-    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm or a Procedure (procedures extension) — set against a causal link or hazard it counters. The measure range is intentionally OPEN (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
+    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm that forbids the antecedent conduct, or a logic:Plan that interrupts the chain — set against a causal link or hazard it counters. The measure range stays OPEN because a countermeasure is genuinely heterogeneous: a norm, a plan, and an engineered design control are all measures, and no single class subsumes them without distorting one of the three. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MitigationStatus
@@ -242,7 +242,7 @@ gmeow:mitigationMeasure
     rdfs:domain gmeow:Mitigation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "mitigation measure"@x-gmeow-english ;
-    skos:definition "The countermeasure — a norm that forbids the antecedent conduct, a procedure that interrupts the chain, a design control. Range intentionally open across extension worlds. NOT functional, at least one (SHACL)."@x-gmeow-english ;
+    skos:definition "The countermeasure — a gmeow:Norm that forbids the antecedent conduct, a logic:Plan that interrupts the chain, or an engineered design control. The range stays open because those three are genuinely heterogeneous. NOT functional, at least one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mitigationProposed
@@ -355,7 +355,7 @@ DOCTRINE.
   * THE COUNTERFACTUAL PROBLEM DISSOLVES AT THE TYPE LEVEL: cascades relate event TYPES, never event instances — nothing in this slice asserts that anything occurred, and the no-occurrence gate makes that executable (loading the full fixture set entails zero gmeow:Event instances from this slice's terms). 'Trust betrayal dissolves the bond' is a claim about kinds of events; the catastrophe it warns of need never have happened. PROV lineage and CRM influence are token-level; OBO RO is the rare type-level causation vocabulary — that asymmetry is why this slice exists.
   * CAUSAL LINKS ARE CLAIMS LIKE ANY OTHER: standpoint-indexed and confidence-bearing through the statement layer. Two risk analysts disagreeing about whether T1 promotes T2 are two coexisting claims (Principle 9). Cascade propagation, probability composition, and simulation are solver work over the recorded links (Principle 12); gmeow:linkStrength is solver INPUT, never solver output written back as assertion.
   * FIRST gufo:Disposition USE IN GMEOW: a Hazard is a bearer's disposition toward harm, manifested (when it manifests at all) as events of a feared type. Inherence is asserted with GMEOW's own gmeow:hazardBearer (Principle 5: gufo:inheresIn is the alignment target, not the asserted axiom).
-  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm or a Procedure (procedures extension) — to what it counters. The measure range is intentionally open (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling.
+  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm that forbids the antecedent conduct, or a logic:Plan that interrupts the chain — to what it counters. The range stays open because countermeasures are genuinely heterogeneous (norm, plan, engineered control), not because a dependency rule forbids naming a class.
   * SEVERITY IS AN ORDERED VOCABULARY (the kernel GranularityLevel pattern — catastrophic ≻ severe ≻ moderate ≻ minor, gmeow:moreSevereThan transitive ON LEVELS ONLY), anchored terminologically to ISO 31000 / IEC 60812 in docs, never in axioms.
   * ALIGNMENTS DEFERRED to the compiler-arc window: OBO RO causal properties (linkage-only, BFO lineage), MITRE D3FEND (countermeasure ↔ Mitigation), STIX 2.1/ATT&CK, UCO, ConceptNet/ATOMIC rows; projections to bowtie JSON, FMEA CSV, STIX bundles each with declared-loss manifests. Target list fixed in the alignment ledger."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
@@ -444,7 +444,7 @@ gmeow:MitigationMeasureConstraint
     logic:onClass gmeow:Mitigation ;
     logic:anyOf gmeow:mitigationMeasure ;
     logic:formalizes gmeow:Mitigation ;
-    logic:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across the deontic and procedural worlds, P16)." .
+    logic:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across norms, plans and engineered controls)." .
 
 gmeow:MitigationCountersPresenceConstraint
     a logic:DisjunctiveRequirednessConstraint ;

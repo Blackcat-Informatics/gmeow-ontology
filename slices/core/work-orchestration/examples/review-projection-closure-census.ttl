@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# What the review projection certifies when it says it is complete.
+#
+# The operator review is DERIVED — it is a projection over a cluster, not a
+# document somebody wrote — and its whole value proposition is that a reader may
+# treat what it does not show as not having happened. That entitlement has to be
+# earned, and this scene is where it is earned: the projection run leaves a
+# logic:SaturationWitness naming, predicate by predicate, which parts of the
+# surface it drove to a fixed point.
+#
+# The reason to enumerate rather than summarize is the same one the kernel gives:
+# a predicate the witness does not name is one whose closure it does not certify.
+# So an operator who notices that a review shows no dissent has a precise question
+# — was gmeow:explanationDissent settled in this run? — instead of a choice between
+# trusting the surface and re-deriving it by hand. That question is unanswerable
+# against a projection that reports only a completion percentage, which is why the
+# slice ships the roster and not a score.
+#
+# Read as documentation, the list below is the derived surface of the
+# work-orchestration projection in one place: the cluster edges a review must
+# traverse, the ten review contents, the explanation carriers including dissent,
+# the guidance and contribution edges, and the two seams (the hard-failure marker
+# and the preparation activity) where the projection reaches into the kernel.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/closure/> .
+
+# The cluster whose review this closure is about.
+ex:incidentReviewCluster a gmeow:WorkCluster ;
+    rdfs:label "Weekly incident-review cluster"@x-gmeow-english .
+
+ex:incidentReviewProjection a gmeow:WorkReviewProjection ;
+    rdfs:label "Review projection for the weekly incident-review cluster"@x-gmeow-english ;
+    gmeow:reviewOfCluster ex:incidentReviewCluster ;
+    gmeow:reviewGoalAndRecurrence ex:reviewGoalView ;
+    gmeow:reviewPrescriptionLineage ex:reviewLineageView ;
+    gmeow:reviewCurrentEnactment ex:reviewCurrentView ;
+    gmeow:reviewFrontier ex:reviewFrontierView ;
+    gmeow:reviewApprovalsAndPending ex:reviewApprovalsView ;
+    gmeow:reviewEffectStatus ex:reviewEffectView ;
+    gmeow:reviewAccumulatedRecord ex:reviewRecordView ;
+    gmeow:reviewTimelineRepresentation ex:reviewTimelineView ;
+    gmeow:reviewReceipt ex:incidentReviewClosure .
+
+# All eight contents, present because the law requires all eight: a review that
+# could omit one would be a surface whose silence a reader cannot interpret, and
+# the omission is invisible to exactly the person it misleads.
+ex:reviewGoalView rdfs:label "The standing goal and the weekly recurrence issuing occurrences"@x-gmeow-english .
+ex:reviewLineageView rdfs:label "The current runbook and the revisions that produced it"@x-gmeow-english .
+ex:reviewCurrentView rdfs:label "The occurrence in progress and the input generation it pinned"@x-gmeow-english .
+ex:reviewFrontierView rdfs:label "The derived frontier: what may be done now, and what blocks the rest"@x-gmeow-english .
+ex:reviewApprovalsView rdfs:label "Outstanding authorizations and awaited inputs"@x-gmeow-english .
+ex:reviewEffectView rdfs:label "Effect, reconciliation and compensation status at the boundary"@x-gmeow-english .
+ex:reviewRecordView rdfs:label "Notes, decisions, artifacts and receipts across the seventeen occurrences"@x-gmeow-english .
+ex:reviewTimelineView rdfs:label "The accessible timeline rendering of the seventeen occurrences"@x-gmeow-english .
+
+# The receipt IS the saturation witness. That identification is deliberate: the
+# receipt a projection owes its reader is precisely a statement of what it
+# managed to close over, and a receipt that said anything less would be a
+# signature without a document.
+ex:incidentReviewClosure a logic:SaturationWitness ;
+    rdfs:label "Closure witness for the incident-review projection run"@x-gmeow-english ;
+    logic:resultEvaluation logic:EvaluationCompleted ;
+    logic:consumedBudget "steps=3184;clusters=1;occurrences=17" ;
+    logic:settledPredicate
+        gmeow:approvalGoverningNorm ,
+        gmeow:clusterActivePrescription ,
+        gmeow:clusterEnactment ,
+        gmeow:clusterGoal ,
+        gmeow:clusterGuidanceSet ,
+        gmeow:clusterNote ,
+        gmeow:clusterOccurrenceSeries ,
+        gmeow:clusterPolicy ,
+        gmeow:clusterSchedule ,
+        gmeow:contributionKind ,
+        gmeow:contributionModel ,
+        gmeow:contributionOperator ,
+        gmeow:contributionTool ,
+        gmeow:criterionMagnitude ,
+        gmeow:enactmentContextAssembly ,
+        gmeow:entryHardFailure ,
+        gmeow:explainsEntry ,
+        gmeow:explanationCriterion ,
+        gmeow:explanationDissent ,
+        gmeow:explanationEvidence ,
+        gmeow:explanationPolicy ,
+        gmeow:explanationProof ,
+        gmeow:frontierCandidateSet ,
+        gmeow:frontierComparisonContext ,
+        gmeow:guidanceChecklist ,
+        gmeow:guidanceRendering ,
+        gmeow:guidanceRubric ,
+        gmeow:guidanceVersionMembership ,
+        gmeow:inquiryKind ,
+        gmeow:preparationActivity ,
+        gmeow:reviewAccumulatedRecord ,
+        gmeow:reviewApprovalsAndPending ,
+        gmeow:reviewCurrentEnactment ,
+        gmeow:reviewEffectStatus ,
+        gmeow:reviewFrontier ,
+        gmeow:reviewGoalAndRecurrence ,
+        gmeow:reviewOfCluster ,
+        gmeow:reviewPrescriptionLineage ,
+        gmeow:reviewReceipt ,
+        gmeow:reviewTimelineRepresentation .

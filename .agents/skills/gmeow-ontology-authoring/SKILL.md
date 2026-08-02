@@ -31,9 +31,9 @@ resources in the current slices-first, Rust-native repository.
      `ontology-docs/`, `dist/`, or generated mapping/projection/query outputs.
      Regenerate them from canonical sources.
 3. **No-Drift Gate (Principle 7)**:
-   - Run `make regenerate` after canonical source changes that affect generated
-     artifacts.
-   - Run `make check-generated` to verify generated output is synchronized.
+   - Run `make check` after canonical source changes that affect generated
+     artifacts: it materializes them through the single producer and then gates
+     the result, so it is the whole no-drift proof in one pass.
    - Run `make check` before proposing, committing, or submitting changes unless
      the user explicitly narrows validation.
 4. **Logic projection doctrine (Principle 17)**:
@@ -145,8 +145,7 @@ resources in the current slices-first, Rust-native repository.
   Open and edit files in `dsl/statements/`, then regenerate and check drift:
 
   ```bash
-  make regenerate
-  make check-generated
+  make check
   ```
 
 - **Assess slice quality**:

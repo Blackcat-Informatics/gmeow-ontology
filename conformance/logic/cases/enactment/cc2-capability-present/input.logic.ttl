@@ -1,0 +1,139 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc2-capability-present
+# The capability IS available: refinement pins an immutable executable subgraph,
+# and the frontier is POLICY-MAXIMALLY automated — every step whose effects the
+# policy already authorizes is ready-and-authorized, and only the genuinely
+# gated step requires approval. Pinning both halves matters: a system that marks
+# everything approval-required is not being careful, it is training its operator
+# to approve without reading.
+#
+# Both halves are DERIVED. No logic:entryLabel is asserted; the entries carry
+# their axis witnesses and the shipped rules named in profile.json compute the
+# labels, so "policy-maximal" is a consequence of the axis tuples rather than a
+# claim about them. The decomposition is derived too: the method yields ONE
+# ORDERED rdf:List and the shipped list rules walk it into the method's steps and
+# the task's expansion, which is what makes the pin below a commitment to
+# content rather than to a name. The PIN is derived as well: the case authors a
+# roster candidate, that candidate's method provenance, and the authorization
+# proof that licenses it — and the six pin rules conclude the type, the frozen
+# sequence, the digest, the authority and the selection.
+
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:ingest a logic:Plan ;
+    logic:planGoal e:textExtracted ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindIngestion .
+e:textExtracted a gmeow:Goal ; rdfs:label "Scanned pages ingested with text"@x-gmeow-english .
+e:ingestV2 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:ingest ;
+    logic:prescriptionDigest "b3:83b0a45c19d7e26f014a95c3b80de274f6109ac538b2d64e07f1a5c96b3d802e" .
+e:batch78 a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:c4907b1ea538d26f0173b9a5c02e8df4610b73ac9d5e28f140a6c85b3e097d21" .
+e:run78 a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:ingestV2 ;
+    logic:enactmentInputSnapshot e:batch78 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+e:ocrStep a logic:TransactionStep ; rdfs:label "Extract text"@x-gmeow-english .
+
+# The decomposition. The yielded steps are ONE ORDERED rdf:List, because the order
+# IS the plan: verifying before extracting verifies nothing, and storing the
+# receipt before verifying publishes an unchecked result. Repeated triples would
+# be an unordered set, so a reader could only guess the sequence or alphabetise it
+# — and alphabetised, this plan runs extract, inspect, prepare, store, verify.
+#
+# The cells are NAMED rather than blank for the same reason the pin has a digest:
+# a pin cannot freeze a cell it cannot name.
+e:ocrMethod a logic:DecompositionMethod ;
+    rdfs:label "Method: inspect / prepare / OCR / verify / store"@x-gmeow-english ;
+    logic:methodDecomposes e:ocrStep ;
+    logic:methodDigest "b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca" ;
+    logic:methodYields e:ocrCell1 .
+
+e:ocrCell1 rdf:first e:inspectStep ; rdf:rest e:ocrCell2 .
+e:ocrCell2 rdf:first e:prepareStep ; rdf:rest e:ocrCell3 .
+e:ocrCell3 rdf:first e:extractStep ; rdf:rest e:ocrCell4 .
+e:ocrCell4 rdf:first e:verifyStep ; rdf:rest e:ocrCell5 .
+e:ocrCell5 rdf:first e:storeStep ; rdf:rest rdf:nil .
+
+e:inspectStep a logic:TransactionStep ; rdfs:label "Inspect the scanned batch"@x-gmeow-english .
+e:prepareStep a logic:TransactionStep ; rdfs:label "Prepare pages for extraction"@x-gmeow-english .
+e:extractStep a logic:TransactionStep ; rdfs:label "Run OCR over the prepared pages"@x-gmeow-english .
+e:verifyStep a logic:TransactionStep ; rdfs:label "Verify the extracted text"@x-gmeow-english .
+e:storeStep a logic:TransactionStep ; rdfs:label "Store the ingest receipt"@x-gmeow-english .
+
+e:refine78 a logic:RefinementEpisode ;
+    logic:refinesStep e:ocrStep ;
+    logic:refinementServesGoal e:textExtracted ;
+    logic:refinementWorldSnapshot e:batch78 ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:producedCandidateSet e:run78Candidates .
+
+e:run78Candidates a logic:RefinementCandidateSet ;
+    rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
+    logic:refinementCandidate e:ocrPlanCandidate .
+
+# The roster's one member is a CANDIDATE, not a pin. The only thing the search
+# can honestly record about it is which method application produced it.
+e:ocrPlanCandidate
+    rdfs:label "Candidate: the OCR step decomposed stage by stage"@x-gmeow-english ;
+    logic:candidateInstantiatesMethod e:ocrMethod .
+
+# The authorization — the organizational act that turns a roster member into a
+# commitment, and the last thing in this scene that cannot be derived.
+#
+# The pin is immutable and content-addressed, so what was validated is what
+# executes — a sentence that is only true if the pin CARRIES the fragment. It is
+# true here BY DERIVATION: nothing below asserts logic:PinnedExecutableSubgraph,
+# logic:pinnedStepSequence, logic:pinDigest, logic:pinAuthority or
+# logic:selectedPin. The six pin rules named in profile.json read all five off the
+# join candidate -> method, so the frozen list IS logic:methodYields and the
+# content address IS logic:methodDigest. A pin whose every field was hand-typed is
+# a freeze nothing could be wrong about.
+e:ocrAuthProof a logic:AuthorizationProof ;
+    rdfs:label "Authorization: the stage-by-stage OCR decomposition is licensed for batch 78"@x-gmeow-english ;
+    logic:proofEstablishes e:ocrPlanCandidate .
+
+e:frontier78 a logic:ActionableFrontier ;
+    logic:frontierSaturationWitness e:sat78 ;
+    logic:frontierOfEnactment e:run78 ;
+    logic:hasFrontierEntry e:eInspect, e:ePrepare, e:eOcr, e:eVerify, e:eStore .
+
+# The witness is a logic:SaturationWitness and emphatically NOT a
+# logic:FrontierEntry. A witness typed as an entry joins the roster it was
+# certifying, so the operator is offered a sixth action that does not exist — and,
+# being an entry, it needs a label, which is how "the derivation completed" came
+# to be published as a COMPLETED ACTION.
+e:sat78 a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "64"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+e:eInspect a logic:FrontierEntry ;
+    logic:entryAction e:inspectStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+e:ePrepare a logic:FrontierEntry ;
+    logic:entryAction e:prepareStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+e:eOcr a logic:FrontierEntry ;
+    logic:entryAction e:extractStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+e:eVerify a logic:FrontierEntry ;
+    logic:entryAction e:verifyStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+# The ONLY gated step: publishing leaves the batch boundary. Ready AND gated —
+# two axes at once, which a single flat enum could not express without inventing
+# a combined value for every such pairing.
+e:eStore a logic:FrontierEntry ;
+    logic:entryAction e:storeStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .

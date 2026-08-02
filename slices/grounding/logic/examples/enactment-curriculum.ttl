@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Generality proof: the prescription/enactment kernel carries a CURRICULUM with
+# no work-orchestration vocabulary anywhere in the file. A course syllabus is a
+# logic:Plan; the Autumn 2026 edition of that syllabus is an immutable
+# content-addressed logic:PrescriptionVersion; one learner's enrolment is a
+# logic:Enactment of that version against a closed snapshot of the reading list.
+#
+# The point is not that a curriculum RESEMBLES a workflow. It is that the
+# identity criteria are the same ones: a syllabus revised mid-term must not
+# silently rewrite what an enrolled learner agreed to (supersession, not
+# mutation), two learners on the same edition must be comparable (a shared
+# prescription version), and a learner returning after a leave of absence
+# resumes rather than restarts (continuation kind). Those are the same three
+# properties a durable run needs, which is why one kernel serves both.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/curriculum/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The prescription: a syllabus is a plan, not a special "course" concept.
+#     Minting a second plan concept for teaching would be the exact duplication
+#     the kernel's no-second-plan-concept ban exists to prevent.
+ex:discreteMathSyllabus a logic:Plan ;
+    rdfs:label "Discrete Mathematics — syllabus"@x-gmeow-english ;
+    logic:planGoal ex:attainCompetency ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindCurriculum .
+
+# The plan's success criterion, and how success is quantified over
+# nondeterministic outcomes. A learner may fail an assessment and resit, so the
+# module succeeds under a strong-cyclic reading — every FAIR execution reaches
+# attainment — rather than a weak one, which would count a single lucky path.
+ex:attainCompetency a gmeow:Goal ;
+    rdfs:label "Learner attains the module's competencies"@x-gmeow-english .
+
+# The Autumn 2026 edition. Immutable and content-addressed: a mid-term revision
+# mints a NEW version and supersedes this one, so a learner can always show
+# which edition they were assessed against.
+ex:discreteMathAutumn2026 a logic:PrescriptionVersion ;
+    rdfs:label "Discrete Mathematics — Autumn 2026 edition"@x-gmeow-english ;
+    logic:prescriptionOf ex:discreteMathSyllabus ;
+    logic:prescriptionDigest "b3:9f2c41a7de08bb5310c6e4f27a95dd3e0c81b6472fa9e5d3c07184be6a2f5d9c" .
+
+# --- The closed input snapshot: which readings, at which revision, this cohort
+#     was actually taught from. Without it "the Autumn edition" is ambiguous the
+#     moment a set text is reissued.
+ex:autumnReadingList a logic:InputSnapshot ;
+    rdfs:label "Autumn 2026 reading list, as frozen at term start"@x-gmeow-english ;
+    logic:snapshotDigest "b3:41d8ff0927ac6b3e5218d0a7c94b6fe3182a5c0d7be49136f8a2c5017de4b3a8" .
+
+# --- The enactment: ONE learner's enrolment. Not the course, not the cohort —
+#     the individual occurrence, which is what carries state and history.
+ex:learnerAmaraEnrolment a logic:Enactment ;
+    rdfs:label "Amara's enrolment in Discrete Mathematics, Autumn 2026"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:discreteMathAutumn2026 ;
+    logic:enactmentInputSnapshot ex:autumnReadingList ;
+    logic:enactmentJournal ex:amaraJournal ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# The cohort groups the enactments sharing one prescription and schedule. The
+# cohort is NOT the enactment: a cohort-level statement ("the class is behind")
+# is a different claim from a learner-level one ("Amara is behind").
+ex:autumn2026Cohort a logic:EnactmentCohort ;
+    rdfs:label "Autumn 2026 cohort"@x-gmeow-english ;
+    logic:cohortMember ex:learnerAmaraEnrolment .
+
+# --- The journal: the same hash-linked chain a durable run uses. Here it
+#     records assessment submissions. Because each entry names the head it was
+#     applied against and the head it establishes, a resubmission after an
+#     ambiguous upload carries a stale head and is detectable as a duplicate
+#     rather than silently double-counted.
+ex:amaraJournal a logic:TransitionJournal ;
+    rdfs:label "Amara's enrolment transition journal"@x-gmeow-english ;
+    logic:journalHead "b3:7c05ea1f39b8d2460af71c93e5820db4a6f318cc0d97e42b5a8f60371c9de2b4" .
+
+ex:submitProblemSet1 a logic:JournalEntry ;
+    rdfs:label "Problem set 1 submitted"@x-gmeow-english ;
+    logic:journalPrevHead "b3:0000000000000000000000000000000000000000000000000000000000000000" ;
+    logic:journalNewHead "b3:7c05ea1f39b8d2460af71c93e5820db4a6f318cc0d97e42b5a8f60371c9de2b4" ;
+    logic:journalDeltaIdentity "b3:2e6a19c4d70f8b35a1c2059de84763fb0a95d1e378c46b20fa8d5397e1b064cf" ;
+    logic:journalOutcomeTag "accepted" .
+
+# --- Continuation: a learner returning from a leave of absence RESUMES the same
+#     enactment. Repeating the module next year would be a distinct enactment of
+#     a (probably different) prescription version. Conflating the two is how a
+#     transcript ends up unable to say whether someone took a course once or twice.
+ex:amaraReturnFromLeave a logic:JournalEntry ;
+    rdfs:label "Return from leave of absence"@x-gmeow-english ;
+    logic:continuationKind logic:ContinuationResume ;
+    logic:journalPrevHead "b3:7c05ea1f39b8d2460af71c93e5820db4a6f318cc0d97e42b5a8f60371c9de2b4" ;
+    logic:journalNewHead "b3:d41e8a06fc27b95043e1c78ba2f5069d3c81704ae95b6f2d80a3c517fe9b246a" ;
+    logic:journalDeltaIdentity "b3:5b0c93af71e2d648205fc93b7ae106d84f2c95013be7a86d4f091c2e37b5a80d" ;
+    logic:journalOutcomeTag "resumed" .
+
+# --- Checkpoint: the seven-axis identity fold. For a curriculum the axes read
+#     as: which submissions (data), which marking rules, which syllabus slice,
+#     which assessment contract, which marking engine, which annotation scheme,
+#     which fragment. A restore that matched only the submissions would happily
+#     re-mark last year's work under this year's rubric.
+ex:amaraMidtermCheckpoint a logic:EnactmentCheckpoint ;
+    rdfs:label "Amara's mid-term checkpoint"@x-gmeow-english ;
+    logic:checkpointOfEnactment ex:learnerAmaraEnrolment ;
+    logic:checkpointDataDigest "b3:a17f0c93e2b854d6017a3fc9528bd06e4917cc35b0da26f81e5b93470ca2df68" ;
+    logic:checkpointRulesDigest "b3:3e9b1d47a05c2f86b31047de9c58a2f0176bd3ce840a95217fb6c0d38e14a25f" ;
+    logic:checkpointSliceDigest "b3:6d2a58fb0c9e1347a80f5b2c76d91e043af8265b1c07d9e3a4f80b512c6de937" ;
+    logic:checkpointContractDigest "b3:8f41c07b3e29d5a610fb84c2079e5d316ba0c94f72e8d1350a6b29fc4e07d183" ;
+    logic:checkpointEngineDigest "b3:15c9e0a7f382b46d059ac13e7b28f60d4a19c5327ed08bf461a2d90c5378be14" ;
+    logic:checkpointAnnotationDigest "b3:c07b2e5a91d6f3480b25ca17e94d068f3a15b62c8ea1dd0f97e4a1b3852c60d9" ;
+    logic:checkpointFragmentDigest "b3:24a90fc5b1e783d605c29a4f18b0d637ec5219af08b4d3e761c05a92fb8d3e47" ;
+    logic:checkpointDescriptorHash "b3:e58021ca3f9d47b6018e5c27dab9403f1c68b0a597e2d413c6f8a705b19d2e83" .
+
+# --- A prior-enactment requirement is a prerequisite. This is the general form
+#     of "you cannot enact this until some OTHER enactment reached a state" —
+#     the same shape as an upstream DAG dependency or a shift handover.
+ex:requiresIntroProof a logic:PriorEnactmentRequirement ;
+    rdfs:label "Prerequisite: Introduction to Proof must be completed"@x-gmeow-english ;
+    logic:requiredPriorPrescription ex:discreteMathAutumn2026 ;
+    logic:requiredPriorState logic:EnactmentCompleted .
+
+# --- A deviation is an authorized departure: here, an accommodation. Recording
+#     it as a first-class deviation rather than editing the syllabus keeps the
+#     prescription immutable AND keeps the accommodation auditable.
+ex:amaraExtendedTime a logic:Deviation ;
+    rdfs:label "Approved accommodation: extended time on assessments"@x-gmeow-english ;
+    logic:deviationFromStep ex:discreteMathSyllabus .

@@ -40,9 +40,15 @@ stage's cache on only those graphs' digests — artifact-level incremental rebui
 unless exactly one stage holds it) and `gmeow:sourceOrigin` (the authored-source loader, whose emitted
 quads' provenance origin is `Source`). A stage holding no capability is a plain transform / validate /
 export leaf — provenance-`Generated`, non-sink, parallel-eligible within its topological level.
-Serialization treatment is not a kind: only the reasoning stage `gmeow:requiresResource`
-`gmeow:engineResource` (the process-wide reasoning state is exclusive), so it serializes against
-any stage competing for it.
+Serialization treatment is not a kind either — it is a declared resource conflict. Two resources are
+minted, for two different reasons. The reasoning stage `gmeow:requiresResource` `gmeow:engineResource`
+because the process-wide reasoning state is shared mutable state. The two whole-dataset serialization
+leaves (`gmeow:stage-export-export`, `gmeow:stage-export-yaml-ld`) `gmeow:requiresResource`
+`gmeow:serializationBufferResource` because their PEAK RESIDENCY is exclusive: each turns the entire
+carrier into in-memory documents (9.06 GiB and 8.37 GiB of measured peak allocation, an order of
+magnitude above any other export leaf), so concurrently they add their peaks and exhaust a 16 GB build
+host. Stages holding a resource serialize against every other stage holding it; every other leaf in
+the level keeps full parallelism.
 
 ## Invariants (HARD-failed before any stage runs)
 

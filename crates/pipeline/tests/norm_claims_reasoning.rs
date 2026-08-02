@@ -7,7 +7,7 @@
 //! small TBox with a small A-Box in one default-graph world and close it under the native
 //! OWL 2 RL chase (`gmeow_logic::reason::rl_closure`). The A-Box here is the REAL
 //! `graph/norm-claims` named graph read back from the SHIPPED `generated/dist/gmeow.gts`; the
-//! TBox is `slices/extensions/norms/module.ttl`.
+//! TBox is `slices/core/norms/module.ttl`.
 //!
 //! Advice fires from a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the shipped
 //! bundle's base graph folds bare `gmeow:Entity` A-Box individuals that match the advisory guard,
@@ -20,7 +20,7 @@
 //! The isolated, deterministic proof over a controlled fixture lives in `advice_wing_fixture.rs`.
 //!
 //! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle — it runs green only
-//! after `make regen`.
+//! after `make check`.
 
 use std::path::{Path, PathBuf};
 
@@ -138,7 +138,7 @@ fn shipped_norm_claims_abox_carries_the_advisory_assessment_and_reasons_cleanly(
          gmeow:ComplianceAssessment whose IRI embeds an `{ADVICE_FAMILY}` code (the wing ships)"
     );
 
-    let tbox = turtle_quads(&["slices/extensions/norms/module.ttl"]);
+    let tbox = turtle_quads(&["slices/core/norms/module.ttl"]);
 
     let mut quads = tbox;
     quads.extend(abox);

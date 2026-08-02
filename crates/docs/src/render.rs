@@ -8601,7 +8601,7 @@ mod tests {
     /// two-seam fixture; this one proves it over the live registry, so a newly
     /// registered seam whose carrying terms or direction legs the renderer cannot
     /// project (or the gate cannot parse) fails HERE, at authoring time, rather than
-    /// in a `make sync SYNC_OUTPUTS=docs` run nobody has done yet. It needs the
+    /// in a `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` run nobody has done yet. It needs the
     /// `slices/` tree but no `generated/` tree.
     #[test]
     fn the_real_seam_registry_renders_into_a_drift_free_page() {

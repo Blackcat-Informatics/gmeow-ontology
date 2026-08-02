@@ -23,3 +23,68 @@ ex:cqResearchInquiriesShape a logic:ResultShape ;
         [ logic:columnVariable "status" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
+
+# --- The two closed axes an inquiry travels on -------------------------------
+#
+# A question is not the same object as the state of asking it, and the slice
+# splits that into two axes: what KIND of inquiry it is, and where the asking has
+# got to. Both are value individuals rather than subclasses (Principle 9), so a
+# new research programme is a new individual, never a new class. The two rosters
+# are pinned as (axis, member) pairs so that a member added to the wrong axis —
+# a status filed under kind, which is exactly the mistake the split exists to
+# make impossible — fails here rather than reading as a richer vocabulary.
+
+ex:cqInquiryAxisMembersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "member" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqInquiryAxisMembers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?axis ?member WHERE { VALUES ?axis { gmeow:InquiryKind gmeow:InquiryStatus } ?member a ?axis } ORDER BY ?axis ?member" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The status axis carries five positions and the distinction that earns it is suspended against abandoned: a suspended inquiry is still expected to return and an abandoned one is not, so a surface that reported both as closed would quietly retire live questions. Pending and active are likewise apart because an inquiry can be posed long before anyone works on it. The kind axis currently carries one member, and pinning a single-member roster is deliberate rather than trivial — it records that the classification is open and unpopulated, so the day a second kind is added the diff says so instead of the addition passing as routine." ;
+    gmeow:cqResultShape ex:cqInquiryAxisMembersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqInquiryAxisMembersRowInquiryKindinquiryKindResearchPlan , ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusAbandoned , ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusActive , ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusPending , ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusResolved , ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusSuspended  .
+
+ex:cqInquiryAxisMembersRowInquiryKindinquiryKindResearchPlan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryKindResearchPlan ] .
+ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusAbandoned a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryStatusAbandoned ] .
+ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusActive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryStatusActive ] .
+ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryStatusPending ] .
+ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusResolved a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryStatusResolved ] .
+ex:cqInquiryAxisMembersRowInquiryStatusinquiryStatusSuspended a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "member" ; gmeow:cellValueIri gmeow:inquiryStatusSuspended ] .
+
+# --- The carriers of the two inquiry axes ------------------------------------
+ex:cqInquiryAxisCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqInquiryAxisCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?axis ?term WHERE { VALUES ?axis { gmeow:InquiryKind gmeow:InquiryStatus } ?term rdfs:range ?axis } ORDER BY ?axis ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "One carrier per axis, which is what keeps the kind of an inquiry and the state of asking it independently readable. If a single relation carried both, a question could not be reclassified without appearing to change status, and could not be suspended without appearing to change kind — and both of those are ordinary things to do to a live question. The pin is over pairs so that a second carrier appearing on either axis fails here rather than surviving as a convenience alias that half the data then uses." ;
+    gmeow:cqResultShape ex:cqInquiryAxisCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqInquiryAxisCarriersRowInquiryKindinquiryKind , ex:cqInquiryAxisCarriersRowInquiryStatusinquiryStatus  .
+
+ex:cqInquiryAxisCarriersRowInquiryKindinquiryKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:inquiryKind ] .
+ex:cqInquiryAxisCarriersRowInquiryStatusinquiryStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:InquiryStatus ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:inquiryStatus ] .

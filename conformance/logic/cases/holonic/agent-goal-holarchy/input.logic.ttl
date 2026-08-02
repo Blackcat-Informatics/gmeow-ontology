@@ -109,7 +109,7 @@
 # goal/action into its sub-trajectory; `recompose` folds a sub-trajectory back to the holon that
 # governs it (logic:constraintWhole) and re-reads its agency verdict. The gmeow:-domain twin of
 # this plan ships on the slice surface at
-# slices/extensions/agentic/examples/agent-goal-holarchy.ttl.
+# slices/core/agentic/examples/agent-goal-holarchy.ttl.
 #
 # CRITICAL: the chase seeds only from input.nq world facts, so every fact below is duplicated
 # there in the named world ex:schema; these are the program axioms.

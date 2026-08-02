@@ -1,0 +1,92 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:  <https://w3id.org/semapv/vocab/> .
+# Work-orchestration alignments — GMEOW authoring source.
+# Compiled to mappings/gmeow-work-orchestration.sssom.tsv by the mappings stage.
+#
+# This slice authors NO alignment onto an external formalism. Every external
+# process-model surface the prescription / enactment spine is bridged to —
+# P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, the RO-Crate Workflow-Run
+# profile, the workflow engines (Airflow / CWL / WDL / Temporal / Nextflow),
+# openEHR Task Planning, and OBI's planned-process backbone — is grounded once by
+# the logic: grounding slice, which owns those catalogs
+# (slices/grounding/logic/mappings/plan-enactment-bridges.ttl for the process-model
+# surfaces, mappings/foundation-bridges.ttl for OBI). This slice CONSUMES the
+# logic: term and those correspondences rather than minting a second alignment
+# onto the same external term (docs/GROUNDING.md, "External grounding ownership").
+#
+# What remains here is the one kind of cell that is NOT external grounding: the
+# INTERNAL structural correspondence from a control-flow edge's branch-guard VALUE
+# onto the canonical structured-program COMBINATOR class the guarded edge realizes.
+# Both endpoints are GMEOW-side, so no external formalism is being grounded and no
+# ownership boundary is crossed.
+
+gmeow:mapsetWorkOrchestration a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/work-orchestration" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Internal structural correspondences from a control-flow edge's branch-guard value onto the canonical logic: program combinator the guarded edge realizes. This set AUTHORS no external alignment: the plan ⟂ execution bridges onto P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate Workflow-Run, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, openEHR Task Planning, and OBI are owned by the logic: grounding slice and are CONSUMED here through the logic: term (docs/GROUNDING.md, \"External grounding ownership\"). Both endpoints of every row below are GMEOW-side, which is why they stay in the domain slice." .
+
+# --------------------------------------------------------------------------- #
+# Guard value → structured-program combinator (the combinator TREE).           #
+#                                                                              #
+# logic: carries control flow in TWO complementary forms, not one              #
+# (LOGIC.md, the logic:ControlFlowEdge definition): logic:ControlFlowEdge is    #
+# the binary-edge flow-GRAPH form the DAG-workflow acyclicity certifier runs    #
+# Tarjan SCC over, while logic:Choice / logic:Iteration /                       #
+# logic:ConcurrentComposition / logic:Fallback are the program-TREE combinators #
+# an interpreter walks from a plan's logic:planBody root. The flow-graph        #
+# alignments live with the other logic:-subject bridges in the grounding slice; #
+# this block carries the complementary layer they do not: which COMBINATOR a    #
+# given branch-guard value on a reified edge indicates.                         #
+#                                                                              #
+# Each cell is a skos:relatedMatch, never an equivalence: a guard value is a    #
+# marker on a reified edge that INDICATES which combinator the edge realizes,   #
+# it is not the combinator class itself, so equivalence would overclaim. They   #
+# lower through the same SSSOM/EDOAL/SPARQL pipeline and fold into the          #
+# per-correspondence loss ledger (validation-only) like every other cell.       #
+#                                                                              #
+# switch → logic:Choice (n-ary): logic:Choice is the BINARY co-equal-operand    #
+# choice combinator (logic:leftOperand / logic:rightOperand). An n-way switch   #
+# corresponds to a right-nested cascade of binary logic:Choice nodes, so the    #
+# single canonical target is logic:Choice; the n-ary nesting is the lossy drop  #
+# recorded on the cell. The implicit fallback / else arm of an if or a switch   #
+# corresponds to logic:Fallback (try the guarded arm, else the default arm); it #
+# is recorded as the residue note on those two cells rather than as a separate  #
+# guard value, because the default arm is the UN-guarded control-flow edge out  #
+# of the branch node and therefore carries no guard value of its own.           #
+# --------------------------------------------------------------------------- #
+
+gmeow:branchConditionIf skos:relatedMatch logic:Choice {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "An if-then guard on a logic:ControlFlowEdge edge realizes the canonical binary choice combinator logic:Choice (the guarded then-arm vs. the alternative). Structural, not equivalent: the guard VALUE marks which combinator the reified edge realizes, it is not the combinator class. The implicit else / default arm corresponds to logic:Fallback (try the guarded arm, else the default)." ;
+    gmeow:lossyDrop "implicit else/default arm → logic:Fallback: the default branch is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value"
+|} .
+
+gmeow:branchConditionLoop skos:relatedMatch logic:Iteration {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A loop-back guard on a logic:ControlFlowEdge edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a plan carrying a loop guard is outside the acyclic DAG fragment the certifier accepts." ;
+    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the plan outside the DAG fragment"
+|} .
+
+gmeow:branchConditionParallel skos:relatedMatch logic:ConcurrentComposition {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A parallel split/join guard on a logic:ControlFlowEdge edge realizes the canonical concurrent-composition combinator logic:ConcurrentComposition (two co-equal legs run concurrently). Structural, not equivalent." ;
+    gmeow:lossyDrop "the conflict-serializability surface of a concurrent run (logic:ConcurrentHistory, logic:serializabilityCriterion) is derived by the native evaluator, not carried by the flat parallel guard value"
+|} .
+
+gmeow:branchConditionSwitch skos:relatedMatch logic:Choice {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "An n-way switch guard on a logic:ControlFlowEdge edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback." ;
+    gmeow:lossyDrop "implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
+    gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator"
+|} .

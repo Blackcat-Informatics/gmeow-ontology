@@ -114,7 +114,7 @@ Focused module timings:
    pass instead of repeatedly in Python.
 
 6. Keep mapping-compiler parity on the native generator DAG (`make
-   sync`) and avoid reintroducing a duplicate Python parser/emitter
+   check-sync`) and avoid reintroducing a duplicate Python parser/emitter
    test surface.
 
 7. Stop rerunning full gates inside `compliance-report` during routine local

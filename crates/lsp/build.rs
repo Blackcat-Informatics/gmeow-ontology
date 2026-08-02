@@ -5,7 +5,7 @@
 //! that `src/lib.rs` embeds with `include_bytes!(env!("GMEOW_BUNDLE_PATH"))`.
 //!
 //! The bundle is a git-ignored local/release product materialized by
-//! `make regen` (or `make install`), never a committed input — so this build
+//! `make check` (or `make install`), never a committed input — so this build
 //! script resolves an ABSOLUTE path (independent of the build's CWD) and
 //! fails the build closed, with an actionable message naming the bootstrap
 //! command, when the file is absent or zero-length (empty/truncated) rather
@@ -51,7 +51,7 @@ fn main() {
     let len = std::fs::metadata(&absolute).map(|m| m.len()).unwrap_or(0);
     if len == 0 {
         panic!(
-            "gmeow: staged bundle {} is missing or empty — run `make regen` (or `make install`) \
+            "gmeow: staged bundle {} is missing or empty — run `make check` (or `make install`) \
              to materialize generated/dist/gmeow.gts before building this consumer. It is a \
              git-ignored local/release product, not a committed input.",
             absolute.display()

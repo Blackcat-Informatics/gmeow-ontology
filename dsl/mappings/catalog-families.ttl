@@ -1,0 +1,444 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# The registered external catalog families (gmeow:CatalogFamily) — the CLOSED set
+# of external formalisms a logic:GroundingCorrespondence's logic:targetEndpoint may
+# belong to, with each family's raise-only correspondence-count ratchet.
+#
+# The registry is DATA, read by the mappings stage (crates/pipeline) and by the
+# shipped-bundle catalog gate (crates/pipeline/tests/correspondence_laws_bundle.rs).
+# Neither carries a hardcoded family list: registering a catalog is an ontology
+# edit, so the decision to admit a new external surface is reviewable content
+# rather than a hidden Rust array. A target endpoint matching NO family, or
+# matching MORE THAN ONE, is a hard failure at compile time.
+#
+# Adding a family is deliberate: mint the row with its stem(s), its authoring
+# grounding slice(s), and the count the shipped catalog carries today. Lowering a
+# gmeow:catalogTargetMinimum is forbidden — the floor rises with the catalog and a
+# retired catalog loses its row outright.
+#
+# Ownership is the AUTHORING boundary (docs/GROUNDING.md, "External grounding
+# ownership"): the grounding slice whose mappings/ directory holds the family's
+# bridge cells. Most families have exactly one; the cross-cutting authorities
+# (Wikidata at all three boundaries, RDFS and OBI at two) declare each home they
+# are actually authored at rather than a convenient fiction.
+
+# ── logic: — upper ontologies, logics, rule and validation dialects ───────────
+
+gmeow:catalogFamily-gufo a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — gUFO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "gUFO" ;
+    gmeow:catalogNamespace "http://purl.org/nemo/gufo#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 52 .
+
+gmeow:catalogFamily-bfo a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — BFO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "BFO" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/BFO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 13 .
+
+gmeow:catalogFamily-ro a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OBO Relation Ontology"@x-gmeow-english ;
+    gmeow:catalogFamilyName "RO" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/RO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 4 .
+
+gmeow:catalogFamily-sumo a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — SUMO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "SUMO" ;
+    gmeow:catalogNamespace "https://www.ontologyportal.org/SUMO.owl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 24 .
+
+gmeow:catalogFamily-owl a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OWL"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OWL" ;
+    gmeow:catalogNamespace "http://www.w3.org/2002/07/owl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 28 .
+
+gmeow:catalogFamily-rdfs a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — RDFS"@x-gmeow-english ;
+    gmeow:catalogFamilyName "RDFS" ;
+    gmeow:catalogNamespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 5 .
+
+gmeow:catalogFamily-shacl a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — SHACL"@x-gmeow-english ;
+    gmeow:catalogFamilyName "SHACL" ;
+    gmeow:catalogNamespace "http://www.w3.org/ns/shacl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 15 .
+
+gmeow:catalogFamily-dul a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — DOLCE Ultra-Lite"@x-gmeow-english ;
+    gmeow:catalogFamilyName "DUL" ;
+    gmeow:catalogNamespace "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 6 .
+
+gmeow:catalogFamily-iao a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Information Artifact Ontology"@x-gmeow-english ;
+    gmeow:catalogFamilyName "IAO" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/IAO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-pato a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — PATO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "PATO" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/PATO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-yamato a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — YAMATO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "YAMATO" ;
+    gmeow:catalogNamespace "http://www.hozo.jp/owl/YAMATO20210808.miz.owl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 9 .
+
+gmeow:catalogFamily-opencyc a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OpenCyc"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OpenCyc" ;
+    gmeow:catalogNamespace "http://sw.opencyc.org/concept/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 6 .
+
+gmeow:catalogFamily-ontouml a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OntoUML"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OntoUML" ;
+    gmeow:catalogNamespace "https://w3id.org/ontouml#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 9 .
+
+gmeow:catalogFamily-obi a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Ontology for Biomedical Investigations"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OBI" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/OBI_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-rdf-test-manifest a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — RDF Test Manifest"@x-gmeow-english ;
+    gmeow:catalogFamilyName "RDF Test Manifest" ;
+    gmeow:catalogNamespace "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-owl-test-ontology a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OWL Test Ontology"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OWL Test Ontology" ;
+    gmeow:catalogNamespace "http://www.w3.org/2007/OWL/testOntology#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+# ── logic: — the process-model catalogs of the prescription / enactment spine ─
+
+gmeow:catalogFamily-pplan a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — P-Plan"@x-gmeow-english ;
+    gmeow:catalogFamilyName "P-Plan" ;
+    gmeow:catalogNamespace "http://purl.org/net/p-plan#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 6 .
+
+gmeow:catalogFamily-prov a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — PROV-O"@x-gmeow-english ;
+    gmeow:catalogFamilyName "PROV-O" ;
+    gmeow:catalogNamespace "http://www.w3.org/ns/prov#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 4 .
+
+gmeow:catalogFamily-schema-org a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — schema.org HowTo"@x-gmeow-english ;
+    gmeow:catalogFamilyName "schema.org HowTo" ;
+    gmeow:catalogNamespace "https://schema.org/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 7 .
+
+gmeow:catalogFamily-opmw a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OPMW"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OPMW" ;
+    gmeow:catalogNamespace "https://www.opmw.org/ontology/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 3 .
+
+gmeow:catalogFamily-bpmn a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — BPMN"@x-gmeow-english ;
+    gmeow:catalogFamilyName "BPMN" ;
+    gmeow:catalogNamespace "http://www.omg.org/spec/BPMN/20100524/MODEL#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 3 .
+
+gmeow:catalogFamily-ro-crate a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — RO-Crate"@x-gmeow-english ;
+    gmeow:catalogFamilyName "RO-Crate" ;
+    gmeow:catalogNamespace "https://w3id.org/ro/crate/#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-airflow a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Apache Airflow"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Apache Airflow" ;
+    gmeow:catalogNamespace "https://airflow.apache.org/concept/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-cwl a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Common Workflow Language"@x-gmeow-english ;
+    gmeow:catalogFamilyName "CWL" ;
+    gmeow:catalogNamespace "https://w3id.org/cwl/cwl#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-wdl a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Workflow Description Language"@x-gmeow-english ;
+    gmeow:catalogFamilyName "WDL" ;
+    gmeow:catalogNamespace "https://openwdl.org/concept/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-temporal a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Temporal"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Temporal" ;
+    gmeow:catalogNamespace "https://temporal.io/concept/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-nextflow a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Nextflow"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Nextflow" ;
+    gmeow:catalogNamespace "https://www.nextflow.io/concept/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-openehr-task-planning a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — openEHR Task Planning"@x-gmeow-english ;
+    gmeow:catalogFamilyName "openEHR Task Planning" ;
+    gmeow:catalogNamespace "https://specifications.openehr.org/releases/PROC/latest/task_planning.html#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:catalogTargetMinimum 3 .
+
+# ── math: — statistical, quantity, unit and mathematical reference surfaces ───
+
+gmeow:catalogFamily-qb a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — RDF Data Cube"@x-gmeow-english ;
+    gmeow:catalogFamilyName "RDF Data Cube" ;
+    gmeow:catalogNamespace "http://purl.org/linked-data/cube#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-stato a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — STATO"@x-gmeow-english ;
+    gmeow:catalogFamilyName "STATO" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/STATO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 5 .
+
+gmeow:catalogFamily-obcs a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OBCS"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OBCS" ;
+    gmeow:catalogNamespace "http://purl.obolibrary.org/obo/OBCS_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 5 .
+
+gmeow:catalogFamily-sio a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Semanticscience Integrated Ontology"@x-gmeow-english ;
+    gmeow:catalogFamilyName "SIO" ;
+    gmeow:catalogNamespace "http://semanticscience.org/resource/SIO_"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-qudt a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — QUDT"@x-gmeow-english ;
+    gmeow:catalogFamilyName "QUDT" ;
+    gmeow:catalogNamespace "http://qudt.org/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 11 .
+
+gmeow:catalogFamily-si-digital a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — SI Digital Framework"@x-gmeow-english ;
+    gmeow:catalogFamilyName "SI Digital Framework" ;
+    gmeow:catalogNamespace "https://si-digital-framework.org/SI/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 7 .
+
+gmeow:catalogFamily-om2 a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OM 2"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OM 2" ;
+    gmeow:catalogNamespace "http://www.ontology-of-units-of-measure.org/resource/om-2/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-om1 a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OM 1.8"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OM 1.8" ;
+    gmeow:catalogNamespace "http://www.wurvoc.org/vocabularies/om-1.8/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-sosa a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — SOSA"@x-gmeow-english ;
+    gmeow:catalogFamilyName "SOSA" ;
+    gmeow:catalogNamespace "http://www.w3.org/ns/sosa/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-ivoa-obscore a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — IVOA ObsCore"@x-gmeow-english ;
+    gmeow:catalogFamilyName "IVOA ObsCore" ;
+    gmeow:catalogNamespace "http://www.ivoa.net/rdf/ObsCore#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-loinc a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — LOINC"@x-gmeow-english ;
+    gmeow:catalogFamilyName "LOINC" ;
+    gmeow:catalogNamespace "http://loinc.org/rdf/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-openmath a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OpenMath"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OpenMath" ;
+    gmeow:catalogNamespace "http://www.openmath.org/cd/"^^xsd:anyURI ,
+        "https://openmath.org/cd/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 14 .
+
+gmeow:catalogFamily-mathlib a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Mathlib"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Mathlib" ;
+    gmeow:catalogNamespace "https://leanprover-community.github.io/mathlib4_docs/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 11 .
+
+gmeow:catalogFamily-dlmf a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — DLMF"@x-gmeow-english ;
+    gmeow:catalogFamilyName "DLMF" ;
+    gmeow:catalogNamespace "https://dlmf.nist.gov/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 5 .
+
+gmeow:catalogFamily-oeis a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OEIS"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OEIS" ;
+    gmeow:catalogNamespace "https://oeis.org/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:catalogTargetMinimum 3 .
+
+# ── lang: — lexical, linguistic and annotation surfaces ──────────────────────
+
+gmeow:catalogFamily-ontolex a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — OntoLex"@x-gmeow-english ;
+    gmeow:catalogFamilyName "OntoLex" ;
+    gmeow:catalogNamespace "http://www.w3.org/ns/lemon/ontolex#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 5 .
+
+gmeow:catalogFamily-lexinfo a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — LexInfo"@x-gmeow-english ;
+    gmeow:catalogFamilyName "LexInfo" ;
+    gmeow:catalogNamespace "http://www.lexinfo.net/ontology/3.0/lexinfo#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 3 .
+
+gmeow:catalogFamily-wordnet a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Global WordNet"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Global WordNet" ;
+    gmeow:catalogNamespace "https://globalwordnet.github.io/schemas/wn#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 6 .
+
+gmeow:catalogFamily-nif a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — NIF"@x-gmeow-english ;
+    gmeow:catalogFamilyName "NIF" ;
+    gmeow:catalogNamespace "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 6 .
+
+gmeow:catalogFamily-web-annotation a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Web Annotation"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Web Annotation" ;
+    gmeow:catalogNamespace "http://www.w3.org/ns/oa#"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 4 .
+
+gmeow:catalogFamily-lexvo a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Lexvo"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Lexvo" ;
+    gmeow:catalogNamespace "http://lexvo.org/id/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 2 .
+
+gmeow:catalogFamily-glottolog a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Glottolog"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Glottolog" ;
+    gmeow:catalogNamespace "https://glottolog.org/resource/languoid/id/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 1 .
+
+gmeow:catalogFamily-iana-language-registry a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — IANA Language Subtag Registry"@x-gmeow-english ;
+    gmeow:catalogFamilyName "IANA Language Registry" ;
+    gmeow:catalogNamespace "https://www.iana.org/assignments/language-subtag-registry"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 1 .
+
+# ── cross-cutting authority ──────────────────────────────────────────────────
+
+gmeow:catalogFamily-wikidata a gmeow:CatalogFamily ;
+    rdfs:label "catalog family — Wikidata"@x-gmeow-english ;
+    gmeow:catalogFamilyName "Wikidata" ;
+    gmeow:catalogNamespace "http://www.wikidata.org/entity/"^^xsd:anyURI ;
+    gmeow:catalogOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:catalogTargetMinimum 146 .
+
+# ── residue-ratchet carve-out (gmeow:ResidueRatchetExemption) ─────────────────
+#
+# The projection-vocabulary residue ratchet
+# (docs/PROJECTION-VOCABULARY-RATCHET.md §3) guards a vocabulary only when ONE
+# grounding slice owns its authoring boundary. Two of the families above are
+# general publication vocabularies with no such owner, so they carry no
+# gmeow:ProjectionVocabulary and the correspondences onto them enter no residue
+# count, no per-slice ceiling and no monotonicity ratchet.
+#
+# That was a documented absence with nothing counting it. These rows make it a
+# registry commitment: each names the exempted family, states why it has no owner,
+# and pins the number of shipped grounding correspondences riding the exemption.
+# gmeow:exemptRowCeiling is LOWER-ONLY and the same family's
+# gmeow:catalogTargetMinimum is RAISE-ONLY, so together they pin the carve-out
+# from both sides — an added row and a deleted row are equally red. The mappings
+# stage enforces both, plus the invariant that a family may never be exempt AND
+# guarded (an exemption that outlives its reason reds instead of rotting).
+#
+# The forward path for both is the same and is deliberately NOT taken here:
+# guarding either one reclassifies hundreds of pre-existing, legitimate alignment
+# triples across dozens of (slice, vocabulary) cells as off-owner residue, each
+# needing a new ceiling. That is a repo-wide ownership decision, not a ratchet
+# tightening — so it is recorded, bounded, and left visible rather than done
+# silently or forgotten.
+
+gmeow:residueExemption-prov a gmeow:ResidueRatchetExemption ;
+    rdfs:label "residue-ratchet exemption — PROV-O"@x-gmeow-english ;
+    gmeow:exemptCatalogFamily gmeow:catalogFamily-prov ;
+    gmeow:exemptRationale "PROV-O is a general provenance-publication vocabulary that domain slices across the repository align to as ordinary by-reference correspondence records (Principle 5), so no one grounding slice is its authoring home. The kernel's logic:Plan / logic:Enactment rows onto it are grounding correspondences because their SUBJECTS are kernel terms — a fact about the source endpoint, which does not make logic: the catalog owner. Guarding it under logic: would reclassify the pre-existing prov: alignment triples authored across the domain slices as off-owner residue, each needing a new ceiling: a repo-wide ownership decision, not a ratchet tightening." ;
+    gmeow:exemptRowCeiling 4 .
+
+gmeow:residueExemption-schema-org a gmeow:ResidueRatchetExemption ;
+    rdfs:label "residue-ratchet exemption — schema.org HowTo"@x-gmeow-english ;
+    gmeow:exemptCatalogFamily gmeow:catalogFamily-schema-org ;
+    gmeow:exemptRationale "schema.org is a general web-publication vocabulary and the target of the shipped consumer down-projection profiles, aligned to by domain slices throughout the repository rather than authored at one grounding boundary, so it has no single owner. Its HowTo/HowToStep procedure surface is bridged from the kernel because the SUBJECTS are kernel terms, which does not make logic: the catalog owner. Guarding it under logic: would reclassify the pre-existing schema: alignment triples across the domain slices as off-owner residue, each needing a new ceiling: a repo-wide ownership decision, not a ratchet tightening." ;
+    gmeow:exemptRowCeiling 7 .

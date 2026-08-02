@@ -34,7 +34,7 @@ jobs:
       - name: Guard — the generated package must be present
         run: |
           test -f packages/python/gmeow_models/__init__.py \
-            || { echo "packages/python/gmeow_models is missing — run 'make regen' and commit it"; exit 1; }
+            || { echo "packages/python/gmeow_models is missing — run 'make check-sync SYNC_MODE=update SYNC_OUTPUTS=all' and commit it"; exit 1; }
 
       - name: Build the wheel + sdist
         run: |

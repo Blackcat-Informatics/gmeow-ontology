@@ -699,6 +699,20 @@ pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
                      generation with counting; the family sub-deciders certify each in isolation \
                      only, so the entangled full-DL case lies outside the certified fragment.",
         },
+        FragmentBoundaryRecord {
+            id: "rdf12-nested-triple-term",
+            reason: "The statement-metadata lowering decomposes an RDF 1.2 reifier's rdf:reifies \
+                     term into logic:reifiedStatementSubject / logic:reifiedStatementPredicate / \
+                     logic:reifiedStatementObject, which is exact for a statement whose subject \
+                     and object are IRIs, blank nodes or literals and preserves exactly two \
+                     things it cannot: a NESTED triple term (a reified statement whose own \
+                     subject or object is itself a triple term has no non-term component to \
+                     decompose into, so it is not lowered and no component edge is emitted for \
+                     it), and the reified statement's identity AS A TERM (the three components \
+                     are joinable, but nothing in the fact surface denotes the statement itself, \
+                     so a rule may quantify over the components and may not quantify over the \
+                     statement).",
+        },
     ];
     boundaries.sort();
     boundaries

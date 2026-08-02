@@ -6,7 +6,6 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_errors::{Finding, Severity};
 use gmeow_validate::cache::{CachedResult, ValidationCache};
@@ -24,16 +23,15 @@ fn cached(findings: &[(Severity, &str, &str)]) -> CachedResult {
     )
 }
 
-static TEST_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
-
-fn temp_project_root() -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "gmeow_validate_cache_test_{}_{}",
-        std::process::id(),
-        TEST_DIR_COUNTER.fetch_add(1, Ordering::Relaxed)
-    ));
-    fs::create_dir_all(&dir).unwrap();
-    dir
+/// A fresh, isolated project root for one test.
+///
+/// The returned [`tempfile::TempDir`] owns the directory: it is removed on drop,
+/// including on panic and early return. Bind it to a named `_root` (never a bare
+/// `_`, which would drop it immediately) so it outlives the returned path.
+fn temp_project_root() -> (tempfile::TempDir, PathBuf) {
+    let dir = tempfile::tempdir().expect("create temp project root");
+    let path = dir.path().to_path_buf();
+    (dir, path)
 }
 
 fn write_file(dir: &Path, name: &str, content: &str) -> PathBuf {
@@ -75,7 +73,7 @@ fn cache_key_changes_with_parts() {
 fn files_cache_key_matches_python_source_hash() {
     // Python `generator.source_hash` for a single file named "hello.txt" of
     // size 5 containing "hello" under the project root.
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let path = write_file(&root, "hello.txt", "hello");
     let cache = ValidationCache::new(&root);
     assert_eq!(cache.files_cache_key(&[path]).unwrap(), "9e34842845368e92");
@@ -83,7 +81,7 @@ fn files_cache_key_matches_python_source_hash() {
 
 #[test]
 fn files_cache_key_is_content_addressed() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let path = write_file(
         &root,
         "input.ttl",
@@ -107,7 +105,7 @@ fn files_cache_key_is_content_addressed() {
 fn files_cache_key_uses_relative_path_when_possible() {
     // A file inside the project root and the same file reached via an absolute
     // path must hash to the same key (relative path normalization).
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let rel = write_file(&root, "nested/file.ttl", "<a> <b> <c> .\n");
     let cache = ValidationCache::new(&root);
     let key_rel = cache.files_cache_key(std::slice::from_ref(&rel)).unwrap();
@@ -119,7 +117,7 @@ fn files_cache_key_uses_relative_path_when_possible() {
 
 #[test]
 fn read_write_roundtrip() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let cache = ValidationCache::new(&root);
     let result = cached(&[
         (Severity::Error, "shacl.x", "error one"),
@@ -138,7 +136,7 @@ fn read_write_roundtrip() {
 
 #[test]
 fn atomic_write_leaves_no_temp_file() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let cache = ValidationCache::new(&root);
     let result = cached(&[(Severity::Error, "shacl.e", "e")]);
 
@@ -158,7 +156,7 @@ fn atomic_write_leaves_no_temp_file() {
 
 #[test]
 fn corrupted_cache_file_is_ignored() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let cache = ValidationCache::new(&root);
     let kind_dir = cache.cache_dir().join("merged-shacl");
     fs::create_dir_all(&kind_dir).unwrap();
@@ -168,7 +166,7 @@ fn corrupted_cache_file_is_ignored() {
 
 #[test]
 fn cache_hit_skips_computation() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let cache = ValidationCache::new(&root);
     let result = cached(&[(Severity::Error, "shacl.cached", "cached error")]);
     cache
@@ -299,7 +297,7 @@ fn write_gts_bundle(graph: &purrdf::gts::model::Graph, deterministic: bool) -> V
 
 #[test]
 fn validate_all_uses_cache_when_configured() {
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let ttl = format!(
         "@prefix gmeow: <{NS}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -591,7 +589,7 @@ fn gts_validate_uses_cache_when_configured() {
     graph.quads.push((thing, rdf_type, gufo_kind, None));
 
     let bytes = write_gts_bundle(&graph, true);
-    let root = temp_project_root();
+    let (_root, root) = temp_project_root();
     let options = ValidateOptions {
         timings: true,
         project_root: Some(root.clone()),

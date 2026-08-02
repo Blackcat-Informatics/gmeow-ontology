@@ -1,0 +1,343 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The conforming operator review: a whole continuing cluster, projected once,
+# with nothing withheld and the loss disclosed.
+#
+# This is a MULTI-RECORD scene rather than a list of typed individuals, because
+# the law it satisfies cannot be satisfied by anything smaller. A
+# gmeow:WorkReviewProjection must carry all eight contents AND the receipt that
+# discloses what the projection collapsed, and each of those contents is a view
+# over a different part of the cluster — the standing goal and its recurrence,
+# the prescription lineage, the occurrence in flight, the derived frontier, the
+# outstanding authorizations, the boundary effect status, the accumulated record
+# and the timeline. A fixture that bound eight blank nodes would satisfy the
+# letter of the law and demonstrate nothing; this one binds eight views that
+# actually resolve into the cluster they claim to summarise, so a reader can
+# follow gmeow:reviewFrontier to the frontier whose entries carry their hard
+# failures and gmeow:reviewCurrentEnactment to the occurrence that pinned its
+# own input generation.
+#
+# The receipt is the interesting part. Collapsing standpoint-indexed frontier
+# classifications into one operator-readable surface is a real loss, and the
+# slice's own doctrine is that the loss is disclosed rather than hidden. So the
+# receipt here is simultaneously a gmeow:ProjectionReceipt and a
+# logic:SaturationWitness: the thing a projection owes its reader IS a statement
+# of what it managed to close over, enumerated predicate by predicate, under a
+# stated budget. A reader who notices the review shows no dissent can then ask a
+# precise question — was gmeow:explanationDissent settled in this run? — instead
+# of choosing between trusting the surface and re-deriving it by hand.
+#
+# Bound by tests/example-conformance.ttl (ex:ecReviewProjectionComplete,
+# gmeow:conforms). Self-contained: the harness loads work-orchestration/module.ttl
+# + ONLY this file, against the shapes this slice owns.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix fx:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/incident-review/> .
+
+# =========================================================================== #
+# === The continuing cluster the review is about                          === #
+# =========================================================================== #
+
+fx:incidentCluster a gmeow:WorkCluster ;
+    rdfs:label "Weekly incident review"@x-gmeow-english ;
+    gmeow:clusterGoal fx:incidentsStayLearnedFrom ;
+    gmeow:clusterPolicy fx:incidentReviewPolicy ;
+    gmeow:clusterSchedule fx:weeklyTuesdaySchedule ;
+    gmeow:clusterOccurrenceSeries fx:incidentReviewSeries ;
+    gmeow:clusterActivePrescription fx:incidentRunbookV7 ;
+    gmeow:clusterGuidanceSet fx:incidentGuidance ;
+    gmeow:clusterEnactment fx:occurrence16 , fx:occurrence17 ;
+    gmeow:clusterNote fx:standingPagerFatigueNote .
+
+fx:incidentsStayLearnedFrom a gmeow:Goal ;
+    rdfs:label "Every incident leaves a landed, reviewed remediation"@x-gmeow-english .
+
+fx:incidentReviewPolicy a gmeow:Norm ;
+    rdfs:label "Incident review policy — who may close a remediation, and what publication requires"@x-gmeow-english .
+
+fx:weeklyTuesdaySchedule a gmeow:EventSchedule ;
+    rdfs:label "Every Tuesday, 09:00 UTC"@x-gmeow-english .
+
+fx:incidentReviewSeries a gmeow:EventSeries ;
+    rdfs:label "The seventeen incident-review occurrences the schedule has issued"@x-gmeow-english .
+
+fx:standingPagerFatigueNote a gmeow:Note ;
+    rdfs:label "Standing note: pager fatigue keeps resurfacing and has no owner"@x-gmeow-english .
+
+# =========================================================================== #
+# === Versioned guidance, and the rendering seam                          === #
+# =========================================================================== #
+
+fx:incidentGuidance a gmeow:GuidanceSet ;
+    rdfs:label "Incident review guidance, revision 3"@x-gmeow-english ;
+    gmeow:guidanceRubric fx:remediationQualityRubric ;
+    gmeow:guidanceChecklist fx:incidentReviewChecklist ;
+    gmeow:guidanceVersionMembership fx:incidentGuidanceV3 ;
+    gmeow:guidanceRendering fx:checklistRendering .
+
+fx:remediationQualityRubric a gmeow:Rubric ;
+    rdfs:label "Remediation quality rubric"@x-gmeow-english .
+
+fx:incidentReviewChecklist a gmeow:InformationObject ;
+    rdfs:label "Incident review checklist — trigger, blast radius, detection gap, remediation owner"@x-gmeow-english .
+
+fx:incidentGuidanceV3 a gmeow:VersionMembership ;
+    rdfs:label "Incident guidance, revision 3 — the version occurrences 16 and 17 ran under"@x-gmeow-english .
+
+fx:checklistRendering a gmeow:InformationObject ;
+    rdfs:label "The checklist as rendered for the operator surface"@x-gmeow-english .
+
+# =========================================================================== #
+# === The prescription lineage and the occurrence in flight               === #
+# =========================================================================== #
+
+fx:incidentRunbookV7 a logic:PrescriptionVersion ;
+    rdfs:label "Incident runbook, revision 7"@x-gmeow-english ;
+    logic:prescriptionDigest "b3:2c19f4a6083b7de5014c9a37be208d16f5a0c4b839e27d15fa06b83c951e7d04" .
+
+fx:occurrence16Generation a logic:InputSnapshot ;
+    rdfs:label "Incident corpus as of occurrence 16"@x-gmeow-english .
+
+fx:occurrence16 a logic:Enactment ;
+    rdfs:label "Incident review — occurrence 16 (closed)"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion fx:incidentRunbookV7 ;
+    logic:enactedPrescriptionDigest "b3:2c19f4a6083b7de5014c9a37be208d16f5a0c4b839e27d15fa06b83c951e7d04" ;
+    logic:enactmentInputSnapshot fx:occurrence16Generation .
+
+fx:occurrence17Generation a logic:InputSnapshot ;
+    rdfs:label "Incident corpus as of occurrence 17"@x-gmeow-english .
+
+fx:occurrence17 a logic:Enactment ;
+    rdfs:label "Incident review — occurrence 17 (running)"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion fx:incidentRunbookV7 ;
+    logic:enactedPrescriptionDigest "b3:2c19f4a6083b7de5014c9a37be208d16f5a0c4b839e27d15fa06b83c951e7d04" ;
+    logic:enactmentInputSnapshot fx:occurrence17Generation ;
+    gmeow:enactmentContextAssembly fx:occurrence17Context .
+
+# What occurrence 17 was actually shown, and what was withheld from it. The
+# guidance version is recorded on the assembly rather than inherited from the
+# cluster pointer, so occurrence 17 stays judgeable by the guidance it ran
+# under after the pointer moves on.
+fx:occurrence17Context a logic:ContextAssembly ;
+    rdfs:label "What was surfaced to occurrence 17"@x-gmeow-english ;
+    logic:assemblyForEnactment fx:occurrence17 ;
+    logic:assemblyIncluded fx:standingPagerFatigueNote , fx:incidentReviewChecklist ;
+    logic:assemblyExcluded fx:supersededPostmortem ;
+    logic:assemblyExclusionReason "Superseded by the revised postmortem already in the generation; the retired text stays readable in occurrence 16."@x-gmeow-english ;
+    logic:assemblyGuidanceVersion fx:incidentGuidanceV3 .
+
+fx:supersededPostmortem a gmeow:InformationObject ;
+    rdfs:label "The retired first-draft postmortem for incident 4471"@x-gmeow-english .
+
+# The preparation seam: the concrete provenance activity that carried out a
+# preparation step, bound through the domain specialization rather than the
+# kernel property, so the activity is a real gmeow:Activity and not an opaque
+# reference.
+fx:stageIncidentLogs a logic:PreparationStep ;
+    rdfs:label "Stage the incident logs for occurrence 17"@x-gmeow-english ;
+    gmeow:preparationActivity fx:logStagingRun .
+
+fx:logStagingRun a gmeow:Activity ;
+    rdfs:label "Log-staging run for occurrence 17"@x-gmeow-english .
+
+# =========================================================================== #
+# === The derived frontier, reached through the preference apparatus      === #
+# =========================================================================== #
+#
+# The frontier mints no local ranking. Its options are a gmeow:CandidateSet and
+# its recommendation is relative to a gmeow:ComparisonContext, so ties,
+# incomparability and the refusal of a context-free winner come from the
+# preference slice rather than being re-implemented here.
+
+fx:occurrence17Frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for occurrence 17"@x-gmeow-english ;
+    logic:frontierOfEnactment fx:occurrence17 ;
+    logic:frontierSaturationWitness fx:reviewClosure ;
+    logic:hasFrontierEntry fx:publishFindingsEntry , fx:reindexArchiveEntry ;
+    gmeow:frontierCandidateSet fx:remediationOptions ;
+    gmeow:frontierComparisonContext fx:fastestRestoreContext .
+
+fx:remediationOptions a gmeow:CandidateSet ;
+    rdfs:label "The remediation actions occurrence 17 may take"@x-gmeow-english .
+
+fx:fastestRestoreContext a gmeow:ComparisonContext ;
+    rdfs:label "Ranked for fastest restore of service"@x-gmeow-english .
+
+fx:publishFindingsEntry a logic:FrontierEntry ;
+    rdfs:label "Publish the occurrence 17 findings — ready, approval required"@x-gmeow-english ;
+    logic:entryAction fx:publishFindingsStep .
+
+fx:publishFindingsStep a logic:TransactionStep ;
+    rdfs:label "Publish the occurrence 17 findings to the engineering handbook"@x-gmeow-english .
+
+# A hard failure is a verifier VERDICT, never a boolean flag: the block carries
+# a reason, may be re-evaluated when the condition changes, and — because it
+# reuses the preference slice's hard-constraint apparatus — cannot be traded
+# away by a favourable score on another axis.
+fx:reindexArchiveEntry a logic:FrontierEntry ;
+    rdfs:label "Re-index the incident archive — blocked, no OCR capability"@x-gmeow-english ;
+    logic:entryAction fx:reindexArchiveStep ;
+    gmeow:entryHardFailure fx:ocrCapabilityVerdict .
+
+fx:reindexArchiveStep a logic:TransactionStep ;
+    rdfs:label "Re-index the scanned incident archive"@x-gmeow-english .
+
+fx:ocrCapabilityVerdict a gmeow:VerifierVerdict ;
+    rdfs:label "Hard failure: no OCR capability is available to this runtime"@x-gmeow-english .
+
+# =========================================================================== #
+# === The approval, bound to the norm it was granted under                === #
+# =========================================================================== #
+
+fx:publishApproval a logic:ApprovalCommitment ;
+    rdfs:label "Approval to publish the occurrence 17 findings"@x-gmeow-english ;
+    gmeow:approvalGoverningNorm fx:publicationPolicy .
+
+fx:publicationPolicy a gmeow:Norm ;
+    rdfs:label "Publication policy — findings leave the review only under a named owner"@x-gmeow-english .
+
+# =========================================================================== #
+# === Attributed contributions: three kinds, three authorities            === #
+# =========================================================================== #
+#
+# The kind is closed and mandatory because the three differ in AUTHORITY, not
+# in quality: the drafted summary is advice and may never authorize, the
+# closure decision is the one record here that carries authority, and the
+# link-check report is an observation whose authority is the tool's correctness.
+
+fx:draftedSummary a logic:Advisory ;
+    rdfs:label "Model-drafted summary of the occurrence 17 findings"@x-gmeow-english ;
+    gmeow:contributionKind gmeow:contributionModel .
+
+fx:closureDecision a gmeow:Note ;
+    rdfs:label "Operator decision: remediation 4471-b is accepted and the incident is closed"@x-gmeow-english ;
+    gmeow:contributionKind gmeow:contributionOperator .
+
+fx:archiveLinkReport a gmeow:Note ;
+    rdfs:label "Tool report: every incident cross-reference in the occurrence 17 generation resolves"@x-gmeow-english ;
+    gmeow:contributionKind gmeow:contributionTool .
+
+# =========================================================================== #
+# === Why the blocked entry is blocked: the explanation, in full          === #
+# =========================================================================== #
+#
+# All the elements are mandatory together, because each one alone is the shape
+# of a different evasion: a proof with no dissent hides the objection, a policy
+# with no criterion hides what was actually traded, and a narrative with no
+# proof is an account of a conclusion standing where the conclusion's warrant
+# belongs. The criterion carries a DIMENSIONED magnitude, so the trade is
+# comparable across explanations rather than an adjective.
+
+fx:reindexBlockedExplanation a gmeow:FrontierExplanation ;
+    rdfs:label "Why re-indexing the incident archive is blocked"@x-gmeow-english ;
+    gmeow:explainsEntry fx:reindexArchiveEntry ;
+    gmeow:explanationProof fx:reindexBlockedDerivation ;
+    gmeow:explanationEvidence fx:ocrCapabilityVerdict ;
+    gmeow:explanationPolicy fx:incidentReviewPolicy ;
+    gmeow:explanationCriterion fx:timeToRestore ;
+    gmeow:explanationDissent fx:archivistObjection .
+
+fx:reindexBlockedDerivation a logic:ReasoningResult ;
+    rdfs:label "The derivation reaching the blocked label from the capability verdict"@x-gmeow-english .
+
+fx:timeToRestore a gmeow:Criterion ;
+    rdfs:label "Time to restore searchable access to the incident archive"@x-gmeow-english ;
+    gmeow:criterionMagnitude fx:ninetyMinutes .
+
+fx:ninetyMinutes a math:Quantity ;
+    rdfs:label "90 minutes"@x-gmeow-english .
+
+fx:archivistObjection a gmeow:Observation ;
+    rdfs:label "Archivist: blocking the re-index leaves last quarter's incidents unsearchable, which the restore criterion does not price"@x-gmeow-english ;
+    gmeow:contributionKind gmeow:contributionOperator .
+
+# =========================================================================== #
+# === The review projection itself: all eight contents, plus the receipt  === #
+# =========================================================================== #
+
+fx:occurrence17Review a gmeow:WorkReviewProjection ;
+    rdfs:label "Operator review of the weekly incident-review cluster"@x-gmeow-english ;
+    gmeow:reviewOfCluster fx:incidentCluster ;
+    gmeow:reviewGoalAndRecurrence fx:goalAndRecurrenceView ;
+    gmeow:reviewPrescriptionLineage fx:lineageView ;
+    gmeow:reviewCurrentEnactment fx:occurrence17 ;
+    gmeow:reviewFrontier fx:occurrence17Frontier ;
+    gmeow:reviewApprovalsAndPending fx:approvalsView ;
+    gmeow:reviewEffectStatus fx:effectStatusView ;
+    gmeow:reviewAccumulatedRecord fx:accumulatedRecordView ;
+    gmeow:reviewTimelineRepresentation fx:timelineView ;
+    gmeow:reviewReceipt fx:reviewClosure .
+
+fx:goalAndRecurrenceView a gmeow:InformationObject ;
+    rdfs:label "The standing goal, and the Tuesday recurrence issuing occurrences"@x-gmeow-english .
+
+fx:lineageView a gmeow:InformationObject ;
+    rdfs:label "Runbook revision 7 and the six revisions that produced it"@x-gmeow-english .
+
+fx:approvalsView a gmeow:InformationObject ;
+    rdfs:label "One outstanding authorization (publication) and one awaited input"@x-gmeow-english .
+
+fx:effectStatusView a gmeow:InformationObject ;
+    rdfs:label "Boundary status: one committed effect, no unresolved reconciliation"@x-gmeow-english .
+
+fx:accumulatedRecordView a gmeow:InformationObject ;
+    rdfs:label "Notes, decisions, artifacts and receipts across the seventeen occurrences"@x-gmeow-english .
+
+fx:timelineView a gmeow:InformationObject ;
+    rdfs:label "The accessible timeline rendering of the seventeen occurrences"@x-gmeow-english ;
+    gmeow:guidanceRendering fx:timelineRendering .
+
+fx:timelineRendering a gmeow:InformationObject ;
+    rdfs:label "The timeline as rendered for the operator surface"@x-gmeow-english .
+
+# The receipt IS the closure witness. A projection that told a reader only how
+# complete it was would be a signature with no document: the entitlement to
+# treat what the review does not show as not having happened is earned
+# predicate by predicate, under a stated budget, or it is not earned at all.
+fx:reviewClosure a gmeow:ProjectionReceipt , logic:SaturationWitness ;
+    rdfs:label "Closure receipt for the occurrence 17 review projection"@x-gmeow-english ;
+    logic:resultEvaluation logic:EvaluationCompleted ;
+    logic:consumedBudget "steps=3184;clusters=1;occurrences=17" ;
+    logic:settledPredicate
+        gmeow:approvalGoverningNorm ,
+        gmeow:clusterActivePrescription ,
+        gmeow:clusterEnactment ,
+        gmeow:clusterGoal ,
+        gmeow:clusterGuidanceSet ,
+        gmeow:clusterNote ,
+        gmeow:clusterOccurrenceSeries ,
+        gmeow:clusterPolicy ,
+        gmeow:clusterSchedule ,
+        gmeow:contributionKind ,
+        gmeow:contributionModel ,
+        gmeow:contributionOperator ,
+        gmeow:contributionTool ,
+        gmeow:criterionMagnitude ,
+        gmeow:enactmentContextAssembly ,
+        gmeow:entryHardFailure ,
+        gmeow:explainsEntry ,
+        gmeow:explanationCriterion ,
+        gmeow:explanationDissent ,
+        gmeow:explanationEvidence ,
+        gmeow:explanationPolicy ,
+        gmeow:explanationProof ,
+        gmeow:frontierCandidateSet ,
+        gmeow:frontierComparisonContext ,
+        gmeow:guidanceChecklist ,
+        gmeow:guidanceRendering ,
+        gmeow:guidanceRubric ,
+        gmeow:guidanceVersionMembership ,
+        gmeow:preparationActivity ,
+        gmeow:reviewAccumulatedRecord ,
+        gmeow:reviewApprovalsAndPending ,
+        gmeow:reviewCurrentEnactment ,
+        gmeow:reviewEffectStatus ,
+        gmeow:reviewFrontier ,
+        gmeow:reviewGoalAndRecurrence ,
+        gmeow:reviewOfCluster ,
+        gmeow:reviewPrescriptionLineage ,
+        gmeow:reviewReceipt ,
+        gmeow:reviewTimelineRepresentation .

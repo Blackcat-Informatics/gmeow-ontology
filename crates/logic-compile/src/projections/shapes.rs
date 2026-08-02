@@ -2805,6 +2805,57 @@ mod procedural_tests {
         );
     }
 
+    /// A conjunction of PROHIBITIONS over MIXED argument positions lowers to one UNION arm
+    /// per forbidden position, each arm binding `$this`.
+    ///
+    /// The shape a "never occupies any authority position" law takes:
+    /// `∀this. C(this) → ¬∃p. bars(p, this) ∧ ¬∃q. proves(this, q) ∧ ¬∃r. decides(r, this)`.
+    /// Its negation is a disjunction, and each disjunct is a bare positive triple that binds
+    /// the focus in a DIFFERENT slot — twice as the object, once as the subject. That mix is
+    /// the reason to pin it: an arm that lost its `$this` binding would select every node in
+    /// the graph rather than the ones the guard admits, so the law would condemn the corpus.
+    #[test]
+    fn a_conjunction_of_prohibitions_lowers_to_one_scoped_union_arm_per_position() {
+        let bars = Formula::Not(Box::new(exists(
+            "p",
+            atom("https://ex/authorizes", tvar("p"), tvar("this")),
+        )));
+        let proves = Formula::Not(Box::new(exists(
+            "q",
+            atom("https://ex/establishes", tvar("this"), tvar("q")),
+        )));
+        let decides = Formula::Not(Box::new(exists(
+            "r",
+            atom("https://ex/decidedBy", tvar("r"), tvar("this")),
+        )));
+        let c = guarded(
+            "https://ex/cNeverAuthority",
+            Formula::And(vec![bars, proves, decides]),
+        );
+        let b = block(&c);
+        assert_eq!(
+            b.matches(" UNION ").count(),
+            2,
+            "three forbidden positions join as two UNION separators; block was: {b}"
+        );
+        for (pred, subj, obj) in [
+            ("https://ex/authorizes", "?p", "$this"),
+            ("https://ex/establishes", "$this", "?q"),
+            ("https://ex/decidedBy", "?r", "$this"),
+        ] {
+            assert!(
+                b.contains(&format!("{{ {subj} <{pred}> {obj} . }}")),
+                "each position must be its own arm binding $this in the slot the law names \
+                 ({subj} <{pred}> {obj}); block was: {b}"
+            );
+        }
+        assert!(
+            !b.contains("FILTER NOT EXISTS"),
+            "every arm binds the focus through a positive triple, so none may degrade to an \
+             unscoped FILTER; block was: {b}"
+        );
+    }
+
     #[test]
     fn p2_guarded_implication_lowers_to_filter_not_exists_companion() {
         let c = guarded(

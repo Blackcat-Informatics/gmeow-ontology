@@ -34,12 +34,12 @@ use gmeow_cli_core::ConsoleMode;
 /// generator inputs, and no network. Every command that defaults to "the bundle"
 /// reads these bytes unless the user supplies a file / `--gts`.
 ///
-/// The bundle is a git-ignored staged product materialized by `make regen` (or
+/// The bundle is a git-ignored staged product materialized by `make check` (or
 /// `make install`), never a committed input. `build.rs` resolves it to an
 /// absolute path, guards against it being absent or empty, and exposes that
 /// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
 /// reads — so the build fails closed with a bootstrap pointer (naming
-/// `make regen`) rather than a bare "file not found" when the bundle hasn't
+/// `make check`) rather than a bare "file not found" when the bundle hasn't
 /// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
 /// override the staged path for release/package flows; the same hard fail on
 /// absence still applies.
@@ -72,13 +72,21 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
-/// The `logic fragments` output serialization.
+/// The output serialization every structured `gmeow logic` reader shares
+/// (`fragments`, `frontier`, `explain`, `refine`, `saga`).
+///
+/// ONE convention, not one per verb: a derived frontier that an agent runtime must
+/// read back into a graph is the same kind of product as the decidability manifest,
+/// and giving each verb its own flag name would make the machine-readable surface
+/// discoverable only verb by verb.
 #[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
-pub enum FragmentsFormat {
+pub enum OutputFormat {
     /// Deterministic, greppable human-readable text (the default).
     #[default]
     Text,
-    /// Pretty JSON of the decided-fragment / retained-boundary surface.
+    /// Pretty JSON carrying the FULL derived content — every row with its
+    /// provenance split, every witness, and the run's outcome — so a derived
+    /// result can flow back into a graph instead of ending at a terminal.
     Json,
 }
 
@@ -756,6 +764,99 @@ pub enum CandidateCommands {
 /// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
+    /// Print the actionable frontier for an enactment: one row per entry, its label, the
+    /// SOURCE of that label, and the lifecycle-axis tuple behind it.
+    ///
+    /// Every label is re-computed by the shipped `logic:Rule` set from the entry's axis
+    /// witnesses, and the SOURCE column says what happened to it, because the three
+    /// outcomes are three different things for an operator to know:
+    ///
+    /// - `derived` — a rule concluded this label from the witnesses. Authoritative.
+    /// - a `DISAGREEMENT` marker — the input asserts a DIFFERENT label from the one the
+    ///   rules derive. The derived label is printed as the row and governs; the stale
+    ///   hand-written value is named in the marker rather than echoed back as fact.
+    /// - `ASSERTED-UNCHECKED` — the input asserts a label and NO shipped rule derives one
+    ///   for that entry, so nothing has verified it. An entry that carries too few
+    ///   witnesses for any rule to reach it lands here; this is how you tell an unexamined
+    ///   assertion apart from a conclusion instead of reading both as the same claim.
+    ///
+    /// The re-derivation is genuine: the labels the input asserts are WITHHELD from the
+    /// audit run, so a rule cannot be credited with a conclusion it merely found already
+    /// present. That is what makes `derived (input agrees)` a real statement about the
+    /// author's label rather than a restatement of it.
+    Frontier {
+        /// An RDF file carrying the frontier entries and their axis witnesses.
+        input: PathBuf,
+        /// Explain why ONE action is not actionable, instead of listing the whole
+        /// frontier: prints its derived label, the axis witnesses behind it, and any
+        /// operational capability gap and proposal bound to the step. Every part of that
+        /// answer already exists in the graph; this is the surfacing an operator needs
+        /// to act without reading Turtle.
+        #[arg(long = "why-not")]
+        why_not: Option<String>,
+        /// Output serialization: `text` (default) or `json`. The JSON carries every
+        /// derived row with its provenance split, so an agent runtime can fold the
+        /// frontier back into a graph rather than scraping a table.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Explain a recommended or blocked action: the proof it rests on, its evidence, the
+    /// governing policy, the cost/risk/benefit criteria weighed, and any recorded dissent.
+    ///
+    /// Dissent is printed rather than averaged away. A recommendation that has quietly
+    /// discarded the objection to it is not one an operator can properly weigh.
+    Explain {
+        /// An RDF file carrying the frontier entries and their explanations.
+        input: PathBuf,
+        /// The action (or frontier entry) IRI to explain.
+        #[arg(long = "action")]
+        action: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries all five
+        /// R3.5 elements, the re-derived label verdict and every derived row, so a
+        /// consumer never has to re-parse prose to find the dissent.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Run a BOUNDED means-end search over the authored logic:DecompositionMethod set
+    /// and print the candidate decompositions with an honest completeness status.
+    ///
+    /// The status is the point. A closed roster, a roster cut short by the budget, and a
+    /// method set outside the declared decidable fragment are three different answers,
+    /// and only the first may be treated as exhaustive.
+    Refine {
+        /// An RDF file carrying the logic:DecompositionMethod set.
+        input: PathBuf,
+        /// The task IRI to decompose.
+        #[arg(long = "task")]
+        task: String,
+        /// Maximum method applications. Exhausting it yields an incomplete-by-budget
+        /// result, never a silently truncated roster presented as closed.
+        #[arg(long = "budget", default_value_t = 1000)]
+        budget: u32,
+        /// The declared logic:SearchFragment IRI.
+        #[arg(
+            long = "fragment",
+            default_value = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod"
+        )]
+        fragment: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries the
+        /// completeness status, every candidate and typed rejection, and each one's
+        /// chase witness (rule IRI, proof height, premises).
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Print the external-effect saga status for an enactment: what was intended, what
+    /// was attempted, what came back, and — when an outcome is undetermined — what is
+    /// owed before anything else may happen.
+    Saga {
+        /// An RDF file carrying the enactment and its effect records.
+        input: PathBuf,
+        /// Output serialization: `text` (default) or `json`. The JSON carries each
+        /// attempt's outcome, what is owed, and every derived row with its
+        /// provenance split.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
     /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
     /// native proof-carrying SLG-WFS backward (goal-directed) engine
     /// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
@@ -820,8 +921,8 @@ pub enum LogicCommands {
         #[arg(long = "bundle")]
         bundle: Option<PathBuf>,
         /// Output serialization: `text` (default) or `json`.
-        #[arg(long = "format", short = 'f', value_enum, default_value_t = FragmentsFormat::Text)]
-        format: FragmentsFormat,
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
 }
 
@@ -1308,6 +1409,24 @@ pub fn run() -> i32 {
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
         Commands::Logic { command } => match command {
+            LogicCommands::Frontier {
+                input,
+                why_not,
+                format,
+            } => commands::logic_frontier(reporter, &input, why_not.as_deref(), format),
+            LogicCommands::Explain {
+                input,
+                action,
+                format,
+            } => commands::logic_explain(reporter, &input, &action, format),
+            LogicCommands::Refine {
+                input,
+                task,
+                budget,
+                fragment,
+                format,
+            } => commands::logic_refine(reporter, &input, &task, &fragment, budget, format),
+            LogicCommands::Saga { input, format } => commands::logic_saga(reporter, &input, format),
             LogicCommands::Backward {
                 program_file,
                 program_iri,

@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A retry licensed by a probe that established NOTHING. The undetermined charge names
+# its attempt; the logic:RetryDispatch names both the attempt it re-sends and the
+# licence it proceeded under; the licence is a logic:ReconciliationResult that names
+# its probe and covers this exact attempt — so logic:UnknownOutcomeNamesItsAttempt-
+# Constraint, logic:RetryRequiresLicenceConstraint and logic:NoBlindRetryConstraint all
+# pass, on their merits and not vacuously. The one thing the result never records is
+# what the probe FOUND. A probe that completed and wrote down no verdict is
+# indistinguishable from one that never ran, and here the difference is a second charge:
+# ReconciledNotCommitted licenses the retry, ReconciledCommitted forbids it, and a
+# verdictless result reads as a licence to a checker that merely counts one.
+# MUST trip logic:ReconciliationResultCarriesVerdictConstraint, and it alone.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:invoice903Charge a logic:EffectAttempt ;
+    rdfs:label "the charge whose outcome the provider never returned"@en .
+
+ex:invoice903Unknown a logic:ExternalOutcomeUnknown ;
+    logic:unknownOfAttempt ex:invoice903Charge ;
+    rdfs:label "the undetermined position the timeout left the charge in"@en .
+
+ex:invoice903Probe a logic:ReconciliationProbe ;
+    logic:probesAttempt ex:invoice903Charge ;
+    rdfs:label "the settlement probe raised against the undetermined charge"@en .
+
+ex:invoice903ProbeResult a logic:ReconciliationResult ;
+    logic:resultOfProbe ex:invoice903Probe ;
+    logic:licenceCoversAttempt ex:invoice903Charge ;
+    rdfs:label "what the probe established, minus what it established"@en .
+
+ex:invoice903Retry a logic:RetryDispatch ;
+    logic:retryOfAttempt ex:invoice903Charge ;
+    logic:retryLicence ex:invoice903ProbeResult ;
+    rdfs:label "the re-send that proceeded on a probe with no verdict"@en .

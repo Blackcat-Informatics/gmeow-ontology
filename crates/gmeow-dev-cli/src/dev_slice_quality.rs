@@ -207,6 +207,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // The RDF projection concatenates validly (deterministic N-Quads, one graph), so
     // it is streamed into a single buffer and printed once.
     let mut rdf_out = String::new();
+    // The assessments behind `rdf_out`, retained so the corpus header can carry the
+    // `gmeow:contentDigest` fold over the grades it publishes (the record-integrity
+    // witness a reader recomputes). Populated only on the RDF path.
+    let mut rdf_assessments: Vec<SliceAssessment> = Vec::new();
     // The text default is the repo-wide PRIORITIZATION view (G12): the per-axis
     // profile vectors are collected here and, after the sweep, folded into the
     // deterministic Pareto-frontier + capping-axis prioritization. The assessment
@@ -220,7 +224,12 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                     Format::Text => {
                         profiles.push((report.assessment.clone(), report.advisories.len()));
                     }
-                    Format::Rdf => rdf_out.push_str(&report.to_gmeow_rdf()),
+                    Format::Rdf => {
+                        rdf_out.push_str(&report.to_gmeow_rdf());
+                        // The corpus header digests these grades, so the assessment
+                        // itself is retained, not just its rendered block.
+                        rdf_assessments.push(report.assessment.clone());
+                    }
                     // Json/Sarif are emitted once, after the loop, from `aggregate`.
                     Format::Json | Format::Sarif => {}
                 }
@@ -260,7 +269,21 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
             Ok(t) => println!("{t}"),
             Err(e) => return fail(e.to_string()),
         },
-        Format::Rdf => print!("{rdf_out}"),
+        Format::Rdf => {
+            // Prefix the corpus-level freshness witness so the printed RDF is the SAME
+            // document the pipeline records — a reader of either can prove which
+            // authored sources produced the grades instead of guessing at its vintage.
+            match gmeow_slice_quality::scored_input_fingerprint(root) {
+                Ok(fingerprint) => print!(
+                    "{}{rdf_out}",
+                    gmeow_slice_quality::report::corpus_fingerprint_nquads(
+                        &fingerprint,
+                        &gmeow_slice_quality::report::corpus_content_digest(&rdf_assessments),
+                    )
+                ),
+                Err(e) => return fail(format!("slice-quality: {e}")),
+            }
+        }
         Format::Text => {
             // The enriched text default: the repo-wide Pareto-frontier + capping-axis
             // prioritization, computed across every swept slice's profile vector.
@@ -427,30 +450,63 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     };
 
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    // Score every discovered slice EXACTLY ONCE, in deterministic dir order, and feed
-    // BOTH the roll-up-tier ratchet pass and the per-axis floor pass from these shared
-    // reports — a slice is never scored twice.
-    let score_results = gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric);
-    let mut scored: Vec<(&Path, SliceReport)> = Vec::with_capacity(dirs.len());
-    for (dir, result) in dirs.iter().zip(score_results) {
-        let report = match result {
-            Ok(r) => r,
+    // LOAD the recorded grade vectors rather than re-scoring every slice. The pipeline
+    // already scores each discovered slice exactly once at the DAG root and projects
+    // the result to `graph/quality-assessment` (on disk,
+    // `generated/quality/gmeow.quality-assessment.nt`); this gate used to run the same
+    // sweep, with the same rubric and the same `ScoringEnv::Repo`, a second time.
+    //
+    // Nothing about what the gate ASSERTS moves: every pass below — the roll-up tier
+    // ratchet, the per-axis committed floors, coat distinctiveness, residue ceilings,
+    // the merge-base floor diff, floor monotonicity — runs unchanged over these
+    // grades. Three properties, all ENFORCED rather than assumed, make the loaded
+    // vector interchangeable with a freshly-scored one:
+    //
+    //  * losslessness — every field round-trips exactly (the axis is a first-class
+    //    `gmeow:assessmentAxis`, the score the shortest round-tripping f64 lexical, the
+    //    tier an IRI resolved against this same ladder), pinned by
+    //    `rdf_projection::recorded_grades_round_trip_exactly`;
+    //  * completeness — a slice missing from the record, or missing an axis the rubric
+    //    declares, is a HARD FAIL in the reader, so a truncated record can never read
+    //    as a passing one;
+    //  * freshness — `verify_fresh` recomputes the corpus fingerprint over the authored
+    //    sources and hard-fails on any drift, so a stale record is an error and never a
+    //    silent pass. `make slice-quality-gate` carries no `sync` prerequisite, so this
+    //    check is what keeps the STANDALONE invocation as sound as the in-DAG one.
+    let corpus = match gmeow_slice_quality::read::read_recorded_corpus(&root, &rubric.standard) {
+        Ok(c) => c,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    if let Err(e) = corpus.verify_fresh(&root) {
+        return fail(format!("slice-quality-gate: {e}"));
+    }
+    let mut scored: Vec<(&Path, &SliceAssessment)> = Vec::with_capacity(dirs.len());
+    for dir in &dirs {
+        // The slice IRI is resolved from the slice's own manifest by the SAME authority
+        // the scorer used, so the join between a discovered directory and its recorded
+        // assessment cannot drift from the one the projection was keyed on.
+        let slice_iri = match gmeow_slice_quality::slice_iri_of_dir(dir) {
+            Ok(iri) => iri,
             Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
         };
-        scored.push((dir.as_path(), report));
+        let assessment = match corpus.assessment(&slice_iri) {
+            Ok(a) => a,
+            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
+        };
+        scored.push((dir.as_path(), assessment));
     }
 
     let mut failures = 0usize;
     let mut checked = 0usize;
-    for (dir, report) in &scored {
+    for (dir, assessment) in &scored {
         let declared = match gmeow_slice_quality::gate::declared_tier(dir, &rubric) {
             Ok(d) => d,
             Err(e) => return fail(format!("slice-quality-gate: {e}")),
         };
         let Some(declared) = declared else { continue }; // undeclared → advisory
         checked += 1;
-        let measured_rank = report.assessment.rollup.rank;
-        let floor_rank = floors.get(&report.assessment.slice).map(|f| f.rank);
+        let measured_rank = assessment.rollup.rank;
+        let floor_rank = floors.get(&assessment.slice).map(|f| f.rank);
         let verdict = gmeow_slice_quality::gate::evaluate_ratchet(
             Some(declared.rank),
             measured_rank,
@@ -461,7 +517,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
             RatchetVerdict::Pass => {
                 println!(
                     "ok   {} declared {} measured {}",
-                    report.assessment.slice, declared.label, report.assessment.rollup.label
+                    assessment.slice, declared.label, assessment.rollup.label
                 );
             }
             RatchetVerdict::MeasuredBelowDeclared => {
@@ -469,7 +525,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     "gmeow-dev.slice-quality.gate",
                     format!(
                         "FAIL {} declared {} but measures {} — uplift the slice or lower is forbidden",
-                        report.assessment.slice, declared.label, report.assessment.rollup.label
+                        assessment.slice, declared.label, assessment.rollup.label
                     ),
                 );
                 failures += 1;
@@ -479,7 +535,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     "gmeow-dev.slice-quality.gate",
                     format!(
                         "FAIL {} declares {} below its committed ratchet floor — the tier may only be raised",
-                        report.assessment.slice, declared.label
+                        assessment.slice, declared.label
                     ),
                 );
                 failures += 1;
@@ -500,17 +556,13 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // check consults to tell a permitted greenfield floor removal (slice gone) from
     // a forbidden deletion of a still-live floor line.
     let mut live_slices: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for (dir, report) in &scored {
-        live_slices.insert(report.assessment.slice.clone());
+    for (dir, assessment) in &scored {
+        live_slices.insert(assessment.slice.clone());
         let grounding = is_grounding_slice(dir);
-        for grade in &report.assessment.grades {
+        for grade in &assessment.grades {
             let axis_local = axis_local_name(&grade.axis_iri);
-            let floor = match axis_floor_for(
-                &axis_floors,
-                &report.assessment.slice,
-                axis_local,
-                grounding,
-            ) {
+            let floor = match axis_floor_for(&axis_floors, &assessment.slice, axis_local, grounding)
+            {
                 Ok(Some(f)) => f,
                 Ok(None) => continue, // no committed floor and not the grounding default → unfloored, advisory only
                 Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -523,8 +575,13 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     emit_error(
                         "gmeow-dev.slice-quality.gate",
                         format!(
-                            "FAIL {} measures {axis_local} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_PROJECTION})",
-                            report.assessment.slice, grade.score
+                            // Both numbers at FULL precision, never `{:.6}`: the
+                            // comparison is exact (`measured + f64::EPSILON >= floor`),
+                            // so a rounded message can read "1.000000 below 1.000000"
+                            // and leave the reader unable to see the regression it is
+                            // reporting.
+                            "FAIL {} measures {axis_local} {} — below its committed per-axis floor {floor} ({AXIS_FLOOR_PROJECTION})",
+                            assessment.slice, grade.score
                         ),
                     );
                     axis_failures += 1;
@@ -2276,10 +2333,8 @@ mod base_monotonicity_git_tests {
     use super::*;
     use gmeow_slice_quality::gate::axis_floor_monotonicity;
     use std::process::Command;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
     /// A structurally-complete minimal rubric module (a two-rung ladder, one axis, one
     /// threshold) — the CENTRALIZED authority the base reconstruction reads from the
@@ -2314,13 +2369,12 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
     }
 
+    /// A git repo fixture whose tree lives in an owned temp directory: dropping the
+    /// fixture drops the [`tempfile::TempDir`], which removes the tree — on success,
+    /// on early return, and on panic alike.
     struct GitFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for GitFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// Run a git command in `root`, isolated from user/system config (never signs).
@@ -2345,12 +2399,15 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
     /// non-rubric floor at `base_floor`, commit it (the merge base), and return the
     /// fixture and the base commit SHA. The caller then rewrites the working tree.
     fn fixture_with_base_floor(base_floor: &str) -> (GitFixture, String) {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-basemono-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let fx = GitFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-basemono-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = GitFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
 
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
@@ -2464,27 +2521,25 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
 mod gate_enforcement_tests {
     use super::*;
     use gmeow_slice_quality::gate::evaluate_axis_floor;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
+    /// A fixture repo whose tree lives in an owned temp directory: dropping the fixture
+    /// drops the [`tempfile::TempDir`], which removes the tree — on success, on early
+    /// return, and on panic alike.
     struct TempFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for TempFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// A minimal on-disk fixture repo (no git): a complete rubric slice plus a
     /// non-rubric demo slice authoring one `gmeow:AxisFloorCommitment` at `floor`.
     fn fixture_with_non_rubric_floor(floor: &str) -> TempFixture {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-gate-enforce-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-gate-enforce-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(&rubric_dir).unwrap();
@@ -2521,7 +2576,7 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
         .unwrap();
         std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
-        TempFixture { root }
+        TempFixture { _tmp: tmp, root }
     }
 
     #[test]

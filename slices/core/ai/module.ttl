@@ -19,7 +19,7 @@ gmeow:Chunk
             owl:someValuesFrom gmeow:InformationObject ;
         ] ;
     skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a retrieval returns, a model reads, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd and content-addressed via the EXISTING gmeow:contentDigest (sources slice), so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
-    skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart 0 ; gmeow:spanEnd 512 ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
+    skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the segment gmeow:Chunk, locate it with gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd, content-address it with the existing gmeow:contentDigest, and let evidence spans pin into it via gmeow:spanOfChunk."@x-gmeow-english ;
@@ -178,9 +178,9 @@ gmeow:Prompt
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
-    skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms extension's machinery, used from instance data."@x-gmeow-english ;
+    skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms slice's machinery, used from instance data."@x-gmeow-english ;
     skos:example "ex:sysPrompt a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleSystem ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms extension."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms slice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the instruction gmeow:Prompt, tag it with gmeow:promptRole, content-address it with gmeow:contentDigest, and where it instantiates a published template point gmeow:filledFrom at the gmeow:PromptTemplate; link it to its invocation via gmeow:hasPrompt."@x-gmeow-english ;
     gmeow:useWhen "Use for the concrete instruction text presented to a model in an invocation — the provenance that makes a generated claim auditable, content-addressed and role-tagged."@x-gmeow-english .
@@ -717,7 +717,7 @@ gmeow:spanEnd
     rdfs:label "span end"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The ending character offset (unicode code points, zero-based, exclusive) of a span. Pairs with gmeow:spanStart."@x-gmeow-english ;
-    skos:example "ex:c1 gmeow:spanEnd 512 ."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an end offset without a matching gmeow:spanStart, and avoid prose locators (those are the citations slice's gmeow:selectorTextPosition)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:spanEnd alongside gmeow:spanStart as a zero-based exclusive code-point offset on the same span subject."@x-gmeow-english ;
@@ -742,7 +742,7 @@ gmeow:spanStart
     rdfs:label "span start"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (EvidenceSpan audit machinery) needs integers, not prose."@x-gmeow-english ;
-    skos:example "ex:c1 gmeow:spanStart 0 ."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for a non-numeric position locator (use the citations slice's gmeow:selectorTextPosition) and avoid asserting a start without its matching gmeow:spanEnd — the pair defines the span."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:spanStart with gmeow:spanEnd as a zero-based half-open code-point range on the same span subject; keep both as integers so AIS coverage checks compute over them directly."@x-gmeow-english ;
@@ -779,7 +779,7 @@ gmeow:usedModel
     rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. GraphRAG-specific pipeline observability (corpus, extracted entity/relationship, community, and index-wiring artifacts) lives in extensions/graphrag, consumer-named per P15; the generic vector/embedding/retrieval PRIMITIVES (gmeow:Embedding, gmeow:VectorIndex, gmeow:DistanceMetric, gmeow:RetrievalEvent) are core-tier here because any embedding consumer — not only GraphRAG — needs them (extensions/embedding-projection is the other current consumer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
-    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints what is genuinely absent from the claim layer (the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role) PLUS the generic vector/embedding/retrieval primitives (Embedding, VectorIndex, DistanceMetric, RetrievalEvent) every embedding consumer needs — core-tier infrastructure, never duplicated per extension. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
+    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms slice's judge-as-vantage Assessment. This module therefore mints what is genuinely absent from the claim layer (the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role) PLUS the generic vector/embedding/retrieval primitives (Embedding, VectorIndex, DistanceMetric, RetrievalEvent) every embedding consumer needs — core-tier infrastructure, never duplicated per extension. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
@@ -795,10 +795,16 @@ gmeow:usedModel
 gmeow:Contradiction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
 
+# `gmeow:spanStart` / `gmeow:spanEnd` are DATA properties, so their qualified
+# cardinalities qualify over a DATA RANGE (`owl:onDataRange`), never over
+# `owl:onClass owl:Thing` — an individual-domain filler on a data property is
+# malformed OWL 2 DL, and its closed-world projection is an INVERTED constraint
+# (`sh:nodeKind sh:BlankNodeOrIRI`) that rejects every correct integer offset.
+# The data range is the property's own declared `rdfs:range`.
 gmeow:Chunk rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] .
 
 gmeow:MemoryItem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
@@ -818,8 +824,8 @@ gmeow:RetrievalEvent rdfs:subClassOf
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/chunkOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 <https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/distanceMetric> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/RetrievalEvent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/againstIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -882,8 +888,8 @@ logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

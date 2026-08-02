@@ -15,47 +15,51 @@ use gmeow_validate::store;
 /// lint here exactly as Python passes `str(NAMESPACE)`.
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
-fn write_tmp(name: &str, contents: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(name);
+/// Write `contents` to `name` inside a fresh RAII temp directory.
+///
+/// The returned [`tempfile::TempDir`] owns the directory: it is removed on drop,
+/// including on panic and early return. Bind it to a named `_tmp` (never a bare
+/// `_`, which would drop it immediately) so it outlives the path. The file *name*
+/// is preserved because the parser dispatches on the `.ttl` extension.
+fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+    let dir = tempfile::tempdir().expect("create temp dir");
+    let path = dir.path().join(name);
     std::fs::write(&path, contents).unwrap();
-    path
+    (dir, path)
 }
 
 /// Syntax-error case: a malformed Turtle file must parse-error.
 #[test]
 fn syntax_error_is_detected() {
-    let path = write_tmp(
+    let (_tmp, path) = write_tmp(
         "gmeow_validate_it_syntax_bad.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p   .  # missing object\n<<< garbage",
     );
     let result = store::parse_file_dataset(&path);
-    std::fs::remove_file(&path).ok();
     assert!(result.is_err(), "malformed Turtle must be a syntax error");
 }
 
 /// A well-formed file parses with no error (the no-violation baseline).
 #[test]
 fn good_turtle_parses_clean() {
-    let path = write_tmp(
+    let (_tmp, path) = write_tmp(
         "gmeow_validate_it_syntax_good.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
     );
     let result = store::parse_file_dataset(&path);
-    std::fs::remove_file(&path).ok();
     assert!(result.is_ok(), "well-formed Turtle must parse");
 }
 
 /// Banned-sameAs case: `owl:sameAs` to an external entity is a violation.
 #[test]
 fn banned_external_sameas_is_a_violation() {
-    let path = write_tmp(
+    let (_tmp, path) = write_tmp(
         "gmeow_validate_it_sameas_bad.ttl",
         "@prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          ex:a owl:sameAs ex:b .\n",
     );
     let ds = store::parse_file_dataset(&path).expect("fixture must parse");
-    std::fs::remove_file(&path).ok();
     let violations = store::sameas_violations(&ds, NS, &[]);
     assert_eq!(
         violations.len(),
@@ -75,14 +79,13 @@ fn banned_external_sameas_is_a_violation() {
 /// suppresses the violation.
 #[test]
 fn allowlisted_external_sameas_passes() {
-    let path = write_tmp(
+    let (_tmp, path) = write_tmp(
         "gmeow_validate_it_sameas_allow.ttl",
         "@prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          ex:a owl:sameAs ex:b .\n",
     );
     let ds = store::parse_file_dataset(&path).expect("fixture must parse");
-    std::fs::remove_file(&path).ok();
     let allowlist = vec![(
         "https://example.org/a".to_owned(),
         "https://example.org/b".to_owned(),
@@ -98,7 +101,7 @@ fn allowlisted_external_sameas_passes() {
 /// is allowed (the ban targets external-entity merges only).
 #[test]
 fn gmeow_internal_sameas_passes() {
-    let path = write_tmp(
+    let (_tmp, path) = write_tmp(
         "gmeow_validate_it_sameas_internal.ttl",
         &format!(
             "@prefix gmeow: <{NS}> .\n\
@@ -107,7 +110,6 @@ fn gmeow_internal_sameas_passes() {
         ),
     );
     let ds = store::parse_file_dataset(&path).expect("fixture must parse");
-    std::fs::remove_file(&path).ok();
     let violations = store::sameas_violations(&ds, NS, &[]);
     assert!(
         violations.is_empty(),

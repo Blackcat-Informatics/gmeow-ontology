@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N9 - a frontier presented as closed with no saturation witness. Closedness is the
+# frontier's whole value, and an unwitnessed claim of it is how a roster truncated by a
+# budget cut passes for complete.
+# MUST trip logic:FrontierCarriesSaturationWitnessConstraint — the law requiring the
+# witness to be PRESENT. NOT logic:FrontierClosureRequiresSaturationConstraint: that law
+# READS a witness and its guard binds one, so a frontier citing nothing falls outside it.
+# The cut-budget case is frontier-closed-on-a-budget-cut-witness.ttl.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:frontierNoWitness a logic:ActionableFrontier ;
+    rdfs:label "a frontier claiming closure with no saturation witness"@en .

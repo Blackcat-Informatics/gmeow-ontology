@@ -1,0 +1,6 @@
+{
+  "https://example.org/enactment/cc1-continuing-cluster/world": {
+    "quads": 137,
+    "status": "consistent"
+  }
+}

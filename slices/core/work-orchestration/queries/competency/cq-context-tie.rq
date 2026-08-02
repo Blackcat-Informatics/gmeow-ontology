@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Under which policy are two remediation options a genuine
+# TIE, and which two?"
+#
+# A tie is a comparable indifference: the two candidates ARE comparable, and
+# neither is preferred. The query therefore asks for the pair carrying the
+# positive gmeow:preferentiallyEquivalentWith relation, reached through an
+# observation its context registers that names NO winner — because a tie has
+# none, and an observation that named one would not be recording a tie.
+#
+# The FILTER is what keeps this question apart from the strict-order one over
+# the same candidate field: every observation under the fastest-restore and
+# minimise-exposure contexts DOES name a winner, so those contexts contribute no
+# rows even though their pairs overlap this one. Over the contextual-
+# recommendation scene exactly ONE row comes back — rollback and the feature
+# flag, under minimise-customer-impact — which is the whole claim: equally good,
+# pick either, and no tiebreak the policy never authorized.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?context ?a ?b WHERE {
+    ?context gmeow:registersObservation ?observation .
+    ?observation gmeow:observedFeature ?pair .
+    ?pair gmeow:hasPart ?a , ?b .
+    ?a gmeow:preferentiallyEquivalentWith ?b .
+    FILTER NOT EXISTS { ?observation gmeow:observationPrefers ?winner }
+}
+ORDER BY ?context ?a ?b

@@ -211,7 +211,7 @@ impl PipelineSpec {
         }
         stages.sort_by(|a, b| a.id.cmp(&b.id));
 
-        // Attach the reified gmeow:DataFlow typed-dataflow edges to their consumer
+        // Attach the reified gmeow:BuildDataFlow typed-dataflow edges to their consumer
         // stages (the artifact-level dependency declarations).
         let mut by_consumer = parse_dataflow_edges(ds)?;
         for s in &mut stages {
@@ -323,7 +323,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         impl_key,
         consumes,
         resources,
-        // Filled in by from_store from the reified gmeow:DataFlow edges.
+        // Filled in by from_store from the reified gmeow:BuildDataFlow edges.
         dataflow_entities: Vec::new(),
         formats,
         attaches_graphs,
@@ -480,7 +480,7 @@ pub fn bind(
         }
 
         // Typed-dataflow (artifact-level) agreement: the executable twin must declare
-        // exactly the entity narrowing the RDF gmeow:DataFlow edges declare, or the
+        // exactly the entity narrowing the RDF gmeow:BuildDataFlow edges declare, or the
         // cache could narrow on a different entity set than the stage reads (stale
         // hazard). Normalize both sides (sorted by producer, entities sorted+deduped).
         let mut rust_entities: Vec<(String, Vec<String>)> = stage

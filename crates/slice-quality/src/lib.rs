@@ -25,6 +25,7 @@ pub mod lattice;
 pub mod lint;
 pub mod model;
 pub mod prioritize;
+pub mod read;
 pub mod reasoner;
 pub mod report;
 pub mod rubric;
@@ -605,6 +606,127 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
     files
 }
 
+/// The canonicalized content fingerprint of every authored file the quality sweep
+/// scores — the freshness witness the projected corpus carries as its
+/// `gmeow:versionFingerprint`, and the value a consumer of that corpus recomputes to
+/// prove the record still describes the working tree
+/// ([`read::RecordedCorpus::verify_fresh`]).
+///
+/// Folds, in sorted repo-relative path order, each file's path, byte length, and bytes
+/// — so a rename, a truncation, and an edit are all distinguishable, and the digest is
+/// identical across platforms for the same repository state.
+///
+/// The fold has TWO halves, because a score is a function of two things and a witness
+/// over only one of them is not a freshness proof:
+///
+/// * the **scored data** — [`scored_source_files`], the SAME single authority the
+///   pipeline's source-load cache key consults; there is deliberately no second
+///   enumeration of the data half that could drift from it; and
+/// * the **scoring code** — [`scorer_impl_files`], this crate's transitive
+///   path-dependency closure. A path dependency carries no `Cargo.lock` checksum, so
+///   editing the scorer (or `gmeow-docs`, which owns the whole `DocMaturity` coverage
+///   computation) changes every grade while leaving every scored `.ttl` byte-identical.
+///   Without this half a record produced by the OLD scorer verifies as current against
+///   the NEW one — the record stands alone, so it must attest both.
+///
+/// The pipeline's stage cache does not need the code half here: `crates/pipeline`'s
+/// `cache::BUILD_FINGERPRINT` already folds the whole workspace source + `Cargo.lock` +
+/// the `rustc` version into EVERY stage key, so a code change re-runs the sweep there.
+/// This witness has no such salt — nothing else guards a consumer that reads the record
+/// without going through the DAG — so it carries the code half itself. That asymmetry is
+/// deliberate: `scored_source_files` stays the pure authored-data authority the cache key
+/// shares, and the extra half lives only in the freshness witness that needs it.
+///
+/// # Errors
+/// If any scored source file cannot be read. A file that vanished between enumeration
+/// and hashing makes the digest meaningless, so it is a hard failure rather than a
+/// silently shorter fold.
+pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String> {
+    let mut hasher = blake3::Hasher::new();
+    let mut inputs = scored_source_files(repo_root);
+    inputs.extend(scorer_impl_files(repo_root));
+    inputs.sort();
+    inputs.dedup();
+    for path in inputs {
+        let rel = path
+            .strip_prefix(repo_root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let bytes = std::fs::read(&path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("fingerprinting scored source {}: {e}", path.display()),
+            })
+        })?;
+        hasher.update(rel.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
+        hasher.update(&bytes);
+        hasher.update(b"\x1e");
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+/// Every workspace crate whose Rust sources can execute inside the quality sweep — the
+/// TRANSITIVE `path = "../…"` dependency closure of `gmeow-slice-quality`, itself
+/// included.
+///
+/// Sorted; each entry's `src/` tree and `Cargo.toml` are folded into
+/// [`scored_input_fingerprint`]. `scorer_dep_closure_is_fully_hashed` re-derives the
+/// closure from the workspace manifests, so a NEW path dependency reds a test instead of
+/// silently opening the hole again. This mirrors `gmeow_docs::fixture::HASHED_CRATE_ROOTS`
+/// — the same defect (a path dependency carries no `Cargo.lock` checksum) needs the same
+/// closure, and hand-picking "the crates that really matter" is exactly the argument that
+/// makes such a list wrong.
+const SCORER_CRATE_ROOTS: &[&str] = &[
+    "affect-ingest",
+    "cost-measure",
+    "docs",
+    "errors",
+    "lang-bridge",
+    "lang-form",
+    "license",
+    "logic",
+    "logic-compile",
+    "math",
+    "math-lift",
+    "ns",
+    "slice-quality",
+    "term-arena",
+    "validate",
+];
+
+/// The Rust sources + manifests of [`SCORER_CRATE_ROOTS`] under `repo_root` — the CODE
+/// half of [`scored_input_fingerprint`]. Sorted, and silent about crates absent from the
+/// tree (a consumer scoring a partial checkout folds what is there; the closure test
+/// pins the set against the real workspace).
+fn scorer_impl_files(repo_root: &Path) -> Vec<PathBuf> {
+    fn walk_rs(dir: &Path, out: &mut Vec<PathBuf>) {
+        let Ok(rd) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in rd.flatten() {
+            let p = entry.path();
+            if p.is_dir() {
+                walk_rs(&p, out);
+            } else if p.extension().is_some_and(|x| x == "rs") {
+                out.push(p);
+            }
+        }
+    }
+    let crates_dir = repo_root.join("crates");
+    let mut files = Vec::new();
+    for krate in SCORER_CRATE_ROOTS {
+        walk_rs(&crates_dir.join(krate).join("src"), &mut files);
+        let manifest = crates_dir.join(krate).join("Cargo.toml");
+        if manifest.is_file() {
+            files.push(manifest);
+        }
+    }
+    files.sort();
+    files
+}
+
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
 /// `i18n/` directory) — the `DocMaturity` axis's `TranslationCoverage` dimension input
 /// ([`doc_maturity::DocMaturity`], via `gmeow_docs::i18n::Translations`).
@@ -665,14 +787,19 @@ fn assessment_artifacts_inner(
         }));
     }
 
-    let mut nquads = String::new();
     let mut aggregate = gmeow_errors::Report::new("slice-quality");
     let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes);
     let mut slice_timings = Vec::with_capacity(scored.len());
+    // The per-slice blocks are accumulated first because the corpus header carries a
+    // digest OVER them (`report::corpus_content_digest`): the header cannot be written
+    // until every grade it attests is known.
+    let mut blocks = String::new();
+    let mut assessments: Vec<crate::model::SliceAssessment> = Vec::new();
     for (report, timing) in scored {
         slice_timings.push(timing);
         let report = report?;
-        nquads.push_str(&report.to_gmeow_rdf());
+        blocks.push_str(&report.to_gmeow_rdf());
+        assessments.push(report.assessment.clone());
         let diagnostics = report.to_report();
         for finding in diagnostics.findings {
             aggregate.add_finding(finding);
@@ -681,6 +808,16 @@ fn assessment_artifacts_inner(
             aggregate.add_rule(rule);
         }
     }
+    // The corpus-level witnesses, emitted ONCE ahead of the per-slice blocks: the input
+    // fingerprint (WHICH sources were scored) and the record content digest (WHAT was
+    // recorded). It is what makes the projection readable AS a record rather than as a
+    // snapshot of unknown vintage — see `read::RecordedCorpus::verify_fresh` and
+    // `read::read_recorded_corpus_bytes`, which refuse a record failing either witness.
+    let mut nquads = report::corpus_fingerprint_nquads(
+        &scored_input_fingerprint(repo_root)?,
+        &report::corpus_content_digest(&assessments),
+    );
+    nquads.push_str(&blocks);
     Ok(AssessmentArtifacts {
         nquads,
         report: aggregate.normalized(),
@@ -996,6 +1133,90 @@ pub fn score_external_slice_bytes(
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
     score_external_slice(&BundleStandards::from_gts(bundle_gts)?, slice_dir)
+}
+
+#[cfg(test)]
+mod fingerprint_tests {
+    use super::*;
+
+    /// [`SCORER_CRATE_ROOTS`] must be EXACTLY `gmeow-slice-quality`'s transitive
+    /// `path = "../…"` dependency closure, re-derived here from the workspace manifests.
+    ///
+    /// A path dependency carries no `Cargo.lock` checksum, so a crate outside the folded
+    /// set can change what the sweep scores while every folded input stays byte-identical
+    /// — and the recorded corpus then verifies as fresh against a scorer that no longer
+    /// produces it. A NEW path dependency reds here rather than silently reopening that.
+    #[test]
+    fn scorer_dep_closure_is_fully_hashed() {
+        /// The `path = "../<name>"` dependencies declared by one crate manifest.
+        fn path_deps(crates_dir: &Path, krate: &str) -> Vec<String> {
+            let manifest = crates_dir.join(krate).join("Cargo.toml");
+            let text = std::fs::read_to_string(&manifest)
+                .unwrap_or_else(|e| panic!("read {}: {e}", manifest.display()));
+            let mut out = Vec::new();
+            for (idx, _) in text.match_indices("path = \"../") {
+                let rest = &text[idx + "path = \"../".len()..];
+                let Some(end) = rest.find('"') else { continue };
+                let name = &rest[..end];
+                // Only sibling crates (`../<name>`), never a deeper relative path.
+                if !name.is_empty() && !name.contains('/') {
+                    out.push(name.to_string());
+                }
+            }
+            out
+        }
+
+        let crates_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("crates/slice-quality has a parent")
+            .to_path_buf();
+
+        let mut closure: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        let mut queue = vec!["slice-quality".to_string()];
+        while let Some(krate) = queue.pop() {
+            if !closure.insert(krate.clone()) {
+                continue;
+            }
+            queue.extend(path_deps(&crates_dir, &krate));
+        }
+
+        let hashed: std::collections::BTreeSet<String> = SCORER_CRATE_ROOTS
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect();
+        assert_eq!(
+            hashed, closure,
+            "SCORER_CRATE_ROOTS must be exactly gmeow-slice-quality's transitive \
+             path-dependency closure — a path dependency carries no Cargo.lock checksum, so \
+             an unhashed one lets the scorer change while the recorded corpus still verifies \
+             as fresh"
+        );
+    }
+
+    /// The CODE half of the freshness witness is load-bearing: editing a scorer source
+    /// file must move the fingerprint even though no scored `.ttl` changed.
+    #[test]
+    fn a_scorer_source_edit_moves_the_fingerprint() {
+        let tmp = tempfile::tempdir().expect("temp dir");
+        let root = tmp.path();
+        // A minimal tree: one scored source (the rubric module) and one scorer source.
+        let rubric = root.join(RUBRIC_MODULE);
+        std::fs::create_dir_all(rubric.parent().expect("rubric parent")).expect("mkdir rubric");
+        std::fs::write(&rubric, b"# rubric\n").expect("write rubric");
+        let scorer_src = root.join("crates").join("slice-quality").join("src");
+        std::fs::create_dir_all(&scorer_src).expect("mkdir scorer src");
+        let unit = scorer_src.join("lib.rs");
+        std::fs::write(&unit, b"// v1\n").expect("write scorer");
+
+        let before = scored_input_fingerprint(root).expect("fingerprint v1");
+        std::fs::write(&unit, b"// v2: the axis now scores differently\n").expect("rewrite scorer");
+        let after = scored_input_fingerprint(root).expect("fingerprint v2");
+        assert_ne!(
+            before, after,
+            "a scorer source edit must move the freshness fingerprint: a corpus produced by \
+             the old scorer does not describe what the new one would record"
+        );
+    }
 }
 
 #[cfg(test)]
