@@ -323,6 +323,14 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         }));
     }
 
+    // Consumer down-projection inventory gate: the authored `gmeow:ProjectionProfile`
+    // rows must EQUAL the `dsl/mappings/projections/` tree, and each profile must still
+    // declare at least its committed cell floor. Several profile files bind the same
+    // `gmeow:profile` name and fold into ONE generated query, so no generated-artifact
+    // inventory can see a deleted or hollowed-out consumer surface — this authored
+    // second source can. Hard-fail before any artifact is emitted (no-optionality).
+    crate::projection_profiles::check_projection_profile_inventory(root)?;
+
     // The four alignment dialects are now produced by the oxigraph-free
     // `gmeow-logic-compile` correspondence lowerings: SSSOM (1:1 lattice band), FnO
     // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
@@ -334,6 +342,33 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
             message: format!("correspondence lowering failed: {e}"),
         })
     })?;
+
+    // Closed target-catalog gate + per-family ratchet, read from the ontology-resident
+    // `gmeow:CatalogFamily` registry (never a Rust list): every grounding correspondence's
+    // `logic:targetEndpoint` must fall in exactly one REGISTERED external catalog family,
+    // and every family's measured count must hold at or above its
+    // `gmeow:catalogTargetMinimum`. Admitting a new external surface is therefore an
+    // ontology edit, and losing rows from an admitted one is red rather than silent.
+    {
+        let families = crate::catalog_families::load_catalog_families(root)?;
+        let targets: Vec<(&str, &str)> = aligned
+            .correspondences
+            .correspondences
+            .iter()
+            .filter(|c| c.grounding)
+            .filter_map(|c| {
+                c.target_endpoint
+                    .as_deref()
+                    .map(|target| (c.iri.as_str(), target))
+            })
+            .collect();
+        crate::catalog_families::check_target_catalogs(
+            &families,
+            targets,
+            "lowered grounding correspondences",
+        )?;
+    }
+
     // Executed lens-law discharge: for every authored correspondence,
     // run its OWN per-binding get/put CONSTRUCT round-trip through the native engine, attach
     // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This

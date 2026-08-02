@@ -32,6 +32,7 @@
 pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
+pub mod catalog_families;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod diagnostics_reader;
@@ -47,6 +48,7 @@ pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
+pub mod projection_profiles;
 pub mod projections;
 pub mod provenance;
 pub mod put_executor;
