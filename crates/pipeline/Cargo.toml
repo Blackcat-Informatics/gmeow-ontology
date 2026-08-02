@@ -68,6 +68,10 @@ gmeow-math = { path = "../math" }
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandatory GTS authorship profile (the ONE production `emit_gts` entry).
+# A leaf below this crate, so `gmeow-math` — which this crate depends on — can
+# reach the same waist without a dependency cycle.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The perf-gate merge binary surfaces progress through the shared Reporter.
 gmeow-cli-core = { path = "../cli-core" }
 # The statement feedback surface folds the native statement-stage output through

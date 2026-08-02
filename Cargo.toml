@@ -37,6 +37,14 @@ members = [
     # byte-fragmenting glyphs per vocab. A LEAF crate — nothing depends on it, so the heavy
     # `tokenizers` dependency never reaches gmeow-cli. Driven by `make maint-gmn-cost-matrix`.
     "crates/gmn-cost-matrix",
+    # The mandatory GMEOW GTS authorship profile: the ONE production entry to
+    # `purrdf::gts_compose::emit_gts` plus the wire-level audit that every
+    # payload-bearing frame carries zstd-rsyncable at level 12. A LEAF (purrdf +
+    # gmeow-errors + ciborium) precisely so every bundle author can sit above it —
+    # the profile used to live in `gmeow-pipeline`, which `gmeow-math` cannot depend
+    # on (the pipeline depends on math), so math and music called the writer directly
+    # and the single-entry claim was false.
+    "crates/gts-profile",
     # The consumer/wheel-only `gmeow` command surface (runs without the repo).
     "crates/gmeow-cli",
     # The repo-maintenance `gmeow-dev` command surface (needs the working tree).

@@ -727,7 +727,7 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
 /// read a shipped `.gts` bundle — the conformance consumers exercise the same
 /// read substrate as production, not a divergent parser.
 pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
-    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+    use purrdf::gts_compose::SnapshotBuilder;
     use purrdf::{NativeRdfFormat, parse_dataset};
 
     let dataset =
@@ -742,22 +742,12 @@ pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
             detail: format!("cannot snapshot dataset: {err}"),
         })
     })?;
-    let gts = emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(|err| {
-        Diag::of_kind(GraphRead {
-            detail: format!("cannot emit GTS: {err}"),
-        })
-    })?;
+    let gts = gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+        .map_err(|err| {
+            Diag::of_kind(GraphRead {
+                detail: format!("cannot emit GTS: {err}"),
+            })
+        })?;
     let graph = purrdf::gts::reader::read(&gts, false, None);
     Ok(index_graph(&graph))
 }
