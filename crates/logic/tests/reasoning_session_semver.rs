@@ -266,8 +266,14 @@ use session_common::*;
 /// every engine source, and the lowering is one), and `reason/refute.rs` moved with the
 /// nested-triple-term boundary record. The fixed edge-only input carries no RDF 1.2
 /// statement metadata at all, so its reasoning verdict is unchanged; only the identity moved.
+/// Re-blessed on integrating main. BOTH sides had moved this golden away from the merge
+/// base, so neither branch's value is correct for the merged engine and taking a side would
+/// pin a hash no build produces. Recomputed from the merged engine, which folds this branch's
+/// expression-identity work together with main's RDF 1.2 statement-metadata lowering. Every
+/// contributing change is individually verdict-preserving on the fixed edge-only input, so
+/// only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "c982951b99eaf1bc46f559c3a5d3e73d9953b91903b0562f270b278981560a7a";
+    "2c885f093bc2bf542133e54618b52cbc3e5005947b71ea4073a1c0246e1b2281";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -391,8 +397,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed once more for the same reason as the engine descriptor above: the RDF 1.2
 /// statement-metadata lowering adds a folded engine-source axis and the nested-triple-term
 /// boundary moved `reason/refute.rs`, so the fixed-input session identity moves with them.
+/// Re-blessed on integrating main. BOTH sides had moved this golden away from the merge
+/// base, so neither branch's value is correct for the merged engine and taking a side would
+/// pin a hash no build produces. Recomputed from the merged engine, which folds this branch's
+/// expression-identity work together with main's RDF 1.2 statement-metadata lowering. Every
+/// contributing change is individually verdict-preserving on the fixed edge-only input, so
+/// only the identity moved.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "d5a8ad6357f6238d1075dddbb2479beb07628b5b3d890c169ad43620dd15caf6";
+    "b4de278ffe8c15bce39060686458106e71cdfa2207a911a553f8e6721b95af3e";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
