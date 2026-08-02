@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N6a - a compensation typed as the receipt of the effect it addresses. That collapses
+# the counteraction into the thing counteracted, which is the guaranteed-inverse reading
+# that makes a failed compensation invisible.
+# MUST trip logic:CompensationNotInverseConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:compensationAsInverse a logic:CompensationAttempt ,
+        logic:ExternalEffectReceipt ;
+    rdfs:label "a compensation typed as the very receipt it addresses"@en .

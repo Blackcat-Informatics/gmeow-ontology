@@ -8,12 +8,13 @@
 //! net-new named graph the bundle carries, so a repo-free consumer reads the full
 //! compilation-unit + per-lane carrier manifest WITHOUT re-running the build:
 //!
-//! * each compilation unit becomes a `gmeow:Procedure`-step input describing its
+//! * each compilation unit becomes a plan-step input describing its
 //!   public name/IRI and its [`OriginKind`](purrdf::provenance::OriginKind), and
 //! * each carrier lane (dataset / logic / reasoning / relational-core / the report
-//!   lanes) becomes a `gmeow:ProcedureStep` carrying a `logic:loadBearing` bit
+//!   lanes) becomes a `logic:ActionSchema` carrying a `logic:loadBearing` bit
 //!   (true = a trim drops correctness, false = a droppable annotation/report lane).
-//! * the pipeline itself is one `gmeow:Procedure` enacted by one `gmeow:Execution`.
+//! * the pipeline itself is one `logic:Plan` enacted by one `logic:Enactment` — the
+//!   canonical prescription/enactment spine, dogfooded on our own regeneration.
 //!
 //! ## S0.5 — no runtime ids
 //!
@@ -110,9 +111,9 @@ const LANES: &[Lane] = &[
     },
 ];
 
-/// The `gmeow:Procedure` node for the pipeline DAG.
+/// The `logic:Plan` node for the pipeline DAG — the prescription.
 const PROCEDURE_IRI: &str = "https://blackcatinformatics.ca/gmeow/provenance/pipeline";
-/// The `gmeow:Execution` node enacting the procedure for this compilation.
+/// The `logic:Enactment` node enacting the plan for this compilation — the occurrence.
 const EXECUTION_IRI: &str = "https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution";
 
 /// Render one `gmeow:`-local IRI node from a stable slug, percent-safe (slugs are
@@ -154,34 +155,29 @@ pub fn project_provenance_graph(
     let mut out = String::new();
 
     // ── the Procedure + its Execution (the realized process vocab) ───────────────
-    triple_iri(
-        &mut out,
-        PROCEDURE_IRI,
-        RDF_TYPE,
-        &format!("{GMEOW}Procedure"),
-    );
+    triple_iri(&mut out, PROCEDURE_IRI, RDF_TYPE, &format!("{LOGIC}Plan"));
     annotate_abox(
         &mut out,
         PROCEDURE_IRI,
-        "Regeneration procedure",
-        "The gmeow: pipeline DAG realized as one gmeow:Procedure, enacted once per compilation.",
+        "Regeneration plan",
+        "The gmeow: pipeline DAG realized as one logic:Plan, enacted once per compilation.",
     );
     triple_iri(
         &mut out,
         EXECUTION_IRI,
         RDF_TYPE,
-        &format!("{GMEOW}Execution"),
+        &format!("{LOGIC}Enactment"),
     );
     annotate_abox(
         &mut out,
         EXECUTION_IRI,
-        "Regeneration execution",
-        "The gmeow:Execution enacting the regeneration procedure for this compilation.",
+        "Regeneration enactment",
+        "The logic:Enactment carrying out the regeneration plan for this compilation.",
     );
     triple_iri(
         &mut out,
         EXECUTION_IRI,
-        &format!("{GMEOW}executesProcedure"),
+        &format!("{LOGIC}enactsPrescriptionVersion"),
         PROCEDURE_IRI,
     );
 
@@ -205,20 +201,15 @@ pub fn project_provenance_graph(
         triple_lit(&mut out, &iri, &format!("{GMEOW}carriesArtifact"), artifact);
     }
 
-    // ── each carrier lane: a ProcedureStep with its loadBearing bit ──────────────
+    // ── each carrier lane: an ActionSchema with its loadBearing bit ─────────────
     for lane in LANES {
         let iri = lane_iri(lane.slug);
-        triple_iri(&mut out, &iri, RDF_TYPE, &format!("{GMEOW}ProcedureStep"));
-        triple_iri(
-            &mut out,
-            PROCEDURE_IRI,
-            &format!("{GMEOW}hasProcedureStep"),
-            &iri,
-        );
+        triple_iri(&mut out, &iri, RDF_TYPE, &format!("{LOGIC}ActionSchema"));
+        triple_iri(&mut out, PROCEDURE_IRI, &format!("{LOGIC}planBody"), &iri);
         triple_iri(
             &mut out,
             EXECUTION_IRI,
-            &format!("{GMEOW}executesStep"),
+            &format!("{LOGIC}instantiatesSchema"),
             &iri,
         );
         triple_lit(&mut out, &iri, &format!("{GMEOW}laneSlug"), lane.slug);
@@ -351,14 +342,12 @@ mod tests {
     #[test]
     fn projection_carries_procedure_and_execution_nodes() {
         let nt = project_provenance_graph(&sample_projection());
+        assert!(nt.contains(&format!("<{PROCEDURE_IRI}> <{RDF_TYPE}> <{LOGIC}Plan> .")));
         assert!(nt.contains(&format!(
-            "<{PROCEDURE_IRI}> <{RDF_TYPE}> <{GMEOW}Procedure> ."
+            "<{EXECUTION_IRI}> <{RDF_TYPE}> <{LOGIC}Enactment> ."
         )));
         assert!(nt.contains(&format!(
-            "<{EXECUTION_IRI}> <{RDF_TYPE}> <{GMEOW}Execution> ."
-        )));
-        assert!(nt.contains(&format!(
-            "<{EXECUTION_IRI}> <{GMEOW}executesProcedure> <{PROCEDURE_IRI}> ."
+            "<{EXECUTION_IRI}> <{LOGIC}enactsPrescriptionVersion> <{PROCEDURE_IRI}> ."
         )));
     }
 
@@ -368,15 +357,13 @@ mod tests {
         for lane in LANES {
             let iri = lane_iri(lane.slug);
             assert!(
-                nt.contains(&format!("<{iri}> <{RDF_TYPE}> <{GMEOW}ProcedureStep> .")),
-                "lane {} must be a ProcedureStep",
+                nt.contains(&format!("<{iri}> <{RDF_TYPE}> <{LOGIC}ActionSchema> .")),
+                "lane {} must be an ActionSchema",
                 lane.slug
             );
             assert!(
-                nt.contains(&format!(
-                    "<{PROCEDURE_IRI}> <{GMEOW}hasProcedureStep> <{iri}> ."
-                )),
-                "lane {} must link to the procedure",
+                nt.contains(&format!("<{PROCEDURE_IRI}> <{LOGIC}planBody> <{iri}> .")),
+                "lane {} must link to the plan",
                 lane.slug
             );
             let expect = format!(
@@ -431,7 +418,7 @@ mod tests {
     /// Shift-left: drive the SAME native structural lint `make validate`/`make
     /// check` run (`gmeow_validate::lint::structural_lint_dataset`) over this
     /// generator's real output fragment, so a missing/incorrect A-Box annotation
-    /// on a minted `CompilationUnit`/`ProcedureStep`/`Procedure`/`Execution`
+    /// on a minted `CompilationUnit`/`ActionSchema`/`Plan`/`Enactment`
     /// individual reds HERE — a fast `cargo nextest -p gmeow-pipeline` — rather
     /// than only surfacing at the next expensive whole-bundle SHACL validation
     /// (`make validate` / the pipeline stage-validate).

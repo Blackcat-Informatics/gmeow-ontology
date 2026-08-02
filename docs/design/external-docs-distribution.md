@@ -16,7 +16,7 @@ rendered documentation/serialization projection permanently out of the carrier.
 | Re-embed docs in `gmeow.gts` | **FORBIDDEN** (user directive, 2026-07-19) — enforced as a permanent contract invariant, not a default |
 | Canonical schema | ONE distribution catalog authored as meta-level ontology content (`graph/distribution-catalog`), digest-free |
 | Per-release digests | A separate release-time DCAT **instance** manifest under `dist/` — never in the carrier |
-| Source-backed export | Preserved: `make regen SYNC_OUTPUTS=docs` → `sync_docs` renders all eight distributions |
+| Source-backed export | Preserved: `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` → `sync_docs` renders all eight distributions |
 | `zstd-rsyncable` level-12 | Preserved; positively asserted over the shipped bundle's real payload frames |
 | Size budget | **None reintroduced** — a byte-count ceiling is not a gate that matters; the forbidden-embed invariant is the gate |
 
@@ -26,7 +26,7 @@ directions on documentation, and to gate the reconciliation so it cannot regress
 - **PIPELINE_SPINE §5 (superset law):** every committed artifact under `generated/`
   is byte-reconstructible from `gmeow.gts`.
 - **documentation-inventory.md:139:** documentation *projections* are deliberately
-  kept **external** to `gmeow.gts` and regenerated with `make regen SYNC_OUTPUTS=docs`.
+  kept **external** to `gmeow.gts` and regenerated with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
 
 The reconciling seam: rendered docs live in ephemeral `dist/`/`ontology-docs`, **not**
 under `generated/`, so the superset law does not bind them. What ships *inside*

@@ -704,7 +704,7 @@ plan, an on-going action) vs *arrival* (the descriptive record, a closed unitary
 canonically as a value (Principle 9) via `logic:occurrentBoundary` over `logic:Open` /
 `logic:Closed`, and it is the
 **plan ⟂ execution** de-conflation already specified in the canonical process model ("path vs. intention vs. causation:
-connected, never identified") and in `slices/extensions/procedures`. As a correspondence it is a
+connected, never identified") and in the canonical `logic:` plan spine. As a correspondence it is a
 **lossy lens**: the descriptive record is a reality-perturbed realization of the prescriptive
 plan, and it is **not** mnemomorphic in general — events occur outside the engine, so the plan is
 not fully recoverable from the record. Whether a given record *is* recoverable is the

@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/frontier-labels-are-derived
+#
+# The actionable frontier is DERIVED, and this case is the proof. Not one
+# logic:entryLabel is asserted below: every entry carries only its lifecycle-axis
+# witnesses, and the five rules named in profile.json's "shipped_rules" compute the
+# label.
+#
+# Those five rules are NOT restated here. They are resolved out of
+# slices/grounding/logic/module.ttl by IRI, so the case reasons with the rule set
+# that actually ships and the harness hard-fails on an IRI the module no longer
+# declares. A copy of a rule inside this file would keep the case green after the
+# shipped rule was deleted — it would pin the copy, which is the one thing a
+# derivation corpus must never do.
+#
+# What the expected materialization must show, per entry:
+#
+#   readyEntry       StepReady + ApprovalNull      -> FrontierReadyAuthorized
+#   gatedEntry       StepReady + ApprovalCreated   -> FrontierReadyApprovalRequired
+#   unknownEntry     EffectAttempted               -> FrontierReconciliationRequired
+#   receiptedEntry   EffectReceipted               -> FrontierCompensationEligible
+#   blockedEntry     StepWaiting + a gap on its    -> FrontierBlockedCapabilityOrResource
+#                    action step
+#
+# Two of these carry the load the rest of the kernel rests on. `unknownEntry` is the
+# no-blind-retry law stated POSITIVELY: rather than only forbidding a retry from an
+# undetermined position, the frontier names reconciliation as the licensed action, so
+# an operator is told what to do instead of only what not to do. `receiptedEntry`
+# derives ELIGIBILITY and nothing more — no compensation attempt, no outcome, and no
+# claim that compensating will succeed, because compensation is a new action with its
+# own possibility of failing.
+#
+# readyEntry and gatedEntry differ in exactly one axis position, which is the whole
+# argument for keeping readiness and approval separate: a single blended state would
+# need a combined value for every such pairing.
+
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/frontier/> .
+
+# --- The data world: five entries, and NOT ONE logic:entryLabel ----------------
+
+e:readyEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+e:gatedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+e:unknownEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectAttempted .
+
+e:receiptedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectReceipted .
+
+# Waiting alone does not reach a label. The gap standing on this entry's action
+# step is what separates "blocked by a capability the deployment does not have"
+# from an ordinary wait, and the rule joins through logic:entryAction to find it.
+e:blockedEntry a logic:FrontierEntry ;
+    logic:entryAction e:ocrStep ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+e:ocrStep a logic:TransactionStep ;
+    rdfs:label "Extract text"@x-gmeow-english .
+
+# An OPERATIONAL capability gap — a capability the deployment does not HAVE.
+# Deliberately not a reasoning-profile gap, which is a claim about what a fragment
+# can EXPRESS; the two are different failures with different remedies.
+e:ocrGap a logic:OperationalCapabilityGap ;
+    logic:gapBlockedStep e:ocrStep .

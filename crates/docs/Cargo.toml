@@ -54,6 +54,12 @@ minijinja = "2"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 
 [dev-dependencies]
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
+tempfile = "3"
 # Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"

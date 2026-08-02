@@ -1,18 +1,19 @@
-# Competency question: "Ingestion executions that produced claims but no events"
-# Expected: Executions of type procedureTypeIngestion whose stepOutput includes
-# an Observation (claim) but no Event.
+# Competency question: "Ingestion enactments that produced claims but no events"
+# Expected: enactments of a plan carrying logic:prescriptionKindIngestion whose
+# step output includes an Observation (a claim) but no Event.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?execution WHERE {
-    ?execution a gmeow:Execution .
-    ?execution gmeow:executesProcedure / gmeow:procedureType gmeow:procedureTypeIngestion .
-    ?execution gmeow:executesStep / gmeow:stepOutput ?output .
+SELECT ?enactment WHERE {
+    ?enactment a logic:Enactment .
+    ?enactment logic:enactsPrescriptionVersion / logic:prescriptionKind logic:prescriptionKindIngestion .
+    ?enactment logic:instantiatesSchema / gmeow:stepOutput ?output .
     ?output a gmeow:Observation .
     FILTER NOT EXISTS {
-        ?execution gmeow:executesStep / gmeow:stepOutput ?event .
+        ?enactment logic:instantiatesSchema / gmeow:stepOutput ?event .
         ?event a gmeow:Event .
     }
 }
-ORDER BY ?execution
+ORDER BY ?enactment

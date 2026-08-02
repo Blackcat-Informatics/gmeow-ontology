@@ -488,7 +488,7 @@ mod tests {
         // inference + inhabitation proving slices added the attack/support self-exclusion distinctness,
         // the three kind→target conditional-range agreements, the argument-component exclusion, and the
         // inhabitation-interval frame requirement; grounding math/lang add Frege object-vs-reference and
-        // linguistic act-vs-observation disjointness; the preference extension adds the three
+        // linguistic act-vs-observation disjointness; the preference slice adds the three
         // irreflexivity characteristics of its cell-order relations (gmeow:strictlyOver,
         // gmeow:preferentiallyEquivalentWith, gmeow:incomparableWith) — nothing is strictly preferred
         // to, tied with, or incomparable to itself under any vantage.

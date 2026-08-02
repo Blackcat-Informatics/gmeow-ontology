@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/frontier-roster-derives-every-label
+#
+# The CLOSED next-action frontier, argued in full. `frontier-labels-are-derived`
+# shows that a label CAN be derived; this case shows that EVERY label is. Not one
+# logic:entryLabel appears in the data world, and all SIXTEEN logic:FrontierLabel
+# individuals come out of the sixteen logic:Rule instances profile.json names in
+# "shipped_rules", resolved by IRI out of slices/grounding/logic/module.ttl, so the
+# case reasons with the rules that actually ship rather than a restatement of them.
+#
+# A roster that enumerates sixteen positions and can compute five of them is the
+# named required-negative of the enactment kernel: an incomplete frontier presented
+# as closed. Sixteen entries, sixteen derived labels, zero asserted ones is what
+# retires it.
+#
+#   preconditionBlockedEntry      StepPending
+#                                   -> FrontierBlockedPrecondition
+#   readyAuthorizedEntry          StepReady + ApprovalNull
+#                                   -> FrontierReadyAuthorized
+#   approvalRequiredEntry         StepReady + ApprovalCreated
+#                                   -> FrontierReadyApprovalRequired
+#   capabilityBlockedEntry        StepWaiting + a gap on its action step
+#                                   -> FrontierBlockedCapabilityOrResource
+#   awaitingInputEntry            StepWaiting + entryAwaits
+#                                   -> FrontierWaitingOnEventTimeOrInput
+#   excludedEntry                 entryExcludes another entry
+#                                   -> FrontierMutuallyExclusive
+#   reconciliationRequiredEntry   EffectAttempted
+#                                   -> FrontierReconciliationRequired
+#   compensationEligibleEntry     EffectReceipted
+#                                   -> FrontierCompensationEligible
+#   compensationRequiredEntry     EffectReconciled + InfoSupported + EnactmentFailed
+#                                   -> FrontierCompensationRequired
+#   compensationFailedEntry       StepFailed + EffectCompensating + InfoSupported
+#                                 + EnactmentRunning
+#                                   -> FrontierCompensationFailedForwardCommitted
+#   reconciliationForeclosedEntry EffectAbandoned
+#                                   -> FrontierReconciliationImpossible
+#   completedEntry                StepCompleted
+#                                   -> FrontierCompleted
+#   skippedEntry                  StepSkipped + skipReason
+#                                   -> FrontierSkippedWithTypedReason
+#   cancelledEntry                StepCancelled + EnactmentCancelled
+#                                 + InfoNotEvaluated
+#                                   -> FrontierCancelled
+#   cancelledInFlightEntry        StepCancelled + EnactmentCancelled
+#                                 + InfoUndetermined
+#                                   -> FrontierCancelledWithInFlightEffects
+#   terminallyFailedEntry         StepFailed + EnactmentFailed
+#                                   -> FrontierTerminallyFailed
+#
+# Four pairs carry the disjointness argument, and each pair differs on exactly one
+# axis. readyAuthorizedEntry and approvalRequiredEntry differ on the approval axis;
+# cancelledEntry and cancelledInFlightEntry on the commitment-knowledge axis;
+# terminallyFailedEntry and compensationFailedEntry on the enactment axis;
+# capabilityBlockedEntry and awaitingInputEntry share the waiting position and are
+# told apart by what is recorded about the obstruction — a step blocked by a
+# capability the deployment does not have awaits nothing, because what is absent
+# does not arrive.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/frontier-roster/> .
+
+# --- The data world: sixteen entries, and NOT ONE logic:entryLabel -------------
+#
+# The sixteen rules are not restated here. profile.json's "shipped_rules" names
+# them, and the harness resolves each IRI against slices/grounding/logic/module.ttl,
+# hard-failing on one the module no longer declares. A copy inside this file would
+# keep the case green after the shipped rule was deleted — the roster would then
+# certify the completeness of its own copy, which is the very failure this case is
+# the required-negative for.
+
+e:preconditionBlockedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepPending .
+
+e:readyAuthorizedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+e:approvalRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+# Waiting on a capability the deployment does not have. The gap on its action step
+# is the discriminator; waiting alone reaches no label.
+e:capabilityBlockedEntry a logic:FrontierEntry ;
+    logic:entryAction e:ocrStep ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+e:ocrStep a logic:TransactionStep .
+e:ocrGap a logic:OperationalCapabilityGap ;
+    logic:gapBlockedStep e:ocrStep .
+
+# The same waiting position, told apart by what is recorded about the obstruction:
+# this one NAMES what it awaits, and what is absent does not arrive.
+e:awaitingInputEntry a logic:FrontierEntry ;
+    logic:entryAwaits e:scannerCallback ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+
+# Exclusivity is a relation between two candidates and belongs on no axis at all.
+e:excludedEntry a logic:FrontierEntry ;
+    logic:entryExcludes e:readyAuthorizedEntry .
+
+e:reconciliationRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectAttempted .
+
+e:compensationEligibleEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectReceipted .
+
+e:compensationRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectReconciled, logic:InfoSupported,
+                           logic:EnactmentFailed .
+
+# The enactment axis is the discriminator against terminallyFailedEntry: the run is
+# still going because escalation remains open.
+e:compensationFailedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepFailed, logic:EffectCompensating,
+                           logic:InfoSupported, logic:EnactmentRunning .
+
+e:reconciliationForeclosedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectAbandoned .
+
+e:completedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCompleted .
+
+# A skip refuses to reach its label without a TYPED reason, because an untyped skip
+# is indistinguishable from an oversight.
+e:skippedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepSkipped ;
+    logic:skipReason logic:SkipAlreadySatisfied .
+
+e:cancelledEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCancelled, logic:EnactmentCancelled,
+                           logic:InfoNotEvaluated .
+
+# One axis apart from cancelledEntry — the commitment-knowledge axis — and a wholly
+# different instruction: effects may already have committed outside the system.
+e:cancelledInFlightEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCancelled, logic:EnactmentCancelled,
+                           logic:InfoUndetermined .
+
+e:terminallyFailedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepFailed, logic:EnactmentFailed .

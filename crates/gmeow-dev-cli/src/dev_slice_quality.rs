@@ -207,6 +207,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // The RDF projection concatenates validly (deterministic N-Quads, one graph), so
     // it is streamed into a single buffer and printed once.
     let mut rdf_out = String::new();
+    // The assessments behind `rdf_out`, retained so the corpus header can carry the
+    // `gmeow:contentDigest` fold over the grades it publishes (the record-integrity
+    // witness a reader recomputes). Populated only on the RDF path.
+    let mut rdf_assessments: Vec<SliceAssessment> = Vec::new();
     // The text default is the repo-wide PRIORITIZATION view (G12): the per-axis
     // profile vectors are collected here and, after the sweep, folded into the
     // deterministic Pareto-frontier + capping-axis prioritization. The assessment
@@ -220,7 +224,12 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                     Format::Text => {
                         profiles.push((report.assessment.clone(), report.advisories.len()));
                     }
-                    Format::Rdf => rdf_out.push_str(&report.to_gmeow_rdf()),
+                    Format::Rdf => {
+                        rdf_out.push_str(&report.to_gmeow_rdf());
+                        // The corpus header digests these grades, so the assessment
+                        // itself is retained, not just its rendered block.
+                        rdf_assessments.push(report.assessment.clone());
+                    }
                     // Json/Sarif are emitted once, after the loop, from `aggregate`.
                     Format::Json | Format::Sarif => {}
                 }
@@ -260,7 +269,21 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
             Ok(t) => println!("{t}"),
             Err(e) => return fail(e.to_string()),
         },
-        Format::Rdf => print!("{rdf_out}"),
+        Format::Rdf => {
+            // Prefix the corpus-level freshness witness so the printed RDF is the SAME
+            // document the pipeline records — a reader of either can prove which
+            // authored sources produced the grades instead of guessing at its vintage.
+            match gmeow_slice_quality::scored_input_fingerprint(root) {
+                Ok(fingerprint) => print!(
+                    "{}{rdf_out}",
+                    gmeow_slice_quality::report::corpus_fingerprint_nquads(
+                        &fingerprint,
+                        &gmeow_slice_quality::report::corpus_content_digest(&rdf_assessments),
+                    )
+                ),
+                Err(e) => return fail(format!("slice-quality: {e}")),
+            }
+        }
         Format::Text => {
             // The enriched text default: the repo-wide Pareto-frontier + capping-axis
             // prioritization, computed across every swept slice's profile vector.
@@ -427,30 +450,63 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     };
 
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    // Score every discovered slice EXACTLY ONCE, in deterministic dir order, and feed
-    // BOTH the roll-up-tier ratchet pass and the per-axis floor pass from these shared
-    // reports — a slice is never scored twice.
-    let score_results = gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric);
-    let mut scored: Vec<(&Path, SliceReport)> = Vec::with_capacity(dirs.len());
-    for (dir, result) in dirs.iter().zip(score_results) {
-        let report = match result {
-            Ok(r) => r,
+    // LOAD the recorded grade vectors rather than re-scoring every slice. The pipeline
+    // already scores each discovered slice exactly once at the DAG root and projects
+    // the result to `graph/quality-assessment` (on disk,
+    // `generated/quality/gmeow.quality-assessment.nt`); this gate used to run the same
+    // sweep, with the same rubric and the same `ScoringEnv::Repo`, a second time.
+    //
+    // Nothing about what the gate ASSERTS moves: every pass below — the roll-up tier
+    // ratchet, the per-axis committed floors, coat distinctiveness, residue ceilings,
+    // the merge-base floor diff, floor monotonicity — runs unchanged over these
+    // grades. Three properties, all ENFORCED rather than assumed, make the loaded
+    // vector interchangeable with a freshly-scored one:
+    //
+    //  * losslessness — every field round-trips exactly (the axis is a first-class
+    //    `gmeow:assessmentAxis`, the score the shortest round-tripping f64 lexical, the
+    //    tier an IRI resolved against this same ladder), pinned by
+    //    `rdf_projection::recorded_grades_round_trip_exactly`;
+    //  * completeness — a slice missing from the record, or missing an axis the rubric
+    //    declares, is a HARD FAIL in the reader, so a truncated record can never read
+    //    as a passing one;
+    //  * freshness — `verify_fresh` recomputes the corpus fingerprint over the authored
+    //    sources and hard-fails on any drift, so a stale record is an error and never a
+    //    silent pass. `make slice-quality-gate` carries no `sync` prerequisite, so this
+    //    check is what keeps the STANDALONE invocation as sound as the in-DAG one.
+    let corpus = match gmeow_slice_quality::read::read_recorded_corpus(&root, &rubric.standard) {
+        Ok(c) => c,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    if let Err(e) = corpus.verify_fresh(&root) {
+        return fail(format!("slice-quality-gate: {e}"));
+    }
+    let mut scored: Vec<(&Path, &SliceAssessment)> = Vec::with_capacity(dirs.len());
+    for dir in &dirs {
+        // The slice IRI is resolved from the slice's own manifest by the SAME authority
+        // the scorer used, so the join between a discovered directory and its recorded
+        // assessment cannot drift from the one the projection was keyed on.
+        let slice_iri = match gmeow_slice_quality::slice_iri_of_dir(dir) {
+            Ok(iri) => iri,
             Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
         };
-        scored.push((dir.as_path(), report));
+        let assessment = match corpus.assessment(&slice_iri) {
+            Ok(a) => a,
+            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
+        };
+        scored.push((dir.as_path(), assessment));
     }
 
     let mut failures = 0usize;
     let mut checked = 0usize;
-    for (dir, report) in &scored {
+    for (dir, assessment) in &scored {
         let declared = match gmeow_slice_quality::gate::declared_tier(dir, &rubric) {
             Ok(d) => d,
             Err(e) => return fail(format!("slice-quality-gate: {e}")),
         };
         let Some(declared) = declared else { continue }; // undeclared → advisory
         checked += 1;
-        let measured_rank = report.assessment.rollup.rank;
-        let floor_rank = floors.get(&report.assessment.slice).map(|f| f.rank);
+        let measured_rank = assessment.rollup.rank;
+        let floor_rank = floors.get(&assessment.slice).map(|f| f.rank);
         let verdict = gmeow_slice_quality::gate::evaluate_ratchet(
             Some(declared.rank),
             measured_rank,
@@ -461,7 +517,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
             RatchetVerdict::Pass => {
                 println!(
                     "ok   {} declared {} measured {}",
-                    report.assessment.slice, declared.label, report.assessment.rollup.label
+                    assessment.slice, declared.label, assessment.rollup.label
                 );
             }
             RatchetVerdict::MeasuredBelowDeclared => {
@@ -469,7 +525,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     "gmeow-dev.slice-quality.gate",
                     format!(
                         "FAIL {} declared {} but measures {} — uplift the slice or lower is forbidden",
-                        report.assessment.slice, declared.label, report.assessment.rollup.label
+                        assessment.slice, declared.label, assessment.rollup.label
                     ),
                 );
                 failures += 1;
@@ -479,7 +535,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     "gmeow-dev.slice-quality.gate",
                     format!(
                         "FAIL {} declares {} below its committed ratchet floor — the tier may only be raised",
-                        report.assessment.slice, declared.label
+                        assessment.slice, declared.label
                     ),
                 );
                 failures += 1;
@@ -500,17 +556,20 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // check consults to tell a permitted greenfield floor removal (slice gone) from
     // a forbidden deletion of a still-live floor line.
     let mut live_slices: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for (dir, report) in &scored {
-        live_slices.insert(report.assessment.slice.clone());
+    for (dir, assessment) in &scored {
+        live_slices.insert(assessment.slice.clone());
         let grounding = is_grounding_slice(dir);
-        for grade in &report.assessment.grades {
+        // The recorded corpus carries the GRADES but not the per-term advisories that
+        // produced them, so a below-floor axis re-scores THIS slice — once, lazily, and
+        // only this slice — to name the terms behind the number. The passing route
+        // never enters that arm, so the recorded-corpus fast path is untouched: scoring
+        // one slice is the price of diagnosing an already-red gate, not a return to
+        // sweeping the corpus.
+        let mut advisory_source: Option<SliceReport> = None;
+        for grade in &assessment.grades {
             let axis_local = axis_local_name(&grade.axis_iri);
-            let floor = match axis_floor_for(
-                &axis_floors,
-                &report.assessment.slice,
-                axis_local,
-                grounding,
-            ) {
+            let floor = match axis_floor_for(&axis_floors, &assessment.slice, axis_local, grounding)
+            {
                 Ok(Some(f)) => f,
                 Ok(None) => continue, // no committed floor and not the grounding default → unfloored, advisory only
                 Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -523,18 +582,36 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     emit_error(
                         "gmeow-dev.slice-quality.gate",
                         format!(
-                            "FAIL {} measures {axis_local} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_PROJECTION})",
-                            report.assessment.slice, grade.score
+                            // Both numbers at FULL precision, never `{:.6}`: the
+                            // comparison is exact (`measured + f64::EPSILON >= floor`),
+                            // so a rounded message can read "1.000000 below 1.000000"
+                            // and leave the reader unable to see the regression it is
+                            // reporting.
+                            "FAIL {} measures {axis_local} {} — below its committed per-axis floor {floor} ({AXIS_FLOOR_PROJECTION})",
+                            assessment.slice, grade.score
                         ),
                     );
                     // The failing axis already knows, per term, WHAT is wrong; print it
                     // beneath the FAIL instead of making the author rebuild the set by
                     // hand from a single aggregate line.
-                    emit_axis_floor_advisories(
-                        &report.assessment.slice,
-                        axis_local,
-                        &report.advisories_for_axis(&grade.axis_iri),
-                    );
+                    if advisory_source.is_none() {
+                        let one = [dir.to_path_buf()];
+                        let mut scored_one =
+                            gmeow_slice_quality::score_slices_with_rubric(&root, &one, &rubric);
+                        match scored_one.remove(0) {
+                            Ok(r) => advisory_source = Some(r),
+                            Err(e) => {
+                                return fail(format!("slice-quality-gate: {}: {e}", dir.display()));
+                            }
+                        }
+                    }
+                    if let Some(report) = advisory_source.as_ref() {
+                        emit_axis_floor_advisories(
+                            &assessment.slice,
+                            axis_local,
+                            &report.advisories_for_axis(&grade.axis_iri),
+                        );
+                    }
                     axis_failures += 1;
                 }
             }
@@ -549,12 +626,12 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // this gate can emit is grouped by check rather than by where its inputs happen
     // to be computed.
     let vocabularies = &rubric.floors.vocabularies;
-    // Every discovered slice's (dir, IRI) pair, resolved ONCE by the scoring pass above.
+    // Every discovered slice's (dir, IRI) pair, resolved ONCE by the corpus join above.
     // The merge-base residue reconstruction reuses it instead of re-parsing every
     // slice's manifest.ttl a second time just to discard all but the implicated few.
     let slice_dirs: Vec<(&Path, String)> = scored
         .iter()
-        .map(|(dir, report)| (*dir, report.assessment.slice.clone()))
+        .map(|(dir, assessment)| (*dir, assessment.slice.clone()))
         .collect();
     let working_ceilings = ceilings_from_rubric(&rubric);
     // ONE working-tree measurement, two views: the CONSTRUCT sets (which carry each
@@ -1210,16 +1287,22 @@ fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, 
 const DSL_MAPPINGS_REL_DIR: &str = "dsl/mappings";
 
 /// A temporary directory holding the merge base's AUTHORING SURFACES as plain files,
-/// materialized by ONE `git archive` (see [`materialize_base_tree`]). Removed on drop —
-/// including on every `?` early return, so a hard-failing gate never leaks it.
+/// materialized by ONE `git archive` (see [`materialize_base_tree`]).
+///
+/// The extraction root is a [`tempfile::TempDir`], so it is removed on drop — on the
+/// success path, on every `?` early return, and while unwinding from a panic. A
+/// hand-rolled `remove_dir_all` in a `Drop` impl covered only the first two and is banned
+/// repo-wide (`check_no_unmanaged_temp_dir`) for exactly that reason.
 struct BaseTree {
-    /// The extraction root; base surfaces sit under it at their repo-relative paths.
-    root: std::path::PathBuf,
+    /// The RAII guard owning the extraction root. Never read directly — [`Self::root`]
+    /// is the accessor — but its lifetime is what keeps the tree on disk.
+    tmp: tempfile::TempDir,
 }
 
-impl Drop for BaseTree {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.root);
+impl BaseTree {
+    /// The extraction root; base surfaces sit under it at their repo-relative paths.
+    fn root(&self) -> &Path {
+        self.tmp.path()
     }
 }
 
@@ -1284,32 +1367,22 @@ fn materialize_base_tree(
     base: &str,
     pathspecs: &[String],
 ) -> gmeow_errors::Result<BaseTree> {
-    use std::hash::{BuildHasher, Hasher};
     use std::process::{Command, Stdio};
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static SEQ: AtomicU64 = AtomicU64::new(0);
 
-    // `pid-seq` alone is guessable on a machine shared by 30+ developers: a symlink
+    // A `pid-seq` path is guessable on a machine shared by 30+ developers: a symlink
     // pre-planted at the predicted path, combined with `create_dir_all` succeeding
     // THROUGH an existing symlink, would let `tar -x` write the base tree outside this
-    // temp root (TOCTOU). `RandomState`'s keys are drawn from the OS's own CSPRNG
-    // per construction, so hashing them with the pid/seq gives an unpredictable
-    // suffix with no extra crate; `create_dir` (not `_all`, and with no preceding
-    // `remove_dir_all`) then FAILS on any pre-existing path — including a symlink —
-    // instead of following or clobbering it.
-    let salt = std::collections::hash_map::RandomState::new()
-        .build_hasher()
-        .finish();
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-ratchet-base-{}-{}-{salt:016x}",
-        std::process::id(),
-        SEQ.fetch_add(1, Ordering::SeqCst)
-    ));
-    std::fs::create_dir(&dir)
-        .map_err(|e| sqe(format!("could not create base-tree temp dir {dir:?}: {e}")))?;
+    // temp root (TOCTOU). `tempfile` closes that on both counts — the suffix is drawn
+    // from the OS CSPRNG rather than from the pid, and the directory is created with
+    // `mkdir` (which FAILS on any pre-existing path, symlink included, and never
+    // follows one) and retried on collision — and it additionally removes the tree
+    // while unwinding from a panic, which the hand-rolled `Drop` did not.
+    let tmp = tempfile::Builder::new()
+        .prefix("gmeow-ratchet-base-")
+        .tempdir()
+        .map_err(|e| sqe(format!("could not create base-tree temp dir: {e}")))?;
     // Construct the guard BEFORE anything else can fail, so every path below cleans up.
-    let tree = BaseTree { root: dir };
+    let tree = BaseTree { tmp };
 
     let mut archive = Command::new("git")
         .current_dir(root)
@@ -1325,7 +1398,7 @@ fn materialize_base_tree(
         .take()
         .ok_or_else(|| sqe(format!("`git archive {base}` produced no stdout pipe")))?;
     let extract = Command::new("tar")
-        .current_dir(&tree.root)
+        .current_dir(tree.root())
         .env("LC_ALL", "C")
         .args(["-x", "-f", "-"])
         .stdin(Stdio::from(stdout))
@@ -1394,9 +1467,9 @@ impl BaseMeasurement {
             return Vec::new();
         };
         if slice_iri == gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI {
-            gmeow_slice_quality::ratchet_dsl_surface_paths(&tree.root)
+            gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root())
         } else {
-            gmeow_slice_quality::ratchet_surface_paths(&tree.root.join(rel))
+            gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel))
         }
     }
 }
@@ -1468,7 +1541,7 @@ fn measure_base_residues(
             continue; // the slice directory does not exist at base → base residue 0
         }
         out.dirs.insert((*slice_iri).to_owned(), rel_dir.clone());
-        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root.join(rel_dir));
+        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel_dir));
         for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
             &paths,
             slice_iri,
@@ -1487,7 +1560,7 @@ fn measure_base_residues(
             gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
             DSL_MAPPINGS_REL_DIR.to_owned(),
         );
-        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(&tree.root);
+        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root());
         for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
             &paths,
             gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
@@ -1672,28 +1745,20 @@ fn ceiling_rebalance(
 #[cfg(test)]
 mod edge_reason_merge_tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
-
+    /// A scratch tree that removes itself on drop — including while unwinding from a
+    /// failed assertion, which is when a fixture leaves the most litter.
     struct TempDir {
+        _tmp: tempfile::TempDir,
         path: std::path::PathBuf,
     }
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.path);
-        }
-    }
     fn temp_dir(label: &str) -> TempDir {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut path = std::env::temp_dir();
-        path.push(format!(
-            "gmeow-edge-reason-{label}-{}-{n}",
-            std::process::id()
-        ));
-        let _ = std::fs::remove_dir_all(&path);
-        std::fs::create_dir_all(&path).unwrap();
-        TempDir { path }
+        let tmp = tempfile::Builder::new()
+            .prefix(&format!("gmeow-edge-reason-{label}-"))
+            .tempdir()
+            .expect("create temp dir");
+        let path = tmp.path().to_path_buf();
+        TempDir { _tmp: tmp, path }
     }
 
     /// A `gmeow:CeilingRelocation` declaring `terms` on the `from -> to` edge, dated
@@ -1732,8 +1797,14 @@ mod edge_reason_merge_tests {
              @prefix logic: <{LOGIC}> .\n"
         );
 
-        let base_root = temp_dir("base");
-        let source_dir = base_root.path.join("rel/src");
+        // The base tree's guard is handed to the `BaseTree` below, exactly as production
+        // does: the materialized tree is owned by the measurement that reads it, so it
+        // dies with the measurement rather than being cleaned up by a second owner.
+        let base_tmp = tempfile::Builder::new()
+            .prefix("gmeow-edge-reason-base-")
+            .tempdir()
+            .expect("create temp dir");
+        let source_dir = base_tmp.path().join("rel/src");
         std::fs::create_dir_all(&source_dir).unwrap();
         std::fs::write(
             source_dir.join("module.ttl"),
@@ -1759,9 +1830,7 @@ mod edge_reason_merge_tests {
         .unwrap();
 
         let base = BaseMeasurement {
-            tree: Some(BaseTree {
-                root: base_root.path.clone(),
-            }),
+            tree: Some(BaseTree { tmp: base_tmp }),
             dirs: std::collections::BTreeMap::from([(FROM.to_owned(), "rel/src".to_owned())]),
             constructs: std::collections::BTreeMap::new(),
         };
@@ -3629,10 +3698,8 @@ mod base_monotonicity_git_tests {
     use super::*;
     use gmeow_slice_quality::gate::axis_floor_monotonicity;
     use std::process::Command;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
     /// A structurally-complete minimal rubric module (a two-rung ladder, one axis, one
     /// threshold) — the CENTRALIZED authority the base reconstruction reads from the
@@ -3667,13 +3734,12 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
     }
 
+    /// A git repo fixture whose tree lives in an owned temp directory: dropping the
+    /// fixture drops the [`tempfile::TempDir`], which removes the tree — on success,
+    /// on early return, and on panic alike.
     struct GitFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for GitFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// Run a git command in `root`, isolated from user/system config (never signs).
@@ -3698,12 +3764,15 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
     /// non-rubric floor at `base_floor`, commit it (the merge base), and return the
     /// fixture and the base commit SHA. The caller then rewrites the working tree.
     fn fixture_with_base_floor(base_floor: &str) -> (GitFixture, String) {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-basemono-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let fx = GitFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-basemono-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = GitFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
 
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
@@ -3829,12 +3898,15 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
     /// `dsl/mappings/` surface — and whose WORKING TREE has deleted every one of them
     /// and added a brand-new slice directory that never existed at base.
     fn fixture_with_base_surfaces() -> (GitFixture, String) {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-basesurf-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let fx = GitFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-basesurf-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = GitFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
 
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(demo_dir.join("mappings/nested")).unwrap();
@@ -4008,11 +4080,9 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
 mod relocation_gate_tests {
     use super::*;
     use std::process::Command;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
     const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
     /// The slice IRI a fixture slice local name resolves to — the on-disk shape every
     /// real manifest uses, so the gate's joins behave exactly as they do in the repo.
@@ -4096,13 +4166,12 @@ mod relocation_gate_tests {
         }
     }
 
+    /// A fixture repository whose tree lives in an owned temp directory: dropping the
+    /// fixture drops the [`tempfile::TempDir`], which removes the tree — on success, on
+    /// early return, and while unwinding from a failed assertion alike.
     struct RepoFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for RepoFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     fn git(root: &std::path::Path, args: &[&str]) {
@@ -4253,12 +4322,15 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
     /// tree with `working`. Returns the fixture; the caller drives
     /// [`slice_quality_gate_at`] over `fixture.root`.
     fn fixture(base: &State, working: &State) -> RepoFixture {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-reloc-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let fx = RepoFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-reloc-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = RepoFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
 
         write_state(&root, base);
         git(&root, &["init", "-q"]);
@@ -4272,7 +4344,31 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
         git(&root, &["update-ref", "refs/remotes/origin/main", "HEAD"]);
 
         write_state(&root, working);
+        record_quality_corpus(&root);
         fx
+    }
+
+    /// Project the recorded quality-assessment corpus into the fixture, exactly as the
+    /// pipeline's DAG-root sweep does.
+    ///
+    /// The gate no longer scores slices itself: it LOADS `graph/quality-assessment` and
+    /// hard-fails when the record is absent or stale (that refusal is the whole warrant
+    /// for reading a record instead of recomputing). A fixture repository therefore has
+    /// to carry the record too, or every scenario below reds on the missing projection
+    /// before it ever reaches the ceiling passes it is testing — and the scenarios that
+    /// EXPECT a non-zero exit would go on passing for entirely the wrong reason.
+    ///
+    /// It is written from [`gmeow_slice_quality::assessment_artifacts`], the same single
+    /// producer the pipeline stage uses, so the fixture record is what the pipeline would
+    /// have written and never a hand-built stand-in. It runs LAST, after the working tree
+    /// is final, because the corpus stamps a freshness fingerprint over the sources it
+    /// scored and the gate recomputes that fingerprint over the tree it finds.
+    fn record_quality_corpus(root: &std::path::Path) {
+        let artifacts =
+            gmeow_slice_quality::assessment_artifacts(root).expect("score the fixture corpus");
+        let recorded = root.join(gmeow_slice_quality::read::RECORDED_CORPUS_PATH);
+        std::fs::create_dir_all(recorded.parent().expect("the corpus path has a parent")).unwrap();
+        std::fs::write(&recorded, artifacts.nquads.as_bytes()).unwrap();
     }
 
     /// The two slices every scenario uses: `alpha` (the source) and `beta` (the
@@ -4702,27 +4798,25 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
 mod gate_enforcement_tests {
     use super::*;
     use gmeow_slice_quality::gate::evaluate_axis_floor;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
+    /// A fixture repo whose tree lives in an owned temp directory: dropping the fixture
+    /// drops the [`tempfile::TempDir`], which removes the tree — on success, on early
+    /// return, and on panic alike.
     struct TempFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for TempFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// A minimal on-disk fixture repo (no git): a complete rubric slice plus a
     /// non-rubric demo slice authoring one `gmeow:AxisFloorCommitment` at `floor`.
     fn fixture_with_non_rubric_floor(floor: &str) -> TempFixture {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-gate-enforce-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-gate-enforce-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(&rubric_dir).unwrap();
@@ -4759,7 +4853,7 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
         )
         .unwrap();
         std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
-        TempFixture { root }
+        TempFixture { _tmp: tmp, root }
     }
 
     #[test]
@@ -4821,27 +4915,25 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
 #[cfg(test)]
 mod axis_floor_diagnostics_tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
 
+    /// A fixture repo whose tree lives in an owned temp directory: dropping the fixture
+    /// drops the [`tempfile::TempDir`], which removes the tree — on success, on early
+    /// return, and while unwinding from a failed assertion alike.
     struct TempFixture {
+        _tmp: tempfile::TempDir,
         root: std::path::PathBuf,
-    }
-    impl Drop for TempFixture {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.root);
-        }
     }
 
     /// A fixture repo whose demo slice measures BELOW a 1.0 floor on both
     /// `axisProseQuality` and `axisTranslationCoverage`.
     fn fixture_below_two_floors() -> (TempFixture, std::path::PathBuf) {
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-axis-diag-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-axis-diag-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(&rubric_dir).unwrap();
@@ -4909,7 +5001,13 @@ gmeow:DemoThing a owl:Class ;
             format!("@prefix gmeow: <{NS}> .\ngmeow:sliceDemo a gmeow:Slice .\n"),
         )
         .unwrap();
-        (TempFixture { root: root.clone() }, demo_dir)
+        (
+            TempFixture {
+                _tmp: tmp,
+                root: root.clone(),
+            },
+            demo_dir,
+        )
     }
 
     /// Score the fixture demo slice and project the below-floor advisories for one
@@ -5069,11 +5167,15 @@ gmeow:DemoThing a owl:Class ;
     fn the_per_literal_list_is_capped_but_never_silently_truncated() {
         // The cap is a rendering bound; the remainder must be STATED. Build a slice
         // with more uncovered literals than the cap and assert the explicit tail.
-        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-axis-diag-cap-{}-{n}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        let fx = TempFixture { root: root.clone() };
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-axis-diag-cap-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = TempFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         let demo_dir = root.join("slices/demo/demo");
         std::fs::create_dir_all(&rubric_dir).unwrap();

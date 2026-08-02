@@ -485,7 +485,7 @@ fn justification_status_roster_is_exact() {
 /// `#`-prefixed YAML metadata, blank lines, and the TSV header row. Mirrors the
 /// reader in `conformance_standpoint.rs`. Panics if the generated mappings are
 /// absent — no-optionality: the SSSOM sets are a required projection materialised by
-/// `make regen` before the gate runs the test.
+/// `make check` before the gate runs the test.
 fn sssom_subject_ids() -> BTreeSet<String> {
     let dir = repo_root().join("generated").join("mappings");
     let mut subjects = BTreeSet::new();

@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:CompensationAttempt that binds NOTHING at all — the empty half of the
+# exactness discipline. The charge it was raised to undo is right there in the scene,
+# receipted and attributed to a real attempt, and the refund names none of it: read
+# later, "a refund happened" is true and answers nothing about WHICH committed effect
+# was counteracted, so the effect stays outstanding while the ledger reads as settled.
+# MUST trip logic:CompensationNamesForwardEffectConstraint. NOT
+# logic:CompensationBindsExactForwardEffectConstraint: that law DEREFERENCES the
+# binding and its guard therefore binds it, so a compensation naming nothing falls
+# outside it — the loose-binding case is compensation-outcome-without-receipt.ttl's
+# sibling discipline and is exercised inline in crates/logic/tests/enactment_gate.rs.
+# NOT logic:CompensationNotInverseConstraint either: the refund is not typed as the
+# receipt it addresses, which is the separate prohibition
+# compensation-typed-as-its-forward-receipt.ttl carries.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:invoice901Charge a logic:EffectAttempt ;
+    rdfs:label "the charge dispatched against the payments provider"@en .
+
+ex:invoice901ChargeReceipt a logic:ExternalEffectReceipt ;
+    logic:receiptOfAttempt ex:invoice901Charge ;
+    rdfs:label "the provider's receipt for the charge that committed"@en .
+
+ex:invoice901Refund a logic:CompensationAttempt ;
+    rdfs:label "a refund counteracting nothing nameable"@en .

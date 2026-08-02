@@ -3,13 +3,13 @@
 
 //! Behavioural gate for `scripts/commit-generated.sh`.
 //!
-//! `make commit` regenerates (via a sub-make, so the regen-guard never fires —
-//! see the comment in the Makefile's `commit` recipe) and then hands off to this
-//! script to list generator-owned paths, stage whichever exist, and commit. The
-//! script previously lived inline in the `commit` recipe body; it moved out so
-//! the recipe stays within checkmake's target-body length limit. This file
-//! proves the extracted script's BEHAVIOUR is unchanged, mirroring the approach
-//! `crates/xtask/tests/regen_guard.rs` takes for `scripts/regen-guard.sh`.
+//! `make commit` materializes through the pipeline's single producer
+//! (`check-sync` in update mode) and then hands off to this script to list
+//! generator-owned paths, stage whichever exist, and commit. The script
+//! previously lived inline in the `commit` recipe body; it moved out so the
+//! recipe stays within checkmake's target-body length limit. This file proves
+//! the extracted script's BEHAVIOUR, and that the recipe never interpolates the
+//! commit message into shell text.
 //!
 //! Each test runs the script against a disposable scratch git repository (never
 //! the real worktree) so `git add`/`git commit` are safe to actually execute,
@@ -20,7 +20,6 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
-use std::sync::atomic::{AtomicU64, Ordering};
 
 /// The repository root: this crate is `<root>/crates/xtask`.
 fn repo_root() -> PathBuf {
@@ -35,25 +34,26 @@ fn script_path() -> PathBuf {
     repo_root().join("scripts/commit-generated.sh")
 }
 
-static SCRATCH_COUNTER: AtomicU64 = AtomicU64::new(0);
-
 /// A disposable git repository, isolated from the real worktree, used to
 /// exercise the script's `git add`/`git diff`/`git commit` calls for real.
+///
+/// The scratch root is a `tempfile::TempDir`: its suffix comes from the OS
+/// CSPRNG rather than a guessable pid, it is created with `mkdir` (so it can
+/// never be resolved through a pre-planted symlink), and it is removed even
+/// while unwinding from a failed assertion.
 struct ScratchRepo {
     dir: PathBuf,
+    _tmp: tempfile::TempDir,
 }
 
 impl ScratchRepo {
     fn new(label: &str) -> Self {
-        let n = SCRATCH_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let dir = std::env::temp_dir().join(format!(
-            "gmeow-commit-generated-test-{label}-{}-{n}",
-            std::process::id()
-        ));
-        // A stale directory from a killed prior run must not corrupt this run.
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).expect("create scratch repo dir");
-        let repo = Self { dir };
+        let tmp = tempfile::Builder::new()
+            .prefix(&format!("gmeow-commit-generated-test-{label}-"))
+            .tempdir()
+            .expect("create scratch repo dir");
+        let dir = tmp.path().to_path_buf();
+        let repo = Self { dir, _tmp: tmp };
         repo.git(&["init", "-q"]);
         repo.git(&[
             "config",
@@ -137,12 +137,6 @@ impl ScratchRepo {
             .status()
             .expect("git diff runs")
             .success()
-    }
-}
-
-impl Drop for ScratchRepo {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.dir);
     }
 }
 
@@ -321,12 +315,8 @@ fn message_with_shell_metacharacters_lands_verbatim_and_does_not_execute() {
     let repo = ScratchRepo::new("shell-metacharacter-message");
     repo.write_file("generated/output.txt", "generated content\n");
     let gmeow_dev = repo.fake_gmeow_dev(&["generated/output.txt"]);
-    let marker = std::env::temp_dir().join(format!(
-        "gmeow-commit-generated-pwned-proof-{}-{}",
-        std::process::id(),
-        SCRATCH_COUNTER.fetch_add(1, Ordering::Relaxed)
-    ));
-    let _ = fs::remove_file(&marker);
+    let marker_home = tempfile::tempdir().expect("create marker dir");
+    let marker = marker_home.path().join("pwned-proof");
     let payload = format!(r#""; touch {}; #"#, marker.display());
     let out = run_script(
         repo.path(),
@@ -433,10 +423,10 @@ fn the_makefile_commit_target_delegates_to_the_extracted_script() {
 
 #[test]
 fn dry_run_never_places_message_text_in_recipe_output() {
-    // `-n` still resolves the real `$(MAKE) regen` sub-make recursion (GNU make
-    // always executes recipe lines that reference $(MAKE), even under -n) but
-    // that sub-make ALSO inherits -n via MAKEFLAGS, so nothing is ever actually
-    // run — see `make_commit_still_resolves` below for the same property. This
+    // `-n` still resolves the real `$(MAKE) check-sync` sub-make recursion (GNU
+    // make always executes recipe lines that reference $(MAKE), even under -n)
+    // but that sub-make ALSO inherits -n via MAKEFLAGS, so nothing is ever
+    // actually run — see `make_commit_still_resolves` for the same property. This
     // makes it safe to drive with a real Makefile invocation rather than a
     // hand-rolled stand-in, and to assert on the exact text Make would hand to
     // a shell if this were a live run.
@@ -448,8 +438,6 @@ fn dry_run_never_places_message_text_in_recipe_output() {
         .arg("GMEOW_DEV=/bin/true")
         .current_dir(repo_root())
         .env_remove("CI")
-        .env_remove("REGEN_ACK")
-        .env_remove("REGEN_INTERNAL")
         .output()
         .expect("make is part of this repository's toolchain");
     assert!(
@@ -475,19 +463,18 @@ fn dry_run_never_places_message_text_in_recipe_output() {
 fn make_commit_still_resolves() {
     // The end-to-end regression: `make commit` is a documented workflow and must
     // survive the extraction. `-n` still executes `$(MAKE)` lines, so this
-    // exercises the real sub-make recursion into `regen`.
+    // exercises the real sub-make recursion into the single producer,
+    // `check-sync` — never the poisoned `regen`, which refuses unconditionally.
     let out = Command::new("make")
         .arg("-n")
         .arg("commit")
         .current_dir(repo_root())
         .env_remove("CI")
-        .env_remove("REGEN_ACK")
-        .env_remove("REGEN_INTERNAL")
         .output()
         .expect("make is part of this repository's toolchain");
     assert!(
         out.status.success(),
-        "`make commit` must not be blocked by the regen guard: {}",
+        "`make commit` must resolve through the single producer: {}",
         String::from_utf8_lossy(&out.stderr)
     );
 }

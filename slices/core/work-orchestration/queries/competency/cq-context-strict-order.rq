@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Under a policy that DOES order the remediation options,
+# what is the order?"
+#
+# The question is answered through the shipped preference apparatus and nothing
+# else: the comparison context reaches its cell through the standpoint the
+# context is framed from, the cell carries the reified within-cell preference
+# edges, and the order itself is closed at read time by the one-or-more
+# gmeow:strictlyOver path.
+#
+# Over the contextual-recommendation scene this returns exactly THREE rows, all
+# under the fastest-restore context — and the third of them, feature flag over
+# hotfix, is asserted NOWHERE in the file. Only the two covering edges are
+# recorded; the transitive pair is derived here. That is the difference between
+# an order and three opinions that happen to agree, and it is why this question
+# is worth asking of the data rather than of the prose.
+#
+# The two other contexts contribute nothing, which is equally the point: their
+# cells carry orders with no strict edges, because a tie and a Pareto void are
+# not orders and this query refuses to invent one for them.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?context ?winner ?loser WHERE {
+    ?context gmeow:contextStandpoint ?standpoint .
+    ?cell a gmeow:PreferenceProjection ;
+          gmeow:vantage ?standpoint ;
+          gmeow:projectionOrder ?order .
+    ?order gmeow:orderEdge ?edge .
+    ?edge gmeow:edgeWinner ?winner .
+    ?winner gmeow:strictlyOver+ ?loser .
+}
+ORDER BY ?context ?winner ?loser

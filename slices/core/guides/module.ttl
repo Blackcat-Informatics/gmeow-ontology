@@ -693,7 +693,7 @@ gmeow:pathAuditAiOrGraphRag
     gmeow:learningAudience "Developers recording extracted facts, chunks, and tools."@x-gmeow-english ;
     gmeow:guideGoal "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them."@x-gmeow-english ;
     gmeow:includesRecipe gmeow:recipeGraphRagDatasetLineage ;
-    gmeow:usesExamplePath "slices/core/ai/examples/grounded-claim.ttl" , "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" , "slices/extensions/agentic/examples/agent-trajectory.ttl" ;
+    gmeow:usesExamplePath "slices/core/ai/examples/grounded-claim.ttl" , "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" , "slices/core/agentic/examples/agent-trajectory.ttl" ;
     gmeow:usesTerm gmeow:Dataset , gmeow:Chunk , gmeow:ExtractedEntity , gmeow:EvidenceSpan , gmeow:usedModel ;
     gmeow:adoptionTarget "prov" , "dcat" , "schema" ;
     gmeow:graphBoxRole gmeow:boxABox .

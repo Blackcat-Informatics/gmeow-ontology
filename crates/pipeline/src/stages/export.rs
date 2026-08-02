@@ -13,10 +13,11 @@
 //! structurally-valid, deterministic, non-empty output faithful to the Python
 //! generator's format. Everything is sorted (BTreeMap/BTreeSet) for determinism.
 //!
-//! The lossless N-Quads / TriG forms delegate to the gmeow-gts Rust serializers
-//! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
-//! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
-//! exactly as the Python `write_nquads` / `write_trig` do.
+//! The lossless N-Quads / TriG forms delegate to purrdf's native serializer
+//! (`purrdf::serialize_dataset`, via [`serialize_public`]) over ONE
+//! public-BCP-47-retagged copy of the carrier ([`dataset_with_public_tags`]) shared by
+//! both media types — the internal `x-gmeow-*` language tags are remapped at the
+//! projection boundary, and the remap is paid once, not once per surface.
 //!
 //! SKOS ([`render_skos`]), OBO Graphs ([`render_obographs`]), and CSVW
 //! ([`render_csvw`]) are purrdf 0.7.0 native projections
@@ -41,7 +42,7 @@ use gmeow_validate::language_tags::{
 };
 use purrdf::{RdfDataset, TermId, TermRef};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 include!("lpg_prefixes.rs");
 
@@ -2066,35 +2067,21 @@ fn dataset_with_public_tags(
     })
 }
 
-fn write_nquads(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(
-        &public,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| {
+/// Serialize an ALREADY public-tag-remapped dataset through purrdf's native
+/// serializer — the whole lossless-RDF half of this leaf, one purrdf call per media
+/// type.
+///
+/// It takes the remapped dataset rather than remapping internally so the caller
+/// builds it ONCE and serializes it twice (N-Quads + TriG). The remap is a full
+/// materialization of the terminal carrier (`owned_quads` + a rebuilt frozen
+/// dataset); doing it per media type made this leaf pay for two whole extra copies of
+/// the corpus at its allocation peak, for two byte-identical inputs.
+fn serialize_public(public: &RdfDataset, media_type: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    purrdf::serialize_dataset(public, media_type, purrdf::SerializeGraph::Dataset).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("n-quads serialize: {e}"),
+            message: format!("{media_type} serialize: {e}"),
         })
     })
-}
-
-fn write_trig(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset).map_err(
-        |e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("trig serialize: {e}"),
-            })
-        },
-    )
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2799,14 +2786,20 @@ pub(crate) fn render_all_with_languages(
         format!("{DIST_DIR}/llms-full.txt"),
         consumer_llms_full(&terms, &title, &version, modeled_defs, &primer).into_bytes(),
     );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.nq"),
-        write_nquads(dataset, view.tag_map())?,
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.trig"),
-        write_trig(dataset, view.tag_map())?,
-    );
+    // The two lossless RDF surfaces are the SAME public-tag-remapped dataset under two
+    // media types, so it is materialized once and serialized twice, then dropped before
+    // the remaining (small) surfaces are rendered.
+    {
+        let public = dataset_with_public_tags(dataset, view.tag_map())?;
+        out.insert(
+            format!("{DIST_DIR}/gmeow.nq"),
+            serialize_public(&public, "application/n-quads")?,
+        );
+        out.insert(
+            format!("{DIST_DIR}/gmeow.trig"),
+            serialize_public(&public, "application/trig")?,
+        );
+    }
     out.insert(
         format!("{DIST_DIR}/gmeow-statements.jsonl"),
         write_statements_jsonl(&view),
@@ -2894,6 +2887,7 @@ pub(crate) fn modeled_defs_from_upstream(
 /// The `stage-export-export` export-leaf stage.
 pub struct ExportStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl ExportStage {
@@ -2902,12 +2896,21 @@ impl ExportStage {
     /// `llms-full.txt` cards' `python_model` gate (see [`class_is_modeled`]) —
     /// without this edge the stage would only ever see the PREVIOUS run's
     /// committed schema (or none on a first run).
+    ///
+    /// It requires [`SERIALIZATION_BUFFER_RESOURCE`]: `render_all_with_languages`
+    /// materializes the whole terminal carrier as N-Quads AND as TriG (1.3 GB + 1.2 GB
+    /// of text on the shipped corpus) and holds both, so its measured peak allocation
+    /// is 9.06 GiB — the heaviest stage in the DAG. Mirrored by
+    /// `gmeow:stage-export-export gmeow:requiresResource
+    /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
+    /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-export-json-schema".to_string(),
                 "stage-snapshot".to_string(),
             ],
+            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
@@ -2924,6 +2927,9 @@ impl Stage for ExportStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         "export.v1"

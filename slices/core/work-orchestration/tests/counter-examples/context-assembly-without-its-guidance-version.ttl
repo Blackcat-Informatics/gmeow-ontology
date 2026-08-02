@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The occurrence that recorded everything except which rules it was following.
+#
+# A logic:ContextAssembly is the record of what an occurrence SAW: what was surfaced to the
+# decider, what was withheld, and why. This one is thorough about all of that. It names its
+# enactment; it lists the notes it included; it lists the one it excluded and states the
+# reason. The only thing it does not record is the revision of the guidance that governed
+# the judgment.
+#
+# That single omission is what makes the occurrence unauditable. The guidance set is
+# versioned precisely so "was that occurrence done right?" stays answerable after the
+# rubrics move on — and if the occurrence does not pin the version it ran under, the only
+# yardstick left is today's. A reviewer in six months applies the current checklist to a
+# decision made under the old one and finds a failure that never happened; or applies it to
+# a decision the old checklist forbade and finds nothing wrong. Editing the guidance
+# silently rewrites the past in both directions.
+#
+# The cluster's gmeow:clusterGuidanceSet POINTER is deliberately present and deliberately
+# not enough. It says which guidance governs the cluster NOW, and it moves; the assembly's
+# own logic:assemblyGuidanceVersion is what says which revision governed THIS run. Reading
+# the pointer as the answer is exactly the retroactive rewrite, so a fixture that omitted
+# the pointer too would be failing for a second, easier reason and would not isolate this
+# one.
+#
+# MUST trip gmeow:GuidanceVersionRecordedConstraint.
+#
+# Bound by tests/example-conformance.ttl (ex:ecAssemblyWithoutItsGuidanceVersion,
+# gmeow:violates). Self-contained: the harness loads work-orchestration/module.ttl + ONLY
+# this file, against the shapes this slice owns.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix fx:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/unversioned-guidance/> .
+
+# --- The cluster and the guidance it is currently governed by ----------------
+fx:changeReviewCluster a gmeow:WorkCluster ;
+    rdfs:label "Weekly change review"@x-gmeow-english ;
+    gmeow:clusterGoal fx:changesStayReviewed ;
+    gmeow:clusterSchedule fx:weeklyMondaySchedule ;
+    gmeow:clusterGuidanceSet fx:changeGuidance ;
+    gmeow:clusterEnactment fx:week22 .
+
+fx:changesStayReviewed a gmeow:Goal ;
+    rdfs:label "Every landed change has been reviewed against the change policy"@x-gmeow-english .
+
+fx:weeklyMondaySchedule a gmeow:EventSchedule ;
+    rdfs:label "Every Monday at 09:00 UTC"@x-gmeow-english .
+
+# The guidance set, versioned as it must be — a POINTER from the cluster, which moves as the
+# guidance is revised. It is not a record of what any past occurrence ran under.
+fx:changeGuidance a gmeow:GuidanceSet ;
+    rdfs:label "Change review guidance"@x-gmeow-english ;
+    gmeow:guidanceRubric fx:changeQualityRubric ;
+    gmeow:guidanceVersionMembership fx:changeGuidanceV5 .
+
+fx:changeQualityRubric a gmeow:Rubric ;
+    rdfs:label "Change review quality rubric"@x-gmeow-english .
+
+fx:changeGuidanceV5 a gmeow:VersionMembership ;
+    rdfs:label "Change review guidance, revision 5"@x-gmeow-english .
+
+# --- The occurrence, and the assembly that will not say what governed it -----
+#
+# The occurrence pins BOTH the prescription version it enacted and the input generation it
+# read, so the run itself is reproducible and nothing else in the scene is ill-formed. That
+# is what isolates the defect to one line: the record can say exactly which procedure it
+# followed over exactly which data, and cannot say which rubrics it was judged by.
+fx:week22 a logic:Enactment ;
+    rdfs:label "Week 22's change review"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion fx:changeRunbookV9 ;
+    logic:enactmentInputSnapshot fx:week22Inputs ;
+    logic:enactmentState logic:EnactmentCompleted ;
+    gmeow:enactmentContextAssembly fx:week22Context .
+
+fx:changeRunbookV9 a logic:PrescriptionVersion ;
+    rdfs:label "Change review runbook, revision 9"@x-gmeow-english ;
+    logic:prescriptionDigest "b3:3e08b5c71a94d26f015ca87b30e4d19f6427ba05c83d7e12f9a06b4d5c31e807" .
+
+fx:week22Inputs a logic:InputSnapshot ;
+    rdfs:label "Changes landed in week 22"@x-gmeow-english ;
+    logic:snapshotDigest "b3:c519a03e7b4d86f2014b7ce9a2d05f38617ba24c90e5d3f81a7c06b295e4d730" .
+
+fx:week22Context a logic:ContextAssembly ;
+    rdfs:label "What week 22 was shown, and what it was not"@x-gmeow-english ;
+    logic:assemblyForEnactment fx:week22 ;
+    logic:assemblyIncluded fx:rollbackIncidentNote , fx:dependencyDriftNote ;
+    logic:assemblyExcluded fx:supersededVendorNote ;
+    logic:assemblyExclusionReason "Superseded by the vendor's revision 4 note, which is included above."@x-gmeow-english .
+
+fx:rollbackIncidentNote a gmeow:Note ;
+    rdfs:label "Last month's rollback and what it cost"@x-gmeow-english .
+
+fx:dependencyDriftNote a gmeow:Note ;
+    rdfs:label "Three dependencies have drifted past their pinned majors"@x-gmeow-english .
+
+fx:supersededVendorNote a gmeow:Note ;
+    rdfs:label "Vendor advisory, revision 3 — superseded"@x-gmeow-english .

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/agentic>
+    a gmeow:Slice ;
+    rdfs:label "agentic"@x-gmeow-english ;
+    skos:definition "The agentic slice of the GMEOW ontology (core tier): GMEOW Agentic Module. Core by flagship load (Principle 14) — the gmeow memory MCP triad records its own store/revise calls here as ToolCall provenance, so tool-call attribution is a spine every consumer meets rather than an opt-in domain. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    dcterms:title "GMEOW Agentic Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/ai> ,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    gmeow:sliceConsumer "Project Lillith's agentic mode ( P15): tool-call trajectories audited in the same provenance graph as the agent's claims. First live producer: the gmeow memory MCP triad records its own store/revise calls as ToolCall provenance. DELIBERATELY THIN: growth requires a new consumer; the size budget is recorded in docs.md."@x-gmeow-english.

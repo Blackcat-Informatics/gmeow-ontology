@@ -90,7 +90,7 @@ gmeow:Resource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Resource"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose mutable reasoning state is exclusive — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
+    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. Exclusivity has two independent grounds, and both are modelled the same way so serialization is always a conflict the scheduler reads rather than a hardcoded special case: SHARED MUTABLE STATE, whose canonical instance is the process-wide reasoning engine (gmeow:engineResource), and PEAK RESIDENCY, whose canonical instance is the whole-dataset serialization buffer (gmeow:serializationBufferResource) — a stage holding it mutates nothing, but its in-memory footprint is a multiple of the corpus, so two holders would add their peaks."@x-gmeow-english ;
     skos:example "gmeow:engineResource a gmeow:Resource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -363,6 +363,13 @@ gmeow:engineResource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reasoning engine"@x-gmeow-english ;
     skos:definition "The process-wide reasoning resource covering native EL/DL closure. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:serializationBufferResource
+    a gmeow:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "whole-dataset serialization buffer"@x-gmeow-english ;
+    skos:definition "The in-memory buffer a stage occupies while it materializes the ENTIRE terminal carrier as one serialized document. Unlike gmeow:engineResource it guards no shared mutable state — the carrier is a read-only handle every export leaf shares — so it is exclusive for a different reason: PEAK RESIDENCY. A stage that declares it turns the whole corpus into text in memory, so its transient footprint is a multiple of the dataset and two such stages running concurrently ADD their peaks; on the shipped corpus the two declaring leaves peak at 9.06 GiB (gmeow:stage-export-export, N-Quads + TriG) and 8.37 GiB (gmeow:stage-export-yaml-ld, JSON-LD-star + YAML-LD-star), an order of magnitude above the next export leaf, and together they exhaust a 16 GB build host. Declaring the buffer as a resource makes the scheduler run at most one of them at a time while every cheap leaf in the same level keeps full parallelism — the peak becomes the largest single serializer instead of their sum, with no scheduler special case. It is a permit for a real cost, not a repair: removing the peak instead of scheduling around it means the serializer writing incrementally to a sink rather than returning a finished whole-document buffer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # =========================================================================== #
@@ -657,7 +664,7 @@ gmeow:stage-reason
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (authored ontology + imports + statements + logic/relational-core, in the bundle's graph layout but WITHOUT mapping, correspondence, or report graphs). Mapping and correspondence are shipped meta-level ontology content, not object-level axiom sources. The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (authored ontology + imports + statements + logic/relational-core, in the bundle's graph layout but WITHOUT mapping, correspondence, or report graphs). Mapping and correspondence are shipped meta-level ontology content, not object-level axiom sources. The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. It runs under the process-wide reasoning engine lock (gmeow:engineResource) — the only stage holding THAT resource, though not the only resource-bearing stage: the two whole-dataset serialization leaves hold gmeow:serializationBufferResource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -769,7 +776,7 @@ gmeow:stage-snapshot
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "snapshot"@x-gmeow-english ;
-    skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation metadata graph. Derived documentation payloads remain external and are regenerated by make regen SYNC_OUTPUTS=docs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
+    skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation metadata graph. Derived documentation payloads remain external and are regenerated by make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -881,7 +888,8 @@ gmeow:stage-export-export
     gmeow:dataflowConsumes
         gmeow:stage-export-json-schema ,
         gmeow:stage-snapshot ;
-    gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" .
+    gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" ;
+    gmeow:requiresResource gmeow:serializationBufferResource .
 
 gmeow:stage-export-okf
     a gmeow:PipelineStage ;
@@ -1109,7 +1117,8 @@ gmeow:stage-export-yaml-ld
     gmeow:stageImpl "yaml_ld" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "yaml-ld" ;
-    gmeow:producesFormat "json-ld" .
+    gmeow:producesFormat "json-ld" ;
+    gmeow:requiresResource gmeow:serializationBufferResource .
 
 # ── The single serialization exit (the gts narrow waist) ──
 
@@ -1668,15 +1677,24 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-lexvo.sssom.tsv",
     "generated/mappings/gmeow-lifecycle.sssom.tsv",
     "generated/mappings/gmeow-logic-bfo.sssom.tsv",
+    "generated/mappings/gmeow-logic-bpmn.sssom.tsv",
     "generated/mappings/gmeow-logic-dul.sssom.tsv",
     "generated/mappings/gmeow-logic-gufo.sssom.tsv",
     "generated/mappings/gmeow-logic-iao.sssom.tsv",
+    "generated/mappings/gmeow-logic-obi.sssom.tsv",
     "generated/mappings/gmeow-logic-obo.sssom.tsv",
     "generated/mappings/gmeow-logic-opencyc.sssom.tsv",
+    "generated/mappings/gmeow-logic-openehr-task-planning.sssom.tsv",
+    "generated/mappings/gmeow-logic-opmw.sssom.tsv",
     "generated/mappings/gmeow-logic-owl.sssom.tsv",
     "generated/mappings/gmeow-logic-pato.sssom.tsv",
+    "generated/mappings/gmeow-logic-pplan.sssom.tsv",
+    "generated/mappings/gmeow-logic-prov.sssom.tsv",
+    "generated/mappings/gmeow-logic-ro-crate.sssom.tsv",
+    "generated/mappings/gmeow-logic-schema-org-howto.sssom.tsv",
     "generated/mappings/gmeow-logic-shacl.sssom.tsv",
     "generated/mappings/gmeow-logic-sumo.sssom.tsv",
+    "generated/mappings/gmeow-logic-workflow-engines.sssom.tsv",
     "generated/mappings/gmeow-logic-yamato.sssom.tsv",
     "generated/mappings/gmeow-math-information.sssom.tsv",
     "generated/mappings/gmeow-math-obcs.sssom.tsv",
@@ -1697,8 +1715,8 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-ontouml.sssom.tsv",
     "generated/mappings/gmeow-openmath.sssom.tsv",
     "generated/mappings/gmeow-places.sssom.tsv",
+    "generated/mappings/gmeow-preference.sssom.tsv",
     "generated/mappings/gmeow-privacy.sssom.tsv",
-    "generated/mappings/gmeow-procedures.sssom.tsv",
     "generated/mappings/gmeow-properties.sssom.tsv",
     "generated/mappings/gmeow-provenance.sssom.tsv",
     "generated/mappings/gmeow-quality.sssom.tsv",
@@ -1716,6 +1734,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-versions.sssom.tsv",
     "generated/mappings/gmeow-wikidata.sssom.tsv",
     "generated/mappings/gmeow-wordnet.sssom.tsv",
+    "generated/mappings/gmeow-work-orchestration.sssom.tsv",
     "generated/metadata/dcat.ttl",
     "generated/metadata/preservation.json",
     "generated/metadata/void.ttl",

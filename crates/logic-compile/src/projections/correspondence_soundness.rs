@@ -139,6 +139,16 @@ pub const GRANDFATHERED_DC: &[&str] = &["dc:rights"];
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
+/// The grounding namespace, checked alongside `gmeow:`.
+///
+/// When a domain term is superseded by a grounding term, its alignment cells are
+/// RE-KEYED onto the grounding spine rather than dropped. Scoping the direction check to
+/// `gmeow:` subjects would silently stop checking those cells at exactly the moment they
+/// moved — the alignment would still ship, and nothing would verify its direction again.
+/// The `is_property` guard below still applies, so this admits only cells whose subject is
+/// a declared property.
+const LOGIC_PREFIX: &str = "logic:";
+
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
@@ -677,7 +687,7 @@ pub fn lint_alignment_directions(inputs: &SoundnessInputs<'_>) -> Vec<Projection
     let mut gmeow_props: BTreeMap<String, Vec<Mapping>> = BTreeMap::new();
     let mut referenced: BTreeSet<String> = BTreeSet::new();
     for m in mappings {
-        if !m.subject_id.starts_with(GMEOW_PREFIX) {
+        if !m.subject_id.starts_with(GMEOW_PREFIX) && !m.subject_id.starts_with(LOGIC_PREFIX) {
             continue;
         }
         let Some(prefix) = prefix_of(&m.object_id) else {

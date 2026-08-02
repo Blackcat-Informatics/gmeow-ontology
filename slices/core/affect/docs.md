@@ -192,7 +192,7 @@ The declared scale/frame for numeric affect readings — range (min/max, mandato
 midpoint, polarity (`gmeow:ScalePolarity`: bipolar/unipolar, open vocab), and a
 declared normalization transform (a string spec). The affect analogue of the
 rubrics facility's `gmeow:ScoreScale`, minted in core because affect cannot depend
-on the norms extension. Scale arithmetic is solver work (P12).
+on the norms slice. Scale arithmetic is solver work (P12).
 
 ### gmeow:AffectVectorObservation · gmeow:vectorComponent · gmeow:vectorProfile
 

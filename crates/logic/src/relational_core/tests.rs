@@ -571,3 +571,61 @@ fn typed_ir_fixture_ternary_formula_legalizes_through_the_real_adapter() {
         assert_eq!(atom.object, EvalTerm::ConstNamed(format!("{EX}{expected}")));
     }
 }
+
+/// Two laws that would derive the SAME head tuple are refused, loudly.
+///
+/// The chase materializes a set of derived tuples and keeps one winning derivation per
+/// tuple, so two constraints sharing a head shape means every record they both condemn
+/// reports one of them and silently loses the other. That defect is invisible from the
+/// outside — both laws compile, both bodies run, both appear in every census — so the
+/// lowering refuses the shape rather than trusting a convention.
+#[test]
+fn two_laws_sharing_a_head_tuple_are_refused() {
+    let shared_head = EvalAtom {
+        subject: EvalTerm::Var("?this".to_owned()),
+        predicate: format!("{LOGIC}violatedLaw"),
+        object: EvalTerm::ConstNamed(format!("{LOGIC}SomeSharedConclusion")),
+        negated: false,
+    };
+    let rule_of = |law: &str| EvalRule {
+        head: shared_head.clone(),
+        body: Vec::new(),
+        rule_iri: format!("{LOGIC}rule/{law}"),
+        distinct_pairs: Vec::new(),
+        builtins: Vec::new(),
+        constraint_tag: Some(format!("{LOGIC}{law}")),
+    };
+    let err = reject_colliding_heads(&[rule_of("FirstLaw"), rule_of("SecondLaw")])
+        .expect_err("two laws with one conclusion must be refused");
+    let rendered = format!("{err:?}");
+    assert!(
+        rendered.contains("FirstLaw") && rendered.contains("SecondLaw"),
+        "the refusal must name BOTH colliding laws, so an author can see which two \
+         conclusions merged: {rendered}"
+    );
+}
+
+/// The per-conjunct siblings of ONE law legitimately share a head tuple.
+///
+/// A constraint whose consequent is a conjunction lowers to one rule per conjunct, all
+/// concluding the same thing about the same law. One derived row is the correct answer
+/// there — nothing is lost — so the collision check must key on the LAW, not the rule.
+#[test]
+fn conjunct_siblings_of_one_law_may_share_a_head_tuple() {
+    let head = EvalAtom {
+        subject: EvalTerm::Var("?this".to_owned()),
+        predicate: format!("{LOGIC}violatedLaw"),
+        object: EvalTerm::ConstNamed(format!("{LOGIC}OneLaw")),
+        negated: false,
+    };
+    let sibling = |conjunct: usize| EvalRule {
+        head: head.clone(),
+        body: Vec::new(),
+        rule_iri: format!("{LOGIC}rule/OneLaw#{conjunct}"),
+        distinct_pairs: Vec::new(),
+        builtins: Vec::new(),
+        constraint_tag: Some(format!("{LOGIC}OneLaw")),
+    };
+    reject_colliding_heads(&[sibling(0), sibling(1)])
+        .expect("two conjuncts of one law are one law and must be accepted");
+}

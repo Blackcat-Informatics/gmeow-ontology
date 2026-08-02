@@ -67,7 +67,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.doc-maturity.model-unavailable",
-      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).",
+      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured, so it is scored 0.0 (the bottom of the axis). An unmeasurable axis is never a passing one; fix the condition and re-score.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -337,7 +337,7 @@
     {
       "severity": "info",
       "code": "slice-quality.grade",
-      "message": "axisDocMaturity: Maximal (score 1.00)",
+      "message": "axisDocMaturity: Maximal (score 0.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },

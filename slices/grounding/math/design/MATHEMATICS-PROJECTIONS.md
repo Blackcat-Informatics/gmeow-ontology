@@ -44,6 +44,11 @@ RDF Data Cube, STATO, OBCS, SIO, and OBI terms and is validation-only; no target
 TBox enters the mathematical closure. The OBI data-transformation row is deliberately only
 `skos:relatedMatch`: OBI_0200000 denotes an executed planned process, whereas
 `math:DataTransformation` may denote a mathematical transformation specification.
+That single OBI row is also the catalog's one off-owner cell: OBI's backbone is a
+planned-process upper ontology, so its catalog owner is `logic:`, and the row is
+bounded by a projection ceiling of exactly one that may only fall. `math:` never
+authors a second OBI alignment — a new OBI target is authored on the `logic:` owner
+surface and consumed from there.
 
 By contrast, a cube document, MathML tree, OpenMath payload, D-SI certificate,
 or other consumer serialization is a generated codec/projection with an

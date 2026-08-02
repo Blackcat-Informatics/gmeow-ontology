@@ -18,7 +18,7 @@ vocabulary (Principle 9 — individuals, never subclasses), and the *where* is a
 reinventing it. This is also the most aggressively dogfooded slice in GMEOW: the
 project's own credit model and CITATION.cff projection ride this machinery (source/claim refactor).
 
-The rubrics facility (extensions/norms) extends the relator rather than forking it:
+The rubrics facility (core/norms) extends the relator rather than forking it:
 `gmeow:Exemplar` is a SubKind of `gmeow:CitationAct` — a citation with polarity that
 holds the cited span up as a positive, negative, or cautionary example — so the CiTO
 alignment arrives there for free.
@@ -99,4 +99,4 @@ compiler-arc window.
 
 Depends on `kernel`, `documents` (the CreativeWork range), and `evidence` (the
 EvidenceSpan that Selector specializes). Consumed by the citation/credit dogfood
-(source/claim refactor), slice manifests, and the norms extension's Exemplar.
+(source/claim refactor), slice manifests, and the norms slice's Exemplar.

@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed instance data for the per-axis grade record — the DO half of the pair whose
+# DON'T half is tests/counter-examples/assessment-axis-aliased-to-dimension.ttl.
+#
+# Two grades are recorded against gmeow:axisDocumentation and gmeow:axisDocMaturity, the two
+# axes that BOTH publish under gmeow:qualityDimensionDocumentation. Their dimensions are
+# therefore identical and their gmeow:assessmentAxis values are not: the dimension edge alone
+# cannot tell the two grades
+# apart, and the axis edge can. That is the whole reason the property exists, shown as data
+# rather than asserted in prose. The declared record schema lists gmeow:assessmentAxis beside
+# gmeow:qualityDimension as a descriptor of the record, so neither stands in for the other.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/tests/> .
+
+ex:gradedSlice a gmeow:Dataset ;
+    gmeow:title "Domain slice under a slice-quality pass"@x-gmeow-english .
+
+ex:gradingAdvisor a gmeow:Organization ;
+    gmeow:name "The gmeow-dev slice-quality advisor"@x-gmeow-english .
+
+# The closed descriptor schema of a grade record: the axis is a descriptor of the
+# record, carried beside — never recovered from — the dimension it publishes under.
+ex:gradeRecordProfile a gmeow:Profile ;
+    rdfs:label "Per-axis slice-quality grade record"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema of one slice-quality grade record: the entity graded, the rubric axis measured, the ISO dimension that axis publishes under, and the dimensioned result."@x-gmeow-english ;
+    gmeow:profileAppliesTo   gmeow:QualityAssessment ;
+    gmeow:profileDescriptor  gmeow:assessedEntity , gmeow:assessmentAxis ,
+                             gmeow:qualityDimension , gmeow:observationResult ;
+    gmeow:profileOpenValue   gmeow:QualityAxis , gmeow:QualityDimension .
+
+# Grade 1 — the docs-thesis axis, published under the documentation dimension.
+ex:thesisGrade a gmeow:QualityAssessment ;
+    gmeow:hasProfile        ex:gradeRecordProfile ;
+    gmeow:assessedEntity    ex:gradedSlice ;
+    gmeow:assessmentAxis    gmeow:axisDocumentation ;
+    gmeow:qualityDimension  gmeow:qualityDimensionDocumentation ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:gradingAdvisor ;
+    gmeow:observationResult ex:thesisScore .
+
+ex:thesisScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.88"^^xsd:decimal .
+
+# Grade 2 — the docs-maturity axis, published under the SAME documentation dimension
+# with a different score. Only gmeow:assessmentAxis separates it from grade 1.
+ex:maturityGrade a gmeow:QualityAssessment ;
+    gmeow:hasProfile        ex:gradeRecordProfile ;
+    gmeow:assessedEntity    ex:gradedSlice ;
+    gmeow:assessmentAxis    gmeow:axisDocMaturity ;
+    gmeow:qualityDimension  gmeow:qualityDimensionDocumentation ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:gradingAdvisor ;
+    gmeow:observationResult ex:maturityScore .
+
+ex:maturityScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.31"^^xsd:decimal .

@@ -47,11 +47,15 @@ This skill guides the agent in running common development task runner commands.
   make check
   ```
 
-- **Refresh Checked-In Generated Artifacts**:
-  Regenerate all committed generated files from their canonical sources when you suspect drift:
+- **Refresh Generated Artifacts**:
+  `make check` above already materializes them (its DAG runs the single producer in
+  update mode before anything reads `generated/`), so refreshing is not a separate
+  step. When you want the artifacts WITHOUT the gate — a bootstrap, a docs render —
+  drive the producer directly; never do both, since they share one host-global lock:
 
   ```bash
-  make regenerate
+  make check-sync SYNC_MODE=update                      # artifacts only
+  make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs    # + external docs fanout
   ```
 
 - **Commit with Auto-Refresh**:

@@ -37,41 +37,10 @@ fn lint(root: &Path) -> i32 {
 }
 
 /// A throwaway fixture tree containing one file.
-fn fixture(name: &str, body: &str) -> tempdir::Dir {
-    let dir = tempdir::Dir::new();
+fn fixture(name: &str, body: &str) -> tempfile::TempDir {
+    let dir = tempfile::tempdir().expect("temp dir is creatable");
     std::fs::write(dir.path().join(name), body).expect("fixture is writable");
     dir
-}
-
-/// Minimal scoped temp directory — the workspace pulls in no temp-dir crate for
-/// `xtask`, and a test helper does not justify a new dependency.
-mod tempdir {
-    use std::path::{Path, PathBuf};
-    use std::sync::atomic::{AtomicU32, Ordering};
-
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
-
-    pub struct Dir(PathBuf);
-
-    impl Dir {
-        pub fn new() -> Self {
-            let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-            let path =
-                std::env::temp_dir().join(format!("gmeow-issue-refs-{}-{}", std::process::id(), n));
-            std::fs::create_dir_all(&path).expect("temp dir is creatable");
-            Self(path)
-        }
-
-        pub fn path(&self) -> &Path {
-            &self.0
-        }
-    }
-
-    impl Drop for Dir {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
-        }
-    }
 }
 
 #[test]

@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:CheckpointRestore whose folded identity DISAGREES with the checkpoint it
+# restores. Every record here is individually impeccable: the checkpoint carries its
+# fold and names its run, and the restore carries its own fold and resumes that same
+# run. Nothing a check over one record could see is wrong.
+#
+# What it costs in the world: the checkpoint was taken under engine v1; the restoring
+# process folds its seven current axes and gets a v2 value, because the rules moved
+# under it between the pause and the resume. Resuming anyway produces a result the
+# paused run would never have produced, and the journal records it as a continuation
+# of the run that was reviewed. The fold is the single value that makes that drift
+# visible BEFORE the first resumed step executes, which is why the comparison is a law
+# and not a note.
+#
+# It is the mismatch case, not the absence case: the absence sibling
+# (checkpoint-no-folded-identity.ttl) can only reach
+# logic:CheckpointCarriesFoldedIdentityConstraint, because the comparison law needs
+# both folds bound before its guard binds at all.
+#
+# MUST trip logic:CheckpointRestoreIdentityConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:resumeWeek13 a logic:CheckpointRestore ;
+    rdfs:label "a resume whose engine folded to a different identity than the pause did"@en ;
+    logic:restoresCheckpoint ex:ckptWeek13 ;
+    logic:restoreOfEnactment ex:adrReviewWeek13 ;
+    logic:restoreDescriptorHash "b3:2f7d90c4a1e58b36f0d2c47a91be5308df6a24c0b93e71fa58d0c3629e4b17a5" .
+
+ex:ckptWeek13 a logic:EnactmentCheckpoint ;
+    rdfs:label "the pause point, folded under the engine as it stood then"@en ;
+    logic:checkpointOfEnactment ex:adrReviewWeek13 ;
+    logic:checkpointDescriptorHash "b3:8c15a02e7fb349d6015c8a37e04b2f91d6708ca3e52b19f7460d8b23a1c095e4" .

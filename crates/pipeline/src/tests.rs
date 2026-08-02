@@ -1209,3 +1209,344 @@ fn attach_drift_distinguishes_shared_blob_rep_by_content() {
     run(&graph, &bound, &mut ctx)
         .expect("content-distinct records on one representation lane are both attachments");
 }
+
+// ── Bounded carrier retention (drop-after-last-consumer, generalized) ─────────
+
+/// The shared registry the retention fixture uses to OBSERVE, live and mid-run,
+/// whether a stage's carrier dataset is still resident: each stage publishes a
+/// [`std::sync::Weak`] to the `Arc<RdfDataset>` it emitted, and every later stage
+/// records which of those weaks still upgrade at the moment it runs.
+#[derive(Default)]
+struct CarrierWatch {
+    /// stage id → weak handle on the dataset that stage's product carries.
+    published: Mutex<std::collections::BTreeMap<String, std::sync::Weak<purrdf::RdfDataset>>>,
+    /// stage id → the set of stage ids whose dataset was STILL LIVE when it ran.
+    observed: Mutex<std::collections::BTreeMap<String, std::collections::BTreeSet<String>>>,
+}
+
+impl CarrierWatch {
+    /// The ids whose published dataset is still resident right now.
+    fn live(&self) -> std::collections::BTreeSet<String> {
+        self.published
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(_, weak)| weak.upgrade().is_some())
+            .map(|(id, _)| id.clone())
+            .collect()
+    }
+}
+
+/// A synthetic stage that emits a REAL carrier exercising all three lanes
+/// [`crate::bundle::release_carrier`] treats differently: one named graph of its own,
+/// one COMMITTED byte artifact, and one INTERNAL `pipeline/`-prefixed byte artifact.
+struct CarrierStage {
+    id: String,
+    empty: Vec<String>,
+    capabilities: Vec<String>,
+    consumes: Vec<String>,
+    attaches: Vec<String>,
+    watch: Arc<CarrierWatch>,
+}
+
+/// The named graph `id`'s carrier stage attaches.
+fn watch_graph(id: &str) -> String {
+    format!("https://example.org/retention/graph/{id}")
+}
+
+/// The one quad `id`'s carrier stage emits, in its own named graph.
+fn watch_nquads(id: &str) -> String {
+    format!(
+        "<https://example.org/retention/s/{id}> <https://example.org/retention/p> \
+         <https://example.org/retention/o> <{}> .\n",
+        watch_graph(id)
+    )
+}
+
+impl Stage for CarrierStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
+    }
+    fn resources(&self) -> &[String] {
+        &self.empty
+    }
+    fn attaches_graphs(&self) -> &[String] {
+        &self.attaches
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        CachePolicy::Recompute
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // Record what is STILL RESIDENT at this stage's execution instant — the live
+        // half of the bounded-retention proof.
+        self.watch
+            .observed
+            .lock()
+            .unwrap()
+            .insert(self.id.clone(), self.watch.live());
+        // Read every declared upstream so the consumes edge is a real read, not a
+        // decoration: a stage that never touches its upstream would make the drop
+        // trivially safe and prove nothing.
+        for dep in &self.consumes {
+            let up = input
+                .upstream
+                .get(dep)
+                .expect("declared upstream product is present");
+            assert!(
+                !up.carrier_released,
+                "stage {} read upstream {dep} whose carrier was already released",
+                self.id
+            );
+            assert_eq!(
+                up.dataset().owned_quads().count(),
+                1,
+                "upstream {dep} still carries its quad when its consumer runs"
+            );
+        }
+        let nq = watch_nquads(&self.id);
+        let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)?;
+        self.watch
+            .published
+            .lock()
+            .unwrap()
+            .insert(self.id.clone(), Arc::downgrade(&dataset));
+        let artifacts = std::collections::BTreeMap::from([
+            (
+                format!("generated/retention/{}.txt", self.id),
+                self.id.clone().into_bytes(),
+            ),
+            (format!("pipeline/{}.nq", self.id), nq.into_bytes()),
+        ]);
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id.clone(),
+            dataset,
+            artifacts,
+        )))
+    }
+}
+
+/// A four-level CHAIN — `source → a → b → late` — so each stage's last consumer sits
+/// in a different level and the retention schedule is a non-trivial function of the
+/// levelling. `late` is the only stage nothing consumes.
+fn retention_chain() -> PipelineSpec {
+    let carrier_spec = |id: &str, consumes: &[&str]| StageSpec {
+        id: id.to_string(),
+        // `late` is the chain's terminal: the DAG validator requires exactly one Sink.
+        capabilities: capabilities_for(if id == "late" { "sink" } else { id }),
+        impl_key: format!("impl:{id}"),
+        consumes: consumes.iter().map(|s| s.to_string()).collect(),
+        resources: Vec::new(),
+        dataflow_entities: Vec::new(),
+        formats: Vec::new(),
+        attaches_graphs: vec![watch_graph(id)],
+        attaches_blob_reps: Vec::new(),
+    };
+    PipelineSpec {
+        id: "retention".to_string(),
+        stages: vec![
+            carrier_spec("source", &[]),
+            carrier_spec("a", &["source"]),
+            carrier_spec("b", &["a"]),
+            carrier_spec("late", &["b"]),
+        ],
+    }
+}
+
+fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRegistry {
+    let mut r = StageRegistry::new();
+    for s in &spec.stages {
+        r.register(
+            s.impl_key.clone(),
+            Arc::new(CarrierStage {
+                id: s.id.clone(),
+                empty: Vec::new(),
+                capabilities: s.capabilities.clone(),
+                consumes: s.consumes.clone(),
+                attaches: s.attaches_graphs.clone(),
+                watch: Arc::clone(watch),
+            }) as Arc<dyn Stage>,
+        );
+    }
+    r
+}
+
+/// Run the retention chain under `retention`, returning the run result and the watch.
+fn run_retention_chain(
+    retention: crate::scheduler::CarrierRetention,
+) -> (crate::scheduler::RunResult, Arc<CarrierWatch>) {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().expect("retention chain validates");
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).expect("binds");
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.carrier_retention = retention;
+    let result = run(&graph, &bound, &mut ctx).expect("retention chain runs");
+    (result, watch)
+}
+
+#[test]
+fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
+    let spec = retention_chain();
+    let graph = spec.validate().unwrap();
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
+        bound.iter().map(|s| (s.id(), s)).collect();
+
+    let levels = crate::scheduler::last_consumer_levels(&graph, &by_id);
+    assert_eq!(
+        levels,
+        std::collections::BTreeMap::from([
+            ("source".to_string(), 1),
+            ("a".to_string(), 2),
+            ("b".to_string(), 3),
+        ]),
+        "each consumed stage's drop point is the level of its LAST consumer"
+    );
+    assert!(
+        !levels.contains_key("late"),
+        "a stage nothing consumes is a run OUTPUT and has no drop point"
+    );
+}
+
+#[test]
+fn carrier_retention_is_bounded_by_the_live_frontier() {
+    let (result, watch) =
+        run_retention_chain(crate::scheduler::CarrierRetention::DropAfterLastConsumer);
+
+    // ── The LIVE bound: at every stage's execution instant, the only carriers still
+    //    resident are those with a consumer that has not yet run. Recorded from inside
+    //    the run, so it pins the drop's TIMING, not merely its end state. A regression
+    //    to the one-off `stage-source-load` span special case reds here: `source` would
+    //    still be live when `b` runs and `a` when `late` runs.
+    let observed = watch.observed.lock().unwrap().clone();
+    assert_eq!(
+        observed.get("a").cloned().unwrap_or_default(),
+        std::collections::BTreeSet::from(["source".to_string()]),
+        "when `a` runs, only its own upstream `source` has been published and it is live"
+    );
+    assert_eq!(
+        observed.get("b").cloned().unwrap_or_default(),
+        std::collections::BTreeSet::from(["a".to_string()]),
+        "when `b` runs, `source` (last consumer `a`, level 1) is ALREADY released"
+    );
+    assert_eq!(
+        observed.get("late").cloned().unwrap_or_default(),
+        std::collections::BTreeSet::from(["b".to_string()]),
+        "when `late` runs, both `source` and `a` are released; only `b` is still live"
+    );
+
+    // ── The end state: exactly the consumed stages are released; the output is not.
+    let released: std::collections::BTreeSet<&str> = result
+        .products
+        .values()
+        .filter(|p| p.carrier_released)
+        .map(|p| p.stage_id.as_str())
+        .collect();
+    assert_eq!(
+        released,
+        std::collections::BTreeSet::from(["source", "a", "b"]),
+        "every stage with a consumer is released; a run output never is"
+    );
+    assert_eq!(
+        watch.live(),
+        std::collections::BTreeSet::from(["late".to_string()]),
+        "only the run output's dataset survives the run"
+    );
+
+    // ── What a released product still owes the post-run reconcile, and what it does not.
+    for id in ["source", "a", "b"] {
+        let product = &result.products[id];
+        assert_eq!(
+            product.dataset().owned_quads().count(),
+            0,
+            "{id}: the frozen dataset is released"
+        );
+        assert!(
+            product.artifact(&format!("pipeline/{id}.nq")).is_none(),
+            "{id}: the INTERNAL dataflow artifact is released"
+        );
+        assert_eq!(
+            product.artifact(&format!("generated/retention/{id}.txt")),
+            Some(id.as_bytes()),
+            "{id}: the COMMITTED artifact survives for the reconcile, byte-exact"
+        );
+    }
+    let late = &result.products["late"];
+    assert_eq!(
+        late.dataset().owned_quads().count(),
+        1,
+        "the run output keeps its whole carrier"
+    );
+    assert!(
+        late.artifact("pipeline/late.nq").is_some(),
+        "the run output keeps even its internal artifacts"
+    );
+}
+
+#[test]
+fn releasing_carriers_changes_no_byte_the_run_produces() {
+    let (dropped, _) =
+        run_retention_chain(crate::scheduler::CarrierRetention::DropAfterLastConsumer);
+    let (retained, retained_watch) =
+        run_retention_chain(crate::scheduler::CarrierRetention::RetainAll);
+
+    // The SAME fixture under RetainAll observes the opposite: every published carrier
+    // is still live at every later stage's instant, and all four survive the run. This
+    // is what makes the drop profile's live-frontier assertions load-bearing rather
+    // than an artefact of the fixture (a weak that died for some other reason).
+    let retained_observed = retained_watch.observed.lock().unwrap().clone();
+    assert_eq!(
+        retained_observed.get("late").cloned().unwrap_or_default(),
+        std::collections::BTreeSet::from(["source".to_string(), "a".to_string(), "b".to_string()]),
+        "under RetainAll every upstream carrier is still resident when `late` runs"
+    );
+    assert_eq!(
+        retained_watch.live(),
+        std::collections::BTreeSet::from([
+            "source".to_string(),
+            "a".to_string(),
+            "b".to_string(),
+            "late".to_string(),
+        ]),
+        "under RetainAll every carrier survives the whole run"
+    );
+
+    assert_eq!(
+        dropped.combined_digest, retained.combined_digest,
+        "the determinism witness is identical under both retention profiles"
+    );
+    assert!(
+        retained.products.values().all(|p| !p.carrier_released),
+        "RetainAll releases nothing"
+    );
+    for (id, retained_product) in &retained.products {
+        let dropped_product = &dropped.products[id];
+        assert_eq!(
+            dropped_product.digest, retained_product.digest,
+            "{id}: a released product keeps its digest verbatim — it is the identity \
+             witness of the carrier that was released, never a fold over the residue"
+        );
+        let committed = |p: &StageProduct| -> std::collections::BTreeMap<String, Vec<u8>> {
+            p.artifacts()
+                .into_iter()
+                .filter(|(path, _)| !path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX))
+                .collect()
+        };
+        assert_eq!(
+            committed(dropped_product),
+            committed(retained_product),
+            "{id}: every committed artifact byte survives the release"
+        );
+    }
+}

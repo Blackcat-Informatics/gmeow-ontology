@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The continuing goal, retired by a week that went well.
+#
+# The cluster's standing goal is a MAINTENANCE target: the decision record is current at
+# every state of the interval, and the interval is the life of the cluster. Week 12 ran,
+# the review was held, minuted and published, and somebody judged the standing goal against
+# that week — reasonably, and wrongly. The evaluation says logic:Satisfied, which is true
+# so far, and logic:GoalEvaluationCompleted, which is the claim that the judgment is now
+# CONCLUSIVE.
+#
+# Nothing here is missing. The evaluation binds all four factored axes plus its criterion
+# and its time; the goal carries a well-formed logic:GoalExpression; the expression names
+# its bound situation type. Every presence law the kernel and the shape surface author
+# passes. The defect is the JOIN between the goal's compositional kind and the
+# conclusiveness the evaluation claims: a maintenance target has no state at which "held
+# every time so far" becomes "will hold", so its window never closes and the conclusive
+# judgment is unreachable.
+#
+# What it costs in the world: (logic:Satisfied, logic:GoalEvaluationCompleted) is EXACTLY
+# the pair that generates the conclusive gmeow:satisfiedBy edge. Generate one here and the
+# cluster reads as finished — the recurrence keeps issuing occurrences against a goal the
+# record says was closed in March, and the first reviewer who notices concludes the
+# schedule is stale rather than the closure being false. A standing commitment becomes a
+# cron job nobody can justify, and the evidence that it was ever a commitment is gone.
+#
+# It is deliberately NOT the windowed case. A maintenance target indexed to a closing
+# interval is authored as a logic:DeadlineWindowGoal whose operand carries the maintenance
+# sub-expression, so the goal's own logic:hasGoalCondition names the windowed kind and the
+# law's guard never reaches it: once that window closes the judgment may conclude, exactly
+# as logic:GoalEvaluationCompleted's own definition says. What may never conclude satisfied
+# is the unbounded one below.
+#
+# Nor is it the FAILURE case. A maintenance target that breaks reaches
+# logic:GoalEvaluationCompleted with logic:Violated, and that must stay expressible — the
+# law forbids the satisfied-and-concluded pair alone.
+#
+# MUST trip logic:MaintenanceGoalNeverConclusivelySatisfiedConstraint.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# The continuing goal, and the maintenance reading carried as a VALUE on its compositional
+# expression rather than as a type — logic:MaintenanceGoal is a logic:GoalExpressionKind
+# individual, and using it as a class would fork the one canonical goal concept into a
+# subclass per temporal shape.
+ex:decisionsStayReviewed a gmeow:Goal ;
+    rdfs:label "Architectural decisions stay reviewed"@en ;
+    logic:hasGoalCondition ex:decisionsStayReviewedCondition .
+
+ex:decisionsStayReviewedCondition a logic:GoalExpression ;
+    rdfs:label "Maintenance: the decision record is current at every state of the interval"@en ;
+    logic:goalExpressionKind logic:MaintenanceGoal ;
+    logic:boundSituationType ex:decisionRecordCurrent .
+
+ex:decisionRecordCurrent a logic:Situation ;
+    rdfs:label "Every landed decision has been reviewed against the current architecture"@en .
+
+# The judgment that closes it. Complete on every axis, and conclusive about something no
+# occurrence can conclude.
+ex:maintenanceGoalClosedByWeek12 a logic:GoalEvaluation ;
+    rdfs:label "The cluster's maintenance goal, judged against one successful week and marked concluded"@en ;
+    logic:evaluatesGoal ex:decisionsStayReviewed ;
+    logic:evaluatedAgainst ex:decisionRecordCurrent ;
+    logic:evaluationCriterion ex:adrQualityRubric ;
+    logic:evaluationTime "2026-03-19T15:30:00Z"^^xsd:dateTime ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:feasibilityStatus logic:Feasible ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted .
+
+ex:adrQualityRubric a gmeow:Rubric ;
+    rdfs:label "ADR quality rubric"@en .

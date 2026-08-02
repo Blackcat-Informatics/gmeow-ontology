@@ -132,6 +132,19 @@ use session_common::*;
 /// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
+/// Re-blessed for the enactment gate becoming live: `reason/enactment.rs` and
+/// `relational_core.rs` are folded engine-source axes, and the gate stopped being a stub
+/// (it now compiles `logic/module.ttl`'s 25 failure-class-bearing `logic:Constraint`s into
+/// violation rules and chases them), so their bytes — and the folded descriptor — move. The
+/// fixed edge-only input authors no enactment record, so no reasoning verdict on it changes;
+/// only the identity moved.
+/// Re-blessed again for the enactment gate's law-identity fix: every violation rule now
+/// heads on `logic:violatedLaw <the law>` instead of the shared
+/// `rdf:type logic:EnactmentIntegrityViolation` marker, because a head tuple forty-four laws
+/// share is one the chase keeps once — a record breaking two laws reported one of them and
+/// silently lost the rest. `relational_core.rs` is a folded engine-source axis, so its bytes
+/// and the folded descriptor move. The fixed edge-only input authors no enactment record, so
+/// no reasoning verdict on it changes; only the identity moved.
 /// Re-blessed once more when the hash-consed structured-term arena was relocated out of
 /// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
 /// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
@@ -150,6 +163,20 @@ use session_common::*;
 /// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
 /// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
 /// `goal_directed.rs`, so it adds nothing to the digest.)
+/// Re-blessed on integrating main, and for the same structural reason as the earlier
+/// integration note above: BOTH sides had moved this golden away from the merge base, so
+/// neither branch's value is correct for the merged engine. The descriptor folds this
+/// branch's enactment-gate registration and law-identity fix together with main's term-arena
+/// relocation and `proof.rs` visibility change, producing a THIRD value that is not a choice
+/// between the two. It was recomputed from the merged engine rather than resolved by taking a
+/// side — taking a side here would pin a hash that no build actually produces. Every
+/// contributing change is individually verdict-preserving on the fixed edge-only input, so
+/// only the identity moved.
+/// Re-blessed once more for the RDF 1.2 statement-metadata lowering: `statement_lowering.rs`
+/// is a NEW folded engine-source axis (the reasoning-session contract hashes the bytes of
+/// every engine source, and the lowering is one), and `reason/refute.rs` moved with the
+/// nested-triple-term boundary record. The fixed edge-only input carries no RDF 1.2
+/// statement metadata at all, so its reasoning verdict is unchanged; only the identity moved.
 /// Re-blessed once more for a COMMENT correction in `reason/dl.rs`: the notes on
 /// `refutation_shape_withholds` and `cardinality_on_datatype_property` claimed the committed
 /// bundle asserts only exact `cardinality 1` and qualified cardinalities, which was untrue
@@ -169,8 +196,16 @@ use session_common::*;
 /// folded into this descriptor moves. No engine capability, withhold, or decider
 /// registration changed — the diff is comment lines only, so no reasoning verdict on any
 /// input changes.
+/// Re-blessed once more on integrating main into this branch, for the same structural reason
+/// as the two integration notes above: both sides had again moved this golden away from the
+/// merge base — main by the RDF 1.2 statement-metadata lowering, this branch by the two
+/// `reason/dl.rs` comment corrections — and `native_contract_hash()` `include_str!`s the whole
+/// of `dl.rs`, so the merged contract text is the UNION of both sides' bytes and its digest is
+/// a third value that is neither side's. It was recomputed from the merged engine rather than
+/// resolved by taking a side. Every contributing change is individually verdict-preserving on
+/// the fixed edge-only input, so only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "36025c46c8ec7f8f49a39f1805390777c786fcc52f3d5b35f25c013323f45003";
+    "42bb1f0982885c07b9ba016aa84e39c9d25740d78e5c98573458b8f9623cecf9";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -219,6 +254,24 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the enactment-kernel gate: `reason/mod.rs` is one of the
+/// folded engine-source axes and registering `reason/enactment.rs` changed its bytes, so
+/// the native contract hash — and with it the engine descriptor and the fixed-input
+/// session identity — moves. The fixed edge-only input authors no enactment record, so
+/// its reasoning verdict is unchanged; only the identity moved.
+/// Re-blessed again on integrating main, and for a different reason than the ones above: BOTH
+/// sides had already moved this golden away from the merge base, so neither branch's value is
+/// correct for the merged engine. The descriptor folds this branch's enactment-gate
+/// registration together with main's own source changes, producing a third value that is not a
+/// choice between the two. It was recomputed from the merged engine rather than resolved by
+/// taking a side — taking a side here would pin a hash that no build actually produces, and the
+/// test would then fail for everyone on a value that looked deliberate.
+/// Re-blessed once more for the same reason as the engine descriptor above: the enactment
+/// gate stopped being a stub, moving two folded engine-source axes and therefore the
+/// fixed-input session identity with them.
+/// Re-blessed again for the same reason as the engine descriptor above: the violation
+/// rules' head tuple now names the law that drew the conclusion, moving `relational_core.rs`
+/// and therefore the fixed-input session identity with it.
 /// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
 /// above): the backward-source digest is one of the seven folded identity axes and moves
 /// with the arena's new crate-relative source paths, while the fixed edge-only input's
@@ -227,6 +280,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): the backward-source digest is one of the seven folded identity axes and
 /// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
 /// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed on integrating main, for the same reason as the engine descriptor above: both
+/// sides had moved this golden away from the merge base, so the merged identity is a third
+/// value recomputed from the merged engine rather than a choice between the two sides.
+/// Re-blessed once more for the same reason as the engine descriptor above: the RDF 1.2
+/// statement-metadata lowering adds a folded engine-source axis and the nested-triple-term
+/// boundary moved `reason/refute.rs`, so the fixed-input session identity moves with them.
 /// Re-blessed once more for the `reason/dl.rs` comment correction (see the engine-descriptor
 /// golden above): the native contract hash is one of the seven folded identity axes and
 /// `native_contract_hash()` `include_str!`s the whole file, so a comment-only edit moves the
@@ -239,8 +298,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `include_str!`s the whole file, so a comment-only edit moves the raw-source content
 /// digest and with it this fixed-input session identity. No engine capability changed and
 /// the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more on integrating main into this branch, for the same reason as the
+/// engine descriptor above: both sides had again moved this golden away from the merge base,
+/// so the merged fixed-input session identity is a third value recomputed from the merged
+/// engine rather than a choice between the two sides.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "7583ffcb565b9bd3a82aa04f2b75af1b36695194941f9bb81be4e3487b154c56";
+    "9e3d2ab3324cc52331b95c0bc9fb5eac73969372de3c770053d429dec523134f";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

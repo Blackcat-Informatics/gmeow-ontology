@@ -142,7 +142,7 @@ fn no_preferred_claim_flags_crimea() {
 #[test]
 fn score_anchor_range_flags_the_overflow_anchor() {
     assert_flags(
-        "slices/extensions/norms/module.ttl",
+        "slices/core/norms/module.ttl",
         "tests/fixtures/shapes/rubrics-malformed.ttl",
         &["overflowAnchor"],
     );

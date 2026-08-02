@@ -24,21 +24,20 @@ struct AxisScoreView {
 
 /// A throwaway slice directory: a `module.ttl` (so the surface is discoverable) plus a
 /// `mappings/equivalences.ttl` carrying the correspondence records under test.
+///
+/// The directory is owned by the [`tempfile::TempDir`] the fixture holds, so the
+/// whole tree is removed when the fixture drops — on success, on panic, and on
+/// early return.
 struct Fixture {
+    /// Owns the temp tree `dir` lives in; dropping it removes the tree.
+    _tmp: tempfile::TempDir,
     dir: PathBuf,
 }
 
 impl Fixture {
     fn new(name: &str, mappings: &str) -> Self {
-        let mut dir = std::env::temp_dir();
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        dir.push(format!(
-            "gmeow-linkage-{name}-{}-{nanos}",
-            std::process::id()
-        ));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path().join(format!("gmeow-linkage-{name}"));
         std::fs::create_dir_all(dir.join("mappings")).unwrap();
         // A minimal explicitly-owned term so ScoreContext::new has a term set.
         std::fs::write(
@@ -51,7 +50,7 @@ impl Fixture {
         )
         .unwrap();
         std::fs::write(dir.join("mappings/equivalences.ttl"), mappings).unwrap();
-        Self { dir }
+        Self { _tmp: tmp, dir }
     }
 
     fn score(&self) -> AxisScoreView {
@@ -70,12 +69,6 @@ impl Fixture {
             messages: s.findings.iter().map(|f| f.message.clone()).collect(),
             codes: s.findings.iter().map(|f| f.code.clone()).collect(),
         }
-    }
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.dir);
     }
 }
 

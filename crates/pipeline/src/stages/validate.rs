@@ -42,6 +42,148 @@ pub const SHACL_HTML_PATH: &str = "generated/diagnostics/shacl.html";
 /// Committed `gmeow:Finding` N-Quads projection of the DAG SHACL diagnostics report.
 pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
 
+/// The `shacl.json` metadata key carrying [`shacl_input_digest`] — the exact input
+/// set this stage validated.
+///
+/// A consumer that reads the RECORDED merged-SHACL verdict instead of re-running the
+/// pass MUST recompute this digest over the working tree and hard-fail on absence or
+/// mismatch. Absence means the record predates the digest contract and its vintage is
+/// unknowable; mismatch means the record describes different bytes than are on disk.
+/// Neither is ever a skip and neither is ever a silent pass.
+pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
+
+/// The `shacl.json` metadata key carrying the verdict's fold over ITS OWN recorded
+/// content ([`crate::stages::diag_render::record_digest`]).
+///
+/// [`SHACL_INPUT_DIGEST_KEY`] and this answer two different questions, and neither
+/// substitutes for the other: the input digest says WHICH BYTES were validated, this says
+/// WHAT VERDICT WAS RECORDED. Hand-deleting a violation from `shacl.json` touches no
+/// validated input, so the input digest still matches the working tree exactly — which is
+/// precisely why a consumer that gates on the recorded findings must also verify that the
+/// findings are the ones the pass produced.
+///
+/// The stamp is applied by the RENDERER that writes `shacl.json`
+/// ([`crate::stages::diag_render::render_diagnostics_artifacts`]'s `seal` argument), not
+/// by this stage, so it necessarily attests the bytes that are written rather than an
+/// intermediate value; a consumer recomputes it with
+/// [`crate::stages::diag_render::verify_record_digest`].
+pub const SHACL_RECORD_DIGEST_KEY: &str = "shaclRecordDigest";
+
+/// The canonical digest of everything the merged-SHACL pass consumed: the authored
+/// source corpus and the shape union.
+///
+/// `members` is a sequence of `(repo-relative path, `[`ShaclInputMember`]`)` pairs; the
+/// digest sorts them, so a caller may assemble the two halves in any order. Each entry
+/// folds its path, its byte length, and its bytes, so a rename, a truncation, and a
+/// content edit are all distinguishable. Bytes are supplied BY REFERENCE — a resident
+/// member borrows this run's carrier bytes and an on-disk member is read at its turn and
+/// released immediately — so the fold's peak residency is ONE member, not the whole
+/// validated corpus.
+///
+/// The SHAPE half is what makes this the drift detector `generated/shapes/*.ttl` needs.
+/// `stage-validate` structurally never reads that directory — it validates against THIS
+/// run's freshly-produced shape bytes (the deliberate anti-stale-fold law in
+/// [`crate::stages::shape_union_fresh`]) — so a consumer comparing its own DISK-read
+/// union against this digest is precisely testing whether the committed shape files
+/// still equal what the pipeline produced and validated with. That is the one thing the
+/// old duplicate whole-corpus SHACL run caught and nothing else did; it is preserved
+/// here rather than lost.
+///
+/// # Errors
+/// A member whose bytes must be read from disk and cannot be. A missing input makes the
+/// digest meaningless, so it is a hard failure rather than a shorter fold.
+pub fn shacl_input_digest(
+    mut members: Vec<(String, ShaclInputMember<'_>)>,
+) -> Result<String, gmeow_errors::Diag> {
+    // Stable sort by path: a caller may assemble the two halves in any order, and two
+    // members sharing a path (an authored shape file listed by both halves) keep their
+    // assembly order, so the fold is exactly the one the whole-corpus `Vec` produced.
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-shacl-input-v1\x1e");
+    for (path, member) in &members {
+        // ONE member's bytes are resident at a time: an on-disk member is read, folded,
+        // and dropped before the next is opened. Materializing the whole corpus first
+        // (authored sources + the shape union) peaked at the full byte size of every
+        // validated input simultaneously, on top of the already-resident source graph.
+        let bytes: std::borrow::Cow<'_, [u8]> = match member {
+            ShaclInputMember::Resident(bytes) => std::borrow::Cow::Borrowed(bytes),
+            ShaclInputMember::OnDisk(path) => {
+                std::borrow::Cow::Owned(std::fs::read(path).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("digesting SHACL input {}: {e}", path.display()),
+                    })
+                })?)
+            }
+        };
+        hasher.update(path.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
+        hasher.update(&bytes);
+        hasher.update(b"\x1e");
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+/// One member of the [`shacl_input_digest`] fold, carried BY REFERENCE so the fold never
+/// materializes the whole validated corpus at once.
+#[derive(Debug, Clone)]
+pub enum ShaclInputMember<'a> {
+    /// Bytes already resident in this run's carrier — a shape surface THIS run produced
+    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]). Folding
+    /// borrows them; nothing is copied.
+    Resident(&'a [u8]),
+    /// A file whose bytes the fold reads at its turn and releases immediately after.
+    OnDisk(std::path::PathBuf),
+}
+
+/// The repo-relative, forward-slashed logical path of `path` under `root` — the key each
+/// [`shacl_input_digest`] member folds under.
+pub(crate) fn digest_member_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+/// `paths` as on-disk [`shacl_input_digest`] members, keyed repo-relative.
+fn on_disk_members(
+    root: &Path,
+    paths: Vec<std::path::PathBuf>,
+) -> Vec<(String, ShaclInputMember<'static>)> {
+    paths
+        .into_iter()
+        .map(|path| {
+            let rel = digest_member_path(root, &path);
+            (rel, ShaclInputMember::OnDisk(path))
+        })
+        .collect()
+}
+
+/// The digest of the merged-SHACL input set as it stands ON DISK under `root`: every
+/// authored source file plus every member of the committed shape union
+/// (`purrdf::shapes::shape_union::shape_files`, `generated/shapes/*.ttl` included).
+///
+/// This is the value a consumer of the recorded verdict recomputes and compares
+/// against the `shaclInputDigest` in `shacl.json`. It reads `generated/shapes/*.ttl`
+/// off disk DELIBERATELY — that read is the whole point, since the recorded digest
+/// covers the bytes the pipeline actually validated with.
+///
+/// # Errors
+/// If the authored source list or the shape-union file list cannot be built, or any
+/// member cannot be read. A missing input makes the digest meaningless, so it is a
+/// hard failure rather than a shorter fold.
+pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::Diag> {
+    let mut members = on_disk_members(root, crate::stages::source_load::authored_files(root)?);
+    let shape_files = purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("listing the committed shape union: {e}"),
+        })
+    })?;
+    members.extend(on_disk_members(root, shape_files));
+    shacl_input_digest(members)
+}
+
 /// Convert the native SHACL engine report into the canonical diagnostics report.
 ///
 /// Each `ValidationResult` is routed through a [`DiagLedger`] (via
@@ -124,6 +266,9 @@ fn render_artifacts(
         },
         gate,
         meta,
+        // The SHACL verdict is the one diagnostics record a gate reads back instead of
+        // re-running (`gmeow-dev validate`'s recorded-merged-SHACL path), so it is sealed.
+        Some(SHACL_RECORD_DIGEST_KEY),
     )
 }
 
@@ -308,6 +453,27 @@ impl Stage for ValidateStage {
             input.upstream,
         )?;
         let (mut report, advisories) = validate_source_graph(input.root, source_graph, &fresh)?;
+        // Record EXACTLY what this pass validated: the authored source corpus, read
+        // from disk, plus the effective shape union — authored members from disk and
+        // generated members from THIS run's product bytes (never `generated/shapes` off
+        // disk, which is the previous run's projection). A consumer that reads this
+        // verdict instead of re-running the whole-corpus pass recomputes the same digest
+        // over its own DISK view and hard-fails on any difference; that comparison is
+        // what carries forward the `generated/shapes` drift detection the duplicate run
+        // used to provide.
+        {
+            let mut members = on_disk_members(
+                input.root,
+                crate::stages::source_load::authored_files(input.root)?,
+            );
+            members.extend(crate::stages::shape_union_fresh::effective_union_members(
+                input.root, &fresh,
+            )?);
+            report.metadata.insert(
+                SHACL_INPUT_DIGEST_KEY.to_owned(),
+                json!(shacl_input_digest(members)?),
+            );
+        }
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare
         // IRI in the finding's logical location) matches a span-index entry — the path +
         // 1-based line/column travel onto the SHIPPED finding locations (and, via the
@@ -501,6 +667,15 @@ impl Stage for ValidateStage {
                 })
             },
         )?;
+        // The verdict is SEALED inside `render_artifacts` (the `seal` argument below):
+        // the digest of the record's own content is stamped there, after the meta-fold
+        // enrichment and as the last mutation before the renderers run, so it attests
+        // exactly the findings and metadata the committed `shacl.json` carries. Stamping
+        // it HERE instead would digest a value no consumer ever sees — `to_json` writes
+        // `Report::normalized()`, which reorders findings and deduplicates rules. A
+        // consumer that reads those findings instead of re-running the pass recomputes
+        // the digest and refuses a record whose content has been edited since — deleting
+        // a violation by hand is a corrupt record, never a clean run.
         let artifacts = render_artifacts(&report, gate.as_ref(), meta.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
@@ -581,6 +756,172 @@ mod tests {
             "generated/shapes/frame-shapes.ttl".to_string(),
             b"# generated\n".to_vec(),
         )])
+    }
+
+    use crate::stages::diag_render::{record_digest, verify_record_digest};
+
+    /// A recorded verdict with a violation DELETED by hand is refused, even though every
+    /// validated input is byte-identical and the input digest therefore still matches.
+    ///
+    /// This is the exact hand-edit the input-only guard could not see: `shacl.json` is a
+    /// product, nothing else on disk moves when it is edited, and the gate reads its
+    /// findings. The record's own content digest is what makes the edit visible.
+    #[test]
+    fn a_verdict_with_a_deleted_violation_is_refused() {
+        let mut report = Report::new("shacl");
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Thing violates ex:Shape",
+        ));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Other violates ex:Shape",
+        ));
+        report
+            .metadata
+            .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+        let digest = record_digest(&report, SHACL_RECORD_DIGEST_KEY).expect("digest");
+        report
+            .metadata
+            .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+
+        // Control: the sealed record is admitted.
+        verify_record_digest(&report, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect("a sealed verdict is admitted");
+
+        // The hand-edit: drop one violation, leave the declared digest (and every input,
+        // hence the input digest) untouched — the whole point is that nothing else moves.
+        let mut tampered = report.clone();
+        tampered.findings.remove(0);
+        assert_eq!(
+            tampered.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            report.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            "the input digest is untouched by the edit — that is why it cannot catch it"
+        );
+        let err = verify_record_digest(&tampered, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a verdict with a violation deleted must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the violated witness: {err}"
+        );
+
+        // Rewriting a finding's MESSAGE (same count) is caught too — the fold is over
+        // content, not cardinality.
+        let mut reworded = report.clone();
+        reworded.findings[0].message = "ex:Thing is fine, actually".to_owned();
+        verify_record_digest(&reworded, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a reworded finding must be REFUSED");
+
+        // An absent witness is unattestable content, not a pass.
+        let mut unwitnessed = report.clone();
+        unwitnessed.metadata.remove(SHACL_RECORD_DIGEST_KEY);
+        let err = verify_record_digest(&unwitnessed, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a verdict carrying no record digest must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the missing witness: {err}"
+        );
+    }
+
+    /// PRODUCER → CONSUMER, in one process, through the REAL renderer: the bytes
+    /// [`render_artifacts`] writes to `shacl.json` are parsed back exactly as
+    /// `gmeow-dev validate` parses the committed file, and must verify.
+    ///
+    /// This is the round trip the class of bug lives in, and it is deliberately driven
+    /// with a report the producer would build but the renderer would NOT write verbatim:
+    /// the findings are appended out of `sort_key` order and one rule is pushed twice.
+    /// `to_json` writes `Report::normalized()`, so the written record has its findings
+    /// REORDERED and its duplicate rule DROPPED. A digest folded over the pre-render
+    /// report therefore attests a value nobody can recompute — the exact disagreement
+    /// this test would have caught, and now cannot recur.
+    #[test]
+    fn the_rendered_record_verifies_against_the_digest_the_renderer_stamped() {
+        let mut report = Report::new("shacl");
+        // Out of sort_key order (Error sorts before Warning; within a severity, by code).
+        report.add_finding(Finding::new(Severity::Warning, "shacl.zzz", "a warning"));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.aaa",
+            "ex:Thing violates ex:Shape",
+        ));
+        report.add_finding(Finding::new(Severity::Warning, "shacl.aaa", "another"));
+        // The advisory wing pushes one rule PER FIRING, so a rule genuinely repeats;
+        // `normalize` deduplicates by id, shortening the rendered rule list.
+        report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
+        report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
+        report.add_rule(gmeow_errors::Rule::new("shacl.zzz", Severity::Warning));
+        report
+            .metadata
+            .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+        report
+            .metadata
+            .insert("shaclResultCount".to_owned(), json!(3));
+
+        let artifacts = render_artifacts(&report, None, None).expect("render");
+        let json = artifacts.get(SHACL_JSON_PATH).expect("rendered shacl.json");
+        let recorded: Report = serde_json::from_slice(json).expect("parse the committed record");
+
+        // The renderer really did rewrite the content the naive fold would have digested.
+        assert_ne!(
+            recorded.findings.len(),
+            0,
+            "the rendered record carries the findings"
+        );
+        assert_eq!(
+            recorded.rules.len(),
+            2,
+            "the renderer deduplicated the repeated rule — a pre-render fold would have \
+             digested three"
+        );
+        assert_eq!(
+            recorded.findings[0].code, "shacl.aaa",
+            "the renderer reordered the findings — a pre-render fold would have digested \
+             the append order"
+        );
+
+        // The consumer's check: the SAME call `gmeow-dev validate` makes over the parsed
+        // committed record.
+        verify_record_digest(&recorded, SHACL_RECORD_DIGEST_KEY, "<round-trip>").expect(
+            "the record the renderer WROTE must verify against the digest the renderer \
+             STAMPED — writer and reader are one fold over the rendered form",
+        );
+
+        // And the seal is over the rendered content, so an edit to it is still refused.
+        let mut tampered = recorded.clone();
+        tampered.findings.remove(0);
+        verify_record_digest(&tampered, SHACL_RECORD_DIGEST_KEY, "<round-trip>")
+            .expect_err("an edit to the rendered record is still refused");
+    }
+
+    /// A producer that passes no `seal` writes NO record digest — the seal is opt-in per
+    /// producer, and `stage-compile-logic`'s record (which nobody reads back) stays
+    /// byte-unchanged.
+    #[test]
+    fn an_unsealed_render_carries_no_record_digest() {
+        let mut report = Report::new("logic-compile");
+        report.add_finding(Finding::new(Severity::Note, "logic.loss", "a lossy drop"));
+        let artifacts = crate::stages::diag_render::render_diagnostics_artifacts(
+            "stage-compile-logic",
+            &report,
+            &crate::stages::diag_render::DiagnosticsPaths {
+                json: SHACL_JSON_PATH,
+                sarif: SHACL_SARIF_PATH,
+                html: SHACL_HTML_PATH,
+                rdf: SHACL_RDF_PATH,
+            },
+            None,
+            None,
+            None,
+        )
+        .expect("render");
+        let recorded: Report =
+            serde_json::from_slice(artifacts.get(SHACL_JSON_PATH).expect("json")).expect("parse");
+        assert!(
+            !recorded.metadata.contains_key(SHACL_RECORD_DIGEST_KEY),
+            "an unsealed render stamps nothing"
+        );
     }
 
     #[test]

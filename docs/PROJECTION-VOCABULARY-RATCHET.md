@@ -67,7 +67,7 @@ residue(slice, vocab) = |hand-authored constructs in vocab's namespace(s)|
 | `gmeow:vocabularyCountKind` | Applies to | What is counted |
 |---|---|---|
 | `countKindShape` | SHACL (`sh:`) | STRUCTURAL ROLE: typed `sh:NodeShape`/`sh:PropertyShape`, plus subjects of `sh:path`, objects of `sh:property`/`sh:node`, and subjects of `sh:sparql`/`sh:rule` — so an anonymous nested `sh:property [ sh:path … ]` block embedded in `module.ttl` is caught, not only a typed top-level shape in `shapes.ttl`. |
-| `countKindTypedAxiom` | gUFO, BFO (BFO-core), the OBO families (RO, IAO, PATO, SO, MFOEM, STATO, OBCS, OBI), DOLCE, SUMO, YAMATO, OpenCyc, SIO, FnO, EDOAL, SSSOM, and the math (Data Cube, QUDT, OpenMath, MathML, OM-2, UCUM) and lang (OntoLex, LexInfo, WordNet, NIF, Web Annotation, UD, Lexvo, Glottolog) families | Distinct triples whose predicate or object IRI falls in the vocabulary's namespace(s). Prose (a literal object) never counts. |
+| `countKindTypedAxiom` | gUFO, BFO (BFO-core), the OBO families (RO, IAO, PATO, SO, MFOEM, STATO, OBCS, OBI), DOLCE, SUMO, YAMATO, OpenCyc, SIO, FnO, EDOAL, SSSOM, the process-model catalogs the `logic:` prescription/enactment spine grounds onto (P-Plan, OPMW, BPMN, RO-Crate, Airflow, CWL, WDL, Temporal, Nextflow, openEHR Task Planning), and the math (Data Cube, QUDT, OpenMath, MathML, OM-2, UCUM) and lang (OntoLex, LexInfo, WordNet, NIF, Web Annotation, UD, Lexvo, Glottolog) families | Distinct triples whose predicate or object IRI falls in the vocabulary's namespace(s). Prose (a literal object) never counts. |
 | `countKindStructuralAxiom` | RDFS (`rdfs:`) | Distinct triples whose PREDICATE is in the `gmeow:vocabularyCountPredicate` allowlist — the minimum useful structural set `rdfs:subClassOf`/`rdfs:subPropertyOf` (the subsumption taxonomy). Pure annotations (`rdfs:label`/`comment`/`isDefinedBy`/`seeAlso`) and property signatures (`rdfs:domain`/`range`) are NOT counted. |
 | `countKindNonRdfSurface` | Datalog, Prolog, N3 | Structurally **0** always — documentary-only registry entries; their rule/clause syntax is not RDF and cannot be hand-authored as TTL triples. Never an enforceable gate. |
 
@@ -91,6 +91,42 @@ place the ratchet guards a **minimal, bounded** slice of it:
 Each guarded vocabulary carries a `gmeow:vocabularyOwner` — the one grounding slice
 (`logic:`, `math:`, or `lang:`) at whose mapping boundary its external terms may be
 authored; every other slice must reference the owner's grounding-vocabulary term.
+
+A vocabulary is guarded here only when it HAS such a single owner. Two of the
+process-model surfaces the grounding kernel bridges onto — PROV-O and schema.org —
+do not: they are general publication vocabularies that ~60 domain slices align to as
+ordinary, first-class by-reference correspondence records (Principle 5, "MORE is
+always BETTER"), with no one grounding slice as their authoring home. The kernel's
+`logic:Plan`/`logic:Enactment` rows onto them are grounding correspondences because
+their SUBJECTS are kernel terms, which is a fact about the source endpoint and does
+not make `logic:` the catalog owner. Registering either as a guarded vocabulary owned
+by `logic:` would reclassify 560 pre-existing, legitimate alignment triples across 65
+`(slice, vocabulary)` cells as off-owner residue needing brand-new ceilings — a
+repo-wide ownership decision, not a ratchet tightening. Both remain registered
+catalog families on the correspondence-law side (a grounding target must belong to
+exactly one registered family) while staying outside this residue ratchet.
+
+**The carve-out is a tracked record, not this paragraph.** Prose exempts nothing and
+counts nothing: with only this section, rows could be bridged onto an unguarded
+family one at a time, indefinitely, with nothing measuring the total. Each exemption
+is therefore a `gmeow:ResidueRatchetExemption` individual in
+`dsl/mappings/catalog-families.ttl` (vocabulary in `dsl/mappings/vocabulary.ttl`),
+in the same shape as every other registry commitment here — a typed row naming its
+`gmeow:exemptCatalogFamily`, stating its `gmeow:exemptRationale`, and pinning its
+`gmeow:exemptRowCeiling`. The mappings stage
+(`crates/pipeline/src/catalog_families.rs::check_residue_exemptions`) hard-fails on:
+
+- a shipped count ABOVE the ceiling — the carve-out grew (and the family's raise-only
+  `gmeow:catalogTargetMinimum` pins the same count from below, so a silently deleted
+  row is equally red);
+- an exemption for a family that IS guarded — the record may not outlive its reason;
+- an exemption naming no registered family — a dead row exempting nothing.
+
+The current membership is exactly two rows: PROV-O (ceiling 4) and schema.org HowTo
+(ceiling 7). `gmeow:exemptRowCeiling` is LOWER-ONLY, the same polarity as
+`gmeow:ceilingCount`: it falls as rows are grounded through an owned surface, and
+widening the carve-out means editing the ceiling deliberately, in review, with the
+reason written down.
 
 ## 4. The four ratchet invariants
 
@@ -229,7 +265,7 @@ list, never a hardcoded set in Rust.
 | `rdfs` | RDFS (subsumption taxonomy) | logic | `countKindStructuralAxiom` | Enforced |
 | `gufo` | gUFO | logic | `countKindTypedAxiom` | Enforced |
 | `bfo` | Basic Formal Ontology (`obo/BFO_`) | logic | `countKindTypedAxiom` | Enforced |
-| `ro`/`iao`/`pato`/`so`/`mfoem` | OBO families | logic | `countKindTypedAxiom` | Enforced |
+| `ro`/`iao`/`obi`/`pato`/`so`/`mfoem` | OBO families | logic | `countKindTypedAxiom` | Enforced |
 | `stato`/`obcs` | OBO statistics | math | `countKindTypedAxiom` | Enforced |
 | `dul` | DOLCE Ultra-Lite | logic | `countKindTypedAxiom` | Enforced |
 | `sumo` | SUMO | logic | `countKindTypedAxiom` | Enforced |
@@ -328,7 +364,7 @@ exercise each invariant directly against inline fixtures.
   (`<prefix>\t<namespaces>\t<count-kind>\t<default-ceiling>\t<preservation>`) —
   read-only, byte-deterministic `SoundUnder` projections of the resident
   `gmeow:ProjectionCeilingCommitment` / `gmeow:ProjectionVocabulary` individuals,
-  regenerated by `make regen`. Never hand-edited; a ceiling is raised or
+  regenerated by `make check`. Never hand-edited; a ceiling is raised or
   lowered by editing the commitment individual in
   `slices/core/slice-quality-rubric/module.ttl`, not the TSV. Measured/headroom
   are never projected here — they are empirical scan results entailed by no

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N2 - a continuation record claiming both resume and repeat. The two carry different
+# required bindings and different consequences, so a record claiming both has not said
+# which happened. MUST trip logic:ContinuationKindDisjointnessConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:conflatedContinuation logic:continuationKind logic:ContinuationResume ,
+        logic:ContinuationRepeat ;
+    rdfs:label "a continuation claiming to be both a resume and a repeat"@en .

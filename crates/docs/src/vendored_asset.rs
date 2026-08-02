@@ -85,8 +85,9 @@ pub struct VendoredWasmAsset {
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
     /// (F4/F5). For the three gmeow-owned engines (validate/reason/gmn) the byte-identity
-    /// is additionally EXECUTED on-gate by their Node parity lanes (`make check` →
-    /// `wasm-parity`); the vendored sibling-repo purrdf engine's witness is its native
+    /// is additionally EXECUTED on every pull request by their Node parity lanes
+    /// (the required CI `make heavy` → `wasm-parity`); the vendored sibling-repo
+    /// purrdf engine's witness is its native
     /// `describe` output, with wasm parity owned upstream in the purrdf repo. `Option`
     /// so a future non-witnessed asset need not reshape the descriptor.
     pub witness_attestation: Option<&'static str>,
@@ -523,8 +524,10 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
 /// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
 /// REPRESENTS an interactive capability whose backing engine lacks a present, current
 /// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
-/// with two other on-gate facts — the `wasm-parity` lane, which RUNS the native≡wasm parity
-/// for the gmeow-owned engines (validate/reason/gmn) on every `make check`, and the digest
+/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
+/// parity for the gmeow-owned engines (validate/reason/gmn) on the required CI `make heavy`
+/// lane (every pull request; lifted off the local `make check` only because four release
+/// wasm builds plus three Node suites are breadth-dominated), and the digest
 /// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
 /// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
 /// "the format declares the capability AND its engine's parity is proven-and-current."

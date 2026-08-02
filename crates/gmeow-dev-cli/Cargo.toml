@@ -46,9 +46,13 @@ toml = "0.8"
 ureq = "3"
 # CBOR public-metadata extraction for the feedback-bundle blob reader.
 ciborium = "0.2"
+# Self-cleaning system temp dirs. A normal (not dev-only) dependency because the
+# slice-quality ratchet materializes the merge-base authoring surfaces into one on the
+# PRODUCTION gate path; the guard is what removes that tree on a hard-failing gate and
+# while unwinding from a panic. Same pin as every other crate in the workspace.
+tempfile = "3"
 
 [dev-dependencies]
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-tempfile = "3"

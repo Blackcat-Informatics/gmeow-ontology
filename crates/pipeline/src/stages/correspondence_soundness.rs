@@ -42,6 +42,14 @@ use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, parse_data
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
+/// The grounding namespace. Alignment cells keyed on a `logic:` property are checked
+/// exactly like `gmeow:`-keyed ones: when a domain term is superseded by a grounding
+/// term, its alignments are RE-KEYED onto the grounding spine rather than dropped, and
+/// scoping the check to `gmeow:` subjects would silently stop checking them at precisely
+/// the moment they moved. The `is_property` guard below still applies, so this admits
+/// only cells whose subject is a declared object/datatype property.
+const LOGIC_PREFIX: &str = "logic:";
+
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -285,7 +293,7 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
 fn referenced_prefixes(mappings: &[Mapping], onto: &DslView<'_>) -> BTreeSet<String> {
     let mut referenced: BTreeSet<String> = BTreeSet::new();
     for m in mappings {
-        if !m.subject_id.starts_with(GMEOW_PREFIX) {
+        if !m.subject_id.starts_with(GMEOW_PREFIX) && !m.subject_id.starts_with(LOGIC_PREFIX) {
             continue;
         }
         let Some(prefix) = prefix_of(&m.object_id) else {

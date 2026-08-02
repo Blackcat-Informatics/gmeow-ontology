@@ -2748,11 +2748,10 @@ mod tests {
     /// left the license unresolved or mis-parsed).
     #[test]
     fn read_ontouml_license_resolves_relative_iri_against_file_base() {
-        // Self-contained temp dir (tempfile is not a dep of this crate); the process
-        // id keeps concurrent nextest cases from colliding.
-        let dir =
-            std::env::temp_dir().join(format!("gmeow-ontouml-license-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
+        // RAII scratch dir: unique per case and removed on drop, so concurrent
+        // nextest cases cannot collide and none of them leaves litter behind.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
         std::fs::write(
             dir.join("metadata.ttl"),
             "@prefix dcterms: <http://purl.org/dc/terms/> .\n\
@@ -2762,7 +2761,6 @@ mod tests {
         // read_ontouml_license derives `metadata.ttl` from the model's parent dir.
         let model_path = dir.join("model.ttl");
         let result = super::read_ontouml_license(&model_path);
-        let _ = std::fs::remove_dir_all(&dir);
         let license = result
             .expect("license read must not error")
             .expect("a declared license must be found");
@@ -2894,16 +2892,12 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
   </otest:PositiveEntailmentTest>
 </rdf:RDF>"#;
 
-        // Write manifest to a temp file.
-        let dir = std::env::temp_dir();
-        let manifest_path = dir.join(format!(
-            "gmeow-test-grade-suite-dlgap-{}.rdf",
-            std::process::id()
-        ));
-        let out_nq = dir.join(format!(
-            "gmeow-test-grade-suite-dlgap-{}.nq",
-            std::process::id()
-        ));
+        // Write manifest to a file in an RAII scratch dir; the `.rdf`/`.nq`
+        // extensions are load-bearing for the grader.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
+        let manifest_path = dir.join("grade-suite-dlgap.rdf");
+        let out_nq = dir.join("grade-suite-dlgap.nq");
         std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
 
         // Run grade_suite_corpus.  The `ref-premise` consistency test has an
@@ -2944,10 +2938,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             finding_type_count >= 2,
             "expected at least 2 dl-gap Findings (ref-premise + entailment-case), got {finding_type_count}: {nq:?}"
         );
-
-        // Clean up.
-        let _ = std::fs::remove_file(&manifest_path);
-        let _ = std::fs::remove_file(&out_nq);
     }
 
     // ── soundness_gate unit tests ─────────────────────────────────────────────
@@ -3155,15 +3145,14 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
   </otest:ConsistencyTest>
 </rdf:RDF>"#;
 
-        let dir = std::env::temp_dir();
-        let manifest_path = dir.join(format!("gmeow-test-grade-skip-{}.rdf", std::process::id()));
-        let out_nq = dir.join(format!("gmeow-test-grade-skip-{}.nq", std::process::id()));
+        // RAII scratch dir; the `.rdf`/`.nq` extensions are load-bearing for the grader.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
+        let manifest_path = dir.join("grade-skip.rdf");
+        let out_nq = dir.join("grade-skip.nq");
         std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
 
         let result = super::grade_suite_corpus(&manifest_path, "test-corpus", &out_nq);
-
-        let _ = std::fs::remove_file(&manifest_path);
-        let _ = std::fs::remove_file(&out_nq);
 
         assert!(
             result.is_ok(),
@@ -3205,9 +3194,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// DlGap must surface as a `dl-gap` Finding, and the consistent one must NOT.
     #[test]
     fn grade_ore_records_functional_syntax_gap_and_passes_soundness() {
-        let base = std::env::temp_dir().join(format!("gmeow-ore-grade-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create ORE dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         // ORE-shaped OWL 2 Functional-Syntax ontology (native codecs cannot read it).
         std::fs::write(
@@ -3231,7 +3219,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         .expect("write rdfxml ontology");
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        let result = super::grade_ore_corpus(base, "ore-test", &out_nq);
         assert!(
             result.is_ok(),
             "ORE soundness gate must pass (no CorpusOnly): {result:?}"
@@ -3258,20 +3246,18 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             !nq.contains("reason.divergence.corpus-only"),
             "no soundness (corpus-only) divergence expected for trivial consistent ontology: {nq:?}"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// An empty (or no-`.owl`) directory must hard-fail rather than silently pass a
     /// vacuous grade — a broken extract is a real error.
     #[test]
     fn grade_ore_hard_fails_on_empty_dir() {
-        let base = std::env::temp_dir().join(format!("gmeow-ore-empty-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create empty ORE dir");
+        // A freshly created scratch dir IS the empty extract under test.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        let result = super::grade_ore_corpus(base, "ore-test", &out_nq);
         assert!(
             result.is_err(),
             "an empty ORE extract must hard-fail, not vacuously pass"
@@ -3283,8 +3269,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 .contains("no *.owl ontologies"),
             "error must name the empty-extract condition"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     // ── OntoUML vendoring/grading-adapter unit tests ─────────────────────────
@@ -3310,10 +3294,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// generated `input.nq`, and the blessed `expected/{materialized.nq,verdicts.json}`.
     #[test]
     fn write_ontouml_case_round_trips_documented_case() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-doc", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create case dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let world = "https://gmeow.example/ontouml-mini/free-role/w";
         let input_nq = format!(
@@ -3326,7 +3308,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             world,
         )];
 
-        super::write_ontouml_case(&base, &input_nq, &quads, Some("FreeRole"))
+        super::write_ontouml_case(base, &input_nq, &quads, Some("FreeRole"))
             .expect("write_ontouml_case must succeed");
 
         // profile.json — native foundation-lowering, certify:false, documented label.
@@ -3388,8 +3370,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             "{verdicts}"
         );
         assert!(verdicts.contains("\"quads\": 1"), "{verdicts}");
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A clean-control case (`documented == None`) must OMIT the
@@ -3397,17 +3377,15 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// semantics), and its `materialized.nq` must be empty (nothing fired).
     #[test]
     fn write_ontouml_case_clean_control_omits_documented_key() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-clean", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create case dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let world = "https://gmeow.example/ontouml-mini/clean/w";
         let input_nq = format!(
             "<https://ex/Person> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Person> <{world}> .\n"
         );
 
-        super::write_ontouml_case(&base, &input_nq, &[], None)
+        super::write_ontouml_case(base, &input_nq, &[], None)
             .expect("write_ontouml_case must succeed");
 
         let profile = std::fs::read_to_string(base.join("profile.json")).expect("profile.json");
@@ -3418,20 +3396,18 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         let mat =
             std::fs::read_to_string(base.join("expected").join("materialized.nq")).expect("mat.nq");
         assert_eq!(mat, "");
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// An empty (or no-model) directory must hard-fail rather than silently pass a
     /// vacuous grade — a broken extract / unpopulated catalog is a real error.
     #[test]
     fn grade_ontouml_hard_fails_on_empty_dir() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-empty-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create empty catalog dir");
+        // A freshly created scratch dir IS the empty catalog under test.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq);
+        let result = super::grade_ontouml_corpus(base, "ontouml-catalog", &out_nq);
         assert!(
             result.is_err(),
             "an empty OntoUML catalog must hard-fail, not vacuously pass"
@@ -3443,8 +3419,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 .contains("no ontology.ttl / model.ttl"),
             "error must name the empty-catalog condition"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A missing ROOT catalog directory must hard-fail (Gap G3): it is a required
@@ -3453,10 +3427,10 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// empty model set.
     #[test]
     fn collect_ontouml_models_hard_fails_on_missing_root() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-missing-root-{}", std::process::id()));
-        // Ensure it genuinely does not exist.
-        let _ = std::fs::remove_dir_all(&base);
+        // A path under a live scratch dir that was never created: it genuinely
+        // does not exist, and never did.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path().join("absent");
 
         let result = super::collect_ontouml_models(&base);
         assert!(
@@ -3478,22 +3452,20 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// walk over-eager and start rejecting ordinary empty subdirectories too.
     #[test]
     fn collect_ontouml_models_tolerates_blank_subdir_but_finds_present_models() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-blank-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("present")).expect("create present model dir");
         std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
         // A subdir with no model files in it at all.
         std::fs::create_dir_all(base.join("blank")).expect("create blank dir");
 
-        let result = super::collect_ontouml_models(&base);
+        let result = super::collect_ontouml_models(base);
         let models = result.expect("a present root with a blank sibling subdir must still succeed");
         assert_eq!(
             models,
             vec![base.join("present").join("model.ttl")],
             "the present model must still be found despite the blank sibling subdir"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A subdirectory that is removed between being *listed* by its parent and being
@@ -3505,9 +3477,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// `collect_ontouml_models`, proving that arm is reachable and does not abort.
     #[test]
     fn collect_ontouml_models_tolerates_subdir_removed_mid_walk() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-midwalk-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("present")).expect("create present model dir");
         std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
 
@@ -3528,7 +3499,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             }
         });
 
-        let result = super::collect_ontouml_models(&base);
+        let result = super::collect_ontouml_models(base);
         stop.store(true, std::sync::atomic::Ordering::Relaxed);
         racer.join().expect("racer thread must not panic");
 
@@ -3540,8 +3511,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             vec![base.join("present").join("model.ttl")],
             "the present model must still be found regardless of the vanished sibling subdir"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
@@ -3550,8 +3519,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// Finding). The FreeRole divergence must surface as a `corpus-only` Finding.
     #[test]
     fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("clean")).expect("create clean dir");
         std::fs::create_dir_all(base.join("freerole")).expect("create freerole dir");
 
@@ -3574,7 +3543,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         .expect("write freerole model");
 
         let out_nq = base.join("divergence.nq");
-        super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq)
+        super::grade_ontouml_corpus(base, "ontouml-catalog", &out_nq)
             .expect("grade must succeed (grading never gates)");
 
         let nq = std::fs::read_to_string(&out_nq).expect("read divergence nq");
@@ -3593,8 +3562,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.agreement"),
             "the clean model folds as a corroboration Finding: {nq}"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// When a ledger has only agreeing rows, the gate passes regardless of what

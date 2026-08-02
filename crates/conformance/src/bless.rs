@@ -281,9 +281,9 @@ mod tests {
         let src = crate::paths::cases_root()
             .join("foundation")
             .join("free-role");
-        let tmp = std::env::temp_dir().join(format!("gmeow-bless-{}", std::process::id()));
+        let tmp = tempfile::tempdir().expect("create temp dir");
         // Preserve the <category>/<case> tail so the derived case_id is stable.
-        let dst = tmp.join("foundation").join("free-role");
+        let dst = tmp.path().join("foundation").join("free-role");
         copy_dir(&src, &dst);
 
         let out = crate::run::run_case(&dst).expect("run_case ok");
@@ -291,7 +291,6 @@ mod tests {
 
         let out2 = crate::run::run_case(&dst).expect("run_case (post-bless) ok");
         let diffs = crate::compare::diff_case(&dst, &out2);
-        let _ = std::fs::remove_dir_all(&tmp);
         assert!(diffs.is_empty(), "bless not self-consistent: {diffs:?}");
     }
 }

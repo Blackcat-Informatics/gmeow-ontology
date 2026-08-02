@@ -90,7 +90,8 @@ make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
 `make install` bootstraps source-first: it builds only the `gmeow-dev` producer
-crate, runs `make regen` to materialize the git-ignored `generated/` tree
+crate, runs the producer (`make check-sync SYNC_MODE=update SYNC_OUTPUTS=all`)
+to materialize the git-ignored `generated/` tree
 (including `generated/dist/gmeow.gts`) from canonical sources, and only then
 builds the consumer CLIs that embed that materialized bundle. There is no Git
 merge-driver step — `generated/` is never tracked, so it never participates in
@@ -107,8 +108,8 @@ enforce the transform, while a compile-time assertion pins purrdf's dist level t
 
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
-make regen # Rebuild ALL committed generated artifacts (the registry; parallel by default)
-make check-sync # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
+make check-sync SYNC_MODE=update # Materialize ALL generated artifacts (the single producer; parallel by default)
+make check-sync # Drift + orphan + internal-tag-leak check for every registered generator (read-only default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl)
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
@@ -150,15 +151,20 @@ When you change canonical sources (ontology modules, mapping-dsl, statement-dsl)
 
 The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
 
+**One producer, one run.** `make check-sync` is the ONLY Make target that runs the regeneration pipeline, and `make check` drives it (in update mode) as the first node of the gate DAG. So the normal answer to "my generated tree is stale" is simply `make check`: it materializes and then gates, inside ONE hold of the host-global gate lock. Materializing separately first and then gating runs the whole pipeline twice and — because the second run must wait for the lock — queues the machine behind you. `make regen` was that second entry point; it is poisoned and refuses.
+
+The doctrine behind the gate — why there is exactly one producer, why the host-global lock has no override, why the pipeline records while the gate grades, when a gate may read a record instead of recomputing it, and what puts a lane on `make heavy` instead of `make check` — is [`docs/GATE-AND-PIPELINE.md`](./docs/GATE-AND-PIPELINE.md). Read it before adding or moving a `make check` task, changing a nextest budget, blessing a ratchet baseline, or writing a comment that claims a gate enforces something; each of its rules carries the real defect in this repository that produced it, and it ends with a checklist for adding a gate task or a pipeline stage.
+
 ```bash
-make regen                        # Update every output family (local default)
-make regen SYNC_MODE=check        # Strict read-only verification (the CI default)
-make regen SYNC_VERBOSE=1         # Stream live DAG stages and sync boundaries
+make check                                   # THE entry point: materialize, then gate
+make check-sync SYNC_MODE=update             # Artifacts only, no gate (rarely what you want)
+make check-sync                              # Strict read-only verification (mode=check is the default)
+make check-sync SYNC_MODE=update SYNC_VERBOSE=1   # Stream live DAG stages and sync boundaries
 make commit          # Run sync, stage the artifacts, and commit (default message)
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make regen` runs the registered pipeline exactly once in topological order and, by default, fans out the committed `generated/` tree, runtime `dist/` projections, and external documentation. `SYNC_OUTPUTS=generated` or `docs` explicitly narrows what is materialized without weakening the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
+`make check-sync` runs the registered pipeline exactly once in topological order. `SYNC_OUTPUTS` selects the fanout scope: `generated` (the default — the bundle plus the `generated/` tree) or the wider `docs` and `all` profiles, which additionally fan out runtime `dist/` projections and external documentation. Narrowing the scope never weakens the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
 
 * `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
 * `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
@@ -170,12 +176,12 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 `make commit` stages only the generated artifacts above. If you also have source changes (for example in `dsl/mappings/` or a slice-local `mappings/` directory), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
 
 > [!TIP]
-> If you suspect generated files are stale but do not want to commit yet, run `make regen SYNC_MODE=check`. It checks the complete fixed point without touching files.
+> If you suspect generated files are stale but do not want to commit yet, run `make check-sync SYNC_MODE=check`. It checks the complete fixed point without touching files.
 
 ### Release Outputs
 
 ```bash
-make regen SYNC_OUTPUTS=docs # Regenerate external site/book/print/snippet/model docs
+make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs # Regenerate external site/book/print/snippet/model docs
 make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
@@ -188,10 +194,12 @@ release workflow explicitly writes the signed copy there before packaging.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
 mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
-derived artifacts regenerated with `make regen SYNC_OUTPUTS=docs`; Pages CI must
+derived artifacts regenerated with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`; Pages CI must
 use the source-backed `gmeow-dev sync --mode update --outputs docs` command. The
-default `make regen` additionally materializes runtime export projections such as
-OKF Markdown, JSON-LD, and YAML-LD. This keeps the logical GTS carrier separate
+wider `SYNC_OUTPUTS=all` profile additionally materializes runtime export
+projections such as OKF Markdown, JSON-LD, and YAML-LD — the gate's default
+`SYNC_OUTPUTS=generated` scope produces the bundle and the `generated/` tree
+only. This keeps the logical GTS carrier separate
 from large, easily-derived presentation payloads (Principle 4).
 
 ### Reasoning & Negative Tests
@@ -211,8 +219,8 @@ second reasoner on-gate.
 ### Testing & Verification
 
 ```bash
-make check           # Synchronize outputs, then run the logical gate with verified receipt reuse
-make check-full      # Synchronize outputs, then physically rerun every gate task
+make check           # Synchronize outputs, then run the local gate DAG (every task)
+make heavy           # CI-ONLY breadth lane (wasm parity, transpile acceptance, golden soak)
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
@@ -225,13 +233,21 @@ sync step effectively free. CI and direct `make check-sync` invocations retain
 read-only check mode, so CI still fails on uncommitted drift rather than repairing
 it.
 
-`make check` is evidence-complete even when it is impact-selected: it accepts
-reused task results only from a GitHub-attested successful `main`-push receipt
-whose commit, tree, task registry, and toolchain contract all match, then reruns
-every task affected by the complete local diff. Missing or invalid evidence,
-unknown paths, and Rust/tooling changes fail closed to `make check-full`. Use
-`make check CHECK_ARGS="--explain --timings-json dist/check-timings.json"` to
-inspect the selection. The receipt changes execution, never the required gate.
+`make check` physically executes every task in its DAG; there is no reuse or
+selection profile. What it does own is an *accurate* dependency graph: a task
+declares `sync` as a prerequisite if and only if it reads a `generated/` artifact,
+so the lint, crate-layering, and translation gates start in the first scheduling
+wave rather than queueing behind synchronization, and the Rust surface runs as four
+concurrent siblings (`carrier-purity`, `clippy`, `nextest`, `doctests`) under one
+`rust-build`. Use `make check CHECK_ARGS="--explain"` to print the wave plan
+without running anything or taking the host gate lock, and
+`CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
+
+`make heavy` is the CI-only companion: the lanes whose runtime is set by breadth
+(a whole-external-corpus recall sweep, four release wasm builds plus three Node
+execution lanes) or by a repeat-for-confidence soak. It refuses to run unless both
+`CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
+on every PR — and each task stays runnable by name (`make wasm-parity`).
 
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
@@ -437,8 +453,8 @@ Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeo
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
 * Source changes belong in `slices/<group>/<name>/module.ttl`, slice-local `mappings/`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
-* Generated artifact changes must be reproducible by `make regen`.
-* If `make check-sync` reports drift, run `make regen` rather than hand-editing the output.
+* Generated artifact changes must be reproducible by `make check`.
+* If a read-only `make check-sync` reports drift, run `make check` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
 
 ### Vocabulary Index (llms.txt)
@@ -446,7 +462,7 @@ Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical.
 This project automatically generates a single-file, flat index of all classes,
 properties, and individuals (with CURIEs, parent classes, and definitions) at
 `dist/llms.txt` through the export stage of the registered build pipeline. It
-is **not checked in** — run `make regen` to produce it on demand.
+is **not checked in** — run `make check` to produce it on demand.
 
 If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, generate and ingest `dist/llms.txt` to get a clean, context-efficient overview of the entire ontology.
 
@@ -456,7 +472,7 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule:** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make regen SYNC_OUTPUTS=docs` or `gmeow-dev sync --mode update --outputs docs`. It is never embedded in `generated/dist/gmeow.gts`.
+**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` or `gmeow-dev sync --mode update --outputs docs`. It is never embedded in `generated/dist/gmeow.gts`.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
@@ -548,9 +564,12 @@ product (never tracked, so it never produces a merge conflict), but it still hol
 on disk until you re-materialize it:
 
 ```bash
-make regen          # re-materialize generated/ (including the bundle) on the merged base
-make check-sync     # verify no drift remains
+make check          # re-materialize generated/ (including the bundle) on the merged base, then gate
 ```
+
+One command, not two: `make check` runs the producer itself and then proves the
+result, so a separate materialize-first step would run the whole pipeline twice
+against the same host-global gate lock.
 
 #### Integrating the `generated/` untracking transition
 
@@ -560,18 +579,18 @@ make check-sync     # verify no drift remains
 
 * **A branch that never touched `generated/`** merges cleanly: `main`'s deletion of those paths
   applies against your unchanged copies with no conflict. Nothing to resolve — just re-materialize
-  afterward with `make regen`.
+  afterward with `make check`.
 * **A branch that modified `generated/`** hits delete/modify conflicts (your side edited a path
   `main` deleted). Resolve **every one in favor of the deletion** (`git rm <path>` for each
   conflicted `generated/` path) — never re-add the file, never hand-pick your edited bytes. Your
-  intent lives in the canonical *sources*; once the tree is deleted, run `make regen` to regenerate
+  intent lives in the canonical *sources*; once the tree is deleted, run `make check` to regenerate
   it locally from those sources and confirm the change landed in the materialized product.
 * **Never `git add -f generated/`.** The path is git-ignored on purpose; force-adding it re-commits
   the product and re-introduces exactly the coupling this change removed. If you think you need to
   force-add a `generated/` file, you are working around the ignore rule instead of fixing the source.
 
 An older clone or long-lived branch stays perfectly usable across this change — it only needs one
-`make regen` after integrating `main`. (A separate, later change will rewrite retained history to
+`make check` after integrating `main`. (A separate, later change will rewrite retained history to
 drop `generated/` from past commits; only *after* that rewrite do stale clones/branches become
 unsafe and require a fresh clone. This branch does not perform that rewrite.)
 
@@ -618,15 +637,13 @@ Apply fixes **only in canonical source files** (Principle 4):
 Never patch generated artifacts by hand. After editing canonical sources, regenerate:
 
 ```bash
-make regen          # after ANY canonical-source change
-make check-sync     # verify no drift remains
+make check          # after ANY canonical-source change: materializes, then gates
 ```
 
 ### Validate before pushing
 
 ```bash
 make check
-make check-full      # optional audit: force physical execution of every task
 ```
 
 All Docker-free local gates must have passing evidence: lint, validate,

@@ -561,7 +561,7 @@ gmeow:currency skos:closeMatch schema:currency {|
 # --------------------------------------------------------------------------- #
 # schema.org review cluster — the Assessment scoring facets
 # --------------------------------------------------------------------------- #
-# Relocated here from slices/extensions/norms/mappings/equivalences.ttl together
+# Relocated here from the norms mapping set (slices/core/norms/mappings/equivalences.ttl) together
 # with the two properties themselves: an alignment belongs to the slice that owns
 # the term it aligns, and gmeow:assessmentTarget / gmeow:assessmentScoreValue are
 # core-owned here alongside gmeow:Assessment, gmeow:assessmentCriterion, and

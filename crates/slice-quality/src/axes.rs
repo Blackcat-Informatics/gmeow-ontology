@@ -2453,8 +2453,8 @@ ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:d
 
         // A test corpus that names only the exercised domain term (and, adversarially,
         // one carrier — which must still be excluded regardless of being "reached").
-        let dir =
-            std::env::temp_dir().join(format!("slice-quality-testing-axis-{}", std::process::id()));
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path().join("slice-quality-testing-axis");
         let tests_dir = dir.join("tests");
         std::fs::create_dir_all(&tests_dir).expect("create temp tests dir");
         std::fs::write(
@@ -2473,7 +2473,6 @@ ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:d
         assert_eq!(ctx.terms.len(), 4, "slice_terms counts carriers globally");
 
         let score = testing_axis(&ctx);
-        std::fs::remove_dir_all(&dir).ok();
 
         // Denominator excludes the two carriers → 2 scoreable domain terms, 1 reached.
         assert!(

@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 294
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity
@@ -14,7 +13,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Property |
 | Slice | [GMEOW Data Quality Module](../../slices/quality/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg)
+![completeness: Docs 12/17](../../badges/completeness/12.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg)
 
 ## Definition
 
@@ -75,12 +74,22 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 - [`gmeow:Entity`](../entity/index.md)
 
+## Conformance examples
+
+- **Do:** `tests/conformance-fixtures/per-axis-grade-carries-its-axis.ttl`
+  - Two grade records name the two rubric axes that publish under one ISO dimension, each carrying gmeow:assessmentAxis alongside the identical gmeow:qualityDimension\. Recording the axis as first\-class data is the intended shape of a grade, so the union of the module with this fixture MUST validate clean: nothing in the rubric's owned surface restricts an assessment to one grade per dimension, and a slice that scored two axes publishing under one dimension would otherwise be unable to report both\.
+- See the [conformance fixtures index](../../fixtures/index.md).
+
 ## Usage Advice
 
 - **Example:** ex:posAcc gmeow:assessedEntity ex:roadLayer \.
 - **Use when:** Use on a QualityAssessment to name the entity or dataset whose quality is under evaluation — the quality observation's feature of interest\.
 - **Avoid when:** Avoid for the assessment's numeric verdict \(that is gmeow:observationResult\) and for non\-quality observations, which use gmeow:observedFeature directly\.
 - **How to use:** Assert gmeow:assessedEntity from the QualityAssessment to the subject entity; it specializes gmeow:observedFeature, so generic 'all observations about X' queries find it by inheritance\.
+
+## Examples using this term
+
+- [Per\-axis slice\-quality grade record](../../slices/slice-quality-rubric/index.md) — `examples/rubric-assessment.ttl`
 
 ## Profiles
 
@@ -108,7 +117,7 @@ gmeow:assessedEntity ⊑ gmeow:observedFeature
 
 ## Documentation coverage
 
-- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **12 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✓ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability

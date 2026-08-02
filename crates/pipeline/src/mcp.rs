@@ -5530,7 +5530,7 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// file is the one source of truth, and the worked example and conformance case reference these
 /// same schema IRIs (they encode no second copy).
 const MCP_ACTION_POLICY_TTL: &str =
-    include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
+    include_str!("../../../slices/core/agentic/examples/mcp-action-policy.ttl");
 
 /// The transient world the TR run reasons in — a fresh in-memory store per call, NEVER persisted.
 /// The executed verdict gates the write; the materialized outcome rides the tool response.

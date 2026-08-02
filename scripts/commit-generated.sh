@@ -3,9 +3,9 @@
 #
 # Stage-and-commit body for the `commit` make target.
 #
-# `make commit` regenerates first (as a SUB-make from the Makefile, so the
-# regen-guard's MAKELEVEL check never fires — see the comment in the Makefile's
-# `commit` recipe for why that recursion must not be a same-level prerequisite),
+# `make commit` materializes first through the pipeline's single producer
+# (`check-sync` in update mode over every output family, run as a recipe step
+# rather than a prerequisite because a prerequisite edge cannot carry that mode),
 # then lists every generator-owned path via `gmeow-dev sync --list-paths`,
 # stages whichever of those paths actually exist, and commits the result. A
 # clean tree (nothing generator-owned changed) is not an error condition the
