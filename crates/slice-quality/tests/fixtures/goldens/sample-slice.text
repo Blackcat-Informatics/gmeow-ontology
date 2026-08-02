@@ -15,7 +15,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisShapeMigration: Maximal (1.00)
     axisProseQuality: Maximal (1.00)
     axisProvenanceHonesty: Maximal (1.00)
-    axisDocMaturity: Maximal (1.00)
+    axisDocMaturity: Maximal (0.00)
     axisFlagshipCounterExampleDepth: Maximal (1.00)
   ranked uplift advice (17):
     1. [slice-quality.axis-advice] axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping "=" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).
@@ -32,6 +32,6 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     12. [slice-quality.translation.incomplete] cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
     13. [slice-quality.translation.incomplete] fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
     14. [slice-quality.axis-advice] axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.
-    15. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).
+    15. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured, so it is scored 0.0 (the bottom of the axis). An unmeasurable axis is never a passing one; fix the condition and re-score.
     16. [slice-quality.axis-advice] axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).
     17. [slice-quality.documentation.no-docs] the slice ships no docs.md.

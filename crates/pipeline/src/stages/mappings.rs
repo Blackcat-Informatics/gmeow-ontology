@@ -362,9 +362,43 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
                     .map(|target| (c.iri.as_str(), target))
             })
             .collect();
-        crate::catalog_families::check_target_catalogs(
+        let measured = crate::catalog_families::check_target_catalogs(
             &families,
             targets,
+            "lowered grounding correspondences",
+        )?;
+
+        // Residue-ratchet carve-out gate. A family with no single grounding-slice owner
+        // carries no `gmeow:ProjectionVocabulary`, so correspondences onto it enter no
+        // residue count, no per-slice ceiling and no monotonicity ratchet. That absence
+        // is legitimate but it is not free: it must be a REGISTERED, rationale-bearing,
+        // COUNTED row, or the carve-out widens one correspondence at a time with nothing
+        // ever measuring it. The guarded set is read from the ontology-resident
+        // `gmeow:ProjectionVocabulary` registry (the rubric slice's `module.ttl`, already
+        // in this stage's cache key via `module_files`) — never a Rust list, exactly as
+        // the family registry is not one.
+        let guarded_namespaces: std::collections::BTreeSet<String> =
+            gmeow_slice_quality::load_repo_rubric(root)
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!(
+                            "residue-ratchet carve-out gate: cannot load the guarded \
+                             gmeow:ProjectionVocabulary registry: {e}"
+                        ),
+                    })
+                })?
+                .floors
+                .vocabularies
+                .iter()
+                .flat_map(|vocab| vocab.namespaces.iter().cloned())
+                .collect();
+        let exemptions = crate::catalog_families::load_residue_exemptions(root)?;
+        crate::catalog_families::check_residue_exemptions(
+            &families,
+            &exemptions,
+            &guarded_namespaces,
+            &measured,
             "lowered grounding correspondences",
         )?;
     }

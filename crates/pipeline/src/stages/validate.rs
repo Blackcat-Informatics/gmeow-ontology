@@ -52,6 +52,110 @@ pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
 /// Neither is ever a skip and neither is ever a silent pass.
 pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
 
+/// The `shacl.json` metadata key carrying [`shacl_record_digest`] — the verdict's fold
+/// over ITS OWN recorded content.
+///
+/// [`SHACL_INPUT_DIGEST_KEY`] and this answer two different questions, and neither
+/// substitutes for the other: the input digest says WHICH BYTES were validated, this says
+/// WHAT VERDICT WAS RECORDED. Hand-deleting a violation from `shacl.json` touches no
+/// validated input, so the input digest still matches the working tree exactly — which is
+/// precisely why a consumer that gates on the recorded findings must also verify that the
+/// findings are the ones the pass produced.
+pub const SHACL_RECORD_DIGEST_KEY: &str = "shaclRecordDigest";
+
+/// The canonical digest of a diagnostics report's OWN content: its tool, every finding in
+/// order, every rule in order, and every metadata entry EXCEPT this key itself.
+///
+/// Folded over the serialized form of each element rather than the raw file bytes, so it
+/// is invariant to JSON whitespace and key-order rendering while remaining sensitive to
+/// every value a consumer reads. The [`SHACL_RECORD_DIGEST_KEY`] entry is excluded for the
+/// obvious reason that it cannot digest itself; `metadata` is a `BTreeMap`, so the
+/// remaining entries fold in a deterministic key order on both sides.
+///
+/// # Errors
+/// If any element fails to serialize — a serde regression, never a data condition.
+pub fn shacl_record_digest(report: &Report) -> Result<String, gmeow_errors::Diag> {
+    fn fold<T: serde::Serialize>(
+        hasher: &mut blake3::Hasher,
+        value: &T,
+    ) -> Result<(), gmeow_errors::Diag> {
+        let bytes = serde_json::to_vec(value).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("digesting the recorded SHACL verdict: {e}"),
+            })
+        })?;
+        hasher.update(&bytes);
+        hasher.update(b"\x1e");
+        Ok(())
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-shacl-record-v1\x1e");
+    hasher.update(report.tool.as_bytes());
+    hasher.update(b"\x1e");
+    for finding in &report.findings {
+        fold(&mut hasher, finding)?;
+    }
+    hasher.update(b"rules\x1e");
+    for rule in &report.rules {
+        fold(&mut hasher, rule)?;
+    }
+    hasher.update(b"metadata\x1e");
+    for (key, value) in &report.metadata {
+        if key == SHACL_RECORD_DIGEST_KEY {
+            continue;
+        }
+        hasher.update(key.as_bytes());
+        hasher.update(b"\x1f");
+        fold(&mut hasher, value)?;
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+/// Admit `recorded` only if it carries a [`SHACL_RECORD_DIGEST_KEY`] AND its content folds
+/// to that value — the integrity half of the recorded-verdict contract, paired with the
+/// freshness half a caller checks against [`on_disk_shacl_input_digest`].
+///
+/// `origin` names the record in the diagnostic (its path, for a disk read). It lives here
+/// rather than at the consumer so the fold that WRITES the digest and the fold that
+/// CHECKS it are the same code and cannot drift.
+///
+/// # Errors
+/// If the record carries no record-digest metadata (unattestable content), or if its
+/// content does not fold to the declared value (edited after production). Neither is a
+/// skip and neither is a pass.
+pub fn verify_shacl_record_digest(
+    recorded: &Report,
+    origin: &str,
+) -> Result<(), gmeow_errors::Diag> {
+    let declared = recorded
+        .metadata
+        .get(SHACL_RECORD_DIGEST_KEY)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "the recorded SHACL verdict at {origin} carries no {SHACL_RECORD_DIGEST_KEY} \
+                     metadata, so its own content cannot be attested — an edited verdict would \
+                     be indistinguishable from a produced one. Regenerate it (`make check`)"
+                ),
+            })
+        })?
+        .to_owned();
+    let live = shacl_record_digest(recorded)?;
+    if live != declared {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "the recorded SHACL verdict at {origin} does not match its own \
+                 {SHACL_RECORD_DIGEST_KEY}: it declares {declared} but its recorded findings and \
+                 metadata fold to {live}. The record has been edited after it was produced — \
+                 regenerate it (`make check`); an edited verdict is never accepted"
+            ),
+        }));
+    }
+    Ok(())
+}
+
 /// The canonical digest of everything the merged-SHACL pass consumed: the authored
 /// source corpus and the shape union.
 ///
@@ -647,6 +751,19 @@ impl Stage for ValidateStage {
                 })
             },
         )?;
+        // Seal the verdict: the LAST mutation of `report` before it is rendered stamps the
+        // digest of its own content. Everything above (span enrichment, remediation
+        // annotation, the advisory and abductive wings) has already been folded in, so the
+        // digest attests exactly the findings and metadata the committed `shacl.json`
+        // carries. A consumer that reads those findings instead of re-running the pass
+        // recomputes this and refuses a record whose content has been edited since —
+        // deleting a violation by hand is a corrupt record, never a clean run.
+        {
+            let digest = shacl_record_digest(&report)?;
+            report
+                .metadata
+                .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+        }
         let artifacts = render_artifacts(&report, gate.as_ref(), meta.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
@@ -727,6 +844,90 @@ mod tests {
             "generated/shapes/frame-shapes.ttl".to_string(),
             b"# generated\n".to_vec(),
         )])
+    }
+
+    /// A recorded verdict with a violation DELETED by hand is refused, even though every
+    /// validated input is byte-identical and the input digest therefore still matches.
+    ///
+    /// This is the exact hand-edit the input-only guard could not see: `shacl.json` is a
+    /// product, nothing else on disk moves when it is edited, and the gate reads its
+    /// findings. The record's own content digest is what makes the edit visible.
+    #[test]
+    fn a_verdict_with_a_deleted_violation_is_refused() {
+        let mut report = Report::new("shacl");
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Thing violates ex:Shape",
+        ));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Other violates ex:Shape",
+        ));
+        report
+            .metadata
+            .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+        let digest = shacl_record_digest(&report).expect("digest");
+        report
+            .metadata
+            .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+
+        // Control: the sealed record is admitted.
+        verify_shacl_record_digest(&report, "<in-memory>").expect("a sealed verdict is admitted");
+
+        // The hand-edit: drop one violation, leave the declared digest (and every input,
+        // hence the input digest) untouched — the whole point is that nothing else moves.
+        let mut tampered = report.clone();
+        tampered.findings.remove(0);
+        assert_eq!(
+            tampered.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            report.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            "the input digest is untouched by the edit — that is why it cannot catch it"
+        );
+        let err = verify_shacl_record_digest(&tampered, "<in-memory>")
+            .expect_err("a verdict with a violation deleted must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the violated witness: {err}"
+        );
+
+        // Rewriting a finding's MESSAGE (same count) is caught too — the fold is over
+        // content, not cardinality.
+        let mut reworded = report.clone();
+        reworded.findings[0].message = "ex:Thing is fine, actually".to_owned();
+        verify_shacl_record_digest(&reworded, "<in-memory>")
+            .expect_err("a reworded finding must be REFUSED");
+
+        // An absent witness is unattestable content, not a pass.
+        let mut unwitnessed = report.clone();
+        unwitnessed.metadata.remove(SHACL_RECORD_DIGEST_KEY);
+        let err = verify_shacl_record_digest(&unwitnessed, "<in-memory>")
+            .expect_err("a verdict carrying no record digest must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the missing witness: {err}"
+        );
+    }
+
+    /// The stamped digest is stable across a JSON round-trip: the consumer reads the
+    /// record back through serde and must fold it to the same value the producer wrote.
+    #[test]
+    fn the_record_digest_survives_the_json_round_trip() {
+        let mut report = Report::new("shacl");
+        report.add_finding(Finding::new(Severity::Warning, "shacl.warn", "a warning"));
+        report
+            .metadata
+            .insert("shaclResultCount".to_owned(), json!(1));
+        let digest = shacl_record_digest(&report).expect("digest");
+        report
+            .metadata
+            .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+
+        let bytes = serde_json::to_vec(&report).expect("serialize");
+        let parsed: Report = serde_json::from_slice(&bytes).expect("deserialize");
+        verify_shacl_record_digest(&parsed, "<round-trip>")
+            .expect("the digest must survive the round trip the consumer performs");
     }
 
     #[test]

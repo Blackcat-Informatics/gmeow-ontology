@@ -26,6 +26,15 @@
 //!   canonicalized authored source set it scored. [`verify_fresh`] recomputes it and
 //!   hard-fails on absence or mismatch, so a stale record is an error rather than a
 //!   silently-accepted pass.
+//! * **Integrity.** The corpus ALSO carries a `gmeow:contentDigest` over its own
+//!   recorded grades ([`crate::report::corpus_content_digest`]).
+//!   [`read_recorded_corpus_bytes`] recomputes it from the reconstruction and hard-fails
+//!   on absence or mismatch. Freshness and integrity answer different questions —
+//!   freshness asks whether the record describes THIS tree, integrity asks whether the
+//!   record is what the scorer wrote — and an input-only witness answers only the first:
+//!   hand-raising a score in the projection leaves every input byte untouched, so the
+//!   fingerprint still matches. That is the hole this closes; both must hold before a
+//!   consumer reads a grade.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -35,7 +44,7 @@ use purrdf::RdfDataset;
 use crate::error;
 use crate::graph;
 use crate::model::{AxisGrade, MeasurementStandard, SliceAssessment};
-use crate::report::{SLICE_QUALITY_GRAPH, VERSION_FINGERPRINT};
+use crate::report::{CONTENT_DIGEST, SLICE_QUALITY_GRAPH, VERSION_FINGERPRINT};
 
 /// The committed on-disk projection of the quality-assessment corpus, relative to the
 /// repository root. This is the SAME path `crates/pipeline`'s fanout writes from the
@@ -147,7 +156,22 @@ pub fn read_recorded_corpus_bytes(
         })
     })?;
     let fingerprint = read_fingerprint(&ds)?;
+    let recorded_digest = read_content_digest(&ds)?;
     let by_slice = read_assessments(&ds, standard)?;
+    // INTEGRITY, checked before the corpus is handed to anyone. The fingerprint above
+    // attests the record's INPUTS; it says nothing about the record. Recompute the
+    // digest over the grades just reconstructed and refuse a record whose content does
+    // not fold to the value it claims — a hand-raised score, a deleted grade, or a
+    // swapped tier is a corrupt record, never a passing one.
+    let live_digest = crate::report::corpus_content_digest(by_slice.values());
+    if live_digest != recorded_digest {
+        return Err(record_err(format!(
+            "the recorded quality-assessment corpus at {RECORDED_CORPUS_PATH} does not match its \
+             own {CONTENT_DIGEST}: it declares {recorded_digest} but its recorded grades fold to \
+             {live_digest}. The record has been edited after it was produced — regenerate it \
+             (`make check`); an edited record is never read as authoritative."
+        )));
+    }
     Ok(RecordedCorpus {
         fingerprint,
         by_slice,
@@ -168,6 +192,29 @@ fn read_fingerprint(ds: &RdfDataset) -> gmeow_errors::Result<String> {
     let (Some(subject), Some(pred)) = (
         graph::id(ds, SLICE_QUALITY_GRAPH),
         graph::id(ds, VERSION_FINGERPRINT),
+    ) else {
+        return Err(missing());
+    };
+    graph::one_lit(ds, subject, pred).ok_or_else(missing)
+}
+
+/// The corpus-level `gmeow:contentDigest` — the record's fold over ITS OWN grades — or
+/// a hard error.
+///
+/// Absence is a hard error for the same reason a missing fingerprint is: a record that
+/// carries no self-attestation cannot be distinguished from one that has been edited,
+/// and "cannot be distinguished" is never "assume it is fine".
+fn read_content_digest(ds: &RdfDataset) -> gmeow_errors::Result<String> {
+    let missing = || {
+        record_err(format!(
+            "the recorded quality-assessment corpus carries no {CONTENT_DIGEST} on \
+             <{SLICE_QUALITY_GRAPH}>, so its own content cannot be attested — an edited record \
+             would be indistinguishable from a produced one. Regenerate it (`make check`)"
+        ))
+    };
+    let (Some(subject), Some(pred)) = (
+        graph::id(ds, SLICE_QUALITY_GRAPH),
+        graph::id(ds, CONTENT_DIGEST),
     ) else {
         return Err(missing());
     };

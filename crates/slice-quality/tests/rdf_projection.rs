@@ -114,12 +114,18 @@ fn recorded_grades_round_trip_exactly() {
         .expect("the rubric slice scores")
         .assessment;
 
-    // The corpus as the pipeline projects it: the freshness witness plus this slice's
-    // block. The fingerprint value is irrelevant here (freshness is proven separately);
-    // what matters is that the reader consumes the identical bytes the emitter writes.
+    // The corpus as the pipeline projects it: the two corpus witnesses plus this slice's
+    // block. The input-fingerprint value is irrelevant here (freshness is proven
+    // separately); the record content digest is NOT — the reader recomputes it and
+    // refuses a record that does not fold to its own claim, so it is emitted exactly as
+    // the pipeline emits it. What matters is that the reader consumes the identical bytes
+    // the emitter writes.
     let projected = format!(
         "{}{}",
-        gmeow_slice_quality::report::corpus_fingerprint_nquads("blake3:0"),
+        gmeow_slice_quality::report::corpus_fingerprint_nquads(
+            "blake3:0",
+            &gmeow_slice_quality::report::corpus_content_digest(std::slice::from_ref(&fresh)),
+        ),
         {
             let report = score_slice_with_standard(&dir, &standard, ScoringEnv::Repo)
                 .expect("the rubric slice scores");
@@ -171,6 +177,88 @@ fn recorded_grades_round_trip_exactly() {
     assert_eq!(
         corpus.fingerprint, "blake3:0",
         "the witness must round-trip"
+    );
+}
+
+/// A hand-EDITED record is REFUSED, and the edit that matters most is the one that
+/// changes nothing else: raising a score in the projection.
+///
+/// The input fingerprint cannot catch this — no scored source file moved, so it still
+/// matches the working tree exactly. The `gmeow:contentDigest` over the record's own
+/// grades does: the reader recomputes it from the reconstruction and finds the record
+/// does not fold to the value it declares. This test also pins the two REMOVAL cases —
+/// dropping a whole slice's grades and dropping the digest witness itself — because
+/// "the guard is absent" must never read as "the guard passed".
+#[test]
+fn an_edited_record_is_refused_by_its_own_content_digest() {
+    let root = repo_root();
+    let dir = root.join("slices/core/slice-quality-rubric");
+    let module = root.join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module]).expect("rubric parses");
+    let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
+        .expect("rubric loads")
+        .standard;
+    let report =
+        score_slice_with_standard(&dir, &standard, ScoringEnv::Repo).expect("the slice scores");
+    let honest = format!(
+        "{}{}",
+        gmeow_slice_quality::report::corpus_fingerprint_nquads(
+            "blake3:0",
+            &gmeow_slice_quality::report::corpus_content_digest(std::slice::from_ref(
+                &report.assessment
+            )),
+        ),
+        report.to_gmeow_rdf()
+    );
+    // Control: the unedited record reads.
+    gmeow_slice_quality::read::read_recorded_corpus_bytes(honest.as_bytes(), &standard)
+        .expect("an unedited record reads");
+
+    // 1. Raise a score. Pick a graded axis scoring below 1 and rewrite its recorded
+    //    `math:quantityValue` to a perfect 1 — the exact hand-edit that used to pass.
+    let raised = report
+        .assessment
+        .grades
+        .iter()
+        .find(|g| g.score < 1.0)
+        .expect("the rubric slice is not perfect on every axis, so a score can be raised");
+    let victim = format!("<{MATH}quantityValue> \"{}\"", raised.score);
+    assert!(
+        honest.contains(&victim),
+        "the recorded score lexical must be present to edit: {victim}"
+    );
+    let tampered = honest.replacen(&victim, &format!("<{MATH}quantityValue> \"1\""), 1);
+    assert_ne!(tampered, honest, "the edit must actually change the record");
+    let err = gmeow_slice_quality::read::read_recorded_corpus_bytes(tampered.as_bytes(), &standard)
+        .expect_err("a hand-raised score must be REFUSED, never read as authoritative");
+    assert!(
+        err.to_string().contains("contentDigest"),
+        "the refusal names the violated witness: {err}"
+    );
+
+    // 2. Delete a whole slice's grades: every assessment line for the scored slice.
+    let deleted: String = honest
+        .lines()
+        .filter(|line| !line.contains("slice-quality/assessment/"))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    assert_ne!(deleted, honest, "the deletion must remove lines");
+    gmeow_slice_quality::read::read_recorded_corpus_bytes(deleted.as_bytes(), &standard)
+        .expect_err("a record with a slice's grades deleted must be REFUSED");
+
+    // 3. Delete the witness itself. An absent digest is unknowable vintage, not a pass.
+    let unwitnessed: String = honest
+        .lines()
+        .filter(|line| !line.contains("gmeow/contentDigest"))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    assert_ne!(unwitnessed, honest, "the witness line must be removed");
+    let err =
+        gmeow_slice_quality::read::read_recorded_corpus_bytes(unwitnessed.as_bytes(), &standard)
+            .expect_err("a record carrying no content digest must be REFUSED");
+    assert!(
+        err.to_string().contains("contentDigest"),
+        "the refusal names the missing witness: {err}"
     );
 }
 

@@ -197,6 +197,46 @@ gmeow:catalogTargetMinimum a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 # --------------------------------------------------------------------------- #
+# Residue-ratchet carve-out — the registered, countable exemptions.
+# --------------------------------------------------------------------------- #
+#
+# The projection-vocabulary residue ratchet (docs/PROJECTION-VOCABULARY-RATCHET.md)
+# guards a vocabulary only when it has ONE grounding slice as its authoring owner.
+# Two registered catalog families the grounding kernel bridges onto — PROV-O and
+# schema.org — are general publication vocabularies that ~60 domain slices align to
+# as ordinary by-reference correspondences, with no single owner, so they carry no
+# `gmeow:ProjectionVocabulary` and their rows enter no residue count, no ceiling,
+# and no monotonicity ratchet.
+#
+# That carve-out used to be a paragraph of prose: nothing counted it, nothing
+# bounded it, and rows could be added to it silently and indefinitely. These terms
+# make it a REGISTRY ROW like every other governance commitment in this file — a
+# typed individual naming the exempted family, stating why it has no owner, and
+# pinning how many shipped grounding correspondences currently ride the exemption.
+# Growing the carve-out is then an ontology edit that shows up in review, and a row
+# added without one reds the mappings stage.
+
+gmeow:ResidueRatchetExemption a owl:Class ;
+    rdfs:label "residue-ratchet exemption"@x-gmeow-english ;
+    skos:definition "One registered exemption of an external catalog family from the projection-vocabulary residue ratchet — a family whose terms domain slices may align to without an owner boundary, because the family is a general publication vocabulary with no single grounding-slice authoring home. It pairs the exempted gmeow:CatalogFamily with the reason it has no owner and the lower-only ceiling on how many shipped grounding correspondences may ride the exemption. It is NOT a gmeow:ProjectionVocabulary (that is the guarded case, this is the recorded absence of guarding) and NOT a gmeow:ProjectionCeilingCommitment (that caps a measured per-slice residue; this caps the size of the carve-out itself). An exempted family that later gains a single owner must be GUARDED and its exemption removed, never both."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptCatalogFamily a owl:ObjectProperty ;
+    rdfs:label "exempted catalog family"@x-gmeow-english ;
+    skos:definition "The gmeow:CatalogFamily this exemption covers. Exactly one per exemption, and unique across the registry: two exemptions for one family would each carry half the carve-out's size and hide growth between them. The family must be REGISTERED — an exemption naming no registered family exempts nothing and is a dead row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRationale a owl:DatatypeProperty ;
+    rdfs:label "exemption rationale"@x-gmeow-english ;
+    skos:definition "Why this family has no single grounding-slice owner and therefore cannot be guarded — the substantive argument, not a restatement of the fact. Mandatory: an exemption whose reason is not written down cannot be re-examined by a later reader, which is exactly how an undocumented carve-out becomes permanent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRowCeiling a owl:DatatypeProperty ;
+    rdfs:label "exemption row ceiling"@x-gmeow-english ;
+    skos:definition "The LOWER-ONLY ceiling on how many shipped grounding correspondences may target the exempted family — the ratchet that stops the carve-out growing silently. The value may fall as rows are grounded through a guarded owner and may never rise without a deliberate, reviewed ontology edit stating why the carve-out must widen. It has the OPPOSITE polarity to the same family's gmeow:catalogTargetMinimum (which may only rise): together they pin the exempt row count from both sides, so neither a silent addition nor a silent deletion passes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Projection profile inventory — the declared consumer down-projection surfaces.
 # --------------------------------------------------------------------------- #
 #
@@ -1066,6 +1106,7 @@ gmeow:ProfileBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionMapping gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ResidueRatchetExemption gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:SeqPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrMorePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrOnePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
@@ -1080,6 +1121,9 @@ gmeow:catalogNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:catalogOwner gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:catalogTargetMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:comment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptCatalogFamily gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRowCeiling gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:profileCellMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:profileSource gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .

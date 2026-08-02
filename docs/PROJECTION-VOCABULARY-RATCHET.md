@@ -106,6 +106,28 @@ repo-wide ownership decision, not a ratchet tightening. Both remain registered
 catalog families on the correspondence-law side (a grounding target must belong to
 exactly one registered family) while staying outside this residue ratchet.
 
+**The carve-out is a tracked record, not this paragraph.** Prose exempts nothing and
+counts nothing: with only this section, rows could be bridged onto an unguarded
+family one at a time, indefinitely, with nothing measuring the total. Each exemption
+is therefore a `gmeow:ResidueRatchetExemption` individual in
+`dsl/mappings/catalog-families.ttl` (vocabulary in `dsl/mappings/vocabulary.ttl`),
+in the same shape as every other registry commitment here — a typed row naming its
+`gmeow:exemptCatalogFamily`, stating its `gmeow:exemptRationale`, and pinning its
+`gmeow:exemptRowCeiling`. The mappings stage
+(`crates/pipeline/src/catalog_families.rs::check_residue_exemptions`) hard-fails on:
+
+* a shipped count ABOVE the ceiling — the carve-out grew (and the family's raise-only
+  `gmeow:catalogTargetMinimum` pins the same count from below, so a silently deleted
+  row is equally red);
+* an exemption for a family that IS guarded — the record may not outlive its reason;
+* an exemption naming no registered family — a dead row exempting nothing.
+
+The current membership is exactly two rows: PROV-O (ceiling 4) and schema.org HowTo
+(ceiling 7). `gmeow:exemptRowCeiling` is LOWER-ONLY, the same polarity as
+`gmeow:ceilingCount`: it falls as rows are grounded through an owned surface, and
+widening the carve-out means editing the ceiling deliberately, in review, with the
+reason written down.
+
 ## 4. The three ratchet invariants
 
 Let `measured(view, slice, vocab)` be the ungrounded residue from the shared

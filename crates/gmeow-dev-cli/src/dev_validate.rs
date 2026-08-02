@@ -164,17 +164,25 @@ pub fn validate(
 /// `stage-validate`'s recorded whole-corpus merged-SHACL verdict, admitted ONLY after
 /// it is proven to describe the current working tree.
 ///
-/// The proof is the input digest `stage-validate` stamps into `shacl.json`'s metadata:
-/// a content fold over every authored source file AND every member of the shape union
-/// it validated with. This recomputes that digest from disk — including
-/// `generated/shapes/*.ttl`, which `stage-validate` structurally never reads — so a
-/// committed shape file that has drifted from the bytes the pipeline produced and
-/// validated with makes the digests differ.
+/// The proof has TWO halves, because a record is only admissible if it was produced from
+/// this tree AND is what the producer wrote:
+///
+/// * **Freshness** — the input digest `stage-validate` stamps into `shacl.json`'s
+///   metadata: a content fold over every authored source file AND every member of the
+///   shape union it validated with. This recomputes that digest from disk — including
+///   `generated/shapes/*.ttl`, which `stage-validate` structurally never reads — so a
+///   committed shape file that has drifted from the bytes the pipeline produced and
+///   validated with makes the digests differ.
+/// * **Integrity** — the record digest, a fold over the verdict's OWN findings, rules,
+///   and metadata. The input digest cannot carry this: hand-deleting a violation from
+///   `shacl.json` leaves every validated input byte-identical, so freshness still holds
+///   while the verdict the gate reads is fabricated.
 ///
 /// Every failure here is HARD. An absent `shacl.json` is not "nothing to check"; a
 /// record with no digest is a record of unknowable vintage; a mismatch is a record of
-/// different bytes. None of them is a skip, and none of them is a pass: a caller that
-/// cannot obtain a proven-current verdict has not validated, and says so.
+/// different bytes; a record failing its own content digest is a record someone edited.
+/// None of them is a skip, and none of them is a pass: a caller that cannot obtain a
+/// proven-current verdict has not validated, and says so.
 fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
     let expected = gmeow_pipeline::stages::validate::on_disk_shacl_input_digest(root)
         .map_err(|e| fail(format!("cannot digest the SHACL input set: {e}")))?;
@@ -213,6 +221,16 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
             path.display(),
         )));
     }
+    // INTEGRITY, the half the input digest structurally cannot carry. The check above
+    // proves the record was produced from THESE bytes; it says nothing about the record.
+    // Hand-deleting a violation from `shacl.json` changes no validated input, so the input
+    // digest still matches exactly — and the gate would then pass on a verdict nobody
+    // produced. Recompute the verdict's fold over its own content and refuse a mismatch.
+    gmeow_pipeline::stages::validate::verify_shacl_record_digest(
+        &recorded,
+        &path.display().to_string(),
+    )
+    .map_err(|e| fail(e.to_string()))?;
     // The recorded findings are exactly `stage-validate`'s post-advisory-split set:
     // Info-severity results (advisory-constraint matches) were lifted out there and
     // re-projected as Notes, and Info NEVER contributed to an error count on either

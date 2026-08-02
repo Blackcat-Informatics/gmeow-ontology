@@ -53,8 +53,10 @@ use crate::render::{Site, render_site_lang};
 ///
 /// A cache file that is PRESENT but unreadable / undeserializable is an integrity
 /// violation (a corrupt or partial envelope, or a serde regression) — it panics
-/// loudly rather than silently rebuilding and masking it. Only a genuine absence
-/// is a legitimate miss that falls through to `discover()`.
+/// loudly rather than silently rebuilding and masking it. So is a file that
+/// deserializes but does not fold to the payload digest it carries: an entry EDITED
+/// after it was written (see [`verify_payload`]). Only a genuine absence is a
+/// legitimate miss that falls through to `discover()`.
 pub fn load(root: &Path) -> DocsModel {
     try_load(root).unwrap_or_else(|e| panic!("build docs model from live slices: {e}"))
 }
@@ -79,7 +81,7 @@ pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
                     cache_path.display()
                 )
             });
-            Ok(cached.into_model())
+            Ok(cached.into_model(&cache_path))
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             let model = DocsModel::discover(root)?;
@@ -159,7 +161,7 @@ fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site
                     cache_path.display()
                 )
             });
-            cached.into_site()
+            cached.into_site(cache_path)
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             let site = build();
@@ -258,11 +260,63 @@ fn book_cache_path(root: &Path) -> PathBuf {
         .join(format!("{key}.book.json"))
 }
 
-/// The serialized cache envelope. The model serializes with its i18n fields
-/// `#[serde(skip)]`ped (empty in JSON), so the three derived-from-catalog fields
-/// are carried alongside it explicitly and reattached on load.
+/// The digest an envelope carries over its OWN payload, and the guard that refuses a
+/// payload which does not fold to it.
+///
+/// The cache KEY content-addresses the INPUTS: it proves the entry was built from these
+/// slices, these shapes, this renderer. It says nothing about the entry, so an envelope
+/// edited on disk — `.cache/` is gitignored and persists across every branch — is served
+/// verbatim as if the model builder had produced it. The `DocMaturity` quality axis reads
+/// its whole coverage computation out of this cache, so an edited model is an edited
+/// grade. The payload digest closes that: the key says WHICH INPUTS, the digest says WHAT
+/// WAS CACHED, and a warm read requires both.
+///
+/// It is a fold over the payload's re-serialization rather than the raw file bytes, so it
+/// is invariant to JSON formatting while sensitive to every value a reader consumes.
+fn payload_digest<T: Serialize>(label: &str, payload: &T) -> String {
+    let bytes = serde_json::to_vec(payload)
+        .unwrap_or_else(|e| panic!("serializing the {label} cache payload for its digest: {e}"));
+    let mut hasher = Sha1::new();
+    hasher.update(b"gmeow-docs-fixture-payload\x1f");
+    hasher.update(label.as_bytes());
+    hasher.update(b"\x1e");
+    hasher.update(&bytes);
+    hex(&hasher.finalize())
+}
+
+/// Hard-fail unless `payload` folds to the `declared` digest its envelope carries.
+///
+/// An edited cache entry is corruption of the same class as an undeserializable one, and
+/// is treated identically: panic naming the file, never a silent rebuild that would mask
+/// it and never a quiet acceptance of the edited values.
+fn verify_payload<T: Serialize>(cache_path: &Path, label: &str, declared: &str, payload: &T) {
+    let live = payload_digest(label, payload);
+    assert!(
+        live == declared,
+        "tampered docs-fixture {label} cache at {}: it declares payload digest {declared} but \
+         its content folds to {live}. The entry was edited after it was written — delete the \
+         file (or run `rm -rf .cache/docs-fixture`) to rebuild; an edited cache entry is never \
+         served",
+        cache_path.display(),
+    );
+}
+
+/// The serialized cache envelope: the payload plus a digest OVER that payload.
+///
+/// The model serializes with its i18n fields `#[serde(skip)]`ped (empty in JSON), so the
+/// three derived-from-catalog fields are carried alongside it explicitly and reattached on
+/// load. `digest` is `#[serde(skip)]`ped OUT of the digested body by construction — it
+/// lives on the envelope, the body is what gets folded — so the fold has nothing circular
+/// in it.
 #[derive(Serialize, Deserialize)]
 struct CachedModel {
+    digest: String,
+    body: CachedModelBody,
+}
+
+/// The digested half of [`CachedModel`] — everything a loader reconstructs the model from.
+#[derive(Serialize, Deserialize)]
+struct CachedModelBody {
     model: DocsModel,
     available_languages: Vec<String>,
     translations: Translations,
@@ -271,21 +325,27 @@ struct CachedModel {
 
 impl CachedModel {
     fn from_model(model: &DocsModel) -> Self {
-        Self {
+        let body = CachedModelBody {
             model: model.clone(),
             available_languages: model.available_languages.clone(),
             translations: model.translations.clone(),
             ui_catalog: model.ui_catalog.clone(),
+        };
+        Self {
+            digest: payload_digest("model", &body),
+            body,
         }
     }
 
-    fn into_model(self) -> DocsModel {
-        let CachedModel {
+    /// Reconstruct the model, first proving the envelope carries the payload it claims.
+    fn into_model(self, cache_path: &Path) -> DocsModel {
+        verify_payload(cache_path, "model", &self.digest, &self.body);
+        let CachedModelBody {
             mut model,
             available_languages,
             translations,
             ui_catalog,
-        } = self;
+        } = self.body;
         model.available_languages = available_languages;
         model.translations = translations;
         model.ui_catalog = ui_catalog;
@@ -300,25 +360,30 @@ impl CachedModel {
 /// regression and hard-fails loudly on cache write.
 #[derive(Serialize, Deserialize)]
 struct CachedSite {
+    digest: String,
     files: BTreeMap<String, String>,
 }
 
 impl CachedSite {
     fn from_site(site: &Site) -> Self {
+        let files: BTreeMap<String, String> = site
+            .files
+            .iter()
+            .map(|(path, bytes)| {
+                let text = std::str::from_utf8(bytes)
+                    .unwrap_or_else(|e| panic!("rendered site file {path} is not UTF-8: {e}"));
+                (path.clone(), text.to_string())
+            })
+            .collect();
         Self {
-            files: site
-                .files
-                .iter()
-                .map(|(path, bytes)| {
-                    let text = std::str::from_utf8(bytes)
-                        .unwrap_or_else(|e| panic!("rendered site file {path} is not UTF-8: {e}"));
-                    (path.clone(), text.to_string())
-                })
-                .collect(),
+            digest: payload_digest("site", &files),
+            files,
         }
     }
 
-    fn into_site(self) -> Site {
+    /// Reconstruct the site, first proving the envelope carries the files it claims.
+    fn into_site(self, cache_path: &Path) -> Site {
+        verify_payload(cache_path, "site", &self.digest, &self.files);
         Site {
             files: self
                 .files
@@ -545,7 +610,40 @@ mod tests {
             "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
         );
         let site = Site { files };
-        assert_eq!(site, CachedSite::from_site(&site).into_site());
+        assert_eq!(
+            site,
+            CachedSite::from_site(&site).into_site(Path::new("<in-memory>"))
+        );
+    }
+
+    /// An envelope whose PAYLOAD was edited after it was written is refused, even though
+    /// it deserializes cleanly and its cache key is untouched.
+    ///
+    /// This is the whole point of the payload digest: the key content-addresses the
+    /// INPUTS, so editing the cached OUTPUT leaves it satisfied. `.cache/` is gitignored
+    /// and persists, so an entry edited once would keep being served — and the
+    /// `DocMaturity` quality axis reads its coverage computation straight out of it.
+    #[test]
+    #[should_panic(expected = "tampered docs-fixture site cache")]
+    fn an_edited_site_envelope_is_refused() {
+        let mut files = BTreeMap::new();
+        files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
+        let mut cached = CachedSite::from_site(&Site { files });
+        // The hand-edit: rewrite a cached page, leave the declared digest alone.
+        cached
+            .files
+            .insert("index.html".to_string(), "<h1>edited</h1>".to_string());
+        let _ = cached.into_site(Path::new("<in-memory>"));
+    }
+
+    /// The model envelope carries the same guard, over the whole reconstructed payload.
+    #[test]
+    #[should_panic(expected = "tampered docs-fixture model cache")]
+    fn an_edited_model_envelope_is_refused() {
+        let mut cached = CachedModel::from_model(&DocsModel::default());
+        // The hand-edit: claim a language the builder never found.
+        cached.body.available_languages.push("klingon".to_string());
+        let _ = cached.into_model(Path::new("<in-memory>"));
     }
 
     #[test]

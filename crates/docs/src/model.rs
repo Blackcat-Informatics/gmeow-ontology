@@ -293,6 +293,22 @@ pub enum DocsError {
     /// silent empty — a dropped `MappingSet` would leave relocated linkage
     /// resolving its set IRI to the raw filename.
     MappingSets(String),
+    /// A slice-owned mapping artifact (`mappings/*.ttl`, `ArtifactRole::Mapping`)
+    /// is present but will not parse as Turtle. Carries the owning slice IRI, the
+    /// slice-relative source path, and the parser diagnostic. A mapping file that
+    /// cannot be read contributes ZERO `gmeow:MappingSet` headers and ZERO
+    /// alignment cells; swallowing the parse error would silently subtract its
+    /// whole contribution from the published linkage index (the term-equivalence
+    /// count that evidences a relocation preserved the grounding corpus), so the
+    /// defect is raised here rather than absorbed into a smaller number.
+    MappingParse {
+        /// The owning slice IRI.
+        slice_iri: String,
+        /// The offending slice-relative mapping source path.
+        source_path: String,
+        /// The underlying Turtle parser diagnostic, preserved verbatim.
+        detail: String,
+    },
     /// The committed term content manifest
     /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
     /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
@@ -346,6 +362,16 @@ impl std::fmt::Display for DocsError {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
+            DocsError::MappingParse {
+                slice_iri,
+                source_path,
+                detail,
+            } => write!(
+                f,
+                "mapping artifact `{source_path}` in slice {slice_iri} will not parse as Turtle \
+                 (its mapping sets and alignment cells would silently vanish from the linkage \
+                 index): {detail}"
+            ),
             DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
             DocsError::CompetencyQuery(msg) => write!(f, "competency query file error: {msg}"),
             DocsError::MarkdownUtf8 {
@@ -2204,9 +2230,19 @@ impl DocsModel {
                 if artifact.role != ArtifactRole::Mapping {
                     continue;
                 }
-                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
-                    continue;
-                };
+                // Fail closed. A `mappings/*.ttl` that will not parse carries an
+                // unknown number of `gmeow:MappingSet` headers and alignment cells;
+                // skipping it silently subtracts every one of them from the linkage
+                // index with no diagnostic, so the published equivalence count drops
+                // and nothing says why. The count IS the evidence that the grounding
+                // corpus survived a relocation, so it may never be quietly wrong.
+                let store = parse_turtle_lenient(&artifact.content).map_err(|e| {
+                    DocsError::MappingParse {
+                        slice_iri: owner.clone(),
+                        source_path: artifact.logical_path.clone(),
+                        detail: e.to_string(),
+                    }
+                })?;
                 let (sets, links) = extract_mappings(&store, owner);
                 mapping_sets.extend(sets);
                 linkages.extend(links);

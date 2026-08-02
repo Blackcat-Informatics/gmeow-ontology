@@ -318,6 +318,207 @@ where
     Ok(measured)
 }
 
+/// One registered residue-ratchet exemption, as authored.
+///
+/// The complement of a guarded `gmeow:ProjectionVocabulary`: a catalog family the
+/// residue ratchet does NOT guard because it has no single grounding-slice owner, made
+/// countable so the carve-out cannot widen without a reviewed ontology edit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResidueExemption {
+    /// IRI of the `gmeow:ResidueRatchetExemption` individual (identity).
+    pub iri: String,
+    /// `gmeow:exemptCatalogFamily` — the exempted family's IRI.
+    pub family_iri: String,
+    /// `gmeow:exemptRationale` — why the family has no single owner.
+    pub rationale: String,
+    /// `gmeow:exemptRowCeiling` — the lower-only cap on the exempted family's shipped
+    /// grounding-correspondence count.
+    pub row_ceiling: usize,
+}
+
+/// Load the authored `gmeow:ResidueRatchetExemption` registry from `root` (the SAME
+/// file as the family registry — an exemption is a statement about a family, and
+/// splitting them would let one drift from the other).
+///
+/// Every binding is mandatory for the same reason the family loader's are: an
+/// exemption with no family exempts nothing, one with no rationale cannot be
+/// re-examined, and one with no ceiling bounds nothing.
+///
+/// # Errors
+/// A missing/unreadable/unparsable registry file, a malformed binding, a repeated
+/// single-valued binding, or a non-integer ceiling.
+pub fn load_residue_exemptions(root: &Path) -> Result<Vec<ResidueExemption>, gmeow_errors::Diag> {
+    let path = root.join(CATALOG_FAMILIES_PATH);
+    let bytes =
+        std::fs::read(&path).map_err(|e| registry_err(format!("read {}: {e}", path.display())))?;
+    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| registry_err(format!("parse {}: {e}", path.display())))?;
+
+    let exemption_type = format!("{GMEOW}ResidueRatchetExemption");
+    let family_p = format!("{GMEOW}exemptCatalogFamily");
+    let rationale_p = format!("{GMEOW}exemptRationale");
+    let ceiling_p = format!("{GMEOW}exemptRowCeiling");
+
+    let mut subjects: BTreeSet<String> = BTreeSet::new();
+    let mut family_of: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut rationale_of: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut ceiling_of: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for quad in dataset.owned_quads() {
+        let purrdf::RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            RDF_TYPE => {
+                if matches!(&quad.object, purrdf::RdfTerm::Iri(o) if *o == exemption_type) {
+                    subjects.insert(subject.clone());
+                }
+            }
+            p if p == family_p => {
+                let purrdf::RdfTerm::Iri(family) = &quad.object else {
+                    return Err(registry_err(format!(
+                        "{subject}: gmeow:exemptCatalogFamily must be a gmeow:CatalogFamily IRI"
+                    )));
+                };
+                family_of
+                    .entry(subject.clone())
+                    .or_default()
+                    .push(family.clone());
+            }
+            p if p == rationale_p => {
+                let purrdf::RdfTerm::Literal(lit) = &quad.object else {
+                    return Err(registry_err(format!(
+                        "{subject}: gmeow:exemptRationale must be a literal"
+                    )));
+                };
+                rationale_of
+                    .entry(subject.clone())
+                    .or_default()
+                    .push(lit.lexical_form.clone());
+            }
+            p if p == ceiling_p => {
+                let purrdf::RdfTerm::Literal(lit) = &quad.object else {
+                    return Err(registry_err(format!(
+                        "{subject}: gmeow:exemptRowCeiling must be an integer literal"
+                    )));
+                };
+                ceiling_of
+                    .entry(subject.clone())
+                    .or_default()
+                    .push(lit.lexical_form.clone());
+            }
+            _ => {}
+        }
+    }
+
+    let single = |map: &BTreeMap<String, Vec<String>>, iri: &str, property: &str| {
+        let values = map.get(iri).cloned().unwrap_or_default();
+        match values.len() {
+            1 => Ok(values.into_iter().next().expect("length checked")),
+            n => Err(registry_err(format!(
+                "{iri} has {n} {property} values — an exemption binds exactly one"
+            ))),
+        }
+    };
+
+    let mut out = Vec::new();
+    for iri in &subjects {
+        let family_iri = single(&family_of, iri, "gmeow:exemptCatalogFamily")?;
+        let rationale = single(&rationale_of, iri, "gmeow:exemptRationale")?;
+        let raw = single(&ceiling_of, iri, "gmeow:exemptRowCeiling")?;
+        let row_ceiling: usize = raw.parse().map_err(|_| {
+            registry_err(format!(
+                "{iri}: gmeow:exemptRowCeiling {raw:?} is not a non-negative integer"
+            ))
+        })?;
+        if rationale.trim().is_empty() {
+            return Err(registry_err(format!(
+                "{iri}: gmeow:exemptRationale is blank — an exemption whose reason is not \
+                 written down cannot be re-examined, which is how a carve-out becomes permanent"
+            )));
+        }
+        out.push(ResidueExemption {
+            iri: iri.clone(),
+            family_iri,
+            rationale,
+            row_ceiling,
+        });
+    }
+    out.sort_by(|a, b| a.iri.cmp(&b.iri));
+    Ok(out)
+}
+
+/// Gate the residue-ratchet carve-out: every exemption is well-formed, names a
+/// registered and genuinely UNGUARDED family, and bounds a shipped row count that has
+/// not grown past its `gmeow:exemptRowCeiling`.
+///
+/// `guarded_namespaces` is the guarded `gmeow:ProjectionVocabulary` namespace set (read
+/// from the ontology-resident rubric registry, never a Rust list). `measured` is the
+/// per-family shipped count [`check_target_catalogs`] returns.
+///
+/// Three hard failures, each closing a way the carve-out could widen unseen:
+///
+/// * an exemption naming an unregistered family — a dead row exempting nothing;
+/// * an exemption for a family that IS guarded — the record outlived its reason and
+///   would keep asserting an absence that is no longer true;
+/// * a measured count above the ceiling — a correspondence was added into the carve-out
+///   rather than onto a guarded, owned surface. Paired with the family's raise-only
+///   `gmeow:catalogTargetMinimum`, this pins the exempt row count from both sides.
+///
+/// # Errors
+/// As above; each names the exemption, the family, and the numbers.
+pub fn check_residue_exemptions(
+    families: &[CatalogFamily],
+    exemptions: &[ResidueExemption],
+    guarded_namespaces: &BTreeSet<String>,
+    measured: &BTreeMap<String, usize>,
+    context: &str,
+) -> Result<(), gmeow_errors::Diag> {
+    let mut seen: BTreeSet<&str> = BTreeSet::new();
+    for exemption in exemptions {
+        if !seen.insert(exemption.family_iri.as_str()) {
+            return Err(registry_err(format!(
+                "{context}: two gmeow:ResidueRatchetExemption rows cover {} — each would carry \
+                 half the carve-out's size and hide growth between them",
+                exemption.family_iri
+            )));
+        }
+        let Some(family) = families.iter().find(|f| f.iri == exemption.family_iri) else {
+            return Err(registry_err(format!(
+                "{context}: {} exempts {}, which is not a registered gmeow:CatalogFamily — a \
+                 dead exemption row exempts nothing",
+                exemption.iri, exemption.family_iri
+            )));
+        };
+        // Guarded ⇔ some guarded vocabulary namespace and the family's stem name the
+        // same surface (either may be the longer, more specific form).
+        if let Some(stem) = family.namespaces.iter().find(|stem| {
+            guarded_namespaces
+                .iter()
+                .any(|ns| stem.starts_with(ns.as_str()) || ns.starts_with(stem.as_str()))
+        }) {
+            return Err(registry_err(format!(
+                "{context}: {} exempts {} ({}) from the residue ratchet, but {stem} IS a guarded \
+                 gmeow:ProjectionVocabulary surface — a family is guarded or exempt, never both. \
+                 Remove the exemption now that the vocabulary has an owner",
+                exemption.iri, exemption.family_iri, family.name
+            )));
+        }
+        let count = measured.get(&family.name).copied().unwrap_or(0);
+        if count > exemption.row_ceiling {
+            return Err(registry_err(format!(
+                "{context}: the residue-ratchet carve-out GREW — {} ({}) now carries {count} \
+                 shipped grounding correspondence(s), above its gmeow:exemptRowCeiling {}. Rows \
+                 riding an exemption sit under no residue count, no ceiling and no monotonicity \
+                 ratchet, so the carve-out may not widen implicitly: ground the new row through \
+                 an owned, guarded surface, or raise the ceiling deliberately and say why",
+                exemption.iri, family.name, exemption.row_ceiling
+            )));
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -357,6 +558,145 @@ mod tests {
         .expect_err("an unregistered target must hard-fail");
         assert!(
             error.to_string().contains("belongs to 0 registered"),
+            "unexpected message: {error}"
+        );
+    }
+
+    /// The guarded `gmeow:ProjectionVocabulary` namespace set, read from the
+    /// ontology-resident rubric registry exactly as the production gate reads it.
+    fn guarded_namespaces() -> BTreeSet<String> {
+        gmeow_slice_quality::load_repo_rubric(&repo_root())
+            .expect("the rubric registry loads")
+            .floors
+            .vocabularies
+            .iter()
+            .flat_map(|vocab| vocab.namespaces.iter().cloned())
+            .collect()
+    }
+
+    /// The authored carve-out is well-formed, and every exempted family is genuinely
+    /// UNGUARDED — the record describes a real absence, not a stale claim.
+    #[test]
+    fn the_authored_carve_out_is_registered_and_genuinely_unguarded() {
+        let families = load_catalog_families(&repo_root()).expect("registry loads");
+        let exemptions = load_residue_exemptions(&repo_root()).expect("exemptions load");
+        assert!(
+            !exemptions.is_empty(),
+            "the carve-out is a REGISTRY, not prose: the exempted families must be rows"
+        );
+        // Every exemption carries a substantive reason, not a restatement.
+        for exemption in &exemptions {
+            assert!(
+                exemption.rationale.len() > 80,
+                "{} states no substantive reason: {:?}",
+                exemption.iri,
+                exemption.rationale
+            );
+        }
+        // Measured exactly at the pinned ceiling: the carve-out is at its recorded size.
+        let measured: BTreeMap<String, usize> = exemptions
+            .iter()
+            .map(|e| {
+                let family = families
+                    .iter()
+                    .find(|f| f.iri == e.family_iri)
+                    .unwrap_or_else(|| panic!("{} names an unregistered family", e.iri));
+                (family.name.clone(), e.row_ceiling)
+            })
+            .collect();
+        check_residue_exemptions(
+            &families,
+            &exemptions,
+            &guarded_namespaces(),
+            &measured,
+            "unit",
+        )
+        .expect("the authored carve-out holds its own ceilings and names no guarded family");
+    }
+
+    /// The carve-out cannot widen implicitly: ONE more shipped correspondence onto an
+    /// exempted family reds, because a row riding an exemption is a row under no residue
+    /// count, no ceiling, and no monotonicity ratchet.
+    #[test]
+    fn a_grown_carve_out_hard_fails() {
+        let families = load_catalog_families(&repo_root()).expect("registry loads");
+        let exemptions = load_residue_exemptions(&repo_root()).expect("exemptions load");
+        let guarded = guarded_namespaces();
+        for exemption in &exemptions {
+            let family = families
+                .iter()
+                .find(|f| f.iri == exemption.family_iri)
+                .expect("registered");
+            let measured: BTreeMap<String, usize> =
+                BTreeMap::from([(family.name.clone(), exemption.row_ceiling + 1)]);
+            let error = check_residue_exemptions(
+                &families,
+                std::slice::from_ref(exemption),
+                &guarded,
+                &measured,
+                "unit",
+            )
+            .expect_err("one more row into the carve-out must hard-fail");
+            assert!(
+                error.to_string().contains("carve-out GREW"),
+                "unexpected message: {error}"
+            );
+        }
+    }
+
+    /// An exemption for a family that IS guarded is refused — the record may not outlive
+    /// its reason and keep asserting an absence that has since been closed.
+    #[test]
+    fn an_exemption_for_a_guarded_family_hard_fails() {
+        let families = load_catalog_families(&repo_root()).expect("registry loads");
+        let guarded = guarded_namespaces();
+        // P-Plan is guarded (it has a single logic: owner), so exempting it is a lie.
+        let pplan = families
+            .iter()
+            .find(|f| f.name == "P-Plan")
+            .expect("P-Plan is registered");
+        let stale = ResidueExemption {
+            iri: "https://blackcatinformatics.ca/gmeow/residueExemption-stale".to_string(),
+            family_iri: pplan.iri.clone(),
+            rationale: "a reason that no longer holds because the vocabulary gained an owner"
+                .to_string(),
+            row_ceiling: 99,
+        };
+        let error = check_residue_exemptions(
+            &families,
+            std::slice::from_ref(&stale),
+            &guarded,
+            &BTreeMap::new(),
+            "unit",
+        )
+        .expect_err("exempting a guarded family must hard-fail");
+        assert!(
+            error.to_string().contains("guarded or exempt, never both"),
+            "unexpected message: {error}"
+        );
+    }
+
+    /// An exemption naming no registered family is a dead row that exempts nothing.
+    #[test]
+    fn a_dangling_exemption_hard_fails() {
+        let families = load_catalog_families(&repo_root()).expect("registry loads");
+        let dangling = ResidueExemption {
+            iri: "https://blackcatinformatics.ca/gmeow/residueExemption-ghost".to_string(),
+            family_iri: "https://blackcatinformatics.ca/gmeow/catalogFamily-nonexistent"
+                .to_string(),
+            rationale: "a reason attached to nothing at all".to_string(),
+            row_ceiling: 0,
+        };
+        let error = check_residue_exemptions(
+            &families,
+            std::slice::from_ref(&dangling),
+            &guarded_namespaces(),
+            &BTreeMap::new(),
+            "unit",
+        )
+        .expect_err("a dangling exemption must hard-fail");
+        assert!(
+            error.to_string().contains("dead exemption row"),
             "unexpected message: {error}"
         );
     }

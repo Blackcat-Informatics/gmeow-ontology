@@ -4,6 +4,7 @@
 //! End-to-end slice scoring: assemble the slice graph, run every rubric axis, and
 //! build the assessment + the advisory report on the diagnostics substrate.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_errors::{Finding, Report, Rule, Severity, Standpoint, seed_codes};
@@ -673,9 +674,72 @@ impl SliceReport {
 pub(crate) const VERSION_FINGERPRINT: &str =
     "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 
+/// The `gmeow:contentDigest` predicate (core `sources` slice — domain-free, "a content
+/// hash of an object's bytes … the reliable identity by content") the corpus carries
+/// over ITS OWN recorded content.
+///
+/// [`VERSION_FINGERPRINT`] and this are answers to two different questions and neither
+/// substitutes for the other: the fingerprint says WHICH SOURCES were scored, this says
+/// WHAT WAS RECORDED. A record whose fingerprint still matches the tree but whose grades
+/// have been edited by hand satisfies the first and violates the second.
+pub(crate) const CONTENT_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/contentDigest";
+
+/// The canonical digest of the corpus's OWN recorded content: every scored slice, its
+/// per-axis (axis, exact score, tier) vector, and its roll-up tier.
+///
+/// This is a digest of the RECONSTRUCTION, not of the bytes — it folds exactly the
+/// grade vector [`crate::read::read_recorded_corpus`] rebuilds from the record, in a
+/// canonical (slice-IRI, then axis-IRI) order. Two consequences follow, and both are
+/// the point:
+///
+/// * It is serialization-independent. The emitter produces graph-labelled N-Quads and
+///   the fanout writes an unlabelled `.nt`; a byte digest would have to be recomputed
+///   across that re-serialization and would be fragile to every escaping or ordering
+///   detail. The reconstruction is identical across both, so producer and consumer
+///   compute the same value from different bytes.
+/// * It binds precisely the facts a reader acts on. Deleting a slice's assessment,
+///   raising one axis's score, or swapping a tier all change it; a comment or a label
+///   rewording does not, because no consumer grades on those.
+///
+/// The score is folded through [`exact_score`] — the same shortest round-tripping
+/// lexical the projection emits — so the value the reader reparses folds identically
+/// to the value the scorer produced, with no float-formatting drift.
+#[must_use]
+pub fn corpus_content_digest<'a>(
+    assessments: impl IntoIterator<Item = &'a SliceAssessment>,
+) -> String {
+    // Canonical order, independent of the order the sweep produced or the reader
+    // rebuilt: slice IRI, then axis IRI within a slice.
+    let by_slice: BTreeMap<&str, &SliceAssessment> = assessments
+        .into_iter()
+        .map(|a| (a.slice.as_str(), a))
+        .collect();
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-slice-quality-record-v1\x1e");
+    for (slice, assessment) in by_slice {
+        hasher.update(slice.as_bytes());
+        hasher.update(b"\x1f");
+        let mut grades: Vec<&AxisGrade> = assessment.grades.iter().collect();
+        grades.sort_by(|a, b| a.axis_iri.cmp(&b.axis_iri));
+        for grade in grades {
+            hasher.update(grade.axis_iri.as_bytes());
+            hasher.update(b"\x1f");
+            hasher.update(exact_score(grade.score).as_bytes());
+            hasher.update(b"\x1f");
+            hasher.update(grade.tier.iri.as_bytes());
+            hasher.update(b"\x1f");
+        }
+        hasher.update(b"rollup\x1f");
+        hasher.update(assessment.rollup.iri.as_bytes());
+        hasher.update(b"\x1e");
+    }
+    format!("blake3:{}", hasher.finalize().to_hex())
+}
+
 /// Project the corpus-level freshness witness: one `gmeow:versionFingerprint` on the
 /// assessment graph itself, recording the canonicalized digest of every authored file
-/// the sweep scored ([`crate::scored_input_fingerprint`]).
+/// the sweep scored ([`crate::scored_input_fingerprint`]), and one `gmeow:contentDigest`
+/// over the corpus's own recorded grades ([`corpus_content_digest`]).
 ///
 /// This is what lets a CONSUMER of the recorded corpus prove the record still
 /// describes the working tree instead of trusting that something regenerated it. The
@@ -684,16 +748,22 @@ pub(crate) const VERSION_FINGERPRINT: &str =
 /// current — the recomputation the gate no longer performs is replaced by a proof
 /// that the recomputation is unnecessary, never by an assumption that it is.
 ///
+/// The input fingerprint alone does not carry that proof, and this is exactly the hole
+/// the content digest closes: it attests the INPUTS, so hand-editing the record (raising
+/// a score, deleting a grade) leaves it satisfied. The `gmeow:contentDigest` attests the
+/// RECORD, so the reader refuses an edited one.
+///
 /// Emitted exactly ONCE per corpus (by [`crate::assessment_artifacts`] and by the dev
 /// CLI's RDF sweep), never per slice: it is a property of the whole scored source set.
 #[must_use]
-pub fn corpus_fingerprint_nquads(fingerprint: &str) -> String {
+pub fn corpus_fingerprint_nquads(fingerprint: &str, record_digest: &str) -> String {
     let graph = format!("<{SLICE_QUALITY_GRAPH}>");
     let subject = format!("<{}>", nq_iri(SLICE_QUALITY_GRAPH));
     let triple = |p: &str, o: &str| format!("{subject} <{p}> {o} {graph} .\n");
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
     let mut out = String::new();
     out.push_str(&triple(VERSION_FINGERPRINT, &literal(fingerprint)));
+    out.push_str(&triple(CONTENT_DIGEST, &literal(record_digest)));
     out.push_str(&triple(
         RDFS_LABEL,
         &literal("Slice-quality assessment corpus"),

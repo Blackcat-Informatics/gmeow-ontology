@@ -612,6 +612,85 @@ fn colliding_page_path_hard_fails_naming_both() {
     assert!(err.to_string().contains(iri_a) && err.to_string().contains(iri_b));
 }
 
+// ── 10c-bis. Hard-fail: an unparsable mapping artifact ──────────────────────────
+
+/// A well-formed `mappings/*.ttl` contributes its `gmeow:MappingSet` header and its
+/// alignment cells to the linkage index; the SAME file made unparsable hard-fails
+/// the model build with [`DocsError::MappingParse`] naming the slice and the path.
+///
+/// The negative half is the point: before this guard the loader matched
+/// `Ok(store)` and `continue`d on the error arm, so a broken mapping file
+/// subtracted every one of its sets and cells from the published counts with no
+/// diagnostic at all — the linkage index simply reported a smaller number.
+#[test]
+fn unparsable_mapping_artifact_hard_fails_naming_slice_and_path() {
+    const GOOD_MAPPING_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+gmeow:mapsetSynth
+    a gmeow:MappingSet ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/synth" ;
+    gmeow:sssomFile "gmeow-synth.sssom.tsv" .
+
+gmeow:SynthWidget skos:closeMatch <https://example.org/ext/Widget> {|
+    gmeow:sssomFile "gmeow-synth.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+"#;
+
+    // Positive: the mapping file parses, so its set and its one cell are carried.
+    let (_tmp, dir) = fresh_dir("mapping-ok");
+    write_slice(&dir, GUIDE_MD, None);
+    let mappings = dir.join("mappings");
+    std::fs::create_dir_all(&mappings).expect("mkdir mappings");
+    std::fs::write(mappings.join("equivalences.ttl"), GOOD_MAPPING_TTL).expect("write mapping");
+    let model = DocsModel::from_slice_dir(&dir).expect("a parsable mapping artifact loads");
+    assert_eq!(
+        model.linkages.len(),
+        1,
+        "the authored alignment cell reaches the linkage index"
+    );
+    assert_eq!(
+        model.mapping_sets.len(),
+        1,
+        "the authored mapping set reaches the index"
+    );
+
+    // Negative: the SAME artifact, corrupted, must refuse rather than drop both.
+    let (_tmp2, dir2) = fresh_dir("mapping-broken");
+    write_slice(&dir2, GUIDE_MD, None);
+    let mappings2 = dir2.join("mappings");
+    std::fs::create_dir_all(&mappings2).expect("mkdir mappings");
+    std::fs::write(
+        mappings2.join("equivalences.ttl"),
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:SynthWidget skos:closeMatch @@@ not { turtle ]] ;;;\n",
+    )
+    .expect("write malformed mapping");
+    let err = DocsModel::from_slice_dir(&dir2)
+        .expect_err("an unparsable mapping artifact must hard-fail, never silently contribute 0");
+    match &err {
+        DocsError::MappingParse {
+            slice_iri,
+            source_path,
+            ..
+        } => {
+            assert_eq!(slice_iri, SLICE_IRI, "the error names the owning slice");
+            assert!(
+                source_path.contains("equivalences.ttl"),
+                "the error names the offending path, got {source_path:?}"
+            );
+        }
+        other => panic!("expected MappingParse, got {other:?}"),
+    }
+    assert!(
+        err.to_string().contains("equivalences.ttl") && err.to_string().contains(SLICE_IRI),
+        "Display names both the path and the slice: {err}"
+    );
+}
+
 // ── 10d. Hard-fail: a dangling internal link ────────────────────────────────────
 
 /// A guide linking a within-slice markdown that names no document hard-fails

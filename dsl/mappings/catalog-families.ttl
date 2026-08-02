@@ -405,3 +405,40 @@ gmeow:catalogFamily-wikidata a gmeow:CatalogFamily ;
         <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:catalogTargetMinimum 146 .
+
+# ── residue-ratchet carve-out (gmeow:ResidueRatchetExemption) ─────────────────
+#
+# The projection-vocabulary residue ratchet
+# (docs/PROJECTION-VOCABULARY-RATCHET.md §3) guards a vocabulary only when ONE
+# grounding slice owns its authoring boundary. Two of the families above are
+# general publication vocabularies with no such owner, so they carry no
+# gmeow:ProjectionVocabulary and the correspondences onto them enter no residue
+# count, no per-slice ceiling and no monotonicity ratchet.
+#
+# That was a documented absence with nothing counting it. These rows make it a
+# registry commitment: each names the exempted family, states why it has no owner,
+# and pins the number of shipped grounding correspondences riding the exemption.
+# gmeow:exemptRowCeiling is LOWER-ONLY and the same family's
+# gmeow:catalogTargetMinimum is RAISE-ONLY, so together they pin the carve-out
+# from both sides — an added row and a deleted row are equally red. The mappings
+# stage enforces both, plus the invariant that a family may never be exempt AND
+# guarded (an exemption that outlives its reason reds instead of rotting).
+#
+# The forward path for both is the same and is deliberately NOT taken here:
+# guarding either one reclassifies hundreds of pre-existing, legitimate alignment
+# triples across dozens of (slice, vocabulary) cells as off-owner residue, each
+# needing a new ceiling. That is a repo-wide ownership decision, not a ratchet
+# tightening — so it is recorded, bounded, and left visible rather than done
+# silently or forgotten.
+
+gmeow:residueExemption-prov a gmeow:ResidueRatchetExemption ;
+    rdfs:label "residue-ratchet exemption — PROV-O"@x-gmeow-english ;
+    gmeow:exemptCatalogFamily gmeow:catalogFamily-prov ;
+    gmeow:exemptRationale "PROV-O is a general provenance-publication vocabulary that domain slices across the repository align to as ordinary by-reference correspondence records (Principle 5), so no one grounding slice is its authoring home. The kernel's logic:Plan / logic:Enactment rows onto it are grounding correspondences because their SUBJECTS are kernel terms — a fact about the source endpoint, which does not make logic: the catalog owner. Guarding it under logic: would reclassify the pre-existing prov: alignment triples authored across the domain slices as off-owner residue, each needing a new ceiling: a repo-wide ownership decision, not a ratchet tightening." ;
+    gmeow:exemptRowCeiling 4 .
+
+gmeow:residueExemption-schema-org a gmeow:ResidueRatchetExemption ;
+    rdfs:label "residue-ratchet exemption — schema.org HowTo"@x-gmeow-english ;
+    gmeow:exemptCatalogFamily gmeow:catalogFamily-schema-org ;
+    gmeow:exemptRationale "schema.org is a general web-publication vocabulary and the target of the shipped consumer down-projection profiles, aligned to by domain slices throughout the repository rather than authored at one grounding boundary, so it has no single owner. Its HowTo/HowToStep procedure surface is bridged from the kernel because the SUBJECTS are kernel terms, which does not make logic: the catalog owner. Guarding it under logic: would reclassify the pre-existing schema: alignment triples across the domain slices as off-owner residue, each needing a new ceiling: a repo-wide ownership decision, not a ratchet tightening." ;
+    gmeow:exemptRowCeiling 7 .

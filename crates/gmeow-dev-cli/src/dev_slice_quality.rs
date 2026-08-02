@@ -207,6 +207,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // The RDF projection concatenates validly (deterministic N-Quads, one graph), so
     // it is streamed into a single buffer and printed once.
     let mut rdf_out = String::new();
+    // The assessments behind `rdf_out`, retained so the corpus header can carry the
+    // `gmeow:contentDigest` fold over the grades it publishes (the record-integrity
+    // witness a reader recomputes). Populated only on the RDF path.
+    let mut rdf_assessments: Vec<SliceAssessment> = Vec::new();
     // The text default is the repo-wide PRIORITIZATION view (G12): the per-axis
     // profile vectors are collected here and, after the sweep, folded into the
     // deterministic Pareto-frontier + capping-axis prioritization. The assessment
@@ -220,7 +224,12 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                     Format::Text => {
                         profiles.push((report.assessment.clone(), report.advisories.len()));
                     }
-                    Format::Rdf => rdf_out.push_str(&report.to_gmeow_rdf()),
+                    Format::Rdf => {
+                        rdf_out.push_str(&report.to_gmeow_rdf());
+                        // The corpus header digests these grades, so the assessment
+                        // itself is retained, not just its rendered block.
+                        rdf_assessments.push(report.assessment.clone());
+                    }
                     // Json/Sarif are emitted once, after the loop, from `aggregate`.
                     Format::Json | Format::Sarif => {}
                 }
@@ -267,7 +276,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
             match gmeow_slice_quality::scored_input_fingerprint(root) {
                 Ok(fingerprint) => print!(
                     "{}{rdf_out}",
-                    gmeow_slice_quality::report::corpus_fingerprint_nquads(&fingerprint)
+                    gmeow_slice_quality::report::corpus_fingerprint_nquads(
+                        &fingerprint,
+                        &gmeow_slice_quality::report::corpus_content_digest(&rdf_assessments),
+                    )
                 ),
                 Err(e) => return fail(format!("slice-quality: {e}")),
             }
