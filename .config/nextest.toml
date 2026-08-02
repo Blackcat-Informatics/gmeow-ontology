@@ -123,12 +123,16 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-bundle-view) & test(/export::tests::export_produces_structurally_valid_artifacts/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
-# The console shell-agreement proof renders BOTH the static site shell and the book shell
-# off the same bundle and compares them control-for-control — two whole-bundle renders in
-# one test, ~72s standalone. It is the only executable observation binding the two shells
-# together, so it must run, not be trimmed to fit a budget sized for unit tests.
+# The console-producer proofs each render the WHOLE site off the merged bundle and then
+# assert over the emitted tree — the shell-agreement proof renders it twice, once as the
+# static shell and once as the book, and compares them control-for-control. Five of them
+# sit between 60s and 85s standalone, i.e. at or over a default sized for focused unit
+# tests, so under gate parallelism they starve and red for machine load rather than for a
+# broken assertion. The budget is scoped to the whole binary rather than to the individual
+# names: every heavy test here is heavy for the same reason, and naming them one at a time
+# means the next whole-bundle proof added to this file silently inherits the wrong budget.
 [[profile.default.overrides]]
-filter = 'package(gmeow-docs) & binary(console_producer) & test(static_and_mdbook_shells_agree)'
+filter = 'package(gmeow-docs) & binary(console_producer)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
