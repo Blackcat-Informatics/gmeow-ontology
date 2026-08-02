@@ -116,9 +116,10 @@ ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:sensoryResult logic:subPropertyOf gmeow:observationResult .
+    VALUES ?sub { logic:subPropertyOf rdfs:subPropertyOf }
+    gmeow:sensoryResult ?sub gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST be logic:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain." .
+    gmeow:saRationale "gmeow:sensoryResult MUST specialize gmeow:observationResult under EITHER subsumption spelling (the canonical logic:subPropertyOf or the legacy rdfs:subPropertyOf the module still carries) so generic consumers can query all observation results without knowing the domain." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
@@ -128,9 +129,10 @@ ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertio
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:sensoryObservationOf logic:subPropertyOf gmeow:observedFeature .
+    VALUES ?sub { logic:subPropertyOf rdfs:subPropertyOf }
+    gmeow:sensoryObservationOf ?sub gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST be logic:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST specialize gmeow:observedFeature under EITHER subsumption spelling (the canonical logic:subPropertyOf or the legacy rdfs:subPropertyOf the module still carries) so generic observation-about-X queries reach sensory observations." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;
