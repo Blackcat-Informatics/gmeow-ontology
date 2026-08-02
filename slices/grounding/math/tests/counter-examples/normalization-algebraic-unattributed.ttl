@@ -13,7 +13,7 @@
 @prefix ex:    <http://example.org/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:algebraicUnattributedSource a math:MathematicalExpression ;
+ex:algebraicUnattributedSource a math:NumberLiteral ;
     math:normalForm ex:algebraicUnattributedTarget ;
     math:literalValue "9"^^xsd:integer .
 

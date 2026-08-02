@@ -242,6 +242,7 @@ ex:radialDecayDomain a math:Set ;
 # indexed math:argumentSlot, math:VariableExpression, math:NumberLiteral). The radius r
 # is a single math:FreeVariableDeclaration the core branch's leaf resolves to.
 ex:radialArgument a math:FreeVariableDeclaration ;
+    math:variableDomain ex:radialDecayDomain ;
     rdfs:label "r — the radial argument of the piecewise profile"@x-gmeow-english .
 
 # Core branch (1 − r)² = Exponentiation( Subtraction(1, r), 2 ). Exponentiation and

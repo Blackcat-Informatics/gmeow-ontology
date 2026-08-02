@@ -13,11 +13,11 @@
 @prefix ex:    <http://example.org/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:semanticSource a math:MathematicalExpression ;
+ex:semanticSource a math:NumberLiteral ;
     math:normalForm ex:semanticTarget ;
     math:literalValue "10"^^xsd:integer .
 
-ex:semanticTarget a math:MathematicalExpression ;
+ex:semanticTarget a math:NumberLiteral ;
     math:literalValue "10"^^xsd:integer .
 
 ex:semanticDecl a math:NormalizationDeclaration ;

@@ -4,23 +4,41 @@
 # Single violation: a math:MathematicalExpression carrying a math:normalForm trigger edge
 # but none of the four structured-child edges (math:argumentSlot, math:boundVariable,
 # math:hasMathematicalSymbol, math:literalValue) — represented only by a string
-# (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the
-# (source, target) pair, held at math:structuralNormalization with EQUAL
-# math:structuralKey values on both ends, so this fixture stays isolated to ONLY this
-# violation and does not also trip math:UndeclaredNormalForm,
-# math:FalseStructuralNormalizationClaim, or the min-qualified-cardinality-1
-# restriction on math:normalizationStrength.
-@prefix math: <https://blackcatinformatics.ca/math/> .
-@prefix ex:   <http://example.org/math/> .
+# (math:StringOnlyComputableExpression).
+#
+# Isolation is carried by a FULLY ATTRIBUTED declaration at a strength ABOVE structural,
+# never by hand-written keys. The two expressions are distinct undecomposed nodes, so they
+# are not structurally identical and a math:structuralNormalization claim between them would
+# be false — the earlier form asserted one and papered over it with EQUAL invented
+# math:structuralKey literals on both ends, which only looked clean while the grammar had no
+# digest to compare them against. Held at math:commutativeNormalization with its procedure,
+# its holding gmeow:Observation and vantage, and its logic:preservationKind, the declaration
+# discharges math:UndeclaredNormalForm and math:UnattributedNormalization, engages neither
+# math:FalseStructuralNormalizationClaim (not a structural claim) nor
+# math:UndeclaredNormalizationStrength (exactly one ladder rung, named by IRI), and authors
+# no key to drift from.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
 
 ex:stringOnlyExpr a math:MathematicalExpression ;
-    math:normalForm ex:stringOnlyExprNormalForm ;
-    math:structuralKey "string-only-key" .
+    math:normalForm ex:stringOnlyExprNormalForm .
 
-ex:stringOnlyExprNormalForm a math:MathematicalExpression ;
-    math:structuralKey "string-only-key" .
+ex:stringOnlyExprNormalForm a math:MathematicalExpression .
 
 ex:stringOnlyExprDeclaration a math:NormalizationDeclaration ;
     math:normalizes ex:stringOnlyExpr ;
     math:normalizesTo ex:stringOnlyExprNormalForm ;
-    math:normalizationStrength math:structuralNormalization .
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:stringOnlyRewrite ;
+    logic:preservationKind logic:preservesSatisfiability .
+
+ex:stringOnlyRewrite a math:NormalizationProcedure .
+
+ex:stringOnlyObservation a gmeow:Observation ;
+    gmeow:observationResult ex:stringOnlyExprDeclaration ;
+    gmeow:observedFeature ex:stringOnlyExpr ;
+    gmeow:vantage ex:stringOnlyStandpoint .
+
+ex:stringOnlyStandpoint a gmeow:Standpoint , gmeow:Entity .

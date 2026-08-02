@@ -10,12 +10,12 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:declaredSource a math:MathematicalExpression ;
+ex:declaredSource a math:NumberLiteral ;
     math:normalForm ex:declaredTarget ;
     math:structuralKey "sum-x-y-v1" ;
     math:literalValue "1"^^xsd:integer .
 
-ex:declaredTarget a math:MathematicalExpression ;
+ex:declaredTarget a math:NumberLiteral ;
     math:structuralKey "sum-x-y-v1" ;
     math:literalValue "1"^^xsd:integer .
 

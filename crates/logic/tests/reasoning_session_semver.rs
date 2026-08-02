@@ -272,8 +272,13 @@ use session_common::*;
 /// expression-identity work together with main's RDF 1.2 statement-metadata lowering. Every
 /// contributing change is individually verdict-preserving on the fixed edge-only input, so
 /// only the identity moved.
+/// Re-blessed once more for the abstract expression base joining the root population, so a
+/// `math:structuralKey` authored on `math:MathematicalExpression` — the property's own declared
+/// domain — is compared against a computed digest instead of skipped. `physical/lower.rs` is a
+/// `BACKWARD_SOURCE` member; the fixed edge-only input carries no `math:` expression graph, so
+/// only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "2c885f093bc2bf542133e54618b52cbc3e5005947b71ea4073a1c0246e1b2281";
+    "d400e31601a44e140e713810142667beb35e131fe9d4c93aa1460dd55bd3779f";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -403,8 +408,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// expression-identity work together with main's RDF 1.2 statement-metadata lowering. Every
 /// contributing change is individually verdict-preserving on the fixed edge-only input, so
 /// only the identity moved.
+/// Re-blessed once more for the abstract expression base joining the root population, so a
+/// `math:structuralKey` authored on `math:MathematicalExpression` — the property's own declared
+/// domain — is compared against a computed digest instead of skipped. `physical/lower.rs` is a
+/// `BACKWARD_SOURCE` member; the fixed edge-only input carries no `math:` expression graph, so
+/// only the identity moved.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "b4de278ffe8c15bce39060686458106e71cdfa2207a911a553f8e6721b95af3e";
+    "8f1579f1c6e4c187e3ac9731fe5cf3d7c9cd81600a049da52cde21dbfc61d5f7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

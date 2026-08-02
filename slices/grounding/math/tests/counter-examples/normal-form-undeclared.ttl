@@ -10,7 +10,7 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:undeclaredSource a math:MathematicalExpression ;
+ex:undeclaredSource a math:NumberLiteral ;
     math:normalForm ex:undeclaredTarget ;
     math:literalValue "1"^^xsd:integer .
 

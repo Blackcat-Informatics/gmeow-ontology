@@ -783,6 +783,16 @@ impl MathGraph {
                     || self.has_type(subject, M_BINDING)
                     || self.has_type(subject, M_VARIABLE_EXPRESSION)
                     || self.has_type(subject, M_NUMBER_LITERAL)
+                    // The abstract base too. It is `math:structuralKey`'s DECLARED domain, and
+                    // leaving it out of the root population meant an authored key on such a node
+                    // reached no digest to compare against: `check_structural_key_drift` found no
+                    // entry and skipped it, so a hand-guessed digest — the exact thing the
+                    // property's own `gmeow:avoidWhen` forbids — passed the gate in silence. An
+                    // UNDECOMPOSED one lowers to its IRI leaf and has its key checked like any
+                    // other root; one carrying structure the abstract type gives no production to
+                    // walk is rejected and reported, rather than interned over content the
+                    // lowering never read.
+                    || self.has_type(subject, M_MATHEMATICAL_EXPRESSION)
             })
             .cloned()
             .collect()

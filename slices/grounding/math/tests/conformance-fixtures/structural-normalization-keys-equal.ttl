@@ -9,12 +9,12 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:equalKeySource a math:MathematicalExpression ;
+ex:equalKeySource a math:NumberLiteral ;
     math:normalForm ex:equalKeyTarget ;
     math:structuralKey "product-a-b-v1" ;
     math:literalValue "2"^^xsd:integer .
 
-ex:equalKeyTarget a math:MathematicalExpression ;
+ex:equalKeyTarget a math:NumberLiteral ;
     math:structuralKey "product-a-b-v1" ;
     math:literalValue "2"^^xsd:integer .
 

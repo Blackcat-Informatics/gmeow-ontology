@@ -14,11 +14,11 @@
 @prefix ex:    <http://example.org/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:algebraicSource a math:MathematicalExpression ;
+ex:algebraicSource a math:NumberLiteral ;
     math:normalForm ex:algebraicTarget ;
     math:literalValue "8"^^xsd:integer .
 
-ex:algebraicTarget a math:MathematicalExpression ;
+ex:algebraicTarget a math:NumberLiteral ;
     math:literalValue "8"^^xsd:integer .
 
 ex:algebraicDecl a math:NormalizationDeclaration ;

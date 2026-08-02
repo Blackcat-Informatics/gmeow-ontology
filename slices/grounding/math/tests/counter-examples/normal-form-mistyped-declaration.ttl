@@ -15,7 +15,7 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:mistypedSource a math:MathematicalExpression ;
+ex:mistypedSource a math:NumberLiteral ;
     math:normalForm ex:mistypedTarget ;
     math:literalValue "7"^^xsd:integer .
 

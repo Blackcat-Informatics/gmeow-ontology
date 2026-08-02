@@ -20,7 +20,7 @@
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-ex:strengthlessSource a math:MathematicalExpression ;
+ex:strengthlessSource a math:NumberLiteral ;
     math:normalForm ex:strengthlessTarget ;
     math:literalValue "6"^^xsd:integer .
 
