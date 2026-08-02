@@ -12751,7 +12751,7 @@ logic:frontierOfEnactment
 
 logic:SaturationWitness
     a owl:Class ;
-    rdfs:subClassOf logic:ReasoningResult ;
+    logic:subClassOf logic:ReasoningResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Saturation Witness"@x-gmeow-english ;
     skos:definition "The evidence that a derivation reached a FIXED POINT rather than a budget cut: the predicates whose extensions it proved final (logic:settledPredicate) and the budget they were proved under (logic:consumedBudget). It is a logic:ReasoningResult, so its computation axis is the kernel's existing logic:resultEvaluation rather than a second, witness-private notion of having finished. Typed APART from logic:FrontierEntry, and the distinction is operational, not tidiness: an entry is a candidate ACTION offered to an operator, a witness is a claim ABOUT the roster of them, so a witness typed as an entry becomes a phantom row an operator can be asked to perform."@x-gmeow-english ;

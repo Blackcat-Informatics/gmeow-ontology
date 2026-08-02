@@ -1451,7 +1451,7 @@ ASK {
   logic:ResourceLease a owl:Class .
   logic:RevisionLens a owl:Class .
   logic:SaturationWitness a owl:Class ;
-    rdfs:subClassOf logic:ReasoningResult .
+    logic:subClassOf logic:ReasoningResult .
   logic:SearchFragment a logic:AbstractIndividualType ;
     a owl:Class ;
     logic:subClassOf logic:QualityValue .
