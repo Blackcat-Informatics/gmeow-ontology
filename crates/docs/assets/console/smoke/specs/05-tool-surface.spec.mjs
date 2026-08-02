@@ -29,6 +29,13 @@ test("the argument table covers exactly the derived read surface", async ({ app 
 });
 
 test("every read tool dispatches through the assembled worker and answers", async ({ app }) => {
+  // This is 32 real round-trips through the assembled worker and the wasm engine, one
+  // per derived pane, and driving all of them IS the assertion — a subset would prove a
+  // subset. It measures ~4.2 minutes alone, so the suite-wide budget leaves it barely
+  // twice its own runtime and it dies of the clock on a loaded host rather than of a
+  // broken dispatch. Give it room proportional to what it actually does; the run still
+  // fails loudly, just for the right reason.
+  test.setTimeout(1_800_000);
   const policy = await app.call("action_policy", {});
   const { panes } = await app.page.evaluate(async (nquads) => {
     const { actionPolicyPanes } = await import("/assets/mcp-transport.mjs");

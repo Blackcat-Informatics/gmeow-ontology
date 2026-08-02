@@ -254,3 +254,19 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::/) | test(/stages::mappings::tests::/) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The two translated-tree proofs render the WHOLE site a second time in another
+# language and then compare the two trees path-for-path — a full render plus a full
+# cross-language walk, ~42s each standalone. That is under the default in isolation
+# and over it under gate parallelism, which is the shape that reds for machine load
+# rather than for a broken assertion. Same backstop as the sibling whole-tree proofs.
+[[profile.default.overrides]]
+filter = 'package(gmeow-docs) & test(/french_tree_shares_the_english_path_graph|translated_tree_preserves_the_no_dangling_link_invariant/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The schema.org HowTo projection drives the prescription spine over the whole
+# assembled bundle — ~101s standalone, i.e. already past the default before any
+# contention. It belongs with the bundle-assembly class above.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/the_schema_org_howto_profile_projects_the_prescription_spine/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
