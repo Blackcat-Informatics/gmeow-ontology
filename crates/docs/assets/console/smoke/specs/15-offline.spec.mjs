@@ -13,11 +13,11 @@
 // what it actually put in the cache, and whether the console comes back without a network
 // were not.
 //
-// That gap is where the last defect lived — the shipped README claimed the 10 MB reasoning
+// That gap is where the last defect lived — the shipped README claimed the reasoning
 // segment was never fetched for a reader who only looks things up, while the worker
-// pre-cached it on install — and `cache.addAll` over a 56 MB tier is exactly the operation
-// that fails silently on a quota or a moved path, leaving a console that boots online and
-// dies offline.
+// pre-cached it on install — and `cache.addAll` over a tier of that size is exactly the
+// operation that fails silently on a quota or a moved path, leaving a console that boots
+// online and dies offline.
 //
 // So this spec runs in the ONE context in the lane with the worker enabled, and asserts the
 // three things the published section claims:

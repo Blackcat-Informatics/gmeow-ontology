@@ -94,7 +94,26 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:SensoryQuantity logic:subClassOf math:Quantity .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryQuantity MUST specialize math:Quantity so sensory semantics remain domain-specific without creating a second quantity authority." .
+    gmeow:saRationale "gmeow:SensoryQuantity MUST specialize math:Quantity on the logic: carrier so sensory semantics remain domain-specific without creating a second quantity authority. This cell guards the logic: spelling ONLY; the rdfs: twin the module also authors has its own cell below, so neither edge can be deleted while the other keeps the suite green." .
+
+# --- 4b. The rdfs: twin of that specialization survives (MUST) ----------------
+#
+# gmeow:SensoryQuantity is authored with BOTH spellings, and the two are guarded
+# separately on purpose. logic:subClassOf is normalized to rdfs:subClassOf only
+# downstream, so a logic:-only edge is invisible to every entailment-free reader
+# of raw module.ttl -- the RL harness and these structural cells among them.
+# Without this cell the rdfs: edge is guarded by nothing: deleting it leaves the
+# suite green while every raw reader silently loses the specialization.
+ex:saSensoryQuantityRdfsTwinSurvives a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SensoryQuantity rdfs:subClassOf math:Quantity .
+}""" ;
+    gmeow:saRationale "gmeow:SensoryQuantity MUST ALSO carry the rdfs:subClassOf math:Quantity edge, not only its logic: twin. The edge is authored in both spellings because logic:subClassOf is normalized to rdfs:subClassOf only downstream: a logic:-only edge is invisible to every raw, entailment-free reader of module.ttl, exactly as the sensoryResult and sensoryObservationOf subproperty cells record. Each authored axiom gets exactly one cell that reds when it is deleted, so neither spelling can be dropped under cover of the other." .
 
 ex:saSensoryQuantityNotLegacyEquivalent a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

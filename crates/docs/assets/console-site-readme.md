@@ -14,15 +14,25 @@ reader's page load costs, and what the worker stores so that reader can come bac
 Install pre-caches exactly that set with `cache.addAll`, which rejects the whole install if
 any member is missing — a partially cached shell is an offline surface that fails
 unpredictably later. The demand-loaded reasoning segment is deliberately **not** in it:
-pre-caching a 10 MB image at install would download it for every reader who only ever looks
-things up, and would make "demand-loaded" a claim the artifact contradicts. It is cached by
-the `fetch` handler the first time a pane actually asks for it, and is offline-available
-from that moment on.
+pre-caching it at install would download the whole reasoning image — its measured size is
+the demand-loaded total in the table below, and it is the largest single asset the tree
+carries — for every reader who only ever looks things up, and would make "demand-loaded" a
+claim the artifact contradicts. It is cached by the `fetch` handler the first time a pane
+actually asks for it, and is offline-available from that moment on.
+
+No magnitude for it is quoted here, and none is quoted anywhere else in this section. Every
+byte figure in this document comes from the measured table below, which is generated from
+the assembled tree on every render; a rounded figure typed into prose is a second source of
+truth that goes stale the first time an engine is re-vendored, and this section carried
+exactly that defect — a hand-typed size for the reasoning segment, still sitting here
+unchanged after the segment grew, a few lines above the generated measurement contradicting
+it. Rounding it correctly again would only restart the clock, so the producer now refuses to
+ship these sections if they contain a hand-authored byte magnitude at all.
 
 A service worker intercepts every request made by a page it controls, whatever the
 request's own path — so the engine assets one level up under `assets/` (shared with the
-documentation site, which is why the 7 MB core image is not duplicated) are cached and
-served here exactly like the shell is.
+documentation site, which is why the always-resident core image is not duplicated) are
+cached and served here exactly like the shell is.
 
 The cache name is a **BLAKE3 content digest of the assembled tree**. A cache keyed on the
 shell's entry count and path length would be reused by any rebuild that kept the same

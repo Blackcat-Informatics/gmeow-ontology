@@ -19,10 +19,13 @@
 // measures and publishes those two as separate numbers, because "what the worker stores" and
 // "what a page load costs" are different questions and one number cannot answer both.
 //
-// It deliberately does NOT carry the demand-loaded reasoning segment: pre-caching a 10 MB
-// image at install would download it for every reader who only ever looks things up, which
-// is exactly the cost the tiered engine exists to avoid, and it would make "demand-loaded" a
-// claim the artifact contradicts. The segment is cached by the `fetch` handler below, the
+// It deliberately does NOT carry the demand-loaded reasoning segment: pre-caching that image
+// at install would download the largest single asset in the tree for every reader who only
+// ever looks things up, which is exactly the cost the tiered engine exists to avoid, and it
+// would make "demand-loaded" a claim the artifact contradicts. Its size is not quoted here —
+// the README's generated table measures it, and a rounded figure typed into a comment goes
+// stale the next time the engine is re-vendored, as the one that stood here did. The segment
+// is cached by the `fetch` handler below, the
 // first time something actually asks for it.
 //
 // `BUILD` is a BLAKE3 content digest of the assembled tree, and it is the whole cache name.

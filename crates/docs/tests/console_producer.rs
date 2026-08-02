@@ -12,8 +12,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::ExecutableDocsData;
 use gmeow_docs::console::{
-    ByteReport, CONSOLE_PREFIX, Fetch, PRECACHE_CEILING_FACTOR, SITE_SECTIONS_MARKER,
-    console_files, fetch_tier, generated_build_digest, generated_shell, precache_ceiling,
+    ByteReport, CONSOLE_PREFIX, Fetch, NO_SIZE_GATE_DISCLOSURE, PRECACHE_CEILING_FACTOR,
+    SITE_SECTIONS_MARKER, console_files, fetch_tier, generated_build_digest, generated_shell,
+    hand_authored_byte_magnitudes, precache_ceiling,
 };
 use gmeow_docs::mdbook::render_book;
 use gmeow_docs::render::{
@@ -170,7 +171,8 @@ fn the_page_load_tier_is_strictly_inside_the_pre_cache() {
 ///
 /// This is the whole of the demand-loading decision, expressed over the artifact. The
 /// generated `SHELL` used to be the entire assembled key set, so `cache.addAll` fetched the
-/// 10 MB reasoning image on install — for every reader, including one who never reasons —
+/// whole reasoning image — the largest single asset in the tree — on install for every
+/// reader, including one who never reasons,
 /// while the README claimed the segment was "fetched only when a pane first needs a
 /// reasoning-segment tool". The measurement that motivated demand loading was falsified by
 /// the artifact that was supposed to implement it.
@@ -351,17 +353,75 @@ fn the_published_byte_table_is_measured_over_the_shipped_bytes() {
         "the ratio between the two published numbers is not the declared factor"
     );
     assert!(
-        readme.contains(&format!("× {PRECACHE_CEILING_FACTOR} ")),
+        readme.contains(&format!("× {PRECACHE_CEILING_FACTOR},")),
         "the published sentence must STATE the factor it is derived with, so a reader can \
          check the two numbers above it against each other"
     );
+
+    // The document must say what that derived number is NOT. It used to read "it bounds
+    // what `cache.addAll` downloads at install" — a claim of enforcement over a figure that
+    // is a fixed multiple of the very measurement it claimed to bound. The reasoning
+    // segment grew by megabytes, the ceiling floated up with it, and nothing could red:
+    // every check over the pair was `2n > n` or `measured ≤ 2 × measured`. The tautological
+    // assertions are gone; this is what replaced them, and unlike them it CAN red — restore
+    // the budget language, or drop the disclosure, and this fails.
     assert!(
-        readme.contains(&format!(
-            "({} % of headroom)",
-            (PRECACHE_CEILING_FACTOR - 1) * 100
-        )),
-        "the published headroom percentage must be generated from the same factor — the \
-         hard-coded 'plus ten percent' that this replaced contradicted the numbers above it"
+        readme.contains(NO_SIZE_GATE_DISCLOSURE),
+        "the shipped README no longer discloses that the pre-cache ceiling is a derived \
+         ratio and NOT a size-regression gate — a reader takes an unqualified 'ceiling' for \
+         a budget something enforces, and nothing here enforces one"
+    );
+    assert!(
+        !readme.contains("of headroom"),
+        "the README describes the derived ceiling as headroom again. Headroom is space \
+         beneath a limit; this number has no limit beneath it, because it is computed from \
+         the measurement it sits above and moves whenever that measurement does"
+    );
+    assert!(
+        !readme.contains("It bounds what"),
+        "the README claims the derived ceiling BOUNDS the install pre-cache. It does not: \
+         it is that measurement times a constant, so it rises with every byte added and \
+         bounds nothing"
+    );
+}
+
+/// The spliced deployed-site sections state NO hand-authored byte magnitude.
+///
+/// The gate on the exact defect that came back. `crates/docs/assets/console-site-readme.md`
+/// said "pre-caching a 10 MB image at install" twenty-two lines above a GENERATED table
+/// reading `12 373 564` for that same image, under a heading asserting "Nothing in this
+/// section is typed in" — the image had grown and the prose had not moved. An earlier commit
+/// had already closed this defect class once; the commit after it reopened it.
+///
+/// The producer refuses to splice sections carrying a magnitude at all, so this asserts over
+/// the SHIPPED document rather than over the authored source: whatever a reader ends up
+/// holding is what is checked. The only numbers the emitted README may state as sizes are
+/// the ones the measured table generates.
+#[test]
+fn the_spliced_site_sections_state_no_hand_authored_byte_magnitude() {
+    let files = console_files(&interactive_exec());
+    let readme = String::from_utf8(files["console/README.md"].clone()).unwrap();
+
+    let start = readme
+        .find("## Offline")
+        .expect("the spliced site sections open with the Offline heading");
+    let end = readme
+        .find("<!-- __GMEOW_CONSOLE_BYTE_TABLE__ -->")
+        .or_else(|| readme.find("*Generated by `crates/docs/src/console.rs`"))
+        .expect("the measured table is substituted into the spliced sections");
+    let prose = &readme[start..end];
+    assert!(
+        prose.contains("demand-loaded"),
+        "the slice must actually cover the offline contract for this check to be meaningful"
+    );
+    assert_eq!(
+        hand_authored_byte_magnitudes(prose),
+        Vec::<String>::new(),
+        "the deployed-site sections state a byte magnitude in prose. Every byte figure in \
+         that document is generated from the assembled tree; a typed one is a second source \
+         of truth that goes stale the next time an engine is re-vendored — which is what \
+         happened to the reasoning segment's size, in prose sitting directly above the \
+         measurement that contradicted it"
     );
 }
 

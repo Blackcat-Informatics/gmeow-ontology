@@ -112,6 +112,29 @@ const SITE_SECTIONS_SOURCE: &str = include_str!("../assets/console-site-readme.m
 /// this constant by construction rather than by anyone's arithmetic.
 pub const PRECACHE_CEILING_FACTOR: u64 = 2;
 
+/// The sentence the generated README publishes to say that the ceiling is NOT a budget.
+///
+/// Public so the acceptance assertion can require it verbatim in the shipped document. It
+/// exists because the previous sentence read "it bounds what `cache.addAll` downloads at
+/// install", which states a constraint, while [`precache_ceiling`] is a fixed multiple of
+/// the very measurement it claimed to bound — so the reasoning segment could grow by
+/// megabytes, the ceiling grew with it, and every assertion over the pair (`2n > n`,
+/// `measured ≤ 2 × measured`) held by arithmetic no input could disturb.
+///
+/// Payload size is deliberately not constrained here. That is a decision, and stating the
+/// decision is the honest artifact; a derived ratio dressed up as a gate is not. If a size
+/// regression ever needs to red something, what has to land is a PINNED budget — a number
+/// chosen independently of the measurement — and this sentence is what would come out.
+pub const NO_SIZE_GATE_DISCLOSURE: &str = "**That ratio is not a budget, and nothing in this \
+     repository gates a size regression of the console payload.** A ceiling derived as a \
+     fixed multiple of a measurement cannot bound that measurement: add bytes anywhere in \
+     the pre-cached tiers and this number rises with them, staying exactly the same factor \
+     away, so no growth can ever cross it. It TRACKS the measurement; it does not limit it. \
+     It is published only so that a reader comparing it with the total above can see that \
+     the relationship between them is an identity rather than a limit somebody chose. \
+     Constraining the payload is not a goal here — and if it becomes one, what has to land \
+     is a pinned budget independent of the measurement, not this ratio.";
+
 /// The published ceiling for a measured install pre-cache total.
 ///
 /// A DERIVED identity, not a pin: `measured × `[`PRECACHE_CEILING_FACTOR`]. It moves with
@@ -472,7 +495,102 @@ fn site_readme(files: &BTreeMap<String, Vec<u8>>) -> String {
         "crates/docs/assets/console/README.md no longer carries the {SITE_SECTIONS_MARKER} \
          marker — the deployed-site sections cannot be substituted"
     );
+    assert_eq!(
+        hand_authored_byte_magnitudes(SITE_SECTIONS_SOURCE),
+        Vec::<String>::new(),
+        "crates/docs/assets/console-site-readme.md states a byte magnitude in its prose. \
+         Every byte figure in that document is GENERATED from the assembled tree; a typed \
+         one is a second source of truth that goes stale the next time an engine is \
+         re-vendored, which is exactly what happened to the reasoning segment's size. Refer \
+         to the measured table instead of restating a number beside it"
+    );
     readme.replacen(SITE_SECTIONS_MARKER, SITE_SECTIONS_SOURCE.trim(), 1)
+}
+
+/// The units a hand-typed byte magnitude can be spelled in, longest spelling first.
+///
+/// Matched case-insensitively and longest-first, so `megabytes` is recognised before `b`
+/// could match its tail. Bare `b` is included because `8 MB` and `8b` are the same defect.
+const BYTE_UNITS: &[&str] = &[
+    "gigabytes",
+    "megabytes",
+    "kilobytes",
+    "gigabyte",
+    "megabyte",
+    "kilobyte",
+    "bytes",
+    "byte",
+    "gib",
+    "mib",
+    "kib",
+    "gb",
+    "mb",
+    "kb",
+    "b",
+];
+
+/// Every hand-authored byte magnitude in `text` — a number immediately followed by a byte
+/// unit — as the matched substrings, in order.
+///
+/// The gate on the spliced site sections, and the whole of it. `10 MB` sat twenty-two lines
+/// above a GENERATED table reading `12 373 564` under a heading asserting "Nothing in this
+/// section is typed in", because the image grew and the prose did not; the same class of
+/// defect had been closed once already and came back in the next commit. Prose cannot be
+/// kept in step with a measurement by remembering to retype it, so a magnitude in prose is
+/// refused outright and the reader is sent to the measured table.
+///
+/// Deliberately SYNTACTIC and unit-anchored: it catches `10 MB`, `10MB`, `1.5 GiB`,
+/// `12 373 564 bytes` and `8b`, and leaves alone the numbers that are not sizes — `icon-192`,
+/// `RDF-1.2`, `BLAKE3`, `start_url`. A number with no unit beside it is not a byte claim.
+#[must_use]
+pub fn hand_authored_byte_magnitudes(text: &str) -> Vec<String> {
+    let bytes = text.as_bytes();
+    let mut found = Vec::new();
+    let mut at = 0usize;
+    while at < bytes.len() {
+        // Anchor on a digit that starts a number (not one inside a longer token).
+        if !bytes[at].is_ascii_digit() || (at > 0 && is_number_body(bytes[at - 1])) {
+            at += 1;
+            continue;
+        }
+        // The numeral: digits, with `.`, `,`, `_` or a single space allowed BETWEEN digits,
+        // so grouped forms like `12 373 564` and `1.5` are one number rather than three.
+        let start = at;
+        let mut end = at;
+        while end < bytes.len()
+            && (bytes[end].is_ascii_digit()
+                || (matches!(bytes[end], b'.' | b',' | b'_' | b' ')
+                    && bytes.get(end + 1).is_some_and(u8::is_ascii_digit)))
+        {
+            end += 1;
+        }
+        at = end;
+        // The unit, after at most one separating space.
+        let unit_at = if bytes.get(end) == Some(&b' ') {
+            end + 1
+        } else {
+            end
+        };
+        let tail = &text[unit_at..];
+        if let Some(unit) = BYTE_UNITS.iter().find(|unit| {
+            tail.len() >= unit.len()
+                && tail[..unit.len()].eq_ignore_ascii_case(unit)
+                // A unit must END the word: `10 Mbps` and `3blind` are not byte claims.
+                && !tail[unit.len()..]
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_alphanumeric())
+        }) {
+            found.push(text[start..unit_at + unit.len()].to_string());
+        }
+    }
+    found
+}
+
+/// Whether `byte` continues a numeral or an identifier, so a digit after it does not start
+/// a fresh number (`icon-512` starts one; `blake3x2` does not start one at `2`).
+const fn is_number_body(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b',' | b'_')
 }
 
 /// The console's transport entry, as emitted into the SITE tree.
@@ -708,17 +826,29 @@ impl ByteReport {
         // numbers above it contradict. The sentence it replaced was hard-coded prose
         // ("plus ten percent of headroom") sitting directly under a pair of numbers whose
         // real ratio had drifted to 1.09609.
+        //
+        // What the sentence then SAID about that derived number was still false. It read
+        // "it bounds what `cache.addAll` downloads at install", which a reader takes for a
+        // budget somebody chose and something enforces. A fixed multiple of a measurement
+        // bounds nothing: the measured pre-cache moved by megabytes and the published
+        // ceiling moved with it, staying exactly the same factor away, and no assertion
+        // anywhere could have reddened — every check over it was of the form `2n > n`. So
+        // the document now says what the number is (a ratio that TRACKS the measurement)
+        // and says outright that no size-regression gate exists here, rather than
+        // presenting an identity as a limit.
         out.push_str(&format!(
             "\nThe install pre-cache ceiling is **{}** bytes — the pre-cache total above × \
-             {} ({} % of headroom). It is DERIVED from that measurement on every render, \
-             not pinned, so re-vendoring an engine moves both numbers together and this \
-             ratio stays exactly {}. It bounds what `cache.addAll` downloads at install, \
-             which is the two pre-cached sections together — not the page-load figure above \
-             it, which is smaller and is asserted separately against a recorded first load \
-             in a real browser.\n",
+             {}, recomputed from that same measurement on every render.\n\
+             \n{NO_SIZE_GATE_DISCLOSURE}\n\
+             \nThe measured figures above are the load-bearing ones, and they are asserted \
+             against reality rather than against each other: the assembled tree on disk must \
+             sum to the published totals, and a recorded first load in a real browser must \
+             fetch EXACTLY the published page-load set, checked in both directions. Those \
+             checks red when the artifact and this document disagree. What `cache.addAll` \
+             downloads at install is the two pre-cached sections together — not the \
+             page-load figure, which is smaller and is the one asserted against the \
+             browser's recorded wire log.\n",
             grouped(self.ceiling()),
-            PRECACHE_CEILING_FACTOR,
-            (PRECACHE_CEILING_FACTOR - 1) * 100,
             PRECACHE_CEILING_FACTOR,
         ));
         out
@@ -968,7 +1098,75 @@ mod tests {
             "the pre-cache set must be strictly larger than the page load — otherwise the \
              two published numbers are the same number under two headings"
         );
-        assert_eq!(report.ceiling(), report.precache_total() * 2);
+        // There is deliberately NO assertion here relating `ceiling()` to `precache_total()`.
+        // `ceiling()` IS `precache_total() × PRECACHE_CEILING_FACTOR` by definition, so
+        // `assert_eq!(report.ceiling(), report.precache_total() * 2)` — which stood here —
+        // restated the definition against a second hard-coded copy of the factor and no
+        // measurement could ever have reddened it. What the README publishes about that
+        // derived number IS asserted, in the producer acceptance lane, against the shipped
+        // prose: that it is the derived figure, and that the document says outright it is
+        // not a budget.
+    }
+
+    /// The AUTHORED site sections carry no hand-typed byte magnitude, anywhere in them.
+    ///
+    /// The total form of the gate — over the whole authored source, not over a slice of the
+    /// emitted document — because this test can see the private constant the producer
+    /// splices. `console_files` refuses to splice a source that fails this, so the check is
+    /// fail-closed at render time as well; this pins it as a named test so the reason it
+    /// exists is written down next to it rather than only inside a panic message.
+    #[test]
+    fn the_authored_site_sections_state_no_byte_magnitude() {
+        assert_eq!(
+            hand_authored_byte_magnitudes(SITE_SECTIONS_SOURCE),
+            Vec::<String>::new(),
+            "crates/docs/assets/console-site-readme.md states a byte magnitude in prose. It \
+             carried \"a 10 MB image\" twenty-two lines above a GENERATED table measuring \
+             that same image at 12 373 564 — under a heading asserting nothing in the \
+             section is typed in — because the engine grew and the sentence did not. Refer \
+             to the measured table; do not restate a number beside it"
+        );
+    }
+
+    /// The scanner catches real hand-typed magnitudes and leaves real prose alone.
+    ///
+    /// Pins the gate itself. A detector that finds nothing is indistinguishable from clean
+    /// prose, and the defect it exists to catch is one that already came back once.
+    #[test]
+    fn the_byte_magnitude_scanner_is_not_vacuous() {
+        for typed in [
+            "pre-caching a 10 MB image at install",
+            "the 7 MB core image is not duplicated",
+            "duplicating a 29 kB module",
+            "cache.addAll over a 56MB tier",
+            "a 1.5 GiB dataset",
+            "12 373 564 bytes on disk",
+            "an 8b header",
+        ] {
+            assert!(
+                !hand_authored_byte_magnitudes(typed).is_empty(),
+                "the scanner missed a hand-typed magnitude in {typed:?}"
+            );
+        }
+        for clean in [
+            "icon-192.png, icon-512.png and icon-maskable-512.png",
+            "a BLAKE3 content digest of the assembled tree",
+            "RDF-1.2 quoted triples over 38 tools",
+            "`display: standalone`, `start_url: \".\"`",
+            "the demand-loaded total in the table below",
+            "a 10 Mbps link",
+        ] {
+            assert_eq!(
+                hand_authored_byte_magnitudes(clean),
+                Vec::<String>::new(),
+                "the scanner flagged prose that states no byte magnitude: {clean:?}"
+            );
+        }
+        assert_eq!(
+            hand_authored_byte_magnitudes("a 10 MB image and a 7MB one"),
+            vec!["10 MB".to_string(), "7MB".to_string()],
+            "the scanner must report every magnitude it finds, in order"
+        );
     }
 
     /// The cache name is a digest of the BYTES: same paths + different bytes ⇒ new cache.

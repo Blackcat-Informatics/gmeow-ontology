@@ -193,13 +193,19 @@ async function assembledReadme(root) {
 }
 
 /**
- * The four generated numbers, parsed out of the assembled README's measured table.
+ * The three generated MEASUREMENTS, parsed out of the assembled README's measured table.
  *
  * They are separate numbers because they answer separate questions. The document used to
  * publish ONE — headed "First load — everything fetched before any pane runs" over a table
- * that also carried 8 MB of vendored purrdf, a PWA manifest and four icons, none of which a
- * page load fetches. `pageLoadTotal` is what a reader pays to open the console;
- * `precacheTotal` is what the worker stores at install, and the ceiling bounds that.
+ * that also carried the whole vendored purrdf engine, a PWA manifest and four icons, none of
+ * which a page load fetches. `pageLoadTotal` is what a reader pays to open the console;
+ * `precacheTotal` is what the worker stores at install.
+ *
+ * The README also publishes a pre-cache "ceiling", and it is deliberately NOT parsed here.
+ * It is `precacheTotal × 2`, recomputed from that same measurement on every render, so every
+ * assertion this lane could make against it — `ceiling > precacheTotal`,
+ * `measured <= ceiling` — is arithmetic that no input can disturb. Payload size is not
+ * gated; the shipped document now says so, and the Rust producer lane asserts that it does.
  */
 export async function publishedByteBudget(root) {
   const readme = await assembledReadme(root);
@@ -216,7 +222,6 @@ export async function publishedByteBudget(root) {
     pageLoadTotal: total("Page-load total", "page-load total"),
     installOnlyTotal: total("Install-only total", "install-only total"),
     precacheTotal: total("Install pre-cache total", "install pre-cache total"),
-    ceiling: number(/install pre-cache ceiling is \*\*([\d\s]+)\*\*/, "install pre-cache ceiling"),
   };
 }
 

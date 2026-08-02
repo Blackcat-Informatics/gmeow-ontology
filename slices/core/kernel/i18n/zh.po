@@ -281,6 +281,10 @@ msgctxt "https://blackcatinformatics.ca/gmeow/conceptExtent|http://www.w3.org/20
 msgid "ex:concept gmeow:conceptExtent ex:siteDistribution ."
 msgstr "示例：ex:concept gmeow:conceptExtent ex:siteDistribution ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptExtent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: an OUTPUT of the Galois derivation, never an input to it. Every statement here is computed from the surface/capability incidence stated elsewhere, so hand-editing one does not make a new claim — it makes the emitted lattice disagree with the table it came from, and the repair is to correct the incidence and re-derive. The range is the object column (gmeow:LossBearingProfile) and never another gmeow:FormalConcept: an extent lists surfaces, while the order BETWEEN concepts is recovered by comparing extents rather than stored as an edge. A surface's absence from an extent denies nothing about that surface — it records only that it misses at least one capability in this concept's intent."
+msgstr "范围：这是伽罗瓦推导的产物，绝不是它的输入。此处每一条陈述都由别处声明的表面／能力关联表计算得出，因此手工改动一条并不会构成新的主张——它只会让发布出来的格与其所依据的表相互矛盾，正确的修法是订正关联表并重新推导。值域是对象列（gmeow:LossBearingProfile），绝不会是另一个 gmeow:FormalConcept：外延列举的是表面，而概念之间的次序是通过比较外延还原出来的，并不作为一条边存储。某个表面不出现在某外延中，并不否定该表面的任何性质——它仅记录该表面至少缺少此概念内涵中的一项能力。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "concept intent"
 msgstr "概念内涵"
@@ -292,6 +296,10 @@ msgstr "派生形式概念之内涵中的一个属性——该概念外延中每
 msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:concept gmeow:conceptIntent gmeow:capabilityLiveSparql ."
 msgstr "示例：ex:concept gmeow:conceptIntent gmeow:capabilityLiveSparql ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptIntent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the attribute half of the SAME closed pair as gmeow:conceptExtent, not an independent capability list. It carries only what the WHOLE extent shares, so it is never the place to record what one surface can do — that belongs to the incidence the lattice was derived from. Being derived, it moves inversely to the extent: a concept further down the lattice has a larger intent and a smaller extent, which is why intent inclusion read backwards recovers the same order. The range is the gmeow:ProjectionCapability value vocabulary and nothing else — not a class, not a media type, not a gmeow:distributionFormat slug — because a capability is a property of the surface rather than of the content it renders."
+msgstr "范围：这是与 gmeow:conceptExtent 同属一个闭合对的属性一半，而不是一份独立的能力清单。它只承载整个外延共有的部分，因此绝不是记录某一个表面能做什么的地方——那属于该格所依据的关联表。既然是推导所得，它与外延反向变化：格中位置越低的概念，内涵越大而外延越小，这也正是内涵包含关系反向读取即可还原同一次序的原因。值域是 gmeow:ProjectionCapability 值词表，别无其他——不是类，不是媒体类型，也不是 gmeow:distributionFormat 标识——因为能力是表面的性质，而非它所呈现内容的性质。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/consumerInteractiveConsole|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "interactive console"
@@ -313,6 +321,10 @@ msgctxt "https://blackcatinformatics.ca/gmeow/distributionFamily|http://www.w3.o
 msgid "ex:site gmeow:distributionFamily ex:docRenderFamily ."
 msgstr "示例：ex:site gmeow:distributionFamily ex:docRenderFamily ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/distributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the declared range is the WHOLE of the formal constraint, and the absent domain is a deliberate EL-profile decision rather than an oversight — the two legitimate subjects are gmeow:DocumentationDistribution and gmeow:SiteSubAsset, which stand in no subsumption relation, so only prose can say so without pushing the derived shapes outside EL. A reader must therefore not conclude that any subject may carry a family. The value is the COARSE KIND an artifact shares with others, never its identity and never its serialization: two artifacts in one family carry different gmeow:distributionFormat slugs and different media types. That coarseness is load-bearing — the family, not the format, is what decides whether an artifact may declare a capability loss at all, since a rendering loses capabilities and a re-serialization does not."
+msgstr "范围：所声明的值域就是全部形式约束，而缺少定义域是出于 EL 配置的有意决定，并非疏漏——合法的主体只有两个，即 gmeow:DocumentationDistribution 与 gmeow:SiteSubAsset，二者之间没有任何包含关系，因此只有散文才能在不把派生形状挤出 EL 的前提下说明这一点。读者因而不可据此认为任何主体都能携带族。该取值是某个制品与其他制品共有的粗粒度种类，绝不是它的身份，也不是它的序列化形式：同一族中的两个制品会带有不同的 gmeow:distributionFormat 标识和不同的媒体类型。这种粗粒度是承重的——决定一个制品究竟能否声明能力损失的是族而非格式，因为渲染会丢失能力，而重新序列化不会。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "has sub-asset"
 msgstr "拥有子资产"
@@ -324,3 +336,7 @@ msgstr "本文档分发在其自身内部交付的一个可单独寻址的组件
 msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:site gmeow:hasSubAsset ex:reasonerEngine ."
 msgstr "示例：ex:site gmeow:hasSubAsset ex:reasonerEngine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: PACKAGING containment, not the generic mereology — it is deliberately not asserted under gmeow:partOf/gmeow:hasPart and carries no transitivity, so a component that itself encloses something does not thereby make that inner thing a sub-asset of the enclosing distribution; assert the enclosing edge you mean. Like the distribution it hangs off, the statement is SCHEMA-level: it says the component ships inside this surface, never what its bytes are in a given release, whose content digest belongs to the release instance record. The domain is gmeow:DocumentationDistribution rather than the wider gmeow:LossBearingProfile, because a sub-asset rides inside a shipped surface — a one-off render manifest is loss-bearing but ships nothing, so it cannot carry one."
+msgstr "范围：这是打包意义上的容纳关系，而非通用的部分—整体学——它有意不置于 gmeow:partOf／gmeow:hasPart 之下，也不带传递性；因此某个组件自身又包住了别的东西，并不会使那件内层之物成为外层分发件的子资产，请直接声明你所指的那条容纳边。与它所挂靠的分发件一样，该陈述处于模式层：它说的是该组件随这一表面一同交付，而绝不是它在某个具体发行版中的字节内容，后者的内容摘要属于发行实例记录。定义域是 gmeow:DocumentationDistribution，而不是更宽的 gmeow:LossBearingProfile，因为子资产是搭乘在已交付的表面之内的——一次性的渲染清单虽然承载损失，却并不交付任何东西，故不能携带子资产。"

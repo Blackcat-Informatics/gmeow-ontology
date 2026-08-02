@@ -137,6 +137,10 @@ msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/0
 msgid "ex:answer gmeow:derivedBy ex:searchCall ."
 msgstr "示例：ex:answer gmeow:derivedBy ex:searchCall ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: ATTRIBUTION, never endorsement — the edge records which call an assertion came out of and says nothing about whether that assertion is true, so an answer later refuted keeps this edge rather than losing it. No rdfs:domain is asserted, deliberately: the annotated subjects share no class, so nothing here checks that the subject is a statement rather than a thing, and that discipline belongs to whichever reification the recording harness uses. The range is a gmeow:ToolCall and nothing wider — a whole session, the requesting gmeow:ModelInvocation, and the bare gmeow:SoftwareAgent that was called are all out of scope, because only the call event carries the arguments and the verbatim payload an auditor has to read."
+msgstr "范围：这是归因，绝非背书——该边记录的是某条断言出自哪一次调用，对该断言是否为真只字不提；因此一个事后被驳倒的回答仍保留这条边，而不会失去它。此处有意不声明 rdfs:domain：被加注的主体并不共属同一个类，故这里并不检查主体是一条陈述还是一个事物，该项纪律属于记录用具所采用的那套具体化方案。值域是 gmeow:ToolCall，不会更宽——整个会话、发出请求的 gmeow:ModelInvocation，以及被调用的那个 gmeow:SoftwareAgent 本身，都在范围之外，因为只有调用事件才承载审计者必须阅读的参数与逐字负载。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "session store segment"
 msgstr "会话存储分段"
@@ -148,6 +152,10 @@ msgstr "本次调用的审计记录被追加到的那个只追加会话存储分
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:call gmeow:sessionStoreSegment \"0003\" ."
 msgstr "示例：ex:call gmeow:sessionStoreSegment \"0003\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a LOCATOR, not an ordering and not the payload. It names which segment holds the audit record, never an offset inside that segment, and comparing two identifiers is not a sanctioned way to order two calls — replay order comes from the store's append order and from the call's own gmeow:atTime, never from arithmetic on this literal. Nor is it a filesystem path: it names the store's own segment identity, so relocating or renaming the underlying files leaves the record true. Exactly one value per call (gmeow:sessionStoreSegmentFunctionality) — bytes that landed in two segments are a broken append, not a second value."
+msgstr "范围：这是一个定位符，既不是排序依据，也不是负载本身。它指明哪个分段保存着审计记录，而绝不是该分段内部的偏移量；比较两个标识符并非排定两次调用先后的许可方式——重放顺序来自存储的追加顺序以及调用自身的 gmeow:atTime，绝不来自对该字面量做算术。它也不是文件系统路径：它命名的是存储自身的分段标识，因此迁移或重命名底层文件不会使该记录失真。每次调用恰好一个取值（gmeow:sessionStoreSegmentFunctionality）——落入两个分段的字节是一次破损的追加，而不是第二个取值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sessionStoreSegment is functional"

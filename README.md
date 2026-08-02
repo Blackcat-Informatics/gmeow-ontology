@@ -253,12 +253,28 @@ server. Paste RDF 1.2, then parse, query, reason, validate, and serialize it in 
 
 | Package | What it is |
 |---|---|
-| [`@blackcatinformatics/gmeow-console`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-console) | the `<gmeow-console>` custom element |
-| [`@blackcatinformatics/gmeow-mcp-core-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-mcp-core-wasm) | the eagerly-loaded engine: parse, query, validate, serialize |
-| [`@blackcatinformatics/gmeow-mcp-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-mcp-wasm) | the reasoning segment, fetched on first use |
-| [`@blackcatinformatics/gmeow-validate-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-validate-wasm) | the Tier-1 SHACL validator and the GMN-1 codec validator |
-| [`@blackcatinformatics/gmeow-reason-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-reason-wasm) | the structured-DL chase on its own |
-| [`@blackcatinformatics/gmeow-gmn-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gmn-wasm) | the GMN-1 glyph codec |
+| `@blackcatinformatics/gmeow-console` | the `<gmeow-console>` custom element |
+| `@blackcatinformatics/gmeow-mcp-core-wasm` | the eagerly-loaded engine: parse, query, validate, serialize |
+| `@blackcatinformatics/gmeow-mcp-wasm` | the reasoning segment, fetched on first use |
+| `@blackcatinformatics/gmeow-validate-wasm` | the Tier-1 SHACL validator and the GMN-1 codec validator |
+| `@blackcatinformatics/gmeow-reason-wasm` | the structured-DL chase on its own |
+| `@blackcatinformatics/gmeow-gmn-wasm` | the GMN-1 glyph codec |
+
+**None of those six names resolves on the npm registry yet, which is exactly why none of them
+is a link here.** The names are not aspirational — they are the packaging contract, discovered
+from the shipped `package.json` manifests rather than restated in any list, and every gate
+that quantifies over the package set quantifies over these six. Publication is a separate act
+that has not happened. `.github/workflows/release.yml` performs it on `push` of a tag matching
+`v*`, after the native≡wasm parity lanes have proven the very bytes it is about to upload; the
+publish step then fails closed on a missing credential, erroring with
+`NPM_TOKEN secret is not configured` rather than skipping quietly and leaving a tagged release
+whose packages are silently absent from the registry. That secret is unprovisioned, so the
+first tag pushed with it in place is the moment these names begin to resolve. Linking them
+before then would put six registry pages in this README that answer 404 — a distribution
+channel asserted rather than shipped, which is the failure the fail-closed publish step exists
+to prevent in the pipeline and this paragraph exists to prevent in the prose. Until that tag,
+the way to run the console is the self-contained tree `gmeow-dev console-assemble` emits,
+which is the same payload the package will carry.
 
 The console's panes are not authored. It boots by asking the engine for its tool list and for
 the shipped action theory, then renders one pane per tool the ontology types as a read action —

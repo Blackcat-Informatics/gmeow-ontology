@@ -167,12 +167,23 @@ have to be known before THIS bundle is serialized). The design splits accordingl
 - `crates/gmeow-dev-cli/tests/docs_distribution_contract.rs` — the test-gated distribution
   contract enforcing every criterion above.
 
-## npm distribution — the six published packages
+## npm distribution — the six packages
 
 The release-asset channel above distributes **rendered documentation**. A second,
 disjoint channel distributes the **executable surfaces**: six scoped npm packages, all at
 the workspace version, all published from the `v*` tag by `.github/workflows/release.yml`
 *after* the native≡wasm parity lanes pass.
+
+**The channel is built and gated; it has not yet been opened.** None of the six exists on the
+registry — every name in the table below currently 404s there — because the workflow's
+`NPM_TOKEN` secret is unprovisioned. That is a credential, not a gap in the pipeline:
+`.github/workflows/release.yml` triggers on `push` with `tags: ["v*"]`, runs
+`make wasm-parity` as a prerequisite of the upload, and then fails
+closed, erroring with `NPM_TOKEN secret is not configured` rather than skipping the publish
+and leaving a tagged release with nothing on the registry behind it. Everything below
+therefore describes a distribution that is fully specified, fully gated, and reachable in one
+tag push — read it as the contract the first `v*` tag executes, not as a channel a reader can
+install from today.
 
 The split is by kind, not by taste. Five packages are **engines** — a `wasm32` image plus
 the thin ESM shim that adds the one-time async instantiation the synchronous wasm boundary
@@ -221,9 +232,12 @@ source file, so a package cannot be added without every gate below quantifying o
 
 ### CDN templates
 
-Both public npm CDNs serve these packages directly. Pin the version: an unpinned specifier
-resolves to whatever is latest at fetch time, which is a moving engine underneath a
-reasoned result.
+Both public npm CDNs mirror the registry, so once these packages are published each CDN
+serves them directly at the URLs below. Until the first `v*` tag uploads them, every one of
+those URLs resolves to a miss — they are the templates a consumer will use, kept here and
+drift-gated so they cannot rot into the wrong names or the wrong version, not links to fetch
+today. Pin the version: an unpinned specifier resolves to whatever is latest at fetch time,
+which is a moving engine underneath a reasoned result.
 
 | Package | jsDelivr | unpkg |
 |---|---|---|

@@ -95,6 +95,24 @@ deliberate exception is segment deferral, which is progress and is shown as such
 
 ## Install
 
+**This package is not on the npm registry yet.** Neither it nor any of the five engine
+packages beside it has ever been uploaded, so the command below does not resolve today. It
+is documented in advance because the package that will answer it is already built and
+already gated — `make npm-publish-dry` packs this manifest on every run and
+`make npm-consumable` installs the resulting tarball and re-proves the element against the
+INSTALLED bytes — and a README that waited for the upload would ship a distribution nobody
+could read the contract of.
+
+Publication happens on a version tag: `.github/workflows/release.yml` triggers on `push` with
+`tags: ["v*"]`, builds and proves every engine package through `make wasm-parity` FIRST, and
+only then publishes. Its publish step fails closed on the credential — an unset `NPM_TOKEN`
+is a named hard error (`NPM_TOKEN secret is not configured`), never a skipped upload that
+would leave a tagged release with no packages behind it. That token is unprovisioned, which
+is the whole of why the registry is empty; nothing about the packaging is waiting on anything
+else.
+
+Once the packages are published, install is exactly this:
+
 ```sh
 npm install @blackcatinformatics/gmeow-console
 ```
@@ -116,7 +134,7 @@ under `pkg/`: the browser transport, the client-side BLAKE3, the always-resident
 image, the demand-loaded reasoning segment, the integrity manifest, and the ontology
 snapshot itself. That payload is staged into the package by its own `prepack` step,
 straight out of `gmeow-dev console-assemble` — the one producer that assembles the console —
-so the published bytes are the assembled bytes and there is nothing to copy by hand.
+so the packed bytes are the assembled bytes and there is nothing to copy by hand.
 
 It does **not** ship the standalone *site* shell — `index.html`, `manifest.webmanifest` and
 `sw.mjs`, which `gmeow-dev console-assemble` emits into the deployed tree instead. `sw.mjs`
@@ -130,9 +148,12 @@ tree (where `console/pkg/mcp-transport.mjs` is a generated forwarder to the shar
 transport at a different snapshot with `configure({ assetBase })` if you have one; the
 default is the payload beside it.
 
-The engines are additionally published on their own, for a consumer that wants the wasm
+The engines are additionally packaged on their own, for a consumer that wants the wasm
 without the element: `@blackcatinformatics/gmeow-mcp-core-wasm` (first load) and
-`@blackcatinformatics/gmeow-mcp-wasm` (the demand-loaded reasoning segment).
+`@blackcatinformatics/gmeow-mcp-wasm` (the demand-loaded reasoning segment). They publish on
+the same tag, from the same workflow step, so there is no release in which the element is on
+the registry and the engines beside it are not — but like the element, they are unpublished
+until that tag runs with the token in place.
 
 ### No runtime CDN loading
 

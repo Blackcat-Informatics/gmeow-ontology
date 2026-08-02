@@ -137,6 +137,10 @@ msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/0
 msgid "ex:answer gmeow:derivedBy ex:searchCall ."
 msgstr "Exemple : ex:answer gmeow:derivedBy ex:searchCall ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: ATTRIBUTION, never endorsement — the edge records which call an assertion came out of and says nothing about whether that assertion is true, so an answer later refuted keeps this edge rather than losing it. No rdfs:domain is asserted, deliberately: the annotated subjects share no class, so nothing here checks that the subject is a statement rather than a thing, and that discipline belongs to whichever reification the recording harness uses. The range is a gmeow:ToolCall and nothing wider — a whole session, the requesting gmeow:ModelInvocation, and the bare gmeow:SoftwareAgent that was called are all out of scope, because only the call event carries the arguments and the verbatim payload an auditor has to read."
+msgstr "Portée : ATTRIBUTION, jamais approbation — l'arête enregistre de quel appel est issue une assertion et ne dit rien sur la vérité de cette assertion ; une réponse réfutée par la suite conserve donc cette arête au lieu de la perdre. Aucun rdfs:domain n'est déclaré, et ce délibérément : les sujets annotés ne partagent aucune classe, de sorte que rien ici ne vérifie que le sujet est un énoncé plutôt qu'une chose, et cette discipline relève de la réification qu'emploie le harnais d'enregistrement. Le codomaine est un gmeow:ToolCall et rien de plus large — une session entière, la gmeow:ModelInvocation demandeuse et le simple gmeow:SoftwareAgent appelé sont tous hors de portée, car seul l'événement d'appel porte les arguments et la charge utile textuelle exacte que doit lire un auditeur."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "session store segment"
 msgstr "segment du magasin de session"
@@ -148,6 +152,10 @@ msgstr "L'identifiant du segment en ajout seul du magasin de session auquel l'en
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:call gmeow:sessionStoreSegment \"0003\" ."
 msgstr "Exemple : ex:call gmeow:sessionStoreSegment \"0003\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a LOCATOR, not an ordering and not the payload. It names which segment holds the audit record, never an offset inside that segment, and comparing two identifiers is not a sanctioned way to order two calls — replay order comes from the store's append order and from the call's own gmeow:atTime, never from arithmetic on this literal. Nor is it a filesystem path: it names the store's own segment identity, so relocating or renaming the underlying files leaves the record true. Exactly one value per call (gmeow:sessionStoreSegmentFunctionality) — bytes that landed in two segments are a broken append, not a second value."
+msgstr "Portée : un LOCALISATEUR, ni un ordre ni la charge utile. Il nomme le segment qui contient l'enregistrement d'audit, jamais un décalage à l'intérieur de ce segment, et comparer deux identifiants n'est pas un moyen admis d'ordonner deux appels — l'ordre de relecture vient de l'ordre d'ajout du magasin et du gmeow:atTime propre à l'appel, jamais d'une arithmétique sur ce littéral. Ce n'est pas non plus un chemin de fichier : il nomme l'identité de segment propre au magasin, si bien que déplacer ou renommer les fichiers sous-jacents laisse l'enregistrement vrai. Exactement une valeur par appel (gmeow:sessionStoreSegmentFunctionality) — des octets ayant abouti dans deux segments constituent un ajout défectueux, non une seconde valeur."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sessionStoreSegment is functional"

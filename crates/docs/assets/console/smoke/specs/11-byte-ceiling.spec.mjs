@@ -8,17 +8,20 @@
 // fetches. Both are claims about a partition of the emitted tree. What neither can say is
 // what a browser opening `/console/` actually downloads — and the two came apart twice:
 //
-//   * the shipped README claimed the 10 MB reasoning segment was "never fetched at all for a
+//   * the shipped README claimed the reasoning segment was "never fetched at all for a
 //     reader who only looks things up" while the service worker pre-cached it on install;
 //   * the shipped README then headed the whole pre-cache set "First load — everything
-//     fetched before any pane runs", counting 8 MB of vendored purrdf, a PWA manifest and
-//     four icons that no page load asks for.
+//     fetched before any pane runs", counting the entire vendored purrdf engine, a PWA
+//     manifest and four icons that no page load asks for.
 //
 // So both sides are measured here, and the page-load claim is checked in BOTH directions:
 //
 //   * the GENERATED pre-cache set (the service worker's `SHELL`, which the producer emits
-//     from the emitted key set) is summed on disk and must equal the published pre-cache
-//     total and sit under the published ceiling;
+//     from the emitted key set) is summed on disk and must EQUAL the published pre-cache
+//     total. Equality against the bytes on disk is the whole of the claim: the README's
+//     published "ceiling" is that same total times a constant, so nothing here is asserted
+//     against it — see the note at the assertion, and `NO_SIZE_GATE_DISCLOSURE` in
+//     `crates/docs/src/console.rs` for what the shipped document now says about it;
 //   * a FRESH page load is recorded on the wire, and the recorded set must EQUAL the
 //     published page-load table — not merely be contained in it. Containment alone is what
 //     let a phantom row inflate the published number: nothing was ever required to fetch it.
@@ -43,11 +46,8 @@ function keyOf(pathname) {
   return pathname === "/console/" ? "console/index.html" : pathname.replace(/^\//, "");
 }
 
-test("the generated pre-cache set matches the published measurement and sits under the ceiling", async ({
-  assembled,
-}) => {
-  const { pageLoadTotal, installOnlyTotal, precacheTotal, ceiling } =
-    await publishedByteBudget(assembled);
+test("the generated pre-cache set matches the published measurement", async ({ assembled }) => {
+  const { pageLoadTotal, installOnlyTotal, precacheTotal } = await publishedByteBudget(assembled);
   const entries = (await generatedShell(assembled)).map(shellEntryPaths);
 
   let measured = 0;
@@ -67,12 +67,13 @@ test("the generated pre-cache set matches the published measurement and sits und
     "the page load must cost strictly less than the install pre-cache — one number under two " +
       "headings is the defect the split exists to close",
   ).toBeLessThan(precacheTotal);
-  expect(ceiling, "the published ceiling must exceed the published measurement").toBeGreaterThan(
-    precacheTotal,
-  );
-  expect(measured, `the assembled pre-cache is ${measured} bytes, over the ceiling`).toBeLessThanOrEqual(
-    ceiling,
-  );
+  // The published ceiling is DELIBERATELY not asserted against the measurement here. It is
+  // `precacheTotal × 2`, computed from that same measurement on every render, so
+  // `ceiling > precacheTotal` is `2n > n` and `measured <= ceiling` is
+  // `n <= 2n` once the equality two assertions up has held — neither could ever red, and
+  // both stood here while the reasoning segment grew by megabytes and the ceiling floated
+  // up behind it. What the ceiling IS, and the fact that no size-regression gate exists, is
+  // asserted where it belongs: over the shipped prose, in the Rust producer lane.
 });
 
 test("a fresh page load fetches EXACTLY the published page-load set", async ({
@@ -80,7 +81,7 @@ test("a fresh page load fetches EXACTLY the published page-load set", async ({
   origin,
   assembled,
 }) => {
-  const { pageLoadTotal, ceiling } = await publishedByteBudget(assembled);
+  const { pageLoadTotal } = await publishedByteBudget(assembled);
   const shell = new Set((await generatedShell(assembled)).map((entry) => shellEntryPaths(entry).url));
   const published = await publishedPageLoadAssets(assembled);
 
@@ -132,9 +133,9 @@ test("a fresh page load fetches EXACTLY the published page-load set", async ({
     expect(total, "the recorded wire total must EQUAL the published page-load total").toBe(
       pageLoadTotal,
     );
-    expect(total, `the browser fetched ${total} bytes on first load, over the ceiling`).toBeLessThanOrEqual(
-      ceiling,
-    );
+    // No ceiling assertion here either: `total` has just been pinned EQUAL to
+    // `pageLoadTotal`, which is a summand of the pre-cache total the ceiling is twice, so
+    // `total <= ceiling` follows arithmetically from the line above and reds on nothing.
     // Non-vacuity: the ontology snapshot dominates the page load, so a measurement that
     // somehow missed it would be meaningless.
     expect(fetched.get("/assets/gmeow.gts"), "the snapshot must be part of the measured load").toBeGreaterThan(
