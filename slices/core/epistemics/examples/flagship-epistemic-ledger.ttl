@@ -58,8 +58,8 @@ ex:evidenceSpan1 a gmeow:EvidenceSpan ;
 ex:chunk1 a gmeow:Chunk ;
     rdfs:label "retrieved chunk containing the meeting date"@x-gmeow-english ;
     gmeow:chunkOf ex:source1 ;
-    gmeow:spanStart 142 ;
-    gmeow:spanEnd 186 .
+    gmeow:spanStart "142"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "186"^^xsd:nonNegativeInteger .
 
 ex:source1 a gmeow:Document ;
     rdfs:label "team calendar entry"@x-gmeow-english ;

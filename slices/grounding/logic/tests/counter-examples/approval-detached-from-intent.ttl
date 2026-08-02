@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N7 - an approval commitment that binds no intent digest. Exact binding is what stops
+# an authorization for one thing licensing another; a commitment with no digest detaches
+# against anything. MUST trip logic:ApprovalCommitmentCompletenessConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:approvalNoDigest a logic:ApprovalCommitment ;
+    rdfs:label "an approval detached from any exact intent"@en .

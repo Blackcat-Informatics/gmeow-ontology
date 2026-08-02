@@ -146,7 +146,7 @@ authority for why the top row is the right next move.
    uplifted; do not fan out edits across unrelated slices.
 3. If any canonical source changed the bundle, regenerate under the
    land-one-at-a-time discipline: `generated/dist/gmeow.gts` is a git-ignored
-   product re-materialized by `make regen`, so `make regen` it in-PR and let
+   product re-materialized by `make check`, so run `make check` in-PR and let
    bundle-touching PRs land **one at a time** — and re-sync after integrating
    main — to avoid a stale-bundle race (Principle 7).
 

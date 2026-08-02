@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A model recommendation asserted AS PROOF — the third authority position, and the one
+# an advisory reaches without ever touching a pin.
+#
+# logic:Advisory's own definition bars it from three positions: authorizing a pin,
+# deciding an approval, and carrying a proof. The pin position has a shipped negative
+# (advisory-authorizes-a-pin.ttl). This is the proof position, which is the more
+# dangerous of the two precisely because nothing about the record LOOKS like an
+# authorization: the model output is simply typed logic:AuthorizationProof alongside
+# logic:Advisory and pointed at the intent whose licensing it claims to establish.
+# Downstream, "the intent has a proof" is true, checkable, and worthless — the proof
+# term is a recommendation, and a checker asked to recompute it can only re-run the
+# model and get another recommendation.
+#
+# What it costs in the world: the payment dispatches. Every subsequent audit finds an
+# authorization proof bound to the intent and stops looking, because that is what an
+# authorization proof is for.
+#
+# MUST trip logic:AdvisoryNeverAuthorityConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:modelSaysTheChargeIsInPolicy a logic:Advisory , logic:AuthorizationProof ;
+    rdfs:label "a model recommendation retyped as the proof that licensed the charge"@en ;
+    logic:advisoryAbout ex:payVendorStep ;
+    logic:proofEstablishes ex:payVendorIntent .

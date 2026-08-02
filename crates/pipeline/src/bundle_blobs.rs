@@ -17,7 +17,7 @@
 //! print PDF, the prompt snippets, the OKF export, and the JSON-LD-star /
 //! YAML-LD-star serializations — are deliberately NOT folded here: they are
 //! external, content-addressed distributions rendered by
-//! `make regen SYNC_OUTPUTS=docs` and published as release assets (re-embedding them
+//! `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` and published as release assets (re-embedding them
 //! in `gmeow.gts` is forbidden; see
 //! `docs/design/external-docs-distribution.md`). Their absence from the
 //! committed bundle is gated by the `documentation_projections_are_absent` test.
@@ -914,7 +914,7 @@ mod tests {
     // nothing.)
 
     /// Presentation projections are a hard negative contract for the committed
-    /// logical bundle: they are regenerated externally by `make regen SYNC_OUTPUTS=docs`.
+    /// logical bundle: they are regenerated externally by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
     #[test]
     fn documentation_projections_are_absent() {
         let snapshot = committed_snapshot();

@@ -42,19 +42,18 @@ fn lift_fixture(name: &str) -> PathBuf {
         .unwrap_or_else(|e| panic!("canonicalize math-lift fixture {}: {e}", path.display()))
 }
 
-/// A fresh, unique, empty scratch directory under the system temp dir.
-fn scratch(tag: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-math-lift-{tag}-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock is after the unix epoch")
-            .as_nanos()
-    ));
-    std::fs::create_dir_all(&dir).expect("create scratch dir");
-    dir
+/// A fresh, empty scratch directory owned by the returned [`tempfile::TempDir`].
+///
+/// The guard must be bound to a live local (`let (_tmp, dir) = scratch("tag");`)
+/// for the duration of the test: dropping it removes the directory and its
+/// contents, on success, on early return, and on panic alike.
+fn scratch(tag: &str) -> (tempfile::TempDir, PathBuf) {
+    let tmp = tempfile::Builder::new()
+        .prefix(&format!("gmeow-math-lift-{tag}-"))
+        .tempdir()
+        .expect("create scratch dir");
+    let dir = tmp.path().to_path_buf();
+    (tmp, dir)
 }
 
 /// Run one lift leaf over a committed fixture, assert exit `0`, and return the Turtle
@@ -288,11 +287,14 @@ fn failing_lift_finding(leaf: &str, source: &Path) -> serde_json::Value {
 
 /// A scratch R script that is a SYNTAX error (an unclosed call) — the malformed twin of the
 /// committed, well-formed-but-unliftable `unliftable.R`.
-fn malformed_r_script() -> PathBuf {
-    let dir = scratch("malformed-r");
+///
+/// The returned [`tempfile::TempDir`] owns the script: hold it for as long as the
+/// path is used, and the whole directory is removed when it drops.
+fn malformed_r_script() -> (tempfile::TempDir, PathBuf) {
+    let (tmp, dir) = scratch("malformed-r");
     let path = dir.join("unclosed-call.R");
     std::fs::write(&path, "x <- lm(mpg ~ wt\n").expect("write the malformed R fixture");
-    path
+    (tmp, path)
 }
 
 #[test]
@@ -321,7 +323,8 @@ fn distinct_lift_failures_mint_distinct_finding_fingerprints() {
     // single `finding_iri`, so the diagnostics substrate could not tell them apart and
     // `gmeow explain` conflated them.
     let wire = failing_lift_finding("lift-onnx", &lift_fixture("truncated.onnx"));
-    let r_parse = failing_lift_finding("lift-r", &malformed_r_script());
+    let (_malformed_tmp, malformed_r) = malformed_r_script();
+    let r_parse = failing_lift_finding("lift-r", &malformed_r);
     let r_unliftable = failing_lift_finding("lift-r", &lift_fixture("unliftable.R"));
 
     assert_eq!(wire["code"], "math.lift.onnx.wire");
@@ -375,7 +378,7 @@ fn a_missing_source_is_a_read_failure_not_a_lift_failure() {
 
 #[test]
 fn out_receives_exactly_the_bytes_stdout_emits() {
-    let dir = scratch("out");
+    let (_tmp, dir) = scratch("out");
     let out = dir.join("mtcars.ttl");
     gmeow()
         .args(["math", "lift-r"])
@@ -390,7 +393,6 @@ fn out_receives_exactly_the_bytes_stdout_emits() {
         lift_ok("lift-r", "mtcars.R"),
         "one product, two sinks: --out and stdout must be byte-identical"
     );
-    std::fs::remove_dir_all(&dir).expect("clean up scratch dir");
 }
 
 #[test]

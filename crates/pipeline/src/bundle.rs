@@ -19,7 +19,7 @@
 //! stages read them back by path. C4 swaps the CARRIER (a `BTreeMap<String,Vec<u8>>`
 //! in `StageProduct`) for the structured bundle WITHOUT changing the bytes any
 //! stage produces or reads — byte-identity of every committed artifact must hold
-//! (`make regen SYNC_MODE=check SYNC_OUTPUTS=generated`). To do that with zero behavioural change, the named
+//! (`make check-sync SYNC_MODE=check`). To do that with zero behavioural change, the named
 //! byte artifacts are stored INSIDE the bundle:
 //!
 //! * each artifact's bytes live in the bundle's [`ContentStore`] (the one owner of
@@ -116,6 +116,81 @@ pub enum PipelineHandle {
 /// TEMPORARY (C4): this whole byte-artifact lane is scaffolding that C2/C3/C5 retire
 /// per stage as they migrate to dataset/lane-native reads. Grep `byte-artifact lane`.
 const ARTIFACT_KIND: RdfLookasideKind = RdfLookasideKind::Blob;
+
+/// The logical-path prefix marking an INTERNAL dataflow artifact: bytes that exist
+/// only to travel from one stage to its declared consumers (`pipeline/base-graph.nq`,
+/// `pipeline/documentation.nq`, `pipeline/logic-projections.json`, …). They are NOT
+/// committed outputs — [`crate::run::run_full`]'s reconcile skips them — and they are
+/// the LARGEST entries on the byte-artifact lane (whole-dataset N-Quads serializations),
+/// so [`release_carrier`] drops exactly these once the producing stage's last declared
+/// consumer has run. ONE constant, read by both the reconcile and the release, so the
+/// two cannot drift into disagreeing about what "internal" means.
+pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
+
+/// Rebuild `bundle` retaining ONLY what a run OUTPUT needs: its COMMITTED
+/// byte-artifact-lane entries (every lane entry whose logical path does NOT start with
+/// [`INTERNAL_ARTIFACT_PREFIX`]).
+///
+/// Everything a DECLARED CONSUMER could have read is released: the frozen dataset (an
+/// empty one replaces it), the typed-handle lane, every by-reference blob record, the
+/// provenance sidecar, and every internal `pipeline/`-prefixed artifact. The scheduler
+/// calls this at each stage's drop-after-last-consumer point
+/// ([`crate::scheduler::last_consumer_levels`]); the resulting product is a TOMBSTONE —
+/// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
+/// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
+/// witness of the carrier that was released, not a fold over this residue.
+///
+/// Determinism: the surviving lane is rebuilt in the source lookaside's iteration order
+/// over a strict subset of its entries, so the operation is a pure, idempotent function
+/// of the input bundle. No stage can observe it — `exec_stage` hands a stage exactly the
+/// products it declared in `consumes()`, and the release happens only after the last
+/// such declarer has run.
+///
+/// # Errors
+/// A malformed artifact-resource content digest, or a lane entry whose bytes are missing
+/// from the content store, is a corrupt carrier — a HARD FAIL, never a silently shorter
+/// lane (no-optionality).
+pub fn release_carrier(
+    bundle: &PipelineBundle<PipelineHandle>,
+) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
+    let mut lookaside = RdfLookaside::default();
+    let mut blobs = ContentStore::new();
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
+        let (Some(name), Some(hex)) =
+            (resource.name.as_deref(), resource.content_digest.as_deref())
+        else {
+            continue;
+        };
+        if name.starts_with(INTERNAL_ARTIFACT_PREFIX) {
+            continue;
+        }
+        let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("release_carrier: malformed resource content digest {hex:?}"),
+            })
+        })?;
+        let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "release_carrier: byte-artifact lane entry {name} references content \
+                     digest {hex} which the bundle's content store does not hold"
+                ),
+            })
+        })?;
+        blobs.insert_checked(digest, bytes.clone()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("release_carrier: re-insert content-store blob: {e}"),
+            })
+        })?;
+        lookaside.resources.push(resource.clone());
+    }
+    Ok(PipelineBundle::new(
+        empty_dataset(),
+        lookaside,
+        Arc::new(blobs),
+        DatasetProvenance::new(),
+    ))
+}
 
 /// Build a `PipelineBundle<PipelineHandle>` carrying `artifacts` (logical path →
 /// bytes) in its byte-artifact lane: each artifact's bytes go into the content

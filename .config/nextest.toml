@@ -152,6 +152,19 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
+# from gmeow.gts twice — once directly for the projection assertions, once more inside
+# `check_superset` (the production entry point, kept so the gate's own composition is
+# exercised rather than only its parts) — then reads all 400+ materialized files back
+# off disk to compare. A single `project_bundle` over the current bundle measures ~71s,
+# so the pair sits past the 60s-x2 default kill by construction, not by load: it is the
+# same class as the sibling whole-bundle proofs above and gets the same 300s backstop.
+# It is maint-heavy-only (the default filter excludes it), which is why the overrun went
+# unseen — `make check` never ran it. Assertions unchanged; only the budget it is allowed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
@@ -173,6 +186,19 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # likewise starves past the 60s default. Same 300s backstop.
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(sssom_correspondence_parity) & test(sssom_lowering_matches_committed_corpus)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The OBI planned-process bridge proof drives BOTH producer legs — the typed
+# correspondence frontend and the SSSOM lowering — over the real corpus, reading
+# only authored sources. It measures ~118s uncontended, which lands inside the
+# 60s default group's 120s kill by a margin small enough that gate parallelism
+# alone decides it: it passed at 118s on a quiet box and timed out here under
+# load. That is a red on timing rather than on content, which is the failure the
+# host lock exists to prevent and the one that teaches people to re-run reds.
+# Same 300s backstop the sibling whole-corpus parity proofs use. The assertions
+# are unchanged; only the budget it is allowed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(obi_planned_process_projection)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]

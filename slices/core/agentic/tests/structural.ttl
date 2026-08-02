@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the agentic slice --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_agentic.py. Each assertion
+# runs as a SPARQL ASK over the agentic module graph (gmeow:scopeModule) under
+# the native Rust slicetest harness (crates/slicetest).
+#
+# Agentic is migrated: class stereotypes are logic:
+# (logic:Event), not gufo:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_double_valued_toolcall_violates_the_closed_world_twins -- SHACL validation
+#     call with error-text assertions; ExampleConformance, not a structural
+#     TBox assertion.
+#   test_example_answers_which_tool_under_which_invocation -- loads an
+#     external example file (examples/agent-trajectory.ttl) and executes a
+#     SELECT query over its result set; generated-artifact / SPARQL-result
+#     competency check, not expressible as a module-scoped ASK.
+#   test_memory_records_and_reads_tool_calls -- exercises the Memory Python
+#     class against a tmp_path GTS store; runtime/CLI check, not a TBox
+#     invariant.
+#   test_memory_applies_the_verbatim_or_digest_doctrine -- exercises the
+#     Memory Python class verbatim-or-digest branching; runtime/CLI check.
+#   test_mcp_triad_is_the_first_live_producer -- exercises MCP server
+#     store_claim/recall/revise_belief calls and inspects the written GTS;
+#     runtime/integration check, not a TBox invariant.
+#
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agentic/tests/> .
+
+# --- 1. ToolCall follows the ModelInvocation idiom (MUST) --------------------
+ex:saToolCallFollowsModelInvocationIdiom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ToolCall a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:ToolCall MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity -- the ModelInvocation idiom one level down." .
+
+# --- 2. Object-property ends: calledByInvocation and usedTool (MUST) ---------
+ex:saAgenticObjectPropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:calledByInvocation a owl:ObjectProperty ;
+        rdfs:domain gmeow:ToolCall ;
+        rdfs:range gmeow:ModelInvocation .
+    gmeow:usedTool a owl:ObjectProperty ;
+        rdfs:domain gmeow:ToolCall ;
+        rdfs:range gmeow:SoftwareAgent .
+}""" ;
+    gmeow:saRationale "gmeow:calledByInvocation and gmeow:usedTool MUST each be an owl:ObjectProperty with domain gmeow:ToolCall and the declared range -- one requesting invocation per call, one tool per call. Their functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
+
+# --- 3. Datatype-property ends: toolArguments and toolResult (MUST) ----------
+ex:saAgenticDatatypePropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:toolArguments a owl:DatatypeProperty ;
+        rdfs:domain gmeow:ToolCall ;
+        rdfs:range rdfs:Literal .
+    gmeow:toolResult a owl:DatatypeProperty ;
+        rdfs:domain gmeow:ToolCall ;
+        rdfs:range rdfs:Literal .
+}""" ;
+    gmeow:saRationale "gmeow:toolArguments and gmeow:toolResult MUST each be an owl:DatatypeProperty with domain gmeow:ToolCall and range rdfs:Literal -- verbatim-or-digest payloads, one per call. Their functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
+
+# --- 4. No unexpected ObjectProperty in the agentic module (MUST-NOT) --------
+#
+# Principle 5: produced entities link BACK via wasGeneratedBy -- the agentic
+# slice must never mint a forward output object property. Only
+# gmeow:calledByInvocation and gmeow:usedTool are permitted ObjectProperties.
+ex:saNoForwardOutputObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?p a owl:ObjectProperty ;
+        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+    FILTER (?p NOT IN (gmeow:calledByInvocation, gmeow:usedTool))
+}""" ;
+    gmeow:saRationale "No owl:ObjectProperty defined in the agentic slice other than gmeow:calledByInvocation and gmeow:usedTool MUST NOT exist -- Principle 5: produced entities link back via gmeow:wasGeneratedBy, never a forward output property." .

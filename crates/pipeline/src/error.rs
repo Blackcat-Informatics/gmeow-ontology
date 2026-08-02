@@ -84,7 +84,7 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// The registry stage's `consumed_entities()` disagrees with the RDF
-    /// `gmeow:DataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
+    /// `gmeow:BuildDataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
     pub struct DataFlowMismatch {
         stage: String,
         rdf: Vec<(String, Vec<String>)>,
@@ -92,7 +92,7 @@ define_diag_kind! {
     }
     code = "pipeline.contract.dataflow-mismatch";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF gmeow:DataFlow typed entities {:?} disagree with the Rust impl consumed_entities() {:?}", stage, rdf, rust;
+    message = "stage {}: RDF gmeow:BuildDataFlow typed entities {:?} disagree with the Rust impl consumed_entities() {:?}", stage, rdf, rust;
 }
 
 define_diag_kind! {

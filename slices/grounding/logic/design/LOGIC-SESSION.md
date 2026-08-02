@@ -318,6 +318,32 @@ The composition is otherwise identical to a resident `open`: the same fragment c
 same seven-axis identity binding (now over the paged generation), the same genesis journal head, the
 same total outcomes on every subsequent `apply`.
 
+## The ontological twins of these constructs
+
+Every construct specified above was, for a time, specified **in Rust prose with no ontological
+twin** — a durable-execution vocabulary that the runtime implemented and the ontology could not
+describe, validate, derive over, or certify. That gap is closed: the enactment kernel
+([`LOGIC-ENACTMENT.md`](LOGIC-ENACTMENT.md)) mints the twin of each, domain-neutrally, so the same
+distinctions are available to a consumer describing *its own* durable work rather than only to a
+consumer maintaining a reasoned closure. The twins are named, not paraphrased:
+
+| Rust construct here | Ontological twin | Note |
+| --- | --- | --- |
+| the hash-linked journal | `logic:TransitionJournal` | one per `logic:Enactment`; its head is `logic:journalHead` |
+| `TransitionEntry` (`prev_state_hash`, `delta_identity`, `outcome_tag`, `new_state_hash`) | `logic:JournalEntry` with `logic:journalPrevHead`, `logic:journalDeltaIdentity`, `logic:journalOutcomeTag`, `logic:journalNewHead` | chain integrity is `logic:JournalChainIntegrityConstraint`: `prevHead` must equal the predecessor's `newHead` |
+| `SessionDelta` — additions plus suppressions, content-addressed, order-independent | `logic:SnapshotDelta` | the construct that makes "what changed since the last occurrence" a modelled fact rather than a diff someone recomputes |
+| `expected_head`, the transition anchor | `logic:expectedJournalHead` on `logic:DispatchIntent` | carried into the pre-effect record, which is what makes no-blind-retry a structural property of the chain rather than an authored rule |
+| `Suppression` — closure membership `1 → 0`, never physical deletion | the supersession quartet, reused unchanged | the twin already existed; the kernel adds no second retirement mechanism |
+| `Checkpoint` — identity, generation, and head, content-addressed | `logic:EnactmentCheckpoint` / `logic:StepCheckpoint`, with `logic:checkpointDescriptorHash` | the folded descriptor mirrors `SessionIdentity::to_nquads` |
+| the seven-axis `SessionIdentity` | the seven checkpoint identity axes, twinned individually | a checkpoint recording six of seven is rejected; `logic:CheckpointRestoreIdentityConstraint` pins the four-step restore gate **in order** — content integrity, re-materialization, identity gate, data-generation gate — so a corrupt checkpoint is refused before an identity is computed over it |
+| the total, six-way `OperationOutcome` | `logic:OperationOutcome` with `OutcomeApplied`, `OutcomeRequiresFullRebuild`, `OutcomeUnsupportedFragment`, `OutcomeIncomplete`, `OutcomeInvalid`, `OutcomeEngineFailure` | closes a real gap: `logic:EvaluationStatus` is three-way with no cancellation and no engine-failure value |
+| `RebuildReason`, `UnsupportedFragment`, `IncompleteCause`, `IntegrityFault` | `logic:RebuildReason`, `logic:UnsupportedFragmentCondition`, `logic:IncompleteCause`, `logic:IntegrityFault` | **all four** typed evidence enumerations, not the two that are easy; `logic:IntegrityFault` is the restore gate's own taxonomy |
+| `restart` versus `restore` versus re-`open` | `logic:ContinuationKind` — `logic:ContinuationResume` / `Repeat` / `Revise` | pairwise disjoint with distinct required bindings, so the three are not reconstructable-by-convention |
+
+The twins are pinned against these types rather than merely inspired by them: the outcome and cause
+enumerations are cross-checked against the Rust enums in the manner of the existing
+reasoning-result cross-check, so divergence fails the build rather than accumulating silently.
+
 ## Semver governance — `#[non_exhaustive]`, the `-v1` tags, and the git-tag pin
 
 The session surface follows the same consumer-side stability model as the `EngineContract`, with

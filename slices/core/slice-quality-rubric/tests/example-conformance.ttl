@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the slice-quality-rubric slice. Each cell unions the module
+# with the named fixture and validates it against the canonical GENERATED projections
+# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl) under the
+# native Rust conformance harness, scoped to the shapes this slice's module owns — the slice
+# hand-authors NO shapes.ttl. gmeow:exampleFile is SLICE-RELATIVE.
+#
+# The DON'T half of the pair this slice ships — a fixture that aliases gmeow:assessmentAxis to
+# gmeow:qualityDimension — is a SCHEMA-level ban, not an instance-level one, so it is bound
+# where a schema ban is enforceable: as the gmeow:saFailWitness of the mustNot structural
+# assertion ex:saAssessmentAxisNotAliasedToDimension in tests/structural.ttl, whose teeth check
+# unions it with the module and REQUIRES the ban to fire. A cell here could only assert a SHACL
+# finding, and no shape targets a sub-property declaration.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/tests/> .
+
+# === The per-axis grade record is legal instance data ========================= #
+ex:ecPerAxisGradeCarriesItsAxis a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/per-axis-grade-carries-its-axis.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two grade records name the two rubric axes that publish under one ISO dimension, each carrying gmeow:assessmentAxis alongside the identical gmeow:qualityDimension. Recording the axis as first-class data is the intended shape of a grade, so the union of the module with this fixture MUST validate clean: nothing in the rubric's owned surface restricts an assessment to one grade per dimension, and a slice that scored two axes publishing under one dimension would otherwise be unable to report both." .

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # The published gmeow-evals rubric (#298) — "evaluation is meta-claims",
-# dogfooded as PURE INSTANCE DATA over the norms extension: a Rubric (a Norm,
+# dogfooded as PURE INSTANCE DATA over the norms slice: a Rubric (a Norm,
 # so it NAMES ITS ISSUER — no anonymous evaluation standards) whose criteria
 # are the RAGAS/AIS family with NAMED POLES and one shared scale. Scores come
 # back as vantage-indexed Assessments in generated/evals/scores.ttl.

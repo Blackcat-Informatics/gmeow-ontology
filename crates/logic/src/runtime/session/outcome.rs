@@ -108,6 +108,20 @@ pub enum UnsupportedFragment {
     NonTerminatingArithmetic,
     /// A clause body wider than the backward solver's 64-literal bitmask.
     ClauseBodyTooWide,
+    /// The METHOD SET is outside the declared `logic:SearchFragment` — a decomposition
+    /// cycle under `logic:FragmentAcyclicMethod`, so no expansion of the refined task
+    /// terminates.
+    ///
+    /// The public mirror of `logic:UnsupportedMethodSet`, which the module has always
+    /// shipped alongside `logic:UnsupportedConstruct` and
+    /// `logic:UnsupportedNonTerminating` while this enum carried only the other two
+    /// families. It is the ONE unsupported condition that is a property of the DATA
+    /// rather than of the program: a transitive-closure program is perfectly decidable
+    /// over a cyclic method graph, and the cycle shows up as a derived self-edge. Kept
+    /// here rather than folded into [`Self::NonTerminatingExistential`] because the
+    /// remedies are unrelated — one is an authoring fix to the method set, the other a
+    /// different program.
+    MethodSetOutsideSearchFragment,
 }
 
 impl From<crate::physical::UnsupportedKind> for UnsupportedFragment {
@@ -239,6 +253,20 @@ pub enum IntegrityFault {
         expected_head: String,
         /// The journal head the stored deltas actually replayed to.
         replayed_head: String,
+    },
+    /// The REQUEST itself was malformed: it named something the world does not contain,
+    /// declared a value outside a closed vocabulary, or carried a structurally invalid
+    /// carrier (an `rdf:List` that never reaches `rdf:nil`, a single-valued property
+    /// bound twice).
+    ///
+    /// `logic:OutcomeInvalid` has always covered "its input was malformed or its
+    /// precondition failed"; every other fault here is a precondition failure, and this
+    /// is the malformed-input half. It exists so a bad request is refused as a bad
+    /// request: the alternative is an empty, closed-looking result, which is both wrong
+    /// and reassuring.
+    MalformedRequest {
+        /// What is wrong with the request, named concretely enough to fix.
+        detail: String,
     },
 }
 

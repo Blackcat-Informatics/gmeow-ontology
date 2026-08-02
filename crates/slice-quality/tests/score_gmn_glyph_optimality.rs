@@ -100,10 +100,13 @@ ex:target a owl:ObjectProperty ; rdfs:isDefinedBy <{SLICE}> .
         None,
     )
     .expect("fixture parses");
-    let missing_root = std::env::temp_dir().join(format!(
-        "gmeow-missing-glyph-authority-{}/slices/test-glyphs",
-        std::process::id()
-    ));
+    // Deliberately NEVER created: the axis must fail closed on a slice root that
+    // does not exist. Only its parent is a real temp tree, so nothing is left
+    // behind once the guard drops.
+    let tmp = tempfile::tempdir().expect("create temp dir");
+    let missing_root = tmp
+        .path()
+        .join("gmeow-missing-glyph-authority/slices/test-glyphs");
     let context = ScoreContext::new(SLICE.to_owned(), missing_root, &dataset, ScoringEnv::Repo);
 
     let result = axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&context);

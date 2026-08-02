@@ -16,7 +16,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:MemoryItem a owl:Class , logic:Role ;
-        rdfs:subClassOf gmeow:Observation .
+        logic:subClassOf gmeow:Observation .
 }""" ;
     gmeow:saRationale "gmeow:MemoryItem MUST be a logic:Role on the universal Observation claim construct. Replaces the stale gufo:Role assertion." .
 
@@ -27,7 +27,7 @@ ex:saContradictionIsOpenClaimRelator a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Contradiction rdfs:subClassOf logic:Relator .
+    gmeow:Contradiction logic:subClassOf logic:Relator .
 }""" ;
     gmeow:saRationale "gmeow:Contradiction MUST be a logic:Relator surfacing claim conflict without choosing a winner. Replaces the stale gufo:Relator assertion." .
 
@@ -58,10 +58,10 @@ ex:saModelInvocationIsActivity a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:ModelInvocation a owl:Class ;
-        rdfs:subClassOf gmeow:Activity .
+        logic:subClassOf gmeow:Activity .
 }""" ;
     gmeow:saRationale "gmeow:ModelInvocation MUST be an owl:Class subclass of gmeow:Activity — the model call is an occurrent activity whose outputs link back via wasGeneratedBy (Principle 5)." .
 
@@ -73,10 +73,10 @@ ex:saRetrievalEventIsActivity a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:RetrievalEvent a owl:Class ;
-        rdfs:subClassOf gmeow:Activity .
+        logic:subClassOf gmeow:Activity .
 }""" ;
     gmeow:saRationale "gmeow:RetrievalEvent MUST be an owl:Class subclass of gmeow:Activity — a retrieval episode is an occurrent activity in the GraphRAG provenance chain, reused by any embedding consumer that runs retrieval." .
 
@@ -89,8 +89,8 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:Embedding            a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:VectorIndex          a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:Embedding            a owl:Class , logic:Kind ; logic:subClassOf gmeow:InformationObject .
+    gmeow:VectorIndex          a owl:Class , logic:Kind ; logic:subClassOf gmeow:InformationObject .
 }""" ;
     gmeow:saRationale "The shared vector/embedding primitives MUST be logic:Kind gmeow:InformationObjects — core-tier infrastructure reused by extensions/graphrag and extensions/embedding-projection alike, never redeclared per extension." .
 
@@ -103,7 +103,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:DistanceMetric a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:DistanceMetric a owl:Class , logic:AbstractIndividualType ; logic:subClassOf logic:QualityValue .
     gmeow:distanceMetricCosine a gmeow:DistanceMetric . gmeow:distanceMetricDotProduct a gmeow:DistanceMetric .
     gmeow:distanceMetricEuclidean a gmeow:DistanceMetric .
 }""" ;
@@ -115,11 +115,13 @@ ex:saDistanceMetricNotSubclassed a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    ?c rdfs:subClassOf gmeow:DistanceMetric .
+    VALUES ?sub { rdfs:subClassOf logic:subClassOf }
+    ?c ?sub gmeow:DistanceMetric .
     FILTER (?c != gmeow:DistanceMetric)
 }""" ;
-    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric is a vocabulary of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of it. New metrics extend the vocabulary as individuals." .
+    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric is a vocabulary of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of it under EITHER subsumption spelling (the canonical logic:subClassOf or the legacy rdfs:subClassOf), so the guard cannot be evaded by re-spelling the edge. New metrics extend the vocabulary as individuals." .
 
 # The single-valued embedding edges' declared shapes (MUST hold)
 ex:saEmbeddingFunctionalEdges a gmeow:StructuralAssertion ;

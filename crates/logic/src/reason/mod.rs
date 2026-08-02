@@ -17,6 +17,7 @@ pub mod artifacts;
 pub(crate) mod builtin_gap;
 pub mod dl;
 pub mod el;
+pub(crate) mod enactment;
 pub mod ledger;
 pub(crate) mod math_gate;
 pub mod perf_ledger;

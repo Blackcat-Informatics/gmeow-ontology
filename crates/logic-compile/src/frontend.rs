@@ -1697,6 +1697,37 @@ pub fn derive_validation_shapes(
         }
     };
 
+    // Whether `p` is a DECLARED `owl:DatatypeProperty` (and not also an object property — a
+    // corpus that declares both is contradictory OWL and gets the conservative object reading,
+    // never a silently narrowed one).
+    let owl_datatype_property = Node::iri(format!("{owl}DatatypeProperty"));
+    let owl_object_property = Node::iri(format!("{owl}ObjectProperty"));
+    let is_datatype_property = |p: &str| -> bool {
+        let types = objects(store, &Subject::Iri(p.to_owned()), &nn(RDF_TYPE));
+        types.contains(&owl_datatype_property) && !types.contains(&owl_object_property)
+    };
+
+    // `classify`, resolved against the property the filler is a filler FOR.
+    //
+    // The two bounded universal tops are NOT interchangeable across the object/data divide:
+    // `owl:Thing` is the top of the INDIVIDUAL domain, `rdfs:Literal` the top of the DATA
+    // domain. A declared `owl:DatatypeProperty` takes literal values only, so an authored
+    // `owl:someValuesFrom owl:Thing` / `owl:allValuesFrom owl:Thing` / `rdfs:range owl:Thing`
+    // on such a property means "any value" in the only domain that property has — the data
+    // domain — and its faithful projection is `sh:nodeKind sh:Literal`. Projecting the
+    // individual-domain reading (`sh:nodeKind sh:BlankNodeOrIRI`) there is not a lossy
+    // approximation but an INVERTED constraint: it rejects every correct literal value the
+    // property is declared to carry (the `gmeow:spanStart` / `gmeow:spanEnd` integer offsets on
+    // `gmeow:Chunk` are the corpus witness). The redirect is keyed on the property's own
+    // declaration, so it can never narrow an object-valued or undeclared path.
+    let classify_on = |on: &str, iri: &str| -> Option<ConstraintComponent> {
+        if iri == owl_thing && is_datatype_property(on) {
+            classify(&rdfs_literal)
+        } else {
+            classify(iri)
+        }
+    };
+
     // The closed-world reading of a faceted datatype filler
     // (`[ a rdfs:Datatype ; owl:onDatatype xsd:string ; owl:withRestrictions ( [ xsd:pattern "…" ]
     // [ xsd:minLength "…" ] … ) ]`): the base datatype plus each XSD length / pattern facet, as
@@ -2035,7 +2066,7 @@ pub fn derive_validation_shapes(
             // witnesses into the shipped closure.
             match restriction_value(&restr_subj, &p_some, &p_logic_some) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
@@ -2070,7 +2101,7 @@ pub fn derive_validation_shapes(
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
             match restriction_value(&restr_subj, &p_all, &p_logic_all) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let min = closed_requirements
                             .contains(&(class_iri.clone(), on.clone()))
                             .then_some(1);
@@ -2448,7 +2479,7 @@ pub fn derive_validation_shapes(
                 let mut comps: Vec<ConstraintComponent> = Vec::new();
                 for vp in [&p_some, &p_all] {
                     if let Some(Node::Iri(cv)) = value(store, &domain_subj, vp)
-                        && let Some(cc) = classify(&cv)
+                        && let Some(cc) = classify_on(&on_q, &cv)
                     {
                         comps.push(cc);
                     }
@@ -2475,7 +2506,7 @@ pub fn derive_validation_shapes(
             // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
             for c in objects(store, &p_subj, &p_range) {
                 if let Node::Iri(c) = c
-                    && let Some(cc) = classify(&c)
+                    && let Some(cc) = classify_on(p, &c)
                 {
                     entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
                         .1
@@ -2700,7 +2731,7 @@ pub fn derive_validation_shapes(
         let mut components: Vec<ConstraintComponent> = Vec::new();
         for vp in [&p_some, &p_all] {
             if let Some(Node::Iri(cv)) = value(store, &super_subj, vp)
-                && let Some(cc) = classify(&cv)
+                && let Some(cc) = classify_on(&on, &cv)
             {
                 components.push(cc);
             }

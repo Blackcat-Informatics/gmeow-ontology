@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:PinnedExecutableSubgraph that names a method and freezes a DIFFERENT
+# sequence. Every record here is individually well-formed: the pin binds all three
+# of its mandatory fields, the method yields a real ordered list, and the digest is
+# present. The defect is a RELATION between two records, which is why no check over
+# either one alone can see it.
+#
+# What it costs in the world: the refinement was validated against
+# inspect -> extract -> verify, and the pin dispatches
+# inspect -> extract -> publish. An approval granted over the reviewed
+# decomposition licenses a publish nobody read.
+#
+# MUST trip logic:PinStepsMatchInstantiatedMethodConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:pinMismatchedWithMethod a logic:PinnedExecutableSubgraph ;
+    rdfs:label "a pin whose frozen steps are not the ones its method yields"@en ;
+    logic:pinInstantiatesMethod ex:reviewedMethod ;
+    logic:pinnedStepSequence ex:dispatchedCell1 ;
+    logic:pinDigest "b3:1a0f76c3d84b2e95f107a63d5c8b2049e7f31a6d09c548b23e7f0a196d4c8351" .
+
+# What was reviewed: inspect -> extract -> verify.
+ex:reviewedMethod a logic:DecompositionMethod ;
+    rdfs:label "the decomposition the refinement was validated against"@en ;
+    logic:methodDecomposes ex:ingestTask ;
+    logic:methodYields ex:reviewedCell1 .
+
+ex:reviewedCell1 rdf:first ex:inspectStep ; rdf:rest ex:reviewedCell2 .
+ex:reviewedCell2 rdf:first ex:extractStep ; rdf:rest ex:reviewedCell3 .
+ex:reviewedCell3 rdf:first ex:verifyStep ; rdf:rest rdf:nil .
+
+# What would run: inspect -> extract -> publish.
+ex:dispatchedCell1 rdf:first ex:inspectStep ; rdf:rest ex:dispatchedCell2 .
+ex:dispatchedCell2 rdf:first ex:extractStep ; rdf:rest ex:dispatchedCell3 .
+ex:dispatchedCell3 rdf:first ex:publishStep ; rdf:rest rdf:nil .

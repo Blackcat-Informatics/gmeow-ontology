@@ -82,9 +82,32 @@ blobs. Three rules bind every stage:
    the dependency order is derivable and the superset gate (§7) can map every output
    to its producer.
 
+4. **Read only what you declared.** The scheduler hands a stage exactly the products
+   of the ids in its `dataflowConsumes`. There is no ambient access to a sibling's or
+   an ancestor's carrier; an undeclared read is not "unsupported", it is
+   *unreachable*.
+
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
+
+**The carrier's lifetime is bounded (drop-after-last-consumer).** Rule 4 is what
+makes a stage's carrier *provably dead* once the last stage declaring it has run:
+nothing can still read it. The whole-repository build therefore **releases** it at
+that point — the dataset, the typed handles, the blob records, the provenance, and
+the internal `pipeline/`-prefixed byte artifacts are freed — keeping only the
+committed byte artifacts the post-run reconcile still owes, and the product's
+`digest` verbatim. Peak residency is then the live frontier plus the run's outputs,
+not the **sum** of every stage's cumulative carrier snapshot over the DAG; the
+latter grows with both the corpus and the stage count, and is a build that dies as
+the ontology grows rather than one that scales with it.
+
+The release is invisible: it never changes a produced byte, and the run's
+order-independent `combined_digest` is identical with or without it. A reader that
+reaches for a released carrier — necessarily an out-of-band whole-run consumer, never
+a stage — HARD-fails on the released marker rather than seeing an empty dataset. Such
+a consumer selects full retention explicitly; that selection is a profile, not a
+degradation, because both profiles produce the identical products.
 
 ## 4. One terminal
 

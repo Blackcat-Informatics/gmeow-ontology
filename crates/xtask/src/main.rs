@@ -2,41 +2,64 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! A small, dependency-free DAG runner for the full host gate. It owns the
-//! HOST-GLOBAL gate lock (`make check`/`make regen` mutually exclude across every
-//! worktree on the machine — see [`host_lock_path`]), runs synchronization and Rust
-//! preparation once, then schedules independent gates concurrently without imposing a
-//! thread cap on any child tool.
+//! HOST-GLOBAL gate lock (`make check` and a standalone `make check-sync` mutually
+//! exclude across every worktree on the machine — see [`host_lock_path`]), and
+//! schedules the gate's tasks
+//! concurrently under their ACCURATE dependencies, without imposing a thread cap on
+//! any child tool.
+//!
+//! # Dependency doctrine
+//!
+//! A task depends on `sync` if and only if it READS a `generated/` artifact. Every
+//! edge in [`CHECK_DAG`] is justified in a comment naming the exact read. Tasks that
+//! only read authored sources (`slices/`, `crates/`, `docs/`, `i18n/`, `shapes/`)
+//! are [`ROOT`] and start immediately, concurrently with the synchronization pass
+//! itself.
 
 mod evidence;
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs::{File, OpenOptions, TryLockError};
+use std::fs::{File, Metadata, OpenOptions, TryLockError};
 use std::io::{Read, Seek, SeekFrom, Write};
-use std::os::unix::fs::PermissionsExt;
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitCode, Stdio};
 use std::time::{Duration, Instant};
 
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
-/// Overrides the host-global gate-lock path (for CI runners or tests that want a
-/// scoped lock instead of the machine-wide one).
-const HOST_LOCK_ENV: &str = "GMEOW_TASK_HOST_LOCK";
 
-/// The HOST-GLOBAL gate-lock path. `make check` and `make regen` take THIS lock, so at
-/// most ONE GMEOW gate runs on the entire host at a time — regardless of worktree —
+/// The HOST-GLOBAL gate-lock path. `make check` and the single producer target
+/// (`make check-sync`, which runs `gmeow-dev sync`) take THIS lock, so at most ONE
+/// GMEOW gate runs on the entire host at a time — regardless of worktree —
 /// and concurrent gates in sibling worktrees can never interfere (shared build/target
 /// contention, disk pressure, or a mid-flight bundle regeneration another worktree
-/// reads). `/tmp` is present and shared by every process on the host; override with
-/// [`HOST_LOCK_ENV`]. Kept byte-identical to the `gmeow-dev` copy so both agree.
+/// reads).
+///
+/// There is deliberately NO override. A gate takes every CPU on the box by design, so
+/// two concurrent gates are slower in aggregate than two serialized ones, and a gate
+/// starved of CPU goes red on timing rather than on content — which teaches everyone to
+/// re-run reds instead of reading them. On a shared machine this lock is the QUEUE, and
+/// an escape hatch from it is a way for one worktree to take the host from everybody
+/// else. CI needs no hatch either: a runner is single-tenant, so it acquires this lock
+/// uncontended. Kept byte-identical to the `gmeow-dev` copy so both agree.
+///
+/// # Why `/var/tmp`, not `/tmp`
+///
+/// The lock must be (a) one file for the whole host — every user, every worktree — and
+/// (b) durable for the whole life of a gate run. `/tmp` satisfies (a) but not (b): on
+/// this platform it is a tmpfs, and a tmpfs clear (or a `systemd-tmpfiles` age-out
+/// under a multi-hour run) deletes the lock file out from under a LIVE holder, after
+/// which a second gate creates a fresh inode and both run — exactly the interference
+/// this lock exists to prevent. `/var/tmp` is the POSIX durable sibling: world-writable
+/// and sticky on every supported host (so (a) is unchanged), disk-backed and preserved
+/// across reboots (so (b) holds), and outside every worktree — so neither the
+/// checkout-reset daemon nor `git clean` can remove it. The inode-identity check in
+/// [`HostGateLock::acquire`] closes the residual window even if the file IS swapped.
 fn host_lock_path() -> PathBuf {
-    if let Some(explicit) = std::env::var_os(HOST_LOCK_ENV)
-        && !explicit.is_empty()
-    {
-        return PathBuf::from(explicit);
-    }
-    PathBuf::from("/tmp/gmeow-task/host-runner.lock")
+    PathBuf::from("/var/tmp/gmeow-task/host-runner.lock")
 }
+
 const TOOLCHAIN_RECEIPT_FILES: &[&str] = &[
     "Cargo.toml",
     "Cargo.lock",
@@ -48,12 +71,6 @@ const TOOLCHAIN_RECEIPT_FILES: &[&str] = &[
     ".github/workflows/ci.yml",
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum CheckProfile {
-    Full,
-    Impact,
-}
-
 #[derive(Clone, Copy)]
 struct Task {
     name: &'static str,
@@ -61,52 +78,117 @@ struct Task {
     dependencies: &'static [&'static str],
 }
 
+/// No dependency: the task reads only authored sources, so it starts in the first
+/// scheduling wave — concurrently with `sync` itself.
 const ROOT: &[&str] = &[];
+
+/// The task reads a `generated/` artifact and therefore cannot start until the
+/// synchronization pass has materialized it.
 const AFTER_SYNC: &[&str] = &["sync"];
+
+/// The task needs compiled workspace test binaries. `rust-build` itself depends on
+/// `sync` (the consumer crates' `build.rs` embeds `generated/dist/gmeow.gts`), so this
+/// edge transitively carries the generated-tree dependency as well.
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
-const AFTER_REASON: &[&str] = &["reason-verify"];
+
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
-    "rust-gate",
+    "crate-check",
+    "i18n-lint",
+    "rust-build",
+    "carrier-purity",
+    "clippy",
+    "nextest",
+    "doctests",
+    "coherence-gate-teeth",
     "validate",
     "medium-gate",
     "constitution-check",
-    "crate-check",
     "audit",
     "wikidata",
     "coverage",
-    "acceptance",
     "reason-verify",
-    "wasm-parity",
     "lint-alignment",
-    "i18n-lint",
     "doc-lint",
-    "coherence-gate-teeth",
     "slice-quality-gate",
-    "bench-soak",
 ];
 
+/// The local `make check` gate.
+///
+/// Every `AFTER_SYNC` edge below names the exact `generated/` read that forces it;
+/// every `ROOT` task was verified to read authored sources only. The breadth-dominated
+/// lanes (`acceptance`, `wasm-parity`, `bench-soak`) live in `make heavy`, not here.
 const CHECK_DAG: &[Task] = &[
+    // The producer. Materializes `generated/` (bundle + fanout) from authored sources.
     Task {
         name: "sync",
         target: "check-sync",
         dependencies: ROOT,
     },
+    // pre-commit hygiene over the git-tracked tree. `/generated/` is gitignored in
+    // full (zero tracked files), so no hook can see a generated artifact.
     Task {
         name: "check-lint",
         target: "check-lint",
-        dependencies: AFTER_SYNC,
+        dependencies: ROOT,
     },
+    // Crate layering + repo-static source scans over `crates/`, `slices/`, `dsl/`,
+    // the in-memory docs-loss lattice, and the vendored-asset attestations under
+    // `crates/docs/assets/`. No `generated/` read.
+    Task {
+        name: "crate-check",
+        target: "crate-check",
+        dependencies: ROOT,
+    },
+    // `i18n_compile::lint_po_files` walks `slices/**/*.po` plus authored TTL only.
+    Task {
+        name: "i18n-lint",
+        target: "i18n-lint",
+        dependencies: ROOT,
+    },
+    // `crates/gmeow-cli/build.rs` and `crates/lsp/build.rs` resolve
+    // `generated/dist/gmeow.gts` and hard-fail when it is absent, so compiling the
+    // workspace requires the materialized bundle.
     Task {
         name: "rust-build",
         target: "rust-build",
         dependencies: AFTER_SYNC,
     },
     Task {
-        name: "rust-gate",
-        target: "rust-gate",
+        name: "carrier-purity",
+        target: "carrier-purity",
         dependencies: AFTER_RUST_BUILD,
     },
+    Task {
+        name: "clippy",
+        target: "clippy",
+        dependencies: AFTER_RUST_BUILD,
+    },
+    Task {
+        name: "nextest",
+        target: "nextest",
+        dependencies: AFTER_RUST_BUILD,
+    },
+    Task {
+        name: "doctests",
+        target: "doctests",
+        dependencies: AFTER_RUST_BUILD,
+    },
+    // `crates/logic/tests/coherence_gate.rs` reads `generated/dist/gmeow.gts` and needs
+    // the compiled test binaries; it does NOT need `reason-verify` (it runs its own
+    // whole-bundle proofs), so that former serial edge is gone.
+    Task {
+        name: "coherence-gate-teeth",
+        target: "coherence-gate-teeth",
+        dependencies: AFTER_RUST_BUILD,
+    },
+    // Two post-sync reads. (1) The shape union
+    // (`purrdf::shapes::shape_union::load_shapes` via `ValidateOptions::shape_union_root`)
+    // includes `generated/shapes/*.ttl` and fails closed when that directory is empty.
+    // (2) The whole-corpus merged-SHACL verdict is CONSUMED from `stage-validate`'s
+    // `generated/diagnostics/shacl.json` rather than recomputed; `gmeow-dev validate`
+    // hard-fails unless that record's `shaclInputDigest` matches the authored sources
+    // plus the committed shape union as they stand on disk.
     Task {
         name: "validate",
         target: "validate",
@@ -121,74 +203,69 @@ const CHECK_DAG: &[Task] = &[
         target: "medium-gate",
         dependencies: AFTER_SYNC,
     },
+    // `governance/constitution.ttl` cites `generated/` artifacts (shapes, shacl-af,
+    // metadata, the crosscheck report, the cost ledger); `constitution::check_references`
+    // raises `stale-artifact` for every cited path that does not exist on disk.
     Task {
         name: "constitution-check",
         target: "constitution-check",
         dependencies: AFTER_SYNC,
     },
-    Task {
-        name: "crate-check",
-        target: "crate-check",
-        dependencies: AFTER_SYNC,
-    },
+    // `scoreboards::claim_audit` -> `shapes_turtle`, which unions `generated/shapes`
+    // (fail-closed when empty) and requires the generated core-prefix set.
     Task {
         name: "audit",
         target: "audit",
         dependencies: AFTER_SYNC,
     },
+    // `mapping_eval::wikidata_mapping_syntax(root/"generated/mappings")`.
     Task {
         name: "wikidata",
         target: "wikidata",
         dependencies: AFTER_SYNC,
     },
+    // `coverage::run_coverage(.., root/"generated/mappings", ..)`.
     Task {
         name: "coverage",
         target: "coverage",
         dependencies: AFTER_SYNC,
     },
-    Task {
-        name: "acceptance",
-        target: "acceptance",
-        dependencies: AFTER_SYNC,
-    },
+    // Reads the `generated/dist/gmeow.gts` snapshot and re-derives its
+    // `graph/reasoning` projection.
     Task {
         name: "reason-verify",
         target: "reason-verify",
         dependencies: AFTER_SYNC,
     },
-    Task {
-        name: "wasm-parity",
-        target: "wasm-parity",
-        dependencies: AFTER_SYNC,
-    },
+    // `correspondence_soundness` audits `generated/mappings/*.sssom.tsv`,
+    // `generated/projections/*.edoal.ttl`, and the generated FnO catalog.
     Task {
         name: "lint-alignment",
         target: "lint-alignment",
         dependencies: AFTER_SYNC,
     },
-    Task {
-        name: "i18n-lint",
-        target: "i18n-lint",
-        dependencies: AFTER_SYNC,
-    },
+    // The documentation model and the rendered English site come from the
+    // content-addressed `.cache/docs-fixture` store (`gmeow_docs::fixture`), whose key
+    // folds `generated/catalog/constraint-catalog.nq` and
+    // `generated/catalog/term-content-manifest.nq` — the same two files
+    // `DocsModel::discover` reads, and which it HARD-fails without.
     Task {
         name: "doc-lint",
         target: "doc-lint",
         dependencies: AFTER_SYNC,
     },
-    Task {
-        name: "coherence-gate-teeth",
-        target: "coherence-gate-teeth",
-        dependencies: AFTER_REASON,
-    },
+    // The gate's committed floors/ceilings are projected from the ontology-resident
+    // rubric (`gmeow_slice_quality::load_repo_rubric` over the slices' authored
+    // `module.ttl`), NOT from a `generated/` file —
+    // `generated/governance/slice-quality-axis-floors.tsv` is only echoed as a human
+    // pointer inside a per-axis floor violation message and is never read. The forcing
+    // read is now the RECORDED grade vector: the gate loads
+    // `generated/quality/gmeow.quality-assessment.nt` (`stage-source-load`'s scoring
+    // sweep, projected) instead of re-scoring all 84 slices, and hard-fails unless that
+    // record's `gmeow:versionFingerprint` matches the authored sources on disk.
     Task {
         name: "slice-quality-gate",
         target: "slice-quality-gate",
-        dependencies: AFTER_SYNC,
-    },
-    Task {
-        name: "bench-soak",
-        target: "bench-soak",
         dependencies: AFTER_SYNC,
     },
     Task {
@@ -198,74 +275,198 @@ const CHECK_DAG: &[Task] = &[
     },
 ];
 
-struct WorktreeLock {
-    file: File,
+/// Whether `pid` names a live process on this host.
+fn pid_alive(pid: u32) -> bool {
+    Path::new(&format!("/proc/{pid}")).exists()
 }
 
-impl WorktreeLock {
-    fn acquire(root: &Path) -> Option<Self> {
-        let path = host_lock_path();
-        if let Some(dir) = path.parent() {
-            if let Err(e) = std::fs::create_dir_all(dir) {
-                eprintln!("xtask: create {}: {e}", dir.display());
-                return None;
-            }
-            // Sticky + world-writable so a gate started by ANY user on the host contends
-            // on this SAME lock file (true host-global atomicity), not just this user's.
-            let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
+/// The `pid=` field of a lock owner record, when present and parseable.
+fn record_pid(record: &str) -> Option<u32> {
+    record
+        .split_whitespace()
+        .find_map(|field| field.strip_prefix("pid="))
+        .and_then(|pid| pid.parse().ok())
+}
+
+fn same_file(a: &Metadata, b: &Metadata) -> bool {
+    a.dev() == b.dev() && a.ino() == b.ino()
+}
+
+fn open_rw(path: &Path) -> std::io::Result<File> {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(path)
+}
+
+/// Open the host gate-lock file read-write, reaping a provably stale one.
+///
+/// The lock directory is sticky + world-writable so a gate started by ANY user on the
+/// host contends on the SAME file. The failure mode that needs reaping is a leftover
+/// file whose permissions deny `open(O_RDWR)` to everyone but its (long-dead) creator:
+/// nobody can take that lock and nobody can release it, so the gate is bricked for the
+/// whole host. When the open fails AND the file's recorded owner pid is readable AND
+/// that pid is not alive, the record is provably stale — unlink and recreate.
+///
+/// The reap is deliberately narrow. A live recorded owner is never reaped, and an
+/// UNREADABLE record is never reaped either: without a readable owner we cannot prove
+/// staleness, and unlinking a file a live process holds an `flock` on would let two
+/// gates run at once. That case is reported with explicit remediation instead.
+fn open_lock_file(path: &Path) -> Option<File> {
+    if let Some(dir) = path.parent() {
+        if let Err(error) = std::fs::create_dir_all(dir) {
+            eprintln!("xtask: create {}: {error}", dir.display());
+            return None;
         }
-        let mut file = match OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(&path)
-        {
-            Ok(file) => file,
-            Err(e) => {
-                eprintln!("xtask: open host gate lock {}: {e}", path.display());
+        let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
+    }
+    let open_error = match open_rw(path) {
+        Ok(file) => {
+            // World-writable so a cross-user holder can still record its owner line;
+            // the flock below is the actual host-wide mutual-exclusion guarantee.
+            let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
+            return Some(file);
+        }
+        Err(error) => error,
+    };
+    let Ok(record) = std::fs::read_to_string(path) else {
+        eprintln!(
+            "xtask: cannot open host gate lock {}: {open_error}; its owner record is also \
+             unreadable, so staleness cannot be proven. Remove the file by hand once no GMEOW \
+             gate is running on this host.",
+            path.display()
+        );
+        return None;
+    };
+    match record_pid(&record) {
+        Some(pid) if pid_alive(pid) => {
+            eprintln!(
+                "xtask: cannot open host gate lock {}: {open_error}; it is held by live pid {pid} \
+                 ({})",
+                path.display(),
+                record.trim()
+            );
+            return None;
+        }
+        Some(pid) => {
+            if let Err(error) = std::fs::remove_file(path) {
+                eprintln!(
+                    "xtask: host gate lock {} names dead owner pid {pid} but cannot be reaped: \
+                     {error}",
+                    path.display()
+                );
                 return None;
             }
-        };
-        // World-writable so a cross-user holder can still record its owner line; the
-        // flock below is the actual host-wide mutual-exclusion guarantee.
-        let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
-        match file.try_lock() {
-            Ok(()) => {
-                let owner = format!(
-                    "pid={} purpose=check root={}\n",
-                    std::process::id(),
-                    root.display()
-                );
-                // Owner line is diagnostic only (a cross-user pre-existing file may deny
-                // the write); the flock is what makes the gate host-atomic, so a failed
-                // owner write must NOT drop the lock.
-                let _ = file
-                    .set_len(0)
-                    .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
-                    .and_then(|()| file.write_all(owner.as_bytes()))
-                    .and_then(|()| file.flush());
-                Some(Self { file })
-            }
-            Err(TryLockError::WouldBlock) => {
-                let mut owner = String::new();
-                let _ = file.seek(SeekFrom::Start(0));
-                let _ = file.read_to_string(&mut owner);
-                eprintln!(
-                    "xtask: another GMEOW gate is already running on this host: {}",
-                    owner.trim()
-                );
-                None
-            }
-            Err(TryLockError::Error(e)) => {
-                eprintln!("xtask: acquire host gate lock: {e}");
-                None
-            }
+            eprintln!(
+                "xtask: reaped a stale host gate lock at {} (recorded owner pid {pid} is not \
+                 alive)",
+                path.display()
+            );
+        }
+        None => {
+            eprintln!(
+                "xtask: cannot open host gate lock {}: {open_error}; its owner record names no \
+                 pid ({:?}), so staleness cannot be proven. Remove the file by hand once no \
+                 GMEOW gate is running on this host.",
+                path.display(),
+                record.trim()
+            );
+            return None;
+        }
+    }
+    match open_rw(path) {
+        Ok(file) => {
+            let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
+            Some(file)
+        }
+        Err(error) => {
+            eprintln!(
+                "xtask: open host gate lock {} after reap: {error}",
+                path.display()
+            );
+            None
         }
     }
 }
 
-impl Drop for WorktreeLock {
+struct HostGateLock {
+    file: File,
+}
+
+impl HostGateLock {
+    fn acquire(root: &Path) -> Option<Self> {
+        let path = host_lock_path();
+        // Bounded retry. Each attempt either wins the `flock` on the file that is
+        // CURRENTLY at `path` — proven by comparing the held descriptor's (dev, ino)
+        // against a fresh stat of the path — or discovers the file was swapped
+        // underneath it (a reap by a sibling gate, or an out-of-band `rm`) and starts
+        // over. Without this identity check a swap would let the swapper and the
+        // previous holder both believe they own the host.
+        for _ in 0..3 {
+            let mut file = open_lock_file(&path)?;
+            match file.try_lock() {
+                Ok(()) => {
+                    let held = file.metadata().ok();
+                    let current = std::fs::metadata(&path).ok();
+                    let identical = match (&held, &current) {
+                        (Some(held), Some(current)) => same_file(held, current),
+                        _ => false,
+                    };
+                    if !identical {
+                        let _ = file.unlock();
+                        continue;
+                    }
+                    let owner = format!(
+                        "pid={} purpose=check root={}\n",
+                        std::process::id(),
+                        root.display()
+                    );
+                    // Owner line is diagnostic only (a cross-user pre-existing file may
+                    // deny the write); the flock is what makes the gate host-atomic, so
+                    // a failed owner write must NOT drop the lock.
+                    let _ = file
+                        .set_len(0)
+                        .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
+                        .and_then(|()| file.write_all(owner.as_bytes()))
+                        .and_then(|()| file.flush());
+                    return Some(Self { file });
+                }
+                Err(TryLockError::WouldBlock) => {
+                    let mut owner = String::new();
+                    let _ = file.seek(SeekFrom::Start(0));
+                    let _ = file.read_to_string(&mut owner);
+                    eprintln!(
+                        "xtask: another GMEOW gate is already running on this host: {}",
+                        owner.trim()
+                    );
+                    if record_pid(&owner).is_some_and(|pid| !pid_alive(pid)) {
+                        eprintln!(
+                            "xtask: the recorded owner pid is no longer alive, but the lock IS \
+                             held: the kernel releases a dead process's flock, so this is a stale \
+                             RECORD written by a holder that could not update it — not a stale \
+                             lock. Waiting is correct; reclaiming would run two gates at once."
+                        );
+                    }
+                    return None;
+                }
+                Err(TryLockError::Error(error)) => {
+                    eprintln!("xtask: acquire host gate lock: {error}");
+                    return None;
+                }
+            }
+        }
+        eprintln!(
+            "xtask: host gate lock {} was replaced repeatedly while acquiring it; refusing to run \
+             rather than risk two concurrent gates",
+            path.display()
+        );
+        None
+    }
+}
+
+impl Drop for HostGateLock {
     fn drop(&mut self) {
         let _ = self.file.unlock();
     }
@@ -277,8 +478,6 @@ fn main() -> ExitCode {
     match command.as_str() {
         "check" => {
             let mut jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-            let mut profile = CheckProfile::Impact;
-            let mut base = None;
             let mut explain = false;
             let mut timings_json = None;
             while let Some(arg) = args.next() {
@@ -296,27 +495,6 @@ fn main() -> ExitCode {
                             }
                         };
                     }
-                    "--profile" => {
-                        let Some(value) = args.next() else {
-                            eprintln!("xtask check: --profile requires full or impact");
-                            return ExitCode::from(2);
-                        };
-                        profile = match value.as_str() {
-                            "full" => CheckProfile::Full,
-                            "impact" => CheckProfile::Impact,
-                            _ => {
-                                eprintln!("xtask check: unknown profile {value:?}");
-                                return ExitCode::from(2);
-                            }
-                        };
-                    }
-                    "--base" => {
-                        let Some(value) = args.next() else {
-                            eprintln!("xtask check: --base requires a git revision");
-                            return ExitCode::from(2);
-                        };
-                        base = Some(value);
-                    }
                     "--explain" => explain = true,
                     "--timings-json" => {
                         let Some(value) = args.next() else {
@@ -331,14 +509,17 @@ fn main() -> ExitCode {
                     }
                 }
             }
-            run_check(
-                jobs,
-                profile,
-                base.as_deref(),
-                explain,
-                timings_json.as_deref(),
-            )
+            // `--explain` is a DRY RUN: it prints the schedule and exits without
+            // spawning a single child. It therefore does NOT take the host gate lock —
+            // taking the machine's one gate slot to print a plan is pure queue theft.
+            if explain {
+                explain_plan(jobs);
+                return ExitCode::SUCCESS;
+            }
+            run_check(jobs, timings_json.as_deref())
         }
+        // Read-only: hashes the task registry and toolchain files and writes a receipt.
+        // It runs no gate task, so it takes no host gate lock.
         "receipt" => {
             if args.next().as_deref() != Some("create") {
                 eprintln!("usage: cargo xtask receipt create --out PATH");
@@ -385,6 +566,7 @@ fn main() -> ExitCode {
                 }
             }
         }
+        // Read-only: prints the DAG. Takes no host gate lock.
         "list" => {
             for task in CHECK_DAG {
                 println!("{} <- {}", task.name, task.dependencies.join(", "));
@@ -393,84 +575,64 @@ fn main() -> ExitCode {
         }
         _ => {
             eprintln!(
-                "usage: cargo xtask check [--profile impact|full] [--base REV] [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list"
+                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list"
             );
             ExitCode::from(2)
         }
     }
 }
 
-fn run_check(
-    jobs: usize,
-    requested_profile: CheckProfile,
-    explicit_base: Option<&str>,
-    explain: bool,
-    timings_json: Option<&Path>,
-) -> ExitCode {
+/// The scheduling waves of [`CHECK_DAG`]: wave 0 is every task with no unmet
+/// dependency, wave N+1 is every task whose dependencies all land in waves 0..=N.
+/// This is the shape the runner actually executes, so it is also the shape the
+/// critical path is read off.
+fn plan_waves() -> Vec<Vec<&'static str>> {
+    let mut placed: BTreeSet<&'static str> = BTreeSet::new();
+    let mut waves = Vec::new();
+    while placed.len() < CHECK_DAG.len() {
+        let wave = CHECK_DAG
+            .iter()
+            .filter(|task| !placed.contains(task.name))
+            .filter(|task| {
+                task.dependencies
+                    .iter()
+                    .all(|dependency| placed.contains(dependency))
+            })
+            .map(|task| task.name)
+            .collect::<Vec<_>>();
+        assert!(!wave.is_empty(), "CHECK_DAG has a dependency cycle");
+        placed.extend(wave.iter().copied());
+        waves.push(wave);
+    }
+    waves
+}
+
+fn explain_plan(jobs: usize) {
+    println!(
+        "xtask check plan ({} tasks, up to {jobs} concurrent)",
+        CHECK_DAG.len()
+    );
+    for (index, wave) in plan_waves().into_iter().enumerate() {
+        println!("  wave {index}: {}", wave.join(", "));
+    }
+    println!("(dry run: no host gate lock taken, no task executed)");
+}
+
+fn run_check(jobs: usize, timings_json: Option<&Path>) -> ExitCode {
     let root = workspace_root();
-    let Some(_lock) = WorktreeLock::acquire(&root) else {
+    let Some(_lock) = HostGateLock::acquire(&root) else {
         return ExitCode::FAILURE;
     };
     let canonical = root.canonicalize().unwrap_or_else(|_| root.clone());
     let token = format!("{}-{}", std::process::id(), monotonic_token());
-    let all = CHECK_DAG
+    let mut pending = CHECK_DAG
         .iter()
         .map(|task| task.name)
         .collect::<BTreeSet<_>>();
-    let mut effective_profile = "full";
-    let mut evidence_base = None;
-    let selected = if requested_profile == CheckProfile::Full {
-        all.clone()
-    } else {
-        match evidence_digests(&root).and_then(|(registry, toolchain)| {
-            let names = CHECK_DAG.iter().map(|task| task.name).collect::<Vec<_>>();
-            evidence::verified_impact_decision(&root, explicit_base, &registry, &toolchain, &names)
-        }) {
-            Ok(decision) => {
-                effective_profile = "impact";
-                eprintln!(
-                    "xtask: verified base receipt {} ({} changed paths, {} selected tasks)",
-                    decision.base,
-                    decision.changed_paths.len(),
-                    decision.selected.len()
-                );
-                if explain {
-                    for path in &decision.changed_paths {
-                        eprintln!("xtask: IMPACT path {path}");
-                    }
-                    for (name, reasons) in &decision.reasons {
-                        eprintln!(
-                            "xtask: SELECT {name} <- {}",
-                            reasons.iter().cloned().collect::<Vec<_>>().join(", ")
-                        );
-                    }
-                }
-                evidence_base = Some(decision.base);
-                all.iter()
-                    .copied()
-                    .filter(|name| decision.selected.contains(*name))
-                    .collect()
-            }
-            Err(error) => {
-                effective_profile = "full-fallback";
-                eprintln!("xtask: impact receipt unavailable ({error}); running full profile");
-                all.clone()
-            }
-        }
-    };
-
-    let mut pending = selected.clone();
     let mut running: BTreeMap<&str, (Child, Instant)> = BTreeMap::new();
-    let mut passed = all.difference(&selected).copied().collect::<BTreeSet<_>>();
+    let mut passed = BTreeSet::new();
     let mut failed = BTreeSet::new();
     let mut timings: BTreeMap<&str, (&str, u128)> = BTreeMap::new();
-    for name in &passed {
-        eprintln!(
-            "xtask: REUSE {name} (verified base {})",
-            evidence_base.as_deref().unwrap_or("receipt")
-        );
-        timings.insert(name, ("reused", 0));
-    }
 
     while !pending.is_empty() || !running.is_empty() {
         let blocked = pending
@@ -558,20 +720,13 @@ fn run_check(
 
     let succeeded = failed.is_empty();
     if let Some(path) = timings_json
-        && let Err(error) = write_timings(
-            &root,
-            path,
-            effective_profile,
-            evidence_base.as_deref(),
-            &timings,
-            succeeded,
-        )
+        && let Err(error) = write_timings(&root, path, &timings, succeeded)
     {
         eprintln!("xtask: write timings: {error}");
         return ExitCode::FAILURE;
     }
     if succeeded {
-        println!("all checks passed ({effective_profile}; Docker-free, Java-free)");
+        println!("all checks passed (Docker-free, Java-free)");
         ExitCode::SUCCESS
     } else {
         eprintln!(
@@ -585,8 +740,6 @@ fn run_check(
 fn write_timings(
     root: &Path,
     path: &Path,
-    profile: &str,
-    base: Option<&str>,
     timings: &BTreeMap<&str, (&str, u128)>,
     succeeded: bool,
 ) -> gmeow_errors::Result<()> {
@@ -600,8 +753,7 @@ fn write_timings(
             .map_err(|error| evidence::failure(format!("create {}: {error}", parent.display())))?;
     }
     let mut body = format!(
-        "{{\n  \"schema\": \"gmeow-check-timings-v1\",\n  \"profile\": \"{profile}\",\n  \"base\": {},\n  \"succeeded\": {succeeded},\n  \"tasks\": [\n",
-        base.map_or_else(|| "null".to_owned(), |base| format!("\"{base}\""))
+        "{{\n  \"schema\": \"gmeow-check-timings-v1\",\n  \"succeeded\": {succeeded},\n  \"tasks\": [\n"
     );
     for (index, (name, (status, elapsed_ms))) in timings.iter().enumerate() {
         if index > 0 {
@@ -652,4 +804,123 @@ fn monotonic_token() -> u128 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |duration| duration.as_nanos())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_dependency_names_a_real_task() {
+        let names = CHECK_DAG
+            .iter()
+            .map(|task| task.name)
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            names.len(),
+            CHECK_DAG.len(),
+            "CHECK_DAG repeats a task name"
+        );
+        for task in CHECK_DAG {
+            for dependency in task.dependencies {
+                assert!(
+                    names.contains(dependency),
+                    "{} depends on unknown task {dependency}",
+                    task.name
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_plan_is_acyclic_and_covers_every_task() {
+        let waves = plan_waves();
+        let scheduled = waves.iter().flatten().copied().collect::<BTreeSet<_>>();
+        assert_eq!(scheduled.len(), CHECK_DAG.len());
+    }
+
+    /// `sync` is the gate's longest single stage, so it must NOT be a blanket
+    /// prerequisite. Every task that reads only authored sources starts in wave 0,
+    /// concurrently with `sync` itself.
+    #[test]
+    fn sync_is_not_a_blanket_prerequisite() {
+        let wave_zero = plan_waves()
+            .first()
+            .expect("the plan has at least one wave")
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
+        for name in ["sync", "check-lint", "crate-check", "i18n-lint"] {
+            assert!(
+                wave_zero.contains(name),
+                "{name} reads no generated/ artifact and must start immediately"
+            );
+        }
+    }
+
+    /// The monolithic `rust-gate` node is split: the four Rust lanes are siblings
+    /// under `rust-build`, never chained to each other.
+    #[test]
+    fn the_rust_lanes_are_independent_siblings() {
+        for name in ["carrier-purity", "clippy", "nextest", "doctests"] {
+            assert_eq!(
+                task(name).dependencies,
+                AFTER_RUST_BUILD,
+                "{name} must depend on rust-build and nothing else"
+            );
+        }
+        assert!(
+            !CHECK_DAG.iter().any(|task| task.name == "rust-gate"),
+            "the monolithic rust-gate node must not be scheduled alongside its parts"
+        );
+    }
+
+    /// The breadth-dominated lanes belong to `make heavy`, not the per-commit gate.
+    #[test]
+    fn the_heavy_lanes_are_not_scheduled_by_check() {
+        for name in ["acceptance", "wasm-parity", "bench-soak"] {
+            assert!(
+                !CHECK_DAG.iter().any(|task| task.name == name),
+                "{name} moved to `make heavy` and must not reappear in CHECK_DAG"
+            );
+        }
+    }
+
+    #[test]
+    fn the_final_task_waits_for_every_other_task() {
+        let expected = CHECK_DAG
+            .iter()
+            .map(|task| task.name)
+            .filter(|name| *name != "compliance-report" && *name != "sync")
+            .collect::<BTreeSet<_>>();
+        let declared = FINAL_DEPS.iter().copied().collect::<BTreeSet<_>>();
+        assert_eq!(
+            declared, expected,
+            "compliance-report must wait for every other gate task (sync is transitive)"
+        );
+    }
+
+    #[test]
+    fn the_host_lock_lives_on_durable_shared_storage() {
+        let path = host_lock_path();
+        assert!(
+            path.starts_with("/var/tmp"),
+            "the host gate lock must live on durable, host-shared storage: {}",
+            path.display()
+        );
+        assert!(
+            !path.starts_with("/tmp/"),
+            "the host gate lock must not live on tmpfs"
+        );
+    }
+
+    #[test]
+    fn owner_records_round_trip_their_pid() {
+        assert_eq!(record_pid("pid=1234 purpose=check root=/x\n"), Some(1234));
+        assert_eq!(record_pid("purpose=check root=/x"), None);
+        assert_eq!(record_pid(""), None);
+        assert!(pid_alive(std::process::id()));
+        // pid 0 is never a userspace process on Linux.
+        assert!(!pid_alive(0));
+    }
 }

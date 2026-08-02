@@ -1,0 +1,214 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Generality proof: the same kernel carries a SCADA batch control plan. No
+# work-orchestration vocabulary appears in this file.
+#
+# This is the domain that most sharply tests the commitment layer, because here
+# an external effect is a physical one: opening a valve cannot be undone by
+# deleting a row. Every feature the kernel provides for a durable saga was
+# designed to be correct under exactly this reading — a lease is literal
+# exclusive control of an actuator, an unknown outcome is a command whose
+# acknowledgement was lost while the valve may or may not have moved, and a
+# compensation is a NEW physical action (close the valve) that can itself fail.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/scada/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The control recipe as a plan, versioned and content-addressed. In a
+#     regulated plant the version digest is what an auditor asks for: which
+#     recipe, exactly, produced this batch.
+ex:reactorChargeRecipe a logic:Plan ;
+    rdfs:label "Reactor charge and hold — control recipe"@x-gmeow-english ;
+    logic:planGoal ex:batchChargedAndHeld ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindControlPlan .
+
+# STRONG success, not strong-cyclic: in a reactor there is no "retry until it
+# works" reading. Every execution must reach the goal, because the alternative
+# to reaching it is not another attempt but an unsafe vessel state.
+ex:batchChargedAndHeld a gmeow:Goal ;
+    rdfs:label "Reactor charged to target and held at setpoint"@x-gmeow-english .
+
+ex:reactorChargeRecipeV7 a logic:PrescriptionVersion ;
+    rdfs:label "Reactor charge recipe, revision 7"@x-gmeow-english ;
+    logic:prescriptionOf ex:reactorChargeRecipe ;
+    logic:prescriptionDigest "b3:5a1c8e07db93f2461a0c75be38d02f974ce610b8a2d5039f7c418e6b0a2d95f3" .
+
+ex:batch2291Setpoints a logic:InputSnapshot ;
+    rdfs:label "Batch 2291 setpoints and material lot assignments"@x-gmeow-english ;
+    logic:snapshotDigest "b3:0e73a95c21fd806b4e39c07a5218df6403b9ce851a7d20f6c34b98e015a7d26b" .
+
+# --- One batch is one enactment.
+ex:batch2291 a logic:Enactment ;
+    rdfs:label "Batch 2291"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:reactorChargeRecipeV7 ;
+    logic:enactmentInputSnapshot ex:batch2291Setpoints ;
+    logic:enactmentJournal ex:batch2291Journal ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:batch2291Journal a logic:TransitionJournal ;
+    rdfs:label "Batch 2291 transition journal"@x-gmeow-english ;
+    logic:journalHead "b3:9c04b7ae13d5f826097c3ab5e140d29f6b85c03a71e2d94f0518ba6c273e9d15" .
+
+# --- The lease is literal exclusive control of the actuator. Two control
+#     sessions holding the same valve is not a data-integrity problem, it is a
+#     physical hazard, which is why exclusivity is a constraint and not a
+#     convention. The fencing identity is what lets the PLC reject a command
+#     from a supervisor that has already lost the lease but does not know it yet.
+ex:feedValveLease a logic:ResourceLease ;
+    rdfs:label "Exclusive control of feed valve FV-104"@x-gmeow-english ;
+    logic:leaseOwner ex:supervisorNodeA ;
+    logic:leaseScope "actuator:FV-104" ;
+    logic:fencingIdentity "fence:FV-104:epoch-41" ;
+    logic:leaseExpiry "2026-07-25T06:30:00Z"^^xsd:dateTime .
+
+# The clock the expiry is judged against. Skew between the supervisor and the
+# PLC is the canonical fencing failure: an unattributed "still valid" is
+# unfalsifiable, which is worse than no judgment because it reads as one.
+ex:plantClock a logic:ClockAttribution ;
+    rdfs:label "Plant historian clock, the authority for lease expiry"@x-gmeow-english ;
+    logic:clockSource ex:historianNtpSource ;
+    logic:clockObservedAt "2026-07-25T06:12:00Z"^^xsd:dateTime .
+
+# --- The dispatch intent: what the supervisor MEANS to command, pinned before
+#     anything physical happens. It carries the journal head it expects, so a
+#     resubmission after a lost acknowledgement carries a stale head and is
+#     structurally detectable rather than depending on an operator noticing.
+ex:openFeedValveIntent a logic:DispatchIntent ;
+    rdfs:label "Command: open feed valve FV-104 to 40%"@x-gmeow-english ;
+    logic:intentOfEnactment ex:batch2291 ;
+    logic:intentOfStep ex:chargeFeedStep ;
+    logic:intentActionSchemaVersion ex:valveCommandSchemaV3 ;
+    logic:intentNormalizedArguments ex:openFeedValveArguments ;
+    logic:intentTarget ex:feedValveFV104 ;
+    logic:intentPolicy ex:chargePhasePolicy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest "b3:38fa0c95127be6d4013a95c07be2d846f1c05a39be7d240f815a6c93be07d251" ;
+    logic:intentIdempotency ex:feedValveIdempotency ;
+    logic:expectedJournalHead "b3:9c04b7ae13d5f826097c3ab5e140d29f6b85c03a71e2d94f0518ba6c273e9d15" .
+
+ex:chargeFeedStep a logic:TransactionStep ;
+    rdfs:label "Charge feed to reactor"@x-gmeow-english .
+
+ex:valveCommandSchemaV3 a logic:ActionSchema ;
+    rdfs:label "Valve position command, schema revision 3"@x-gmeow-english ;
+    logic:capability ex:feedValveFV104 ;
+    logic:precondition ex:reactorInChargePhase .
+
+ex:reactorInChargePhase a logic:Constraint ;
+    rdfs:label "Precondition: reactor is in the charge phase and interlocks are clear"@x-gmeow-english .
+
+# The pinned normalization recipe. Two normalizations of the same command are an
+# approval bypass: approve the benign serialization, dispatch the other one. So
+# the recipe is part of the record, not an implementation detail.
+ex:openFeedValveArguments a logic:ArgumentNormalization ;
+    rdfs:label "Normalized arguments: FV-104 to 40% over 30 seconds"@x-gmeow-english .
+
+ex:feedValveFV104 a logic:EngineCapability ;
+    rdfs:label "Feed valve FV-104 actuator"@x-gmeow-english .
+
+ex:chargePhasePolicy a logic:Constraint ;
+    rdfs:label "Charge-phase operating policy"@x-gmeow-english .
+
+ex:feedValveIdempotency a logic:IdempotencyContract ;
+    rdfs:label "Idempotency contract for the FV-104 open command"@x-gmeow-english ;
+    logic:idempotencyKey "batch2291:FV-104:open:seq-17" ;
+    logic:idempotencyScope "controller:PLC-3" ;
+    logic:idempotencyRetention "PT30M"^^xsd:duration ;
+    logic:idempotencyDuplicateSemantics "controller collapses duplicate sequence numbers within the retention window"@x-gmeow-english ;
+    logic:idempotencyProviderEvidence "PLC-3 firmware 4.2 command-dedup specification, section 6.1"@x-gmeow-english .
+
+# --- The attempt: the command was sent. This record is OBSERVED by the organ
+#     that performed the dispatch, never derived — a reasoner able to conclude
+#     that a valve command was issued is a reasoner able to conclude the plant
+#     changed state.
+ex:openFeedValveAttempt a logic:EffectAttempt ;
+    rdfs:label "FV-104 open command transmitted to PLC-3"@x-gmeow-english ;
+    logic:attemptOfIntent ex:openFeedValveIntent .
+
+# --- The unknown outcome: acknowledgement lost. The valve may or may not have
+#     moved. This is the state the whole commitment layer exists for, and the
+#     ONLY correct next action is to reconcile — read the actual valve position
+#     — never to blindly reissue the command.
+ex:openFeedValveUnknown a logic:ExternalOutcomeUnknown ;
+    rdfs:label "Acknowledgement lost; FV-104 position undetermined"@x-gmeow-english ;
+    logic:unknownOfAttempt ex:openFeedValveAttempt .
+
+ex:readValvePosition a logic:ReconciliationProbe ;
+    rdfs:label "Read back FV-104 actual position from the PLC"@x-gmeow-english ;
+    logic:probesAttempt ex:openFeedValveAttempt .
+
+ex:valvePositionResult a logic:ReconciliationResult ;
+    rdfs:label "FV-104 read back at 40% — the command did take effect"@x-gmeow-english ;
+    logic:reconciliationVerdict logic:ReconciledCommitted .
+
+# --- Reconciling to ReconciledCommitted is what ESTABLISHES the forward effect,
+#     so the receipt is asserted here rather than at dispatch: the acknowledgement
+#     was lost, and the read-back is the observation that the valve moved. The
+#     receipt is still OBSERVED, never derived — the engine may describe and
+#     certify it but a reasoner that could conclude it could conclude the reactor
+#     changed state.
+ex:openFeedValveReceipt a logic:ExternalEffectReceipt ;
+    rdfs:label "FV-104 confirmed open at 40% by read-back"@x-gmeow-english ;
+    logic:receiptOfAttempt ex:openFeedValveAttempt .
+
+# --- Compensation is a NEW physical action with its own possibility of failing.
+#     Closing a valve is not the inverse of opening it: the reactor has already
+#     received feed. Typing the compensation as the forward receipt would make a
+#     FAILED close invisible, which in this domain is a safety defect and not a
+#     modelling inelegance.
+#     It counteracts the RECEIPT of the one committed effect, not the
+#     reconciliation result that reported it: a result names the class of effects
+#     a probe settled, and compensating "whatever that probe found" is exactly the
+#     imprecision that lets a compensation be credited against an effect it never
+#     touched.
+ex:closeFeedValveAttempt a logic:CompensationAttempt ;
+    rdfs:label "Compensating action: close FV-104"@x-gmeow-english ;
+    logic:compensatesEffect ex:openFeedValveReceipt .
+
+# --- Statement metadata: the read-back is an INSTRUMENT'S claim.
+#
+# `ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted`
+# is the statement that closes the unknown and releases the plant to continue.
+# In this domain it is a claim by a physical instrument about a physical valve,
+# and instruments are the things that disagree: a position transmitter reading
+# 40% and a limit switch reading "not open" is the ordinary, expected conflict a
+# control system must survive. Both are claims about the SAME statement.
+#
+# Attaching the source to ex:valvePositionResult cannot express that. A second,
+# disagreeing instrument would need a second result node — and then there are two
+# reconciliation results for one probe, which is a different and much worse
+# claim: it reads as two reconciliations rather than one contested reading, and
+# the kernel's `probesAttempt` join no longer says which one settled the unknown.
+# Reifying the verdict statement keeps one result and two attributed stances.
+ex:transmitterOnValveOpen
+    rdf:reifies <<( ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "Position transmitter PT-104 reads FV-104 at 40%"@x-gmeow-english ;
+    gmeow:accordingTo ex:positionTransmitterPT104 ;
+    gmeow:standpointPolarity gmeow:polarityAffirm ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssert ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+# The limit switch does not confirm it. This is NOT a denial that the command
+# committed — a limit switch only trips at the fully-open stop, and 40% is not
+# fully open — so the honest stance is suspension with an OPPOSED support status:
+# the instrument withholds support without contradicting the reading. Collapsing
+# this to a denial would manufacture an interlock trip; dropping it would hide
+# the only evidence that the two instruments were ever compared.
+ex:limitSwitchOnValveOpen
+    rdf:reifies <<( ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "Limit switch ZS-104 does not confirm FV-104 fully open"@x-gmeow-english ;
+    gmeow:accordingTo ex:limitSwitchZS104 ;
+    gmeow:standpointPolarity gmeow:polaritySuspend ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssume ;
+    gmeow:standpointSupportStatus gmeow:supportOpposed .
+
+ex:positionTransmitterPT104 a logic:EngineCapability ;
+    rdfs:label "Feed valve FV-104 position transmitter PT-104"@x-gmeow-english .
+
+ex:limitSwitchZS104 a logic:EngineCapability ;
+    rdfs:label "Feed valve FV-104 fully-open limit switch ZS-104"@x-gmeow-english .

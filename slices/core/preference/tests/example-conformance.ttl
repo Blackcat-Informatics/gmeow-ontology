@@ -1,0 +1,257 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the preference slice. Each cell unions the module
+# with the named fixture and validates it against the canonical GENERATED projections
+# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl) under the
+# native Rust conformance harness — the slice hand-authors NO shapes.ttl; the pipeline DERIVES
+# the SHACL from the module's logic:Constraint / logic:ForbiddenPatternConstraint /
+# logic:DisjunctiveRequirednessConstraint gates. gmeow:exampleFile is SLICE-RELATIVE;
+# gmeow:expectedViolationCode is the COARSE native finding code finding_from_shacl builds as
+# "shacl.<ConstraintComponentLocalName>". EVERY instance-level preference gate — the ∀→∃ / ∀→¬∃
+# logic:Constraint gates AND the forbidden-pattern / disjunctive-requiredness sugar gates — is
+# projected to a sh:SPARQLConstraint, so each counter-example rejects with
+# shacl.SPARQLConstraintComponent. The SPECIFIC slice failure class is named in
+# gmeow:conformanceRationale, and every cell pins that gate by IRI through
+# gmeow:expectedSourceShape, so the fixture proves the SPECIFIC named rule rejected it rather
+# than merely some rule of the same component.
+# The schema-level bans (the preferredRank re-mint ban and the seven no-duplicate sibling bans)
+# are covered by tests/structural.ttl over the module, not as example-conformance cells.
+#
+# THE STANDING FINDINGS (why no cell here declares gmeow:expectedSoleFinding).
+# Every cell in this file used to end "exactly one violation, AND no other". Measured against
+# the harness, that was false for all 29: each run reports TWO further violation-severity
+# results that no fixture introduces and none can remove. Both come from
+# gmeow:ProjectionPreservationRecord-shape, as shacl.QualifiedMinCountConstraintComponent on
+# logic:preservationKind, at the module's own second-order honesty boundaries
+# gmeow:GeneralParetoDominanceBoundary and gmeow:ProjectedDagAcyclicityBoundary. Those two
+# individuals are correct: each carries logic:preservationKind logic:Unsupported. The derived
+# shape demands the value be a resource TYPED logic:PreservationKind, and logic:Unsupported
+# carries that type in the logic: module — which an ordinary (non-grounding) slice's
+# conformance run does not load as data (crates/slicetest paths::conformance_module_files
+# keeps ordinary slices strictly slice-local). So the finding is an artifact of the data scope,
+# not of any counter-example, and it is standing rather than fixture-dependent.
+# The consequence for this file is exact and not negotiable: soleness is a per-sh:sourceShape
+# property of the WHOLE report, so while those two results are in every report, no cell here
+# can truthfully declare gmeow:expectedSoleFinding. Each rationale therefore says what it can
+# prove — the named law fired, pinned by IRI — and says why it stops there.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+
+# === GOVERNING: no global winner without a whole-base discharged consensus ==== #
+ex:ecGlobalWinnerNoConsensus a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-winner-no-consensus.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A typed gmeow:PreferenceClaim asserts gmeow:assertsGlobalWinner true but neither gmeow:extendsToConsensusSection nor gmeow:dischargesDisagreement, so the ∀→∃(∧…∧¬∃) SPARQL constraint of gmeow:NoGlobalWinnerWithoutConsensusConstraint (gmeow:GlobalWinnerWithoutConsensus) MUST emit shacl.SPARQLConstraintComponent from gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The claim is well-formed and attributed, isolating the missing whole-base discharged consensus. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecGlobalWinnerDischargeNotTyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-winner-discharge-not-typed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:PreferenceClaim asserting a global winner carries every discharge edge correctly (consensus section bound to a context that reconciles the whole registered base, and a TYPED gmeow:DisagreementObstruction) but its consensus witness is typed gmeow:InformationObject, never gmeow:ConsensusSection. Because gmeow:NoGlobalWinnerWithoutConsensusConstraint requires the witness be a resource TYPED gmeow:ConsensusSection, its SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecSingleEvaluatorClaimsUniversal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/single-evaluator-claims-universal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The gmeow:ComparisonContext registers TWO co-equal observations but the gmeow:ConsensusSection reconciles only one evaluator's, leaving a registered observation unreconciled (F2). The claim is otherwise perfect (typed section, typed discharged obstruction), so the whole-base ¬∃-hole clause of gmeow:NoGlobalWinnerWithoutConsensusConstraint's SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — a lone evaluator's section is not a whole-base H0 lift. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecCherryPickedConsensusOmitsDissenter a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cherry-picked-consensus-omits-dissenter.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Three observations are registered — two agreeing, one dissenting — and the gmeow:ConsensusSection reconciles only the two agreeing, cherry-picking away the registered dissenter (F2). The claim is otherwise perfect, so the whole-base ¬∃-hole clause of gmeow:NoGlobalWinnerWithoutConsensusConstraint's SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:NoGlobalWinnerWithoutConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — a consensus that hides a dissenter does not cover the whole base. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === F1 — an argmax selected candidate requires a discharged winner claim ===== #
+ex:ecProjectionArgmaxWinnerNoConsensus a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-argmax-winner-no-consensus.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:SelectedCandidateRequiresConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt binds a gmeow:selectedCandidate at whole-set scope with no backing gmeow:PreferenceClaim that asserts a global winner, extends to a consensus section, and discharges an obstruction — the argmax-winner bypass. The receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation), so the ∀→∃ SPARQL constraint of gmeow:SelectedCandidateRequiresConsensusConstraint (F1) MUST emit shacl.SPARQLConstraintComponent from gmeow:SelectedCandidateRequiresConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === F1 (cross-candidate leak) — a discharged claim about a different candidate does not back this selection === #
+ex:ecProjectionSelectedBackedByUnrelatedClaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-selected-backed-by-unrelated-claim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:SelectedCandidateRequiresConsensusConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt selects ex:candB at whole-set scope, and the graph carries a fully-discharged whole-base gmeow:PreferenceClaim — but its gmeow:ConsensusSection gmeow:reconcilesObservation an observation whose gmeow:observationPrefers winner is ex:candA, a DIFFERENT candidate. Because gmeow:SelectedCandidateRequiresConsensusConstraint (F1) now threads the selected candidate into its ∃ consequent (the backing claim's consensus must reconcile an observation preferring the SELECTED candidate), the cross-candidate leak is closed: the ∀→∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:SelectedCandidateRequiresConsensusConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The consensus is genuine and whole-base (gmeow:NoGlobalWinnerWithoutConsensusConstraint SATISFIED) and the receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation, no hard verdict), isolating the unbacked selection. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === F4 — same inputs must yield the same digest ============================== #
+ex:ecProjectionSameInputsDivergentDigest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-same-inputs-divergent-digest.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:DeterministicDigestConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Two gmeow:ProjectionReceipts share an identical gmeow:projectionSourceSet, gmeow:projectionKind, and gmeow:tieBreakRule but carry DIFFERENT gmeow:contentDigest values. Both are otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation, no selected candidate), so the ∀→¬∃ SPARQL constraint of gmeow:DeterministicDigestConstraint (F4) MUST emit shacl.SPARQLConstraintComponent from gmeow:DeterministicDigestConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The symmetric formula flags each same-input receipt against the other, so F4 speaks TWICE — once per receipt — which is one law reporting one defect at two focus nodes, not two laws. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === AC3 — a hard failure is never overridden by a soft score ================= #
+ex:ecSoftOverridesHard a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/soft-overrides-hard.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:HardFailureNotOverriddenConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A candidate carrying a HARD gmeow:VerifierVerdict of gmeow:verdictNotHeld is bound as a gmeow:selectedCandidate. A genuine whole-base discharged gmeow:PreferenceClaim backs the selection, so gmeow:SelectedCandidateRequiresConsensusConstraint (F1) and gmeow:NoGlobalWinnerWithoutConsensusConstraint are SATISFIED and not the violation under test; the sole defect is the hard-failing selection, so the ∀→¬∃ SPARQL constraint of gmeow:HardFailureNotOverriddenConstraint (gmeow:HardFailureOverridden) MUST emit shacl.SPARQLConstraintComponent from gmeow:HardFailureNotOverriddenConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === G3 — within-cell strict order is asymmetric (the cross-cell reversal is ===== #
+# === legal, proven by the cqCrossCellLegalNoReversal competency question) ======= #
+ex:ecWithinCellOrderCycle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/within-cell-order-cycle.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:VantageScopedStrictOrderConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "ONE gmeow:PreferenceProjection cell's gmeow:PreferenceOrder carries a reversed reified gmeow:PreferenceEdge pair (A≻B and B≻A under the same order), an incoherent within-cell strict order. Because gmeow:VantageScopedStrictOrderConstraint (G3) now joins both edges through ?cell gmeow:projectionOrder ?order gmeow:orderEdge, the reversed pair is caught within the single cell, so its ∀→¬∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:VantageScopedStrictOrderConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — the scene carries no claim/receipt/verdict/tie, isolating the within-cell reversal. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === G1 — a tie and a positive incomparability are distinct verdicts ========== #
+ex:ecIncomparabilityCollapsedToTie a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incomparability-collapsed-to-tie.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TieIncomparabilityDistinctnessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A single candidate pair is asserted BOTH gmeow:preferentiallyEquivalentWith and gmeow:incomparableWith, collapsing a positive incomparability into a comparable tie. The ∀→¬∃ SPARQL constraint of gmeow:TieIncomparabilityDistinctnessConstraint (G1) MUST emit shacl.SPARQLConstraintComponent from gmeow:TieIncomparabilityDistinctnessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — the pair is otherwise a plain, well-formed candidate field. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === AC4 — every dropped relation is disclosed, consistently ================== #
+ex:ecProjectionDropsRelationUndisclosed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-drops-relation-undisclosed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:CompleteLossDisclosureConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt carries a lossy logic:preservationKind (logic:SoundUnderApproximation) but discloses NO gmeow:DisclosedLossEntry — a hollow disclosure. The ∀→∃ SPARQL constraint of gmeow:CompleteLossDisclosureConstraint MUST emit shacl.SPARQLConstraintComponent from gmeow:CompleteLossDisclosureConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI; disclosing no dropped relation, gmeow:PreservationConsistencyConstraint's guard never fires. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecProjectionLossyNoBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-lossy-no-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:PreservationConsistencyConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt discloses a gmeow:DisclosedLossEntry naming a gmeow:droppedRelation yet claims logic:preservationKind logic:ExactPreservation — dropping an edge is not exact preservation. The module authors this as gmeow:PreservationConsistencyConstraint; its ∀→¬∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:PreservationConsistencyConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. Because a loss entry IS disclosed and the kind is exactly Exact, gmeow:CompleteLossDisclosureConstraint's lossy guard never fires — the exact-vs-dropped inconsistency is the sole violation. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecScalarizationNoChoice a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/scalarization-no-choice.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ScalarizationDisclosureConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt of gmeow:projectionKind gmeow:projectionScalarized carries NO gmeow:scalarizationWeights, hiding how it collapsed the criteria. The ∀→∃ SPARQL constraint of gmeow:ScalarizationDisclosureConstraint MUST emit shacl.SPARQLConstraintComponent from gmeow:ScalarizationDisclosureConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — the receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation so no loss owed). The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecNondeterministicNoDeclare a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/nondeterministic-no-declare.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:DeterministicProjectionConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt declared gmeow:determinismDeterministic carries NO gmeow:tieBreakRule — a deterministic ranking cannot in fact be deterministic over ties without one. The ∀→∃ SPARQL constraint of gmeow:DeterministicProjectionConstraint MUST emit shacl.SPARQLConstraintComponent from gmeow:DeterministicProjectionConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — the receipt is otherwise well-formed (content-addressed, exact preservation, not scalarized). The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === the order wrapper must not be conflated with its raw math:Relation ======= #
+ex:ecProjectionConflatedWithMathObject a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-conflated-with-math-object.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ProjectionObjectConflationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:PreferenceOrder is typed BOTH gmeow:PreferenceOrder AND math:Relation — the auditable wrapper conflated with the raw mathematical referent. (The module authors gmeow:ProjectionObjectConflationConstraint on gmeow:PreferenceOrder, the order wrapper, not on gmeow:ProjectionReceipt.) The ∀→¬∃ SPARQL constraint, matching the order's own rdf:type in the math: namespace, MUST emit shacl.SPARQLConstraintComponent from gmeow:ProjectionObjectConflationConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI (gmeow:ProjectionObjectConflation); the order correctly references a distinct raw math:Relation via gmeow:orderRelation, isolating the self-conflation. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === AC5 — a model-config delta binds all eleven identity legs ================ #
+ex:ecModelDeltaNoBaseArtifact a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-baseArtifact.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaBaseArtifact, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — every other leg is present, isolating the missing base artifact. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoTokenizer a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-tokenizer.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaTokenizer, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing tokenizer. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoCodebook a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-codebook.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaCodebook, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing codebook. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoDatasetProjection a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-datasetProjection.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaDatasetProjection (the gmeow:DpoView leg is absent entirely), so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing dataset projection. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoSelectionQuery a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-selectionQuery.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaSelectionQuery, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing selection query. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoPrompt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-prompt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaPromptIdentity, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing prompt identity. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoRubric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-rubric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaRubricIdentity, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing rubric identity. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoEngine a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-engine.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaEngine, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing engine. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoOptimizer a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-optimizer.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaOptimizer, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing optimizer. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoSeed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-seed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaSeed, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing seed. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+ex:ecModelDeltaNoEvaluationEvidence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-evaluationEvidence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaEvaluationEvidence, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent from gmeow:ModelConfigDeltaCompletenessConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI — isolating the missing evaluation evidence. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === geometry — candidates bind the Cl(12)/E8/4096-d substrate ================ #
+ex:ecGeometryWrongCarrierDim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/geometry-wrong-carrier-dim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:GeometricBindingConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A candidate's gmeow:candidateGeometry math:CliffordAlgebra has math:spaceDimension 2048 instead of 4096 = 2^12; the signature is a valid (11, 1) so the p + q = 12 arm holds, isolating the carrier-dimension arm. The ∀→(¬∃ signature-mismatch ∧ ¬∃ dimension-mismatch) SPARQL constraint of gmeow:GeometricBindingConstraint (gmeow:GeometryDimensionMismatch) MUST emit shacl.SPARQLConstraintComponent from gmeow:GeometricBindingConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The math:MetricSignature carries no metric-tensor / manifold chain, so the grounding math:MetricSignatureDimensionConstraint's guard never fires — the preference Cl(12)/4096-d gate is the sole violation. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === AC6 — promotion grants no activation; activation needs a held gate ======= #
+ex:ecPromotionGrantsActivation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/promotion-grants-activation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:PromotionNotActivationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:PromotionReceipt carries a gmeow:grantsActivation edge — forbidden, because promotion recommends and never activates. The activation is properly gmeow:activationAuthorizedBy a held gmeow:ConsumerImprovementGate, so gmeow:ActivationAuthorityConstraint is SATISFIED and not the violation under test; the sole defect is the grant on a promotion receipt, so the forbidden-pattern SPARQL constraint of gmeow:PromotionNotActivationConstraint (AC6) MUST emit shacl.SPARQLConstraintComponent from gmeow:PromotionNotActivationConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .
+
+# === AC4 — DPO is a derived-only consumer, never the canonical source ========= #
+ex:ecDpoAsCanonical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dpo-as-canonical.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:DpoNotCanonicalConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:DpoView carries the forbidden gmeow:derivesCanonicalObservation edge, sourcing a canonical gmeow:PreferenceObservation from the training view and inverting the canonical→projection direction. The DpoView is otherwise a well-formed projection receipt and the observation carries its mandatory gmeow:comparisonContext and observed feature, so the forbidden-pattern SPARQL constraint of gmeow:DpoNotCanonicalConstraint (AC4) MUST emit shacl.SPARQLConstraintComponent from gmeow:DpoNotCanonicalConstraintProceduralConstraintShape, which gmeow:expectedSourceShape pins by IRI. The cell does NOT claim gmeow:expectedSoleFinding, and the reason is not the fixture: EVERY preference conformance run also reports the two standing loss-ledger findings described in the header note, so no counter-example in this slice can be sole." .

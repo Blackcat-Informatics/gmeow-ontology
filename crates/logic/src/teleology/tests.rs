@@ -605,7 +605,7 @@ fn gate_denies_when_capability_unavailable() {
 // ── The REAL memory-MCP triad's store_claim schema under gate_action ─────────────
 //
 // These exercise gate_action over EXACTLY the store_claim pattern dogfooded in
-// slices/extensions/agentic/examples/mcp-action-policy.ttl — same logic: facets
+// slices/core/agentic/examples/mcp-action-policy.ttl — same logic: facets
 // (capability / precondition / compensation) and the same triad wiring (store_claim's
 // compensation is revise_belief). The example's ex: IRIs live in a CC-BY example
 // namespace; here they ride the test world (W) under the SAME local names so the

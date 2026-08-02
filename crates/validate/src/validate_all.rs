@@ -68,9 +68,31 @@ pub struct SignatureConfig {
     pub trusted_key: Option<String>,
 }
 
+/// Where the whole-corpus merged-SHACL verdict (Phase 8) comes from.
+///
+/// This is an explicit source selection, never a switch that can turn the phase off:
+/// both variants put a complete merged-SHACL verdict into the run, and there is no
+/// third "skip" state.
+#[derive(Debug, Clone, Default)]
+pub enum MergedShacl {
+    /// Run the pass here, over the shared store and the parsed shape union.
+    #[default]
+    Live,
+    /// Consume a verdict already produced over the SAME inputs by the pipeline's
+    /// `stage-validate`, rather than validating the whole corpus a second time.
+    ///
+    /// The caller MUST have proven the record current before constructing this — by
+    /// recomputing `stage-validate`'s recorded input digest over the working tree and
+    /// hard-failing on absence or mismatch. This type carries findings, not a
+    /// promise: an unverified record must never reach it.
+    Recorded(Vec<Finding>),
+}
+
 /// Optional/extended inputs for the validation orchestration.
 #[derive(Debug, Clone, Default)]
 pub struct ValidateOptions {
+    /// The source of the Phase 8 merged-SHACL verdict — see [`MergedShacl`].
+    pub merged_shacl: MergedShacl,
     /// Record per-phase timings.
     pub timings: bool,
     /// `(subject_display, object)` pairs allowed to use `owl:sameAs` with an
@@ -92,6 +114,23 @@ pub struct ValidateOptions {
     /// Turtle text of the test DSL SHACL shapes. When provided, test DSL SHACL
     /// validation is run in Rust.
     pub test_dsl_shapes_ttl: Option<String>,
+    /// Repository root whose SHAPE UNION supplies the normal SHACL shapes, loaded
+    /// through `purrdf::shapes::shape_union::load_shapes`.
+    ///
+    /// This is an explicit choice of shape SOURCE, not an optional extra: when it is
+    /// set, `shapes_ttl` is not the shape source and must be empty. The two sources
+    /// are the repository union (every in-repo caller — the `make validate` gate and
+    /// the `--gts` bundle path) and a literal Turtle document (`shapes_ttl`, for
+    /// fixtures and benches that have no repository around them).
+    ///
+    /// The union loader is what makes this run's shape assembly identical to the
+    /// pipeline's BY CONSTRUCTION rather than by accident. A caller that instead
+    /// concatenated the union members' raw TEXT would parse one document where the
+    /// loader parses N and unions them: labelled blank nodes would fuse across files,
+    /// a second `@base` would silently re-resolve relative IRIs, and a prefix bound
+    /// twice would take the first binding rather than the last. Today's corpus happens
+    /// to have none of those, and nothing gated that it stays that way.
+    pub shape_union_root: Option<PathBuf>,
     /// Project root for the content-addressed `.cache/validate` cache. When
     /// `None`, caching is disabled; `gmeow-dev validate` passes `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
@@ -311,6 +350,40 @@ fn finding_identity_key(finding: &Finding) -> String {
     parts.join("\u{1f}")
 }
 
+/// The content key of the repository shape union at `root`: each member's
+/// repo-relative path, byte length, and bytes, in the loader's own file order.
+///
+/// Keyed on the same member set and order `purrdf::shapes::shape_union::load_shapes`
+/// parses, so the cache entry is invalidated by exactly the edits that change the
+/// shapes the engine ran with — including a `generated/shapes/*.ttl` rewrite.
+///
+/// # Errors
+/// If the union file list cannot be built (it fails closed on an empty
+/// `generated/shapes/`) or a member cannot be read.
+fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
+    let files = purrdf::shapes::shape_union::shape_files(root)
+        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))?;
+    let mut out: Vec<u8> = Vec::new();
+    for file in &files {
+        let rel = file
+            .strip_prefix(root)
+            .unwrap_or(file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let bytes = std::fs::read(file).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("reading shape file {}: {e}", file.display()),
+            })
+        })?;
+        out.extend_from_slice(rel.as_bytes());
+        out.push(0x1f);
+        out.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+        out.extend_from_slice(&bytes);
+        out.push(0x1e);
+    }
+    Ok(out)
+}
+
 /// A complete validation run: shared store, parsed shapes, timings, diagnostics,
 /// and the auxiliary data downstream Rust phases consume (declared terms for
 /// the authoring-integrity undeclared-term gate; advisory claims for the D4
@@ -424,11 +497,31 @@ impl ValidationRun {
             }
         })?;
 
-        // Parse the normal SHACL shapes once.
-        let shapes = timed(&mut timings, "parse-shapes", options, None, || {
-            purrdf::shapes::engine::parse_shapes(shapes_ttl)
-                .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))
-        })?;
+        // Parse the normal SHACL shapes once, from whichever of the two shape SOURCES
+        // the caller selected (see `ValidateOptions::shape_union_root`). Supplying both
+        // is a caller bug, not a precedence question — reject it rather than pick one.
+        if options.shape_union_root.is_some() && !shapes_ttl.is_empty() {
+            return Err(Diag::of_kind(crate::error::Argument {
+                detail: "ValidationRun::run: shape_union_root and a non-empty shapes_ttl are two \
+                         different shape sources; supply exactly one"
+                    .to_owned(),
+            }));
+        }
+        let (shape_store, shapes) =
+            timed(
+                &mut timings,
+                "parse-shapes",
+                options,
+                None,
+                || match &options.shape_union_root {
+                    Some(root) => purrdf::shapes::shape_union::load_shapes(root)
+                        .map(|(store, shapes)| (Some(store), shapes))
+                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                    None => purrdf::shapes::engine::parse_shapes(shapes_ttl)
+                        .map(|shapes| (None, shapes))
+                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                },
+            )?;
 
         // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
@@ -699,7 +792,17 @@ impl ValidationRun {
                     source_paths.iter().map(PathBuf::from).collect();
                 cache.files_cache_key(&source_paths_buf)?
             };
-            let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
+            // The shape leg of the key: the literal document when that is the source,
+            // else the union members' own bytes in union order. Both are exact content
+            // keys over the shapes actually parsed — a shape edit busts the key either
+            // way.
+            let union_key_bytes = match &options.shape_union_root {
+                Some(root) => Some(shape_union_key_bytes(root)?),
+                None => None,
+            };
+            let shapes_key = ValidationCache::cache_key(&[union_key_bytes
+                .as_deref()
+                .unwrap_or(shapes_ttl.as_bytes())]);
             let salt = ValidationCache::toolchain_salt();
             ValidationCache::cache_key(&[
                 source_key.as_bytes(),
@@ -707,18 +810,36 @@ impl ValidationRun {
                 salt.as_bytes(),
             ])
         } else {
-            ValidationCache::cache_key(&[shapes_ttl.as_bytes()])
+            match &options.shape_union_root {
+                Some(root) => ValidationCache::cache_key(&[&shape_union_key_bytes(root)?]),
+                None => ValidationCache::cache_key(&[shapes_ttl.as_bytes()]),
+            }
         };
+        // `merged_shacl_key` is computed above in BOTH source modes: Phase 10
+        // (`check_examples`) consumes it as its own per-example cache salt, so it is
+        // load-bearing beyond this phase and must not be made conditional.
         let start = Instant::now();
-        let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            // No `rdf:type` pre-materialization: the engine closes `sh:class`/`sh:targetClass`
-            // over the asserted `rdfs:subClassOf` chain, and every projected `sh:sparql` /
-            // `sh:SPARQLTarget` body now reads class membership through the `a/<subClassOf>*`
-            // property path (constraint projector + the legacy shape bodies), so the raw dataset
-            // is validated directly.
-            let report = store::shacl_validate_dataset(&dataset, &shapes);
-            Ok(shacl_findings_from_report(&report, None))
-        })?;
+        let (result, meta) = match &options.merged_shacl {
+            MergedShacl::Live => {
+                run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
+                    // No `rdf:type` pre-materialization: the engine closes `sh:class`/`sh:targetClass`
+                    // over the asserted `rdfs:subClassOf` chain, and every projected `sh:sparql` /
+                    // `sh:SPARQLTarget` body now reads class membership through the `a/<subClassOf>*`
+                    // property path (constraint projector + the legacy shape bodies), so the raw dataset
+                    // is validated directly.
+                    let report = store::shacl_validate_dataset(&dataset, &shapes);
+                    Ok(shacl_findings_from_report(&report, None))
+                })?
+            }
+            // The verdict the pipeline already recorded over the same inputs, proven
+            // current by the caller. Folded through the SAME `intern_shacl_findings`
+            // path a live pass takes, so a recorded violation reaches the report and
+            // the exit code exactly as a live one does.
+            MergedShacl::Recorded(findings) => (
+                findings.clone(),
+                Some("stage-validate recorded verdict".to_owned()),
+            ),
+        };
         if options.timings {
             timings.push(Timing {
                 phase: "merged-shacl".to_owned(),
@@ -855,8 +976,15 @@ impl ValidationRun {
         // merely because a rule exists. Find harvested findings via the "advisory-harvested"
         // tag. (CLI twin of the pipeline's result-based split; both build advisories through
         // `advisory::build_advisory`, so the two surfaces cannot drift.)
-        let advisory_shapes =
-            purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok();
+        // The shape STORE the advisory split scans is the one the shapes were parsed
+        // from: the union loader already returns it (so a second parse of a
+        // re-concatenated text — with different blank-node scoping than the union the
+        // engine actually ran — is impossible), and the literal-document source parses
+        // its own text.
+        let advisory_shapes = match &shape_store {
+            Some(store) => Some(Arc::clone(store)),
+            None => purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok(),
+        };
         let advisories = advisory_shapes
             .as_deref()
             .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes, &dataset))
@@ -2073,10 +2201,18 @@ mod tests {
 
     use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the validation run dispatches
+    /// on the `.ttl` extension.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     /// The per-example `base ∪ example` merge dedups shared base quads and adds the
@@ -2093,12 +2229,11 @@ mod tests {
         let base_quads: Vec<purrdf::RdfQuad> = base.owned_quads().collect();
 
         // An example carrying one duplicate of the base quad plus one new quad.
-        let example_path = write_tmp(
+        let (_tmp, example_path) = write_tmp(
             "gmeow_validate_example_merge.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
         );
         let example = store::parse_file_dataset(&example_path).unwrap();
-        std::fs::remove_file(&example_path).ok();
 
         let mut builder = RdfDatasetBuilder::new();
         for q in &base_quads {
@@ -2657,7 +2792,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// Ok early-return path, not the vacuous build-store-failure path.
     #[test]
     fn early_return_path_emits_no_advisory() {
-        let banned_ttl_path = write_tmp(
+        let (_tmp, banned_ttl_path) = write_tmp(
             "gmeow_validate_advisory_early_return_sameas.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -2668,8 +2803,6 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         let options = ValidateOptions::default();
         let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
             .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
-
-        std::fs::remove_file(&banned_ttl_path).ok();
 
         // The run hard-failed (the sameAs ban is an error), proving we hit the
         // short-circuit early-return path.

@@ -15,7 +15,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accessibility" uri="slices/extensions/accessibility/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accounts" uri="slices/core/accounts/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/affect" uri="slices/core/affect/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/agentic" uri="slices/extensions/agentic/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/agentic" uri="slices/core/agentic/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/aggregation" uri="slices/extensions/aggregation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/agreements" uri="slices/core/agreements/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/ai" uri="slices/core/ai/module.ttl"/>
@@ -69,15 +69,14 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/music" uri="slices/extensions/music/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/names" uri="slices/core/names/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/narrative" uri="slices/extensions/narrative/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/norms" uri="slices/extensions/norms/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/norms" uri="slices/core/norms/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/notation" uri="slices/core/notation/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/notes" uri="slices/extensions/notes/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/notes" uri="slices/core/notes/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/observations" uri="slices/core/observations/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/organization" uri="slices/core/organization/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/pipeline" uri="slices/core/pipeline/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/places" uri="slices/core/places/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/preference" uri="slices/extensions/preference/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/procedures" uri="slices/extensions/procedures/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/preference" uri="slices/core/preference/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/profiles" uri="slices/core/profiles/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/provenance" uri="slices/core/provenance/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/quality" uri="slices/core/quality/module.ttl"/>
@@ -96,6 +95,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/temporal" uri="slices/core/temporal/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/trust" uri="slices/core/trust/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/versions" uri="slices/core/versions/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/work-orchestration" uri="slices/core/work-orchestration/module.ttl"/>
 
     <!-- Named profiles (generated) -->
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>

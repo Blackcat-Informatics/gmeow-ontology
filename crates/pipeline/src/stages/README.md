@@ -24,7 +24,7 @@ registered from `mod.rs` under the `gmeow:stageImpl` key read from the ontology.
   replacement carrier bundle.
 - A stage should not re-read `generated/dist/gmeow.gts` when the needed data is
   already present in the in-memory carrier.
-- Generated outputs must be reproducible through `make regen`; never patch
+- Generated outputs must be reproducible through `make check`; never patch
   generated files by hand to satisfy a stage change.
 - Source/output ownership belongs in the dogfooded DAG plus `register_default`;
   adding an unregistered stage is dead code.

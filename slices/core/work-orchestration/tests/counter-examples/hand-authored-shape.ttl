@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saNoHandAuthoredShapes: a hand-authored node shape, the
+# second source of truth the derived shape surface exists to prevent.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+
+gmeow:WorkClusterShape a sh:NodeShape ;
+    sh:targetClass gmeow:WorkCluster .

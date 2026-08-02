@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/rdf_golden.rs
-assertion_line: 175
 expression: nq
 ---
 <https://blackcatinformatics.ca/gmeow/documentation/term/cat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedTerm> <https://blackcatinformatics.ca/gmeow/graph/documentation> .

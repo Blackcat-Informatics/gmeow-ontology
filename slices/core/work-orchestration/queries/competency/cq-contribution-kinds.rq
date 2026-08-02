@@ -1,0 +1,11 @@
+# Competency question: "How is a recorded contribution's authority typed?"
+# Expected: exactly three kinds - model advice, operator decision, tool
+# observation - because a review surface that cannot tell them apart cannot say
+# who decided.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?kind WHERE {
+    ?kind a gmeow:ContributionKind .
+}
+ORDER BY ?kind
