@@ -200,7 +200,7 @@ pub(super) fn check_wire(
     // The universal rule first: a bundle that violates Rule 6 is not made acceptable
     // by having a tidy dictionary story, and running it here is what makes this audit
     // strictly stronger rather than merely different.
-    crate::gts_profile::validate_mandated_frames(bytes)?;
+    gmeow_gts_profile::validate_mandated_frames(bytes)?;
     let (headers, frames) = read_wire(bytes)?;
     if frames.is_empty() {
         return Err(invalid_declaration(
@@ -754,6 +754,21 @@ mod tests {
     use super::*;
     use crate::medium::registry::fixture;
 
+    /// The materialized bundle is a pipeline-owned artifact, so its mandated-frame
+    /// audit stays with the pipeline crate rather than moving to the leaf that owns
+    /// the rule.
+    #[test]
+    fn committed_bundle_uses_the_mandated_frame_profile() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(std::path::Path::parent)
+            .expect("workspace root");
+        let bytes = std::fs::read(root.join("generated/dist/gmeow.gts"))
+            .expect("read the materialized GMEOW bundle");
+        gmeow_gts_profile::validate_mandated_frames(&bytes)
+            .expect("the materialized bundle uses the mandated frame profile");
+    }
+
     /// A `gmeow-` prefixed dictionary the store fixtures prime with, trained over a
     /// corpus big enough for zstd to accept.
     fn dict_bytes() -> Vec<u8> {
@@ -791,7 +806,7 @@ mod tests {
         .expect("fixture parses");
         let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
         builder.add_dataset(&dataset).expect("add fixture");
-        crate::gts_profile::emit_gmeow_gts(
+        gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
                 data: b"a whole-artifact payload".repeat(32),
@@ -812,7 +827,7 @@ mod tests {
         let bytes = baseline_bundle();
         // The universal Rule 6 check still holds on the very same bytes: the split is
         // an ADDITION, never a replacement.
-        crate::gts_profile::validate_mandated_frames(&bytes).expect("universal rule holds");
+        gmeow_gts_profile::validate_mandated_frames(&bytes).expect("universal rule holds");
         validate_declared_media(
             &bytes,
             &MediumDeclaration {
@@ -861,11 +876,11 @@ mod tests {
     /// A store-shaped file: one dict-primed segment authored through the production
     /// `store_writer` door, audited under a header-dict medium.
     fn primed_store(dictionary: &str) -> Vec<u8> {
-        let medium = crate::gts_profile::StoreMedium {
+        let medium = gmeow_gts_profile::StoreMedium {
             dictionary: dictionary.to_string(),
             bytes: dict_bytes(),
         };
-        let mut writer = crate::gts_profile::store_writer("ai-package", &[], &medium)
+        let mut writer = gmeow_gts_profile::store_writer("ai-package", &[], &medium)
             .expect("the store door opens");
         writer
             .add_terms(&[purrdf::gts::model::Term {
@@ -884,7 +899,7 @@ mod tests {
     fn a_header_dict_store_passes_when_its_pinned_dictionary_is_registered() {
         let registry = registry(HEADER_DICT_MEDIUM);
         let bytes = primed_store("gmeow-core-v1");
-        crate::gts_profile::validate_mandated_frames(&bytes).expect("universal rule holds");
+        gmeow_gts_profile::validate_mandated_frames(&bytes).expect("universal rule holds");
         validate_declared_media(
             &bytes,
             &MediumDeclaration {
@@ -1067,7 +1082,7 @@ gmeow:mediumStore a gmeow:ZstdDictMedium ;
         }));
 
         for (label, bytes) in cases {
-            let universal = crate::gts_profile::validate_mandated_frames(&bytes);
+            let universal = gmeow_gts_profile::validate_mandated_frames(&bytes);
             assert!(
                 universal.is_err(),
                 "{label}: the universal rule must reject it, or this is not a replay"

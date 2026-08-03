@@ -49,6 +49,8 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
+    | (package(gmeow-cli) & binary(medium_cli))
+    | (package(gmeow-dev-cli) & binary(medium_gate))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -103,11 +105,18 @@ slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s"
 # the embedded bytes would assert against whatever happened to be on disk. Both suites
 # therefore run the production DAG once, in memory, write the emitted bundle to a temp
 # path, and drive the real `gmeow` / `gmeow-dev` binaries against THAT file — plus a real
-# runtime store and five tampered breach fixtures. They are ON-gate deliberately: every
-# claim they make is about a shipped consumer verb over shipped bytes. A whole-DAG
-# execution is minutes, so they get the runaway backstop the sibling whole-pipeline proofs
-# use rather than the 60s default that fits focused unit tests.
+# runtime store and five tampered breach fixtures.
 #
+# They are OFF the local gate: the default filter above excludes both binaries, and
+# `make medium-consumer-surface` (a `HEAVY_TASKS` member, so it runs on every PR) drives
+# them on the `maint-heavy` profile. The reason is P6 criterion 2 in
+# docs/GATE-AND-PIPELINE.md — a whole-DAG execution plus a real store plus five breach
+# fixtures is priced by the breadth of the pipeline, not by the edit under test, and
+# reserving the host for each doubles that cost onto everything else queued behind them.
+# The axis's razor stays on `make check`: `medium_identity_gate` and `medium_bundle` are
+# change-dominated and are the two proofs about the SHIPPED artifact itself.
+#
+# The budget below still applies (the `maint-heavy` profile inherits these overrides).
 # `threads-required` reserves the host for each of them. It is not a scheduling nicety:
 # the DAG run inside creates its own full-width worker pool, so two of these executing
 # concurrently halve each other's parallelism and BOTH drift past the backstop — which is

@@ -166,6 +166,7 @@ impl Stage for GtsSinkStage {
             input.root,
             input.upstream,
             carrier.as_ref(),
+            &crate::medium::registry::MediumSelection::Authored,
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GTS_PATH.to_string(), gts);
@@ -512,22 +513,22 @@ mod tests {
             crate::stages::archive_blobs::STAGE_ID.to_string(),
             archives.product,
         );
-        // Drive the docs-model-injectable serializer directly with an EMPTY DocsModel so the
-        // OKF-coverage gate is scoped to the fixture (no documented terms → no dangling links),
-        // exercising the sink's fail-closed blob/serialization wiring without paying for the
-        // whole-ontology docs-corpus discovery. This test's subject is the serialization wiring,
-        // NOT OKF coverage — that gate stays non-vacuously exercised by
-        // `okf_link_targets_missing_from` (populated links) and the end-to-end pipeline test over
-        // the real full carrier. The thin `run()` wrapper (carrier off the snapshot product then
-        // `serialize_carrier_snapshot`) is exercised by that end-to-end test.
+        // Drive the PRODUCTION serializer over the fixture carrier under the authored
+        // medium — the same door and the same selection `run()` takes, so this test's
+        // subject (the sink's fail-closed blob/serialization wiring) is exercised on the
+        // shipped path rather than on a sibling one. The docs corpus is deliberately not
+        // discovered here: documentation projections are external artifacts the terminal
+        // never embeds, so the fixture pays nothing for them. OKF coverage is a separate
+        // gate, exercised by `okf_link_targets_missing_from` (populated links) and by the
+        // end-to-end pipeline test over the real full carrier — which is also what
+        // exercises the thin `run()` wrapper around this call.
         let carrier =
             crate::stages::carrier::snapshot_dataset(&upstream).expect("snapshot carrier");
-        let empty_docs = gmeow_docs::model::DocsModel::default();
-        let emitted = crate::stages::carrier::serialize_carrier_snapshot_with_docs_model(
+        let emitted = crate::stages::carrier::serialize_carrier_snapshot(
             &root,
             &upstream,
             carrier.as_ref(),
-            &empty_docs,
+            &crate::medium::registry::MediumSelection::Authored,
         )
         .expect("sink serializes the carrier");
         assert!(
@@ -544,7 +545,7 @@ mod tests {
         // invariants, over a fixture small enough to iterate on. The whole-DAG gate is
         // what proves them on the SHIPPED artifact; this one keeps the sink's medium
         // wiring covered in the focused lane the sink's other contracts live in.
-        let pinned = crate::gts_profile::segment_dictionaries(&emitted)
+        let pinned = gmeow_gts_profile::segment_dictionaries(&emitted)
             .expect("the emitted bundle's header reads back");
         assert_eq!(
             pinned.len(),

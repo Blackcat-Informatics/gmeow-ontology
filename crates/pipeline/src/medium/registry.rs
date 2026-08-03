@@ -530,20 +530,11 @@ impl MediumRegistry {
     /// selected ones would ship a bundle that declares five dictionaries and
     /// carries three, leaving the other two nameable but unobtainable.
     ///
-    /// # Errors
-    /// An unregistered or unassigned rep, a declared dictionary with no trained
-    /// bytes, or two assigned media declaring different zstd levels (the plan
-    /// carries ONE level, so a disagreement has no answer).
-    pub fn medium_plan(
-        &self,
-        reps: &[String],
-        trained: &BTreeMap<String, Vec<u8>>,
-    ) -> Result<WireMediumPlan, gmeow_errors::Diag> {
-        self.medium_plan_under(&MediumSelection::Authored, reps, trained)
-    }
-
-    /// [`Self::medium_plan`] under an explicit [`MediumSelection`] — the door the
-    /// counterfactual baseline emission goes through.
+    /// `selection` names WHICH declared medium the emission is written through. There
+    /// is ONE plan door, taken by the shipped emission at
+    /// [`MediumSelection::Authored`] and by the counterfactual baseline emission at
+    /// [`MediumSelection::baseline_profile`]; a second, selection-free entry point
+    /// would let the counterfactual be produced by a path the deliverable never takes.
     ///
     /// The PINNED dictionary set is the same under every selection: `gmeow:dicts` is the
     /// bundle's DISTRIBUTION channel for the dictionary family (a consumer priming its own
@@ -554,8 +545,10 @@ impl MediumRegistry {
     /// priming ALONE.
     ///
     /// # Errors
-    /// Everything [`Self::medium_plan`] raises, plus an undeclared or
-    /// dictionary-declaring uniform medium (see [`Self::resolved_assignment`]).
+    /// An unregistered or unassigned rep, a declared dictionary with no trained bytes,
+    /// two assigned media declaring different zstd levels (the plan carries ONE level,
+    /// so a disagreement has no answer), or an undeclared or dictionary-declaring
+    /// uniform medium (see [`Self::resolved_assignment`]).
     pub fn medium_plan_under(
         &self,
         selection: &MediumSelection,
@@ -1284,7 +1277,11 @@ mod tests {
     fn the_medium_plan_renders_the_assignment_for_the_authorship_door() {
         let registry = registry("");
         let plan = registry
-            .medium_plan(&["cells-archive".to_string()], &trained_all())
+            .medium_plan_under(
+                &MediumSelection::Authored,
+                &["cells-archive".to_string()],
+                &trained_all(),
+            )
             .expect("plan");
         assert_eq!(plan.zstd_level, Some(12));
         // EVERY declared dictionary is pinned, not merely the selected one: the
@@ -1316,7 +1313,11 @@ mod tests {
     fn the_medium_plan_hard_fails_on_an_unassigned_rep() {
         let registry = registry("");
         let diag = registry
-            .medium_plan(&["orphan-archive".to_string()], &trained_all())
+            .medium_plan_under(
+                &MediumSelection::Authored,
+                &["orphan-archive".to_string()],
+                &trained_all(),
+            )
             .expect_err("an unassigned rep must not produce a plan");
         assert_eq!(
             diag.code(),
@@ -1559,7 +1560,11 @@ mod tests {
     fn the_medium_plan_hard_fails_when_a_selected_dictionary_has_no_bytes() {
         let registry = registry("");
         let diag = registry
-            .medium_plan(&["cells-archive".to_string()], &BTreeMap::new())
+            .medium_plan_under(
+                &MediumSelection::Authored,
+                &["cells-archive".to_string()],
+                &BTreeMap::new(),
+            )
             .expect_err("a selected dictionary with no bytes must not produce a plan");
         assert_eq!(
             diag.code(),

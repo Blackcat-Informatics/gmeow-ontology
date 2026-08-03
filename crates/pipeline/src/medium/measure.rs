@@ -132,16 +132,6 @@ impl Population {
             Self::RuntimeStoreSegments => "runtime-store-segments",
         }
     }
-
-    /// The population a wire token names.
-    #[must_use]
-    pub fn from_wire(token: &str) -> Option<Self> {
-        match token {
-            "emitted-blob-frames" => Some(Self::EmittedBlobFrames),
-            "runtime-store-segments" => Some(Self::RuntimeStoreSegments),
-            _ => None,
-        }
-    }
 }
 
 /// One dictionary's measured effect over one declared population.
@@ -253,7 +243,7 @@ pub fn encoded_len(
 /// production measurement must run, read from the registry rather than restated.
 ///
 /// Every rep the emission authors resolves to a declared `gmeow:Medium`; all of them
-/// must agree, exactly as [`MediumRegistry::medium_plan`] already requires of the
+/// must agree, exactly as [`MediumRegistry::medium_plan_under`] already requires of the
 /// level. A disagreement has no answer: a two-part code summed across two codecs
 /// would be a number no artifact ever exhibits.
 ///
@@ -620,6 +610,14 @@ pub fn project(
 /// measurement it has no corpus for. `gmeow medium explain` and the
 /// `gmeow-dev medium-gate` MDL clause are both that consumer.
 ///
+/// Read out of [`MEDIUM_MEASUREMENT_GRAPH`] ONLY. The emission folds the same rows a
+/// second time into their `graph/fanout/…` reconstruction twin (the graph the superset
+/// gate rebuilds [`MEDIUM_EFFECT_PATH`] from), so a reader that scanned every graph
+/// would see each measurement twice and report one dictionary's single two-part code as
+/// two findings. The twin is the SAME fact in its transport graph, not a second
+/// measurement, and this graph is the canonical one: [`project`] writes here, and the
+/// twin is derived from it.
+///
 /// # Errors
 /// A row missing one of its counts or its `gmeow:measuresDictionary`, a count that is
 /// not a non-negative integer, or a `gmeow:measurementPopulation` outside the declared
@@ -630,7 +628,11 @@ pub fn effects(
 ) -> Result<Vec<DictionaryEffect>, gmeow_errors::Diag> {
     use purrdf::RdfTerm as T;
 
-    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
+    let measurement_graph = Some(T::iri(MEDIUM_MEASUREMENT_GRAPH));
+    let quads: Vec<purrdf::RdfQuad> = purrdf::flat_rdf_quads_from_dataset(graph)
+        .into_iter()
+        .filter(|q| q.graph_name == measurement_graph)
+        .collect();
     let subjects: Vec<&str> = quads
         .iter()
         .filter(|q| {
@@ -1036,6 +1038,43 @@ mod tests {
         assert_eq!(effects[0].evaluated_frame_count, 1);
         assert_eq!(effects[0].corpus_sample_count, 400);
         assert!(effects[0].bytes_on_disk > 0 && effects[0].bytes_on_disk_baseline > 0);
+    }
+
+    /// A measurement that also rides its `graph/fanout/…` reconstruction twin is read
+    /// back ONCE.
+    ///
+    /// The emission folds both copies (`serialize_snapshot` pushes the measurement graph
+    /// and the re-rooted twin the superset gate rebuilds `generated/medium/
+    /// dictionary-effect.ttl` from), so a reader that scanned every graph would report
+    /// one dictionary's single two-part code twice — which is what `gmeow medium
+    /// explain` did.
+    #[test]
+    fn the_fanout_twin_does_not_double_count_a_measurement() {
+        let registry = registry();
+        let quads = project(&registry, &[effect(400, 1000, 100)]).expect("project");
+        // Derived through the SAME function the emission re-roots the twin with, so this
+        // fixture cannot drift from the graph the bundle actually carries.
+        let fanout_graph = RdfTerm::iri(
+            crate::stages::superset::rdf_fanout_graph_iri(MEDIUM_EFFECT_PATH)
+                .expect("the dictionary-effect fanout path is an RDF path"),
+        );
+        let twinned: Vec<RdfQuad> = quads
+            .iter()
+            .cloned()
+            .chain(quads.iter().cloned().map(|mut quad| {
+                quad.graph_name = Some(fanout_graph.clone());
+                quad
+            }))
+            .collect();
+        let dataset = purrdf::dataset_from_quads(&twinned).expect("the twinned graphs freeze");
+        let read_back = effects(&registry, dataset.as_ref()).expect("the rows read back");
+        assert_eq!(
+            read_back.len(),
+            1,
+            "the fanout twin is the SAME measurement in its transport graph, not a second \
+             one: {read_back:?}"
+        );
+        assert_eq!(read_back[0], effect(400, 1000, 100));
     }
 
     /// The projection lands entirely in `graph/medium-measurement` — NOT in

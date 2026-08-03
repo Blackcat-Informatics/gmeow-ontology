@@ -29,7 +29,7 @@
 //! The CLI reads every evidence file up front and hard-fails on a missing one;
 //! this core never silently skips. Signing here is unconditional (the release
 //! bundle is, by definition, signed): all three signer fields are passed to
-//! [`crate::gts_profile::emit_gmeow_gts`], which itself hard-fails any partial
+//! [`gmeow_gts_profile::emit_gmeow_gts`], which itself hard-fails any partial
 //! signing config.
 
 use std::collections::BTreeSet;
@@ -164,7 +164,7 @@ pub fn fold_release_bundle(
         .collect();
 
     // 4. Emit the signed bundle (emit_gts hard-fails any partial signer config).
-    crate::gts_profile::emit_gmeow_gts(
+    gmeow_gts_profile::emit_gmeow_gts(
         &builder,
         doc_blobs,
         report_blobs,

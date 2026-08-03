@@ -409,7 +409,8 @@ jobs:
   #   ontology-reason    : reason-verify, coverage, coherence gate teeth
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, compliance-report
-  #   heavy              : wasm-parity, acceptance, bench-soak (the CI-only lane)
+  #   heavy              : wasm-parity, acceptance, bench-soak,
+  #                        medium-consumer-surface (the CI-only lane)
   ontology-validate:
     needs: [producer]
     runs-on: ubuntu-latest
@@ -617,10 +618,18 @@ jobs:
   #                 purrdf's CI.)
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
+  #   medium-consumer-surface : the two consumer-surface medium suites (`gmeow medium`
+  #                 verbs, `gmeow-dev medium-gate`), each a whole in-memory DAG run plus
+  #                 a real runtime store and five breach fixtures. The axis's razor
+  #                 (`medium_identity_gate`, `medium_bundle`) stays on `make check`.
   heavy:
     needs: [producer]
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 rather than 120: `medium-consumer-surface` adds two whole in-memory DAG runs
+    # to the lane, each of which reserves the host and carries a 1800s runaway backstop
+    # in .config/nextest.toml. The job ceiling has to sit above the sum of the lane's
+    # own budgets, or a green lane would be killed by the wrapper instead.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -679,9 +688,10 @@ jobs:
 
       # ubuntu-latest ships a current Node. `make heavy` runs the whole lane in one
       # step: wasm-parity (which itself runs `make wasm` first, so the wasm32 build +
-      # dep-purity gates still execute), then acceptance, then bench-soak. The target
-      # hard-fails unless CI=true AND GITHUB_ACTIONS=true, both of which Actions sets.
-      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak (make heavy)
+      # dep-purity gates still execute), then acceptance, then bench-soak, then
+      # medium-consumer-surface. The target hard-fails unless CI=true AND
+      # GITHUB_ACTIONS=true, both of which Actions sets.
+      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak, medium consumer surface (make heavy)
         run: make heavy
 
   # Aggregator gate. Branch protection requires the "quality" context; this job

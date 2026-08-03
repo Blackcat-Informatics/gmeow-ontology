@@ -6,7 +6,7 @@
 //! [`measure_docs_designs`] renders every shipped documentation / serialization
 //! format through the SAME production renderers `gmeow-dev sync` uses, frames
 //! each rendered format through the single mandated GTS authorship profile
-//! (`crate::gts_profile::emit_gmeow_gts`), and totals the real byte counts for
+//! (`gmeow_gts_profile::emit_gmeow_gts`), and totals the real byte counts for
 //! three candidate external-distribution designs:
 //!
 //! * **Design A** (external + manifest): every format written to disk as plain
@@ -131,22 +131,16 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     let rendered = render_every_format(root, &products, carrier.as_ref())?;
 
     let empty_builder = SnapshotBuilder::new();
-    let baseline_len = crate::gts_profile::emit_gmeow_gts(
-        &empty_builder,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-    )
-    .map_err(|e| err(format!("frame the baseline (empty) GTS snapshot: {e}")))?
-    .len() as u64;
+    let baseline_len =
+        gmeow_gts_profile::emit_gmeow_gts(&empty_builder, Vec::new(), Vec::new(), None, None, None)
+            .map_err(|e| err(format!("frame the baseline (empty) GTS snapshot: {e}")))?
+            .len() as u64;
 
     let mut formats = Vec::with_capacity(rendered.len());
     let mut doc_blob_rows = Vec::with_capacity(rendered.len());
     let mut design_a_total = 0u64;
     for rendered_format in &rendered {
-        let framed_len = crate::gts_profile::emit_gmeow_gts(
+        let framed_len = gmeow_gts_profile::emit_gmeow_gts(
             &empty_builder,
             vec![rendered_format.blob_row()],
             Vec::new(),
@@ -175,7 +169,7 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
 
     let design_a_bytes = design_a_total + DESIGN_A_MANIFEST_ALLOWANCE_BYTES;
 
-    let design_b_bytes = crate::gts_profile::emit_gmeow_gts(
+    let design_b_bytes = gmeow_gts_profile::emit_gmeow_gts(
         &empty_builder,
         doc_blob_rows,
         Vec::new(),
@@ -190,10 +184,14 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     })?
     .len() as u64;
 
-    let without_docs_bytes =
-        crate::stages::carrier::serialize_carrier_snapshot(root, &products, carrier.as_ref())
-            .map_err(|e| err(format!("serialize the without-docs carrier snapshot: {e}")))?
-            .len() as u64;
+    let without_docs_bytes = crate::stages::carrier::serialize_carrier_snapshot(
+        root,
+        &products,
+        carrier.as_ref(),
+        &crate::medium::registry::MediumSelection::Authored,
+    )
+    .map_err(|e| err(format!("serialize the without-docs carrier snapshot: {e}")))?
+    .len() as u64;
     let l12_doc_sum: u64 = formats.iter().map(|f| f.l12_bytes).sum();
     let design_c_bytes = without_docs_bytes + l12_doc_sum;
 

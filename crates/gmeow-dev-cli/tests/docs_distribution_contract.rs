@@ -58,10 +58,10 @@ fn reasoning_graphs_source() -> String {
     read("crates/logic/src/reasoning_graphs.rs")
 }
 
-/// The mandated GTS frame profile now lives in the `gmeow-gts-profile` LEAF crate
-/// (`crates/pipeline/src/gts_profile.rs` is a re-export shim): `gmeow-pipeline`
-/// depends on `gmeow-math`/`gmeow-music`, so those producers could not have
-/// reached the profile from inside `gmeow-pipeline`.
+/// The mandated GTS frame profile lives in the `gmeow-gts-profile` LEAF crate, and
+/// every caller reaches it there: `gmeow-pipeline` depends on
+/// `gmeow-math`/`gmeow-music`, so those producers could not have reached the profile
+/// from inside `gmeow-pipeline`.
 fn gts_profile_source() -> String {
     read("crates/gts-profile/src/lib.rs")
 }
@@ -543,11 +543,11 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let gts_profile = gts_profile_source();
     assert!(
         gts_profile.contains("pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;"),
-        "AC4: gts_profile.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
+        "AC4: crates/gts-profile/src/lib.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
     );
     assert!(
         gts_profile.contains("pub fn validate_mandated_frames"),
-        "AC4: gts_profile.rs must keep `validate_mandated_frames`, the function that \
+        "AC4: crates/gts-profile/src/lib.rs must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
     // The UNIVERSAL rule stays in the leaf crate, applicable to every GMEOW-authored

@@ -222,30 +222,6 @@ pub struct DictionaryBaseline {
 }
 
 impl DictionaryBaseline {
-    /// The committed row read back as a [`DictionaryEffect`], so the projection and
-    /// the gate treat a committed measurement exactly like a live one.
-    ///
-    /// # Errors
-    /// The row names a population token this build does not know.
-    pub fn effect(&self) -> Result<DictionaryEffect, gmeow_errors::Diag> {
-        let population = Population::from_wire(&self.population).ok_or_else(|| {
-            invalid_declaration(format!(
-                "{MEDIUM_BASELINE_PATH} row {:?} names population {:?}, which is not a declared \
-                 medium measurement population",
-                self.id, self.population
-            ))
-        })?;
-        Ok(DictionaryEffect {
-            dictionary_id: self.id.clone(),
-            population,
-            bytes_on_disk: self.bytes_on_disk,
-            bytes_on_disk_baseline: self.bytes_on_disk_baseline,
-            dictionary_in_band_bytes: self.dictionary_in_band_bytes,
-            corpus_sample_count: self.corpus_sample_count,
-            evaluated_frame_count: self.evaluated_frame_count,
-        })
-    }
-
     /// The `(strategy, target length)` the build must train this dictionary at.
     ///
     /// # Errors

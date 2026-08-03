@@ -75,7 +75,7 @@ CHECK_ARGS ?=
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak
+HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -84,7 +84,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate medium-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
+	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
@@ -154,6 +154,23 @@ gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized
 
 medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
 	$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts
+
+medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites: the `gmeow medium` verbs and `gmeow-dev medium-gate`, each over a bundle a whole in-memory DAG run emitted.
+	@# Lifted off `make check` under P6 criterion 2 (docs/GATE-AND-PIPELINE.md): each of
+	@# these two suites runs the WHOLE production DAG in memory and then drives a shipped
+	@# CLI over its output plus a real runtime store and five tampered breach fixtures, so
+	@# its runtime is set by the breadth of the pipeline rather than by the edit under
+	@# test. Both reserve the host (`threads-required = "num-cpus"`), so on the local gate
+	@# they also serialize everything else behind them.
+	@#
+	@# What they prove is a CONSUMER-verb contract over shipped bytes; the axis's own
+	@# razor — the emission is the same claim under a second declared medium, and the
+	@# shipped bundle's medium is whole — stays ON `make check` as `medium_identity_gate`
+	@# and `medium_bundle`, which are change-dominated. The default nextest filter
+	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
+	@# them.
+	cargo nextest run --profile maint-heavy \
+	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps

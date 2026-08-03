@@ -48,7 +48,6 @@ pub mod fanout;
 pub mod generator_registry;
 pub mod gmn_dialect;
 pub mod graph;
-pub(crate) mod gts_profile;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
@@ -78,8 +77,13 @@ pub use generator_registry::{
     GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, generator_by_name,
     generator_metadata, generator_names, generator_order, retained_product_paths,
 };
+/// Re-exported from the `gmeow-gts-profile` LEAF crate, where the mandated
+/// authorship profile lives (it cannot live here: `gmeow-pipeline` depends on
+/// `gmeow-math` and `gmeow-music`, both of which author GTS bytes). Re-exported
+/// rather than referred to at its own path because the mandated-frame rule is part
+/// of the pipeline's own published surface.
+pub use gmeow_gts_profile::validate_mandated_frames;
 pub use graph::StageGraph;
-pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
 pub use medium::audit::{
     DIST_BUNDLE_PRODUCER, MediumDeclaration, declared_medium_of, validate_declared_media,

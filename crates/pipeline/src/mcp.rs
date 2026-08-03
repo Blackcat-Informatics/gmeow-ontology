@@ -23,13 +23,13 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use serde_json::{Value, json};
 
-use crate::gts_profile::{open_store_segment, store_tail_pins, store_writer};
+use gmeow_gts_profile::{open_store_segment, store_tail_pins, store_writer};
 
+use gmeow_errors::ResultExt;
 /// The medium an append-only runtime store is written through, re-exported so a caller
 /// that must NAME it (the CLI's conjecture / candidate lanes) reaches the whole store
 /// lane through this one module rather than depending on the profile crate directly.
-pub use crate::gts_profile::StoreMedium;
-use gmeow_errors::ResultExt;
+pub use gmeow_gts_profile::StoreMedium;
 use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
     gmn1_write, resolve_operator_forms,
@@ -6011,7 +6011,7 @@ pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
 /// weaker unprimed store to fall back to, because the store's OWN header is what
 /// makes it decodable.
 pub fn store_medium(snapshot: &[u8], dictionary: &str) -> gmeow_errors::Result<StoreMedium> {
-    let dicts = crate::gts_profile::segment_dictionaries(snapshot)?;
+    let dicts = gmeow_gts_profile::segment_dictionaries(snapshot)?;
     let bytes = dicts.get(dictionary).cloned().ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::MediumUndeclaredDictionary {
             detail: format!(
@@ -6102,7 +6102,7 @@ pub fn compact_store(
 ) -> gmeow_errors::Result<()> {
     with_conjecture_lock(path, move || {
         let bytes = fs::read(path)?;
-        let compacted = crate::gts_profile::compact_gmeow_gts(
+        let compacted = gmeow_gts_profile::compact_gmeow_gts(
             &bytes,
             timestamp,
             &medium.dictionary,
@@ -7300,7 +7300,7 @@ mod tests {
             "1970-01-01T00:00:00Z",
         )
         .expect("build the audit segment");
-        crate::gts_profile::validate_mandated_frames(&segment)
+        gmeow_gts_profile::validate_mandated_frames(&segment)
             .expect("audit segment uses the mandated zstd-rsyncable-L12 frame profile");
     }
 
@@ -7320,7 +7320,7 @@ mod tests {
         )
         .expect("write the audit segment");
         let bytes = fs::read(&path).expect("read the appended segment");
-        crate::gts_profile::validate_mandated_frames(&bytes)
+        gmeow_gts_profile::validate_mandated_frames(&bytes)
             .expect("appended audit segment uses the mandated frame profile");
     }
 
@@ -7348,7 +7348,7 @@ mod tests {
         })
         .expect("commit the append");
         let bytes = fs::read(&path).expect("read the committed library");
-        crate::gts_profile::validate_mandated_frames(&bytes)
+        gmeow_gts_profile::validate_mandated_frames(&bytes)
             .expect("conjecture library append uses the mandated frame profile");
     }
 
@@ -7500,7 +7500,7 @@ mod tests {
 
         // THE claim of this change: one id, one byte sequence. The compacted store's
         // header entry IS the entry the SERVED bundle pins.
-        let shipped = crate::gts_profile::segment_dictionaries(&bytes)
+        let shipped = gmeow_gts_profile::segment_dictionaries(&bytes)
             .expect("the bundle's header reads")
             .remove(MEMORY_COMPACT_DICTIONARY)
             .expect("the served bundle pins the compact dictionary");
@@ -7511,7 +7511,7 @@ mod tests {
              the hot bytes and proves nothing"
         );
         let compacted = fs::read(&memory_path).expect("read the compacted store");
-        let pinned = crate::gts_profile::segment_dictionaries(&compacted)
+        let pinned = gmeow_gts_profile::segment_dictionaries(&compacted)
             .expect("the compacted store's header reads");
         assert_eq!(
             pinned.get(MEMORY_COMPACT_DICTIONARY),

@@ -200,6 +200,28 @@ fn the_medium_verbs_read_verify_and_explain_a_freshly_emitted_bundle() {
         stdout.contains("pays for itself: true"),
         "the shipped gmeow-core-v1 must be reported as paying for itself:\n{stdout}"
     );
+    // …and each measured population is reported ONCE. The bundle carries every
+    // measurement twice — in `graph/medium-measurement` and in its `graph/fanout/…`
+    // reconstruction twin — so a reader that scanned every graph printed one dictionary's
+    // single two-part code as two findings.
+    let mut populations: Vec<&str> = stdout
+        .lines()
+        .filter_map(|line| line.trim_start().strip_prefix("population "))
+        .filter_map(|rest| rest.split(':').next())
+        .collect();
+    assert!(
+        !populations.is_empty(),
+        "medium explain reported no measured population:\n{stdout}"
+    );
+    let reported = populations.len();
+    populations.sort_unstable();
+    populations.dedup();
+    assert_eq!(
+        populations.len(),
+        reported,
+        "medium explain reported a measured population more than once — the shipped rows \
+         and their fanout twin are the SAME measurement:\n{stdout}"
+    );
 
     // An unknown dictionary id is a NAMED failure, not an empty report.
     let (status, _, stderr) = invoke(&["medium", "explain", "gmeow-not-a-dictionary", bundle_arg]);

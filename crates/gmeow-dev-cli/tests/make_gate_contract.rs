@@ -91,7 +91,12 @@ const CI_JOB_COVERED: &[&str] = &[
 /// task there is a SCHEDULING decision, so it must still run on every PR:
 /// `the_heavy_lane_still_runs_on_every_pr` proves ci.yml invokes `make heavy` and
 /// that the Makefile's `HEAVY_TASKS` is exactly this set.
-const HEAVY_TASKS: &[&str] = &["wasm-parity", "acceptance", "bench-soak"];
+const HEAVY_TASKS: &[&str] = &[
+    "wasm-parity",
+    "acceptance",
+    "bench-soak",
+    "medium-consumer-surface",
+];
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -213,6 +218,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "wasm-parity",
         "acceptance",
         "bench-soak",
+        "medium-consumer-surface",
     ] {
         assert!(
             !targets.contains(&redundant),

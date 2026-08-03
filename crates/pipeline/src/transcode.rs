@@ -359,7 +359,7 @@ pub fn transcode(
         // mandated door. `purrdf::gts_write::to_gts` cannot: it authors its frames
         // through `Writer::deterministic`, which passes no transform chain at all,
         // so `gmeow convert --to gts` used to ship identity-framed bytes.
-        let bytes = crate::gts_profile::dataset_to_gmeow_gts(&dataset).map_err(|e| {
+        let bytes = gmeow_gts_profile::dataset_to_gmeow_gts(&dataset).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                 message: e.to_string(),
             })
@@ -820,7 +820,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
             None,
         )
         .expect("gts transcode");
-        crate::gts_profile::validate_mandated_frames(&out.bytes)
+        gmeow_gts_profile::validate_mandated_frames(&out.bytes)
             .expect("`convert --to gts` output uses the mandated zstd-rsyncable-L12 profile");
     }
 
@@ -835,7 +835,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
             None,
         )
         .expect("trig → gts transcode");
-        crate::gts_profile::validate_mandated_frames(&out.bytes)
+        gmeow_gts_profile::validate_mandated_frames(&out.bytes)
             .expect("named-graph `--to gts` output uses the mandated frame profile");
     }
 

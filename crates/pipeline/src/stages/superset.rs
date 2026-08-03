@@ -691,7 +691,7 @@ pub(crate) fn is_header_dict_path(path: &str) -> bool {
 /// minimal fixture, a `convert --to gts` exit) declares no dictionaries, and the
 /// bijection below then proves it authors no header-dict rows either.
 fn read_header_dicts(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let dicts = crate::gts_profile::segment_dictionaries(gts_bytes)
+    let dicts = gmeow_gts_profile::segment_dictionaries(gts_bytes)
         .map_err(|e| stage_err(&format!("read gmeow.gts header dictionaries: {e}")))?;
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for (id, bytes) in dicts {
@@ -1932,7 +1932,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(ds.as_ref()).expect("add_dataset");
         let gts =
-            crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+            gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
                 .expect("emit minimal expected-output bundle");
 
         // The REAL production path: parse the bundle -> reconstruct -> completeness check.

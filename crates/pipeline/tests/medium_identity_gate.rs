@@ -12,12 +12,15 @@
 //!   `gmeow:mediumProfileDistL12` — the shipped emission, taken off the terminal sink's
 //!   own product so the subject is literally the deliverable;
 //! * once under the DECLARED `gmeow:mediumProfileBaselineL12`, a first-class named
-//!   selection. Not an empty registry and not `MediumPlan::undicted` — either would be
-//!   the legacy no-dict mode this axis exists to remove, and neither would leave anything
-//!   on the artifact saying which medium it is. The baseline emission still PINS every
-//!   declared dictionary (the pack is the dictionary family's distribution channel) and
-//!   primes no frame with any of them, so the two emissions differ in priming and in
-//!   nothing else.
+//!   selection, through the SAME production door
+//!   (`carrier::serialize_carrier_snapshot`, the function `stage-gts-sink` itself
+//!   calls) at a second medium. Not a sibling test-only serializer, not an empty
+//!   registry and not `MediumPlan::undicted` — the first would compare two code paths
+//!   rather than two media, and the other two would be the legacy no-dict mode this axis
+//!   exists to remove, leaving nothing on the artifact saying which medium it is. The
+//!   baseline emission still PINS every declared dictionary (the pack is the dictionary
+//!   family's distribution channel) and primes no frame with any of them, so the two
+//!   emissions differ in priming and in nothing else.
 //!
 //! Three assertions, then the artifact-invariance leg:
 //!
@@ -330,7 +333,11 @@ fn medium_identity_gate() {
         .to_vec();
     let carrier = gmeow_pipeline::stages::carrier::snapshot_dataset(&products)
         .expect("this run's assembled carrier");
-    let baseline = gmeow_pipeline::stages::carrier::serialize_carrier_snapshot_under(
+    // The counterfactual goes through the PRODUCTION door — the very function
+    // `stage-gts-sink` calls, at a second declared medium instead of a second entry
+    // point. A sibling test-only serializer would make this comparison one between two
+    // code paths rather than between two media, which is not the claim.
+    let baseline = gmeow_pipeline::stages::carrier::serialize_carrier_snapshot(
         &root,
         &products,
         carrier.as_ref(),
