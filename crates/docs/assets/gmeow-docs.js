@@ -3,7 +3,7 @@
 
 // The offline documentation SPARQL playground controller.
 //
-// Loaded as an ES module only on the playground page. It boots the vendored purrdf
+// Loaded as an ES module only on the playground page. It boots the committed query
 // wasm engine, parses the bundled TriG asset once, runs the reader's SPARQL query
 // entirely in-browser (no server, no network), and renders the result — a table for
 // SELECT/ASK, and a graph with "copy as <format>" transcoding for CONSTRUCT/DESCRIBE.
@@ -12,7 +12,7 @@
 // and offline (file://): the purrdf bindings sit in ./purrdf/, the RDF asset is
 // ./playground.trig.
 
-import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
+import init, { Dataset } from "./query/gmeow_query_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
 import reasonInit, {
   reason as wasmReason,
@@ -38,15 +38,20 @@ const FORMATS = [
 // ── Shared browser-bundle loader ────────────────────────────────────────────
 // The single client entry point every browser surface (SPARQL playground, bundle
 // explorer, validation panels) uses to obtain the queryable ontology — so no
-// surface invents a second fetch/parse path. It boots the purrdf engine once,
-// fetches the object-level core bundle N-Quads, verifies its byte length against
-// the emitted content-address manifest (a truncated or swapped asset is rejected),
-// and returns the parsed Dataset. Iteration order over the returned dataset is
-// stable-sorted by callers so a native↔wasm witness can byte-compare results.
+// surface invents a second fetch/parse path. It boots the engine once, fetches the
+// SHIPPED `gmeow.gts` bundle, verifies its byte length against the emitted
+// content-address manifest (a truncated or swapped asset is rejected), and returns
+// the dataset read from it.
+//
+// It reads the BUNDLE, not a flattened `gmeow-core.nq` extract: flattening collapses
+// the named-graph structure and destroys the RDF 1.2 statement layer, so a browser
+// query could not reach either. Reading the bundle keeps every named graph and every
+// quoted triple addressable — information is trimmed only at exit gates, and the
+// playground IS the exit gate.
 let _engineReady = null;
 async function ensureEngine() {
   if (!_engineReady) {
-    _engineReady = init(new URL("./purrdf/gmeow_rdf_wasm_bg.wasm", import.meta.url));
+    _engineReady = init(new URL("./query/gmeow_query_wasm_bg.wasm", import.meta.url));
   }
   await _engineReady;
 }
@@ -56,21 +61,22 @@ export async function loadCoreBundle() {
   const manifest = await (
     await fetch(new URL("./bundle-manifest.json", import.meta.url))
   ).json();
-  const nq = await (await fetch(new URL("./gmeow-core.nq", import.meta.url))).text();
-  const expected = manifest["assets/gmeow-core.nq"]?.bytes;
-  const actual = new TextEncoder().encode(nq).length;
+  const bytes = new Uint8Array(
+    await (await fetch(new URL("./gmeow.gts", import.meta.url))).arrayBuffer(),
+  );
+  const expected = manifest["assets/gmeow.gts"]?.bytes;
   if (expected === undefined) {
     throw new Error(
-      "core bundle integrity: manifest is missing the assets/gmeow-core.nq entry — " +
+      "bundle integrity: manifest is missing the assets/gmeow.gts entry — " +
         "cannot verify the bundle byte length (a missing manifest entry is a hard failure, not a bypass)",
     );
   }
-  if (actual !== expected) {
+  if (bytes.length !== expected) {
     throw new Error(
-      `core bundle integrity: expected ${expected} bytes, got ${actual}`,
+      `bundle integrity: expected ${expected} bytes, got ${bytes.length}`,
     );
   }
-  return Dataset.parse(nq, "nquads");
+  return Dataset.fromGts(bytes);
 }
 
 /** The URL of the full `gmeow.gts` bundle (the Tier-1 validate surface's shapes

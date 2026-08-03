@@ -118,7 +118,7 @@ impl SerializationDist {
 /// ([`crate::docs_distribution`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum SiteSubAsset {
-    PurrdfWasm,
+    QueryWasm,
     ValidateWasm,
     ReasonWasm,
     GmnWasm,
@@ -128,7 +128,7 @@ enum SiteSubAsset {
 
 impl SiteSubAsset {
     const ALL: [SiteSubAsset; 6] = [
-        SiteSubAsset::PurrdfWasm,
+        SiteSubAsset::QueryWasm,
         SiteSubAsset::ValidateWasm,
         SiteSubAsset::ReasonWasm,
         SiteSubAsset::GmnWasm,
@@ -138,7 +138,7 @@ impl SiteSubAsset {
 
     fn slug(&self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "purrdf-wasm",
+            SiteSubAsset::QueryWasm => "query-wasm",
             SiteSubAsset::ValidateWasm => "validate-wasm",
             SiteSubAsset::ReasonWasm => "reason-wasm",
             SiteSubAsset::GmnWasm => "gmn-wasm",
@@ -161,7 +161,7 @@ impl SiteSubAsset {
     /// release-time digest producer content-addresses exactly what the catalog prices.
     fn site_path_prefix(&self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "assets/purrdf/",
+            SiteSubAsset::QueryWasm => "assets/query/",
             SiteSubAsset::ValidateWasm => "assets/validate/",
             SiteSubAsset::ReasonWasm => "assets/reason/",
             SiteSubAsset::GmnWasm => "assets/gmn/",
@@ -173,10 +173,10 @@ impl SiteSubAsset {
     /// A human label for the schema row.
     fn label(&self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
-            SiteSubAsset::ValidateWasm => "vendored Tier-1 validator wasm engine",
-            SiteSubAsset::ReasonWasm => "vendored structured-DL reasoner wasm engine",
-            SiteSubAsset::GmnWasm => "vendored GMN-0/GMN-1 codec wasm engine",
+            SiteSubAsset::QueryWasm => "RDF 1.2 / SPARQL query wasm engine",
+            SiteSubAsset::ValidateWasm => "Tier-1 validator wasm engine",
+            SiteSubAsset::ReasonWasm => "structured-DL reasoner wasm engine",
+            SiteSubAsset::GmnWasm => "GMN-0/GMN-1 codec wasm engine",
             SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
             SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }

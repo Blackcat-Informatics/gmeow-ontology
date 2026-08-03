@@ -7397,7 +7397,7 @@ mod tests {
             "revise_belief",
             &json!({"claim_id": claim_id, "reason": "superseded"}),
         ));
-        assert_eq!(revised["ok"], true);
+        assert_eq!(revised["ok"], true, "revise_belief payload: {revised}");
         assert_eq!(revised["transaction"]["committed"], true);
 
         // Default recall hides it (suppressed) ...
@@ -12168,6 +12168,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny cert-carrying snapshot");
 
@@ -12240,6 +12241,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 
@@ -12357,6 +12359,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 

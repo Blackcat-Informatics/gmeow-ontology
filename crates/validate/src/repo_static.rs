@@ -102,6 +102,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
+    check_wasm_bindgen_pin_parity(root, &mut report);
     report
 }
 
@@ -1762,6 +1763,21 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 
     let lock_path = root.join("Cargo.lock");
+
+    // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
+    // above only proves the two MANIFESTS match each other; it cannot see the lock, so
+    // "the manifest pins one version, the lock resolves another" was undetectable.
+    if lock_path.is_file()
+        && let Some(declared) = purrdf_declared_version(&root_manifest)
+        && let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+        && declared != locked
+    {
+        report.error(format!(
+            "Cargo.toml pins purrdf {declared} but Cargo.lock resolves {locked} — the \
+             manifest and the lock must name the same version"
+        ));
+    }
+
     if lock_path.is_file()
         && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
     {
@@ -1776,6 +1792,86 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
                 "Cargo.lock structured-zstd version {version:?} is unparsable"
             )),
         }
+    }
+}
+
+/// The plain crates.io version `Cargo.toml` pins purrdf at, if it is a registry pin.
+///
+/// Returns `None` for a git/path source (which carries no comparable version) or when the
+/// manifest cannot be read — the lock comparison then simply does not bind.
+fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
+    let text = fs::read_to_string(manifest_path).ok()?;
+    let manifest = text.parse::<toml::Value>().ok()?;
+    let dep = manifest
+        .get("workspace")?
+        .as_table()?
+        .get("dependencies")?
+        .as_table()?
+        .get("purrdf")?;
+    match dep {
+        toml::Value::String(version) => Some(version.clone()),
+        toml::Value::Table(table) if !table.contains_key("git") && !table.contains_key("path") => {
+            table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        }
+        _ => None,
+    }
+}
+
+/// Every `*-wasm` crate MUST pin the SAME EXACT `wasm-bindgen` version.
+///
+/// The `wasm-bindgen` CLI that generates the JS bindings refuses to run against a library
+/// version it does not match byte-for-byte, and one CLI is on PATH for the whole build. So
+/// two wasm crates pinned to different versions cannot both be built by `make wasm-parity`:
+/// whichever the installed CLI does not match fails, and the failure names a version
+/// mismatch rather than the drift that caused it. Nothing previously asserted the pins agree
+/// — this makes the shared-CLI assumption an invariant instead of a coincidence.
+///
+/// Absent inputs (minimal fixtures) are skipped: the invariant binds only where the manifests
+/// exist, which on the live repo is always.
+fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    let Ok(entries) = fs::read_dir(&crates_dir) else {
+        return;
+    };
+    let mut pins: BTreeMap<String, String> = BTreeMap::new();
+    let mut names: Vec<String> = Vec::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !name.ends_with("-wasm") {
+            continue;
+        }
+        let manifest = entry.path().join("Cargo.toml");
+        if !manifest.is_file() {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&manifest) else {
+            continue;
+        };
+        let Some(pin) = text.lines().find_map(|line| {
+            let rest = line.strip_prefix("wasm-bindgen")?;
+            let rest = rest.trim_start().strip_prefix('=')?;
+            Some(rest.trim().trim_matches('"').to_owned())
+        }) else {
+            continue;
+        };
+        names.push(name.clone());
+        pins.insert(name, pin);
+    }
+    let distinct: BTreeSet<&String> = pins.values().collect();
+    if distinct.len() > 1 {
+        let rendered: Vec<String> = pins
+            .iter()
+            .map(|(krate, pin)| format!("{krate}={pin}"))
+            .collect();
+        report.error(format!(
+            "the wasm crates pin DIFFERENT wasm-bindgen versions [{}] — one wasm-bindgen CLI \
+             serves the whole build, so it cannot match more than one of them; pin every \
+             `crates/*-wasm` manifest to the same exact version",
+            rendered.join(", ")
+        ));
     }
 }
 

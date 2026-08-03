@@ -1108,7 +1108,7 @@ impl GraphStore {
             .is_some()
     }
 
-    // ── Blank-node-aware traversal (purrdf 0.3 `slice::rdf_query`) ─────────────
+    // ── Blank-node-aware traversal (purrdf `slice::rdf_query`) ─────────────
     //
     // The IRI-only helpers above (`has`, `objects`, `subjects`, …) drop blank
     // nodes: their `subject_iri`/`object_iri` return `None` for a bnode. The

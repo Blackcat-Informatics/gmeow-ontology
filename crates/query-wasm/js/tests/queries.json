@@ -1,0 +1,38 @@
+[
+  {
+    "name": "select-people",
+    "sparql": "PREFIX ex: <https://example.org/>\nSELECT ?s WHERE { ?s a ex:Person } ORDER BY ?s"
+  },
+  {
+    "name": "select-from-named-graph",
+    "sparql": "PREFIX ex: <https://example.org/>\nSELECT ?s WHERE { GRAPH <https://example.org/graph/named> { ?s a ex:Person } } ORDER BY ?s"
+  },
+  {
+    "name": "select-typed-literal",
+    "sparql": "PREFIX ex: <https://example.org/>\nSELECT ?s ?age WHERE { ?s ex:age ?age } ORDER BY ?age"
+  },
+  {
+    "name": "select-language-tagged-literal",
+    "sparql": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT ?l WHERE { ?s rdfs:label ?l } ORDER BY ?l"
+  },
+  {
+    "name": "ask-present",
+    "sparql": "PREFIX ex: <https://example.org/>\nASK { ex:alice ex:knows ex:bob }"
+  },
+  {
+    "name": "ask-absent",
+    "sparql": "PREFIX ex: <https://example.org/>\nASK { ex:bob ex:knows ex:alice }"
+  },
+  {
+    "name": "construct-knows",
+    "sparql": "PREFIX ex: <https://example.org/>\nCONSTRUCT { ?a ex:acquaintance ?b } WHERE { ?a ex:knows ?b }"
+  },
+  {
+    "name": "describe-alice",
+    "sparql": "PREFIX ex: <https://example.org/>\nDESCRIBE ex:alice"
+  },
+  {
+    "name": "select-quoted-triple-annotation",
+    "sparql": "PREFIX ex: <https://example.org/>\nSELECT ?c WHERE { << ex:alice ex:knows ex:bob >> ex:certainty ?c }"
+  }
+]

@@ -296,16 +296,40 @@ mod tests {
             "base graph must be non-empty for the union to be meaningful"
         );
 
-        // Canonical form is non-empty and idempotent: canonicalizing the canonical
-        // dataset reproduces the same N-Quads document (RDFC-1.0 stability).
+        // Canonical form is non-empty and STABLE: canonicalizing the same dataset
+        // twice reproduces the same N-Quads document.
+        //
+        // Stability is asserted over the DATASET, not over a re-parse of the canonical
+        // output. Under canonicalization profile `purrdf-rdfc12` the RDF 1.2 overlay
+        // (reifiers, annotations) is LOWERED into sentinel IRIs under the reserved
+        // `urn:purrdf:rdfc:` namespace, and any dataset carrying one is REFUSED as
+        // input — so for a dataset with a statement layer, the canonical output is
+        // deliberately not valid canonical input. That refusal is the property which
+        // makes the overlay lossless: without it, a genuine reifier and a literal
+        // assertion of its lowered form would canonicalize to the SAME bytes, which
+        // for a content-addressed consumer is an identity-forgery primitive.
+        //
+        // Round-tripping through the flattened N-Quads therefore did not test the
+        // stability of canonicalization; it tested a lossy projection of it.
         let canon = canonicalize(&new_dataset).nquads;
         assert!(!canon.trim().is_empty(), "canonical union is empty");
-        let reparsed = crate::stages::source_load::parse_base_graph(canon.as_bytes())
-            .expect("reparse canonical union");
-        let canon_again = canonicalize(&reparsed).nquads;
+        let canon_again = canonicalize(&new_dataset).nquads;
         assert_eq!(
             canon, canon_again,
-            "native union canonicalization must be idempotent"
+            "native union canonicalization must be stable"
+        );
+
+        // And the reserved-namespace refusal is REAL on this dataset, not merely
+        // documented: the union carries a statement layer, so its canonical form
+        // lowers into the reserved namespace and feeding that back in must be
+        // refused rather than silently accepted.
+        let reparsed = crate::stages::source_load::parse_base_graph(canon.as_bytes())
+            .expect("reparse canonical union");
+        assert!(
+            purrdf::try_canonicalize(&reparsed).is_err(),
+            "the canonical form lowers the statement layer into the reserved \
+             urn:purrdf:rdfc: namespace, so re-canonicalizing it MUST be refused — \
+             that refusal is what keeps the overlay lossless"
         );
     }
 }

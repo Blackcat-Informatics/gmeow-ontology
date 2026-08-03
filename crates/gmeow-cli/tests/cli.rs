@@ -492,6 +492,7 @@ fn affect_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
@@ -527,6 +528,7 @@ fn affect_classify_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
@@ -601,6 +603,7 @@ fn affect_classify_worked_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 

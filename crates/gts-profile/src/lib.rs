@@ -152,16 +152,26 @@ pub fn emit_gmeow_gts(
     signer_kid: Option<String>,
     public_key_armor: Option<String>,
 ) -> gmeow_errors::Result<Vec<u8>> {
+    let transform = vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()];
+    // The medium plan is now CALLER-STATED data. Before purrdf 0.8.5 the writer
+    // INFERRED the zstd level from `profile == "dist"` and applied at most one
+    // dictionary by name-matching internally. `dist_default` reproduces the level
+    // derivation exactly for a zstd-family chain, and pins no dictionary — which is
+    // what the pre-0.8.5 writer did for every bundle this workspace has ever
+    // authored (it never assigned `WriterOptions::dict`). `medium_plan_dist_default_*`
+    // below holds both halves of that equivalence.
+    let plan = purrdf::gts_compose::MediumPlan::dist_default(Some(&transform));
     purrdf::gts_compose::emit_gts(
         builder,
         "dist",
-        Some(vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()]),
+        Some(transform),
         archive_blobs,
         report_blobs,
         signer_secret,
         signer_kid,
         public_key_armor,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        &plan,
     )
     .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))
 }
@@ -180,6 +190,79 @@ mod tests {
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(&dataset).expect("add fixture");
         builder
+    }
+
+    /// The pre-0.8.5 level derivation, reproduced verbatim as the oracle.
+    ///
+    /// The writer computed, for a caller-supplied `transform`:
+    /// ```text
+    /// let base_chain    = transform.unwrap_or_else(|| vec!["zstd".to_string()]);
+    /// let chain_is_zstd = base_chain.iter().any(|t| t == "zstd" || t == "zstd-rsyncable");
+    /// let zstd_level    = if profile == "dist" && chain_is_zstd { Some(DIST_ZSTD_LEVEL) } else { None };
+    /// ```
+    /// Every `emit_gts` call in this workspace passes `profile == "dist"`, so the
+    /// profile term is constant and the derivation reduces to the chain test.
+    fn legacy_zstd_level(transform: Option<&[String]>) -> Option<i32> {
+        let owned;
+        let base_chain: &[String] = match transform {
+            Some(chain) => chain,
+            None => {
+                owned = vec!["zstd".to_string()];
+                &owned
+            }
+        };
+        let chain_is_zstd = base_chain
+            .iter()
+            .any(|t| t == "zstd" || t == "zstd-rsyncable");
+        chain_is_zstd.then_some(purrdf::gts_compose::DIST_ZSTD_LEVEL)
+    }
+
+    /// Every transform-chain literal any `emit_gts` call in this workspace supplies.
+    fn chain_literals_in_use() -> Vec<Option<Vec<String>>> {
+        vec![
+            None,
+            Some(vec!["zstd-rsyncable".to_string()]),
+            Some(vec!["zstd".to_string()]),
+            Some(vec!["gzip".to_string()]),
+            Some(vec!["identity".to_string()]),
+        ]
+    }
+
+    /// `MediumPlan::dist_default` must reproduce the pre-0.8.5 level derivation for
+    /// every chain this workspace actually emits. `MediumPlan` replaced TWO implicit
+    /// behaviours, so both are pinned here: the level, and the dictionary.
+    ///
+    /// The dictionary half is the one that could silently move bundle bytes. At the
+    /// pre-bump revision the dictionary was `purrdf_gts::writer::WriterOptions::dict`,
+    /// defaulting to `None`, and `gts_compose::emit_gts` never assigned it — so every
+    /// bundle this workspace has authored is baseline-encoded by construction and
+    /// `undicted` is dictionary-equivalent. If an upstream `dist_default` ever starts
+    /// pinning a dictionary, this reds instead of re-encoding the shipped bundle.
+    #[test]
+    fn medium_plan_dist_default_matches_the_pre_0_8_5_level_derivation() {
+        for chain in chain_literals_in_use() {
+            let plan = purrdf::gts_compose::MediumPlan::dist_default(chain.as_deref());
+            assert_eq!(
+                plan.zstd_level,
+                legacy_zstd_level(chain.as_deref()),
+                "level derivation drifted for chain {chain:?}"
+            );
+            assert!(
+                plan.dicts.is_empty() && plan.assignment.is_empty(),
+                "dist_default pinned a dictionary for chain {chain:?}; the pre-0.8.5 \
+                 writer never assigned WriterOptions::dict, so this would re-encode \
+                 every shipped bundle"
+            );
+        }
+    }
+
+    /// The mandated production chain specifically resolves to level 12 — the value
+    /// the distribution contract and the compile-time assertion both name.
+    #[test]
+    fn the_mandated_chain_resolves_to_the_dist_level() {
+        let transform = vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()];
+        let plan = purrdf::gts_compose::MediumPlan::dist_default(Some(&transform));
+        assert_eq!(plan.zstd_level, Some(GMEOW_GTS_ZSTD_LEVEL));
     }
 
     #[test]

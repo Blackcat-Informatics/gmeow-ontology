@@ -21,7 +21,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex = "1"
 sha1 = "0.10"
-# The project's canonical content-digest. Two uses: the vendored purrdf wasm
+# The project's canonical content-digest. Two uses: the committed query wasm
 # anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
 # manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each
 # term's competency query text as a `blake3:<hex>` grounding property (matching

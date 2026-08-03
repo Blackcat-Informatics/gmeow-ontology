@@ -4,13 +4,13 @@
 //! Native half of the W2b bundle-explorer `describe` WITNESS (T1/F2).
 //!
 //! The browser bundle explorer answers `describe <term>` by running a `DESCRIBE`
-//! over the object-level **core** bundle via the vendored purrdf wasm engine. The
+//! over the object-level **core** bundle via the committed query wasm engine. The
 //! vendored engine is purrdf's own — pinned + anti-rot-gated
 //! (`crates/docs/tests/purrdf_asset.rs`) and native↔wasm-parity-proven on purrdf's
 //! CI — so the browser describe is exactly the native purrdf describe. This test
 //! pins the NATIVE describe of a deterministic term over the core bundle to a
 //! committed content-addressed attestation
-//! (`crates/docs/assets/purrdf/WITNESS.describe.nt`): the explorer's describe is
+//! (`crates/docs/assets/query/WITNESS.describe.nt`): the explorer's describe is
 //! proven against the same purrdf engine + the same core bundle the site ships.
 //!
 //! Refreshed with the bundle/asset via `GMEOW_WITNESS_BLESS=1`.
@@ -28,7 +28,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn attestation_path() -> PathBuf {
-    repo_root().join("crates/docs/assets/purrdf/WITNESS.describe.nt")
+    repo_root().join("crates/docs/assets/query/WITNESS.describe.nt")
 }
 
 /// Render `subject`'s describe (every quad with it as subject) as sorted N-Triples —

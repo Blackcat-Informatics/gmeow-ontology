@@ -59,7 +59,7 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
         "src/assets/reason/gmeow_reason_wasm_bg.wasm",
         "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
         "src/assets/validate/gmeow_validate_wasm_bg.wasm",
-        "src/assets/purrdf/gmeow_rdf_wasm.js",
+        "src/assets/query/gmeow_query_wasm.js",
     ] {
         assert!(
             has(engine),

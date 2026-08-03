@@ -103,7 +103,7 @@ const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 /// (gmeow-validate-wasm). Pinned build inputs — one descriptor per asset lives in
 /// [`crate::vendored_asset`]; see each `PROVENANCE.md`.
 const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
-    &crate::vendored_asset::PURRDF_ASSET,
+    &crate::vendored_asset::QUERY_ASSET,
     &crate::vendored_asset::VALIDATE_ASSET,
     &crate::vendored_asset::REASON_ASSET,
     &crate::vendored_asset::GMN_ASSET,
@@ -9166,12 +9166,12 @@ mod tests {
 
         let site = render_site_lang_exec(&model, "english", &exec);
 
-        // Playground page + its assets (incl. the vendored purrdf engine) are present.
+        // Playground page + its assets (incl. the query engine) are present.
         assert!(site.files.contains_key("sparql/index.html"));
         assert!(site.files.contains_key(DOCS_JS_PATH));
         assert!(
             site.files
-                .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+                .contains_key("assets/query/gmeow_query_wasm_bg.wasm"),
             "the vendored wasm engine is emitted so the playground loads offline"
         );
         assert!(

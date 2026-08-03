@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared vendored-wasm-asset harness.
+//! Shared wasm-asset harness.
 //!
-//! The docs site ships one or more **prebuilt** wasm engines (the offline SPARQL
-//! playground runtime, purrdf; the repo-free Tier-1 validator, gmeow-validate-wasm)
-//! as pinned `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
-//! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
-//! vendored blob to stay in step with its source crate. Each such asset therefore
-//! shares one ritual:
+//! The docs site ships four wasm engines — the query engine behind the offline
+//! SPARQL playground (`gmeow-query-wasm`), the repo-free Tier-1 validator
+//! (`gmeow-validate-wasm`), the structured-DL reasoner (`gmeow-reason-wasm`), and
+//! the GMN codec (`gmeow-gmn-wasm`) — as pinned `include_bytes!` build inputs under
+//! `crates/docs/assets/<name>/`. **Every one is built in this repository** from the
+//! workspace `purrdf` pin by its own `make` target.
+//!
+//! The regeneration pipeline never rebuilds wasm, so nothing in the pipeline forces
+//! a committed blob to stay in step with its source crate; that is what the
+//! substrate record and [`attestation_status`](VendoredWasmAsset::attestation_status)
+//! exist to catch. Each asset shares one ritual:
 //!
 //! 1. a set of vendored files (the wasm module, its wasm-bindgen JS glue, and the
 //!    `.d.ts` type surface), each carrying a `.license` REUSE sidecar;
@@ -19,7 +24,7 @@
 //!    glue still exposes the expected export surface, and the pinned digests match.
 //!
 //! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
-//! constant ([`PURRDF_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
+//! constant ([`QUERY_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
 //! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
 //! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
 //! one definition per asset — the emission descriptor and the anti-rot verifier read
@@ -34,6 +39,45 @@ use crate::formats::{Capability, DocFormat, format_capabilities};
 
 /// The digest-manifest filename pinning the vendored bytes, in every asset dir.
 pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
+
+/// The substrate-identity record filename, in every asset dir.
+///
+/// Holds the `purrdf` pin the engine's bytes were built against. `DIGESTS.blake3`
+/// compares committed bytes to committed bytes and therefore cannot see a substrate
+/// bump; this record can. See [`VendoredWasmAsset::substrate_status`].
+pub const SUBSTRATE_RECORD: &str = "SUBSTRATE.txt";
+
+/// The `purrdf` pin the workspace currently declares, as a stable comparison key.
+///
+/// Reads the root `Cargo.toml` rather than a compiled-in constant, because the thing
+/// being checked is the DECLARED pin — a compiled constant would be rebuilt from the
+/// same source it is meant to police. Returns `None` when the manifest cannot be read
+/// or does not declare purrdf, in which case the substrate comparison does not bind.
+#[must_use]
+pub fn workspace_substrate_key() -> Option<String> {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)?
+        .join("Cargo.toml");
+    let text = std::fs::read_to_string(root).ok()?;
+    // A deliberately small reader: the one `purrdf = ...` line under
+    // `[workspace.dependencies]`, normalized to its right-hand side.
+    let mut in_deps = false;
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') {
+            in_deps = trimmed == "[workspace.dependencies]";
+            continue;
+        }
+        if in_deps && let Some(rest) = trimmed.strip_prefix("purrdf") {
+            let rest = rest.trim_start();
+            if let Some(value) = rest.strip_prefix('=') {
+                return Some(format!("purrdf {}", value.trim()));
+            }
+        }
+    }
+    None
+}
 
 /// One expected export-surface probe: `needle` must appear verbatim in the vendored
 /// `file`. Its absence means the vendored bindings predate (or drifted from) the API
@@ -84,12 +128,10 @@ pub struct VendoredWasmAsset {
     /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
-    /// (F4/F5). For the three gmeow-owned engines (validate/reason/gmn) the byte-identity
-    /// is additionally EXECUTED on every pull request by their Node parity lanes
-    /// (the required CI `make heavy` → `wasm-parity`); the vendored sibling-repo
-    /// purrdf engine's witness is its native
-    /// `describe` output, with wasm parity owned upstream in the purrdf repo. `Option`
-    /// so a future non-witnessed asset need not reshape the descriptor.
+    /// (F4/F5). For ALL FOUR engines the byte-identity is additionally EXECUTED on
+    /// every pull request by their Node parity lanes (the required CI `make heavy` →
+    /// `wasm-parity`). `Option` so a future non-witnessed asset need not reshape the
+    /// descriptor.
     pub witness_attestation: Option<&'static str>,
 }
 
@@ -193,6 +235,40 @@ impl VendoredWasmAsset {
                 self.name, self.refresh_target
             ));
         }
+        self.substrate_status()
+    }
+
+    /// Whether this asset was built against the substrate the workspace CURRENTLY pins.
+    ///
+    /// This closes a drift class the digest manifest structurally cannot see. Every
+    /// engine statically links `purrdf`, but `DIGESTS.blake3` compares committed bytes
+    /// to committed bytes — so bumping the workspace `purrdf` pin leaves each committed
+    /// `.wasm` carrying the OLD engine while every gate stays green. The browser would
+    /// then run a different RDF/SHACL core than native, silently.
+    ///
+    /// Each asset therefore records the substrate identity it was built against, and
+    /// this compares that record to the live root manifest. A mismatch names the
+    /// refresh target rather than describing a symptom.
+    pub fn substrate_status(&self) -> Option<String> {
+        let recorded = match std::fs::read_to_string(self.asset_dir().join(SUBSTRATE_RECORD)) {
+            Ok(text) => text.trim().to_owned(),
+            Err(e) => {
+                return Some(format!(
+                    "engine '{}' has no {SUBSTRATE_RECORD}, so nothing proves it was built \
+                     against the purrdf the workspace pins (run make {}): {e}",
+                    self.name, self.refresh_target
+                ));
+            }
+        };
+        let current = workspace_substrate_key()?;
+        if recorded != current {
+            return Some(format!(
+                "engine '{}' was built against substrate [{recorded}] but the workspace now \
+                 pins [{current}] — the shipped browser engine links a DIFFERENT purrdf than \
+                 native (run make {})",
+                self.name, self.refresh_target
+            ));
+        }
         None
     }
 
@@ -252,6 +328,13 @@ impl VendoredWasmAsset {
         if std::env::var_os(self.bless_env).is_some() {
             std::fs::write(&manifest_path, &current)
                 .unwrap_or_else(|e| panic!("write {DIGEST_MANIFEST} for {}: {e}", self.name));
+            // Stamp the substrate the bytes were just built against. This runs only on
+            // the refresh path, which depends on the Node parity lane — so a substrate
+            // record can only ever describe bytes that passed parity.
+            if let Some(key) = workspace_substrate_key() {
+                std::fs::write(dir.join(SUBSTRATE_RECORD), format!("{key}\n"))
+                    .unwrap_or_else(|e| panic!("write {SUBSTRATE_RECORD} for {}: {e}", self.name));
+            }
             return;
         }
         let committed = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
@@ -270,51 +353,52 @@ impl VendoredWasmAsset {
     }
 }
 
-/// The vendored purrdf wasm engine — the offline docs SPARQL playground runtime.
+/// The gmeow-query-wasm engine — the offline docs SPARQL playground + bundle
+/// explorer runtime, built HERE from the workspace `purrdf` pin.
 ///
-/// Emitted under `assets/purrdf/`; refreshed by `make maint-refresh-purrdf-asset`.
-/// Behaviour (does a query actually evaluate?) is covered by the purrdf Node lane;
-/// this descriptor drives the structural + digest anti-rot gate
-/// (`crates/docs/tests/purrdf_asset.rs`).
-pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "purrdf",
+/// Emitted under `assets/query/`; refreshed by `make maint-refresh-query-asset`.
+/// Behaviour (does a query actually evaluate?) is covered by the crate's Node parity
+/// lane; this descriptor drives the structural + digest anti-rot gate
+/// (`crates/docs/tests/query_asset.rs`).
+pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "query",
     emitted_files: &[
         (
-            "gmeow_rdf_wasm.js",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
+            "gmeow_query_wasm.js",
+            include_bytes!("../assets/query/gmeow_query_wasm.js"),
         ),
         (
-            "gmeow_rdf_wasm_bg.wasm",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+            "gmeow_query_wasm_bg.wasm",
+            include_bytes!("../assets/query/gmeow_query_wasm_bg.wasm"),
         ),
     ],
     vendored_files: &[
-        "gmeow_rdf_wasm.d.ts",
-        "gmeow_rdf_wasm.js",
-        "gmeow_rdf_wasm_bg.wasm",
-        "gmeow_rdf_wasm_bg.wasm.d.ts",
+        "gmeow_query_wasm.d.ts",
+        "gmeow_query_wasm.js",
+        "gmeow_query_wasm_bg.wasm",
+        "gmeow_query_wasm_bg.wasm.d.ts",
     ],
-    wasm_file: "gmeow_rdf_wasm_bg.wasm",
+    wasm_file: "gmeow_query_wasm_bg.wasm",
     min_wasm_len: 100_000,
     export_checks: &[
         ExportCheck {
-            file: "gmeow_rdf_wasm.js",
+            file: "gmeow_query_wasm.js",
             needle: "query(sparql, base)",
             hint: "vendored bindings lack the Dataset.query method",
         },
         ExportCheck {
-            file: "gmeow_rdf_wasm.js",
+            file: "gmeow_query_wasm.js",
             needle: "dataset_query",
             hint: "vendored bindings lack the dataset_query wasm import",
         },
         ExportCheck {
-            file: "gmeow_rdf_wasm.d.ts",
+            file: "gmeow_query_wasm.d.ts",
             needle: "query(sparql: string, base?: string | null): string",
             hint: "vendored .d.ts lacks the query type signature",
         },
     ],
-    refresh_target: "maint-refresh-purrdf-asset",
-    bless_env: "GMEOW_PURRDF_BLESS",
+    refresh_target: "maint-refresh-query-asset",
+    bless_env: "GMEOW_QUERY_BLESS",
     // The bundle-explorer describe attestation (`WITNESS.describe.nt`): the native
     // purrdf describe of a deterministic term over the object-level core bundle the
     // wasm engine reproduces (proven by `crates/validate/tests/witness_explore.rs`;
@@ -508,8 +592,8 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 /// not engine-backed, so they require no attestation.
 #[must_use]
 pub fn capability_backing_assets(cap: Capability) -> &'static [&'static VendoredWasmAsset] {
-    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET];
-    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &VALIDATE_ASSET];
+    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&QUERY_ASSET];
+    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&QUERY_ASSET, &VALIDATE_ASSET];
     const LIVE_REASONING: &[&VendoredWasmAsset] = &[&REASON_ASSET, &GMN_ASSET];
     const NONE: &[&VendoredWasmAsset] = &[];
     match cap {
@@ -533,7 +617,7 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
 /// "the format declares the capability AND its engine's parity is proven-and-current."
 /// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
 /// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
-/// drop. (The vendored sibling-repo purrdf engine's parity is owned upstream; its witness is
+/// drop. (Every engine's parity is executed by its own Node lane; the query engine's witness is
 /// the native `describe` output, digest-pinned here.)
 ///
 /// Returns one message per (format, capability, engine) violation; an empty vector is a

@@ -71,7 +71,7 @@ pub struct ExecutableDocsData {
     /// The **core browser bundle** — the object-level ontology (the bundle's default
     /// graph) as N-Quads text, sized for the browser (~24 MB vs the full bundle's
     /// ~948 MB extraction). The bundle-explorer surface parses this client-side (via
-    /// the vendored purrdf RDF engine) to answer `info`/`describe` over the SAME
+    /// the committed query engine) to answer `info`/`describe` over the SAME
     /// authored ontology the pipeline shipped. Empty ⇒ no explorer bundle. Built by
     /// [`gmeow_validate::store::core_browser_bundle_nquads`].
     pub core_bundle_nquads: Vec<u8>,

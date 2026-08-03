@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-query-wasm"
+description = "wasm32 bindings for the RDF 1.2 query engine behind the offline documentation SPARQL playground: parse, serialize, and run named-graph-aware SPARQL over a gmeow.gts bundle, client-side"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "sparql", "rdf-12", "wasm", "knowledge-graph"]
+
+[lib]
+# cdylib for the wasm-bindgen build (the shipped docs-site engine); rlib so the thin
+# binding logic still compiles + unit-tests on the native workspace gate.
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The ONE canonical RDF/SPARQL/GTS engine. This crate is a marshalling shim over it and
+# adds no second parser, no second evaluator, and no second bundle reader — the browser
+# runs exactly the engine the native gate runs, at exactly the pinned version.
+purrdf.workspace = true
+# EXACT pin: the wasm-bindgen CLI that generates the JS bindings must match the
+# library version byte-for-byte or it refuses to run.
+wasm-bindgen = "=0.2.125"

@@ -471,10 +471,12 @@ from the RDF/JS surface). The shipped surface:
 **SPARQL over wasm — DELIVERED (oxigraph-free).** The earlier "native-only by charter" framing was
 tied to the oxigraph backend; `gmeow-rdf` since shipped an **oxigraph-free SPARQL evaluator** that
 compiles to `wasm32`, so SPARQL now runs entirely in the browser. The documentation site's offline
-SPARQL playground is exactly this: the vendored `purrdf` wasm asset (`crates/docs/assets/purrdf/`)
-carries `query`, evaluated client-side over the shipped bundle with no server and no network.
+SPARQL playground is exactly this: `gmeow-query-wasm` (`crates/query-wasm`, shipped as
+`crates/docs/assets/query/`) carries `query`, evaluated client-side over the shipped bundle with no
+server and no network. It is **built in this repository** from the workspace `purrdf` pin rather than
+vendored from the sibling repo, so the browser engine cannot drift from the pin.
 `wasm-opt -Oz` size optimization is likewise **delivered** — it is now a REQUIRED build step for every
-vendored wasm asset (a missing `wasm-opt` is a hard build failure, never a note).
+wasm asset (a missing `wasm-opt` is a hard build failure, never a note).
 
 **Deferred (out of P10):** only the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS) and the
 actual npm publish — deferred to the post-v1 spin-up.

@@ -100,9 +100,13 @@ a merge.
 Every payload-bearing frame in any production-authored GMEOW GTS bundle MUST use
 exactly `zstd-rsyncable` at compression level 12. This is a hard distribution
 contract: never substitute gzip, plain zstd, identity, or a size-dependent
-fallback. The pipeline's `gts_profile` wrapper and committed-bundle frame audit
-enforce the transform, while a compile-time assertion pins purrdf's dist level to
-12. Header and payload-free transport metadata are not compression frames.
+fallback. The `gmeow-gts-profile` leaf crate is the ONE production entry to
+`purrdf::gts_compose::emit_gts` anywhere in the workspace; its wrapper and
+committed-bundle frame audit enforce the transform, while a compile-time assertion
+pins purrdf's dist level to 12. It is a leaf, not part of `gmeow-pipeline`, so that
+every bundle author can depend on it — including `gmeow-math`, which the pipeline
+itself depends on and which therefore cannot depend back on the pipeline. Header and
+payload-free transport metadata are not compression frames.
 
 ### Validation & Compilation
 
@@ -244,7 +248,7 @@ without running anything or taking the host gate lock, and
 `CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
 
 `make heavy` is the CI-only companion: the lanes whose runtime is set by breadth
-(a whole-external-corpus recall sweep, four release wasm builds plus three Node
+(a whole-external-corpus recall sweep, five release wasm builds plus four Node
 execution lanes) or by a repeat-for-confidence soak. It refuses to run unless both
 `CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
 on every PR — and each task stays runnable by name (`make wasm-parity`).
