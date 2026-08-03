@@ -119,20 +119,27 @@ gmeow:ObservableProperty skos:closeMatch oboe:Characteristic {|
     gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)."
 |} .
 
-# PATO and OBI are grounding vocabularies owned by the logic: and math: slices
-# respectively; their groundings are authored ONCE on the owner surface and are
-# reached from here through the grounding term, never re-minted in this slice:
+# PATO and OBI are grounding vocabularies the logic: slice owns (docs/GROUNDING.md,
+# "External grounding ownership": upper ontologies and logical formalisms ground in
+# logic:). Both groundings are authored ONCE on that owner surface and are reached
+# from here through the grounding term, never re-minted in this slice:
 #
 #   PATO — logic:Quality skos:closeMatch pato:0000001, a complete
 #          logic:GroundingCorrespondence in slices/grounding/logic/mappings/
 #          foundation-bridges.ttl. gmeow:ObservableProperty reaches it by
 #          logic:subClassOf logic:QualityValue in this slice's module.ttl.
-#   OBI  — math owns the OBI data-transformation surface
-#          (math:DataTransformation skos:relatedMatch obi:0200000, in
-#          slices/grounding/math/mappings/statistical-bridges.ttl). OBI's device
-#          branch is not a mathematical surface and is not grounded anywhere; the
-#          device sense of gmeow:Sensor is carried by the sosa:Sensor closeMatch
-#          above and by the IVOA ObsCore instrument/facility bridges below.
+#   OBI  — OBI's device branch is grounded by logic:FunctionalComplex
+#          skos:narrowMatch obi:0000968, a complete logic:GroundingCorrespondence
+#          in the same foundation-bridges.ttl (OBI device is narrower: a functional
+#          complex designed for an investigative function). gmeow:Sensor reaches it
+#          by logic:subClassOf logic:FunctionalComplex in this slice's module.ttl,
+#          so the DEVICE sense of a sensor is carried by the owner correspondence
+#          rather than by a second obi: cell here; the ROLE sense stays with the
+#          sosa:Sensor closeMatch above, and the concrete instrument/facility sense
+#          with the IVOA ObsCore bridges below. math: keeps only its one
+#          pre-existing data-transformation row (math:DataTransformation
+#          skos:relatedMatch obi:0200000), an explicitly ceilinged off-owner
+#          residue, never a second OBI authoring home.
 
 # IVOA ObsCore — astronomical facility/instrument alignment
 
