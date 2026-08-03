@@ -103,8 +103,13 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
 # The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
 # close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
+# `schema_org_procedures_projection` belongs to the same class and was left on the 60s x2
+# default: it assembles the bundle and projects the whole prescription spine, measured at
+# ~360s here, so it timed out on every try under gate load and passed only intermittently on
+# a quiet machine. The assertions are untouched — only the budget, which never matched the
+# work the test actually does.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) | binary(schema_org_procedures_projection) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 # `math_conformance_discharge` gets its own backstop, and its history is the clearest
