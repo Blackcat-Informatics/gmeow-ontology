@@ -96,6 +96,36 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & binary(schema_org_procedures_projection)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The three book-PACKING cases render the whole mdBook and vendor the wasm engines
+# into it; the rest of that binary checks summaries and links and costs 12-15s. Only
+# the packing three are bundle-scale, and they too were on the 60s unit-test default.
+#
+# MEASURED across consecutive gate runs on this 32-CPU host: 78s, 95s, and 116s —
+# the last 3.6 seconds inside its 120s ceiling — against ~23s each when the binary
+# runs alone. Two of the three were killed at 120s on the next run with no source
+# change. Scoped to the packing tests so the cheap siblings keep the strict default.
+[[profile.default.overrides]]
+filter = 'package(gmeow-docs) & binary(mdbook_render) & test(/(interactive_book_packs_the_vendored_engines_and_host_chapter|non_interactive_book_packs_no_engines|cached_book_matches_live_render)/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The MCP tool tests drive validate/advise/verify over the WHOLE shipped bundle —
+# `verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle` says so in its
+# own name — so they are bundle-scale work that was inheriting the 60s unit-test
+# default and therefore a 120s ceiling.
+#
+# MEASURED 2026-08-03 on this 32-CPU host, build cached, running the module ALONE at
+# load average 55: the whole-bundle cases land at 92-107s, and 25 of the 93 needed a
+# retry to pass. That is a ceiling only 1.1x the cost of the work, which is not a
+# margin — the same two tests passed at 56-81s on a quiet host and timed out at 120s
+# on a busy one, in consecutive gate runs with no source change between them. A test
+# whose verdict tracks the load average has stopped testing the code.
+#
+# Same 300s x 2 backstop as the sibling bundle-assembly lanes: ~5.6x the measured
+# worst case, which absorbs contention while still failing a tool call that has hung.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/mcp::tests::/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 # The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
 # WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
 # artifact — the same order of magnitude as the pipeline whole-run parity lanes above,
