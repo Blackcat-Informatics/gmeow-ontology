@@ -58,6 +58,27 @@ RUST_TEST_WORKSPACE_ARGS := --workspace
 # these targets build regardless of the caller's environment.
 WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 
+# The pinned binaryen (wasm-opt) release, and the ONE place it is written down. CI installs
+# exactly this via `make print-binaryen-ver` rather than repeating the literal, because the
+# two drifted: CI provisioned a release predating `--enable-bulk-memory-opt`, so every
+# wasm-opt rule died on an unknown option and took all four Node parity lanes with it —
+# while the committed assets had been optimized locally by a newer binaryen.
+#
+# wasm-opt output is part of the shipped bytes the digest manifests pin, so "some wasm-opt"
+# is not a build dependency; THIS wasm-opt is.
+BINARYEN_VER := version_130
+BINARYEN_NUM := $(patsubst version_%,%,$(BINARYEN_VER))
+
+# Refuse to optimize with an unpinned binaryen. `command -v` alone proved only that A
+# wasm-opt exists, which is how a version mismatch reached CI as an unknown-option error
+# instead of a version error.
+define REQUIRE_WASM_OPT
+@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen $(BINARYEN_VER)"; exit 1; }
+@have=$$(wasm-opt --version 2>/dev/null | sed -n 's/^wasm-opt version \([0-9][0-9]*\).*/\1/p'); \
+	[ -n "$$have" ] || { echo "ERROR: cannot read 'wasm-opt --version' — refusing to optimize with an unidentified binaryen"; exit 1; }; \
+	[ "$$have" = "$(BINARYEN_NUM)" ] || { echo "ERROR: wasm-opt is binaryen $$have but the pin is $(BINARYEN_NUM) ($(BINARYEN_VER)) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
+endef
+
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for synchronization/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
@@ -82,7 +103,10 @@ HEAVY_TASKS := wasm-parity acceptance bench-soak
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
-.PHONY: help \
+print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
+	@echo "$(BINARYEN_VER)"
+
+.PHONY: help print-binaryen-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
@@ -559,7 +583,7 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 		--out-dir crates/validate-wasm/js/pkg --target web
 	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
 	@# hard dependency: a missing wasm-opt is a build failure, never a note.
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	$(REQUIRE_WASM_OPT)
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
@@ -577,7 +601,7 @@ reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + 
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm \
 		--out-dir crates/reason-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	$(REQUIRE_WASM_OPT)
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
 	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
 
@@ -599,7 +623,7 @@ gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-b
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
 		--out-dir crates/gmn-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	$(REQUIRE_WASM_OPT)
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
 	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
 
@@ -621,7 +645,7 @@ query-wasm-pkg: ## Build the gmeow-query-wasm npm/ESM package (release wasm + wa
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_query_wasm.wasm \
 		--out-dir crates/query-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	$(REQUIRE_WASM_OPT)
 	@# The query engine emits nontrapping float->int ops (i64.trunc_sat_*) from the XSD /
 	@# SPARQL numeric layer, and sign-extension ops, which the other engines do not reach.
 	@# wasm-opt validates the INPUT against its enabled feature set, so these must be named

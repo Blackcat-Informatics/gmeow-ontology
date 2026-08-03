@@ -658,11 +658,16 @@ jobs:
       # release explicitly so the hard
       # dependency — and the optimized artifact bytes — are reproducible, rather than
       # relying on whatever the runner image happens to preinstall.
+      #
+      # The tag is read FROM the Makefile, not repeated here. When it was written down in
+      # both places the two drifted: this step installed a release predating
+      # `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown option and
+      # took all four Node parity lanes with it.
       - name: Install binaryen (wasm-opt) — pinned release
-        env:
-          BINARYEN_VER: version_119
         run: |
           set -euo pipefail
+          BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
+          echo "pinned binaryen: ${BINARYEN_VER}"
           curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
             "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
           mkdir -p /tmp/binaryen
