@@ -694,9 +694,11 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
 /// map from each bundle asset path to its `blake3:<hex>` content address and length.
 /// A pure function of the emitted bundle bytes; the client loader records/verifies it.
 fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
-    // One entry per shipped bundle asset, in a fixed deterministic order (full, then
-    // the optional conjecture demo library). Each entry is byte-identical to the others' shape,
-    // so the 1-entry (bundle-only) case is byte-for-byte unchanged from the fixed format.
+    // One entry per shipped bundle asset, in a fixed deterministic order (full bundle,
+    // then the playground corpus, then the optional conjecture demo library). EVERY
+    // client-fetched RDF asset gets an entry: the browser loader verifies each fetch
+    // against its recorded content address, and an asset with no entry could only be
+    // accepted unverified — the bypass the manifest exists to make impossible.
     let entry = |path: &str, bytes: &[u8]| {
         format!(
             "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
@@ -705,6 +707,9 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
         )
     };
     let mut entries = vec![entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts)];
+    if !exec.playground_trig.is_empty() {
+        entries.push(entry(PLAYGROUND_TRIG_PATH, &exec.playground_trig));
+    }
     // The conjecture demo library ships iff the W4 playground surface is rendered.
     if exec.has_conjectures() {
         entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));

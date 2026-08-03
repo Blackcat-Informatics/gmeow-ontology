@@ -549,7 +549,12 @@ async function main() {
   await ensureEngine();
 
   setStatus("Loading the ontology…");
-  const trig = await (await fetch(new URL("./playground.trig", import.meta.url))).text();
+  const trig = new TextDecoder().decode(
+    await verifiedAssetBytes(
+      "assets/playground.trig",
+      new URL("./playground.trig", import.meta.url),
+    ),
+  );
   dataset = Dataset.parse(trig, "trig");
   setStatus(`Ready — ${dataset.size} triples loaded. Run a query.`);
 

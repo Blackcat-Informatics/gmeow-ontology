@@ -1901,13 +1901,25 @@ fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut R
             workflow.display()
         ));
     }
-    if let Some(idx) = ci.find("BINARYEN_VER:") {
-        report.error(format!(
-            "{}: pins BINARYEN_VER as a literal at byte {idx} — read it from \
-             `make print-binaryen-ver` instead; two copies of this version drifted once and \
-             took every wasm parity lane with them",
-            workflow.display()
-        ));
+    // ANY binaryen release literal is the drift, whatever idiom carries it. The first
+    // version of this detector matched only the YAML-mapping form (`BINARYEN_VER:`) —
+    // which this repository no longer contains, because the fix that introduced the
+    // detector also replaced that mapping with a shell read of `print-binaryen-ver`. A
+    // detector keyed to a retired idiom matches nothing; the literal itself is the
+    // invariant.
+    match Regex::new(r"version_[0-9]+") {
+        Ok(literal) => {
+            if let Some(m) = literal.find(&ci) {
+                report.error(format!(
+                    "{}: carries the binaryen release literal {:?} — read the pin from \
+                     `make print-binaryen-ver` instead; two copies of this version drifted \
+                     once and took every wasm parity lane with them",
+                    workflow.display(),
+                    m.as_str()
+                ));
+            }
+        }
+        Err(err) => report.error(format!("binaryen literal pattern failed to compile: {err}")),
     }
 }
 
@@ -1921,7 +1933,9 @@ fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut R
 /// convention, and this file already scans for three sibling structural invariants.
 ///
 /// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
-/// to prove the profile's audit rejects it.
+/// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
+/// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
+/// the writer deliberately, the same exemption test crates get.
 fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
@@ -2132,20 +2146,20 @@ fn purrdf_source_key(
 }
 
 /// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
-/// recorded finding, for callers outside this report.
+/// recorded finding.
 ///
-/// This is the ONE parser for the declared purrdf pin. It exists as a public entry so the
-/// docs-asset substrate gate cannot grow a second, weaker reader of the same manifest: a
-/// hand-rolled line scanner silently answers "no pin" for a dotted key, a table-form
-/// `[workspace.dependencies.purrdf]`, or a commented header, and a substrate comparison that
-/// cannot read its own input reports agreement it never checked.
+/// This is the ONE parser for the declared purrdf pin — a real TOML parse, never a line
+/// scanner, so a dotted key, a table-form `[workspace.dependencies.purrdf]`, or a commented
+/// header cannot silently read as "no pin". The docs-asset substrate gate keys off the LOCK
+/// via [`workspace_substrate_key`] rather than any manifest reader, so this stays private:
+/// visibility it earns only when a consumer outside this report actually exists.
 ///
 /// # Errors
 ///
 /// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
 /// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
 /// "no purrdf at all" still compares unequal instead of vanishing.
-pub fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
     let text = fs::read_to_string(manifest_path).map_err(|err| {
         gmeow_errors::Diag::of_kind(crate::error::Io {
             detail: format!("{}: cannot read: {err}", manifest_path.display()),
@@ -2645,9 +2659,79 @@ mod tests {
         );
         let errors = wasm_bindgen_errors(tmp.path());
         assert!(
-            errors.iter().any(|e| e.contains("BINARYEN_VER")),
+            errors
+                .iter()
+                .any(|e| e.contains("binaryen release literal")),
             "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
              the wasm lanes: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal() {
+        // The idiom the repository actually uses is a shell assignment; a detector keyed
+        // to the YAML-mapping form alone matches nothing here.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n      - run: BINARYEN_VER=\"version_119\" ./install.sh\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("version_119")),
+            "a shell-form binaryen literal must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
+        let tmp = tempfile::tempdir().unwrap();
+        write(
+            &tmp.path().join("crates/rogue/src/lib.rs"),
+            "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("calls the GTS writer directly")),
+            "a production emit_gts call outside the profile crate must red: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
+        let tmp = tempfile::tempdir().unwrap();
+        // The permitted entry itself.
+        write(
+            &tmp.path().join("crates/gts-profile/src/lib.rs"),
+            "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        // An integration-test crate driving the writer deliberately.
+        write(
+            &tmp.path().join("crates/consumer/tests/audit.rs"),
+            "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
+        );
+        // A `#[cfg(test)]`-gated import inside production source.
+        write(
+            &tmp.path().join("crates/consumer/src/lib.rs"),
+            "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report.errors.is_empty(),
+            "the profile crate and test code are the permitted callers: {:?}",
+            report.errors
         );
     }
 

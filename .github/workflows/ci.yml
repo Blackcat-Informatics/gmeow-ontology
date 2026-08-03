@@ -597,17 +597,17 @@ jobs:
 
   # === THE CI-ONLY HEAVY LANE (`make heavy`) ===
   # Every task here was lifted OFF the local `make check` DAG because its runtime is
-  # dominated by BREADTH (a whole external corpus, four release wasm builds) or by a
+  # dominated by BREADTH (a whole external corpus, five release wasm builds) or by a
   # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
   # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
   #
-  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the three Node lanes
-  #                 that RUN the shipped wasm (validate / reason / gmn) and assert
-  #                 byte-identity to native — the "every gmeow surface proven
-  #                 native≡wasm" contract. `make wasm` hard-fails in CI if the wasm32
-  #                 target is absent, so the criterion is never silently unverified.
-  #                 (The purrdf RDF/JS engine ships + tests its own npm package on
-  #                 purrdf's CI.)
+  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the four Node lanes
+  #                 that RUN the shipped wasm (query / validate / reason / gmn) and
+  #                 assert byte-identity to native — the "every gmeow surface proven
+  #                 native≡wasm" contract. Every engine is built in this repository
+  #                 from the workspace purrdf pin. `make wasm` hard-fails in CI if the
+  #                 wasm32 target is absent, so the criterion is never silently
+  #                 unverified.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
   heavy:
