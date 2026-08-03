@@ -6,7 +6,7 @@
 //! The GMN codebook declares an EXPECTED rate (`gmeow:gmnDeclaredRate` →
 //! `gmeow:gmnRateTokensPerStatement`, "the design expectation the token metrics measure
 //! against"). This module computes the MEASURED realization over the grounding corpus: a
-//! seven-metric vector, each metric a dimensionless [`math:Quantity`] magnitude, wrapped as
+//! seven-metric vector, each metric a dimensionless `math:Quantity` magnitude, wrapped as
 //! a `gmeow:Measurement` observation individual (the projection stage emits the RDF; this
 //! module owns the arithmetic).
 //!

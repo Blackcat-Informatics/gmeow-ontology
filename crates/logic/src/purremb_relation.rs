@@ -40,6 +40,10 @@
 //! or mutation of the mapped file mid-scan is SIGBUS/undefined behaviour that no typed
 //! return value in this module can catch; only the caller's exclusive ownership of the
 //! mapping can prevent it.
+//!
+//! [`PurrembBinding::open`]: crate::purremb_relation::PurrembBinding::open
+//! [`RelationProviderError::Failure`]: crate::external_relation::RelationProviderError::Failure
+//! [`RelationProviderError::Incomplete`]: crate::external_relation::RelationProviderError::Incomplete
 
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap};
 use std::fmt;

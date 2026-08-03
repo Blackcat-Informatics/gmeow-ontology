@@ -57,7 +57,7 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
-/// byte-identical under both arms (the retention test in [`crate::tests`] pins that),
+/// byte-identical under both arms (the retention test in `crate::tests` pins that),
 /// because a released product keeps its `stage_id` and `digest` verbatim and keeps
 /// every committed artifact. The arms differ ONLY in whether material that no declared
 /// consumer can still read stays resident for the life of the [`RunResult`].
@@ -542,7 +542,7 @@ pub fn run(
 /// life of the [`RunResult`]. The map is total over the consumed stages, so the
 /// retention bound is exact rather than a hand-picked special case: after level `N`, the
 /// stages still holding a live carrier are precisely `{ s : last_consumer_level(s) > N }`
-/// ∪ `{ s : s has no consumer }` — the property [`crate::tests`] pins.
+/// ∪ `{ s : s has no consumer }` — the property `crate::tests` pins.
 ///
 /// Soundness rests on ONE fact: [`exec_stage`] assembles a stage's `StageInput` from
 /// exactly the ids the stage declares in `consumes()`. A stage therefore CANNOT read a

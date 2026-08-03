@@ -199,9 +199,16 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The grounding conformance files run the whole-slice SHACL corpus, so they already
+# reserve the full host. The budget must match that size too: measured uncontended on a
+# 32-CPU host under purrdf 0.12.0, lang takes 40.9s and logic 35.4s — on the 4-core CI
+# runner that same work lands beyond the 60s group's 120s kill, so both shards redded on
+# timing rather than content (3/3 tries each, 0 assertion failures). Same 300s backstop
+# the sibling whole-corpus proofs use; assertions unchanged, only the budget.
 [[profile.default.overrides]]
 filter = 'package(gmeow-slicetest) & test(/run_conformance_file::grounding\//)'
 threads-required = "num-cpus"
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'

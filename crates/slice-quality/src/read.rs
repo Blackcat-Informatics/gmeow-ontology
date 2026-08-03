@@ -23,7 +23,7 @@
 //!   rubric declares, is a HARD FAIL. There is no partial reading: a truncated record
 //!   can never be mistaken for a passing one.
 //! * **Freshness.** The corpus carries a `gmeow:versionFingerprint` over the
-//!   canonicalized authored source set it scored. [`verify_fresh`] recomputes it and
+//!   canonicalized authored source set it scored. [`RecordedCorpus::verify_fresh`] recomputes it and
 //!   hard-fails on absence or mismatch, so a stale record is an error rather than a
 //!   silently-accepted pass.
 //! * **Integrity.** The corpus ALSO carries a `gmeow:contentDigest` over its own
