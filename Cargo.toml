@@ -137,6 +137,14 @@ resolver = "2"
 # exists to catch.
 purrdf = "=0.12.0"
 
+# EXACT, and declared ONCE. The wasm-bindgen CLI that generates the JS bindings refuses to
+# run against a library version it does not match byte for byte, and one CLI is on PATH for
+# the whole build — so two wasm crates pinned differently cannot both be built by
+# `make wasm-parity`. Declaring it per-crate made that agreement a coincidence four
+# manifests had to keep; declaring it here makes disagreement unrepresentable. The CI step
+# that installs `wasm-bindgen-cli` must name this same version.
+wasm-bindgen = "=0.2.125"
+
 [workspace.package]
 version = "0.2.0"
 edition = "2024"

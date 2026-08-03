@@ -22,9 +22,9 @@ path = "src/lib.rs"
 # adds no second parser, no second evaluator, and no second bundle reader — the browser
 # runs exactly the engine the native gate runs, at exactly the pinned version.
 purrdf.workspace = true
-# EXACT pin: the wasm-bindgen CLI that generates the JS bindings must match the
-# library version byte-for-byte or it refuses to run.
-wasm-bindgen = "=0.2.125"
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+wasm-bindgen.workspace = true
 
 [dev-dependencies]
 # `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A

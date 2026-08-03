@@ -22,4 +22,4 @@ path = "src/lib.rs"
 gmeow-lang-bridge = { path = "../lang-bridge" }
 # The ONE canonical RDF parser/serializer.
 purrdf.workspace = true
-wasm-bindgen = "=0.2.125"
+wasm-bindgen.workspace = true

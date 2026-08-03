@@ -1837,57 +1837,133 @@ fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
     }
 }
 
-/// Every `*-wasm` crate MUST pin the SAME EXACT `wasm-bindgen` version.
+/// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
+/// all name ONE version.
 ///
-/// The `wasm-bindgen` CLI that generates the JS bindings refuses to run against a library
-/// version it does not match byte-for-byte, and one CLI is on PATH for the whole build. So
-/// two wasm crates pinned to different versions cannot both be built by `make wasm-parity`:
-/// whichever the installed CLI does not match fails, and the failure names a version
-/// mismatch rather than the drift that caused it. Nothing previously asserted the pins agree
-/// — this makes the shared-CLI assumption an invariant instead of a coincidence.
+/// The CLI that generates the JS bindings refuses to run against a library version it does
+/// not match byte-for-byte, and one CLI is on PATH for the whole build. The pin therefore
+/// lives in `[workspace.dependencies]` and every `crates/*-wasm` manifest must consume it
+/// with `wasm-bindgen.workspace = true`; a crate that redeclares its own version reopens
+/// the disagreement the single declaration exists to make unrepresentable.
 ///
-/// Absent inputs (minimal fixtures) are skipped: the invariant binds only where the manifests
-/// exist, which on the live repo is always.
+/// The remaining live drift is the CLI: CI installs `wasm-bindgen-cli@<version>` by literal,
+/// and a bump to the library pin that forgets that line produces a build failure naming a
+/// version mismatch rather than the drift that caused it. Both halves are checked here.
 fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
-    let crates_dir = root.join("crates");
-    let Ok(entries) = fs::read_dir(&crates_dir) else {
+    let root_manifest = root.join("Cargo.toml");
+    let Ok(text) = fs::read_to_string(&root_manifest) else {
         return;
     };
-    let mut pins: BTreeMap<String, String> = BTreeMap::new();
-    let mut names: Vec<String> = Vec::new();
-    for entry in entries.flatten() {
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if !name.ends_with("-wasm") {
-            continue;
-        }
-        let manifest = entry.path().join("Cargo.toml");
-        if !manifest.is_file() {
-            continue;
-        }
-        let Ok(text) = fs::read_to_string(&manifest) else {
-            continue;
-        };
-        let Some(pin) = text.lines().find_map(|line| {
-            let rest = line.strip_prefix("wasm-bindgen")?;
-            let rest = rest.trim_start().strip_prefix('=')?;
-            Some(rest.trim().trim_matches('"').to_owned())
-        }) else {
-            continue;
-        };
-        names.push(name.clone());
-        pins.insert(name, pin);
-    }
-    let distinct: BTreeSet<&String> = pins.values().collect();
-    if distinct.len() > 1 {
-        let rendered: Vec<String> = pins
-            .iter()
-            .map(|(krate, pin)| format!("{krate}={pin}"))
-            .collect();
+    let Ok(manifest) = text.parse::<toml::Value>() else {
+        report.error(format!("{}: cannot parse", root_manifest.display()));
+        return;
+    };
+    let declared = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|ws| ws.get("dependencies"))
+        .and_then(toml::Value::as_table)
+        .and_then(|deps| deps.get("wasm-bindgen"))
+        .and_then(|dep| match dep {
+            toml::Value::String(version) => Some(version.clone()),
+            toml::Value::Table(table) => table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned),
+            _ => None,
+        });
+    let Some(declared) = declared else {
+        report.error(
+            "the root [workspace.dependencies] declares no wasm-bindgen — every `crates/*-wasm` \
+             crate must consume ONE pin from there, so the wasm-bindgen CLI on PATH can match \
+             all of them"
+                .to_owned(),
+        );
+        return;
+    };
+    let Some(exact) = declared.strip_prefix('=') else {
         report.error(format!(
-            "the wasm crates pin DIFFERENT wasm-bindgen versions [{}] — one wasm-bindgen CLI \
-             serves the whole build, so it cannot match more than one of them; pin every \
-             `crates/*-wasm` manifest to the same exact version",
-            rendered.join(", ")
+            "[workspace.dependencies] pins wasm-bindgen {declared:?}, a range — it must be an \
+             EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
+             byte-for-byte"
+        ));
+        return;
+    };
+
+    // No `crates/*-wasm` crate may redeclare the version.
+    if let Ok(entries) = fs::read_dir(root.join("crates")) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !name.ends_with("-wasm") {
+                continue;
+            }
+            let manifest_path = entry.path().join("Cargo.toml");
+            if !manifest_path.is_file() {
+                continue;
+            }
+            let member = match fs::read_to_string(&manifest_path) {
+                Ok(member) => member,
+                Err(err) => {
+                    report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let parsed = match member.parse::<toml::Value>() {
+                Ok(parsed) => parsed,
+                Err(err) => {
+                    report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let dep = parsed
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+                .and_then(|deps| deps.get("wasm-bindgen"));
+            let uses_workspace = matches!(
+                dep,
+                Some(toml::Value::Table(table))
+                    if table.get("workspace").and_then(toml::Value::as_bool) == Some(true)
+            );
+            match dep {
+                None => report.error(format!(
+                    "{}: a `*-wasm` crate that declares no wasm-bindgen dependency",
+                    manifest_path.display()
+                )),
+                Some(_) if uses_workspace => {}
+                Some(other) => report.error(format!(
+                    "{}: redeclares wasm-bindgen as {other} — it must read the single \
+                     workspace pin with `wasm-bindgen.workspace = true`, so the version cannot \
+                     disagree with its sibling crates or with the CLI CI installs",
+                    manifest_path.display()
+                )),
+            }
+        }
+    }
+
+    // The CLI CI installs must name that same version.
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let Ok(ci) = fs::read_to_string(&workflow) else {
+        return;
+    };
+    let Some(installed) = ci.split("wasm-bindgen-cli@").nth(1).map(|rest| {
+        rest.chars()
+            .take_while(|c| c.is_ascii_digit() || *c == '.')
+            .collect::<String>()
+    }) else {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+        return;
+    };
+    if installed != exact {
+        report.error(format!(
+            "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+             wasm-bindgen {exact} — the CLI refuses any library version it does not match \
+             byte-for-byte, so the wasm build fails naming a version mismatch rather than this \
+             drift",
+            workflow.display()
         ));
     }
 }
@@ -2249,6 +2325,96 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
+    /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
+    fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\nwasm-bindgen = {workspace_pin}\n"),
+        );
+        write(
+            &root.join("crates/query-wasm/Cargo.toml"),
+            &format!("[dependencies]\n{member}\n"),
+        );
+        write(
+            &root.join(".github/workflows/ci.yml"),
+            &format!(
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n"
+            ),
+        );
+    }
+
+    fn wasm_bindgen_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_wasm_bindgen_pin_parity(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        assert!(
+            wasm_bindgen_errors(tmp.path()).is_empty(),
+            "the agreeing arrangement must pass"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen = \"=0.2.100\"",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("redeclares wasm-bindgen")),
+            "a member redeclaring the pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.100",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
+            "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("a range")),
+            "a caret pin must red — the CLI matches one version only: {errors:?}"
+        );
+    }
 
     fn write(path: &Path, text: &str) {
         if let Some(parent) = path.parent() {

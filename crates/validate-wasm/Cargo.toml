@@ -43,10 +43,9 @@ blake3 = "1"
 # (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
 # the Tier-1 `validate` Report crosses on. wasm-pure.
 serde_json = "1"
-# EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
-# library version byte-for-byte or it refuses to run. `make wasm-pkg` and the CI Node
-# lane install the matching `wasm-bindgen-cli` version.
-wasm-bindgen = "=0.2.125"
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+wasm-bindgen.workspace = true
 # Host-target unit tests parse the `gmn_validate` JSON verdict back to assert the exact
 # `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection); they
 # reuse the `serde_json` dependency above (a normal dep is already in scope for tests).
