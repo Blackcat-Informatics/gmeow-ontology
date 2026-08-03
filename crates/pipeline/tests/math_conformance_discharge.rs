@@ -1442,68 +1442,80 @@ fn total_math_conformance_matrix_is_discharged() {
     // and every collection below is a BTree. Sequentially this gate ran ~700s standalone and
     // exceeded even a 2400s backstop under concurrent gate load, which the doctrine calls a
     // broken test rather than a flaky one; the work itself is what had to get cheaper.
-    let per_fixture: Vec<(String, Vec<(String, Channel)>)> = fixtures
-        .par_iter()
-        .map(|fixture| {
-            let name = fixture
-                .file_name()
-                .and_then(|n| n.to_str())
-                .expect("utf8 fixture name")
-                .to_owned();
-            let mut credited: Vec<(String, Channel)> = Vec::new();
+    // On a BOUNDED pool, not the global one. nextest already runs tests in parallel, so a
+    // test that quietly seizes every core starves its siblings — which is how two heavy
+    // pipeline tests started timing out the moment this loop went parallel. Eight threads —
+    // a quarter of this machine — keep the win here (the cost is one DL closure per fixture,
+    // not per core: ~700s sequential, ~350s on four, ~235s on eight) while leaving the rest
+    // of the suite room to run.
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(8)
+        .build()
+        .expect("an eight-thread pool for the per-fixture closures");
+    let per_fixture: Vec<(String, Vec<(String, Channel)>)> = pool.install(|| {
+        fixtures
+            .par_iter()
+            .map(|fixture| {
+                let name = fixture
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .expect("utf8 fixture name")
+                    .to_owned();
+                let mut credited: Vec<(String, Channel)> = Vec::new();
 
-            // parse + union this fixture with the conformance modules EXACTLY ONCE,
-            // sharing the result across every channel below (native lint, reasoned-graph,
-            // owl-axiom, SHACL) instead of re-parsing/re-unioning per channel.
-            let fixture_ds = gmeow_slicetest::native_query::dataset_from_file(fixture)
-                .unwrap_or_else(|e| panic!("parse counter-example {}: {e}", fixture.display()));
-            let ds = gmeow_slicetest::native_query::union(&[
-                Arc::clone(&conformance_modules),
-                Arc::clone(&fixture_ds),
-            ]);
-            // Reasoned exactly as production reasons: no `logic:`->`rdfs:` projection is applied
-            // here, because the shipped pipeline applies none either. `logic:subClassOf` /
-            // `logic:subPropertyOf` are inert to OWL 2 RL in their authored spelling, and
-            // `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from a
-            // `logic:`-authored chain. Projecting here would make this gate STRONGER than the
-            // shipped reasoner and credit a class through a derived edge `gmeow validate --deep`
-            // never sees.
-            let (derived, closure, closure_result) = fixture_closure(&ds, &name);
+                // parse + union this fixture with the conformance modules EXACTLY ONCE,
+                // sharing the result across every channel below (native lint, reasoned-graph,
+                // owl-axiom, SHACL) instead of re-parsing/re-unioning per channel.
+                let fixture_ds = gmeow_slicetest::native_query::dataset_from_file(fixture)
+                    .unwrap_or_else(|e| panic!("parse counter-example {}: {e}", fixture.display()));
+                let ds = gmeow_slicetest::native_query::union(&[
+                    Arc::clone(&conformance_modules),
+                    Arc::clone(&fixture_ds),
+                ]);
+                // Reasoned exactly as production reasons: no `logic:`->`rdfs:` projection is applied
+                // here, because the shipped pipeline applies none either. `logic:subClassOf` /
+                // `logic:subPropertyOf` are inert to OWL 2 RL in their authored spelling, and
+                // `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from a
+                // `logic:`-authored chain. Projecting here would make this gate STRONGER than the
+                // shipped reasoner and credit a class through a derived edge `gmeow validate --deep`
+                // never sees.
+                let (derived, closure, closure_result) = fixture_closure(&ds, &name);
 
-            // The native structural-lint channel — credited under the channel its OWN
-            // emitting function actually implements, never the charter's declared tier fed
-            // back to itself.
-            for class in native_lint_tripped(&ds) {
-                let channel = native_check_channel(&class).unwrap_or_else(|| {
-                    panic!(
-                        "math:{class}: native lint raised this class over {} but no entry \
+                // The native structural-lint channel — credited under the channel its OWN
+                // emitting function actually implements, never the charter's declared tier fed
+                // back to itself.
+                for class in native_lint_tripped(&ds) {
+                    let channel = native_check_channel(&class).unwrap_or_else(|| {
+                        panic!(
+                            "math:{class}: native lint raised this class over {} but no entry \
                      exists in native_check_channel's explicit tier registry — \
                      register its true channel by reading what the emitting check \
                      function actually does",
-                        fixture.display()
-                    )
-                });
-                credited.push((class, channel));
-            }
+                            fixture.display()
+                        )
+                    });
+                    credited.push((class, channel));
+                }
 
-            // The reasoned-graph channel: every class it can raise is declared `rust-validator`
-            // in the charter, so it is credited there directly (no tier-selection ambiguity).
-            for class in reasoned_tripped(&ds, &derived, &closure) {
-                credited.push((class, Channel::RustValidator));
-            }
+                // The reasoned-graph channel: every class it can raise is declared `rust-validator`
+                // in the charter, so it is credited there directly (no tier-selection ambiguity).
+                for class in reasoned_tripped(&ds, &derived, &closure) {
+                    credited.push((class, Channel::RustValidator));
+                }
 
-            // The OWL-axiom disjointness channel: reads the reasoned closure's verdict.
-            for class in owl_axiom_tripped(&ds, &owl_carriers, &closure_result) {
-                credited.push((class, Channel::OwlAxiom));
-            }
+                // The OWL-axiom disjointness channel: reads the reasoned closure's verdict.
+                for class in owl_axiom_tripped(&ds, &owl_carriers, &closure_result) {
+                    credited.push((class, Channel::OwlAxiom));
+                }
 
-            // The SHACL channels (always executed, never best-effort).
-            for (class, channel) in shacl_tripped(&ds, &shapes, &shape_class, &shape_tier) {
-                credited.push((class, channel));
-            }
-            (name, credited)
-        })
-        .collect();
+                // The SHACL channels (always executed, never best-effort).
+                for (class, channel) in shacl_tripped(&ds, &shapes, &shape_class, &shape_tier) {
+                    credited.push((class, channel));
+                }
+                (name, credited)
+            })
+            .collect()
+    });
 
     // Fold in the fixtures' own sorted order, so the schedule cannot influence the result.
     for (name, credited) in per_fixture {

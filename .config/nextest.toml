@@ -118,10 +118,12 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # edges no asserted read can see, and the surface-leak half needs the same closure.
 #
 # Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
-# folded in the fixtures' own sorted order — ~180s, down from ~720s sequential, which had
-# overrun even a 2400s ceiling under concurrent gate load. A test that reds on machine load is
-# broken rather than flaky, so the work got cheaper instead of the ceiling higher; this budget
-# is the sibling bundle-proof one, not a special case.
+# folded in the fixtures' own sorted order — ~235s on the bounded eight-thread pool it uses,
+# down from ~720s sequential, which had overrun even a 2400s ceiling under concurrent gate
+# load. The pool is bounded on purpose: nextest already runs tests in parallel, and seizing
+# every core starved two sibling pipeline tests into timing out. A test that reds on machine
+# load is broken rather than flaky, so the work got cheaper instead of the ceiling higher;
+# this budget is the sibling bundle-proof one, not a special case.
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
