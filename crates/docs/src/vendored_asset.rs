@@ -430,6 +430,17 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             needle: "static fromGts(gts: Uint8Array): Dataset;",
             hint: "vendored .d.ts lacks the fromGts type signature",
         },
+        ExportCheck {
+            file: "gmeow_query_wasm.js",
+            needle: "function blake3Hex(",
+            hint: "vendored bindings lack blake3Hex — the site would have no way to verify the \
+                   fetched bundle against the manifest's content address",
+        },
+        ExportCheck {
+            file: "gmeow_query_wasm.d.ts",
+            needle: "function blake3Hex(bytes: Uint8Array): string;",
+            hint: "vendored .d.ts lacks the blake3Hex type signature",
+        },
     ],
     refresh_target: "maint-refresh-query-asset",
     bless_env: "GMEOW_QUERY_BLESS",

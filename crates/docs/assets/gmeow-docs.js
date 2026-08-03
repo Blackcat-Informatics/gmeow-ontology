@@ -9,10 +9,10 @@
 // SELECT/ASK, and a graph with "copy as <format>" transcoding for CONSTRUCT/DESCRIBE.
 //
 // Every path is resolved relative to THIS module's URL, so it works at any site depth
-// and offline (file://): the purrdf bindings sit in ./purrdf/, the RDF asset is
-// ./playground.trig.
+// and offline (file://): the query engine's bindings sit in ./query/, and the
+// playground's own RDF asset is ./playground.trig.
 
-import init, { Dataset } from "./query/gmeow_query_wasm.js";
+import init, { Dataset, blake3Hex } from "./query/gmeow_query_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
 import reasonInit, {
   reason as wasmReason,
@@ -38,10 +38,10 @@ const FORMATS = [
 // ── Shared browser-bundle loader ────────────────────────────────────────────
 // The single client entry point every browser surface (SPARQL playground, bundle
 // explorer, validation panels) uses to obtain the queryable ontology — so no
-// surface invents a second fetch/parse path. It boots the engine once, fetches the
-// SHIPPED `gmeow.gts` bundle, verifies its byte length against the emitted
-// content-address manifest (a truncated or swapped asset is rejected), and returns
-// the dataset read from it.
+// surface invents a second fetch/parse path. It boots the engine once, obtains the
+// SHIPPED `gmeow.gts` bundle through the single verified fetch in `fullBundleBytes`
+// (byte length AND the manifest's blake3 content address), and returns the dataset
+// read from it.
 //
 // It reads the BUNDLE, not a flattened `gmeow-core.nq` extract: flattening collapses
 // the named-graph structure and destroys the RDF 1.2 statement layer, so a browser
@@ -57,26 +57,7 @@ async function ensureEngine() {
 }
 
 export async function loadCoreBundle() {
-  await ensureEngine();
-  const manifest = await (
-    await fetch(new URL("./bundle-manifest.json", import.meta.url))
-  ).json();
-  const bytes = new Uint8Array(
-    await (await fetch(new URL("./gmeow.gts", import.meta.url))).arrayBuffer(),
-  );
-  const expected = manifest["assets/gmeow.gts"]?.bytes;
-  if (expected === undefined) {
-    throw new Error(
-      "bundle integrity: manifest is missing the assets/gmeow.gts entry — " +
-        "cannot verify the bundle byte length (a missing manifest entry is a hard failure, not a bypass)",
-    );
-  }
-  if (bytes.length !== expected) {
-    throw new Error(
-      `bundle integrity: expected ${expected} bytes, got ${bytes.length}`,
-    );
-  }
-  return Dataset.fromGts(bytes);
+  return Dataset.fromGts(await fullBundleBytes());
 }
 
 /** The URL of the full `gmeow.gts` bundle (the Tier-1 validate surface's shapes
@@ -102,10 +83,54 @@ async function ensureValidator() {
   await _validatorReady;
 }
 
+// The ONE fetch of the bundle, and the ONE place its integrity is proven.
+//
+// The promise is cached BEFORE the first await, so concurrent callers share one request:
+// caching the resolved bytes afterwards let every caller that arrived during the flight
+// start its own, and this asset is ~45 MB. The playground, the bundle explorer and the
+// Tier-1 validation panels all reach the bundle through here, so no surface invents a
+// second fetch, a second parse, or a second integrity rule.
+//
+// Integrity is the manifest's own blake3 content address, not a byte-length comparison:
+// a length check accepts any same-length substitution, which is the substitution worth
+// worrying about. The engine is booted first because it supplies the hash.
 let _bundleBytes = null;
 async function fullBundleBytes() {
   if (!_bundleBytes) {
-    _bundleBytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
+    _bundleBytes = (async () => {
+      await ensureEngine();
+      const manifest = await (
+        await fetch(new URL("./bundle-manifest.json", import.meta.url))
+      ).json();
+      const entry = manifest["assets/gmeow.gts"];
+      if (entry === undefined) {
+        throw new Error(
+          "bundle integrity: manifest is missing the assets/gmeow.gts entry — " +
+            "cannot verify the bundle (a missing manifest entry is a hard failure, not a bypass)",
+        );
+      }
+      const bytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
+      if (bytes.length !== entry.bytes) {
+        throw new Error(
+          `bundle integrity: expected ${entry.bytes} bytes, got ${bytes.length}`,
+        );
+      }
+      const expected = entry.blake3;
+      if (typeof expected !== "string") {
+        throw new Error(
+          "bundle integrity: manifest records no blake3 content address for " +
+            "assets/gmeow.gts — refusing to accept the bundle on byte length alone",
+        );
+      }
+      const actual = `blake3:${blake3Hex(bytes)}`;
+      if (actual !== expected) {
+        throw new Error(
+          `bundle integrity: expected ${expected}, got ${actual} — the fetched bundle is ` +
+            "not the one this site was built from",
+        );
+      }
+      return bytes;
+    })();
   }
   return _bundleBytes;
 }
@@ -333,27 +358,39 @@ if (conjectureForm) {
     selectEl.append(opt);
   }
 
-  // Verify the shipped curated demo library is byte-intact against the manifest — the
-  // same integrity discipline `loadCoreBundle` applies (a missing manifest entry or a
-  // byte-length mismatch is a HARD FAILURE, never a silent bypass).
+  // Verify the shipped curated demo library against the manifest — the same integrity
+  // discipline `fullBundleBytes` applies (a missing manifest entry, a byte-length
+  // mismatch, or a content-address mismatch is a HARD FAILURE, never a silent bypass).
   const verifyLibrary = async () => {
+    await ensureEngine();
     const manifest = await (
       await fetch(new URL("./bundle-manifest.json", import.meta.url))
     ).json();
-    const ttl = await (
-      await fetch(new URL("./conjectures.ttl", import.meta.url))
-    ).text();
-    const expected = manifest["assets/conjectures.ttl"]?.bytes;
-    const actual = new TextEncoder().encode(ttl).length;
-    if (expected === undefined) {
+    const bytes = new Uint8Array(
+      await (await fetch(new URL("./conjectures.ttl", import.meta.url))).arrayBuffer(),
+    );
+    const entry = manifest["assets/conjectures.ttl"];
+    if (entry === undefined) {
       throw new Error(
         "conjecture library integrity: manifest is missing the assets/conjectures.ttl " +
           "entry — cannot verify the demo library (a missing manifest entry is a hard failure)",
       );
     }
-    if (actual !== expected) {
+    if (bytes.length !== entry.bytes) {
       throw new Error(
-        `conjecture library integrity: expected ${expected} bytes, got ${actual}`,
+        `conjecture library integrity: expected ${entry.bytes} bytes, got ${bytes.length}`,
+      );
+    }
+    if (typeof entry.blake3 !== "string") {
+      throw new Error(
+        "conjecture library integrity: manifest records no blake3 content address for " +
+          "assets/conjectures.ttl — refusing to accept it on byte length alone",
+      );
+    }
+    const actual = `blake3:${blake3Hex(bytes)}`;
+    if (actual !== entry.blake3) {
+      throw new Error(
+        `conjecture library integrity: expected ${entry.blake3}, got ${actual}`,
       );
     }
   };

@@ -25,6 +25,11 @@ purrdf.workspace = true
 # Pinned once in the workspace: the CLI that generates the JS bindings must match the
 # library version byte-for-byte, and one CLI serves every wasm crate in the build.
 wasm-bindgen.workspace = true
+# The content-address the emitted bundle manifest records. The docs site verifies the
+# fetched bundle against it, and the browser has no native blake3 — so the engine that
+# is already booted before the fetch exposes the same hash the manifest was written with,
+# rather than the site verifying under a second, weaker algorithm.
+blake3 = "1"
 
 [dev-dependencies]
 # `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A

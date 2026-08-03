@@ -69,9 +69,9 @@ export class Dataset {
     static parse(text, format) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export3);
             const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export3);
             const len1 = WASM_VECTOR_LEN;
             wasm.dataset_parse(retptr, ptr0, len0, ptr1, len1);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -105,9 +105,9 @@ export class Dataset {
         let deferred4_1;
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(sparql, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const ptr0 = passStringToWasm0(sparql, wasm.__wbindgen_export, wasm.__wbindgen_export3);
             const len0 = WASM_VECTOR_LEN;
-            var ptr1 = isLikeNone(base) ? 0 : passStringToWasm0(base, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            var ptr1 = isLikeNone(base) ? 0 : passStringToWasm0(base, wasm.__wbindgen_export, wasm.__wbindgen_export3);
             var len1 = WASM_VECTOR_LEN;
             wasm.dataset_query(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -125,7 +125,7 @@ export class Dataset {
             return getStringFromWasm0(ptr3, len3);
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export3(deferred4_0, deferred4_1, 1);
+            wasm.__wbindgen_export2(deferred4_0, deferred4_1, 1);
         }
     }
     /**
@@ -146,7 +146,7 @@ export class Dataset {
         let deferred3_1;
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const ptr0 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export3);
             const len0 = WASM_VECTOR_LEN;
             wasm.dataset_serialize(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -164,7 +164,7 @@ export class Dataset {
             return getStringFromWasm0(ptr2, len2);
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export3(deferred3_0, deferred3_1, 1);
+            wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
         }
     }
     /**
@@ -177,6 +177,37 @@ export class Dataset {
     }
 }
 if (Symbol.dispose) Dataset.prototype[Symbol.dispose] = Dataset.prototype.free;
+
+/**
+ * The blake3 content address of `bytes`, lowercase hex — the SAME hash the emitted
+ * `bundle-manifest.json` records for every shipped asset.
+ *
+ * The docs site fetches a 45 MB `gmeow.gts` and must prove it received the bytes the
+ * build published. A byte-length comparison cannot: a same-length substitution passes it.
+ * The browser has no native blake3, and verifying under a second algorithm would mean the
+ * manifest's recorded address is not the one anybody checks — so the engine that is
+ * already booted before the fetch exposes the real one.
+ * @param {Uint8Array} bytes
+ * @returns {string}
+ */
+export function blake3Hex(bytes) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.blake3Hex(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred2_0 = r0;
+        deferred2_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export2(deferred2_0, deferred2_1, 1);
+    }
+}
 
 /**
  * The engine version (this crate's SemVer), exposed to JS as `version()` — a
@@ -196,7 +227,7 @@ export function version() {
         return getStringFromWasm0(r0, r1);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export3(deferred1_0, deferred1_1, 1);
+        wasm.__wbindgen_export2(deferred1_0, deferred1_1, 1);
     }
 }
 function __wbg_get_imports() {

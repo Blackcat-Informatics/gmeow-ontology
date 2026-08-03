@@ -44,6 +44,20 @@ pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+/// The blake3 content address of `bytes`, lowercase hex — the SAME hash the emitted
+/// `bundle-manifest.json` records for every shipped asset.
+///
+/// The docs site fetches a 45 MB `gmeow.gts` and must prove it received the bytes the
+/// build published. A byte-length comparison cannot: a same-length substitution passes it.
+/// The browser has no native blake3, and verifying under a second algorithm would mean the
+/// manifest's recorded address is not the one anybody checks — so the engine that is
+/// already booted before the fetch exposes the real one.
+#[wasm_bindgen(js_name = blake3Hex)]
+#[must_use]
+pub fn blake3_hex(bytes: &[u8]) -> String {
+    blake3::hash(bytes).to_hex().to_string()
+}
+
 /// An in-memory RDF 1.2 dataset the browser can parse, serialize, and query.
 #[wasm_bindgen]
 pub struct Dataset {
