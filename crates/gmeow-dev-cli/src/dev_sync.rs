@@ -529,12 +529,9 @@ pub fn sync(
 }
 
 fn default_mode() -> SyncMode {
-    if std::env::var("CI").is_ok_and(|value| {
-        !matches!(
-            value.trim().to_ascii_lowercase().as_str(),
-            "" | "0" | "false" | "off" | "no"
-        )
-    }) {
+    // One reading of `CI` in the workspace: the same predicate the branch-versus-base
+    // gates consult to decide whether an absent comparand is a skip or a hard failure.
+    if gmeow_pipeline::branch_base::ci_declared() {
         SyncMode::Check
     } else {
         SyncMode::Update

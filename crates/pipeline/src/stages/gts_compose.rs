@@ -326,8 +326,7 @@ mod tests {
         // is not a property this dataset HAS; the total refusal rule is, and asserting it
         // here keeps the anti-forgery guard gated rather than assumed.
         let err = purrdf::try_canonicalize(&reparsed)
-            .err()
-            .expect("re-canonicalizing the lowered canonical form must be refused");
+            .expect_err("re-canonicalizing the lowered canonical form must be refused");
         assert!(
             matches!(err, purrdf::CanonError::ReservedVocabulary(_)),
             "the refusal must be the reserved-vocabulary rule, not a budget exhaustion: {err}"

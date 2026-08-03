@@ -32,6 +32,7 @@
 //! `capabilities` / `consumes` / `resources` agree with its RDF declaration
 //! (single source of truth).
 
+pub mod branch_base;
 pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
@@ -49,7 +50,6 @@ pub mod gmn_dialect;
 pub mod graph;
 pub(crate) mod gts_profile;
 pub mod ingest;
-pub mod llms_shape;
 pub mod loader;
 pub mod mapping_purity;
 pub mod medium;

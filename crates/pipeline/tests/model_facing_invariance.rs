@@ -14,8 +14,10 @@
 //!   ratchet freezing an incomplete census;
 //! * **the llms clause** — the `llms.txt`-family SHAPE (skeleton, section headers,
 //!   section ordering, notation conventions, the MCP consumer-index resource-list
-//!   structure) is byte-identical to the merge base, while term entries and the resource
-//!   list may grow by an EXACT enumerated delta.
+//!   structure) is byte-identical to the merge base, while term entries follow the
+//!   ontology and the resource list may grow only by the delta the ontology itself
+//!   licenses (one resource per `gmeow:` surface this change declares and the merge base
+//!   did not).
 //!
 //! Every leg is exercised against a targeted RED FIXTURE beside its live assertion: a
 //! gate whose failure arm cannot be reached is not a gate, and a live tree that happens
@@ -24,13 +26,23 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use gmeow_pipeline::branch_base::{
+    BaseFile, BaseRef, ci_declared, git_show_base, resolve_base_ref,
+};
 use gmeow_pipeline::gmn_dialect::{
     self, ModelFacingReport, PINNED_GMN_DIALECT_PRODUCERS, ProducedPath,
     check_producer_census_is_complete, check_producer_non_interference,
 };
-use gmeow_pipeline::llms_shape::{
-    self, BaseFile, BaseRef, FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_LIST, check_frozen_item,
-    check_resource_list, extract_item,
+
+/// The llms-family SHAPE freeze, `#[path]`-included exactly as the shared MEDIUM negative
+/// controls in `support/medium_tamper.rs` are: nothing in the shipped pipeline library
+/// calls any of it, so it is test support rather than a `crates/pipeline/src` module.
+#[path = "support/llms_shape.rs"]
+mod llms_shape;
+
+use llms_shape::{
+    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_LIST, SurfaceMatch, check_frozen_item,
+    check_resource_list, declared_surfaces, extract_item,
 };
 
 /// Run one check over a fresh report and return it — every leg below asserts on the
@@ -90,12 +102,27 @@ fn changed_paths(root: &Path, base: &str) -> BTreeSet<String> {
     out
 }
 
-/// The merge base, or a LOUD skip when `origin/main` genuinely is not in this checkout.
+/// The merge base, or a LOUD skip when `origin/main` genuinely is not in this checkout AND
+/// the run is an interactive one.
+///
+/// An automated run is the case that matters: nobody reads a `SKIP:` line scrolling past
+/// in a log, so a CI checkout without `origin/main` would take every leg below through its
+/// early return and the whole model-facing clause would pass by never having compared
+/// anything. CI builds the PR merged into `main`, so `origin/main` is present there by
+/// construction — which means an absent upstream under [`ci_declared`] is a
+/// mis-provisioned checkout, not a legitimate bare clone, and the honest report is a hard
+/// failure.
 fn base_ref(root: &Path) -> Option<String> {
-    match llms_shape::resolve_base_ref(root) {
+    match resolve_base_ref(root) {
         BaseRef::Resolved(sha) => Some(sha),
+        BaseRef::NoUpstream(why) if ci_declared() => panic!(
+            "CI is declared, so this run is automated and a skip nobody reads is a vacuous \
+             pass: {why}. CI builds the PR merged into `main`, so `origin/main` is present \
+             there by construction — an absent upstream here is a mis-provisioned checkout, \
+             and the model-facing legs would grade nothing"
+        ),
         BaseRef::NoUpstream(why) => {
-            println!("SKIP: {why}");
+            println!("SKIP: {why} (interactive run in a bare clone — set CI=true to require it)");
             None
         }
         BaseRef::Unresolvable(why) => panic!(
@@ -351,7 +378,7 @@ fn leg2_companion_red_fixture_an_unpinned_dialect_producer_reds() {
 
 /// Read one frozen file at the merge base, hard-failing on any git error.
 fn base_text(root: &Path, base: &str, rel: &str) -> Option<String> {
-    match llms_shape::git_show_base(root, base, rel) {
+    match git_show_base(root, base, rel) {
         BaseFile::Contents(text) => Some(text),
         BaseFile::Absent => None,
         BaseFile::Error(why) => panic!(
@@ -396,8 +423,9 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
         "every frozen llms-shape item must have been compared"
     );
 
-    // The MCP consumer index: STRUCTURE frozen, list allowed to grow by an exact
-    // enumerated delta (at most one medium resource, nothing else).
+    // The MCP consumer index: STRUCTURE frozen, list allowed to grow only by the delta the
+    // ONTOLOGY licenses — one resource per `gmeow:` surface this change declares and the
+    // merge base did not.
     let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path))
         .expect("the MCP module is readable");
     let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.path)
@@ -406,12 +434,27 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
         extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch");
     let base_body =
         extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base");
-    let report = run(|r| check_resource_list(&base_body, &work_body, r));
+    let surfaces = declared_surfaces(&root, &base);
+    // NON-VACUITY, both sides: a derivation that read no term at all would license every
+    // addition as "undeclared-but-unchecked" or refuse every one of them for the wrong
+    // reason, and either way the permitted delta would be decided by nothing.
+    assert!(
+        !surfaces.working.is_empty() && !surfaces.base.is_empty(),
+        "the declared-surface derivation read {} gmeow: term(s) on this branch and {} at the \
+         merge base — the slice-module scan is vacuous",
+        surfaces.working.len(),
+        surfaces.base.len()
+    );
+    let report = run(|r| check_resource_list(&base_body, &work_body, &surfaces, r));
     assert!(report.is_clean(), "{report}");
     println!(
-        "leg 4: {} resource(s) at the base, {} on this branch",
+        "leg 4: {} resource(s) at the base, {} on this branch; the ontology declares {} \
+         gmeow: term(s) here vs {} at the base, {} of them newly",
         llms_shape::resource_entries(&base_body).len(),
-        llms_shape::resource_entries(&work_body).len()
+        llms_shape::resource_entries(&work_body).len(),
+        surfaces.working.len(),
+        surfaces.base.len(),
+        surfaces.newly_declared().len()
     );
 }
 
@@ -449,49 +492,126 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
     assert!(report.to_string().contains("SHAPE moved"), "{report}");
 }
 
-/// The acceptance criterion's second red fixture: add a second MCP resource.
-#[test]
-fn leg4_red_fixture_a_second_mcp_resource_reds() {
-    let root = repo_root();
-    let Some(base) = base_ref(&root) else { return };
+/// The live MCP resource-list bodies at the base and on this branch.
+fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
     let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path)).expect("readable");
-    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.path).expect("present at the base");
-    let base_body =
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base");
-    let work_body =
-        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch");
+    let base_mcp = base_text(root, base, MCP_RESOURCE_LIST.path).expect("present at the base");
+    (
+        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base"),
+        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch"),
+    )
+}
 
-    const ANCHOR: &str = r#"            resource(
-                "gmeow://ontology/okf-index","#;
-    /// Two medium resources where the enumerated delta allows at most one.
-    const TWO_NEW: &str = r#"            resource(
-                "gmeow://ontology/medium",
-                "medium",
-                "The medium axis.",
-                "application/json",
-            ),
-            resource(
-                "gmeow://ontology/medium-effect",
-                "medium-effect",
-                "The dictionary-effect measurement.",
-                "application/json",
-            ),
-            resource(
+/// The anchor every resource-list red fixture splices in front of.
+const RESOURCE_ANCHOR: &str = r#"            resource(
                 "gmeow://ontology/okf-index","#;
 
+/// `work_body` with one extra `resource(...)` entry named `slug`, spliced at the anchor.
+fn with_extra_resource(work_body: &str, slug: &str) -> String {
     assert!(
-        work_body.contains(ANCHOR),
-        "the red fixture's anchor moved; the live list is:\n{work_body}"
+        work_body.contains(RESOURCE_ANCHOR),
+        "the red fixtures' anchor moved; the live list is:\n{work_body}"
     );
-    let grown = work_body.replacen(ANCHOR, TWO_NEW, 1);
+    let extra = format!(
+        "            resource(\n                \"gmeow://ontology/{slug}\",\n                \
+         \"{slug}\",\n                \"A red fixture.\",\n                \
+         \"application/json\",\n            ),\n{RESOURCE_ANCHOR}"
+    );
+    let grown = work_body.replacen(RESOURCE_ANCHOR, &extra, 1);
     assert_ne!(
         grown, work_body,
         "the red fixture must actually perturb the list"
     );
-    let report = run(|r| check_resource_list(&base_body, &grown, r));
+    grown
+}
+
+/// The acceptance criterion's second red fixture, re-aimed at the DERIVED rule: an MCP
+/// resource that names no `gmeow:` term the ontology declares.
+///
+/// This is the arm the retired `uri.contains("medium")` rule could not have: it perturbs
+/// the LIVE list and the LIVE declared-surface derivation, so the refusal comes from the
+/// ontology having nothing to say about the added name rather than from a literal in the
+/// gate.
+#[test]
+fn leg4_red_fixture_an_mcp_resource_with_no_declared_surface_reds() {
+    let root = repo_root();
+    let Some(base) = base_ref(&root) else { return };
+    let (base_body, work_body) = mcp_bodies(&root, &base);
+    let surfaces = declared_surfaces(&root, &base);
+
+    // Derived, not assumed: the slug is only a valid fixture while the ontology genuinely
+    // declares no term matching it.
+    const SLUG: &str = "changelog";
+    assert_eq!(
+        surfaces.resolve(&format!("gmeow://ontology/{SLUG}")),
+        SurfaceMatch::Undeclared,
+        "the fixture slug {SLUG:?} now names a declared gmeow: term — pick one the ontology \
+         does not declare, or the fixture proves nothing"
+    );
+
+    let report = run(|r| {
+        check_resource_list(
+            &base_body,
+            &with_extra_resource(&work_body, SLUG),
+            &surfaces,
+            r,
+        )
+    });
     assert!(
         !report.is_clean(),
-        "a SECOND added MCP resource must red the enumerated delta"
+        "an MCP resource with no declared surface must red the derived delta"
     );
-    assert!(report.to_string().contains("AT MOST ONE"), "{report}");
+    assert!(
+        report.to_string().contains("names NO gmeow: term"),
+        "{report}"
+    );
+}
+
+/// The third red fixture: an MCP resource that surfaces vocabulary the merge base ALREADY
+/// declared.
+///
+/// The delta is the vocabulary THIS change adds, so a resource exposing a long-standing
+/// term is a model-facing addition with nothing behind it. The term is read out of the
+/// derivation itself rather than named here — a hardcoded term would rot the moment the
+/// slice that declares it is renamed.
+#[test]
+fn leg4_red_fixture_an_mcp_resource_for_preexisting_vocabulary_reds() {
+    let root = repo_root();
+    let Some(base) = base_ref(&root) else { return };
+    let (base_body, work_body) = mcp_bodies(&root, &base);
+    let surfaces = declared_surfaces(&root, &base);
+
+    // A base-declared term whose skeleton is unique among declared terms and is not
+    // already an entry of the live list — the fixture must add a resource, not collide
+    // with one.
+    let live: BTreeSet<String> = llms_shape::resource_entries(&work_body)
+        .iter()
+        .map(|entry| entry.uri.clone())
+        .collect();
+    let slug = surfaces
+        .base
+        .iter()
+        .map(|local| local.to_ascii_lowercase())
+        .find(|slug| {
+            !live.contains(&format!("gmeow://ontology/{slug}"))
+                && matches!(
+                    surfaces.resolve(&format!("gmeow://ontology/{slug}")),
+                    SurfaceMatch::Preexisting(_)
+                )
+        })
+        .expect("the merge base declares gmeow: vocabulary this fixture can surface");
+
+    let report = run(|r| {
+        check_resource_list(
+            &base_body,
+            &with_extra_resource(&work_body, &slug),
+            &surfaces,
+            r,
+        )
+    });
+    assert!(
+        !report.is_clean(),
+        "an MCP resource surfacing pre-existing vocabulary ({slug}) must red the derived delta"
+    );
+    assert!(report.to_string().contains("ALREADY declared"), "{report}");
 }

@@ -13,6 +13,11 @@ use std::path::Path;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
+// The ONE merge-base comparand resolver in the workspace. The floor/ceiling ratchets here
+// and the model-facing freeze in `crates/pipeline/tests` are both defined as a comparison
+// against `git merge-base HEAD origin/main`; two copies of the resolver would be two
+// notions of what this branch is being compared to.
+use gmeow_pipeline::branch_base::{BaseFile, BaseRef, BaseTree, git_show_base, resolve_base_ref};
 use gmeow_slice_quality::ScoringEnv;
 #[cfg(test)]
 use gmeow_slice_quality::model::{MeasurementStandard, Tier};
@@ -827,122 +832,6 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     0
 }
 
-/// The merge-base resolution outcome for the floor-monotonicity check.
-///
-/// This is a COMPARISON gate: its comparand is `git show <merge-base
-/// HEAD origin/main>:<floor-file>`. That comparand is only LEGITIMATELY empty
-/// when `origin/main` itself is not a reachable ref (a bare local clone that
-/// never fetched it) — there, "may only be raised" is vacuously satisfied and
-/// [`BaseRef::NoUpstream`] is a correct, loud skip. Every OTHER failure to
-/// obtain the comparand (the ref exists but `merge-base` errors or resolves
-/// empty, or git itself cannot run) means the gate cannot perform the
-/// comparison it is defined to perform; passing there would let a lowered
-/// floor slip through unseen, so [`BaseRef::Unresolvable`] HARD-FAILS the
-/// gate instead of skipping it.
-enum BaseRef {
-    /// The resolved merge-base commit the working floor files are diffed against.
-    Resolved(String),
-    /// `origin/main` genuinely does not exist as a ref in this checkout — the
-    /// only case where "no prior committed state is reachable" is expected
-    /// rather than broken. A loud SKIP, never a silent pass.
-    NoUpstream(String),
-    /// `origin/main` exists (or ref existence couldn't be checked) but the
-    /// comparand could not be obtained — mis-provisioned checkout, git error,
-    /// empty merge-base, or git binary absent. HARD FAIL: the gate cannot
-    /// verify the invariant it is defined to enforce.
-    Unresolvable(String),
-}
-
-/// Resolve `git merge-base HEAD origin/main` LOCALLY (no network). CI builds the PR
-/// merged into `main`, so `origin/main` is present there. A clone that never
-/// fetched `origin/main` yields [`BaseRef::NoUpstream`] (legitimate skip); any
-/// other failure to resolve the merge-base yields [`BaseRef::Unresolvable`]
-/// (hard fail — see the enum doc-comment).
-fn resolve_base_ref(root: &Path) -> BaseRef {
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["rev-parse", "--verify", "--quiet", "origin/main"])
-        .output()
-    {
-        Ok(out) if out.status.success() => {}
-        Ok(_) => {
-            return BaseRef::NoUpstream(
-                "`origin/main` does not exist as a ref in this checkout (no upstream fetched)"
-                    .to_owned(),
-            );
-        }
-        Err(e) => return BaseRef::Unresolvable(format!("could not run git: {e}")),
-    }
-
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["merge-base", "HEAD", "origin/main"])
-        .output()
-    {
-        Ok(out) if out.status.success() => {
-            let sha = String::from_utf8_lossy(&out.stdout).trim().to_owned();
-            if sha.is_empty() {
-                BaseRef::Unresolvable(
-                    "`git merge-base HEAD origin/main` resolved no commit".to_owned(),
-                )
-            } else {
-                BaseRef::Resolved(sha)
-            }
-        }
-        Ok(out) => BaseRef::Unresolvable(format!(
-            "`git merge-base HEAD origin/main` failed ({}): {}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
-        )),
-        Err(e) => BaseRef::Unresolvable(format!("could not run git: {e}")),
-    }
-}
-
-/// The outcome of reading one floor file at the merge base via `git show`.
-enum BaseFile {
-    /// The blob contents at the base commit.
-    Contents(String),
-    /// The file did not exist at the base (a brand-new floor file) — SKIP its
-    /// monotonicity check, never mask a real regression.
-    Absent,
-    /// `git show` failed for a reason OTHER than an absent path — a HARD FAIL.
-    Error(String),
-}
-
-/// Read `<base>:<rel>` via `git show` (local, no network). A path-absent error is
-/// distinguished from any other git failure by the well-known "does not exist in"
-/// / "exists on disk, but not in" fatal messages, so a genuinely-new floor file is
-/// a skip while a bad object / broken repo is a hard fail.
-fn git_show_base(root: &Path, base: &str, rel: &str) -> BaseFile {
-    let spec = format!("{base}:{rel}");
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["show", &spec])
-        .output()
-    {
-        Ok(out) if out.status.success() => {
-            BaseFile::Contents(String::from_utf8_lossy(&out.stdout).into_owned())
-        }
-        Ok(out) => {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            if stderr.contains("does not exist in") || stderr.contains("exists on disk, but not in")
-            {
-                BaseFile::Absent
-            } else {
-                BaseFile::Error(format!(
-                    "`git show {spec}` failed ({}): {}",
-                    out.status,
-                    stderr.trim()
-                ))
-            }
-        }
-        Err(e) => BaseFile::Error(format!("could not run `git show {spec}`: {e}")),
-    }
-}
-
 /// The local name of an IRI (the tail after the last `/` or `#`) — used to match a
 /// rubric axis or tier IRI against the bare local name the gate reasons over.
 fn axis_local_name(iri: &str) -> &str {
@@ -1018,37 +907,17 @@ fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, 
         .collect()
 }
 
-/// List every path `git ls-tree -r --name-only <base> -- <rel_dir>` reports —
-/// mirrors [`git_show_base`]'s `Command` style (local, no network,
-/// `current_dir(root)`, `LC_ALL=C`). `git ls-tree` does not error on a pathspec
-/// that matches nothing, so a `rel_dir` absent at `base` (a genuinely new slice)
-/// yields empty stdout with a SUCCESSFUL exit — `Ok(vec![])`, which the
-/// grandfather reconstruction ([`measure_base_residues`]) treats as "no surface
-/// texts at base," i.e. base measured 0. A non-zero exit means git itself could
-/// not answer the question and is a HARD-FAIL, never a silent "nothing there."
+/// The shared [`gmeow_pipeline::branch_base::git_ls_tree`], with its tri-state folded onto
+/// this gate's diagnostic substrate. `git ls-tree` does not error on a pathspec that
+/// matches nothing, so a `rel_dir` absent at `base` (a genuinely new slice) yields
+/// `Ok(vec![])`, which the grandfather reconstruction ([`measure_base_residues`]) treats
+/// as "no surface texts at base," i.e. base measured 0. A git failure means git itself
+/// could not answer the question and is a HARD-FAIL, never a silent "nothing there."
 fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<Vec<String>> {
-    let out = std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["ls-tree", "-r", "--name-only", base, "--", rel_dir])
-        .output()
-        .map_err(|e| {
-            sqe(format!(
-                "could not run `git ls-tree {base} -- {rel_dir}`: {e}"
-            ))
-        })?;
-    if !out.status.success() {
-        return Err(sqe(format!(
-            "`git ls-tree {base} -- {rel_dir}` failed ({}): {}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
-        )));
+    match gmeow_pipeline::branch_base::git_ls_tree(root, base, &[rel_dir]) {
+        BaseTree::Paths(paths) => Ok(paths),
+        BaseTree::Error(e) => Err(sqe(e)),
     }
-    Ok(String::from_utf8_lossy(&out.stdout)
-        .lines()
-        .filter(|l| !l.is_empty())
-        .map(str::to_owned)
-        .collect())
 }
 
 /// Whether `rel_path` (a repo-relative path as `git ls-tree` reports it) belongs

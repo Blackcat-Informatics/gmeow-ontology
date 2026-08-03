@@ -41,9 +41,9 @@ fn main() -> ExitCode {
     let generated = root.join("generated");
     if !generated.is_dir() {
         eprintln!(
-            "{}: no generated/ tree. Run `make regen` in that checkout first — comparing an \
-             unmaterialized tree would report every artifact as 'unchanged' by comparing \
-             nothing.",
+            "{}: no generated/ tree. Run `make check-sync SYNC_MODE=update` in that checkout \
+             first — comparing an unmaterialized tree would report every artifact as \
+             'unchanged' by comparing nothing.",
             generated.display()
         );
         return ExitCode::from(2);

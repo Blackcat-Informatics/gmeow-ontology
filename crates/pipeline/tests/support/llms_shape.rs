@@ -20,19 +20,42 @@
 //!   conventions, and the resource-list structure must be byte-identical to the
 //!   merge-base;
 //! * the CONTENT may grow — term entries follow the ontology, and the resource list may
-//!   gain at most one medium resource, asserted as an EXACT enumerated delta.
+//!   gain a resource for each `gmeow:` surface THIS CHANGE declares and the merge base
+//!   did not, one resource per surface.
 //!
 //! Anything reworded, reordered or removed reds. That asymmetry is the whole point: a
 //! surface that could shrink to pass a gate would make the gate an incentive to hide
 //! information.
 //!
-//! Everything here is a PURE function over source text so each clause has a reachable
-//! red arm — the gate's fixtures perturb the working text and require a refusal.
+//! # The permitted delta is DERIVED, never named
+//!
+//! A rule of the form "the list may gain one resource whose URI contains `medium`" is not
+//! a gate: its pass condition is a string literal spelling the exact change its author was
+//! making, so it cannot refuse that change and wrongly refuses every other. The permitted
+//! delta here is instead read out of the repo's OWN data — the `gmeow:` terms the slice
+//! `module.ttl` files declare on this branch, minus the ones they already declared at the
+//! merge base ([`DeclaredSurfaces`]). A gained resource is legitimate exactly when its URI
+//! names one of those newly-declared surfaces, so the gate's answer moves with the
+//! ontology instead of with whoever last edited the gate.
+//!
+//! # Where this lives
+//!
+//! A test-support module rather than a `crates/pipeline` library module: nothing in the
+//! shipped pipeline calls any of it. Its ONE consumer is
+//! `crates/pipeline/tests/model_facing_invariance.rs`, which `#[path]`-includes this file
+//! exactly as the medium negative controls in `support/medium_tamper.rs` are included.
+//!
+//! Everything below except [`declared_surfaces`] is a PURE function over source text, so
+//! each clause has a reachable red arm — the gate's fixtures perturb the working text and
+//! require a refusal.
 
-use std::collections::BTreeSet;
+#![allow(dead_code)]
+
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use crate::gmn_dialect::ModelFacingReport;
+use gmeow_pipeline::branch_base::{BaseFile, git_show_base};
+use gmeow_pipeline::gmn_dialect::ModelFacingReport;
 
 /// One frozen source item: the file it lives in, and the item within that file (the
 /// whole file when [`FrozenItem::item`] is [`ItemRef::WholeFile`]).
@@ -71,9 +94,9 @@ impl ItemRef {
 
 /// Every source item whose bytes ARE the `llms.txt`-family shape.
 ///
-/// The MCP `resources_result` is deliberately absent: its list may grow by one medium
-/// resource, so it is checked by [`check_resource_list`] against an exact enumerated
-/// delta instead of frozen outright.
+/// The MCP `resources_result` is deliberately absent: its list may grow with the
+/// vocabulary a change declares, so it is checked by [`check_resource_list`] against the
+/// ontology-derived delta instead of frozen outright.
 pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     FrozenItem {
         path: "crates/docs/src/llms.rs",
@@ -119,12 +142,12 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
 ];
 
-/// The MCP consumer-index item whose LIST may grow by at most one medium resource.
+/// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
 pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
     path: "crates/pipeline/src/mcp.rs",
     item: ItemRef::Function("resources_result"),
-    why: "the MCP consumer-index resource list: its structure is frozen, its entries may \
-          grow by at most one medium resource",
+    why: "the MCP consumer-index resource list: its structure is frozen, and its entries \
+          may grow only to surface `gmeow:` vocabulary the change itself declares",
 };
 
 // ── Source-item extraction ───────────────────────────────────────────────────
@@ -399,8 +422,11 @@ pub fn resource_entries(body: &str) -> Vec<ResourceEntry> {
 /// `body` with every `resource(...)` call elided and all whitespace collapsed — the
 /// CONTROL FLOW around the list (the `vec![`, the dev-tools mode guard, the JSON
 /// envelope), which is frozen even though the list itself may grow.
+///
+/// Private: the structure clause is [`check_resource_list`]'s, not a caller's — the gate
+/// asks whether the control flow moved, never for the skeleton itself.
 #[must_use]
-pub fn resource_skeleton(body: &str) -> String {
+fn resource_skeleton(body: &str) -> String {
     let mut out = String::with_capacity(body.len());
     let mut from = 0usize;
     while let Some(offset) = body[from..].find("resource(") {
@@ -450,16 +476,26 @@ fn first_string_literal(text: &str) -> Option<String> {
     None
 }
 
-/// The exact enumerated delta the MCP consumer-index resource list is allowed.
+/// The ONTOLOGY-DERIVED delta the MCP consumer-index resource list is allowed.
 ///
-/// The working list must be the base list, or the base list with EXACTLY ONE additional
-/// entry whose URI names the medium. Anything reworded, reordered or removed reds, and
-/// so does a second addition — "at most one new medium resource, nothing else" is a
-/// bound, not a direction.
+/// The working list must be the base list, or the base list plus entries that each
+/// surface a distinct `gmeow:` term this change declares and the merge base did not
+/// ([`DeclaredSurfaces`]). Anything reworded, reordered or removed reds, and so does an
+/// addition with no newly-declared surface behind it.
+///
+/// The bound on HOW MANY entries may appear is therefore the ontology's, not a number
+/// written here: the list can grow by at most one entry per surface the change adds, and
+/// by none at all when it adds no vocabulary.
 ///
 /// Records a problem when the surrounding control flow moved, an existing entry moved or
-/// changed, more than one entry was added, or an added entry is not a medium resource.
-pub fn check_resource_list(base_body: &str, work_body: &str, report: &mut ModelFacingReport) {
+/// changed, an added entry names no newly-declared surface, or two added entries claim the
+/// same one.
+pub fn check_resource_list(
+    base_body: &str,
+    work_body: &str,
+    surfaces: &DeclaredSurfaces,
+    report: &mut ModelFacingReport,
+) {
     let base_skeleton = resource_skeleton(base_body);
     let work_skeleton = resource_skeleton(work_body);
     if base_skeleton != work_skeleton {
@@ -492,20 +528,50 @@ pub fn check_resource_list(base_body: &str, work_body: &str, report: &mut ModelF
              regression"
         ));
     }
-    if added.len() > 1 {
-        report.problem(format!(
-            "the MCP consumer index gained {} resources ({:?}); the enumerated delta this \
-             change is allowed is AT MOST ONE, and only a medium resource",
-            added.len(),
-            added.iter().map(|entry| &entry.uri).collect::<Vec<_>>()
-        ));
-    }
-    for entry in added.iter().filter(|entry| !entry.uri.contains("medium")) {
-        report.problem(format!(
-            "the MCP consumer index gained resource {:?}, which is not a medium resource — \
-             the enumerated delta is the new gmeow:Medium* surface and nothing else",
-            entry.uri
-        ));
+
+    // The PERMITTED DELTA, derived from the repo's own data rather than named here. Each
+    // added entry must surface a `gmeow:` term this change declares and the merge base did
+    // not, and no two entries may claim the same one — so the list grows by at most one
+    // resource per surface the ontology gained, and not at all when it gained none.
+    if !added.is_empty() && surfaces.working.is_empty() {
+        report.problem(
+            "the declared-surface derivation read ZERO gmeow: terms out of the slice modules, \
+             so the permitted delta would be decided by looking at nothing — the resource-list \
+             delta cannot be graded"
+                .to_owned(),
+        );
+    } else {
+        let mut claimed: BTreeMap<&str, &str> = BTreeMap::new();
+        for entry in &added {
+            match surfaces.resolve(&entry.uri) {
+                SurfaceMatch::Undeclared => report.problem(format!(
+                    "the MCP consumer index gained resource {:?}, which names NO gmeow: term \
+                     any slice module declares. The permitted delta is DERIVED from the \
+                     ontology — a resource may appear only to surface vocabulary the change \
+                     itself declares — so an addition with nothing declared behind it is a \
+                     bare model-facing change",
+                    entry.uri
+                )),
+                SurfaceMatch::Preexisting(local) => report.problem(format!(
+                    "the MCP consumer index gained resource {:?}, which surfaces gmeow:{local} \
+                     — a term the merge base ALREADY declared. The permitted delta is the \
+                     vocabulary THIS change adds; exposing long-standing vocabulary through a \
+                     new consumer resource is a model-facing change on its own",
+                    entry.uri
+                )),
+                SurfaceMatch::New(local) => {
+                    if let Some(prior) = claimed.insert(local, entry.uri.as_str()) {
+                        report.problem(format!(
+                            "the MCP consumer index gained BOTH {prior:?} and {:?} for the one \
+                             newly-declared surface gmeow:{local} — the delta is one resource \
+                             per surface the change adds, so a second entry claiming the same \
+                             surface has no declaration behind it",
+                            entry.uri
+                        ));
+                    }
+                }
+            }
+        }
     }
 
     // Order and content of everything that already existed: the shared prefix must be
@@ -536,107 +602,196 @@ pub fn check_resource_list(base_body: &str, work_body: &str, report: &mut ModelF
     }
 }
 
-// ── The merge-base comparand ─────────────────────────────────────────────────
+// ── The declared surface, read out of the ontology ───────────────────────────
 
-/// The merge-base comparand, in the repo's tri-state discipline (the peer of
-/// `resolve_base_ref` in `gmeow-dev-cli`'s slice-quality gate — restated here because
-/// this crate is upstream of that binary and cannot depend on it).
-#[derive(Debug, Clone)]
-pub enum BaseRef {
-    /// The resolved merge-base commit the frozen items are compared against.
-    Resolved(String),
-    /// `origin/main` genuinely does not exist in this checkout — the one case where "no
-    /// prior committed state is reachable" is expected rather than broken. A LOUD skip.
-    NoUpstream(String),
-    /// `origin/main` exists but the comparand could not be obtained. HARD FAIL: the gate
-    /// cannot perform the comparison it is defined to perform, and passing there would
-    /// let a reworded surface through unseen.
-    Unresolvable(String),
+/// The `gmeow:` vocabulary this branch DECLARES, and the same set at the merge base.
+///
+/// This is the gate's comparand for "what surface did this change actually add?" — the
+/// repo's own slice modules, read the same way the vocabulary-ownership gate
+/// (`crates/docs/tests/vocabulary_ownership.rs`) reads them: every `gmeow:` subject
+/// carrying an `rdf:type` assertion in a `slices/**/module.ttl` or in the root ontology is
+/// a declared term. Built by [`declared_surfaces`]; consumed by [`check_resource_list`].
+#[derive(Debug, Clone, Default)]
+pub struct DeclaredSurfaces {
+    /// Local names of every `gmeow:` term declared on this branch.
+    pub working: BTreeSet<String>,
+    /// Local names of every `gmeow:` term declared at the merge base.
+    pub base: BTreeSet<String>,
 }
 
-/// Resolve `git merge-base HEAD origin/main` locally (no network).
-#[must_use]
-pub fn resolve_base_ref(root: &Path) -> BaseRef {
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["rev-parse", "--verify", "--quiet", "origin/main"])
-        .output()
-    {
-        Ok(out) if out.status.success() => {}
-        Ok(_) => {
-            return BaseRef::NoUpstream(
-                "`origin/main` does not exist as a ref in this checkout (no upstream fetched)"
-                    .to_owned(),
-            );
-        }
-        Err(err) => return BaseRef::Unresolvable(format!("could not run git: {err}")),
+/// What surface a consumer-resource URI names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SurfaceMatch<'a> {
+    /// A `gmeow:` term this change declares and the merge base did not.
+    New(&'a str),
+    /// A `gmeow:` term the merge base already declared.
+    Preexisting(&'a str),
+    /// No declared `gmeow:` term at all.
+    Undeclared,
+}
+
+impl DeclaredSurfaces {
+    /// Every local name this change declares that the merge base did not.
+    #[must_use]
+    pub fn newly_declared(&self) -> BTreeSet<&str> {
+        self.working
+            .iter()
+            .map(String::as_str)
+            .filter(|local| !self.base.contains(*local))
+            .collect()
     }
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["merge-base", "HEAD", "origin/main"])
-        .output()
+
+    /// The declared surface a `gmeow://…/<segment>` resource URI names.
+    ///
+    /// The correspondence is the resource's terminal path segment against a term's local
+    /// name, compared on their letters and digits alone: a URI segment is kebab-cased and
+    /// lowercase (`medium`, `medium-effect`) where a term is `UpperCamel` (`Medium`), and
+    /// neither spelling is a fact about the other, so matching on the shared skeleton is
+    /// the only correspondence that does not smuggle a naming convention into the gate.
+    #[must_use]
+    pub fn resolve<'a>(&'a self, uri: &str) -> SurfaceMatch<'a> {
+        let segment = uri.rsplit('/').next().unwrap_or(uri);
+        let wanted = skeleton(segment);
+        if wanted.is_empty() {
+            return SurfaceMatch::Undeclared;
+        }
+        // The base set is searched too, so an addition that surfaces LONG-STANDING
+        // vocabulary is reported as exactly that rather than as "undeclared" — two
+        // different defects with two different fixes.
+        let found = self
+            .working
+            .iter()
+            .chain(self.base.iter())
+            .find(|local| skeleton(local) == wanted);
+        match found {
+            None => SurfaceMatch::Undeclared,
+            Some(local) if self.base.contains(local) => SurfaceMatch::Preexisting(local),
+            Some(local) => SurfaceMatch::New(local),
+        }
+    }
+}
+
+/// A name reduced to its ASCII alphanumerics, lowercased — the shape `medium`,
+/// `Medium` and `medium-` all share, and that `medium-effect` and `MediumEffect` share
+/// with each other but not with `Medium`.
+fn skeleton(name: &str) -> String {
+    name.chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|ch| ch.to_ascii_lowercase())
+        .collect()
+}
+
+/// Whether a repo-relative path is a `gmeow:` DECLARATION surface — a slice `module.ttl`
+/// or the root ontology.
+fn is_declaration_file(rel: &str) -> bool {
+    rel == ROOT_ONTOLOGY
+        || (rel.starts_with("slices/") && rel.rsplit('/').next() == Some("module.ttl"))
+}
+
+/// The root ontology document, which declares vocabulary no slice module does.
+const ROOT_ONTOLOGY: &str = "ontology/gmeow.ttl";
+
+/// Read the declared `gmeow:` surface off BOTH sides of the comparison: the working tree,
+/// and the merge base via `git show`.
+///
+/// The base side is enumerated from the base tree itself rather than from the working
+/// file list, so a module this change DELETES still contributes its base declarations —
+/// otherwise re-declaring a deleted module's term elsewhere would read as new vocabulary.
+///
+/// # Panics
+/// When git cannot list the base tree, when a base declaration file cannot be read for any
+/// reason other than being absent, or when a working declaration file is unreadable. Each
+/// is a comparand the gate is defined to have and does not, never a reason to pass.
+#[must_use]
+pub fn declared_surfaces(root: &Path, base: &str) -> DeclaredSurfaces {
+    let mut out = DeclaredSurfaces::default();
+
+    for rel in working_declaration_files(root) {
+        let text = std::fs::read_to_string(root.join(&rel))
+            .unwrap_or_else(|err| panic!("{rel}: declaration surface is unreadable: {err}"));
+        collect_declared(&rel, &text, &mut out.working);
+    }
+
+    let listed = match gmeow_pipeline::branch_base::git_ls_tree(root, base, &["slices", "ontology"])
     {
-        Ok(out) if out.status.success() => {
-            let sha = String::from_utf8_lossy(&out.stdout).trim().to_owned();
-            if sha.is_empty() {
-                BaseRef::Unresolvable(
-                    "`git merge-base HEAD origin/main` resolved no commit".to_owned(),
-                )
-            } else {
-                BaseRef::Resolved(sha)
+        gmeow_pipeline::branch_base::BaseTree::Paths(paths) => paths,
+        gmeow_pipeline::branch_base::BaseTree::Error(why) => panic!(
+            "the resource-list delta is DERIVED from the ontology at the merge base, so a base \
+             tree that cannot be listed is unfinished work rather than a pass: {why}"
+        ),
+    };
+    for rel in listed.into_iter().filter(|rel| is_declaration_file(rel)) {
+        match git_show_base(root, base, &rel) {
+            BaseFile::Contents(text) => collect_declared(&rel, &text, &mut out.base),
+            // `git ls-tree` just reported it, so absence here is a race, not a fact.
+            BaseFile::Absent => panic!("{rel}: listed at {base} but `git show` reports it absent"),
+            BaseFile::Error(why) => panic!("{rel}: unreadable at the merge base: {why}"),
+        }
+    }
+    out
+}
+
+/// Every `slices/**/module.ttl` plus the root ontology in the working tree, repo-relative
+/// with forward slashes, sorted.
+fn working_declaration_files(root: &Path) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    if root.join(ROOT_ONTOLOGY).is_file() {
+        out.push(ROOT_ONTOLOGY.to_owned());
+    }
+    let mut stack = vec![root.join("slices")];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_symlink() {
+                continue;
+            }
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.file_name().is_some_and(|name| name == "module.ttl") {
+                out.push(
+                    path.strip_prefix(root)
+                        .unwrap_or(&path)
+                        .to_string_lossy()
+                        .replace('\\', "/"),
+                );
             }
         }
-        Ok(out) => BaseRef::Unresolvable(format!(
-            "`git merge-base HEAD origin/main` failed ({}): {}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
-        )),
-        Err(err) => BaseRef::Unresolvable(format!("could not run git: {err}")),
     }
+    out.sort();
+    out
 }
 
-/// One file read at the merge base.
-#[derive(Debug, Clone)]
-pub enum BaseFile {
-    /// The blob contents at the base commit.
-    Contents(String),
-    /// The path did not exist at the base — a brand-new file, whose shape cannot have
-    /// moved because there was nothing to move.
-    Absent,
-    /// `git show` failed for any other reason — a HARD FAIL.
-    Error(String),
-}
+/// Fold one Turtle document's `gmeow:` TBox declarations into `out`.
+///
+/// A declaration is a `gmeow:` subject carrying an `rdf:type` assertion whose local part
+/// has no further `/` — the same reading `crates/docs/tests/vocabulary_ownership.rs` uses,
+/// which keeps slice IRIs and named-graph IRIs out of the vocabulary set.
+///
+/// # Panics
+/// On a document that does not parse. A declaration surface that cannot be read is a
+/// comparand the gate does not have; skipping it would silently shrink the derived delta.
+fn collect_declared(rel: &str, text: &str, out: &mut BTreeSet<String>) {
+    use purrdf::slice::rdf_query::{Dataset, GraphSel, Subject};
 
-/// Read `<base>:<rel>` via `git show` (local, no network).
-#[must_use]
-pub fn git_show_base(root: &Path, base: &str, rel: &str) -> BaseFile {
-    let spec = format!("{base}:{rel}");
-    match std::process::Command::new("git")
-        .current_dir(root)
-        .env("LC_ALL", "C")
-        .args(["show", &spec])
-        .output()
-    {
-        Ok(out) if out.status.success() => {
-            BaseFile::Contents(String::from_utf8_lossy(&out.stdout).into_owned())
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    let dataset = Dataset::parse_turtle(text.as_bytes(), rel)
+        .unwrap_or_else(|err| panic!("{rel}: declaration surface does not parse: {err}"));
+    dataset.graph(GraphSel::Any).for_each_quad(|s, p, _o, _g| {
+        if p != RDF_TYPE {
+            return;
         }
-        Ok(out) => {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            if stderr.contains("does not exist in") || stderr.contains("exists on disk, but not in")
-            {
-                BaseFile::Absent
-            } else {
-                BaseFile::Error(format!(
-                    "`git show {spec}` failed ({}): {}",
-                    out.status,
-                    stderr.trim()
-                ))
-            }
+        if let Subject::Named(iri) = &s
+            && let Some(local) = iri
+                .strip_prefix(gmeow_ns::GMEOW_NS)
+                .filter(|local| !local.contains('/'))
+        {
+            out.insert(local.to_owned());
         }
-        Err(err) => BaseFile::Error(format!("could not run `git show {spec}`: {err}")),
-    }
+    });
 }
 
 #[cfg(test)]
@@ -762,57 +917,178 @@ fn resources_result(&self) -> Value {
         );
     }
 
+    /// A synthetic declared surface: this change declares `Medium` and `MediumEnvelope`,
+    /// while `Finding` predates it. Synthetic on purpose — these clauses are pure
+    /// functions of the two lists and the declared set, so pinning them against the live
+    /// repo would make them a report on today's ontology instead of on the rule.
+    fn surfaces() -> DeclaredSurfaces {
+        DeclaredSurfaces {
+            working: ["Medium", "MediumEnvelope", "Finding"]
+                .into_iter()
+                .map(str::to_owned)
+                .collect(),
+            base: ["Finding"].into_iter().map(str::to_owned).collect(),
+        }
+    }
+
+    /// One `resource(...)` entry named `slug`, spliced in front of the okf-index entry.
+    fn grown_with(slugs: &[&str]) -> String {
+        let mut spliced = String::new();
+        for slug in slugs {
+            spliced.push_str(&format!(
+                "        resource(\"gmeow://ontology/{slug}\", \"{slug}\", \"A fixture.\", \
+                 \"application/json\"),\n"
+            ));
+        }
+        spliced.push_str(r#"        resource("gmeow://ontology/okf-index","#);
+        let grown = FIXTURE.replace(
+            r#"        resource("gmeow://ontology/okf-index","#,
+            &spliced,
+        );
+        assert_ne!(grown, FIXTURE, "the fixture must actually perturb the list");
+        resources_body(&grown)
+    }
+
     #[test]
     fn an_unchanged_resource_list_passes() {
         let body = resources_body(FIXTURE);
-        let report = run(|r| check_resource_list(&body, &body, r));
+        let report = run(|r| check_resource_list(&body, &body, &surfaces(), r));
         assert!(report.is_clean(), "an unchanged list passes: {report}");
     }
 
     #[test]
-    fn exactly_one_new_medium_resource_is_the_allowed_delta() {
-        let grown = FIXTURE.replace(
-            r#"        resource("gmeow://ontology/okf-index","#,
-            "        resource(\"gmeow://ontology/medium\", \"medium\", \"The medium axis.\", \
-             \"application/json\"),\n        resource(\"gmeow://ontology/okf-index\",",
-        );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&grown), r));
+    fn a_resource_for_a_newly_declared_surface_is_the_permitted_delta() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["medium"]),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(
             report.is_clean(),
-            "one medium resource is the enumerated delta: {report}"
+            "a resource surfacing the newly-declared gmeow:Medium is licensed by the \
+             ontology: {report}"
         );
     }
 
-    /// The acceptance criterion's own red fixture: add a SECOND MCP resource.
+    /// The bound on how many entries may appear is the ONTOLOGY's, not a number in the
+    /// gate: two additions pass when the change declares two surfaces for them.
     #[test]
-    fn a_second_new_resource_reds_the_enumerated_delta() {
-        let grown = FIXTURE.replace(
-            r#"        resource("gmeow://ontology/okf-index","#,
-            "        resource(\"gmeow://ontology/medium\", \"medium\", \"The medium axis.\", \
-             \"application/json\"),\n        resource(\"gmeow://ontology/medium-effect\", \
-             \"medium-effect\", \"The measurement.\", \"application/json\"),\n        \
-             resource(\"gmeow://ontology/okf-index\",",
-        );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&grown), r));
-        assert!(!report.is_clean(), "a second added resource must red");
-        assert!(report.to_string().contains("AT MOST ONE"), "{report}");
-    }
-
-    #[test]
-    fn a_non_medium_addition_reds() {
-        let grown = FIXTURE.replace(
-            r#"        resource("gmeow://ontology/okf-index","#,
-            "        resource(\"gmeow://ontology/changelog\", \"changelog\", \"Whatever.\", \
-             \"text/plain\"),\n        resource(\"gmeow://ontology/okf-index\",",
-        );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&grown), r));
-        assert!(!report.is_clean(), "a non-medium addition must red");
+    fn two_resources_for_two_newly_declared_surfaces_both_pass() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["medium", "medium-envelope"]),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(
-            report.to_string().contains("not a medium resource"),
+            report.is_clean(),
+            "gmeow:Medium and gmeow:MediumEnvelope are both newly declared, so both \
+             resources are licensed: {report}"
+        );
+    }
+
+    /// The acceptance criterion's own red fixture, re-aimed at the derived rule: a SECOND
+    /// resource claiming a surface the first already accounts for.
+    #[test]
+    fn a_second_resource_for_the_same_surface_reds() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["medium", "me-dium"]),
+                &surfaces(),
+                r,
+            )
+        });
+        assert!(
+            !report.is_clean(),
+            "two resources for one newly-declared surface must red"
+        );
+        assert!(
+            report.to_string().contains("one resource per surface"),
             "{report}"
+        );
+    }
+
+    /// The arm the retired `uri.contains("medium")` rule could not have: a name the
+    /// ontology says nothing about.
+    #[test]
+    fn a_resource_with_no_declared_surface_reds() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["changelog"]),
+                &surfaces(),
+                r,
+            )
+        });
+        assert!(!report.is_clean(), "an undeclared addition must red");
+        assert!(
+            report.to_string().contains("names NO gmeow: term"),
+            "{report}"
+        );
+    }
+
+    /// A resource surfacing LONG-STANDING vocabulary: declared, but not by this change,
+    /// so nothing licenses the addition.
+    #[test]
+    fn a_resource_for_preexisting_vocabulary_reds() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["finding"]),
+                &surfaces(),
+                r,
+            )
+        });
+        assert!(
+            !report.is_clean(),
+            "surfacing vocabulary the base already declared must red"
+        );
+        assert!(report.to_string().contains("ALREADY declared"), "{report}");
+    }
+
+    /// The derivation itself must not be able to license by looking at nothing: with an
+    /// empty declared set, an addition reds as an ungradeable delta rather than passing.
+    #[test]
+    fn an_empty_declared_set_reds_rather_than_licensing() {
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &grown_with(&["medium"]),
+                &DeclaredSurfaces::default(),
+                r,
+            )
+        });
+        assert!(!report.is_clean(), "a vacuous derivation must red");
+        assert!(report.to_string().contains("ZERO gmeow: terms"), "{report}");
+    }
+
+    /// The correspondence is on letters and digits alone, in BOTH directions: a kebab-case
+    /// URI segment resolves the `UpperCamel` term it names, and a different term does not.
+    #[test]
+    fn a_resource_slug_resolves_the_term_it_names() {
+        let surfaces = surfaces();
+        assert_eq!(
+            surfaces.resolve("gmeow://ontology/medium-envelope"),
+            SurfaceMatch::New("MediumEnvelope")
+        );
+        assert_eq!(
+            surfaces.resolve("gmeow://ontology/finding"),
+            SurfaceMatch::Preexisting("Finding")
+        );
+        assert_eq!(
+            surfaces.resolve("gmeow://ontology/medium-effect"),
+            SurfaceMatch::Undeclared,
+            "a near-miss must not resolve — `Medium` is a different term from `MediumEffect`"
+        );
+        assert_eq!(
+            surfaces.newly_declared(),
+            ["Medium", "MediumEnvelope"].into_iter().collect()
         );
     }
 
@@ -825,8 +1101,14 @@ fn resources_result(&self) -> Value {
                 r#"        resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
         resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),"#,
             );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&reordered), r));
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&reordered),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(!report.is_clean(), "a reordered list must red");
         assert!(
             report.to_string().contains("reordered or reworded"),
@@ -837,8 +1119,14 @@ fn resources_result(&self) -> Value {
     #[test]
     fn a_reworded_resource_description_reds() {
         let reworded = FIXTURE.replace("OKF manifest.", "OKF manifest envelope.");
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&reworded), r));
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&reworded),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(!report.is_clean(), "a reworded description must red");
         assert!(
             report.to_string().contains("reordered or reworded"),
@@ -853,8 +1141,14 @@ fn resources_result(&self) -> Value {
 "#,
             "",
         );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&dropped), r));
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&dropped),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(!report.is_clean(), "a dropped resource must red");
         assert!(report.to_string().contains("DROPPED"), "{report}");
     }
@@ -867,8 +1161,14 @@ fn resources_result(&self) -> Value {
             "if self.mode.includes_dev_tools() {",
             "if self.mode.includes_consumer_tools() {",
         );
-        let report =
-            run(|r| check_resource_list(&resources_body(FIXTURE), &resources_body(&changed), r));
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&changed),
+                &surfaces(),
+                r,
+            )
+        });
         assert!(!report.is_clean(), "a changed mode guard must red");
         assert!(report.to_string().contains("STRUCTURE moved"), "{report}");
     }
