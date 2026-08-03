@@ -18,24 +18,24 @@ path = "src/lib.rs"
 
 [dependencies]
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
-# world-indexed logic stores (#648, supports #630/#667). The world-store now holds
-# the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free (EPIC #906).
+# world-indexed logic stores. The world-store now holds
+# the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free.
 purrdf.workspace = true
-# The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
+# The native SPARQL engine over `Arc<RdfDataset>`: the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
 # — no edge back to logic), so this introduces no layering cycle.
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
-# its findings in Rust and hands Python a report via JSON (#695).
+# its findings in Rust and hands Python a report via JSON.
 gmeow-errors = { path = "../errors" }
 # The ONE exact-ℚ numeric core (i128 gcd-normalized Rational + the ℚ⁷ SI
 # DimVector): the moded-builtin value tower computes THROUGH this shared math
 # core rather than minting its own duplicate rational. No layering cycle:
 # gmeow-math depends only on gmeow-errors + purrdf, never back on logic.
 gmeow-math = { path = "../math" }
-# SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
+# SPARQL property-path algebra: the projection target for logic:PathShape.
 # A leaf-ish crate (gmeow-iri/gmeow-xsd only) — no layering cycle.
-# The pure, wasm-able logic compiler (#732): the runtime consumes its parse→IR→
+# The pure, wasm-able logic compiler: the runtime consumes its parse→IR→
 # project surface (frontend / ir / projections) and bridges its IR into the runtime
 # EvalRule via crate::lower; certify + the compile_logic entrypoint call into it.
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -111,16 +111,16 @@ chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
-# proptest_invariants.rs) can `use gmeow_logic_compile::` directly (#732).
+# proptest_invariants.rs) can `use gmeow_logic_compile::` directly.
 gmeow-logic-compile = { path = "../logic-compile" }
 proptest = "1"
 serde_json = "1"
-# insta: snapshot goldens for the projection back-ends + explanation prose (T8,
-# #789). The `.snap` files ARE the byte-exact unit goldens (the native
+# insta: snapshot goldens for the projection back-ends + explanation prose (T8).
+# The `.snap` files ARE the byte-exact unit goldens (the native
 # crates/conformance harness owns cross-engine corpus parity). Pinned to match
 # crates/docs. `json` feature drives `assert_json_snapshot!` where used.
 insta = { version = "1.48", features = ["json"] }
-# Acceleration-program baselines (#630, Phase 0). Light feature set: criterion's
+# Acceleration-program baselines (Phase 0). Light feature set: criterion's
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }

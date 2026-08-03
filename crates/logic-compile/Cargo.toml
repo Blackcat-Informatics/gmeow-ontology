@@ -19,14 +19,14 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The wasm-clean RDF kernel surface — EXACTLY the crates/rdf-wasm pin (#885
-# ring-fence, #909 native codecs): the `gts` feature with oxigraph OFF and python
+# The wasm-clean RDF kernel surface — EXACTLY the crates/rdf-wasm pin (the
+# ring-fenced, native-codecs surface): the `gts` feature with oxigraph OFF and python
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
-# SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
+# SPARQL property-path algebra: the projection target for logic:PathShape.
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
 # roxmltree: the read-only XML DOM parser for the XCL dialect reader. A pure-Rust,
 # wasm-clean leaf (already in the workspace as gmeow-rdf's native RDF/XML parser), so

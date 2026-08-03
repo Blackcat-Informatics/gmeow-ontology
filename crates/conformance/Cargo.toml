@@ -91,7 +91,7 @@ harness = false
 [[test]]
 name = "dl_oracle_gold"
 
-# The per-op numeric-builtin oracle-gold lane (issue #1428): drives each frozen,
+# The per-op numeric-builtin oracle-gold lane: drives each frozen,
 # independently hand-derived case under `coverage/external/1428-numeric-builtin-oracle-gold/`
 # through the PUBLIC `gmeow_logic::dispatch::dispatch_query` surface (never the
 # crate-private `builtin_eval::eval`), so the exact-ℚ arithmetic / comparison / SI-dimension
