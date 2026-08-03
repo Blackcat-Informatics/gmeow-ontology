@@ -10,6 +10,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 >
 > **Status:** design / EPIC source-of-truth. This document is the canonical plan the purrdf EPIC points
 > to. No implementation begins until the EPIC's child issues are approved and scheduled.
+>
+> **Historical record — read paths here as of the time of writing.** The plan below was carried out:
+> the RDF-1.2 kernel it designs was extracted out of this workspace into the sibling **`purrdf`**
+> package and is now consumed here as a single exact-pinned dependency. Every in-repo crate path and
+> crate name this document mentions — `crates/rdf/`, `crates/rdf-core`, `crates/rdf-capi`,
+> `crates/rdf-wasm`, `gmeow-rdf`, `gmeow-rdf-core`, `gmeow-rdf-wasm`, and the `make rdf-core-hygiene`
+> target — **no longer exists in this repository**; the corresponding code lives in the purrdf
+> repository. The text is preserved unedited as the design record it is. For the current layout see
+> [`crates/README.md`](../../crates/README.md).
 
 ## Context
 
