@@ -61,14 +61,16 @@ const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
 
 /// The classes the medium axis mints. Each must carry exactly one `logic:` UFO
 /// meta-type and a `gmeow:docsConcern`.
-const MEDIUM_AXIS_CLASSES: [&str; 17] = [
+const MEDIUM_AXIS_CLASSES: [&str; 19] = [
     "CompressionDictionary",
     "CompressionDictionaryRealization",
+    "CorpusTrainingSplit",
     "DictionaryCorpus",
     "DictionaryStrategy",
     "DigestStratum",
     "GtsConformanceFailure",
     "Medium",
+    "MediumCorpusDrift",
     "MediumDictionaryRegression",
     "MediumDigestMismatch",
     "MediumEnvelope",
@@ -227,6 +229,77 @@ fn every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector() 
              would be undefined and the bundle-internal guarantee uncheckable"
         );
     }
+}
+
+// --------------------------------------------------------------------------- //
+// (a2) EXACTLY ONE held-out split governs EVERY archive-backed corpus.
+// --------------------------------------------------------------------------- //
+
+/// The split is declared ONCE, is a proper partition, and carries no per-corpus
+/// override.
+///
+/// One individual rather than one per corpus is the whole point: a per-corpus knob
+/// would be a per-dictionary carve-out with extra steps, and the dictionary whose
+/// evaluation most needs an unseen member is exactly the one whose author would be
+/// tempted to widen its own training set. So this pins BOTH halves — that a split
+/// exists at all, and that no corpus carries a second one.
+#[test]
+fn exactly_one_held_out_split_governs_every_archive_backed_corpus() {
+    let ds = gts_module();
+
+    let splits = instances(&ds, &gm("CorpusTrainingSplit"));
+    assert_eq!(
+        splits.len(),
+        1,
+        "the gts slice must declare EXACTLY ONE gmeow:CorpusTrainingSplit — zero would leave \
+         every archive-backed dictionary trained on the bytes it is scored over, and two would \
+         leave 'which members did this dictionary never see' with two answers"
+    );
+    let split = splits[0];
+
+    let stride: u64 = {
+        let values = objects(&ds, split, &gm("splitHeldOutStride"));
+        assert_eq!(values.len(), 1, "exactly one gmeow:splitHeldOutStride");
+        literal_of(&ds, values[0]).parse().expect("an integer")
+    };
+    let offset: u64 = {
+        let values = objects(&ds, split, &gm("splitHeldOutOffset"));
+        assert_eq!(values.len(), 1, "exactly one gmeow:splitHeldOutOffset");
+        literal_of(&ds, values[0]).parse().expect("an integer")
+    };
+    assert!(
+        stride >= 2,
+        "a stride below 2 holds out every member, leaving no training set"
+    );
+    assert!(
+        offset < stride,
+        "an offset at or above the stride can never be hit, so the split would hold nothing out \
+         while still claiming to"
+    );
+
+    // No corpus carries its own split coordinates: the rule is uniform by
+    // construction, not by convention.
+    for corpus in instances(&ds, &gm("DictionaryCorpus")) {
+        for predicate in [gm("splitHeldOutStride"), gm("splitHeldOutOffset")] {
+            assert!(
+                objects(&ds, corpus, &predicate).is_empty(),
+                "{} carries its own split coordinate — the split is ONE rule over EVERY \
+                 archive-backed corpus, and a per-corpus value is a per-dictionary carve-out",
+                iri_of(&ds, corpus)
+            );
+        }
+    }
+
+    // …and at least one shipped corpus is archive-backed, so the split governs
+    // something rather than being decoration.
+    let archive_backed = instances(&ds, &gm("DictionaryCorpus"))
+        .into_iter()
+        .filter(|corpus| !objects(&ds, *corpus, &gm("corpusSelectsBlobRep")).is_empty())
+        .count();
+    assert!(
+        archive_backed > 0,
+        "no shipped corpus selects a blob rep — the held-out split would govern nothing"
+    );
 }
 
 // --------------------------------------------------------------------------- //

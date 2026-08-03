@@ -100,7 +100,7 @@ fn counted(stdout: &str, label: &str) -> usize {
 
 /// Assert that `gmeow medium verify` refuses `bundle` under exactly `code`.
 ///
-/// The CODE is what is asserted, never merely "it failed". The six medium classes are the
+/// The CODE is what is asserted, never merely "it failed". The medium failure classes are the
 /// vocabulary a caller dispatches on, so a fixture that exited non-zero for the wrong
 /// reason would look identical to one the gate caught correctly.
 fn assert_breach(dir: &Path, name: &str, bytes: &[u8], code: &str) {

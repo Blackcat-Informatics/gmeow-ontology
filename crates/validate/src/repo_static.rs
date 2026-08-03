@@ -5580,10 +5580,10 @@ mod tests {
         assert!(report.errors.is_empty(), "{:?}", report.errors);
     }
 
-    /// The six medium kinds are bound on the LIVE tree: the census finds exactly the
-    /// six `pipeline.medium.*` codes carrying a failure class, and each names a real
-    /// `gmeow:Medium*` individual. A non-vacuity guard for the live-repo gate — if
-    /// the scanner silently stopped reading `crates/pipeline/src/error.rs`, every
+    /// The seven medium kinds are bound on the LIVE tree: the census finds exactly
+    /// the seven `pipeline.medium.*` codes carrying a failure class, and each names a
+    /// real `gmeow:Medium*` individual. A non-vacuity guard for the live-repo gate —
+    /// if the scanner silently stopped reading `crates/pipeline/src/error.rs`, every
     /// assertion above would still pass on a synthetic fixture.
     #[test]
     fn the_live_medium_kinds_are_bound_to_their_ontology_classes() {
@@ -5598,6 +5598,7 @@ mod tests {
         assert_eq!(
             bound.keys().copied().collect::<Vec<_>>(),
             vec![
+                "pipeline.medium.corpus-drift",
                 "pipeline.medium.dictionary-regression",
                 "pipeline.medium.digest-mismatch",
                 "pipeline.medium.opaque-frame",
@@ -5605,7 +5606,7 @@ mod tests {
                 "pipeline.medium.unknown-dictionary",
                 "pipeline.medium.unknown-schema",
             ],
-            "the six medium kinds are the only failure-class-bound kinds today"
+            "the seven medium kinds are the only failure-class-bound kinds today"
         );
         let declared = ontology_failure_classes(root, &mut report);
         for (code, iri) in bound {

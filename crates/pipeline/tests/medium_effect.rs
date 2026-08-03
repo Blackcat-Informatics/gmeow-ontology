@@ -197,6 +197,91 @@ fn the_committed_winner_table_carries_real_measurements() {
     }
 }
 
+/// Every committed row is ANCHORED to a corpus: it names the identity of the
+/// resolution its grid was searched over, in the canonical digest form the build
+/// re-derives and compares against.
+///
+/// Without this the table can rot in silence — a corpus is a SELECTOR, so an archive
+/// that gains or loses a member moves the corpus while the file sits still, and every
+/// verdict read out of it would be about a sweep nobody re-ran.
+#[test]
+fn every_committed_row_names_the_corpus_it_was_measured_over() {
+    let baseline = committed_baseline();
+    for row in &baseline.dictionaries {
+        assert!(
+            gmeow_pipeline::medium::is_canonical_digest(&row.corpus_digest),
+            "{}: corpus_digest {:?} is not written 'blake3:<64 lowercase hex>' — a free-form \
+             value could never match the corpus it claims to identify",
+            row.id,
+            row.corpus_digest
+        );
+    }
+    // …and distinct corpora get distinct identities, so the column is a real
+    // discriminator rather than one constant repeated per row.
+    let distinct: BTreeSet<&str> = baseline
+        .dictionaries
+        .iter()
+        .map(|row| row.corpus_digest.as_str())
+        .collect();
+    assert!(
+        distinct.len() > 1,
+        "every committed row carries the SAME corpus_digest — the column would discriminate \
+         nothing"
+    );
+}
+
+/// Every ARCHIVE-BACKED dictionary's committed row records a NON-ZERO held-out share.
+///
+/// This is what makes the held-out claim checkable rather than a promise in prose: the
+/// dictionaries whose corpus is an archive's members and whose evaluated frame is the
+/// tar of those members are exactly the ones the split exists for, and a row saying it
+/// held nothing out is a row about a self-measured dictionary.
+#[test]
+fn every_archive_backed_dictionary_holds_members_out() {
+    use gmeow_pipeline::medium::corpus::CorpusSelector;
+
+    let registry = live_registry();
+    let baseline = committed_baseline();
+    let mut checked = 0usize;
+    for def in registry.dictionaries().values() {
+        let corpus = registry
+            .corpora()
+            .get(&def.corpus)
+            .expect("every dictionary trains over a declared corpus");
+        if !corpus
+            .selectors
+            .iter()
+            .any(|s| matches!(s, CorpusSelector::BlobRep(_)))
+        {
+            continue;
+        }
+        let row = baseline
+            .dictionaries
+            .iter()
+            .find(|row| row.id == def.id)
+            .unwrap_or_else(|| panic!("{} has no committed row", def.id));
+        assert!(
+            row.held_out_sample_count > 0,
+            "{}: the committed evidence held NO archive member out, so its evaluated frame \
+             contains nothing the dictionary never saw",
+            def.id
+        );
+        assert!(
+            row.corpus_sample_count > row.held_out_sample_count,
+            "{}: the training side must be the LARGER side of the split ({} trained vs {} held \
+             out)",
+            def.id,
+            row.corpus_sample_count,
+            row.held_out_sample_count
+        );
+        checked += 1;
+    }
+    assert!(
+        checked > 0,
+        "no shipped dictionary is archive-backed — this gate would pass vacuously"
+    );
+}
+
 /// The codec grid PRICES the mandated cell, and the committed `mandated_is_argmin` flag
 /// is a true statement about the grid it is committed beside.
 ///

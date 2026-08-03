@@ -31,15 +31,27 @@
 //! dictionary reaches its consumer as shipped bytes — through the bundle's own payload
 //! frames, or through the in-band `"dct"` map a runtime store primes from.
 //!
-//! # Honesty: the sweep is not a held-out evaluation
+//! # What the split holds out, and what the overlap still is
 //!
-//! Each grid cell trains on the dictionary's declared corpus and scores on the frames
-//! that corpus's members compose. Train and test OVERLAP on the dominant
-//! representation. The two-part code still charges the dictionary its own bytes, so a
-//! "memorize everything" cell loses once the memorized bytes cost more than they save
-//! — but that is a NON-VACUITY argument, not a generalization argument, and the
-//! committed evidence must never be read as one. `bench/README.md` says the same
-//! beside the artifact.
+//! Each grid cell trains on the TRAINING SIDE of the dictionary's declared corpus —
+//! the declared `gmeow:CorpusTrainingSplit` holds a content-addressed share of every
+//! archive's members out — and scores on the WHOLE frame, which is the tar of all of
+//! them. So every archive-backed cell is scored partly on members that cell never saw.
+//! That is a real held-out share, and it is the precise claim: NOT that the frame is
+//! held out (it is not — most of its bytes are training material), and NOT that the
+//! dictionary generalizes to material outside the bundle (no experiment here could say
+//! that, because the population a bundle dictionary primes IS the bundle's own
+//! frames). The two-part code still charges the dictionary its own bytes, so a
+//! "memorize everything" cell loses once the memorized bytes cost more than they save.
+//! `bench/README.md` states the same beside the artifact.
+//!
+//! # The committed table is pinned to the corpus it was measured over
+//!
+//! A corpus is a SELECTOR, so an archive that gains or loses a member moves the corpus
+//! without moving the table. Every row therefore carries `corpus_digest`, the identity
+//! of the whole resolution the grid was searched over, and [`check_corpus_digests`]
+//! HARD-FAILS the build when it is not the identity of the corpus this build resolved.
+//! A stale table reds; it never grades.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -56,7 +68,11 @@ pub const MEDIUM_BASELINE_PATH: &str = "bench/medium-baseline.json";
 
 /// The artifact's schema token, carried in band so a reader never has to guess which
 /// shape it holds.
-pub const MEDIUM_BASELINE_SCHEMA: &str = "gmeow.medium-baseline.v1";
+/// v2 added `corpus_digest` to every dictionary row — the identity of the corpus the
+/// sweep actually grid-searched over. A v1 table has no way to say which corpus its
+/// numbers describe, so it is REFUSED rather than read leniently: reading it would put
+/// the build back in the state this field exists to remove.
+pub const MEDIUM_BASELINE_SCHEMA: &str = "gmeow.medium-baseline.v2";
 
 /// The DECLARED target-length grid, in bytes.
 ///
@@ -183,8 +199,22 @@ pub struct DictionaryBaseline {
     pub two_part_code_bytes: u64,
     /// The bounded `[0, 1]` gain fraction, as its fixed six-decimal lexical form.
     pub dictionary_gain_fraction: String,
-    /// How many samples the declared corpus resolved to.
+    /// How many samples the trainer was handed — the TRAINING side of the declared
+    /// held-out split, not the whole resolved corpus.
     pub corpus_sample_count: u64,
+    /// How many archive members the declared `gmeow:CorpusTrainingSplit` held out of
+    /// training. They are still in the frame every grid cell was scored over, which is
+    /// what makes the evaluation include material the dictionary never saw.
+    pub held_out_sample_count: u64,
+    /// The identity of the WHOLE resolved corpus the grid was searched over, held-out
+    /// members included ([`crate::medium::corpus::CorpusResolution::digest`]).
+    ///
+    /// Without it the committed table can rot in silence: a corpus is a SELECTOR
+    /// re-resolved every build, so an archive that gains or loses a member moves the
+    /// corpus while the table sits still — and the table would keep grading. The build
+    /// re-derives this digest and refuses on any difference
+    /// ([`check_corpus_digests`]).
+    pub corpus_digest: String,
     /// How many frames of the population were evaluated.
     pub evaluated_frame_count: u64,
     /// Every cell of the `(strategy, target length)` grid, sorted.
@@ -288,16 +318,31 @@ impl MediumBaseline {
     /// a HARD FAIL: reading an unknown shape leniently would steer the trainers off
     /// half-understood evidence).
     pub fn from_json(text: &str) -> Result<Self, gmeow_errors::Diag> {
-        let parsed: Self = serde_json::from_str(text)
-            .map_err(|e| invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {e}")))?;
-        if parsed.schema != MEDIUM_BASELINE_SCHEMA {
+        // The schema token FIRST, off a probe that reads nothing else. A full
+        // deserialization of an older shape fails on whichever field this version
+        // added — "missing field `held_out_sample_count`" — which sends a reader
+        // hunting for a corrupt file instead of telling them the artifact is a
+        // version behind and naming the lane that refreshes it.
+        #[derive(Deserialize)]
+        struct SchemaProbe {
+            schema: String,
+        }
+        let probe: SchemaProbe = serde_json::from_str(text).map_err(|e| {
+            invalid_declaration(format!(
+                "parse {MEDIUM_BASELINE_PATH}: {e} — the artifact does not even carry a `schema` \
+                 token, so it is not a winner table this build can identify"
+            ))
+        })?;
+        if probe.schema != MEDIUM_BASELINE_SCHEMA {
             return Err(invalid_declaration(format!(
                 "{MEDIUM_BASELINE_PATH} declares schema {:?}, but this build reads only \
                  {MEDIUM_BASELINE_SCHEMA:?} — re-run `make maint-medium-sweep` rather than \
                  reading an unknown shape leniently",
-                parsed.schema
+                probe.schema
             )));
         }
+        let parsed: Self = serde_json::from_str(text)
+            .map_err(|e| invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {e}")))?;
         Ok(parsed)
     }
 
@@ -515,6 +560,74 @@ pub fn check_dictionaries_pay_for_themselves(
     )))
 }
 
+/// Every committed row describes THE CORPUS THIS BUILD RESOLVED.
+///
+/// The three checks above — the bijection, the declared-is-argmin agreement, and the
+/// pays-for-itself criterion — all grade the build against committed numbers. None of
+/// them re-derives the argmin, and none of them can: the sweep costs a whole DAG run
+/// plus a grid of trainings. What they CAN do is refuse to grade against numbers taken
+/// over different material, and that is this check.
+///
+/// A `gmeow:DictionaryCorpus` is a SELECTOR re-resolved on every build, so an archive
+/// gaining or losing one member moves the corpus without moving the table. Before this
+/// existed, such a build kept grading: the winner table's byte columns were read by
+/// nothing at all, so they could drift arbitrarily while `(strategy, target_length)`
+/// still steered the trainer. A stale table must RED, not grade.
+///
+/// The digest compared here is the one the SWEEP recorded, against the one THIS build's
+/// [`crate::stages::medium_dictionaries::corpus_samples`] resolved — one resolution
+/// path, used by both, so agreement means the same material and disagreement means the
+/// evidence is about something else.
+///
+/// # Errors
+/// `MediumCorpusDrift` naming every dictionary whose recorded corpus identity is not
+/// the resolved one, or that has no resolved corpus at all.
+pub fn check_corpus_digests(
+    registry: &MediumRegistry,
+    baseline: &MediumBaseline,
+    resolved: &std::collections::BTreeMap<String, super::corpus::CorpusResolution>,
+) -> Result<(), gmeow_errors::Diag> {
+    let mut drift: Vec<String> = Vec::new();
+    for id in measurable_ids(registry) {
+        let row = baseline.row(&id)?;
+        let Some(live) = resolved.get(&id) else {
+            return Err(super::corpus_drift(format!(
+                "dictionary {id:?} has a committed winner row but this build resolved no corpus \
+                 for it — there is nothing to check the evidence against, and grading against \
+                 unanchored numbers is what this check exists to stop"
+            )));
+        };
+        if row.corpus_digest != live.digest {
+            drift.push(format!(
+                "{id}: the committed evidence was measured over corpus {} ({} training sample(s), \
+                 {} held out) but this build resolved {} ({} training sample(s), {} held out)",
+                if row.corpus_digest.is_empty() {
+                    "<none recorded>"
+                } else {
+                    row.corpus_digest.as_str()
+                },
+                row.corpus_sample_count,
+                row.held_out_sample_count,
+                live.digest,
+                live.training.len(),
+                live.held_out_count
+            ));
+        }
+    }
+    if drift.is_empty() {
+        return Ok(());
+    }
+    Err(super::corpus_drift(format!(
+        "the committed sweep evidence describes a corpus this build did not resolve: {drift:?}. A \
+         gmeow:DictionaryCorpus is a SELECTOR re-resolved every build, so an archive that gained \
+         or lost a member moves the corpus while {MEDIUM_BASELINE_PATH} sits still — and every \
+         verdict read out of that table (the bijection, the declared-is-argmin agreement, the \
+         pays-for-itself criterion) would then be about a sweep nobody re-ran. Re-run \
+         `make maint-medium-sweep`. Do NOT weaken this check: stale evidence is not weaker \
+         evidence, it is evidence about a different corpus"
+    )))
+}
+
 /// A BOOTSTRAP winner table derived from the authored declarations alone, with every
 /// measured field left at zero.
 ///
@@ -562,6 +675,12 @@ pub fn seed_from_registry(registry: &MediumRegistry) -> MediumBaseline {
                 two_part_code_bytes: 0,
                 dictionary_gain_fraction: "0.000000".to_string(),
                 corpus_sample_count: 0,
+                held_out_sample_count: 0,
+                // The seed resolves NO corpus (it never runs the DAG), so it records
+                // no corpus identity. The empty string is not a digest and cannot
+                // match one; `check_dictionaries_pay_for_themselves` refuses the seed
+                // first, with the diagnosis a reader actually needs.
+                corpus_digest: String::new(),
                 evaluated_frame_count: 0,
                 grid: Vec::new(),
             })
@@ -607,6 +726,13 @@ pub struct DictionarySweepInputs<'a> {
     pub term_table: &'a [u8],
     /// How many samples `corpus` holds, recorded on every cell's reading.
     pub corpus_sample_count: u64,
+    /// How many archive members the declared split held OUT of `corpus` — the members
+    /// the evaluated frame still carries and no cell was trained on.
+    pub held_out_sample_count: u64,
+    /// The identity of the WHOLE resolved corpus (held-out members included), carried
+    /// onto the committed row so a later build can prove the table is about the corpus
+    /// it is grading.
+    pub corpus_digest: &'a str,
 }
 
 /// One dictionary's whole grid, and the argmin it selects.
@@ -632,6 +758,8 @@ pub fn sweep_dictionary(
         corpus,
         term_table,
         corpus_sample_count,
+        held_out_sample_count,
+        corpus_digest,
     } = *inputs;
     // The baseline arm is dictionary-INDEPENDENT, so it is computed once rather than
     // once per cell: every cell is compared against the same declared no-dictionary
@@ -717,6 +845,8 @@ pub fn sweep_dictionary(
         two_part_code_bytes: effect.two_part_code_bytes(),
         dictionary_gain_fraction: effect.gain_fraction_lexical(),
         corpus_sample_count,
+        held_out_sample_count,
+        corpus_digest: corpus_digest.to_string(),
         evaluated_frame_count: effect.evaluated_frame_count,
         grid,
     })
@@ -745,6 +875,8 @@ pub fn sweep_dictionary_runtime_store(
         corpus,
         term_table,
         corpus_sample_count,
+        held_out_sample_count,
+        corpus_digest,
     } = *inputs;
     let targets = target_grid(declared_target_length);
     let mut grid: Vec<GridRow> = Vec::new();
@@ -809,6 +941,8 @@ pub fn sweep_dictionary_runtime_store(
         two_part_code_bytes: effect.two_part_code_bytes(),
         dictionary_gain_fraction: effect.gain_fraction_lexical(),
         corpus_sample_count,
+        held_out_sample_count,
+        corpus_digest: corpus_digest.to_string(),
         evaluated_frame_count: effect.evaluated_frame_count,
         grid,
     })
@@ -1049,17 +1183,19 @@ pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
     let mut rows: Vec<DictionaryBaseline> = Vec::new();
     for id in measurable_ids(&registry) {
         let def = registry.dictionary_by_id(&id)?;
-        let samples = corpora.get(&id).ok_or_else(|| {
+        let resolved = corpora.get(&id).ok_or_else(|| {
             undeclared_dictionary(format!("dictionary {id:?} resolved to no training corpus"))
         })?;
-        let corpus: Vec<&[u8]> = samples.iter().map(Vec::as_slice).collect();
+        let corpus: Vec<&[u8]> = resolved.training.iter().map(Vec::as_slice).collect();
         let inputs = DictionarySweepInputs {
             id: &id,
             declared_strategy: def.strategy,
             declared_target_length: def.target_length,
             corpus: &corpus,
             term_table: &term_table,
-            corpus_sample_count: samples.len() as u64,
+            corpus_sample_count: resolved.training.len() as u64,
+            held_out_sample_count: resolved.held_out_count,
+            corpus_digest: &resolved.digest,
         };
         let row = match by_dictionary.get(&id) {
             // Population A: the dictionary primes emitted blob frames.
@@ -1084,6 +1220,8 @@ pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use super::*;
     use crate::medium::registry::fixture;
 
@@ -1106,6 +1244,8 @@ mod tests {
             two_part_code_bytes: 500,
             dictionary_gain_fraction: "0.500000".to_string(),
             corpus_sample_count: 12,
+            held_out_sample_count: 2,
+            corpus_digest: super::super::blake3_digest(id.as_bytes()),
             evaluated_frame_count: 3,
             grid: Vec::new(),
         }
@@ -1240,12 +1380,16 @@ mod tests {
                 corpus: &corpus,
                 term_table: &term_table,
                 corpus_sample_count: corpus.len() as u64,
+                held_out_sample_count: 7,
+                corpus_digest: "blake3:00",
             },
             &frames,
             "zstd-rsyncable",
             12,
         )
         .expect("sweep");
+        assert_eq!(swept.held_out_sample_count, 7);
+        assert_eq!(swept.corpus_digest, "blake3:00");
         assert!(!swept.grid.is_empty(), "the grid is the evidence");
         let argmin = swept
             .grid
@@ -1262,6 +1406,71 @@ mod tests {
             swept.winning_strategy == "trained" && swept.winning_target_length == 4096
         );
         assert_eq!(swept.evaluated_frame_count, 1);
+    }
+
+    /// The corpus-identity gate passes on agreement and REDS the moment the resolved
+    /// corpus is not the one the table was measured over — which is what a committed
+    /// table quietly rotting looks like from the build's side.
+    #[test]
+    fn the_corpus_identity_gate_reds_when_the_resolved_corpus_moves() {
+        use crate::medium::corpus::CorpusResolution;
+
+        let registry = registry();
+        let baseline = baseline(&["gmeow-core-v1", "gmeow-terms-v1"]);
+        let resolution = |id: &str| CorpusResolution {
+            training: [b"a sample".to_vec()].into_iter().collect(),
+            held_out_count: 2,
+            digest: super::super::blake3_digest(id.as_bytes()),
+        };
+        let mut resolved: BTreeMap<String, CorpusResolution> = ["gmeow-core-v1", "gmeow-terms-v1"]
+            .into_iter()
+            .map(|id| (id.to_string(), resolution(id)))
+            .collect();
+        check_corpus_digests(&registry, &baseline, &resolved)
+            .expect("the recorded identity IS the resolved one");
+
+        // One archive member changes: the corpus moves, the table does not.
+        resolved.insert(
+            "gmeow-core-v1".to_string(),
+            CorpusResolution {
+                training: [b"a sample".to_vec(), b"a new archive member".to_vec()]
+                    .into_iter()
+                    .collect(),
+                held_out_count: 2,
+                digest: super::super::blake3_digest(b"gmeow-core-v1 plus one member"),
+            },
+        );
+        let diag = check_corpus_digests(&registry, &baseline, &resolved)
+            .expect_err("a moved corpus must hard-fail rather than keep grading");
+        assert_eq!(
+            diag.code(),
+            crate::error::MediumCorpusDrift::register(),
+            "{diag}"
+        );
+        assert!(
+            diag.to_string().contains("gmeow-core-v1")
+                && diag.to_string().contains("maint-medium-sweep"),
+            "{diag}"
+        );
+        assert!(
+            !diag.to_string().contains("gmeow-terms-v1"),
+            "only the dictionary whose corpus moved is named: {diag}"
+        );
+    }
+
+    /// A dictionary the build resolves no corpus for has nothing to anchor its
+    /// committed row to, which is the same defect wearing a different hat.
+    #[test]
+    fn a_committed_row_with_no_resolved_corpus_reds() {
+        let registry = registry();
+        let baseline = baseline(&["gmeow-core-v1", "gmeow-terms-v1"]);
+        let diag = check_corpus_digests(&registry, &baseline, &BTreeMap::new())
+            .expect_err("an unanchored row must hard-fail");
+        assert_eq!(
+            diag.code(),
+            crate::error::MediumCorpusDrift::register(),
+            "{diag}"
+        );
     }
 
     /// The codec sweep prices the MANDATED cell and says, as data, whether it is the

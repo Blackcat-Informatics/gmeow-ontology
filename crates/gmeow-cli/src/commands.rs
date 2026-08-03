@@ -422,7 +422,7 @@ fn medium_title(file: Option<&Path>) -> String {
 /// Emit a medium diagnostic under its OWN registered failure-class code and exit
 /// non-zero.
 ///
-/// The code is the diagnostic's, never a generic CLI one: the six medium classes are the
+/// The code is the diagnostic's, never a generic CLI one: the medium failure classes are the
 /// vocabulary a caller (or a gate) dispatches on, and flattening them to
 /// `gmeow-cli.medium.failed` would erase the only thing that says WHICH invariant broke.
 fn medium_fail(reporter: &dyn Reporter, diag: &Diag) -> i32 {

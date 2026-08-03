@@ -160,6 +160,52 @@ pub struct CorpusDef {
     pub selectors: Vec<CorpusSelector>,
 }
 
+/// The DECLARED held-out split (`gmeow:CorpusTrainingSplit`) every archive-backed
+/// corpus is resolved under.
+///
+/// ONE individual governs EVERY corpus. It is declared once rather than per corpus
+/// because a per-corpus knob is a per-dictionary carve-out with extra steps: the
+/// dictionary whose evaluation most needs a held-out member is exactly the one whose
+/// author would be tempted to widen its own training set.
+///
+/// The rule is a STRIDE over the corpus's members in canonical CONTENT-DIGEST order:
+/// rank every member by its own `blake3:` digest, then hold out the ones whose rank is
+/// congruent to [`Self::offset`] modulo [`Self::stride`]. Nothing about the archive's
+/// order, its member names, or the build machine enters it, so the partition is
+/// reproducible from the corpus alone.
+///
+/// A stride over the RANKS rather than over the digest VALUES, because the properness
+/// of the split has to be a theorem rather than a probability. A residue rule
+/// (`digest mod 8 == 0`) holds nothing out of a four-member corpus about 59% of the
+/// time — and the shipped claim corpus is exactly four members — so on most builds the
+/// split would silently do nothing, which is the failure mode it exists to prevent.
+/// Ranking makes the held-out side non-empty for every corpus with more members than
+/// the offset, and the training side non-empty for every corpus with at least two.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrainingSplitDef {
+    /// The `gmeow:CorpusTrainingSplit` individual's IRI.
+    pub iri: String,
+    /// `gmeow:splitHeldOutStride` — one member in every `stride`, in digest order, is
+    /// held out.
+    pub stride: u64,
+    /// `gmeow:splitHeldOutOffset` — which position within each stride is the held-out
+    /// one.
+    pub offset: u64,
+}
+
+impl TrainingSplitDef {
+    /// Rank a corpus's members: their canonical `blake3:` digests, ascending.
+    ///
+    /// The digest is the same [`super::blake3_digest`] rendering every other
+    /// medium-axis digest uses, so a reader who can print a corpus's member digests
+    /// can reproduce the ranking — and therefore the partition — without running this
+    /// code.
+    #[must_use]
+    pub fn holds_out_rank(&self, rank: usize) -> bool {
+        (rank as u64) % self.stride == self.offset
+    }
+}
+
 /// A registered payload representation (`gmeow:PayloadSchema`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SchemaDef {
@@ -286,6 +332,7 @@ pub struct MediumRegistry {
     dictionaries: BTreeMap<String, DictionaryDef>,
     dictionary_by_id: BTreeMap<String, String>,
     corpora: BTreeMap<String, CorpusDef>,
+    split: Option<TrainingSplitDef>,
     schemas: BTreeMap<String, SchemaDef>,
     schema_by_rep: BTreeMap<String, String>,
     media: BTreeMap<String, MediumDef>,
@@ -303,6 +350,7 @@ impl MediumRegistry {
     /// naming different media.
     pub fn from_dataset(ds: &RdfDataset) -> Result<Self, gmeow_errors::Diag> {
         let mut registry = Self::default();
+        registry.read_training_split(ds)?;
         registry.read_corpora(ds)?;
         registry.read_dictionaries(ds)?;
         registry.read_schemas(ds)?;
@@ -321,6 +369,23 @@ impl MediumRegistry {
     #[must_use]
     pub fn corpora(&self) -> &BTreeMap<String, CorpusDef> {
         &self.corpora
+    }
+
+    /// The DECLARED held-out split every archive-backed corpus is resolved under.
+    ///
+    /// # Errors
+    /// `InvalidDeclaration` when the carrier declares no `gmeow:CorpusTrainingSplit`.
+    /// There is no implicit "train on everything" fallback: that is precisely the
+    /// self-measured evaluation the split exists to remove, and it would be invisible.
+    pub fn training_split(&self) -> Result<&TrainingSplitDef, gmeow_errors::Diag> {
+        self.split.as_ref().ok_or_else(|| {
+            invalid_declaration(
+                "the carrier declares no gmeow:CorpusTrainingSplit — every archive-backed corpus \
+                 is resolved under a DECLARED held-out split, and defaulting to 'train on every \
+                 member' would silently restore the self-measured evaluation the split exists to \
+                 remove",
+            )
+        })
     }
 
     /// Every registered payload schema, by IRI.
@@ -576,6 +641,47 @@ impl MediumRegistry {
             assignment,
             zstd_level: level.map(|(level, _)| level),
         })
+    }
+
+    /// Read the ONE declared `gmeow:CorpusTrainingSplit`.
+    ///
+    /// Two declared splits are a hard fail rather than a precedence rule: which
+    /// members a dictionary never saw would then depend on which individual a reader
+    /// picked, and the held-out claim would be about neither.
+    fn read_training_split(&mut self, ds: &RdfDataset) -> Result<(), gmeow_errors::Diag> {
+        for subject in subjects_of_type(ds, &gm("CorpusTrainingSplit")) {
+            let iri = require_iri(ds, subject)?;
+            let stride = one_u64(ds, subject, &gm("splitHeldOutStride"), &iri)?;
+            let offset = one_u64(ds, subject, &gm("splitHeldOutOffset"), &iri)?;
+            if stride < 2 {
+                return Err(invalid_declaration(format!(
+                    "<{iri}> gmeow:splitHeldOutStride {stride} does not split anything — a stride \
+                     of 0 or 1 holds out every member, leaving no training set at all, and the \
+                     held-out claim would be false rather than weaker"
+                )));
+            }
+            if offset >= stride {
+                return Err(invalid_declaration(format!(
+                    "<{iri}> gmeow:splitHeldOutOffset {offset} is not a position within a stride \
+                     of {stride} — no rank could ever land on it, so the split would hold nothing \
+                     out while still claiming to"
+                )));
+            }
+            if let Some(previous) = self.split.replace(TrainingSplitDef {
+                iri: iri.clone(),
+                stride,
+                offset,
+            }) {
+                return Err(invalid_declaration(format!(
+                    "<{previous}> and <{iri}> both declare a gmeow:CorpusTrainingSplit — the split \
+                     is ONE rule over EVERY archive-backed corpus, so two of them leave 'which \
+                     members did this dictionary never see' with two answers and the held-out \
+                     claim about neither",
+                    previous = previous.iri
+                )));
+            }
+        }
+        Ok(())
     }
 
     fn read_corpora(&mut self, ds: &RdfDataset) -> Result<(), gmeow_errors::Diag> {
@@ -883,6 +989,21 @@ fn one_literal(
     )
 }
 
+/// The single non-negative integer value of an exactly-one datatype property.
+fn one_u64(
+    ds: &RdfDataset,
+    subject: TermId,
+    predicate: &str,
+    subject_iri: &str,
+) -> Result<u64, gmeow_errors::Diag> {
+    let lexical = one_literal(ds, subject, predicate, subject_iri)?;
+    lexical.parse::<u64>().map_err(|_| {
+        invalid_declaration(format!(
+            "<{subject_iri}> <{predicate}> {lexical:?} is not a non-negative integer"
+        ))
+    })
+}
+
 /// The single IRI value of an exactly-one object property.
 fn one_iri(
     ds: &RdfDataset,
@@ -928,6 +1049,10 @@ pub(crate) mod fixture {
         format!(
             r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:corpusTrainingSplitV1 a gmeow:CorpusTrainingSplit ;
+    gmeow:splitHeldOutStride 8 ;
+    gmeow:splitHeldOutOffset 0 .
 
 gmeow:corpusCore a gmeow:DictionaryCorpus ;
     gmeow:corpusSelectsBlobRep "cells-archive" ;

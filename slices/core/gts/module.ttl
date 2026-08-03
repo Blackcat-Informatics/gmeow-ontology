@@ -646,7 +646,7 @@ gmeow:DictionaryCorpus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Dictionary Corpus"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
-    skos:definition "The DECLARATIVE selector naming the sample set a gmeow:CompressionDictionary trains over: blob representations (gmeow:corpusSelectsBlobRep), named graphs (gmeow:corpusSelectsGraph), repository path prefixes (gmeow:corpusSelectsPathPrefix), and pipeline stage products (gmeow:corpusSelectsStageProduct). A selector, never a materialized file list: the corpus is re-resolved on every build, so a new archive member joins its dictionary's training set without an authoring edit. EVERY shipped corpus is BUNDLE-INTERNAL — it selects only material the bundle itself already carries."@x-gmeow-english ;
+    skos:definition "The DECLARATIVE selector naming the sample set a gmeow:CompressionDictionary trains over: blob representations (gmeow:corpusSelectsBlobRep), named graphs (gmeow:corpusSelectsGraph), repository path prefixes (gmeow:corpusSelectsPathPrefix), and pipeline stage products (gmeow:corpusSelectsStageProduct). A selector, never a materialized file list: the corpus is re-resolved on every build, so a new archive member joins its dictionary's corpus without an authoring edit. EVERY shipped corpus is BUNDLE-INTERNAL — it selects only material the bundle itself already carries. An ARCHIVE-BACKED corpus is resolved under the declared gmeow:CorpusTrainingSplit before it reaches the trainer: the split withholds a content-addressed share of the archive's members, so the tar the dictionary is later evaluated over contains members it never trained on."@x-gmeow-english ;
     skos:example "gmeow:corpusGmeowCoreV1 a gmeow:DictionaryCorpus ; gmeow:corpusSelectsBlobRep \"cells-archive\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid selecting anything outside the bundle — most importantly a user's runtime store — and avoid enumerating concrete files: a corpus is a selector re-resolved per build, not a frozen manifest."@x-gmeow-english ;
@@ -656,6 +656,23 @@ gmeow:DictionaryCorpus
     gmeow:howToUse "Mint one corpus per dictionary and give it at least one selector; a dictionary points at it with gmeow:trainsOverCorpus, and the trainer resolves the selectors against the carrier at build time."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to declare, as data, WHICH bundle-internal material a dictionary is trained on — so the training set is reviewable, re-resolvable, and provably bundle-internal."@x-gmeow-english .
+
+gmeow:CorpusTrainingSplit
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Corpus Training Split"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "The DECLARED rule that partitions an archive-backed gmeow:DictionaryCorpus into the members a dictionary is TRAINED on and the members it is HELD OUT from. It exists because an archive-backed corpus selects an archive's members while the frame the dictionary is evaluated over is the TAR OF THOSE MEMBERS: trained on all of them, such a dictionary would be scored on bytes it had memorised. The rule is a STRIDE over the corpus's members ranked by their OWN CONTENT DIGEST — one member in every gmeow:splitHeldOutStride, at position gmeow:splitHeldOutOffset within each stride, is withheld — so the partition is reproducible from the corpus alone, without a manifest, by anyone: nothing about the archive's order, its member names, or the build machine enters it. A stride over RANKS rather than over digest VALUES is what makes properness a theorem instead of a probability, which matters because the shipped claim corpus is four members and a residue rule would hold nothing out of it most of the time. Exactly ONE individual governs EVERY archive-backed corpus: a per-corpus knob would be a per-dictionary carve-out with extra steps, since the dictionary whose evaluation most needs an unseen member is exactly the one whose author would be tempted to widen its own training set. Two declared splits are a HARD FAIL (which members a dictionary never saw would have two answers), and so is a corpus whose archive population the split does not partition — nothing held out would evaluate a dictionary on the bytes it memorised, and nothing trained would leave it with no dictionary at all."@x-gmeow-english ;
+    skos:example "gmeow:corpusTrainingSplitV1 a gmeow:CorpusTrainingSplit ; gmeow:splitHeldOutStride 8 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid declaring a second one (the split is ONE rule over EVERY archive-backed corpus), avoid keying it on anything but member CONTENT — a member NAME, an archive order, or a build-machine value would make the partition unreproducible — and avoid reading the split as evidence that the EVALUATION is held out: the frame is mostly training material, and only the held-out share is unseen."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Declare exactly one individual carrying one gmeow:splitHeldOutStride and one gmeow:splitHeldOutOffset; the trainer applies it once to the union of a corpus's gmeow:corpusSelectsBlobRep resolutions, and the resulting held-out cardinality is recorded beside every dictionary-effect reading."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to state, as data, which share of an archive-backed corpus a dictionary is never trained on — the fact that makes 'the evaluation includes members this dictionary never saw' a checkable claim rather than a hope."@x-gmeow-english .
 
 gmeow:DictionaryStrategy
     a logic:AbstractIndividualType ,
@@ -680,10 +697,10 @@ gmeow:MediumDictionaryEffectMeasurement
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Dictionary Effect Measurement"@x-gmeow-english ;
     logic:subClassOf gmeow:Measurement ;
-    skos:definition "The GENERATED reading of whether one shipped gmeow:CompressionDictionary PAYS FOR ITSELF over one declared gmeow:MediumMeasurementPopulation. It records a two-part (minimum-description-length) code — gmeow:measurementBytesOnDisk for the population's frames encoded through the dictionary, plus gmeow:measurementDictionaryInBandBytes for the dictionary's own bytes as the population actually carries them, summing to gmeow:measurementTwoPartCodeBytes — against gmeow:measurementBytesOnDiskBaseline, the SAME frames encoded through the declared no-dictionary medium gmeow:mediumProfileBaselineL12. The dictionary wins only when the two-part code is STRICTLY smaller: charging a dictionary its own in-band bytes is what keeps the criterion non-vacuous when the training corpus and the evaluated frame overlap, which for the archive-backed dictionaries they do (the corpus selects an archive's members, the evaluated frame is the tar of those members). This is therefore NOT a held-out evaluation and must not be read as one. It lives in the build-time graph/medium-measurement named graph — never graph/medium-registry, which says what the dictionaries ARE rather than what they DO — and is never hand-authored."@x-gmeow-english ;
+    skos:definition "The GENERATED reading of whether one shipped gmeow:CompressionDictionary PAYS FOR ITSELF over one declared gmeow:MediumMeasurementPopulation. It records a two-part (minimum-description-length) code — gmeow:measurementBytesOnDisk for the population's frames encoded through the dictionary, plus gmeow:measurementDictionaryInBandBytes for the dictionary's own bytes as the population actually carries them, summing to gmeow:measurementTwoPartCodeBytes — against gmeow:measurementBytesOnDiskBaseline, the SAME frames encoded through the declared no-dictionary medium gmeow:mediumProfileBaselineL12. The dictionary wins only when the two-part code is STRICTLY smaller: charging a dictionary its own in-band bytes is what keeps the criterion non-vacuous where the training corpus and the evaluated frame overlap, which for the archive-backed dictionaries they largely do (the corpus selects an archive's members, the evaluated frame is the tar of those members). The overlap is PARTIAL rather than total: every archive-backed corpus is resolved under gmeow:corpusTrainingSplitV1, which withholds one member in eight — chosen by that member's own content digest — from the trainer while leaving it in the evaluated frame, so every such reading is scored partly on members its dictionary never saw. Read that claim exactly: the FRAME is not held out (most of its bytes are training material), and nothing here is evidence that a dictionary would help on material outside the bundle, because the population a bundle dictionary primes IS the bundle's own frames. It lives in the build-time graph/medium-measurement named graph — never graph/medium-registry, which says what the dictionaries ARE rather than what they DO — and is never hand-authored."@x-gmeow-english ;
     skos:example "ex:effectCoreV1 a gmeow:MediumDictionaryEffectMeasurement ; gmeow:measuresDictionary gmeow:dictGmeowCoreV1 ; gmeow:measurementPopulation gmeow:mediumPopulationEmittedBlobFrames ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the terminal emission), avoid comparing readings taken over DIFFERENT gmeow:MediumMeasurementPopulation values (they are measured on different chains and are not commensurable), and avoid reading the recorded gain as evidence of generalization — train and test overlap on the dominant representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the terminal emission), avoid comparing readings taken over DIFFERENT gmeow:MediumMeasurementPopulation values (they are measured on different chains and are not commensurable), and avoid reading the recorded gain as evidence of generalization — most of the evaluated frame is training material, and only the share gmeow:corpusTrainingSplitV1 withholds is unseen."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxTBox ;
@@ -1143,16 +1160,33 @@ gmeow:mediumDictionary
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to bound which dictionaries a zstd medium is allowed to prime with."@x-gmeow-english .
 
+gmeow:measuredCorpusDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measured corpus digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The identity of the WHOLE corpus this build resolved for the dictionary — held-out members included — written in the canonical blake3:<64 lowercase hex> form: every resolved sample's own digest, one per line in canonical digest order, hashed again. Exactly one per realization. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build, so an archive that gains or loses one member moves the corpus while the committed sweep evidence sits still; recording the identity is what lets the build REFUSE (gmeow:MediumCorpusDrift) instead of grading itself against numbers taken over different material. Held-out members are inside the digest deliberately: the sweep's argmin depends on the whole frame, so a held-out member that changed would leave the training set alone while moving the bytes every grid cell was scored over. It is over the samples' DIGESTS rather than over their concatenated bytes so the value costs bounded memory on a corpus whose members run to hundreds of megabytes, and so a reader who prints one member's digest can see it in this one's input."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:measuredCorpusDigest \"blake3:1f0a…\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on the authored gmeow:CompressionDictionary (a corpus identity is a build product — the declaration is the SELECTOR, not the resolution), avoid writing it in any form but blake3:<64 lowercase hex> (a free-form digest could never match the corpus it claims to identify), and avoid computing it over the training side alone — the held-out members are part of what the evaluation ran on."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry and compare it against the corpus_digest column of bench/medium-baseline.json; equality is what makes the committed evidence a statement about the shipped bytes rather than about a sweep nobody re-ran."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin a dictionary's shipped bytes and its committed evidence to the exact corpus resolution that produced them."@x-gmeow-english .
+
 gmeow:measuredCorpusSampleCount
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured corpus sample count"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "How many samples the dictionary's declared gmeow:DictionaryCorpus resolved to on THIS build. Measured rather than authored, because a corpus is a SELECTOR re-resolved on every build: its cardinality is a product, not a declaration. Exactly one per realization. It is recorded because the dictionary-effect reading is only interpretable beside it — a two-part code over a corpus of ten samples and one over ten thousand say different things about the same number of bytes."@x-gmeow-english ;
+    skos:definition "How many samples the TRAINER was actually handed on THIS build: the dictionary's declared gmeow:DictionaryCorpus resolved, MINUS the archive members the declared gmeow:CorpusTrainingSplit holds out. Measured rather than authored, because a corpus is a SELECTOR re-resolved on every build: its cardinality is a product, not a declaration. Exactly one per realization. It is recorded because the dictionary-effect reading is only interpretable beside it — a two-part code over a corpus of ten samples and one over ten thousand say different things about the same number of bytes. It is the TRAINING side alone; the identity of the whole resolution, held-out members included, is gmeow:measuredCorpusDigest."@x-gmeow-english ;
     skos:example "ex:realCoreV1 gmeow:measuredCorpusSampleCount 4213 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid authoring it on the gmeow:CompressionDictionary (a corpus is a selector, so its size is not something a human can declare in advance) and avoid re-deriving it downstream — the producer's count is the one the shipped bytes correspond to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it on the gmeow:CompressionDictionary (a corpus is a selector, so its size is not something a human can declare in advance), avoid re-deriving it downstream (the producer's count is the one the shipped bytes correspond to), and avoid reading it as the size of the corpus — it is the size of the training side of the declared split."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Read it off the realization in graph/medium-registry beside the content digest; carry it into any reading of gmeow:MediumDictionaryEffectMeasurement for the same dictionary."@x-gmeow-english ;
@@ -1229,7 +1263,7 @@ gmeow:measurementCorpusSampleCount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement corpus sample count"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "How many samples the measured dictionary was TRAINED over, carried onto the reading so the train/test relationship is legible without a second lookup. For the archive-backed dictionaries the training corpus is the archive's members while the evaluated frame is the tar of those members, so this count and gmeow:measurementEvaluatedFrameCount describe OVERLAPPING material — recorded, never papered over."@x-gmeow-english ;
+    skos:definition "How many samples the measured dictionary was TRAINED over, carried onto the reading so the train/test relationship is legible without a second lookup. For the archive-backed dictionaries the training corpus is the archive's members MINUS the share gmeow:corpusTrainingSplitV1 withholds, while the evaluated frame is the tar of ALL of them, so this count and gmeow:measurementEvaluatedFrameCount describe PARTLY OVERLAPPING material — recorded, never papered over."@x-gmeow-english ;
     skos:example "ex:effectCoreV1 gmeow:measurementCorpusSampleCount 4213 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid reading a large sample count as evidence of generalization — the two-part code is a non-vacuity argument, not a held-out one."@x-gmeow-english ;
@@ -1472,6 +1506,40 @@ gmeow:requiresReaderCapability
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to declare, on the deliverable, exactly what a reader must be able to do to read it."@x-gmeow-english .
 
+gmeow:splitHeldOutOffset
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CorpusTrainingSplit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "split held-out offset"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "Which position within each stride is the HELD-OUT one: a member whose content-digest rank is congruent to this value modulo gmeow:splitHeldOutStride is never handed to the trainer, while the frame the dictionary is evaluated over still carries it. Exactly one per gmeow:CorpusTrainingSplit. An offset at or above the stride is a HARD FAIL — no rank could ever land on it, so the split would hold nothing out while still claiming to."@x-gmeow-english ;
+    skos:example "gmeow:corpusTrainingSplitV1 gmeow:splitHeldOutOffset 0 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a value at or above gmeow:splitHeldOutStride (no rank could land on it) and avoid changing it to move a specific member across the boundary — the split is a rule about content, not a way to choose which bytes a dictionary gets to see."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Declare it once beside gmeow:splitHeldOutStride; the pair is the whole rule, and a reader who can print a corpus's member digests can reproduce either side of the partition."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name which position of the declared stride is the held-out one."@x-gmeow-english .
+
+gmeow:splitHeldOutStride
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CorpusTrainingSplit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "split held-out stride"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "How often a member is held out, counted over the corpus's archive members RANKED BY THEIR OWN CONTENT DIGEST: one member in every gmeow:splitHeldOutStride is withheld from the trainer. Exactly one per gmeow:CorpusTrainingSplit. A stride over RANKS rather than over digest values is deliberate and is what makes properness a THEOREM: a residue rule (digest mod 8 = 0) holds nothing out of a four-member corpus most of the time, and the shipped claim corpus is exactly four members, so on most builds such a split would silently do nothing — which is the failure it exists to prevent. Ranking holds out exactly ceil(n / stride) members for a corpus of n. A stride below 2 is a HARD FAIL: it holds out every member and leaves no training set at all."@x-gmeow-english ;
+    skos:example "gmeow:corpusTrainingSplitV1 gmeow:splitHeldOutStride 8 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a value below 2 (it does not leave a training set) and avoid raising it past the member count of the smallest archive-backed corpus — a corpus the split cannot partition is a hard fail, not a quietly self-measured dictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Declare it once on the single gmeow:CorpusTrainingSplit individual; every archive-backed corpus is resolved under it, and the resulting held-out cardinality is recorded per dictionary in bench/medium-baseline.json."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare, as data, what share of an archive-backed corpus is withheld from training."@x-gmeow-english .
+
 gmeow:strataDigest
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
@@ -1681,7 +1749,7 @@ gmeow:mediumPopulationEmittedBlobFrames
     a gmeow:MediumMeasurementPopulation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "population — emitted blob frames"@x-gmeow-english ;
-    skos:definition "Every payload-bearing BLOB frame the terminal emission authors into gmeow.gts, grouped by the dictionary its gmeow:PayloadSchema selects. The SNAPSHOT frame is DECLARED-excluded: the dictionary-effect measurement is folded into the snapshot payload, so that frame's compressed length is a function of the very numbers being recorded, and pricing it would make the reading self-referential. A frame assigned the dictionary-less gmeow:mediumProfileBaselineL12 belongs to no dictionary's population — it has no dictionary to pay for. The dictionary's in-band cost is counted ONCE here, because a pack pins each dictionary in a single segment header."@x-gmeow-english ;
+    skos:definition "Every payload-bearing BLOB frame the terminal emission authors into gmeow.gts, grouped by the dictionary its gmeow:PayloadSchema selects. The SNAPSHOT frame is DECLARED-excluded: the dictionary-effect measurement is folded into the snapshot payload, so that frame's compressed length is a function of the very numbers being recorded, and pricing it would make the reading self-referential. The exclusion is a THEOREM, not a concession, and the gmeow:envelopeDigestStratum two-pass fixpoint cannot repair it: that fixpoint converges because gmeow:strataDigest is taken over a REGION (gmeow:stratumPayloadExcludingMediumEnvelope) that excludes the records being added, so adding them cannot move the digest. gmeow:measurementBytesOnDisk has no such region — it is the compressed length of the WHOLE frame, and compression is not additive over regions, so no proper sub-region's compressed length equals the frame's; a 'payload minus the measurement subgraph' length would be a number produced by a codec the bundle does not write, which gmeow:measurementBytesOnDiskBaseline already forbids for the same reason. It is also MOOT for the inventory: gmeow:payloadSchemaDictionary is maxQualifiedCardinality 1 and gmeow:payloadSchemaSnapshotWire binds gmeow:dictGmeowCoreV1, so admitting the snapshot frame could only move that one dictionary's numbers and could never give any other dictionary a frame. A frame assigned the dictionary-less gmeow:mediumProfileBaselineL12 belongs to no dictionary's population — it has no dictionary to pay for. The dictionary's in-band cost is counted ONCE here, because a pack pins each dictionary in a single segment header."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1955,11 +2023,34 @@ gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
 # is not one. The memory dictionaries are therefore priming aids derived from the
 # SHAPE of shipped claims, not from any user's content.
 
+# The ONE held-out split every archive-backed corpus above is resolved under.
+# An archive-backed corpus selects an archive's MEMBERS while the frame its
+# dictionary is evaluated over is the TAR of those members, so training on all of
+# them would score the dictionary on bytes it had memorised. One member in eight —
+# every 8th in canonical content-digest order, so the partition is reproducible from
+# the corpus alone and cannot be steered per dictionary — is withheld from the
+# trainer and left in the evaluated frame.
+#
+# What that buys, exactly: every archive-backed reading is scored partly on members
+# its dictionary never saw. What it does NOT buy: the frame is not held out (most of
+# its bytes ARE training material), and nothing here says a dictionary generalises to
+# material outside the bundle — the population a bundle dictionary primes IS the
+# bundle's own frames, so no experiment here could.
+gmeow:corpusTrainingSplitV1
+    a gmeow:CorpusTrainingSplit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus training split v1"@x-gmeow-english ;
+    skos:definition "The shipped held-out split: rank a corpus's archive members by their own canonical blake3: digest and withhold every 8th, starting at rank 0. It governs EVERY archive-backed gmeow:DictionaryCorpus uniformly; there is no per-dictionary variant and no exemption. One in eight rather than a larger share leaves the trainer the repeated structure a dictionary exists to capture, and the rank-stride form guarantees that even the four-member claim corpus holds exactly one member out — a value-residue rule would have held nothing out of it on most builds."@x-gmeow-english ;
+    gmeow:splitHeldOutStride "8"^^xsd:nonNegativeInteger ;
+    gmeow:splitHeldOutOffset "0"^^xsd:nonNegativeInteger ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 gmeow:corpusGmeowClaimsV1
     a gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "claims corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal CLAIM corpus: the statement layer's two committed byte projections the carrier folds as statements-archive, plus the JSON-LD-star / YAML-LD-star rendering of the same layer it folds as yaml-ld-archive. The corpus is exactly the frame set gmeow:dictGmeowClaimsV1 primes, which is the only population a bundle dictionary can honestly be priced over — see the honesty note in bench/README.md, which states plainly that this is not a held-out evaluation. Bundle-internal: both archive reps are owned by gmeow:stage-archive-blobs."@x-gmeow-english ;
+    skos:definition "The bundle-internal CLAIM corpus: the statement layer's two committed byte projections the carrier folds as statements-archive, plus the JSON-LD-star / YAML-LD-star rendering of the same layer it folds as yaml-ld-archive. The corpus is exactly the frame set gmeow:dictGmeowClaimsV1 primes, which is the only population a bundle dictionary can honestly be priced over; it is resolved under gmeow:corpusTrainingSplitV1, so the trainer sees seven members in eight and the evaluated tars still carry the eighth. Bundle-internal: both archive reps are owned by gmeow:stage-archive-blobs."@x-gmeow-english ;
     gmeow:corpusSelectsBlobRep "statements-archive" ,
         "yaml-ld-archive" ;
     gmeow:graphBoxRole gmeow:boxABox ,
@@ -2438,6 +2529,22 @@ gmeow:GtsConformanceFailure
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the root of the gts slice's typed conformance-failure vocabulary."@x-gmeow-english .
 
+gmeow:MediumCorpusDrift
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Corpus Drift"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when the corpus identity a dictionary's evidence records is not the identity of the corpus at hand — the committed sweep table (bench/medium-baseline.json) naming a gmeow:measuredCorpusDigest this build did not resolve, or two gmeow:CompressionDictionaryRealization records of one dictionary disagreeing about which corpus produced it. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build: an archive that gains or loses one member moves the corpus while the committed evidence sits still, and every verdict read out of that evidence — the winner-table bijection, the declared-is-argmin agreement, the pays-for-itself criterion — would then be about a sweep nobody re-ran. HARD FAIL: stale evidence is not weaker evidence, it is evidence about a different corpus, so a build refuses rather than grading itself against it."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 a gmeow:MediumCorpusDrift ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid resolving it by editing the recorded digest (that asserts an identity nothing measured — re-run the sweep instead), avoid downgrading it to a warning, and avoid using it for a dictionary whose BYTES do not match their digest — that is gmeow:MediumDigestMismatch."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by logic:MediumCorpusIdentityAgreementConstraint and by the build's own re-derivation of every resolved corpus's digest; resolve it by re-running `make maint-medium-sweep` over the moved corpus, never by relaxing the comparison."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name evidence about a dictionary that describes a corpus other than the one the build resolved."@x-gmeow-english .
+
 gmeow:MediumDictionaryRegression
     a logic:Category ,
         owl:Class ;
@@ -2796,7 +2903,19 @@ gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+
+# The DECLARED held-out split is exactly one modulus and one residue. Both are
+# mandatory for the same reason: a split missing either coordinate does not
+# partition anything, so a dictionary resolved under it would silently be trained
+# on every member of its archive again.
+gmeow:CorpusTrainingSplit logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:splitHeldOutStride ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:splitHeldOutStride ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:splitHeldOutOffset ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:splitHeldOutOffset ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 # The GENERATED dictionary-effect reading. Every field is mandatory and
 # exactly-one, because every one of them is a build product the terminal can
@@ -2927,6 +3046,44 @@ logic:msmMediumB a logic:Formula ; logic:relation gmeow:envelopeMedium ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "mediumB" ] .
 logic:msmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mediumA" ] , [ logic:termIndex 1 ; logic:termVariable "mediumB" ] .
+
+# One dictionary, ONE corpus identity. Cross-node: the obligation is about two
+# realizations of the same definition agreeing, not about either one's own
+# cardinality, so it has no OWL antecedent. It is the graph-side half of the
+# corpus-drift refusal — the build's half re-derives every resolved corpus's digest
+# and compares it against the committed sweep evidence — and both raise the same
+# named failure, because both are "the recorded corpus is not the corpus at hand".
+logic:MediumCorpusIdentityAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "Medium corpus-identity agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: no two gmeow:CompressionDictionaryRealization records of the SAME gmeow:CompressionDictionary may carry different gmeow:measuredCorpusDigest values. A dictionary's shipped bytes are a function of one corpus resolution, so two identities for one definition means at least one of them describes material those bytes did not come from — and the committed sweep evidence is compared against exactly that literal."@x-gmeow-english ;
+    logic:formalizes gmeow:CompressionDictionaryRealization ;
+    gmeow:enforcesFailureClass gmeow:MediumCorpusDrift ;
+    logic:message "Two gmeow:CompressionDictionaryRealization records of one gmeow:CompressionDictionary must agree on gmeow:measuredCorpusDigest — a dictionary whose evidence names two corpora has bytes that answer to neither." ;
+    logic:integrity logic:mciForall .
+logic:mciForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mciImpl .
+logic:mciImpl a logic:Formula ; logic:antecedent logic:mciGuard ; logic:consequent logic:mciNot .
+logic:mciGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompressionDictionary ] .
+logic:mciNot a logic:Formula ; logic:not logic:mciEx .
+logic:mciEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "realA" ] , [ logic:termIndex 1 ; logic:termVariable "realB" ] , [ logic:termIndex 2 ; logic:termVariable "digestA" ] , [ logic:termIndex 3 ; logic:termVariable "digestB" ] ;
+    logic:exists logic:mciBody .
+logic:mciBody a logic:Formula ; logic:and logic:mciRealizesA , logic:mciRealizesB , logic:mciDigestA , logic:mciDigestB , logic:mciDistinct .
+logic:mciRealizesA a logic:Formula ; logic:relation gmeow:realizesDictionary ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "realA" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:mciRealizesB a logic:Formula ; logic:relation gmeow:realizesDictionary ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "realB" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:mciDigestA a logic:Formula ; logic:relation gmeow:measuredCorpusDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "realA" ] , [ logic:termIndex 1 ; logic:termVariable "digestA" ] .
+logic:mciDigestB a logic:Formula ; logic:relation gmeow:measuredCorpusDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "realB" ] , [ logic:termIndex 1 ; logic:termVariable "digestB" ] .
+logic:mciDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "digestA" ] , [ logic:termIndex 1 ; logic:termVariable "digestB" ] .
 
 # Every EMITTED dictionary version is retained by its authored definition.
 # Dropping a version orphans every artifact already primed with it — those bytes

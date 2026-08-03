@@ -123,15 +123,18 @@ pub fn registry_from_carrier(
 ///
 /// Shared with the off-gate sweep (`make maint-medium-sweep`), which must grid-search
 /// over EXACTLY the corpus the build trains from — resolving it twice would let the
-/// committed winner be chosen over material the build never sees.
+/// committed winner be chosen over material the build never sees. The same sharing is
+/// what makes the corpus-identity gate meaningful: the digest the sweep committed and
+/// the digest this build checks come out of ONE resolution path.
 ///
 /// # Errors
-/// A corpus that resolves to nothing, a selector this build cannot evaluate, or a
-/// selector that closes the training fixpoint.
+/// A corpus that resolves to nothing, an archive-backed corpus the declared split
+/// holds nothing out of, a selector this build cannot evaluate, or a selector that
+/// closes the training fixpoint.
 pub fn corpus_samples(
     registry: &MediumRegistry,
     sources: &CorpusSources<'_>,
-) -> Result<BTreeMap<String, std::collections::BTreeSet<Vec<u8>>>, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, corpus::CorpusResolution>, gmeow_errors::Diag> {
     let mut out = BTreeMap::new();
     for def in registry.dictionaries().values() {
         out.insert(
@@ -184,8 +187,10 @@ pub fn resolved_corpora(
 pub struct ResolvedCorpora {
     /// The medium axis, read off the assembled carrier.
     pub registry: MediumRegistry,
-    /// Every dictionary's resolved training corpus, by `gmeow:dictionaryId`.
-    pub corpora: BTreeMap<String, std::collections::BTreeSet<Vec<u8>>>,
+    /// Every dictionary's resolved corpus, by `gmeow:dictionaryId`: the training side
+    /// of the declared held-out split, the number of members it held out, and the
+    /// identity of the WHOLE resolution.
+    pub corpora: BTreeMap<String, corpus::CorpusResolution>,
     /// The bundle's own canonical term rendering — the `term-table` strategy's corpus.
     pub term_table: Vec<u8>,
 }
@@ -212,23 +217,27 @@ pub struct ResolvedCorpora {
 /// The MEASURED point is returned beside the bytes: it is what the trainer ACTUALLY
 /// ran, which the realization records under its own predicates.
 ///
+/// The corpus a dictionary trains over is the TRAINING SIDE of the declared held-out
+/// split ([`crate::medium::corpus`]): for an archive-backed corpus the trainer never
+/// sees the members the split holds out, while the frame the dictionary is evaluated
+/// over — the tar of ALL the members — still carries them.
+///
 /// # Errors
-/// A corpus that resolves to nothing, a selector this build cannot evaluate, a
-/// selector that closes the training fixpoint, or a trainer refusal.
+/// A trainer refusal, or a dictionary with no entry in `corpora`.
 fn train_declared_dictionaries(
     registry: &MediumRegistry,
-    sources: &CorpusSources<'_>,
+    dataset: &purrdf::RdfDataset,
+    corpora: &BTreeMap<String, corpus::CorpusResolution>,
 ) -> Result<BTreeMap<String, TrainedDictionary>, gmeow_errors::Diag> {
-    let corpora = corpus_samples(registry, sources)?;
-    let term_table = crate::medium::corpus::term_table_sample(sources.dataset);
+    let term_table = crate::medium::corpus::term_table_sample(dataset);
     let mut trained: BTreeMap<String, TrainedDictionary> = BTreeMap::new();
     for def in registry.dictionaries().values() {
-        let samples = corpora
+        let resolved = corpora
             .get(&def.id)
             .ok_or_else(|| stage_err(format!("no resolved corpus for dictionary {:?}", def.id)))?;
         let owned: Vec<&[u8]> = match def.strategy {
             DictionaryStrategy::TermTable => vec![term_table.as_slice()],
-            _ => samples.iter().map(Vec::as_slice).collect(),
+            _ => resolved.training.iter().map(Vec::as_slice).collect(),
         };
         let bytes = train::build(def.strategy, &owned, def.target_length)?;
         trained.insert(
@@ -238,7 +247,8 @@ fn train_declared_dictionaries(
                 measured: crate::medium::rdf::Measured {
                     strategy: def.strategy,
                     target_length: def.target_length,
-                    corpus_sample_count: samples.len() as u64,
+                    corpus_sample_count: resolved.training.len() as u64,
+                    corpus_digest: resolved.digest.clone(),
                 },
             },
         );
@@ -473,14 +483,16 @@ impl Stage for MediumDictionariesStage {
         &self.attaches_graphs
     }
     fn impl_version(&self) -> &str {
-        // v3: the declared dictionaries trained over their declared corpora at
-        // the COMMITTED sweep winner (bench/medium-baseline.json), measured into
-        // gmeow:CompressionDictionaryRealization records carrying the measured
-        // strategy / target length / corpus size, and projected into
-        // graph/medium-registry. The inventory itself is DATA — it is read off the
-        // carrier's gmeow:CompressionDictionary individuals — so growing or shrinking
-        // it does not move this key; only the training/measurement code does.
-        "medium-dictionaries.v3"
+        // v4: as v3 (the declared dictionaries trained at the COMMITTED sweep winner
+        // from bench/medium-baseline.json and measured into
+        // gmeow:CompressionDictionaryRealization records), plus the declared held-out
+        // split — an archive-backed corpus trains on the TRAINING SIDE only — and the
+        // resolved-corpus identity, recorded on the realization and gated against the
+        // committed table. Both change the shipped dictionary BYTES, so the key moves.
+        // The inventory itself is DATA — it is read off the carrier's
+        // gmeow:CompressionDictionary individuals — so growing or shrinking it does not
+        // move this key; only the training/measurement code does.
+        "medium-dictionaries.v4"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let registry = registry_from_carrier(input.upstream)?;
@@ -511,13 +523,26 @@ impl Stage for MediumDictionariesStage {
         // emitter also serializes fixture-scale folds, where nothing of any size pays
         // for itself, whereas the committed evidence is about the real deliverable.
         crate::medium::sweep::check_dictionaries_pay_for_themselves(&baseline)?;
-        let trained = train_declared_dictionaries(&registry, &sources)?;
+        // …and, last, the three checks above must be grading THIS build's corpus. A
+        // gmeow:DictionaryCorpus is a SELECTOR re-resolved every build, so an archive
+        // that gained or lost a member moves the corpus without moving the table, and
+        // every verdict above would then be about a sweep nobody re-ran. Resolve the
+        // corpora once, HERE, and refuse when the recorded identity is not the
+        // resolved one — the same resolution the trainer then consumes, so the digest
+        // that was gated and the bytes that ship cannot come from two different reads.
+        let corpora = corpus_samples(&registry, &sources)?;
+        crate::medium::sweep::check_corpus_digests(&registry, &baseline, &corpora)?;
+        let trained = train_declared_dictionaries(&registry, carrier.dataset(), &corpora)?;
 
         let mut realizations: Vec<DictionaryRealization> = Vec::with_capacity(trained.len());
         let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         for (id, dictionary) in &trained {
             let def = registry.dictionary_by_id(id)?;
-            realizations.push(realize(def, &dictionary.bytes, dictionary.measured)?);
+            realizations.push(realize(
+                def,
+                &dictionary.bytes,
+                dictionary.measured.clone(),
+            )?);
             lane.insert(
                 format!("{DICT_ARTIFACT_PREFIX}{id}.zdict"),
                 dictionary.bytes.clone(),
@@ -627,6 +652,7 @@ pub(crate) fn test_product_over(
                 strategy: def.strategy,
                 target_length: def.target_length,
                 corpus_sample_count: corpus.len() as u64,
+                corpus_digest: crate::medium::blake3_digest(&owned.concat()),
             },
         )?);
         lane.insert(format!("{DICT_ARTIFACT_PREFIX}{}.zdict", def.id), bytes);

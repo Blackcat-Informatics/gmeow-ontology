@@ -186,7 +186,7 @@ fn report(baseline: &MediumBaseline, out: &Path, bytes: usize) {
     for row in &baseline.dictionaries {
         println!(
             "  {:<26} {:<22} winner {}/{} (declared {}/{}{})  two-part {} B vs baseline {} B  \
-             gain {}  frames {}  corpus {}",
+             gain {}  frames {}  corpus {} trained / {} held out  corpus-id {}",
             row.id,
             row.population,
             row.winning_strategy,
@@ -203,6 +203,8 @@ fn report(baseline: &MediumBaseline, out: &Path, bytes: usize) {
             row.dictionary_gain_fraction,
             row.evaluated_frame_count,
             row.corpus_sample_count,
+            row.held_out_sample_count,
+            row.corpus_digest,
         );
     }
     println!();

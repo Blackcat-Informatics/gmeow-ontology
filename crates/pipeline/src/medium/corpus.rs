@@ -32,6 +32,25 @@
 //! declares while every downstream digest and measurement still claimed the full
 //! declaration — a silent capability degradation that no error would ever surface.
 //!
+//! # The held-out split
+//!
+//! An ARCHIVE-BACKED corpus selects the members of an archive whose TAR is the very
+//! frame the dictionary is evaluated over. Trained on every member, such a dictionary
+//! would be measured on the bytes it memorized. So every archive member is partitioned
+//! by the ONE declared `gmeow:CorpusTrainingSplit`: the trainer sees only the training
+//! side, while the evaluation still runs over the whole frame — which therefore
+//! contains members the dictionary never saw. The partition is decided by the members'
+//! OWN CONTENT — rank them by their `blake3:` digest, hold out every `stride`-th
+//! ([`super::registry::TrainingSplitDef`]) — so it is reproducible from the corpus
+//! alone and cannot be steered per dictionary.
+//!
+//! The split is applied HERE, ONCE over the union of every `gmeow:corpusSelectsBlobRep`
+//! resolution, so no corpus can opt out of it, no caller can forget it, and a corpus
+//! drawing on two archives is split as the one population it is trained and evaluated
+//! as. A corpus whose archive population the split does not PARTITION — nothing held
+//! out, or nothing trained — is a HARD FAIL: the first would evaluate a dictionary on
+//! the bytes it memorized, the second would leave it with no dictionary at all.
+//!
 //! # The fixpoint exclusion
 //!
 //! A selector that transitively covers the medium registry's own output closes the
@@ -269,6 +288,24 @@ fn reject_covering_bytes<'a>(
     Ok(())
 }
 
+/// One declared corpus, RESOLVED against this build and split.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorpusResolution {
+    /// The samples the trainer sees: the resolved corpus MINUS the archive members
+    /// the declared `gmeow:CorpusTrainingSplit` holds out.
+    pub training: BTreeSet<Vec<u8>>,
+    /// How many archive members the declared split held out — the members the
+    /// dictionary never saw, which the evaluated tar still contains.
+    pub held_out_count: u64,
+    /// A `blake3:` digest over the WHOLE resolved corpus, held-out members included:
+    /// every sample's own canonical digest, in canonical digest order, hashed again.
+    ///
+    /// The whole corpus rather than the training side alone, because the sweep's
+    /// argmin is a function of both — a held-out member that changes leaves the
+    /// training set alone while moving the frame the grid is scored over.
+    pub digest: String,
+}
+
 /// Resolve a declared corpus to its training samples.
 ///
 /// Samples are collected in `BTreeSet` order, which makes assembly deterministic
@@ -276,18 +313,24 @@ fn reject_covering_bytes<'a>(
 /// of the sample MULTISET (upstream canonically sorts before concatenating), so the
 /// set's order can never leak into the dictionary bytes.
 ///
+/// Archive members are partitioned by the ONE declared `gmeow:CorpusTrainingSplit`
+/// before they reach the trainer (see the module docs): the returned `training` set is
+/// a PROPER subset of the archive material, and the frame the dictionary is later
+/// evaluated over still carries the members it excludes.
+///
 /// An EMPTY corpus for a declared dictionary is a HARD FAIL: the dictionary would
 /// have no bytes, and a frame primed with the id it was supposed to carry would be
 /// permanently undecodable.
 ///
 /// # Errors
-/// An empty result, a missing archive rep / stage product, or material that reaches
-/// into the excluded fixpoint region.
+/// An empty training result, an archive-backed corpus the declared split holds
+/// nothing out of, a missing archive rep / stage product, a carrier with no declared
+/// split, or material that reaches into the excluded fixpoint region.
 pub fn assemble(
     registry: &MediumRegistry,
     corpus_iri: &str,
     sources: &CorpusSources<'_>,
-) -> Result<BTreeSet<Vec<u8>>, gmeow_errors::Diag> {
+) -> Result<CorpusResolution, gmeow_errors::Diag> {
     let corpus = registry.corpora().get(corpus_iri).ok_or_else(|| {
         invalid_declaration(format!(
             "<{corpus_iri}> is not a declared gmeow:DictionaryCorpus"
@@ -295,6 +338,15 @@ pub fn assemble(
     })?;
 
     let mut samples: BTreeSet<Vec<u8>> = BTreeSet::new();
+    // Every resolved sample's own digest — held-out members included, because the
+    // corpus IDENTITY is about what the corpus holds, not about what the trainer saw.
+    let mut digests: BTreeSet<String> = BTreeSet::new();
+    // Every archive member this corpus selects, keyed by its own content digest. The
+    // split is a stride over THIS map's key order, so it is applied once over the
+    // corpus's whole archive material rather than once per selector — a corpus that
+    // draws on two archives is split as one population, exactly as it is trained and
+    // evaluated as one.
+    let mut archive_members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for selector in &corpus.selectors {
         match selector {
             CorpusSelector::BlobRep(rep) => {
@@ -317,7 +369,11 @@ pub fn assemble(
                 })?;
                 let members: BTreeMap<String, Vec<u8>> = members.into_iter().collect();
                 reject_covering_bytes(members.keys(), selector, corpus_iri)?;
-                samples.extend(members.into_values().filter(|b| !b.is_empty()));
+                for bytes in members.into_values().filter(|b| !b.is_empty()) {
+                    // Keyed by digest, so a member two archives both carry is ONE
+                    // member of the corpus and is split once.
+                    archive_members.insert(super::blake3_digest(&bytes), bytes);
+                }
             }
             CorpusSelector::Graph(graph) => {
                 let projected = sources.dataset.project_named_graph(graph);
@@ -328,7 +384,7 @@ pub fn assemble(
                     ))
                 })?;
                 if !ntriples.is_empty() {
-                    samples.insert(ntriples.into_bytes());
+                    admit(&mut samples, &mut digests, ntriples.into_bytes());
                 }
             }
             CorpusSelector::PathPrefix(prefix) => {
@@ -337,14 +393,14 @@ pub fn assemble(
                         break;
                     }
                     if !bytes.is_empty() {
-                        samples.insert(bytes.clone());
+                        admit(&mut samples, &mut digests, bytes.clone());
                     }
                 }
                 // An AUTHORED tree is legitimately on disk (it is what
                 // `stage-archive-blobs` tars for the same reason); a `generated/`
                 // prefix is NOT, and resolves from the in-memory lane above alone.
                 if !prefix.starts_with("generated/") {
-                    collect_authored_files(&sources.root.join(prefix), &mut samples);
+                    collect_authored_files(&sources.root.join(prefix), &mut samples, &mut digests);
                 }
             }
             CorpusSelector::StageProduct(stage_iri) => {
@@ -364,20 +420,82 @@ pub fn assemble(
                 let artifacts = product.artifacts();
                 reject_covering_bytes(artifacts.keys(), selector, corpus_iri)?;
                 reject_covering_graphs(product, selector, corpus_iri)?;
-                samples.extend(artifacts.into_values().filter(|b| !b.is_empty()));
+                for bytes in artifacts.into_values().filter(|b| !b.is_empty()) {
+                    admit(&mut samples, &mut digests, bytes);
+                }
             }
+        }
+    }
+
+    // The split, applied ONCE over the corpus's whole archive population: rank the
+    // members by their own content digest (the BTreeMap's key order IS that ranking)
+    // and hold out every `stride`-th of them.
+    let mut held_out_count: u64 = 0;
+    let mut trained_members: u64 = 0;
+    let member_count = archive_members.len();
+    if member_count > 0 {
+        let split = registry.training_split()?;
+        for (rank, (digest, bytes)) in archive_members.into_iter().enumerate() {
+            digests.insert(digest);
+            if split.holds_out_rank(rank) {
+                held_out_count += 1;
+            } else {
+                trained_members += 1;
+                samples.insert(bytes);
+            }
+        }
+        if held_out_count == 0 || trained_members == 0 {
+            return Err(invalid_declaration(format!(
+                "<{corpus_iri}> resolves {member_count} archive member(s), and the declared split \
+                 <{}> (stride {}, offset {}) does not partition them ({trained_members} trained, \
+                 {held_out_count} held out) — a corpus with nothing held out is evaluated on the \
+                 bytes its dictionary memorized, and one with nothing trained has no dictionary at \
+                 all. Widen the corpus or redeclare the split; do NOT exempt the corpus",
+                split.iri, split.stride, split.offset
+            )));
         }
     }
 
     if samples.is_empty() {
         return Err(undeclared_dictionary(format!(
-            "<{corpus_iri}> resolves to ZERO samples over selectors {:?} — a declared dictionary \
-             with an empty corpus has no bytes, so every frame primed with the id it was supposed \
-             to carry would be permanently undecodable",
+            "<{corpus_iri}> resolves to ZERO training samples over selectors {:?} — a declared \
+             dictionary with an empty corpus has no bytes, so every frame primed with the id it \
+             was supposed to carry would be permanently undecodable",
             corpus.selectors
         )));
     }
-    Ok(samples)
+    Ok(CorpusResolution {
+        training: samples,
+        held_out_count,
+        digest: resolution_digest(&digests),
+    })
+}
+
+/// Admit one non-archive sample: it joins the training set and the corpus identity.
+///
+/// Non-archive material is not split. A named graph resolves to ONE canonical
+/// serialization and an authored source tree is not what the frame carries, so neither
+/// is the train-equals-test case the split exists to break — holding either out would
+/// shrink the training set without adding an unseen member to any evaluated frame.
+fn admit(samples: &mut BTreeSet<Vec<u8>>, digests: &mut BTreeSet<String>, bytes: Vec<u8>) {
+    digests.insert(super::blake3_digest(&bytes));
+    samples.insert(bytes);
+}
+
+/// The identity of a RESOLVED corpus: every sample's own canonical `blake3:` digest,
+/// one per line in canonical digest order, hashed again.
+///
+/// Over the digests rather than over the concatenated samples so the identity costs a
+/// bounded amount of memory on a corpus whose members run to hundreds of megabytes,
+/// and so the value is explainable member by member: a reader who prints one member's
+/// digest can see it in the input to this one.
+fn resolution_digest(digests: &BTreeSet<String>) -> String {
+    let mut joined = String::with_capacity(digests.len() * 72);
+    for digest in digests {
+        joined.push_str(digest);
+        joined.push('\n');
+    }
+    super::blake3_digest(joined.as_bytes())
 }
 
 /// A stage product whose dataset carries quads in an excluded graph covers the
@@ -411,7 +529,11 @@ fn reject_covering_graphs(
 /// Every regular file under an AUTHORED source tree, recursively. Symlinks are
 /// skipped in both positions: a symlinked directory could form a cycle, and a
 /// symlinked file would fold the same bytes twice under two names.
-fn collect_authored_files(dir: &Path, samples: &mut BTreeSet<Vec<u8>>) {
+fn collect_authored_files(
+    dir: &Path,
+    samples: &mut BTreeSet<Vec<u8>>,
+    digests: &mut BTreeSet<String>,
+) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
@@ -422,11 +544,11 @@ fn collect_authored_files(dir: &Path, samples: &mut BTreeSet<Vec<u8>>) {
     paths.sort();
     for path in paths {
         if path.is_dir() {
-            collect_authored_files(&path, samples);
+            collect_authored_files(&path, samples, digests);
         } else if let Ok(bytes) = std::fs::read(&path)
             && !bytes.is_empty()
         {
-            samples.insert(bytes);
+            admit(samples, digests, bytes);
         }
     }
 }
@@ -517,6 +639,21 @@ mod tests {
         MediumRegistry::from_dataset(&fixture::dataset(extra))
     }
 
+    /// The fixture archive's members: enough of them that the DECLARED split
+    /// (modulus 8) partitions them both ways, which
+    /// `the_declared_split_partitions_the_fixture_archive_both_ways` pins so a
+    /// degenerate fixture can never make the split tests vacuous.
+    fn archive_members() -> Vec<(String, Vec<u8>)> {
+        (0..64u32)
+            .map(|i| {
+                (
+                    format!("slices/core/gts/cell-{i:02}.ttl"),
+                    format!("<https://e/s> <https://e/p> <https://e/o{i}> .\n").into_bytes(),
+                )
+            })
+            .collect()
+    }
+
     struct Harness {
         dataset: Arc<RdfDataset>,
         archives: Vec<BlobRow>,
@@ -535,11 +672,8 @@ mod tests {
             )
             .expect("authored file");
 
-            let tar: Vec<(String, Vec<u8>)> = vec![(
-                "slices/core/gts/cell.ttl".to_string(),
-                b"<https://e/s> <https://e/p> <https://e/o> .\n".to_vec(),
-            )];
-            let archive = purrdf::ustar::write_archive(&tar).expect("fixture archive");
+            let archive =
+                purrdf::ustar::write_archive(&archive_members()).expect("fixture archive");
 
             Self {
                 dataset: fixture::dataset(""),
@@ -573,19 +707,129 @@ mod tests {
     fn a_blob_rep_and_path_prefix_corpus_resolves_to_real_bytes() {
         let harness = Harness::new();
         let registry = registry_of("").expect("registry");
-        let samples = assemble(&registry, &gm("corpusCore"), &harness.sources())
+        let resolved = assemble(&registry, &gm("corpusCore"), &harness.sources())
             .expect("the core corpus resolves");
         // The archive MEMBER (not the tar) and the authored source file.
         assert!(
-            samples.iter().any(|s| s.starts_with(b"<https://e/s>")),
+            resolved
+                .training
+                .iter()
+                .any(|s| s.starts_with(b"<https://e/s>")),
             "the archive's members are the samples, not the tar itself"
         );
         assert!(
-            samples
+            resolved
+                .training
                 .iter()
                 .any(|s| s.starts_with(b"# an authored source file")),
             "an AUTHORED path prefix reads the repo tree"
         );
+    }
+
+    /// The members the declared split holds out of `archive_members()`, computed the
+    /// way a READER would: rank by content digest, take every stride-th.
+    fn expected_held_out(split: &crate::medium::registry::TrainingSplitDef) -> Vec<Vec<u8>> {
+        let ranked: BTreeMap<String, Vec<u8>> = archive_members()
+            .into_iter()
+            .map(|(_, bytes)| (crate::medium::blake3_digest(&bytes), bytes))
+            .collect();
+        ranked
+            .into_values()
+            .enumerate()
+            .filter(|(rank, _)| split.holds_out_rank(*rank))
+            .map(|(_, bytes)| bytes)
+            .collect()
+    }
+
+    /// The split PARTITIONS the fixture archive — both sides non-empty — and does so
+    /// by a stride over content-digest rank, which is what makes properness a
+    /// theorem rather than a coin flip on a small corpus.
+    #[test]
+    fn the_declared_split_partitions_the_fixture_archive_both_ways() {
+        let registry = registry_of("").expect("registry");
+        let split = registry.training_split().expect("the fixture declares one");
+        let total = archive_members().len();
+        let held = expected_held_out(split).len();
+        assert_eq!(
+            held,
+            total.div_ceil(split.stride as usize),
+            "one member in every {} is held out, in content-digest rank order",
+            split.stride
+        );
+        assert!(held > 0 && held < total, "{held} of {total} held out");
+    }
+
+    /// The trainer NEVER sees the held-out members, and the resolution says how many
+    /// it held out.
+    #[test]
+    fn the_declared_split_keeps_held_out_members_out_of_the_training_set() {
+        let harness = Harness::new();
+        let registry = registry_of("").expect("registry");
+        let split = registry.training_split().expect("the fixture declares one");
+        let resolved = assemble(&registry, &gm("corpusCore"), &harness.sources())
+            .expect("the core corpus resolves");
+
+        let expected_held = expected_held_out(split);
+        assert_eq!(resolved.held_out_count, expected_held.len() as u64);
+        for held in &expected_held {
+            assert!(
+                !resolved.training.contains(held),
+                "a held-out member reached the trainer — the evaluation would be over bytes the \
+                 dictionary memorized"
+            );
+        }
+        // …and it is a PROPER subset: the training side is the larger one.
+        assert!(resolved.training.len() > resolved.held_out_count as usize);
+    }
+
+    /// An archive-backed corpus the declared split does not PARTITION is a hard fail
+    /// — and there is no exemption. A one-member archive is that case: whichever side
+    /// it lands on, the other side is empty.
+    #[test]
+    fn an_archive_the_split_cannot_partition_hard_fails() {
+        let mut harness = Harness::new();
+        let registry = registry_of("").expect("registry");
+        harness.archives = vec![BlobRow {
+            data: purrdf::ustar::write_archive(&archive_members()[..1]).expect("fixture archive"),
+            media_type: "application/x-tar".to_string(),
+            rep: "cells-archive".to_string(),
+        }];
+        let diag = assemble(&registry, &gm("corpusCore"), &harness.sources())
+            .expect_err("an unsplittable archive-backed corpus must hard-fail");
+        assert!(
+            diag.to_string().contains("does not partition them")
+                && diag.to_string().contains("do NOT exempt"),
+            "{diag}"
+        );
+    }
+
+    /// A carrier with no declared `gmeow:CorpusTrainingSplit` refuses an
+    /// archive-backed corpus rather than quietly training on every member.
+    #[test]
+    fn an_archive_backed_corpus_without_a_declared_split_hard_fails() {
+        let harness = Harness::new();
+        let text = fixture::turtle("").replace("a gmeow:CorpusTrainingSplit", "a gmeow:Retired");
+        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).expect("turtle");
+        let registry = MediumRegistry::from_dataset(&ds).expect("registry");
+        let diag = assemble(&registry, &gm("corpusCore"), &harness.sources())
+            .expect_err("a corpus with no declared split must hard-fail");
+        assert!(
+            diag.to_string().contains("gmeow:CorpusTrainingSplit"),
+            "{diag}"
+        );
+    }
+
+    /// Two declared splits leave "which members did this dictionary never see" with
+    /// two answers, so the registry refuses to read at all.
+    #[test]
+    fn two_declared_splits_are_rejected() {
+        let diag = registry_of(
+            "gmeow:corpusTrainingSplitV2 a gmeow:CorpusTrainingSplit ;\n\
+             \x20   gmeow:splitHeldOutStride 4 ;\n\
+             \x20   gmeow:splitHeldOutOffset 1 .",
+        )
+        .expect_err("two splits must be rejected");
+        assert!(diag.to_string().contains("two answers"), "{diag}");
     }
 
     /// (d) A declared dictionary whose selector matches nothing hard-fails with
@@ -714,9 +958,18 @@ mod tests {
              \x20   gmeow:corpusSelectsStageProduct gmeow:stage-reason .",
         )
         .expect("registry");
-        let samples = assemble(&registry, &gm("corpusReason"), &harness.sources())
+        let resolved = assemble(&registry, &gm("corpusReason"), &harness.sources())
             .expect("the stage-product corpus resolves");
-        assert!(samples.iter().any(|s| s.starts_with(b"<https://e/why>")));
+        assert!(
+            resolved
+                .training
+                .iter()
+                .any(|s| s.starts_with(b"<https://e/why>"))
+        );
+        assert_eq!(
+            resolved.held_out_count, 0,
+            "a stage-product corpus carries no archive members to split"
+        );
     }
 
     /// A stage-product selector whose product carries the medium registry graph is

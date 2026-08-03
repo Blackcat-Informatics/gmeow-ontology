@@ -61,6 +61,15 @@ pub struct DictionaryRealization {
     /// terminal, which takes that measurement, cannot re-resolve the corpus without
     /// computing the same thing twice.
     pub corpus_sample_count: u64,
+    /// `gmeow:measuredCorpusDigest` — the identity of the WHOLE corpus this build
+    /// resolved, held-out members included, in canonical `blake3:` form.
+    ///
+    /// It rides on the SHIPPED realization so the corpus a dictionary answers to is a
+    /// queryable fact rather than a claim in a maintainer's JSON: a consumer can see
+    /// which corpus produced the bytes it is priming with, and the build refuses when
+    /// the committed sweep evidence records a different one
+    /// (`gmeow:MediumCorpusDrift`).
+    pub corpus_digest: String,
     /// `gmeow:dictionaryContentDigest`, `blake3:<64 lowercase hex>`.
     pub content_digest: String,
     /// `gmeow:dictionaryByteLength` — what the trainer ACTUALLY returned, which may
@@ -98,6 +107,7 @@ pub fn realize(
         strategy: measured.strategy,
         target_length: measured.target_length,
         corpus_sample_count: measured.corpus_sample_count,
+        corpus_digest: measured.corpus_digest,
         content_digest: blake3_digest(bytes),
         byte_length: bytes.len(),
         zstd_dictionary_id: super::train::zstd_dictionary_id(bytes)?,
@@ -110,14 +120,17 @@ pub fn realize(
 /// (the target the trainer was given, the sample count the corpus resolved to) cannot
 /// be transposed at a call site — they mean entirely different things and both are
 /// plausible at either position.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Measured {
     /// The strategy that ran — the committed sweep's winner, not the authored intent.
     pub strategy: DictionaryStrategy,
     /// The target length the trainer was given — likewise the committed winner.
     pub target_length: usize,
-    /// How many samples the declared corpus resolved to on this build.
+    /// How many samples the trainer was actually handed on this build: the TRAINING
+    /// side of the declared held-out split, not the whole resolved corpus.
     pub corpus_sample_count: u64,
+    /// The identity of the WHOLE resolved corpus, held-out members included.
+    pub corpus_digest: String,
 }
 
 /// Every emitted realization's version is still declared by the definition it
@@ -201,6 +214,15 @@ pub fn project(
                 realization.dictionary, realization.content_digest
             )));
         }
+        if !is_canonical_digest(&realization.corpus_digest) {
+            return Err(super::digest_mismatch(format!(
+                "realization of <{}> carries gmeow:measuredCorpusDigest {:?}, which is not \
+                 written 'blake3:<64 lowercase hex>' — the committed sweep evidence is compared \
+                 against that literal, and a free-form value could never match the corpus it \
+                 claims to identify",
+                realization.dictionary, realization.corpus_digest
+            )));
+        }
         let subject = realization.iri(def);
         emit(
             &subject,
@@ -238,6 +260,11 @@ pub fn project(
             non_negative_integer(
                 usize::try_from(realization.corpus_sample_count).unwrap_or(usize::MAX),
             ),
+        );
+        emit(
+            &subject,
+            gm("measuredCorpusDigest"),
+            RdfTerm::literal(RdfLiteral::simple(&realization.corpus_digest)),
         );
         emit(
             &subject,
@@ -478,6 +505,7 @@ pub fn realizations(
             target_length: usize::try_from(number("measuredDictionaryTargetLength")?)
                 .unwrap_or(usize::MAX),
             corpus_sample_count: number("measuredCorpusSampleCount")?,
+            corpus_digest: required(literal_of("measuredCorpusDigest"), "measuredCorpusDigest")?,
             content_digest: required(
                 literal_of("dictionaryContentDigest"),
                 "dictionaryContentDigest",
@@ -610,6 +638,7 @@ mod tests {
             strategy,
             target_length: 4096,
             corpus_sample_count: 400,
+            corpus_digest: blake3_digest(b"the fixture corpus resolution"),
         }
     }
 
@@ -638,6 +667,10 @@ mod tests {
             realize(def, &bytes, measured(DictionaryStrategy::Trained)).expect("realize");
         assert_eq!(realization.byte_length, bytes.len());
         assert!(is_canonical_digest(&realization.content_digest));
+        assert!(
+            is_canonical_digest(&realization.corpus_digest),
+            "the resolved-corpus identity rides on the shipped realization"
+        );
         assert_ne!(realization.zstd_dictionary_id, 0);
         // The MEASURED strategy is its own field: a trainer that fell back must be
         // able to say so without touching the authored definition.

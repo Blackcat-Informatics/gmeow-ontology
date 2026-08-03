@@ -135,32 +135,90 @@ dictionary its own in-band bytes is the entire non-vacuity argument.
   build; the live gate over freshly written store files is
   `crates/pipeline/tests/medium_bundle.rs`.
 
-## Honesty: this is NOT a held-out evaluation
+## What is held out, stated exactly
 
 For the archive-backed dictionaries — `gmeow-core-v1` over `cells-archive`,
 `gmeow-logic-v1` over `axioms-archive`, `gmeow-lang-ast-v1` over
 `lang-projections-archive`, `gmeow-claims-v1` over `statements-archive` +
-`yaml-ld-archive` — the training corpus is that archive's **members**, and the frame the
-numbers are taken over is the **tar of those very members**. Train and test are therefore not merely correlated: on the dominant
-representation they are the **same bytes**. Nothing in this artifact is a held-out
-measurement and none of it may be described as one, in a commit message, a release
-note, or a `skos:definition`.
+`yaml-ld-archive` — the corpus is that archive's **members** and the frame the numbers
+are taken over is the **tar of those very members**. Trained on all of them, such a
+dictionary would be scored on bytes it had memorized.
 
-What the two-part code buys is **non-vacuity**, not generalization. Charging the
-dictionary its own in-band bytes means "memorize the corpus" stops winning the moment
-the memorized bytes cost more than they save — which is exactly what caught the
-slice-name-shaped drafts described below. It says nothing about whether a dictionary would still help on
-material the build has never seen, and no experiment here could: the population a
-bundle dictionary primes IS the bundle's own frames.
+So every archive-backed corpus is resolved under **one declared split**,
+`gmeow:corpusTrainingSplitV1` in `slices/core/gts/module.ttl`:
 
-The runtime-store readings (`gmeow-memory-hot-v1`) are the one partial exception: the
-replay corpus is drawn from the statement layer while the dictionary trains on the
-statement + authoring-brief material, so the overlap there is between *related* corpora
-rather than identical bytes. That is a weaker overlap, not an absence of one.
+```text
+rank(member)  = position of blake3(member) in the corpus's ascending digest order
+held out      ⟺  rank(member) mod 8 == 0        (stride 8, offset 0)
+```
 
-The same caveat, and the snapshot exclusion, are carried in the measurement's own
+**One member in eight is withheld from the trainer and left in the evaluated frame.**
+The rule is a function of the members' own content, so the partition is reproducible
+from the corpus alone — no manifest, no build-machine state, and nothing a dictionary's
+author can steer. It is declared **once** and applied by `medium::corpus::assemble` to
+the union of **every** archive-backed corpus's blob-rep resolutions; there is no
+per-dictionary variant and **no exemption**.
+`exactly_one_held_out_split_governs_every_archive_backed_corpus`
+(`crates/validate/tests/gts_medium_axis.rs`) holds both halves, and a corpus the split
+cannot **partition** is a hard fail rather than a quietly self-measured dictionary.
+
+A stride over **ranks** rather than over digest **values** is deliberate: a residue rule
+(`digest mod 8 == 0`) holds nothing out of a four-member corpus about 59% of the time,
+and the claim corpus is exactly four members (`statements-archive`'s two byte
+projections plus `yaml-ld-archive`'s two), so on most builds such a split would silently
+do nothing — the very failure it exists to prevent. Ranking withholds exactly
+`ceil(n / 8)` members for a corpus of `n`, which is a theorem rather than a probability.
+
+Each row records the split's effect as `corpus_sample_count` (what the trainer saw) and
+`held_out_sample_count` (what it did not).
+
+**What that establishes, and what it does not.** Every archive-backed reading is scored
+partly on members its dictionary never saw, so the numbers are no longer purely
+self-measured. It does **not** make the *frame* held out — most of that tar is training
+material — and it is **not** evidence that a dictionary would help on material outside
+the bundle. No experiment here could show that: the population a bundle dictionary
+primes **is** the bundle's own frames. Do not describe this artifact as a held-out
+evaluation of a dictionary's generalization, in a commit message, a release note, or a
+`skos:definition`; describe it as what it is — a one-in-eight held-out share inside a
+bundle-internal population.
+
+Charging the dictionary its own in-band bytes remains the **non-vacuity** argument, and
+it is what caught the slice-name-shaped drafts described below.
+
+The runtime-store readings (`gmeow-memory-hot-v1`, `gmeow-memory-compact-v1`) are not
+archive-backed and so are not split: their replay corpus is drawn from the statement
+layer while the dictionary trains on the statement + authoring-brief material, so the
+overlap there is between *related* corpora rather than identical bytes. That is a
+weaker overlap, not an absence of one.
+
+The same statement, and the snapshot exclusion, are carried in the measurement's own
 `skos:definition` in `generated/medium/dictionary-effect.ttl` — a consumer reading
 the bundle sees them without reading this file.
+
+## The table cannot rot in silence: `corpus_digest`
+
+A `gmeow:DictionaryCorpus` is a **selector**, re-resolved on every build. An archive
+that gains or loses one member therefore moves the corpus while this file sits still —
+and `stage-medium-dictionaries` reads this file as a **gate** (the bijection, the
+declared-is-argmin agreement, the pays-for-itself criterion) without ever re-deriving
+the argmin, which it cannot afford to do per build.
+
+So every dictionary row carries **`corpus_digest`**: the identity of the whole corpus
+resolution the grid was searched over, held-out members included — each resolved
+sample's own `blake3:` digest, in canonical digest order, hashed again. The build
+re-derives it from the same resolution path the trainer consumes and
+`sweep::check_corpus_digests` **hard-fails** with `pipeline.medium.corpus-drift`
+(`gmeow:MediumCorpusDrift`) on any difference. A stale table **reds**; it never grades.
+
+The same identity ships on the bundle's own `gmeow:CompressionDictionaryRealization` as
+`gmeow:measuredCorpusDigest`, so a consumer can see which corpus produced the bytes it
+is priming with. The fix for a drift failure is always `make maint-medium-sweep` over
+the moved corpus — never editing the recorded digest, which would assert an identity
+nothing measured.
+
+Because the schema changed, the artifact's schema token is
+`gmeow.medium-baseline.v2`. A `v1` table has no way to say which corpus its numbers
+describe, so it is **refused**, not read leniently.
 
 ## Where the "does it pay for itself?" refusal lives, and why not at the emitter
 

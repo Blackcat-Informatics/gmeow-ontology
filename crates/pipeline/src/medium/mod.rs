@@ -158,6 +158,15 @@ pub(crate) fn dictionary_regression(detail: impl Into<String>) -> Diag {
     })
 }
 
+/// Committed sweep evidence whose recorded corpus identity is not the identity of the
+/// corpus THIS build resolved — the table describes a different corpus than the one it
+/// is grading.
+pub(crate) fn corpus_drift(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::MediumCorpusDrift {
+        detail: detail.into(),
+    })
+}
+
 /// A malformed or unrecognized medium DECLARATION in the carrier: an unknown
 /// strategy individual, an unknown selector predicate, a missing exactly-one field.
 /// The RDF parsed cleanly — the declaration is what is wrong — so this is

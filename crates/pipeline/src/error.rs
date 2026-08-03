@@ -329,9 +329,9 @@ define_diag_kind! {
     message = "docs-distribution error: {}", message;
 }
 
-// --- The medium axis's six named failure classes -----------------------------
+// --- The medium axis's seven named failure classes ----------------------------
 //
-// Each of these six kinds is the SOLE Rust producer of one `gmeow:Medium*`
+// Each of these seven kinds is the SOLE Rust producer of one `gmeow:Medium*`
 // failure-class individual in `slices/core/gts/module.ttl`, bound to it by the
 // `failure_class` clause. The binding is not decoration: the repo-static
 // bijection gate (`crates/validate/src/repo_static.rs`) proves each declared IRI
@@ -417,6 +417,22 @@ define_diag_kind! {
     failure_class = "https://blackcatinformatics.ca/gmeow/MediumDictionaryRegression";
 }
 
+define_diag_kind! {
+    /// The committed sweep evidence (`bench/medium-baseline.json`) records a corpus
+    /// identity that is not the identity of the corpus THIS build resolved. A
+    /// `gmeow:DictionaryCorpus` is a SELECTOR re-resolved every build, so an archive
+    /// gaining or losing a member moves the corpus without moving the table — and the
+    /// table would keep grading the bijection, the declared-is-argmin agreement, and
+    /// the pays-for-itself criterion against numbers from a sweep nobody re-ran. HARD
+    /// FAIL: stale evidence is not weaker evidence, it is evidence about a different
+    /// corpus.
+    pub struct MediumCorpusDrift { detail: String }
+    code = "pipeline.medium.corpus-drift";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: corpus drift — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumCorpusDrift";
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -458,6 +474,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     MediumDigestMismatch::CODE,
     MediumOpaqueFrame::CODE,
     MediumDictionaryRegression::CODE,
+    MediumCorpusDrift::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -512,6 +529,7 @@ pub fn register_all() -> Vec<Code> {
         MediumDigestMismatch::register(),
         MediumOpaqueFrame::register(),
         MediumDictionaryRegression::register(),
+        MediumCorpusDrift::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
@@ -564,7 +582,7 @@ mod tests {
         );
     }
 
-    /// The six medium-axis kinds carry their ontology failure-class IRI on the
+    /// The seven medium-axis kinds carry their ontology failure-class IRI on the
     /// GENERATED constant AND through the `DiagKind` accessor — the link the
     /// repo-static bijection gate reads statically must be the same one a live
     /// `Diag` producer exposes at run time, or the gate would be proving something
@@ -574,7 +592,7 @@ mod tests {
         use gmeow_errors::DiagKind;
 
         const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-        let bound: [(&str, Option<&'static str>, Option<&'static str>); 6] = [
+        let bound: [(&str, Option<&'static str>, Option<&'static str>); 7] = [
             (
                 "MediumUndeclaredDictionary",
                 MediumUndeclaredDictionary::FAILURE_CLASS,
@@ -619,6 +637,14 @@ mod tests {
                 "MediumDictionaryRegression",
                 MediumDictionaryRegression::FAILURE_CLASS,
                 MediumDictionaryRegression {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumCorpusDrift",
+                MediumCorpusDrift::FAILURE_CLASS,
+                MediumCorpusDrift {
                     detail: String::new(),
                 }
                 .failure_class(),
