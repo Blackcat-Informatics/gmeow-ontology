@@ -39,7 +39,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 /// Every model-facing invariance problem the checks in this module and in
-/// [`crate::llms_shape`] found, accumulated rather than short-circuited.
+/// `tests/support/llms_shape.rs` found, accumulated rather than short-circuited.
 ///
 /// A COLLECTOR rather than a `Result`, mirroring `gmeow_validate::repo_static`'s
 /// `RepoStaticReport` — the peer gate of exactly this kind. Two reasons, and neither is
