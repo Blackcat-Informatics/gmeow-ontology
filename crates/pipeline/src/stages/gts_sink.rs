@@ -33,8 +33,8 @@ pub struct GtsSinkStage {
 impl GtsSinkStage {
     /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`), the
     /// already-folded by-reference TAR archives (`stage-archive-blobs`), and the blob
-    /// sources it staples itself: the in-memory reasoning/SHACL-report products plus the
-    /// byte-decorated RDF 1.2 statement lanes (`stage-statements`).
+    /// sources it staples itself: the in-memory reasoning / SHACL-report products and the
+    /// opaque `generated/` fanout members read off their producing export leaves.
     /// It holds [`SINK_CAPABILITY`] — the sole serialization exit the loader requires
     /// exactly one stage to hold (mirrored by the slice
     /// `gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability`).
@@ -42,19 +42,30 @@ impl GtsSinkStage {
         Self {
             consumes: vec![
                 "stage-snapshot".to_string(),
-                // THIS run's ten by-reference TAR archives (mappings / cells / queries
+                // THIS run's eleven by-reference TAR archives (mappings / cells / queries
                 // / tests / schemas / shapes / axioms / models-python / lang-projections
-                // / yaml-ld), folded once by
+                // / statements / yaml-ld), folded once by
                 // their own producer — the terminal reads them off that product and
                 // re-folds nothing (PIPELINE_SPINE §3.2/§4). The edge also orders the
                 // sink after every archive-member producer transitively, so the
                 // JSON-Schema / Pydantic / generated-shape leaves need no direct edge.
                 "stage-archive-blobs".to_string(),
-                // THIS run's eight trained zstd dictionaries and their
+                // THIS run's SEVEN trained zstd dictionaries and their
                 // gmeow:CompressionDictionaryRealization records. The terminal is the one
                 // point where the whole frame set exists, so it pins the dictionaries in
                 // the pack's in-band "dct" map and seals one gmeow:MediumEnvelope per
                 // frame it authors.
+                //
+                // Seven, not eight: there is no gmeow-math-v1. A dictionary primes a
+                // FRAME, and every math: named graph is unioned into the snapshot
+                // payload — one frame, already primed in full by gmeow-core-v1, and
+                // gmeow:payloadSchemaDictionary is maxQualifiedCardinality 1, so a second
+                // dictionary on that frame is not merely unhelpful but unrepresentable.
+                // No mathematical byte family exists to give one instead: the archive
+                // fold takes dsl/mappings/**, the per-slice mappings/ and tests/ trees,
+                // and the shape surfaces — slices/grounding/math/** reaches the bundle
+                // ONLY as parsed RDF in the fold. So the mathematical content is fully
+                // dictionary-compressed, by gmeow-core-v1, and nothing is lost.
                 "stage-medium-dictionaries".to_string(),
                 // The executable-docs "try it" surface reasons over the object-level EDB,
                 // whose authored / imports / alignments graphs ride on the source-load
@@ -63,7 +74,13 @@ impl GtsSinkStage {
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
-                "stage-statements".to_string(),
+                // NOT `stage-statements`. The terminal used to staple the statement
+                // layer's two byte-decorated projections into the generated-opaque
+                // archive; they ride `statements-archive` now, folded by
+                // `stage-archive-blobs` off that same product, so the sink reads nothing
+                // from it and an edge nothing reads is removed rather than left standing.
+                // The ORDERING it used to carry is unchanged: `stage-archive-blobs`
+                // consumes `stage-statements`, and the sink consumes that.
                 "stage-validate".to_string(),
                 // The opaque fanout members ride in from their producing export leaves
                 // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
@@ -73,8 +90,10 @@ impl GtsSinkStage {
                 "stage-export-bench".to_string(),
                 "stage-export-cost-ledger".to_string(),
                 "stage-export-evals".to_string(),
-                // The human-readable terminology glossary table (byte-decorated Markdown),
-                // folded into REP_GENERATED from this run's fresh export-leaf product.
+                // The OntoLex vartrans terminology lowering: an RDF fanout named graph
+                // folded from this run's fresh export-leaf product. (Its two NON-RDF
+                // siblings — the glossary table and the TBX termbase — ride
+                // `lang-projections-archive`, folded by `stage-archive-blobs`, not here.)
                 "stage-export-glossary".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
@@ -120,15 +139,19 @@ impl Stage for GtsSinkStage {
         // v4: the opaque fanout members (references / bench / apache / matrix / eval +
         // research-object sidecars / metadata) ride in from their producing export leaves;
         // `collect_fanout_opaque_members` reads them off those products instead of re-rendering
-        // from disk, and statements / dsl-stats / context ride off the already-consumed
-        // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
+        // from disk, and dsl-stats / context ride off the already-consumed
+        // stage-mappings product (§3.2 transform-once, §4 pure terminal).
         // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
         // are folded from the consumed export-leaf products instead of a stale
         // disk read, matching the validation-shapes.ttl freshness rule.
-        // v6: the ten by-reference TAR archives are no longer folded here at all —
+        // v6: the by-reference TAR archives are no longer folded here at all —
         // they are READ off the `stage-archive-blobs` product (the fold moved to its
         // own stage so the archives exist mid-DAG).
-        "gts_sink.v6-archives-read-from-their-own-stage"
+        // v7: the generated-opaque archive SHEDS four members — the statement layer's
+        // two byte projections and the two non-RDF terminology surfaces — which now ride
+        // `statements-archive` / `lang-projections-archive`. The emitted bytes and the
+        // emitted `opaque` fanout manifest both change, so the key moves.
+        "gts_sink.v7-statements-and-terminology-off-the-opaque-archive"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -396,7 +419,6 @@ mod tests {
             "stage-export-cost-ledger",
             "stage-export-apache",
             "stage-export-matrix",
-            "stage-export-glossary",
             "stage-export-evals",
             "stage-export-research-objects",
             "stage-export-metadata",
@@ -422,6 +444,22 @@ mod tests {
         let references =
             StageProduct::from_artifacts("stage-export-references", references_artifacts);
 
+        // The glossary export leaf is NOT empty like its neighbours: two of its three
+        // surfaces are members of `lang-projections-archive`, whose fold is fail-closed on
+        // each of them by name. A minimal non-empty pair therefore exercises that wiring
+        // rather than tripping it. (`.vartrans.ttl` is deliberately absent: it is RDF and
+        // rides its own named graph, which this unit test does not assemble.)
+        let mut glossary_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        glossary_artifacts.insert(
+            crate::stages::lang_glossary::GLOSSARY_TABLE_PATH.to_string(),
+            b"<!-- GENERATED -->\n| term | gloss |\n".to_vec(),
+        );
+        glossary_artifacts.insert(
+            crate::stages::lang_glossary::GLOSSARY_TBX_PATH.to_string(),
+            b"<?xml version=\"1.0\"?><martif/>\n".to_vec(),
+        );
+        let glossary = StageProduct::from_artifacts("stage-export-glossary", glossary_artifacts);
+
         // The Pydantic model package product: a minimal non-empty member so the
         // models-python blob fold clears its fail-closed guard (the carrier folds
         // this run's fresh package, never a stale disk read).
@@ -437,6 +475,7 @@ mod tests {
 
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-export-references".to_string(), references);
+        upstream.insert("stage-export-glossary".to_string(), glossary);
         upstream.insert("stage-export-pydantic".to_string(), pydantic);
         upstream.insert("stage-compile-logic".to_string(), compile);
         upstream.insert("stage-export-json-schema".to_string(), json_schema);
@@ -459,7 +498,7 @@ mod tests {
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }
-        // The ten by-reference TAR archives arrive as their OWN stage's product now: fold
+        // The by-reference TAR archives arrive as their OWN stage's product now: fold
         // them over this same fixture upstream and insert the result, exactly as the real
         // DAG does. The sink then READS them (never re-folds), so this also pins that the
         // sink's fail-closed archive wiring is the product read, not an inline build.
@@ -509,7 +548,7 @@ mod tests {
             .expect("the emitted bundle's header reads back");
         assert_eq!(
             pinned.len(),
-            5,
+            7,
             "the pack pins every declared dictionary in band; got {:?}",
             pinned.keys().collect::<Vec<_>>()
         );
@@ -547,7 +586,7 @@ mod tests {
         };
         assert_eq!(
             typed("CompressionDictionaryRealization").len(),
-            5,
+            7,
             "one realization per declared dictionary, IN graph/medium-registry"
         );
         let envelopes = typed("MediumEnvelope");

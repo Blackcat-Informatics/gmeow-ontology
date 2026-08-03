@@ -37,6 +37,7 @@ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 // never to re-fold an archive, which is that stage's job alone.
 use crate::stages::archive_blobs::{
     REP_AXIOMS, REP_LANG_PROJECTIONS, REP_MAPPINGS, REP_QUERIES, REP_SCHEMAS, REP_SHAPES,
+    REP_STATEMENTS, is_lang_projection_member, is_statements_member,
 };
 // The compiled logic/DL projection listing the print-PDF renderer inlines — the SAME
 // member list `axioms-archive` folds, so the two can never disagree about which
@@ -2245,6 +2246,7 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
             | REP_AXIOMS
             | REP_SHAPES
             | REP_LANG_PROJECTIONS
+            | REP_STATEMENTS
             | REP_GENERATED
     )
 }
@@ -2255,8 +2257,8 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
 /// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
 /// filename in their single directory via `members_basename_from_artifacts`) get their directory
 /// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
-/// `REP_LANG_PROJECTIONS`/`REP_GENERATED`, keyed by the committed path) pass through
-/// unchanged. One authority:
+/// `REP_LANG_PROJECTIONS`/`REP_STATEMENTS`/`REP_GENERATED`, keyed by the committed path)
+/// pass through unchanged. One authority:
 /// carrier.rs owns both the forward member naming and this inverse. Returns `None`
 /// for a rep that carries no committed `generated/` file (mirrors
 /// [`archive_rep_carries_generated`]).
@@ -2266,7 +2268,9 @@ pub(crate) fn committed_path_for_archive_member(rep: &str, member: &str) -> Opti
         REP_QUERIES => Some(format!("generated/queries/{member}")),
         REP_SCHEMAS => Some(format!("generated/schemas/{member}")),
         // Already repo-relative (`generated/...` or source `shapes/`/`slices/`).
-        REP_AXIOMS | REP_SHAPES | REP_LANG_PROJECTIONS | REP_GENERATED => Some(member.to_string()),
+        REP_AXIOMS | REP_SHAPES | REP_LANG_PROJECTIONS | REP_STATEMENTS | REP_GENERATED => {
+            Some(member.to_string())
+        }
         _ => None,
     }
 }
@@ -2286,35 +2290,29 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/schemas/card.schema.json"   // REP_SCHEMAS
         || path == "generated/schemas/validate-finding.schema.json" // REP_SCHEMAS
         || path == "generated/datalog/gmeow.dl" // REP_AXIOMS
-        || is_lang_projection_path(path) // REP_LANG_PROJECTIONS
-}
-
-/// Whether a committed path is one of the `lang:` projection deliverables that
-/// [`REP_LANG_PROJECTIONS`] carries. Refused by [`opaque_already_carried`] so the
-/// generated-opaque archive can never double-carry a path the lang-projections
-/// archive owns — the double-carry the superset reverse sweep exists to catch, and
-/// which would also hand the SAME bytes to two differently-primed frames.
-fn is_lang_projection_path(path: &str) -> bool {
-    path.starts_with(crate::stages::lang_projection::LANG_PROJECTION_DIR)
-        && path
-            .as_bytes()
-            .get(crate::stages::lang_projection::LANG_PROJECTION_DIR.len())
-            == Some(&b'/')
+        || is_lang_projection_member(path) // REP_LANG_PROJECTIONS
+        || is_statements_member(path) // REP_STATEMENTS
 }
 
 #[cfg(test)]
-mod lang_projection_rep_tests {
+mod split_rep_tests {
     use super::*;
 
     /// ONE AUTHORITY, both directions: every path
     /// [`crate::stages::archive_blobs::lang_projection_members`] selects into the
     /// `lang-projections-archive` is refused by [`opaque_already_carried`], and no other
-    /// path is. If the two ever disagree, a `generated/projections/lang/**` file would
-    /// either ride BOTH archives (the same bytes in two differently-primed frames, which
-    /// the superset reverse sweep hard-fails) or NEITHER (a silently dropped deliverable).
+    /// path is. If the two ever disagreed, a member of the `lang:` family would either
+    /// ride BOTH archives (the same bytes in two differently-primed frames, which the
+    /// superset reverse sweep hard-fails) or NEITHER (a silently dropped deliverable).
+    ///
+    /// The agreement is now STRUCTURAL — both sides call
+    /// `archive_blobs::is_lang_projection_member` — so what this pins is the SET: the
+    /// nested projection tree and the two non-RDF terminology surfaces are in, and the
+    /// near misses (a sibling directory that merely shares the prefix, the RDF
+    /// `.vartrans.ttl` that rides its own named graph, an unrelated projection) are out.
     #[test]
-    fn the_lang_projection_prefix_is_the_same_set_the_archive_selects() {
-        let artifacts: BTreeMap<String, Vec<u8>> = [
+    fn the_lang_projection_family_is_the_same_set_the_archive_selects() {
+        let mappings: BTreeMap<String, Vec<u8>> = [
             ("generated/projections/lang/ebnf/gmn.ebnf", &b"g"[..]),
             ("generated/projections/lang/bcp47-tags.ttl", b"t"),
             ("generated/projections/lang/gmn1/v1/deep/x.gmn", b"d"),
@@ -2327,19 +2325,31 @@ mod lang_projection_rep_tests {
         .into_iter()
         .map(|(p, b)| (p.to_string(), b.to_vec()))
         .collect();
+        let glossary: BTreeMap<String, Vec<u8>> = [
+            (crate::stages::lang_glossary::GLOSSARY_TABLE_PATH, &b"m"[..]),
+            (crate::stages::lang_glossary::GLOSSARY_TBX_PATH, b"x"),
+            // RDF: it rides graph/fanout/projections/glossary.vartrans.ttl, and a named
+            // graph is never de-folded into bytes to widen a dictionary's population.
+            (crate::stages::lang_glossary::GLOSSARY_VARTRANS_PATH, b"v"),
+        ]
+        .into_iter()
+        .map(|(p, b)| (p.to_string(), b.to_vec()))
+        .collect();
 
-        let selected = crate::stages::archive_blobs::lang_projection_members(&artifacts);
+        let selected = crate::stages::archive_blobs::lang_projection_members(&mappings, &glossary);
         let selected_paths: Vec<&str> = selected.iter().map(|(p, _)| p.as_str()).collect();
         assert_eq!(
             selected_paths,
             [
+                "generated/catalog/glossary.md",
+                "generated/projections/glossary.tbx",
                 "generated/projections/lang/bcp47-tags.ttl",
                 "generated/projections/lang/ebnf/gmn.ebnf",
                 "generated/projections/lang/gmn1/v1/deep/x.gmn",
             ],
-            "the archive selects exactly the lang-projection family, sorted"
+            "the archive selects exactly the lang: deliverable family, sorted"
         );
-        for path in artifacts.keys() {
+        for path in mappings.keys().chain(glossary.keys()) {
             assert_eq!(
                 opaque_already_carried(path),
                 selected_paths.contains(&path.as_str()),
@@ -2361,6 +2371,8 @@ mod lang_projection_rep_tests {
             [
                 ("generated/projections/lang/ebnf/gmn.ebnf", &b"g"[..]),
                 ("generated/projections/lang/tei/x.tei.xml", b"x"),
+                (crate::stages::lang_glossary::GLOSSARY_TABLE_PATH, b"m"),
+                (crate::stages::lang_glossary::GLOSSARY_TBX_PATH, b"b"),
                 ("generated/references/refs.md", b"r"),
             ]
             .into_iter()
@@ -2372,6 +2384,24 @@ mod lang_projection_rep_tests {
             vec!["generated/references/refs.md"],
             "no lang-projection member may reach the generated-opaque archive"
         );
+    }
+
+    /// The statement layer's two byte projections are refused from the generated-opaque
+    /// archive the same way, and for the same reason: they are BYTE-DECORATED RDF, so
+    /// `take_opaque`'s `is_rdf_member` filter would drop them anyway — only
+    /// [`opaque_already_carried`] states that they are `statements-archive`'s members,
+    /// and the sink inserts them into no map but that archive's.
+    #[test]
+    fn the_statement_byte_projections_are_refused_from_the_opaque_archive() {
+        for path in crate::stages::archive_blobs::STATEMENT_FILES {
+            assert!(
+                opaque_already_carried(path),
+                "{path} rides statements-archive and must never double-carry"
+            );
+        }
+        // A near miss under the same directory that no rep claims stays available to the
+        // generated-opaque archive, so the guard is a member list rather than a prefix.
+        assert!(!opaque_already_carried("generated/statements/other.json"));
     }
 }
 
@@ -2578,13 +2608,20 @@ fn collect_fanout_opaque_members(
         &mut members,
         producer_artifacts("stage-export-matrix", upstream)?,
     );
-    // The human-readable per-slice terminology glossary table: projected once in
-    // stage-export-glossary from the reviewed `.po` fold (the SAME entry list the
-    // graph/lang-glossary-corpus graph carries); read off its product, never re-rendered.
-    take_opaque(
-        &mut members,
-        producer_artifacts("stage-export-glossary", upstream)?,
-    );
+    // NOT HERE: `stage-export-glossary`'s three surfaces. The human-readable
+    // `generated/catalog/glossary.md` table and the ISO-30042 `generated/projections/
+    // glossary.tbx` termbase are still standalone byte projections a consumer reads as
+    // files — but on the `lang:` family's OWN rep,
+    // [`REP_LANG_PROJECTIONS`](crate::stages::archive_blobs::REP_LANG_PROJECTIONS),
+    // folded by `stage-archive-blobs` off this same product. A rep is the unit a
+    // `gmeow:CompressionDictionary` primes, and these two carry the natural-language term
+    // inventory `gmeow-lang-ast-v1` is trained on, so leaving them in this archive primed
+    // them with the core-tier dictionary instead. `opaque_already_carried` refuses both,
+    // so a `take_opaque` over a product that happens to carry one cannot silently re-add
+    // it here and double-carry the bytes. The third surface,
+    // `generated/projections/glossary.vartrans.ttl`, is RDF and rides its RDF-fanout named
+    // graph (collected above with the other RDF fanout members) — a named graph is never
+    // de-folded into bytes to widen a dictionary's population.
     // The two slice-quality floor TSVs (P17 projection of the ontology-resident
     // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): projected once in
     // stage-export-governance-floors from the rubric slice; read off its product, never
@@ -2664,26 +2701,16 @@ fn collect_fanout_opaque_members(
         members.insert(path.to_string(), bytes);
     }
 
-    // The statement-layer OWL + RDF-1.2 byte projections are byte-decorated (generated
-    // banners), so they cannot reconstruct from a canonical named-graph fold — carry
-    // their committed byte projections here. Read off the sink-consumed stage-statements
-    // product (the compile ran once, in that stage), never recomputed from disk.
-    members.insert(
-        crate::stages::statements::OWL_PATH.to_string(),
-        producer_artifact(
-            "stage-statements",
-            crate::stages::statements::OWL_PATH,
-            upstream,
-        )?,
-    );
-    members.insert(
-        crate::stages::statements::RDF12_PATH.to_string(),
-        producer_artifact(
-            "stage-statements",
-            crate::stages::statements::RDF12_PATH,
-            upstream,
-        )?,
-    );
+    // NOT HERE: the statement-layer OWL + RDF-1.2 byte projections. They are still
+    // byte-decorated (generated banners) and still cannot reconstruct from a canonical
+    // named-graph fold, so they are still carried as committed byte projections — but on
+    // their OWN rep, [`REP_STATEMENTS`](crate::stages::archive_blobs::REP_STATEMENTS),
+    // folded by `stage-archive-blobs` off the same `stage-statements` product. A rep is
+    // the unit a `gmeow:CompressionDictionary` primes, so leaving them in this archive
+    // left `gmeow:dictGmeowClaimsV1` with nothing but the ~9 KB `yaml-ld-archive` to
+    // prime. Nothing that was a graph becomes bytes: the queryable statement semantics
+    // keep riding `graph/statements`. `opaque_already_carried` refuses both paths, so
+    // they can never double-carry.
     // metadata (void.ttl + dcat.ttl) — byte-decorated, carried as byte projections; read
     // off the stage-export-metadata product (rendered once from the same snapshot carrier).
     members.extend(producer_artifacts("stage-export-metadata", upstream)?);

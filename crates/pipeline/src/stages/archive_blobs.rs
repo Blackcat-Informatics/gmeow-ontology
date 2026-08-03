@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `archive-blobs` stage: the SINGLE producer of the bundle's by-reference TAR
-//! archive blobs (ten of them — see [`ARCHIVE_REPS`]).
+//! archive blobs (eleven of them — see [`ARCHIVE_REPS`]).
 //!
 //! The pre-pipeline generator folded five TAR archives into `gmeow.gts` —
 //! `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` /
@@ -86,31 +86,70 @@ pub(crate) const REP_SHAPES: &str = "shapes-archive";
 /// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
 /// this exact rep string.
 pub(crate) const REP_AXIOMS: &str = "axioms-archive";
-/// tar of the `lang:` projection deliverables under
-/// [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR),
-/// member = repo-relative path.
+/// tar of the WHOLE `lang:` deliverable family — everything under
+/// [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR) plus
+/// the two non-RDF terminology surfaces in [`LANG_GLOSSARY_MEMBERS`] — member =
+/// repo-relative path. [`is_lang_projection_member`] is the ONE authority on
+/// membership.
 ///
 /// # Why these have their OWN rep instead of riding `generated-opaque-archive`
 ///
 /// A `gmeow:CompressionDictionary` primes a REP: the rep is the unit the medium
 /// registry assigns a dictionary to, so a payload family that shares a rep with
-/// unrelated bytes cannot be primed separately from them. These ~150 KB of grammar /
-/// CoNLL-U / TEI / GMN1 bytes are a distinct external-format family a consumer
-/// extracts on its own, so they get their own rep rather than being welded to the
-/// general `generated/` archive's medium assignment.
+/// unrelated bytes cannot be primed separately from them. The grammar / CoNLL-U /
+/// TEI / GMN1 bytes and the ~18 MB TBX termbase + glossary table are one distinct
+/// external-format family a consumer extracts on its own, so they get their own rep
+/// rather than being welded to the general `generated/` archive's medium assignment.
+///
+/// # Why the glossary surfaces belong to THIS family, not the general one
+///
+/// `generated/projections/glossary.tbx` (ISO-30042 TBX) and
+/// `generated/catalog/glossary.md` are projections of the SAME reviewed `.po` fold
+/// the rest of this family comes from, produced by the SAME `stage-export-glossary`
+/// leaf that emits `glossary.vartrans.ttl`, and their byte profile is the
+/// natural-language term inventory — the exact vocabulary a linguistic dictionary is
+/// trained on. Leaving them on `generated-opaque-archive` primed them with the
+/// core-tier dictionary instead, and left `gmeow-lang-ast-v1` measuring a population
+/// two orders of magnitude smaller than the family it names.
+///
+/// `glossary.vartrans.ttl` is deliberately NOT here: it is RDF and rides the
+/// `graph/fanout/projections/glossary.vartrans.ttl` named graph, which is where a
+/// canonical fold belongs. De-folding a named graph into bytes to widen a
+/// dictionary's population would trade queryable structure for compression, which is
+/// never a legal trade.
 ///
 /// The split costs ZERO ontological use, which is exactly why it is legal here and
-/// was NOT the answer for the mathematical content: these files are ALREADY opaque
-/// byte projections (standalone external-format artifacts a consumer reads as files;
-/// none reconstructs from a canonical named-graph fold), and their queryable
-/// `lang:ProjectionEmission` semantics keep riding the `graph/lang-projection-corpus`
-/// named graph independently. Nothing that was a graph becomes bytes.
+/// was NOT the answer for the mathematical content: every member is ALREADY an
+/// opaque byte projection (a standalone external-format artifact a consumer reads as
+/// a file; none reconstructs from a canonical named-graph fold), and the queryable
+/// `lang:ProjectionEmission` / `graph/lang-glossary-corpus` semantics keep riding
+/// their named graphs independently. Nothing that was a graph becomes bytes.
 ///
 /// The members must therefore be carried by THIS rep and no longer by
-/// `REP_GENERATED`: `carrier::opaque_already_carried` refuses the prefix so the two
+/// `REP_GENERATED`: `carrier::opaque_already_carried` refuses every member so the two
 /// archives cannot double-carry a path, and the superset reverse sweep would catch it
 /// if they did.
 pub(crate) const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
+/// tar of the RDF 1.2 statement layer's two committed byte projections — the OWL
+/// downcast and the RDF-1.2 lead — member = repo-relative path.
+///
+/// # Why these have their OWN rep
+///
+/// Both files are BYTE-DECORATED RDF: their committed form carries generated banners
+/// and section markers that are not graph data, so they cannot reconstruct from a
+/// canonical named-graph fold and have always travelled as opaque bytes (the
+/// `byte_decorated_rdf_paths_fall_through_to_blob_members` gate in
+/// [`crate::stages::superset`] pins that). Riding `REP_GENERATED` welded them to the
+/// core-tier dictionary's medium assignment, which left `gmeow:dictGmeowClaimsV1`
+/// with only the ~9 KB `yaml-ld-archive` to prime. Giving the statement layer its own
+/// rep puts the claim vocabulary — reifier IRIs, annotation-coat predicates,
+/// standpoint qualifiers — on a frame set a claim dictionary can actually be measured
+/// over.
+///
+/// Nothing that was a graph becomes bytes: the queryable statement semantics keep
+/// riding the `graph/statements` named graph, exactly as before. Only the medium
+/// assignment of bytes that were ALREADY bytes changes.
+pub(crate) const REP_STATEMENTS: &str = "statements-archive";
 /// tar of the CLAIM CORPUS's JSON-LD-family surface — the JSON-LD-star + YAML-LD-star
 /// projections of the RDF 1.2 statement layer, member = bare filename
 /// ([`YAMLLD_JSONLD_MEMBER`] / [`YAMLLD_YAMLLD_MEMBER`]). Re-exported from the
@@ -123,10 +162,11 @@ pub(crate) const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
 /// to be `#[cfg(test)]`, so the production sink authored no such frame at all and the
 /// rep was a reader-side declaration with no live producer. The frame exists now
 /// because a JSON-LD-family consumer reads the reified statement layer straight out of
-/// this archive. A claim-specific dictionary for it was measured and RETIRED — one
-/// ~9 KB frame is too small a population for any grid cell to pay for a dictionary's
-/// own in-band bytes — so the frame is primed by `gmeow:dictGmeowCoreV1` and stays
-/// dictionary-compressed.
+/// this archive. It is primed by `gmeow:dictGmeowClaimsV1` together with
+/// [`REP_STATEMENTS`]: on its own this is ONE ~9 KB frame, far too small a population
+/// to pay for any dictionary's in-band bytes, so the claim dictionary is measured over
+/// the claim corpus's WHOLE frame set — this archive plus the statement layer's two
+/// byte projections — rather than over this frame alone.
 ///
 /// The members are the claim corpus and nothing else — not the whole carrier. (The
 /// whole-carrier JSON-LD-star document is a `make build` deliverable,
@@ -149,12 +189,57 @@ pub(crate) const AXIOM_FILES: [&str; 4] = [
     "generated/datalog/gmeow.dl",
 ];
 
+/// The two NON-RDF terminology surfaces `stage-export-glossary` emits that join the
+/// `lang:` deliverable family on [`REP_LANG_PROJECTIONS`] — the ISO-30042 TBX termbase
+/// and the human-readable glossary table.
+///
+/// `generated/projections/glossary.vartrans.ttl`, the third surface that leaf emits, is
+/// deliberately ABSENT: it is RDF and rides its RDF-fanout named graph, and a named
+/// graph is never de-folded into bytes to widen a dictionary's population.
+pub(crate) const LANG_GLOSSARY_MEMBERS: [&str; 2] = [
+    crate::stages::lang_glossary::GLOSSARY_TABLE_PATH,
+    crate::stages::lang_glossary::GLOSSARY_TBX_PATH,
+];
+
+/// The statement layer's two committed byte projections, folded as [`REP_STATEMENTS`]
+/// off THIS run's `stage-statements` product. Order is canonical for the fail-closed
+/// scan; the archive re-sorts members by key for determinism.
+pub(crate) const STATEMENT_FILES: [&str; 2] = [
+    crate::stages::statements::OWL_PATH,
+    crate::stages::statements::RDF12_PATH,
+];
+
+/// Whether a committed path is a member of the `lang:` deliverable family
+/// [`REP_LANG_PROJECTIONS`] carries.
+///
+/// THE one authority, in both directions: [`lang_projection_members`] selects the
+/// archive's members with it and `carrier::opaque_already_carried` refuses the same
+/// paths from the generated-opaque archive with it, so the two can never disagree
+/// about which archive owns a path — the double-carry the superset reverse sweep
+/// exists to catch, and which would also hand the SAME bytes to two differently-primed
+/// frames.
+///
+/// The prefix test requires the directory separator, so a sibling directory whose name
+/// merely starts with `generated/projections/lang` cannot be swept in.
+pub(crate) fn is_lang_projection_member(path: &str) -> bool {
+    let dir = crate::stages::lang_projection::LANG_PROJECTION_DIR;
+    (path.starts_with(dir) && path.as_bytes().get(dir.len()) == Some(&b'/'))
+        || LANG_GLOSSARY_MEMBERS.contains(&path)
+}
+
+/// Whether a committed path is one of the statement-layer byte projections
+/// [`REP_STATEMENTS`] carries. The same one-authority role
+/// [`is_lang_projection_member`] plays for the `lang:` family.
+pub(crate) fn is_statements_member(path: &str) -> bool {
+    STATEMENT_FILES.contains(&path)
+}
+
 /// The archive representations this stage attaches, in the CANONICAL order
 /// [`build_archive_blobs`] returns them. [`archive_blobs_from_product`] reads them
 /// back in exactly this order, so the row sequence a consumer sees is identical to
 /// the sequence the fold produced (order-stable regardless of the blob lane's own
 /// record order, which a cache round-trip is free to renormalize).
-const ARCHIVE_REPS: [&str; 10] = [
+const ARCHIVE_REPS: [&str; 11] = [
     REP_MAPPINGS,
     REP_CELLS,
     REP_QUERIES,
@@ -164,8 +249,35 @@ const ARCHIVE_REPS: [&str; 10] = [
     REP_AXIOMS,
     REP_MODELS_PYTHON,
     REP_LANG_PROJECTIONS,
+    REP_STATEMENTS,
     REP_YAMLLD,
 ];
+
+/// The five PRODUCER PRODUCTS the fold reads archive members off, each an in-memory
+/// artifact map keyed by logical path. Grouped into named fields (like
+/// [`ShapeSurfaces`]) for a reason that is sharper here than anywhere else in this
+/// module: all five have the SAME type, `&BTreeMap<String, Vec<u8>>`, so as positional
+/// parameters a transposition would compile silently and fold one producer's output
+/// into another's archive.
+///
+/// Every one of them is a PRODUCT read, never a disk read: the committed files these
+/// members reconstruct are not flushed until the post-run reconcile returns, so a disk
+/// read would tar the previous build's bytes.
+pub(crate) struct ProductArtifacts<'a> {
+    /// `stage-compile-logic` — the compiled logic/DL axiom surface plus the
+    /// validation/procedural shape surfaces.
+    pub(crate) axioms: &'a BTreeMap<String, Vec<u8>>,
+    /// `stage-mappings` — the SSSOM lift maps, the generated SPARQL surface, and the
+    /// `generated/projections/lang/**` deliverable tree.
+    pub(crate) mappings: &'a BTreeMap<String, Vec<u8>>,
+    /// `stage-export-glossary` — the two NON-RDF terminology surfaces that complete the
+    /// `lang:` family (its `.vartrans.ttl` sibling is RDF and rides a named graph).
+    pub(crate) glossary: &'a BTreeMap<String, Vec<u8>>,
+    /// `stage-export-pydantic` — the generated Pydantic model package.
+    pub(crate) models_python: &'a BTreeMap<String, Vec<u8>>,
+    /// `stage-statements` — the statement layer's two committed byte projections.
+    pub(crate) statements: &'a BTreeMap<String, Vec<u8>>,
+}
 
 /// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
 /// producing export leaves' products (never a stale disk read). Grouped into named
@@ -210,12 +322,17 @@ pub(crate) struct ClaimSerializations<'a> {
 pub(crate) fn build_archive_blobs(
     root: &Path,
     schema_surfaces: &SchemaSurfaces<'_>,
-    axiom_artifacts: &BTreeMap<String, Vec<u8>>,
-    mappings_artifacts: &BTreeMap<String, Vec<u8>>,
+    products: &ProductArtifacts<'_>,
     shape_surfaces: &ShapeSurfaces<'_>,
-    models_python_artifacts: &BTreeMap<String, Vec<u8>>,
     claim_serializations: &ClaimSerializations<'_>,
 ) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
+    let ProductArtifacts {
+        axioms: axiom_artifacts,
+        mappings: mappings_artifacts,
+        glossary: glossary_artifacts,
+        models_python: models_python_artifacts,
+        statements: statement_artifacts,
+    } = *products;
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
     // regenerate — the committed generated/mappings/*.sssom.tsv are not written until
@@ -394,21 +511,51 @@ pub(crate) fn build_archive_blobs(
              the models-python archive would fold empty (fail-closed)",
         ));
     }
-    // lang-projections: the `generated/projections/lang/**` external-format deliverables,
-    // member = repo-relative path, sourced from THIS run's stage-mappings product for the
+    // lang-projections: the WHOLE `lang:` deliverable family — the
+    // `generated/projections/lang/**` external-format deliverables off THIS run's
+    // stage-mappings product plus the two non-RDF terminology surfaces off THIS run's
+    // stage-export-glossary product — member = repo-relative path, product-sourced for the
     // same stale-disk reason the mappings/queries archives are. See [`REP_LANG_PROJECTIONS`]
     // for why they are their OWN rep rather than members of the generated-opaque archive.
-    let lang_projections = lang_projection_members(mappings_artifacts);
-    // Fail closed, mirroring every other product-sourced archive above: an empty match
-    // means stage-mappings keyed its projections under an unexpected prefix (or emitted
-    // none), which would fold an EMPTY archive AND leave the lang-projections rep empty
-    // — a silent capability degradation, not a fallback.
-    if lang_projections.is_empty() {
+    let lang_projections = lang_projection_members(mappings_artifacts, glossary_artifacts);
+    // Fail closed, mirroring every other product-sourced archive above: a missing member
+    // means a producer keyed its output under an unexpected path (or emitted none), which
+    // would fold a SHORT archive AND silently shrink the population gmeow-lang-ast-v1 is
+    // measured over — a silent capability degradation, not a fallback. Checked as the two
+    // separate obligations they are, so the diagnosis names which producer went quiet.
+    if !lang_projections
+        .iter()
+        .any(|(path, _)| path.starts_with(crate::stages::lang_projection::LANG_PROJECTION_DIR))
+    {
         return Err(stage_err(
             "no generated/projections/lang/** artifacts in the stage-mappings product — the \
-             lang-projections archive would fold empty (fail-closed)",
+             lang-projections archive would fold without its grammar/CoNLL-U/TEI/GMN1 family \
+             (fail-closed)",
         ));
     }
+    for member in LANG_GLOSSARY_MEMBERS {
+        if !lang_projections.iter().any(|(path, _)| path == member) {
+            return Err(stage_err(&format!(
+                "missing {member} in the stage-export-glossary product — the lang-projections \
+                 archive would fold without the terminology surface it primes (fail-closed)"
+            )));
+        }
+    }
+    // statements: the statement layer's two byte-decorated RDF projections, member =
+    // repo-relative path, sourced from THIS run's stage-statements product (the compile
+    // ran ONCE, in that stage). Each MUST exist (no-optionality, fail-closed): a partial
+    // archive would both break the superset gate's reconstruction of a committed path and
+    // leave gmeow:dictGmeowClaimsV1 priming a truncated population.
+    let mut statements: Vec<(String, Vec<u8>)> = Vec::with_capacity(STATEMENT_FILES.len());
+    for rel in STATEMENT_FILES {
+        let bytes = statement_artifacts.get(rel).ok_or_else(|| {
+            stage_err(&format!(
+                "missing statement artifact {rel} in the stage-statements product (fail-closed)"
+            ))
+        })?;
+        statements.push((rel.to_string(), bytes.clone()));
+    }
+    statements.sort_by(|a, b| a.0.cmp(&b.0));
     // yaml-ld: the claim corpus's JSON-LD-star + YAML-LD-star surface, member = bare
     // filename, rendered ONCE by stage-statements off the frozen statement dataset and
     // only TARRED here. See [`REP_YAMLLD`] for why the members are the claim corpus
@@ -448,27 +595,29 @@ pub(crate) fn build_archive_blobs(
         archive_blob(REP_AXIOMS, &axioms)?,
         archive_blob(REP_MODELS_PYTHON, &models_python)?,
         archive_blob(REP_LANG_PROJECTIONS, &lang_projections)?,
+        archive_blob(REP_STATEMENTS, &statements)?,
         archive_blob(REP_YAMLLD, &claim_serializations)?,
     ])
 }
 
-/// The [`REP_LANG_PROJECTIONS`] members of a `stage-mappings` product: every artifact
-/// under [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR),
-/// keyed by its repo-relative committed path (so
+/// The [`REP_LANG_PROJECTIONS`] members of the two products that supply them: every
+/// artifact [`is_lang_projection_member`] claims, keyed by its repo-relative committed
+/// path (so
 /// [`committed_path_for_archive_member`](crate::stages::carrier::committed_path_for_archive_member)
 /// is the identity for this rep) and sorted.
 ///
-/// Split out as its own function because the carrier's `opaque_already_carried` guard
-/// has to refuse the SAME prefix this selects — one authority for "which paths ride the
-/// lang-projections archive", checked against that guard by
-/// `carrier::lang_projection_rep_tests::the_lang_projection_prefix_is_the_same_set_the_archive_selects`.
+/// `mappings_artifacts` carries the `generated/projections/lang/**` tree,
+/// `glossary_artifacts` the two non-RDF terminology surfaces; the predicate — not the
+/// source product — decides membership, so a member cannot be selected here and
+/// simultaneously admitted to the generated-opaque archive.
 pub(crate) fn lang_projection_members(
-    artifacts: &BTreeMap<String, Vec<u8>>,
+    mappings_artifacts: &BTreeMap<String, Vec<u8>>,
+    glossary_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Vec<(String, Vec<u8>)> {
-    let prefix = format!("{}/", crate::stages::lang_projection::LANG_PROJECTION_DIR);
-    let mut out: Vec<(String, Vec<u8>)> = artifacts
+    let mut out: Vec<(String, Vec<u8>)> = mappings_artifacts
         .iter()
-        .filter(|(path, _)| path.starts_with(&prefix))
+        .chain(glossary_artifacts.iter())
+        .filter(|(path, _)| is_lang_projection_member(path))
         .map(|(path, bytes)| (path.clone(), bytes.clone()))
         .collect();
     out.sort_by(|a, b| a.0.cmp(&b.0));
@@ -591,7 +740,7 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
-/// The `archive-blobs` pipeline stage: folds the ten by-reference TAR archives and
+/// The `archive-blobs` pipeline stage: folds the eleven by-reference TAR archives and
 /// attaches each to its product's blob lane under its `representation` label.
 pub struct ArchiveBlobsStage {
     consumes: Vec<String>,
@@ -601,17 +750,21 @@ impl ArchiveBlobsStage {
     /// Construct the stage. It consumes exactly the producers whose in-memory products
     /// supply archive members: `stage-compile-logic` (the axiom surface + the
     /// validation/procedural shape surfaces), `stage-mappings` (SSSOM + generated
-    /// queries), `stage-export-json-schema` (the four JSON Schema documents),
+    /// queries + the `lang:` projection tree), `stage-export-glossary` (the two non-RDF
+    /// terminology surfaces that complete the `lang:` family),
+    /// `stage-export-json-schema` (the four JSON Schema documents),
     /// `stage-export-pydantic` (the model package), the three generated-shape export
-    /// leaves, and `stage-statements` (the claim corpus's JSON-LD-star / YAML-LD-star
-    /// surface). The edge set is declared identically here, in
-    /// [`crate::run::full_spec`], and in `slices/core/pipeline/module.ttl`.
+    /// leaves, and `stage-statements` (the statement layer's two byte projections and
+    /// the claim corpus's JSON-LD-star / YAML-LD-star surface). The edge set is declared
+    /// identically here, in [`crate::run::full_spec`], and in
+    /// `slices/core/pipeline/module.ttl`.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
                 "stage-export-constraint-shapes".to_string(),
                 "stage-export-frame-shapes".to_string(),
+                "stage-export-glossary".to_string(),
                 "stage-export-json-schema".to_string(),
                 "stage-export-pydantic".to_string(),
                 "stage-export-result-shapes".to_string(),
@@ -649,7 +802,11 @@ impl Stage for ArchiveBlobsStage {
         // v3: `yaml-ld-archive` joins the fold — the claim corpus's JSON-LD-star /
         // YAML-LD-star surface becomes a PRODUCTION frame (its writer was `#[cfg(test)]`),
         // so a JSON-LD-family consumer reads the statement layer out of the bundle.
-        "archive-blobs.v3"
+        // v4: `statements-archive` joins the fold and the two non-RDF terminology surfaces
+        // join `lang-projections-archive`, both off `generated-opaque-archive`. A rep is
+        // the unit a dictionary primes, so this is what gives gmeow-claims-v1 and
+        // gmeow-lang-ast-v1 the frame sets their names claim.
+        "archive-blobs.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         authored_archive_sources(root)
@@ -719,6 +876,15 @@ pub(crate) fn fold_archive_blobs(
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product"))?
         .artifacts();
+    // THIS run's terminology surfaces (the two non-RDF members of REP_LANG_PROJECTIONS),
+    // from the stage-export-glossary product: the `.po` fold ran ONCE in that leaf, and the
+    // committed generated/catalog/glossary.md and generated/projections/glossary.tbx are
+    // not flushed until the reconcile returns, so a disk read here would tar the stale
+    // committed pair.
+    let glossary_artifacts = upstream
+        .get("stage-export-glossary")
+        .ok_or_else(|| stage_err("missing stage-export-glossary product"))?
+        .artifacts();
     // THIS run's generated shape surfaces (REP_SHAPES members), from the producing
     // export leaves' products so the archive never lags a competency/frame edit:
     // the committed generated/shapes/*.ttl are projected back from the bundle by the
@@ -754,10 +920,15 @@ pub(crate) fn fold_archive_blobs(
         .get("stage-export-pydantic")
         .ok_or_else(|| stage_err("missing stage-export-pydantic product"))?
         .artifacts();
-    // THIS run's claim-corpus JSON-LD-family surface (REP_YAMLLD), sourced from the
-    // stage-statements product for the same reason every surface above is: the render
-    // ran ONCE in the producing stage, and these two artifacts ride the INTERNAL
-    // `pipeline/statements/` lane, so they exist nowhere on disk to be stale-read.
+    // THIS run's statement layer (REP_STATEMENTS and REP_YAMLLD alike), sourced from the
+    // stage-statements product for the same reason every surface above is: the compile and
+    // the render both ran ONCE in that stage. The two committed byte projections are not
+    // flushed until the reconcile returns, and the two JSON-LD-family artifacts ride the
+    // INTERNAL `pipeline/statements/` lane and exist nowhere on disk at all.
+    let statement_artifacts = upstream
+        .get("stage-statements")
+        .ok_or_else(|| stage_err("missing stage-statements product"))?
+        .artifacts();
     let claim_jsonld = upstream
         .get("stage-statements")
         .and_then(|p| p.artifact(crate::stages::statements::RDF12_JSONLD_PATH))
@@ -786,14 +957,18 @@ pub(crate) fn fold_archive_blobs(
             card: &card_schema_json,
             finding: &finding_schema_json,
         },
-        &compile_artifacts,
-        &mappings_artifacts,
+        &ProductArtifacts {
+            axioms: &compile_artifacts,
+            mappings: &mappings_artifacts,
+            glossary: &glossary_artifacts,
+            models_python: &models_python_artifacts,
+            statements: &statement_artifacts,
+        },
         &ShapeSurfaces {
             result: &result_shapes_ttl,
             frame: &frame_shapes_ttl,
             constraint: &constraint_shapes_ttl,
         },
-        &models_python_artifacts,
         &ClaimSerializations {
             jsonld: &claim_jsonld,
             yamlld: &claim_yamlld,
@@ -844,18 +1019,56 @@ mod tests {
         }
     }
 
-    /// The [`sample_claim_serializations`] bytes as a `stage-statements` product's
-    /// internal artifact lane, for the fixtures that drive the fold through `upstream`.
-    fn sample_claim_serialization_artifacts() -> BTreeMap<String, Vec<u8>> {
-        let sample = sample_claim_serializations();
+    /// A minimal non-empty `stage-statements` product: the two committed byte
+    /// projections [`REP_STATEMENTS`] folds. Production reads the real compile off that
+    /// stage; the bytes are irrelevant to the channels these tests assert, but their
+    /// PRESENCE is what clears the [`REP_STATEMENTS`] fail-closed guard.
+    fn sample_statement_artifacts() -> BTreeMap<String, Vec<u8>> {
         BTreeMap::from([
             (
-                crate::stages::statements::RDF12_JSONLD_PATH.to_string(),
-                sample.jsonld.to_vec(),
+                crate::stages::statements::OWL_PATH.to_string(),
+                b"# GENERATED - statement OWL downcast\n".to_vec(),
             ),
             (
-                crate::stages::statements::RDF12_YAMLLD_PATH.to_string(),
-                sample.yamlld.to_vec(),
+                crate::stages::statements::RDF12_PATH.to_string(),
+                b"# GENERATED - RDF 1.2 statement lead\n".to_vec(),
+            ),
+        ])
+    }
+
+    /// The whole `stage-statements` product stand-in for the fixtures that drive the
+    /// fold through `upstream`: the two committed byte projections plus the two
+    /// JSON-LD-family artifacts on the internal `pipeline/statements/` lane.
+    fn sample_statements_product_artifacts() -> BTreeMap<String, Vec<u8>> {
+        let sample = sample_claim_serializations();
+        let mut out = sample_statement_artifacts();
+        out.insert(
+            crate::stages::statements::RDF12_JSONLD_PATH.to_string(),
+            sample.jsonld.to_vec(),
+        );
+        out.insert(
+            crate::stages::statements::RDF12_YAMLLD_PATH.to_string(),
+            sample.yamlld.to_vec(),
+        );
+        out
+    }
+
+    /// A minimal `stage-export-glossary` product: the two NON-RDF terminology surfaces
+    /// [`REP_LANG_PROJECTIONS`] folds, plus the RDF `.vartrans.ttl` sibling that must
+    /// NOT be selected into it (it rides its own named graph).
+    fn sample_glossary_artifacts() -> BTreeMap<String, Vec<u8>> {
+        BTreeMap::from([
+            (
+                crate::stages::lang_glossary::GLOSSARY_TABLE_PATH.to_string(),
+                b"<!-- GENERATED -->\n| term | gloss |\n".to_vec(),
+            ),
+            (
+                crate::stages::lang_glossary::GLOSSARY_TBX_PATH.to_string(),
+                b"<?xml version=\"1.0\"?><martif/>\n".to_vec(),
+            ),
+            (
+                crate::stages::lang_glossary::GLOSSARY_VARTRANS_PATH.to_string(),
+                b"# GENERATED vartrans fold\n".to_vec(),
             ),
         ])
     }
@@ -1025,10 +1238,14 @@ mod tests {
         let blobs = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &mappings,
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &mappings,
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &shapes,
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1053,10 +1270,14 @@ mod tests {
         let err = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &no_queries,
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &no_queries,
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &shapes,
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect_err("empty queries product must fail closed");
@@ -1098,10 +1319,14 @@ mod tests {
         let blobs = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &mappings,
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &mappings,
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &shapes,
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1126,10 +1351,14 @@ mod tests {
         let err = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &no_mappings,
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &no_mappings,
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &shapes,
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect_err("empty mappings product must fail closed");
@@ -1174,14 +1403,18 @@ mod tests {
         let blobs = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts_from_disk(&root),
-            &mappings_artifacts_from_disk(&root),
+            &ProductArtifacts {
+                axioms: &axiom_artifacts_from_disk(&root),
+                mappings: &mappings_artifacts_from_disk(&root),
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &ShapeSurfaces {
                 result: &result_probe,
                 frame: &frame_probe,
                 constraint: &constraint_probe,
             },
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1225,14 +1458,18 @@ mod tests {
         let blobs = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &mappings_artifacts_from_disk(&root),
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &mappings_artifacts_from_disk(&root),
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &ShapeSurfaces {
                 result: &fresh_result_shapes_from_disk(&root),
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1314,14 +1551,18 @@ mod tests {
         let blobs = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &mappings_artifacts_from_disk(&root),
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &mappings_artifacts_from_disk(&root),
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &ShapeSurfaces {
                 result: &fresh_result_shapes_from_disk(&root),
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1351,14 +1592,18 @@ mod tests {
         let again = build_archive_blobs(
             &root,
             &empty_schemas(),
-            &axiom_artifacts,
-            &mappings_artifacts_from_disk(&root),
+            &ProductArtifacts {
+                axioms: &axiom_artifacts,
+                mappings: &mappings_artifacts_from_disk(&root),
+                glossary: &sample_glossary_artifacts(),
+                models_python: &sample_models_python(),
+                statements: &sample_statement_artifacts(),
+            },
             &ShapeSurfaces {
                 result: &fresh_result_shapes_from_disk(&root),
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
-            &sample_models_python(),
             &sample_claim_serializations(),
         )
         .expect("archive blobs");
@@ -1413,10 +1658,11 @@ mod tests {
         );
         upstream.insert(
             "stage-statements".to_string(),
-            StageProduct::from_artifacts(
-                "stage-statements",
-                sample_claim_serialization_artifacts(),
-            ),
+            StageProduct::from_artifacts("stage-statements", sample_statements_product_artifacts()),
+        );
+        upstream.insert(
+            "stage-export-glossary".to_string(),
+            StageProduct::from_artifacts("stage-export-glossary", sample_glossary_artifacts()),
         );
         upstream.insert(
             "stage-export-result-shapes".to_string(),
@@ -1503,9 +1749,17 @@ mod tests {
             .and_then(|p| p.artifact(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH))
             .expect("constraint-shapes.ttl")
             .to_vec();
+        let glossary_artifacts = upstream
+            .get("stage-export-glossary")
+            .expect("stage-export-glossary product")
+            .artifacts();
         let models_python_artifacts = upstream
             .get("stage-export-pydantic")
             .expect("stage-export-pydantic product")
+            .artifacts();
+        let statement_artifacts = upstream
+            .get("stage-statements")
+            .expect("stage-statements product")
             .artifacts();
         let claim_jsonld = upstream
             .get("stage-statements")
@@ -1525,14 +1779,18 @@ mod tests {
                 card: &card_schema_json,
                 finding: &finding_schema_json,
             },
-            &compile_artifacts,
-            &mappings_artifacts,
+            &ProductArtifacts {
+                axioms: &compile_artifacts,
+                mappings: &mappings_artifacts,
+                glossary: &glossary_artifacts,
+                models_python: &models_python_artifacts,
+                statements: &statement_artifacts,
+            },
             &ShapeSurfaces {
                 result: &result_shapes_ttl,
                 frame: &frame_shapes_ttl,
                 constraint: &constraint_shapes_ttl,
             },
-            &models_python_artifacts,
             &ClaimSerializations {
                 jsonld: &claim_jsonld,
                 yamlld: &claim_yamlld,

@@ -941,7 +941,7 @@ mod tests {
         // JSON-LD-star / YAML-LD-star surface), so
         // "absent" is no longer its contract. Its PRESENCE is asserted against a real
         // DAG emission in `tests/medium_bundle.rs`
-        // (`the_claim_corpus_archive_is_a_real_frame_primed_by_core`) rather than against this
+        // (`the_claim_reps_are_real_frames_primed_by_claims`) rather than against this
         // git-ignored local bundle, which a stale worktree copy would answer wrongly in
         // either direction.
 

@@ -65,7 +65,10 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 /// Committed logical path of the human-readable per-slice terminology glossary — the
 /// Markdown projection of the `graph/lang-glossary-corpus` graph, grouped by slice then
 /// language. A byte-decorated opaque fanout member (it carries a GENERATED banner and
-/// section headers), reconstructed by the superset gate from the `REP_GENERATED` archive.
+/// section headers), reconstructed by the superset gate from the
+/// [`REP_LANG_PROJECTIONS`](crate::stages::archive_blobs::REP_LANG_PROJECTIONS) archive:
+/// it is natural-language term inventory, so it rides the `lang:` family's rep and is
+/// primed by `gmeow:dictGmeowLangAstV1` rather than by the core-tier dictionary.
 pub const GLOSSARY_TABLE_PATH: &str = "generated/catalog/glossary.md";
 
 /// Committed logical path of the OntoLex `vartrans:translation` interop lowering — the
@@ -83,7 +86,9 @@ pub const GLOSSARY_VARTRANS_PATH: &str = "generated/projections/glossary.vartran
 /// standard terminology-interchange XML projection of `graph/lang-glossary-corpus`: one
 /// `<termEntry>` per lexical concept, one `<langSet>` per language, one `<tig><term>` per
 /// term. A byte-decorated opaque fanout member (an XML prolog + `<!-- GENERATED -->` banner)
-/// riding `stage-export-glossary`, reconstructed by the superset gate from `REP_GENERATED`.
+/// riding `stage-export-glossary`, reconstructed by the superset gate from
+/// [`REP_LANG_PROJECTIONS`](crate::stages::archive_blobs::REP_LANG_PROJECTIONS) — the
+/// `lang:` family's own rep — for the same reason [`GLOSSARY_TABLE_PATH`] does.
 pub const GLOSSARY_TBX_PATH: &str = "generated/projections/glossary.tbx";
 
 use gmeow_ns::GMEOW_NS;
@@ -363,7 +368,7 @@ fn nt_literal(value: &str) -> String {
     out
 }
 
-// ── The human-readable glossary table (a byte-decorated `REP_GENERATED` projection) ──────
+// ── The human-readable glossary table (a byte-decorated `lang:`-family projection) ───────
 
 /// The GENERATED banner + prose head of the glossary table. Its presence (a comment
 /// banner + Markdown section headers, not graph data) is why the artifact rides an opaque
@@ -845,8 +850,9 @@ fn build_lowering_from_entries(entries: &[Entry]) -> GlossaryLoweringCorpus {
 /// glossary table, projected from the SAME reviewed `.po` fold `graph/lang-glossary-corpus`
 /// carries (via [`build_entries`]) — never a second parse, so the table and the graph
 /// cannot drift. A source-reading leaf like [`crate::stages::matrix::MatrixStage`]
-/// (`consumes() == []`): it reads the authored catalogs + homograph declarations directly
-/// and folds one opaque `REP_GENERATED` member the sink carries into `gmeow.gts`.
+/// (`consumes() == []`): it reads the authored catalogs + homograph declarations directly.
+/// Its two NON-RDF surfaces are tarred into the `lang:` family's archive by
+/// `stage-archive-blobs`; the `.vartrans.ttl` rides its RDF-fanout named graph.
 pub struct GlossaryTableStage;
 
 impl Stage for GlossaryTableStage {
@@ -898,8 +904,8 @@ impl Stage for GlossaryTableStage {
         // RDF-fanout named graph `graph/fanout/projections/glossary.vartrans.ttl` (the
         // snapshot's `rdf_fanout_members` reads these bytes off this product and the superset
         // gate re-serializes them byte-for-byte), NOT an opaque blob. The TBX termbase is
-        // non-RDF XML, so it stays a byte-decorated REP_GENERATED member beside the readable
-        // `.md` table.
+        // non-RDF XML, so it is a byte-decorated archive member beside the readable
+        // `.md` table — both on the `lang:` family's own rep, not the general opaque one.
         artifacts.insert(
             GLOSSARY_VARTRANS_PATH.to_string(),
             vartrans_fanout_ttl(&entries)?,
@@ -1116,7 +1122,7 @@ mod tests {
             crate::stages::superset::RdfFanoutClasses::from_source(&source)
                 .expect("build RdfFanoutClasses from the pipeline source")
                 .contains(GLOSSARY_VARTRANS_PATH),
-            "the vartrans .ttl must be an RDF-fanout class, not an opaque REP_GENERATED blob"
+            "the vartrans .ttl must be an RDF-fanout class, not an opaque blob member"
         );
         let iri = crate::stages::superset::rdf_fanout_graph_iri(GLOSSARY_VARTRANS_PATH)
             .expect("vartrans path resolves to a fanout graph IRI");

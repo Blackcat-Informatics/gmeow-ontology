@@ -1208,17 +1208,20 @@ mod tests {
     /// inventory is pinned in BOTH directions: a dropped dictionary and an added one
     /// each fail [`the_live_gts_slice_reads_as_a_complete_registry`].
     ///
-    /// It is FIVE, not eight. Three slice-shaped drafts were retired by MEASUREMENT,
-    /// each a different way of failing the same rule — a dictionary is justified by
-    /// the FRAME SET it primes and must pay for its own in-band bytes on that set:
-    /// `gmeow-math-v1` primed zero frames (the mathematical graphs are unioned into
-    /// the snapshot payload, one frame already primed by `gmeow-core-v1`),
-    /// `gmeow-claims-v1` primed one ~9 KB frame no grid cell could pay for, and
-    /// `gmeow-lang-ast-v1` lost by 3,684 B over three frames. All three of their reps
-    /// are now primed by `gmeow-core-v1`, so no frame lost compression. See the
-    /// retirement note in the slice.
-    const SHIPPED_DICTIONARY_IDS: [&str; 5] = [
+    /// It is SEVEN, and the eighth term the inventory was first drafted with —
+    /// `gmeow-math-v1` — is absent for a reason no measurement can overturn: a
+    /// dictionary primes a FRAME, `gmeow:payloadSchemaDictionary` is
+    /// `maxQualifiedCardinality 1`, every `math:` named graph is unioned into the
+    /// single snapshot frame, and that frame already binds `gmeow-core-v1`. There is
+    /// no mathematical BYTE family to give one instead (the archive fold's sources are
+    /// `dsl/mappings/**`, the per-slice `mappings/`+`tests/` trees, and the shape
+    /// surfaces), and manufacturing one by de-folding a named graph would trade
+    /// queryable structure for compression. The mathematical content is therefore
+    /// primed in full by `gmeow-core-v1`. See the note in the slice.
+    const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
+        "gmeow-claims-v1",
         "gmeow-core-v1",
+        "gmeow-lang-ast-v1",
         "gmeow-logic-v1",
         "gmeow-memory-compact-v1",
         "gmeow-memory-hot-v1",
@@ -1226,7 +1229,7 @@ mod tests {
     ];
 
     /// NON-VACUITY: the reader is exercised against the REAL authored declaration,
-    /// not only the fixture. The five shipped dictionaries, their corpora, the
+    /// not only the fixture. Every shipped dictionary, its corpus, the
     /// payload-schema registry, and both declared media must all read cleanly — if
     /// the reader silently disagreed with `slices/core/gts/module.ttl`, every
     /// fixture-based test above would still pass.
@@ -1252,12 +1255,11 @@ mod tests {
             .map(|d| d.id.as_str())
             .collect();
         // BOTH directions, and the count on its own line: a dropped dictionary orphans
-        // every artifact primed with it, and a re-added sixth would be trained,
-        // measured, pinned in the header, and projected onto a committed `.zdict`
-        // while priming nothing (or priming a population too small to pay for its own
-        // bytes) — which is exactly how `gmeow-math-v1`, `gmeow-claims-v1` and
-        // `gmeow-lang-ast-v1` shipped as dead weight until they were measured.
-        // Neither direction may pass unnoticed.
+        // every artifact primed with it, and an added one would be trained, measured,
+        // pinned in the header, and projected onto a committed `.zdict` while priming
+        // nothing (or priming a population too small to pay for its own bytes) — which
+        // is exactly how a math dictionary shipped as dead weight until the frame
+        // layout was checked. Neither direction may pass unnoticed.
         assert_eq!(
             ids.len(),
             SHIPPED_DICTIONARY_IDS.len(),

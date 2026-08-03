@@ -32,20 +32,27 @@ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 
-/// The five dictionaries the bundle ships, by `gmeow:dictionaryId`.
+/// The seven dictionaries the bundle ships, by `gmeow:dictionaryId`.
 ///
-/// FIVE, not eight. The inventory was first drafted from SLICE NAMES; measuring the
-/// drafts against the bundle's actual FRAME LAYOUT retired three of them, and the
-/// three agree on one rule — a dictionary is justified by the frame set it primes
-/// and must pay for its own in-band bytes on that set. `gmeow-math-v1` primed zero
-/// frames (the mathematical graphs are unioned into the snapshot payload, one frame
-/// already primed in full by `gmeow-core-v1`); `gmeow-claims-v1` primed one ~9 KB
-/// frame that no grid cell could pay for; `gmeow-lang-ast-v1` lost by 3,684 B over
-/// three frames. All of their reps are now primed by `gmeow-core-v1`, so NO frame
-/// lost compression and nothing is orphaned — the bundle merely sheds in-band bytes
-/// that bought nothing.
-const SHIPPED_DICTIONARY_IDS: [&str; 5] = [
+/// SEVEN, not eight. The inventory was first drafted from SLICE NAMES, and the rule
+/// that decides it is that a dictionary is justified by the FRAME SET it primes and
+/// must pay for its own in-band bytes on that set. Two of the drafts named frame sets
+/// the bundle did not yet have, and the answer was to build them: the `lang:`
+/// terminology surfaces and the statement layer's byte projections were already
+/// opaque bytes on the general archive, so they moved onto their families' own reps
+/// and their dictionaries are measured over the populations their names claim.
+///
+/// The eighth, `gmeow-math-v1`, is absent as a THEOREM rather than a measurement: a
+/// dictionary primes a frame, `gmeow:payloadSchemaDictionary` is
+/// `maxQualifiedCardinality 1`, and every `math:` named graph is unioned into the ONE
+/// snapshot frame, which already binds `gmeow-core-v1`. No mathematical BYTE family
+/// exists to give one instead, and manufacturing one by de-folding a named graph
+/// would trade queryable structure for compression. The mathematical content is
+/// primed in full by `gmeow-core-v1`, so nothing is lost.
+const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
+    "gmeow-claims-v1",
     "gmeow-core-v1",
+    "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
     "gmeow-memory-compact-v1",
     "gmeow-memory-hot-v1",
@@ -191,7 +198,7 @@ fn every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector() 
     );
     assert_eq!(
         found, expected,
-        "the gts slice must declare exactly the five shipped dictionaries"
+        "the gts slice must declare exactly the shipped dictionary inventory"
     );
 
     for (dictionary_id, dict) in &by_id {

@@ -1401,12 +1401,16 @@ mod tests {
             "generated/logic/perf-ledger.ttl",
             "generated/metadata/void.ttl",
             "generated/metadata/dcat.ttl",
+            // The statement layer's two: same reason, but they reconstruct from
+            // REP_STATEMENTS rather than REP_GENERATED — a rep is the unit a dictionary
+            // primes, and these are the claim corpus's byte frames.
             "generated/statements/gmeow-statements.owl.ttl",
             "generated/statements/gmeow.rdf12.ttl",
         ] {
             assert!(
                 graph_rep_for_path(&rules, path).is_none(),
-                "{path} has generated comments / section markers and must reconstruct from REP_GENERATED"
+                "{path} has generated comments / section markers, so it cannot reconstruct \
+                 from a canonical named-graph fold and must ride an archive member"
             );
         }
     }
@@ -1823,7 +1827,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            413,
+            415,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1968,7 +1972,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             .collect();
         assert_eq!(profiles.len(), 8, "profiles family membership drifted");
         assert_eq!(edoal.len(), 47, "edoal family membership drifted");
-        assert_eq!(dicts.len(), 5, "header-dict family membership drifted");
+        assert_eq!(dicts.len(), 7, "header-dict family membership drifted");
 
         // Equal authored/derived over the derivable families passes.
         let reconstructed: BTreeSet<String> = expected

@@ -138,17 +138,18 @@ dictionary its own in-band bytes is the entire non-vacuity argument.
 ## Honesty: this is NOT a held-out evaluation
 
 For the archive-backed dictionaries — `gmeow-core-v1` over `cells-archive`,
-`gmeow-logic-v1` over `axioms-archive` — the training corpus is that archive's
-**members**, and the frame the numbers are taken over is the **tar of those very
-members**. Train and test are therefore not merely correlated: on the dominant
+`gmeow-logic-v1` over `axioms-archive`, `gmeow-lang-ast-v1` over
+`lang-projections-archive`, `gmeow-claims-v1` over `statements-archive` +
+`yaml-ld-archive` — the training corpus is that archive's **members**, and the frame the
+numbers are taken over is the **tar of those very members**. Train and test are therefore not merely correlated: on the dominant
 representation they are the **same bytes**. Nothing in this artifact is a held-out
 measurement and none of it may be described as one, in a commit message, a release
 note, or a `skos:definition`.
 
 What the two-part code buys is **non-vacuity**, not generalization. Charging the
 dictionary its own in-band bytes means "memorize the corpus" stops winning the moment
-the memorized bytes cost more than they save — which is exactly what retired three
-dictionaries below. It says nothing about whether a dictionary would still help on
+the memorized bytes cost more than they save — which is exactly what caught the
+slice-name-shaped drafts described below. It says nothing about whether a dictionary would still help on
 material the build has never seen, and no experiment here could: the population a
 bundle dictionary primes IS the bundle's own frames.
 
@@ -236,33 +237,73 @@ It was raised as a stop-and-ask once and answered; a lane that re-raised a settl
 question every refresh would fail forever and teach a maintainer to ignore its exit code.
 The only remaining stop-and-ask is a dictionary that does not pay for itself.
 
-## Retiring a dictionary: the rule three measurements agree on
+## The rule that decides whether a dictionary exists
 
-Three `gmeow:CompressionDictionary` drafts have been retired by this lane. All three were
-drafted from **slice names** and all three failed the same criterion:
+Every `gmeow:CompressionDictionary` in the inventory satisfies one criterion, and the
+same criterion is what decided the one term the inventory does **not** carry:
 
 > A `gmeow:CompressionDictionary` is justified by the **FRAME SET** it primes, and it must
-> **pay for its own in-band bytes on that set**. Slice topology is not frame topology, and
+> **pay for its own in-band bytes on that set**. A slice name is not a frame set, and
 > topical importance is not a justification.
 
-| retired | how it failed | numbers |
+The inventory was first drafted from slice names, which is why three drafts were measured
+over frame sets that did not exist yet. For two of them the answer was to **build the
+frame set the name claimed**, not to drop the term — a rep is the unit a dictionary
+primes, so a family welded into the general opaque archive cannot be primed separately
+from it:
+
+| draft | what it was measured over, and what was missing | what changed |
 | --- | --- | --- |
-| `gmeow-math-v1` | primed **zero** frames — the mathematical named graphs are unioned into the snapshot payload, which is one frame already primed in full by `gmeow-core-v1`, and a second dictionary cannot prime part of one frame | trained, measured, pinned and projected onto a `.zdict` no payload ever cited |
-| `gmeow-claims-v1` | primed **one ~9 KB frame**; no cell of the grid can pay for a dictionary's own bytes over a population that small | best cell 12,020 B vs an 8,953 B no-dictionary baseline |
-| `gmeow-lang-ast-v1` | primed **three frames** and still lost — a real saving, far too small against its own in-band bytes | lost by 3,684 B at its best cell |
+| `gmeow-lang-ast-v1` | ~264 KB: the `generated/projections/lang/**` tree plus the document-scale English literals. Lost by **3,684 B** at its best cell — a real saving, just too small. The two largest `lang:` deliverables were not in the population at all: the ISO-30042 TBX termbase and the glossary table (~18 MB together) rode `generated-opaque-archive`, so the *core* dictionary primed the natural-language term inventory. | Both are projections of the **same reviewed `.po` fold**, from the **same export leaf**, and were already opaque byte projections. They now ride `lang-projections-archive` with their family. |
+| `gmeow-claims-v1` | ONE ~9 KB frame (`yaml-ld-archive`), coded at 12,020 B against an 8,953 B no-dictionary baseline. No cell of the grid can pay for a dictionary over a population that small. The statement layer's own two byte projections (~274 KB) sat on `generated-opaque-archive`, byte-decorated and therefore **already** travelling as bytes. | They now ride `statements-archive`, and the dictionary is measured over the claim corpus's whole frame set. |
 
-Retirement is a **correction, not a descope**, and the distinction is enforced: every rep
-the retired dictionaries primed (`yaml-ld-archive`, `lang-projections-archive`,
-`lang-surface-blob`) is now primed by `gmeow-core-v1`, so **not one frame lost
-compression** and nothing is left citing an id the bundle no longer trains.
+In both cases **nothing that was a graph became bytes**: the queryable
+`lang:ProjectionEmission`, `graph/lang-glossary-corpus` and `graph/statements` semantics
+ride their named graphs exactly as before, and only the *medium assignment of bytes that
+were already bytes* changed. Whether the widened populations pay is not a promise made
+here — `sweep::check_dictionaries_pay_for_themselves` hard-fails the build over the
+committed evidence, and there is **no exemption, allowlist or carve-out** for any
+dictionary in the inventory. Moving the frames is what makes the question *measurable*;
+the sweep is what answers it.
+
+Because these moves **change every affected dictionary's population**, the whole
+inventory is **re-swept over the new frame sets** rather than assumed to survive the
+change. The committed table is that re-sweep.
+
+### Why there is no `gmeow-math-v1`
+
+This one is not a measurement that came out badly. It is a **theorem**, and its premises
+are checkable:
+
+1. **A frame's dictionary is a function on the frame.** `gmeow:payloadSchemaDictionary`
+   is `maxQualifiedCardinality 1` in `slices/core/gts/module.ttl`, and the composer's
+   `FrameSlot::Snapshot` is singular by **type** and by **construction** — purrdf's
+   `crates/rdf/src/gts_compose.rs` makes exactly one `add_frame_with_options("snapshot", …)`
+   call.
+2. **Every `math:` named graph is unioned into the snapshot payload.** By (1) that is one
+   frame, and it already binds `gmeow:dictGmeowCoreV1` through
+   `gmeow:payloadSchemaSnapshotWire`. A second dictionary over part of it is not merely
+   unhelpful — it is **unrepresentable**.
+3. **The escape used for `lang:` and the claim corpus is unavailable, because there is no
+   mathematical byte family to give.** `build_archive_blobs` takes `dsl/mappings/**`, the
+   per-slice `mappings/` and `tests/` trees, `shapes/*.ttl` and each slice's
+   `shapes.ttl`; `slices/grounding/math/**` reaches the bundle **only** as parsed RDF in
+   the fold.
+4. **Manufacturing one would be forbidden anyway.** De-folding a named graph into bytes
+   trades queryable structure for compression, and carrying it *both* ways violates
+   carry-exactly-once (`docs/PIPELINE_SPINE.md` §5, Constitution §18) and the rep-class
+   disjointness the superset gate enforces.
+
+**Therefore** the mathematical content is dictionary-compressed **in full**, by
+`gmeow-core-v1`, and remains fully SPARQL-able off the fold. **No compression and no
+ontological use is lost.** What is absent is a *second name* for a frame that already has
+one — which is why the absence costs nothing against maximal information flow, and why no
+future measurement can overturn it.
+
 `no_rep_is_primed_by_a_retired_dictionary` in `crates/pipeline/tests/medium_bundle.rs`
-asserts that in every direction a retired id could survive — the declaration, the
-per-rep selection, the segment header's in-band `"dct"` map, and the projected
+holds that in every direction a stale id could survive — the declaration, the per-rep
+selection, the segment header's in-band `"dct"` map, and the projected
 `generated/medium/*.zdict` set.
-
-Because absorbing those reps **changes `gmeow-core-v1`'s population**, the surviving
-dictionaries were **re-swept over the widened frame set** rather than assumed to survive
-it. The committed table is that re-sweep.
 
 ## Every declared dictionary has a row
 

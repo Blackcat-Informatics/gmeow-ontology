@@ -519,6 +519,7 @@ pub fn full_spec() -> PipelineSpec {
             "stage-compile-logic",
             "stage-export-constraint-shapes",
             "stage-export-frame-shapes",
+            "stage-export-glossary",
             "stage-export-json-schema",
             "stage-export-pydantic",
             "stage-export-result-shapes",
@@ -527,7 +528,7 @@ pub fn full_spec() -> PipelineSpec {
         ],
     ));
 
-    // ── the medium axis's producer: train the five declared zstd dictionaries over
+    // ── the medium axis's producer: train the seven declared zstd dictionaries over
     //    their declared corpora, measure each into a
     //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
     //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
@@ -549,7 +550,7 @@ pub fn full_spec() -> PipelineSpec {
 
     // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
-    //    re-assembly), READS the ten by-reference TAR archives off the
+    //    re-assembly), READS the eleven by-reference TAR archives off the
     //    `stage-archive-blobs` product, and staples the channels only it can see (the
     //    lang surface blobs, the reasoning reports, the opaque `generated/` fanout
     //    archive over THIS run's carrier, and the SHACL-report blobs). ──
@@ -557,7 +558,7 @@ pub fn full_spec() -> PipelineSpec {
         SINK_STAGE,
         "gts_sink",
         &[
-            // THIS run's ten by-reference TAR archives, folded once by their own
+            // THIS run's eleven by-reference TAR archives, folded once by their own
             // producer and read back here (never re-folded in the terminal). This edge
             // also orders the sink after every archive-member producer transitively, so
             // the schema / Pydantic / generated-shape leaves need no direct edge here.
@@ -606,7 +607,11 @@ pub fn full_spec() -> PipelineSpec {
             "stage-reason",
             "stage-snapshot",
             "stage-source-load",
-            "stage-statements",
+            // NOT `stage-statements`: the statement layer's two byte-decorated
+            // projections ride `statements-archive`, folded by `stage-archive-blobs` off
+            // that product, so the terminal reads nothing from it. The ordering the edge
+            // used to carry survives transitively (archive-blobs consumes statements, and
+            // the sink consumes archive-blobs).
             "stage-validate",
         ],
     ));

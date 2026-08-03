@@ -82,9 +82,14 @@ pub const DICT_ARTIFACT_PREFIX: &str = "pipeline/medium/";
 ///   path prefix, all of which first exist on the assembled carrier;
 /// * `stage-statements` — the `generated/statements/` path prefix.
 ///
-/// `stage-mappings` was an edge here for exactly one reason — the retired
-/// `gmeow-lang-ast-v1` corpus selected its product — and went out with that
-/// dictionary rather than being left as an input nothing reads.
+/// `stage-mappings` is NOT an edge, and its absence is derived rather than chosen:
+/// `gmeow-lang-ast-v1` selected that product back when its deliverables had no rep of
+/// their own. They have one now (`lang-projections-archive`), so the corpus selects the
+/// ARCHIVE, which arrives on `stage-archive-blobs` — one authority on what is in that
+/// archive (Principle 4), and one fewer edge. The same holds for `gmeow-claims-v1`: it
+/// selects `statements-archive` + `yaml-ld-archive` rather than a `generated/statements/`
+/// path prefix. (`stage-statements` stays an edge regardless — `gmeow-memory-hot-v1`
+/// selects that prefix.)
 const CONSUMES: [&str; 4] = [
     "stage-archive-blobs",
     "stage-reason",
@@ -468,12 +473,13 @@ impl Stage for MediumDictionariesStage {
         &self.attaches_graphs
     }
     fn impl_version(&self) -> &str {
-        // v3: the FIVE declared dictionaries trained over their declared corpora at
+        // v3: the declared dictionaries trained over their declared corpora at
         // the COMMITTED sweep winner (bench/medium-baseline.json), measured into
         // gmeow:CompressionDictionaryRealization records carrying the measured
         // strategy / target length / corpus size, and projected into
-        // graph/medium-registry. v2 trained seven, two of which the sweep showed
-        // could not pay for their own in-band bytes over the frames they primed.
+        // graph/medium-registry. The inventory itself is DATA — it is read off the
+        // carrier's gmeow:CompressionDictionary individuals — so growing or shrinking
+        // it does not move this key; only the training/measurement code does.
         "medium-dictionaries.v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {

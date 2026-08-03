@@ -41,8 +41,16 @@ const OWL: &str = "http://www.w3.org/2002/07/owl#";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// Committed logical path of the OWL downcast.
+///
+/// BYTE-DECORATED RDF: the committed file carries [`OWL_BANNER`], which is not graph
+/// data, so it cannot reconstruct from a canonical named-graph fold and travels as a
+/// byte projection. It rides
+/// [`REP_STATEMENTS`](crate::stages::archive_blobs::REP_STATEMENTS) — the claim
+/// corpus's own rep, primed by `gmeow:dictGmeowClaimsV1` — while the queryable
+/// statement semantics keep riding the `graph/statements` named graph.
 pub const OWL_PATH: &str = "generated/statements/gmeow-statements.owl.ttl";
-/// Committed logical path of the RDF 1.2 lead artifact.
+/// Committed logical path of the RDF 1.2 lead artifact. Byte-decorated with
+/// [`RDF12_BANNER`] and carried exactly as [`OWL_PATH`] is, for the same reason.
 pub const RDF12_PATH: &str = "generated/statements/gmeow.rdf12.ttl";
 
 /// INTERNAL logical path of the JSON-LD-star projection of the statement layer.

@@ -5,7 +5,7 @@
 //! it emits is audited against the medium axis `slices/core/gts/module.ttl` declares.
 //!
 //! Every assertion here is about the SHIPPED artifact rather than about a component:
-//! the five declared dictionaries are pinned in the segment header a consumer
+//! the declared dictionaries are pinned in the segment header a consumer
 //! actually reads, one `gmeow:MediumEnvelope` describes each payload-bearing frame
 //! the pack actually carries, each declared dictionary primes a NON-EMPTY set of those
 //! frames, and the self-referential snapshot envelope's stratified digest is recomputed
@@ -30,14 +30,16 @@ use purrdf::{RdfQuad, RdfTerm};
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The five dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
+/// The seven dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
 /// than read back off the same registry the producer used, so a dictionary silently
 /// dropped from the declaration is a FAILURE here instead of a smaller expectation.
 ///
-/// FIVE, not eight. Three slice-shaped drafts were retired by MEASUREMENT against the
-/// bundle's frame layout — see [`RETIRED_DICTIONARIES`].
-const SHIPPED_DICTIONARIES: [&str; 5] = [
+/// SEVEN, not eight — see [`RETIRED_DICTIONARIES`] for the one term the inventory does
+/// not carry and why no measurement could restore it.
+const SHIPPED_DICTIONARIES: [&str; 7] = [
+    "gmeow-claims-v1",
     "gmeow-core-v1",
+    "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
     "gmeow-memory-compact-v1",
     "gmeow-memory-hot-v1",
@@ -52,23 +54,36 @@ const SHIPPED_DICTIONARIES: [&str; 5] = [
 /// longer trains. [`no_rep_is_primed_by_a_retired_dictionary`] asserts the absence in
 /// every direction a retired id could survive in.
 ///
-/// Each lost the SAME criterion — a `gmeow:CompressionDictionary` is justified by the
-/// FRAME SET it primes and must pay for its own in-band bytes on that set — in a
-/// different way: `gmeow-math-v1` primed zero frames (the mathematical graphs are
-/// unioned into the snapshot payload, one frame already primed in full by
-/// `gmeow-core-v1`); `gmeow-claims-v1` primed one ~9 KB frame whose best grid cell coded
-/// 12,020 B against an 8,953 B no-dictionary baseline; `gmeow-lang-ast-v1` lost by
-/// 3,684 B over three frames. All of their reps are now primed by `gmeow-core-v1`, so no
-/// frame lost compression and nothing is orphaned.
-const RETIRED_DICTIONARIES: [&str; 3] = ["gmeow-claims-v1", "gmeow-lang-ast-v1", "gmeow-math-v1"];
+/// `gmeow-math-v1` is the only one, and it is absent by a THEOREM rather than by a
+/// measurement that came out badly: a dictionary primes a FRAME,
+/// `gmeow:payloadSchemaDictionary` is `maxQualifiedCardinality 1`, and every `math:`
+/// named graph is unioned into the ONE snapshot frame, which already binds
+/// `gmeow-core-v1`. There is no mathematical BYTE family to give one instead — the
+/// archive fold's sources are `dsl/mappings/**`, the per-slice `mappings/`+`tests/`
+/// trees and the shape surfaces — and manufacturing one by de-folding a named graph
+/// would trade queryable structure for compression and break carry-exactly-once. The
+/// mathematical content is primed in full by `gmeow-core-v1`, so nothing is lost.
+const RETIRED_DICTIONARIES: [&str; 1] = ["gmeow-math-v1"];
 
-/// The archive rep the `lang:` projection deliverables ride, as a WIRE label (the test
-/// may not borrow the crate-private Rust constant — the point is that the two agree).
+/// The archive rep the whole `lang:` deliverable family rides, as a WIRE label (the
+/// test may not borrow the crate-private Rust constant — the point is that the two
+/// agree).
 const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
 
-/// The document-scale English surface rep. It and [`REP_LANG_PROJECTIONS`] were the
-/// entire population of the retired `gmeow-lang-ast-v1`; both now ride `gmeow-core-v1`.
+/// The document-scale English surface rep. It and [`REP_LANG_PROJECTIONS`] are the
+/// population `gmeow-lang-ast-v1` primes.
 const REP_LANG_SURFACE: &str = "lang-surface-blob";
+
+/// The archive rep the RDF 1.2 statement layer's two byte-decorated committed
+/// projections ride, as a WIRE label (same reason as [`REP_LANG_PROJECTIONS`]).
+const REP_STATEMENTS: &str = "statements-archive";
+
+/// The two members [`REP_STATEMENTS`] carries, as wire labels — the repo-relative
+/// committed paths, since that rep keys members by committed path.
+const STATEMENTS_MEMBERS: [&str; 2] = [
+    "generated/statements/gmeow-statements.owl.ttl",
+    "generated/statements/gmeow.rdf12.ttl",
+];
 
 /// The archive rep the CLAIM CORPUS's JSON-LD-family projections ride, as a WIRE label
 /// (same reason as [`REP_LANG_PROJECTIONS`]: the point is that the crate-private Rust
@@ -83,8 +98,23 @@ const YAMLLD_MEMBERS: [&str; 2] = ["gmeow.rdf12.jsonld", "gmeow.rdf12.yamlld"];
 /// it would be an orphan in the superset reverse sweep as well as a double carry.
 const INTERNAL_LANE_PREFIX: &str = "pipeline/";
 
-/// The committed prefix every [`REP_LANG_PROJECTIONS`] member reconstructs under.
+/// The committed prefix most [`REP_LANG_PROJECTIONS`] members reconstruct under. The
+/// two terminology surfaces are outside it — see [`LANG_GLOSSARY_MEMBERS`] — because
+/// the family is a projection of the reviewed `.po` fold, not of one directory.
 const LANG_PROJECTION_PREFIX: &str = "generated/projections/lang/";
+
+/// The two NON-RDF terminology surfaces that complete the `lang:` family: the ISO-30042
+/// TBX termbase and the human-readable glossary table. They dominate the family by size
+/// (~18 MB of the ~18.2 MB), which is why `gmeow-lang-ast-v1` measured a population two
+/// orders of magnitude too small while they rode the generated-opaque archive.
+///
+/// Their RDF sibling `generated/projections/glossary.vartrans.ttl` is deliberately NOT
+/// here: it rides its RDF-fanout named graph, and a named graph is never de-folded into
+/// bytes to widen a dictionary's population.
+const LANG_GLOSSARY_MEMBERS: [&str; 2] = [
+    "generated/catalog/glossary.md",
+    "generated/projections/glossary.tbx",
+];
 
 /// The two dictionaries whose frames a CONSUMER writes into its own runtime store out of
 /// the shipped header, rather than this emission writing them into the bundle. They are
@@ -327,13 +357,13 @@ fn the_emitted_bundle_ships_its_declared_medium() {
 
     let head = header(&bundle);
 
-    // ── (a) the header pins the five declared dictionaries, in band ──
+    // ── (a) the header pins every declared dictionary, in band ──
     let pinned = gmeow_gts_profile::segment_dictionaries(&bundle)
         .expect("the emitted bundle's header reads back");
     let names: Vec<&str> = pinned.keys().map(String::as_str).collect();
     assert_eq!(
         names, SHIPPED_DICTIONARIES,
-        "the pack's in-band \"dct\" map must pin exactly the five declared dictionaries"
+        "the pack's in-band \"dct\" map must pin exactly the declared dictionaries"
     );
     for (name, bytes) in &pinned {
         assert!(
@@ -342,7 +372,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         );
     }
 
-    // ── (b) graph/medium-registry: five realizations + one envelope per frame ──
+    // ── (b) graph/medium-registry: one realization per dictionary + one envelope per frame ──
     let folded = purrdf::import_gts_events(&bundle).expect("the emitted bundle folds back");
     let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
     let registry_quads: Vec<RdfQuad> = payload
@@ -596,12 +626,12 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // ── (g) the dictionaries project onto generated/medium/*.zdict, EXACTLY ONCE ──
     the_dictionaries_project_exactly_once(&bundle, &pinned, &registry_quads, &module);
 
-    // ── (h) the three REASSIGNED reps are real, emitted frames primed by
-    //        gmeow-core-v1 — retiring a dictionary must not quietly stop compressing
-    //        the frames it used to prime — and NO rep, header entry or projected file
-    //        is primed by a retired dictionary id ──
-    the_lang_reps_are_real_frames_primed_by_core(&bundle, &module);
-    the_claim_corpus_archive_is_a_real_frame_primed_by_core(&bundle, &module);
+    // ── (h) the lang: and claim: reps are real, emitted frames primed by the
+    //        dictionaries named for them, each member is carried by exactly one rep,
+    //        and NO rep, header entry or projected file is primed by a retired
+    //        dictionary id ──
+    the_lang_reps_are_real_frames_primed_by_lang_ast(&bundle, &module);
+    the_claim_reps_are_real_frames_primed_by_claims(&bundle, &module);
     the_split_out_archive_members_are_carried_by_exactly_one_rep(&bundle);
     no_rep_is_primed_by_a_retired_dictionary(&bundle, &module, &pinned);
 
@@ -618,8 +648,8 @@ fn the_emitted_bundle_ships_its_declared_medium() {
 /// and the shipped bytes agree.
 const REP_GENERATED: &str = "generated-opaque-archive";
 
-/// The fourth fanout family, proved on the SHIPPED artifact: each of the five
-/// dictionaries reconstructs from the segment header's in-band `"dct"` map onto
+/// The fourth fanout family, proved on the SHIPPED artifact: each declared
+/// dictionary reconstructs from the segment header's in-band `"dct"` map onto
 /// `generated/medium/<dict-id>.zdict`, its bytes are byte-equal to both the header entry
 /// and the recorded `gmeow:dictionaryContentDigest`, and NO generated-opaque archive
 /// member carries the same bytes a second time.
@@ -799,39 +829,35 @@ fn primed_reps_by_dictionary(module: &MediumRegistry) -> BTreeMap<String, BTreeS
 }
 
 /// The two `lang:` reps are REAL, emitted frames, and both are primed by
-/// `gmeow-core-v1` after `gmeow-lang-ast-v1`'s retirement.
+/// `gmeow-lang-ast-v1`.
 ///
-/// This is the clause that proves, on the SHIPPED artifact, that retiring a dictionary
-/// did not quietly stop compressing the frames it used to prime. It is quantitative on
-/// purpose: `lang-surface-blob` alone is a ~12 KB population of `@x-gmeow-english`
-/// literals over the document-scale threshold, while the ~150 KB of grammar / CoNLL-U /
-/// TEI / GMN1 bytes ride `lang-projections-archive`. Asserting only "the reps are primed"
-/// would pass with the projection archive folded back into the general opaque archive, so
-/// what is asserted is that the projection frame exists, dominates the surface blobs, and
-/// is plausibly complete.
-///
-/// The dictionary that used to prime them was measured over exactly this population and
-/// LOST by 3,684 B net of its own in-band bytes — a real but far too small saving. Both
-/// reps therefore select `gmeow:dictGmeowCoreV1`, which wins over the widened population
-/// that includes them, so every one of these bytes is still dictionary-compressed.
+/// This is the clause that proves, on the SHIPPED artifact, that the dictionary named
+/// for the linguistic surface is measured over the linguistic surface. It is
+/// quantitative on purpose: `lang-surface-blob` alone is a ~12 KB population of
+/// `@x-gmeow-english` literals over the document-scale threshold, while
+/// `lang-projections-archive` carries the ~150 KB grammar / CoNLL-U / TEI / GMN1 tree
+/// AND the ~18 MB of terminology surfaces (the ISO-30042 TBX termbase and the glossary
+/// table) that used to ride the generated-opaque archive. Asserting only "the reps are
+/// primed" would pass with either family folded back into the general archive, so what
+/// is asserted is that the projection frame exists, dominates the surface blobs,
+/// carries the terminology surfaces, and is plausibly complete.
 ///
 /// The generalization — EVERY declared dictionary primes an emitted frame — is enforced
 /// in [`every_declared_dictionary_primes_an_emitted_frame`]; this clause is the
 /// QUANTITATIVE one that the generalization cannot make (it would pass on a one-literal
 /// population). The registry-level half is enforced a third time, against the declaration
 /// alone, in `medium::registry::tests::the_live_gts_slice_reads_as_a_complete_registry`.
-fn the_lang_reps_are_real_frames_primed_by_core(bundle: &[u8], module: &MediumRegistry) {
+fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &MediumRegistry) {
     let emitted_reps = emitted_reps(bundle);
     let primed = primed_reps_by_dictionary(module);
 
-    let core_reps = primed
-        .get("gmeow-core-v1")
-        .expect("gmeow-core-v1 primes at least one rep");
+    let lang_reps = primed
+        .get("gmeow-lang-ast-v1")
+        .expect("gmeow-lang-ast-v1 primes at least one rep");
     assert!(
-        core_reps.contains(REP_LANG_PROJECTIONS) && core_reps.contains(REP_LANG_SURFACE),
-        "both lang: reps must be primed by gmeow-core-v1 after gmeow-lang-ast-v1's \
-         retirement — a retired dictionary must never leave its frames unprimed; \
-         got {core_reps:?}"
+        lang_reps.contains(REP_LANG_PROJECTIONS) && lang_reps.contains(REP_LANG_SURFACE),
+        "both lang: reps must be primed by gmeow-lang-ast-v1 — the dictionary is measured \
+         over exactly the frame set it primes; got {lang_reps:?}"
     );
     assert!(
         emitted_reps.contains(REP_LANG_PROJECTIONS),
@@ -847,7 +873,7 @@ fn the_lang_reps_are_real_frames_primed_by_core(bundle: &[u8], module: &MediumRe
     // The measured population, printed so a future reader sees it rather than only the
     // inequality that guards it.
     println!(
-        "lang: population (primed by gmeow-core-v1): {surface_frames} surface frame(s) / \
+        "lang: population (primed by gmeow-lang-ast-v1): {surface_frames} surface frame(s) / \
          {surface_bytes} B + {projection_frames} projection frame(s) / {projection_bytes} B"
     );
     assert_eq!(
@@ -862,54 +888,99 @@ fn the_lang_reps_are_real_frames_primed_by_core(bundle: &[u8], module: &MediumRe
          document-scale literals: {projection_frames} projection frame(s) / \
          {projection_bytes} B vs {surface_frames} surface frame(s) / {surface_bytes} B"
     );
+    // The terminology surfaces are ~18 MB of the family. A regression that left them on
+    // the generated-opaque archive drops the decoded size back to ~250 KB and reds here
+    // — which is exactly the state in which the dictionary measured a population two
+    // orders of magnitude smaller than the one it is named for.
     assert!(
-        projection_bytes > 100_000,
-        "the {REP_LANG_PROJECTIONS} archive is implausibly small ({projection_bytes} B) — the \
-         committed generated/projections/lang/ tree is ~150 KB, so a smaller archive means \
-         members were dropped"
+        projection_bytes > 4_000_000,
+        "the {REP_LANG_PROJECTIONS} archive is implausibly small ({projection_bytes} B) — it \
+         must carry the ~18 MB TBX termbase and glossary table alongside the ~150 KB \
+         generated/projections/lang/ tree, so a smaller archive means members were dropped"
+    );
+    let members = archive_members(bundle, REP_LANG_PROJECTIONS);
+    for member in LANG_GLOSSARY_MEMBERS {
+        let bytes = members
+            .get(member)
+            .unwrap_or_else(|| panic!("the {REP_LANG_PROJECTIONS} archive carries no {member}"));
+        assert!(
+            bytes.len() > 1_000_000,
+            "the {member} member is {} B — the committed surface is megabytes, so this is a \
+             truncated or placeholder fold",
+            bytes.len()
+        );
+    }
+    // The RDF sibling must NOT have been swept in: it rides its own named graph, and a
+    // graph is never de-folded into bytes to widen a dictionary's population.
+    assert!(
+        !members.contains_key("generated/projections/glossary.vartrans.ttl"),
+        "the {REP_LANG_PROJECTIONS} archive carries the RDF vartrans lowering — that surface \
+         rides graph/fanout/projections/glossary.vartrans.ttl, and carrying it here would \
+         both double-carry it and trade a queryable graph for compression"
     );
 }
 
-/// The claim corpus's JSON-LD-family frame is REAL and emitted, and it is primed by
-/// `gmeow-core-v1` after `gmeow-claims-v1`'s retirement.
+/// The claim corpus's two reps are REAL, emitted frames, and both are primed by
+/// `gmeow-claims-v1`.
 ///
-/// The rep shipped for a long time with no live producer at all: its writer was a
-/// `#[cfg(test)]` twin of the sink's folds, so the production terminal authored no such
-/// frame and the dictionary selecting it primed nothing. Building the frame fixed that —
-/// and then MEASURING the frame retired the dictionary anyway, for the other half of the
-/// same criterion: one ~9 KB frame is too small a population for any grid cell to pay for
-/// a dictionary's own in-band bytes (best cell 12,020 B vs an 8,953 B no-dictionary
-/// baseline). The frame stays, and stays dictionary-compressed, on `gmeow-core-v1`.
+/// `yaml-ld-archive` shipped for a long time with no live producer at all: its writer
+/// was a `#[cfg(test)]` twin of the sink's folds, so the production terminal authored no
+/// such frame and the dictionary selecting it primed nothing. Building the frame fixed
+/// that, but ONE ~9 KB frame is still too small a population for any grid cell to pay for
+/// a dictionary's own in-band bytes. The claim dictionary's population is therefore the
+/// claim corpus's WHOLE frame set: that archive plus `statements-archive`, the statement
+/// layer's own two byte-decorated committed projections — bytes that were already bytes,
+/// welded to the core dictionary only because they rode the general opaque archive.
 ///
-/// So the assertions are about the frame EXISTING with the claim corpus in it: the archive
-/// is emitted, it carries exactly the two declared members, its decoded population is the
-/// statement layer rather than a placeholder, and the dictionary priming it is one the
-/// bundle still ships.
-fn the_claim_corpus_archive_is_a_real_frame_primed_by_core(bundle: &[u8], module: &MediumRegistry) {
+/// So the assertions are about BOTH frames existing with the claim corpus in them, and
+/// about the statement frame dominating: the archives are emitted, each carries exactly
+/// its declared members, the decoded population is the statement layer rather than a
+/// placeholder, and the dictionary priming them is one the bundle still ships.
+fn the_claim_reps_are_real_frames_primed_by_claims(bundle: &[u8], module: &MediumRegistry) {
     let primed = primed_reps_by_dictionary(module);
-    let core_reps = primed
-        .get("gmeow-core-v1")
-        .expect("gmeow-core-v1 primes at least one rep");
+    let claim_reps = primed
+        .get("gmeow-claims-v1")
+        .expect("gmeow-claims-v1 primes at least one rep");
     assert!(
-        core_reps.contains(REP_YAMLLD),
-        "the claim-corpus archive must be primed by gmeow-core-v1 after gmeow-claims-v1's \
-         retirement; got {core_reps:?}"
+        claim_reps.contains(REP_YAMLLD) && claim_reps.contains(REP_STATEMENTS),
+        "both claim-corpus reps must be primed by gmeow-claims-v1 — a ~9 KB JSON-LD frame \
+         alone is a population no dictionary can pay for; got {claim_reps:?}"
     );
-    assert!(
-        emitted_reps(bundle).contains(REP_YAMLLD),
-        "the bundle emits no {REP_YAMLLD} frame — the rep would be registered and primed \
-         while no payload cites it"
-    );
+    let emitted = emitted_reps(bundle);
+    for rep in [REP_YAMLLD, REP_STATEMENTS] {
+        assert!(
+            emitted.contains(rep),
+            "the bundle emits no {rep} frame — the rep would be registered and primed while \
+             no payload cites it"
+        );
+    }
 
     let (frames, bytes) = decoded_frames_for_rep(bundle, REP_YAMLLD);
     assert_eq!(frames, 1, "the claim serializations ride ONE tar frame");
-    println!("{REP_YAMLLD} population (primed by gmeow-core-v1): {frames} frame(s) / {bytes} B");
+    let (statement_frames, statement_bytes) = decoded_frames_for_rep(bundle, REP_STATEMENTS);
+    assert_eq!(
+        statement_frames, 1,
+        "the statement byte projections ride ONE tar frame"
+    );
+    println!(
+        "claim population (primed by gmeow-claims-v1): {frames} yaml-ld frame(s) / {bytes} B + \
+         {statement_frames} statements frame(s) / {statement_bytes} B"
+    );
 
     let members = archive_members(bundle, REP_YAMLLD);
     assert_eq!(
         members.keys().map(String::as_str).collect::<Vec<_>>(),
         YAMLLD_MEMBERS.to_vec(),
         "the claim archive carries exactly its two declared members"
+    );
+    let statement_members = archive_members(bundle, REP_STATEMENTS);
+    assert_eq!(
+        statement_members
+            .keys()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+        STATEMENTS_MEMBERS.to_vec(),
+        "the statements archive carries exactly its two declared members"
     );
     // NON-VACUITY, on the content rather than the count: the members must be the reified
     // statement layer in JSON-LD-family syntax. An empty render, a placeholder, or a
@@ -927,6 +998,22 @@ fn the_claim_corpus_archive_is_a_real_frame_primed_by_core(bundle: &[u8], module
             "the {name} member is missing a statement-layer claim token the DSL authors"
         );
     }
+    // The same non-vacuity for the byte projections: each carries its GENERATED banner
+    // (which is precisely why it cannot reconstruct from a canonical named-graph fold)
+    // and the statement-layer claim token.
+    for (name, payload) in &statement_members {
+        let text = std::str::from_utf8(payload)
+            .unwrap_or_else(|err| panic!("the {name} member is UTF-8: {err}"));
+        assert!(
+            text.starts_with('#'),
+            "the {name} member carries no generated banner — the banner is the reason this \
+             surface travels as bytes rather than as a named-graph fold"
+        );
+        assert!(
+            text.contains("claim-crimea-in-russia-per-ru"),
+            "the {name} member is missing a statement-layer claim token the DSL authors"
+        );
+    }
     // The committed RDF 1.2 lead is ~100 KB of Turtle; its JSON-LD-family renderings
     // expand every prefixed name to a full IRI, so a materially smaller archive means
     // members were dropped rather than that the corpus shrank.
@@ -934,6 +1021,14 @@ fn the_claim_corpus_archive_is_a_real_frame_primed_by_core(bundle: &[u8], module
         bytes > 100_000,
         "the {REP_YAMLLD} archive is implausibly small ({bytes} B) for the ~100 KB \
          statement layer it projects"
+    );
+    // A regression that left the byte projections on the generated-opaque archive drops
+    // this to zero and reds here — the state in which gmeow-claims-v1 had only the ~9 KB
+    // JSON-LD frame to prime.
+    assert!(
+        statement_bytes > 100_000,
+        "the {REP_STATEMENTS} archive is implausibly small ({statement_bytes} B) — the two \
+         committed projections are ~274 KB together"
     );
 }
 
@@ -991,19 +1086,24 @@ fn no_rep_is_primed_by_a_retired_dictionary(
         );
     }
 
-    // NON-VACUITY: the reps the retired dictionaries used to prime are still primed —
-    // by a dictionary the bundle SHIPS. Retirement removed dictionaries, never
-    // compression.
-    for rep in [REP_YAMLLD, REP_LANG_PROJECTIONS, REP_LANG_SURFACE] {
+    // NON-VACUITY: every rep whose dictionary assignment this work moved is still
+    // primed — by a dictionary the bundle SHIPS. No frame may fall through to the
+    // dictionary-less baseline while an assignment is being rearranged.
+    for rep in [
+        REP_YAMLLD,
+        REP_STATEMENTS,
+        REP_LANG_PROJECTIONS,
+        REP_LANG_SURFACE,
+    ] {
         let assignment = module
             .assignment_for(rep)
             .unwrap_or_else(|err| panic!("rep {rep:?} has no medium assignment: {err}"));
         let gmeow_pipeline::medium::registry::DictSelection::Named(iri) = &assignment.dictionary
         else {
             panic!(
-                "rep {rep:?} fell back to the dictionary-less baseline medium after its \
-                 dictionary was retired — retiring a dictionary must reassign its frames, not \
-                 stop compressing them"
+                "rep {rep:?} fell back to the dictionary-less baseline medium — every one of \
+                 these frames must name a shipped dictionary, never lose compression to a \
+                 reassignment"
             );
         };
         let def = module
@@ -1018,9 +1118,9 @@ fn no_rep_is_primed_by_a_retired_dictionary(
     }
 }
 
-/// EVERY declared dictionary primes at least one EMITTED frame — the invariant every
-/// retirement in [`RETIRED_DICTIONARIES`] was an instance of, stated once so the next one
-/// is caught by the gate instead of by a person measuring.
+/// EVERY declared dictionary primes at least one EMITTED frame — the invariant
+/// [`RETIRED_DICTIONARIES`] is the standing counterexample to, stated once so the next
+/// unprimed draft is caught by the gate instead of by a person measuring.
 ///
 /// A dictionary has exactly two ways to satisfy it, matching the two legitimate homes the
 /// registry-level check recognizes:
@@ -1133,10 +1233,11 @@ fn archive_members(bundle: &[u8], rep: &str) -> BTreeMap<String, Vec<u8>> {
     out
 }
 
-/// Every member of the two SPLIT-OUT archives is carried by EXACTLY ONE rep — every
-/// `generated/projections/lang/**` path by [`REP_LANG_PROJECTIONS`], every
-/// [`YAMLLD_MEMBERS`] entry by [`REP_YAMLLD`] — and no archive carries the INTERNAL lane
-/// at all.
+/// Every member of the three SPLIT-OUT archives is carried by EXACTLY ONE rep — every
+/// `generated/projections/lang/**` path and each [`LANG_GLOSSARY_MEMBERS`] entry by
+/// [`REP_LANG_PROJECTIONS`], each [`YAMLLD_MEMBERS`] entry by [`REP_YAMLLD`], each
+/// [`STATEMENTS_MEMBERS`] entry by [`REP_STATEMENTS`] — and no archive carries the
+/// INTERNAL lane at all.
 ///
 /// `project_bundle` already hard-fails on a path two representatives both carry, but
 /// that is a NEGATIVE guard: it would stay silent if the members quietly rode the
@@ -1190,7 +1291,11 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(bundle: &[u8]) {
                  no committed file (an orphan for the superset reverse sweep) and reaching an \
                  archive at all means the same bytes rode two differently-primed frames"
             );
-            if name.starts_with(LANG_PROJECTION_PREFIX) || YAMLLD_MEMBERS.contains(&name.as_str()) {
+            if name.starts_with(LANG_PROJECTION_PREFIX)
+                || LANG_GLOSSARY_MEMBERS.contains(&name.as_str())
+                || YAMLLD_MEMBERS.contains(&name.as_str())
+                || STATEMENTS_MEMBERS.contains(&name.as_str())
+            {
                 carriers.entry(name).or_default().insert(rep.clone());
             }
         }
@@ -1204,33 +1309,53 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(bundle: &[u8]) {
     assert!(
         scanned.contains(REP_GENERATED)
             && scanned.contains(REP_LANG_PROJECTIONS)
+            && scanned.contains(REP_STATEMENTS)
             && scanned.contains(REP_YAMLLD),
-        "the scan must cover the generated-opaque archive AND both split-out archives, or \
-         'exactly one carrier' proves nothing; scanned {scanned:?}"
+        "the scan must cover the generated-opaque archive AND all three split-out archives, \
+         or 'exactly one carrier' proves nothing; scanned {scanned:?}"
     );
     assert!(
         !carriers.is_empty(),
         "no archive carries a {LANG_PROJECTION_PREFIX}** member — the clause is vacuous"
     );
-    let (claim_members, lang_members): (Vec<&String>, Vec<&String>) = carriers
+    let owner_of = |name: &str| {
+        if YAMLLD_MEMBERS.contains(&name) {
+            REP_YAMLLD
+        } else if STATEMENTS_MEMBERS.contains(&name) {
+            REP_STATEMENTS
+        } else {
+            REP_LANG_PROJECTIONS
+        }
+    };
+    let lang_members: Vec<&String> = carriers
         .keys()
-        .partition(|name| YAMLLD_MEMBERS.contains(&name.as_str()));
+        .filter(|name| owner_of(name) == REP_LANG_PROJECTIONS)
+        .collect();
+    let claim_members: Vec<&String> = carriers
+        .keys()
+        .filter(|name| owner_of(name) == REP_YAMLLD)
+        .collect();
+    let statement_members: Vec<&String> = carriers
+        .keys()
+        .filter(|name| owner_of(name) == REP_STATEMENTS)
+        .collect();
     assert_eq!(
         lang_members.len(),
-        35,
-        "the lang-projection family membership drifted; got {lang_members:?}"
+        37,
+        "the lang: family membership drifted; got {lang_members:?}"
     );
     assert_eq!(
         claim_members.len(),
         YAMLLD_MEMBERS.len(),
         "the claim archive's member set drifted; got {claim_members:?}"
     );
+    assert_eq!(
+        statement_members.len(),
+        STATEMENTS_MEMBERS.len(),
+        "the statements archive's member set drifted; got {statement_members:?}"
+    );
     for (path, reps) in &carriers {
-        let owner = if YAMLLD_MEMBERS.contains(&path.as_str()) {
-            REP_YAMLLD
-        } else {
-            REP_LANG_PROJECTIONS
-        };
+        let owner = owner_of(path);
         assert_eq!(
             reps.iter().map(String::as_str).collect::<Vec<_>>(),
             vec![owner],
