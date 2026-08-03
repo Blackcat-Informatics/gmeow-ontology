@@ -296,16 +296,41 @@ mod tests {
             "base graph must be non-empty for the union to be meaningful"
         );
 
-        // Canonical form is non-empty and idempotent: canonicalizing the canonical
-        // dataset reproduces the same N-Quads document (RDFC-1.0 stability).
+        // Canonical form is non-empty and DETERMINISTIC: the same dataset canonicalizes
+        // to the same bytes every time. That is the stability property this union needs.
         let canon = canonicalize(&new_dataset).nquads;
         assert!(!canon.trim().is_empty(), "canonical union is empty");
+        assert_eq!(
+            canon,
+            canonicalize(&new_dataset).nquads,
+            "native union canonicalization must be deterministic"
+        );
+
+        // The canonical bytes survive the byte lane: they re-parse, and the re-parsed
+        // dataset still carries the base graph.
         let reparsed = crate::stages::source_load::parse_base_graph(canon.as_bytes())
             .expect("reparse canonical union");
-        let canon_again = canonicalize(&reparsed).nquads;
-        assert_eq!(
-            canon, canon_again,
-            "native union canonicalization must be idempotent"
+        assert!(
+            reparsed.quad_count() >= base_count,
+            "re-parsed canonical union ({}) must still contain the base graph ({base_count})",
+            reparsed.quad_count(),
+        );
+
+        // Re-canonicalizing that re-parsed form is REFUSED, and the refusal is the point.
+        // The canonical form LOWERS this dataset's RDF 1.2 reifiers into the profile's
+        // reserved `urn:purrdf:rdfc:` sentinels, so the bytes are a terminal projection,
+        // not a re-ingestible dataset. Accepting them back would let a literal assertion
+        // of the lowered form and a genuine reifier structure canonicalize to the SAME
+        // bytes — for a content-addressed consumer minting identity from those bytes,
+        // that is an identity-forgery primitive. So `canonicalize . parse . canonicalize`
+        // is not a property this dataset HAS; the total refusal rule is, and asserting it
+        // here keeps the anti-forgery guard gated rather than assumed.
+        let err = purrdf::try_canonicalize(&reparsed)
+            .err()
+            .expect("re-canonicalizing the lowered canonical form must be refused");
+        assert!(
+            matches!(err, purrdf::CanonError::ReservedVocabulary(_)),
+            "the refusal must be the reserved-vocabulary rule, not a budget exhaustion: {err}"
         );
     }
 }
