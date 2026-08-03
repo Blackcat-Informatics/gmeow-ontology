@@ -71,15 +71,54 @@ fn package_dirs() -> BTreeMap<String, PathBuf> {
     map
 }
 
-/// Every `filter = '...'` value under `[[profile.default.overrides]]`.
+/// Every `filter = '...'` value under `[[profile.default.overrides]]`, PLUS every
+/// clause of the `default-filter` exclusion list.
+///
+/// The exclusion list rots exactly like an override filter does, and worse: an override
+/// that stops matching silently withdraws a BUDGET, while an exclusion that stops
+/// matching silently READMITS a test the profile deliberately keeps off the gate. Moving
+/// the `describe` module into the model crate did that to the whole-repository
+/// grounding-namespace proof — it ran on-gate, saturated the host, and thirteen unrelated
+/// tests timed out in its wake with not one assertion failure among them. The cause is
+/// indistinguishable from load until you check which clause stopped matching, so the
+/// check belongs here rather than in anyone's memory.
 fn override_filters(config: &str) -> Vec<String> {
-    config
+    let mut out: Vec<String> = config
         .lines()
         .filter_map(|l| l.trim().strip_prefix("filter = "))
         .filter_map(|l| l.trim().strip_prefix('\''))
         .filter_map(|l| l.strip_suffix('\''))
         .map(str::to_string)
-        .collect()
+        .collect();
+    out.extend(default_filter_clauses(config));
+    out
+}
+
+/// The parenthesized clauses of the `default-filter = '''…'''` block.
+///
+/// Each clause is a standalone filter expression joined by `|`, so each can be validated
+/// on its own exactly as an override filter is.
+fn default_filter_clauses(config: &str) -> Vec<String> {
+    let Some(start) = config.find("default-filter = '''") else {
+        return Vec::new();
+    };
+    let body = &config[start + "default-filter = '''".len()..];
+    let Some(end) = body.find("'''") else {
+        return Vec::new();
+    };
+    let clauses: Vec<String> = body[..end]
+        .lines()
+        .map(|l| l.trim().trim_start_matches('|').trim())
+        .filter(|l| l.starts_with('(') && l.ends_with(')'))
+        .map(str::to_string)
+        .collect();
+    assert!(
+        clauses.len() >= 20,
+        "expected the default filter to carry many exclusion clauses; parsed {} — the \
+         parse is broken and this gate would pass vacuously",
+        clauses.len()
+    );
+    clauses
 }
 
 /// The argument text of every `kind(...)` call in a filter expression, handling the

@@ -36,7 +36,7 @@ default-filter = '''
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
     | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode) | test(describe_grounding_terms_wheel_mode_equals_repo_mode)))
-    | (package(gmeow-docs) & test(/describe::tests::every_grounding_namespace_has_describable_terms_that_render/))
+    | (package(gmeow-docs-model) & test(/describe::tests::every_grounding_namespace_has_describable_terms_that_render/))
     | (package(gmeow-docs) & binary(render_golden) & test(render_site_is_byte_stable))
     | (package(gmeow-docs) & binary(mdbook_render) & (test(book_bodies_are_rewrite_of_single_authority) | test(book_term_chapter_with_dropped_link_golden) | test(book_no_relative_link_to_dropped_page) | test(book_toml_golden) | test(book_zero_term_slice_renders_valid_chapter)))
     | (package(gmeow-docs) & binary(describe_bundle_language) & test(describe_resolves_carrier_tags_against_shipped_bundle))
