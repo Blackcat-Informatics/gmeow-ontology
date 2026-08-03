@@ -204,8 +204,18 @@ use session_common::*;
 /// a third value that is neither side's. It was recomputed from the merged engine rather than
 /// resolved by taking a side. Every contributing change is individually verdict-preserving on
 /// the fixed edge-only input, so only the identity moved.
+/// Re-blessed once more for the leave-one-out canonical-subsumption lowering in
+/// `reason/mod.rs`: a probe spelled `logic:subClassOf`/`logic:subPropertyOf` is now lowered
+/// to the `rdfs:` spelling the fixed calculus matches — the SAME EDB-boundary lowering
+/// `reason/rl.rs` already performs — so it is answered by the analytic
+/// `TransitiveReachability` index instead of falling through to a per-axiom incremental
+/// fork plus a full finite-DL augmentation that could only ever answer "not re-derived"
+/// (no fixed rule head is spelled `logic:`). `native_contract_hash()` `include_str!`s the
+/// whole of `reason/mod.rs`, so the raw-source content digest folded into this descriptor
+/// moves. No rule, decider, or profile capability changed, and the fixed edge-only input
+/// authors no subsumption edge in either spelling, so its reasoning verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "42bb1f0982885c07b9ba016aa84e39c9d25740d78e5c98573458b8f9623cecf9";
+    "58018fc88484289cabe5e45c843e49a87832c60c8d935affdd65160d6779e9a2";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -302,8 +312,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine descriptor above: both sides had again moved this golden away from the merge base,
 /// so the merged fixed-input session identity is a third value recomputed from the merged
 /// engine rather than a choice between the two sides.
+/// Re-blessed once more for the leave-one-out canonical-subsumption lowering (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and `native_contract_hash()` `include_str!`s the whole of `reason/mod.rs`,
+/// so this fixed-input session identity moves with it. The fixed edge-only input authors no
+/// subsumption edge in either spelling, so its reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "9e3d2ab3324cc52331b95c0bc9fb5eac73969372de3c770053d429dec523134f";
+    "59cb28579a16c797380146e6fd1ae31b7491c2bb4bbfcbd44f979e77a3f8e436";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
