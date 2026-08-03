@@ -34,5 +34,9 @@
   {
     "name": "select-quoted-triple-annotation",
     "sparql": "PREFIX ex: <https://example.org/>\nSELECT ?c WHERE { << ex:alice ex:knows ex:bob >> ex:certainty ?c }"
+  },
+  {
+    "name": "select-filtered-embedded-quote",
+    "sparql": "PREFIX ex: <https://example.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT ?s WHERE { ?s rdfs:label ?label . FILTER(STR(?label) = \"Alice\") }"
   }
 ]

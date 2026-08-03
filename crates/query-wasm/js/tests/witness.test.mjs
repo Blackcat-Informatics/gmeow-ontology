@@ -1,11 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// WASM half of the query-engine parity WITNESS.
+// WASM half of the query-engine parity WITNESS — the FRESHLY-BUILT package.
 //
 // The native half (`crates/query-wasm/tests/witness_query.rs`) runs the SAME corpus
 // through the SAME purrdf entries natively and writes the attestation; this lane runs
-// it through the shipped wasm build and asserts byte-identity.
+// it through `../index.mjs`, which loads `./pkg/gmeow_query_wasm.js` — the package
+// THIS crate's own `cargo build` + `wasm-bindgen` just produced, not yet vendored
+// anywhere — and asserts byte-identity. It is what `make query-wasm-pkg-test` (and
+// therefore `make maint-refresh-query-asset`) gates BEFORE the bytes are copied into
+// `crates/docs/assets/query/`, so bytes that never passed parity can never be vendored.
+//
+// It does NOT prove anything about what the docs site ships: `shipped.test.mjs` loads
+// the COMMITTED engine directly and re-runs the identical corpus against it — that is
+// the mandatory "what ships is what was proven" lane.
 //
 // The corpus is COMMITTED and self-contained — deliberately not the `gmeow.gts`
 // bundle. A bundle-scoped witness would red this gate on every ontology edit, making

@@ -25,3 +25,16 @@ purrdf.workspace = true
 # EXACT pin: the wasm-bindgen CLI that generates the JS bindings must match the
 # library version byte-for-byte or it refuses to run.
 wasm-bindgen = "=0.2.125"
+
+[dev-dependencies]
+# `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A
+# hand-rolled string splitter cannot see JSON escaping and truncates any query
+# containing an embedded quoted literal; `serde_json` is a dev-only dependency
+# (`tests/` is never linked into the `cdylib` wasm-bindgen artifact), so pulling it in
+# here adds nothing to the shipped engine's dependency tree.
+serde_json = "1"
+# `tests/from_gts.rs` drives `Dataset::from_gts` on a real GTS bundle. This is the
+# mandated production entry point (`emit_gmeow_gts`), never a direct
+# `purrdf::gts_compose::emit_gts` call, so the fixture bundle is built the same way
+# every real GMEOW bundle is.
+gmeow-gts-profile = { path = "../gts-profile" }

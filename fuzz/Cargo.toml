@@ -23,7 +23,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 # Must stay byte-identical to the root [workspace.dependencies] pin (repo-static gate).
-purrdf = "0.12.0"
+purrdf = "=0.12.0"
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
 

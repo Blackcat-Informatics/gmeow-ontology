@@ -5,10 +5,13 @@
 //!
 //! This runs the committed corpus and query set through `Dataset::query` — the SAME
 //! function the `#[wasm_bindgen]` surface exposes — and pins the results to
-//! `crates/docs/assets/query/WITNESS.query.txt`. The Node lane
-//! (`crates/query-wasm/js/tests/witness.test.mjs`) runs the identical corpus through
-//! the SHIPPED wasm build and asserts byte-identity against the same file, so the two
-//! halves compute the same function rather than two similar ones.
+//! `crates/docs/assets/query/WITNESS.query.txt`. Two Node lanes replay the identical
+//! corpus and assert byte-identity against the same file:
+//! `crates/query-wasm/js/tests/witness.test.mjs` (the freshly-built `js/pkg/`
+//! package, gating `maint-refresh-query-asset` before it vendors anything) and
+//! `crates/query-wasm/js/tests/shipped.test.mjs` (the COMMITTED engine under
+//! `crates/docs/assets/query/` — the bytes that actually ship). All three run the
+//! same function rather than three similar ones.
 //!
 //! Refreshed with `GMEOW_WITNESS_BLESS=1`.
 //!
@@ -34,22 +37,28 @@ fn attestation_path() -> PathBuf {
 
 /// The query set, read from the SAME file the Node lane reads, so the two halves
 /// cannot drift apart in what they ask.
+///
+/// Parsed with `serde_json::Value`, not a hand-rolled string splitter: a splitter
+/// that finds the first `"` after `"sparql":` truncates at any embedded quoted
+/// literal (e.g. `FILTER(?x = "literal")`) instead of respecting JSON's `\"` escape,
+/// silently sending the two halves different query text. `serde_json` is a
+/// `[dev-dependencies]` entry — `tests/` is never linked into the `cdylib`
+/// wasm-bindgen artifact this crate ships, so this adds nothing to the shipped
+/// engine's dependency tree.
 fn queries() -> Vec<(String, String)> {
     let text = std::fs::read_to_string(repo_root().join("crates/query-wasm/js/tests/queries.json"))
         .expect("read queries.json");
-    // A deliberately tiny reader for the fixed two-key shape, so this test adds no
-    // JSON dependency to a crate whose whole point is a minimal wasm dependency tree.
-    let mut out = Vec::new();
-    for chunk in text.split("\"name\":").skip(1) {
-        let name = chunk.split('"').nth(1).expect("name value").to_string();
-        let sparql_raw = chunk
-            .split("\"sparql\":")
-            .nth(1)
-            .and_then(|s| s.split('"').nth(1))
-            .expect("sparql value");
-        out.push((name, sparql_raw.replace("\\n", "\n")));
-    }
-    out
+    let value: serde_json::Value = serde_json::from_str(&text).expect("parse queries.json");
+    value
+        .as_array()
+        .expect("queries.json is a JSON array")
+        .iter()
+        .map(|entry| {
+            let name = entry["name"].as_str().expect("name value").to_string();
+            let sparql = entry["sparql"].as_str().expect("sparql value").to_string();
+            (name, sparql)
+        })
+        .collect()
 }
 
 #[test]

@@ -1767,15 +1767,32 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
     // above only proves the two MANIFESTS match each other; it cannot see the lock, so
     // "the manifest pins one version, the lock resolves another" was undetectable.
+    //
+    // The pin must be EXACT (`=x.y.z`). A default caret requirement admits any compatible
+    // release, so `cargo update` can relink native — and any rebuilt wasm — against a
+    // different purrdf while every version string in the tree still reads the same. The
+    // substrate record keys off the LOCK for that reason; requiring an exact pin here keeps
+    // the manifest from silently disagreeing with it in the first place.
     if lock_path.is_file()
         && let Some(declared) = purrdf_declared_version(&root_manifest)
-        && let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
-        && declared != locked
     {
-        report.error(format!(
-            "Cargo.toml pins purrdf {declared} but Cargo.lock resolves {locked} — the \
-             manifest and the lock must name the same version"
-        ));
+        match declared.strip_prefix('=') {
+            None => report.error(format!(
+                "Cargo.toml pins purrdf {declared:?}, a range — it must be an EXACT pin \
+                 (=x.y.z). A caret requirement lets `cargo update` relink the RDF core \
+                 under a manifest that still reads the same"
+            )),
+            Some(exact) => {
+                if let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+                    && exact != locked
+                {
+                    report.error(format!(
+                        "Cargo.toml pins purrdf {exact} but Cargo.lock resolves {locked} — the \
+                         manifest and the lock must name the same version"
+                    ));
+                }
+            }
+        }
     }
 
     if lock_path.is_file()
@@ -1884,20 +1901,40 @@ fn purrdf_source_key(
     workspace: bool,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(manifest_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", manifest_path.display()));
-            return None;
+    match purrdf_source_key_of(manifest_path, workspace) {
+        Ok(key) => Some(key),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let manifest = match text.parse::<toml::Value>() {
-        Ok(manifest) => manifest,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
+/// recorded finding, for callers outside this report.
+///
+/// This is the ONE parser for the declared purrdf pin. It exists as a public entry so the
+/// docs-asset substrate gate cannot grow a second, weaker reader of the same manifest: a
+/// hand-rolled line scanner silently answers "no pin" for a dotted key, a table-form
+/// `[workspace.dependencies.purrdf]`, or a commented header, and a substrate comparison that
+/// cannot read its own input reports agreement it never checked.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
+/// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
+/// "no purrdf at all" still compares unequal instead of vanishing.
+pub fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(manifest_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", manifest_path.display()),
+        })
+    })?;
+    let manifest = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
+        })
+    })?;
     let deps = if workspace {
         manifest
             .get("workspace")
@@ -1909,7 +1946,7 @@ fn purrdf_source_key(
     let dep = deps
         .and_then(toml::Value::as_table)
         .and_then(|t| t.get("purrdf"));
-    Some(match dep {
+    Ok(match dep {
         None => "absent".to_owned(),
         Some(toml::Value::String(version)) => format!("registry;version={version}"),
         Some(toml::Value::Table(table)) => {
@@ -1939,26 +1976,76 @@ fn locked_package_version(
     name: &str,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(lock_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", lock_path.display()));
-            return None;
+    match locked_package_version_of(lock_path, name) {
+        Ok(version) => Some(version),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let lock = match text.parse::<toml::Value>() {
-        Ok(lock) => lock,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", lock_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The RESOLVED version of `name` in `Cargo.lock`, as a hard failure rather than a recorded
+/// finding, for callers outside this report.
+///
+/// The lock is the only place the version that actually got COMPILED is written down. A
+/// manifest requirement is a range: `purrdf = "0.12.0"` admits `0.12.1`, so a key derived from
+/// the manifest compares equal across a substrate change the lock can see.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or when it resolves no package
+/// named `name` — an absent package is a hard failure here, not a silent skip, because the
+/// caller asked for an identity it cannot substitute.
+pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(lock_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", lock_path.display()),
+        })
+    })?;
+    let lock = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", lock_path.display()),
+        })
+    })?;
     lock.get("package")
-        .and_then(toml::Value::as_array)?
-        .iter()
-        .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        .and_then(toml::Value::as_array)
+        .and_then(|packages| {
+            packages
+                .iter()
+                .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        })
         .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
         .map(str::to_owned)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: resolves no package named {name:?}",
+                    lock_path.display()
+                ),
+            })
+        })
+}
+
+/// The identity of the substrate a wasm engine built from this workspace statically links.
+///
+/// Both components are read from `Cargo.lock`, never from a manifest requirement: the lock
+/// records what was RESOLVED and therefore what was compiled into the `.wasm`, while a
+/// manifest requirement is a range that compares equal across the very bump this key exists
+/// to catch.
+///
+/// - `purrdf` is the RDF/SHACL/SPARQL core the browser and native engines must share.
+/// - `wasm-bindgen` fixes the JS glue ABI; a glue/library skew produces bindings that load
+///   but misbehave, which the digest manifest cannot see either.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or resolves neither package.
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    let lock_path = root.join("Cargo.lock");
+    let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
+    let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
+    Ok(format!("purrdf {purrdf}; wasm-bindgen {bindgen}"))
 }
 
 /// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a

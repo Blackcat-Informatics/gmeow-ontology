@@ -424,6 +424,7 @@ const HASHED_CRATE_ROOTS: &[&str] = &[
     "math",
     "math-lift",
     "ns",
+    "query-wasm",
     "term-arena",
     "validate",
 ];

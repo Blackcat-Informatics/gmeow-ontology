@@ -1902,7 +1902,9 @@ dependencies = [
 name = "gmeow-query-wasm"
 version = "0.2.0"
 dependencies = [
+ "gmeow-gts-profile",
  "purrdf",
+ "serde_json",
  "wasm-bindgen",
 ]
 
@@ -1993,6 +1995,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-math",
  "gmeow-ns",
+ "gmeow-query-wasm",
  "iai-callgrind",
  "insta",
  "jsonschema",
