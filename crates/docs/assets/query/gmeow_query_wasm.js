@@ -169,6 +169,11 @@ export class Dataset {
     }
     /**
      * The number of quads in the dataset, across every graph.
+     *
+     * Reads the frozen dataset's stored count rather than walking a full pattern scan.
+     * A `getter` reads as a field access at the call site, and the bundle explorer
+     * reports this for a ~45 MB dataset on load; counting an iterator to learn a length
+     * the value already knows made a property access cost a whole-dataset traversal.
      * @returns {number}
      */
     get size() {

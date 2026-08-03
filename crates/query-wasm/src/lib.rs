@@ -31,9 +31,7 @@
 //!   result that reads like "no matches".
 
 use purrdf::sparql::{NativeSparqlEngine, ResultProvenance, SparqlResultsFormat};
-use purrdf::{
-    DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
-};
+use purrdf::{RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
@@ -103,11 +101,14 @@ impl Dataset {
     }
 
     /// The number of quads in the dataset, across every graph.
+    ///
+    /// Reads the frozen dataset's stored count rather than walking a full pattern scan.
+    /// A `getter` reads as a field access at the call site, and the bundle explorer
+    /// reports this for a ~45 MB dataset on load; counting an iterator to learn a length
+    /// the value already knows made a property access cost a whole-dataset traversal.
     #[wasm_bindgen(getter)]
     pub fn size(&self) -> usize {
-        self.inner
-            .quads_for_pattern(None, None, None, GraphMatch::Any)
-            .count()
+        self.inner.quad_count()
     }
 
     /// `query(sparql, base?)` → run a SPARQL query against this dataset, offline.

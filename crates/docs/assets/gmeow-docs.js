@@ -51,7 +51,9 @@ const FORMATS = [
 let _engineReady = null;
 async function ensureEngine() {
   if (!_engineReady) {
-    _engineReady = init(new URL("./query/gmeow_query_wasm_bg.wasm", import.meta.url));
+    _engineReady = init({
+      module_or_path: new URL("./query/gmeow_query_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _engineReady;
 }
@@ -76,9 +78,9 @@ export function fullBundleUrl() {
 let _validatorReady = null;
 async function ensureValidator() {
   if (!_validatorReady) {
-    _validatorReady = validateInit(
-      new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
-    );
+    _validatorReady = validateInit({
+      module_or_path: new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _validatorReady;
 }
@@ -236,7 +238,9 @@ if (explorerForm) {
 let _reasonReady = null;
 const ensureReasoner = async () => {
   if (!_reasonReady) {
-    _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
+    _reasonReady = reasonInit({
+      module_or_path: new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _reasonReady;
 };
@@ -494,7 +498,9 @@ if (gmnForm) {
   let _gmnReady = null;
   const ensureGmn = async () => {
     if (!_gmnReady) {
-      _gmnReady = gmnInit(new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url));
+      _gmnReady = gmnInit({
+        module_or_path: new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url),
+      });
     }
     await _gmnReady;
   };
