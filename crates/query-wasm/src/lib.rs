@@ -83,8 +83,8 @@ impl Dataset {
     pub fn from_gts(gts: &[u8]) -> Result<Dataset, JsError> {
         let graph =
             purrdf::gts::read_all_segments(gts).map_err(|e| JsError::new(&e.to_string()))?;
-        let inner =
-            purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| JsError::new(&e.to_string()))?;
+        let inner = purrdf::gts::dataset_from_gts_graph(&graph)
+            .map_err(|e| JsError::new(&e.to_string()))?;
         Ok(Self { inner })
     }
 
@@ -138,9 +138,8 @@ impl Dataset {
                     &ResultProvenance::default(),
                 )
                 .map_err(|e| JsError::new(&e.to_string()))?;
-                String::from_utf8(outcome.bytes).map_err(|e| {
-                    JsError::new(&format!("SPARQL Results JSON is not UTF-8: {e}"))
-                })
+                String::from_utf8(outcome.bytes)
+                    .map_err(|e| JsError::new(&format!("SPARQL Results JSON is not UTF-8: {e}")))
             }
         }
     }
@@ -190,7 +189,10 @@ mod tests {
         let out = ds
             .query("SELECT ?p WHERE { <https://example.org/s> ?p ?o }", None)
             .expect("select evaluates");
-        assert!(out.contains("\"bindings\""), "not SPARQL Results JSON: {out}");
+        assert!(
+            out.contains("\"bindings\""),
+            "not SPARQL Results JSON: {out}"
+        );
     }
 
     #[test]
@@ -206,16 +208,16 @@ mod tests {
     fn construct_returns_turtle_not_json() {
         let ds = Dataset::parse(TURTLE, "turtle").expect("parse turtle");
         let out = ds
-            .query(
-                "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
-                None,
-            )
+            .query("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }", None)
             .expect("construct evaluates");
         assert!(
             !out.contains("\"bindings\""),
             "CONSTRUCT must be Turtle, not results JSON: {out}"
         );
-        assert!(out.contains("example.org"), "CONSTRUCT Turtle is empty: {out}");
+        assert!(
+            out.contains("example.org"),
+            "CONSTRUCT Turtle is empty: {out}"
+        );
     }
 
     // The REFUSAL contract (malformed document, unknown format, malformed query,

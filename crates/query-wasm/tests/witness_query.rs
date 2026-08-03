@@ -35,19 +35,13 @@ fn attestation_path() -> PathBuf {
 /// The query set, read from the SAME file the Node lane reads, so the two halves
 /// cannot drift apart in what they ask.
 fn queries() -> Vec<(String, String)> {
-    let text = std::fs::read_to_string(
-        repo_root().join("crates/query-wasm/js/tests/queries.json"),
-    )
-    .expect("read queries.json");
+    let text = std::fs::read_to_string(repo_root().join("crates/query-wasm/js/tests/queries.json"))
+        .expect("read queries.json");
     // A deliberately tiny reader for the fixed two-key shape, so this test adds no
     // JSON dependency to a crate whose whole point is a minimal wasm dependency tree.
     let mut out = Vec::new();
     for chunk in text.split("\"name\":").skip(1) {
-        let name = chunk
-            .split('"')
-            .nth(1)
-            .expect("name value")
-            .to_string();
+        let name = chunk.split('"').nth(1).expect("name value").to_string();
         let sparql_raw = chunk
             .split("\"sparql\":")
             .nth(1)
@@ -60,10 +54,9 @@ fn queries() -> Vec<(String, String)> {
 
 #[test]
 fn native_query_results_match_the_witness_attestation() {
-    let corpus = std::fs::read_to_string(
-        repo_root().join("crates/query-wasm/js/tests/corpus.trig"),
-    )
-    .expect("read corpus.trig");
+    let corpus =
+        std::fs::read_to_string(repo_root().join("crates/query-wasm/js/tests/corpus.trig"))
+            .expect("read corpus.trig");
     let dataset = Dataset::parse(&corpus, "trig").expect("parse the committed corpus");
 
     let mut rendered = String::new();

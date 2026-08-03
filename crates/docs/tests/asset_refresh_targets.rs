@@ -34,8 +34,7 @@ fn defines_target(makefile: &str, target: &str) -> bool {
     makefile.lines().any(|line| line.starts_with(&prefix))
 }
 
-const ASSETS: &[&VendoredWasmAsset] =
-    &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
+const ASSETS: &[&VendoredWasmAsset] = &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
 
 #[test]
 fn every_asset_refresh_target_is_a_real_makefile_rule() {
