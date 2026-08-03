@@ -79,6 +79,42 @@ define REQUIRE_WASM_OPT
 	[ "$$have" = "$(BINARYEN_NUM)" ] || { echo "ERROR: wasm-opt is binaryen $$have but the pin is $(BINARYEN_NUM) ($(BINARYEN_VER)) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
 endef
 
+# The four engine packages are built by ONE recipe. They were four verbatim copies, and
+# the copy-paste is what let a descriptor name a refresh target that did not exist. The
+# rules stay explicit (a canned recipe, not a pattern rule) for two reasons: GNU make does
+# not apply pattern rules to `.PHONY` targets, and `make help` awks this file's raw source
+# for `^<target>:.*## `, so generated rules would vanish from the task plan.
+#
+# $(1) = engine short name; $(2) = extra wasm-opt features that engine's module needs.
+define BUILD_WASM_PKG
+@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
+@# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+$(WASM_CARGO) build -p gmeow-$(1)-wasm --target wasm32-unknown-unknown --release
+PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+	$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_$(1)_wasm.wasm \
+	--out-dir crates/$(1)-wasm/js/pkg --target web
+@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a hard
+@# dependency: a missing or unpinned wasm-opt is a build failure, never a note.
+$(REQUIRE_WASM_OPT)
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt $(2) \
+	-o crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm \
+	   crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm
+@echo "OK: gmeow-$(1)-wasm npm package built (crates/$(1)-wasm/js/, pkg/ generated)"
+endef
+
+# Re-vendor one built engine into its docs asset dir and re-pin DIGESTS.blake3 from the
+# exact copied bytes, via that asset's bless path. $(1) = engine short name;
+# $(2) = the same name upper-cased, naming the bless environment variable.
+define REVENDOR_WASM_ASSET
+mkdir -p crates/docs/assets/$(1)
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.js             crates/docs/assets/$(1)/gmeow_$(1)_wasm.js
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm        crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.d.ts           crates/docs/assets/$(1)/gmeow_$(1)_wasm.d.ts
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm.d.ts   crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm.d.ts
+GMEOW_$(2)_BLESS=1 cargo test -p gmeow-docs --test $(1)_asset
+@echo "OK: re-vendored gmeow-$(1)-wasm into crates/docs/assets/$(1)/ (DIGESTS.blake3 re-pinned)"
+endef
+
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for synchronization/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
@@ -575,18 +611,7 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 	fi
 
 validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
-	@# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
-	$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_validate_wasm.wasm \
-		--out-dir crates/validate-wasm/js/pkg --target web
-	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
-	@# hard dependency: a missing wasm-opt is a build failure, never a note.
-	$(REQUIRE_WASM_OPT)
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
-	@echo "OK: wasm-opt -Oz applied"
-	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,validate,)
 
 validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and run its Node real-execution round-trip lane.
 	@# The RDF/SPARQL query engine has its OWN lane (`query-wasm-pkg-test`); this
@@ -597,70 +622,30 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 	@echo "OK: gmeow-validate-wasm Node round-trip lane passed"
 
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-reason-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm \
-		--out-dir crates/reason-wasm/js/pkg --target web
-	$(REQUIRE_WASM_OPT)
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
-	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,reason,)
 
 maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	mkdir -p crates/docs/assets/reason
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.js            crates/docs/assets/reason/gmeow_reason_wasm.js
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm       crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.d.ts          crates/docs/assets/reason/gmeow_reason_wasm.d.ts
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm.d.ts  crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm.d.ts
-	GMEOW_REASON_BLESS=1 cargo test -p gmeow-docs --test reason_asset
-	@echo "OK: re-vendored gmeow-reason-wasm into crates/docs/assets/reason/ (DIGESTS.blake3 re-pinned)"
+	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
 
 gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
-		--out-dir crates/gmn-wasm/js/pkg --target web
-	$(REQUIRE_WASM_OPT)
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
-	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,gmn,)
 
 maint-refresh-gmn-asset: gmn-wasm-pkg-test ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	mkdir -p crates/docs/assets/gmn
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.js            crates/docs/assets/gmn/gmeow_gmn_wasm.js
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm       crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.d.ts          crates/docs/assets/gmn/gmeow_gmn_wasm.d.ts
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm.d.ts  crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm.d.ts
-	GMEOW_GMN_BLESS=1 cargo test -p gmeow-docs --test gmn_asset
-	@echo "OK: re-vendored gmeow-gmn-wasm into crates/docs/assets/gmn/ (DIGESTS.blake3 re-pinned)"
+	$(call REVENDOR_WASM_ASSET,gmn,GMN)
 
 gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
 	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
 
 query-wasm-pkg: ## Build the gmeow-query-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-query-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_query_wasm.wasm \
-		--out-dir crates/query-wasm/js/pkg --target web
-	$(REQUIRE_WASM_OPT)
-	@# The query engine emits nontrapping float->int ops (i64.trunc_sat_*) from the XSD /
-	@# SPARQL numeric layer, and sign-extension ops, which the other engines do not reach.
-	@# wasm-opt validates the INPUT against its enabled feature set, so these must be named
-	@# or a valid module is rejected. Every browser this site targets supports both.
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int --enable-sign-ext -o crates/query-wasm/js/pkg/gmeow_query_wasm_bg.wasm crates/query-wasm/js/pkg/gmeow_query_wasm_bg.wasm
-	@echo "OK: gmeow-query-wasm npm package built (crates/query-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,query,--enable-nontrapping-float-to-int --enable-sign-ext)
 
 maint-refresh-query-asset: query-wasm-pkg-test ## Re-vendor the gmeow-query-wasm engine into crates/docs/assets/query/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	mkdir -p crates/docs/assets/query
-	cp crates/query-wasm/js/pkg/gmeow_query_wasm.js            crates/docs/assets/query/gmeow_query_wasm.js
-	cp crates/query-wasm/js/pkg/gmeow_query_wasm_bg.wasm       crates/docs/assets/query/gmeow_query_wasm_bg.wasm
-	cp crates/query-wasm/js/pkg/gmeow_query_wasm.d.ts          crates/docs/assets/query/gmeow_query_wasm.d.ts
-	cp crates/query-wasm/js/pkg/gmeow_query_wasm_bg.wasm.d.ts  crates/docs/assets/query/gmeow_query_wasm_bg.wasm.d.ts
-	GMEOW_QUERY_BLESS=1 cargo test -p gmeow-docs --test query_asset
-	@echo "OK: re-vendored gmeow-query-wasm into crates/docs/assets/query/ (DIGESTS.blake3 re-pinned)"
+	$(call REVENDOR_WASM_ASSET,query,QUERY)
 
 query-wasm-pkg-test: query-wasm-pkg ## Build the query engine npm package and run its Node native↔wasm parity witness lane.
 	cd crates/query-wasm/js && node --test tests/*.test.mjs
@@ -792,16 +777,7 @@ maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
 maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	@# Rebuild the wasm package (validate-wasm-pkg above: cargo --target wasm32 --release,
-	@# wasm-bindgen --target web, then the REQUIRED wasm-opt -Oz), copy the four vendored
-	@# artifacts into the docs asset dir, and rewrite DIGESTS.blake3 from the exact copied
-	@# bytes via the bless path of crates/docs/tests/validate_asset.rs (GMEOW_VALIDATE_BLESS=1).
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.js          crates/docs/assets/validate/gmeow_validate_wasm.js
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm     crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.d.ts        crates/docs/assets/validate/gmeow_validate_wasm.d.ts
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm.d.ts crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm.d.ts
-	GMEOW_VALIDATE_BLESS=1 cargo test -p gmeow-docs --test validate_asset
-	@echo "OK: re-vendored gmeow-validate-wasm into crates/docs/assets/validate/ (DIGESTS.blake3 re-pinned)"
+	$(call REVENDOR_WASM_ASSET,validate,VALIDATE)
 
 maint-wikidata-live: ## Verify Wikidata identifiers resolve over the network.
 	$(GMEOW_DEV) wikidata --existence
