@@ -21,7 +21,7 @@ const SHIPPED = new URL("../../../docs/assets/query/", import.meta.url);
 
 // The shipped bindings are wasm-bindgen `--target web`: `default` is the async init
 // that accepts the wasm bytes; the classes/functions are named exports.
-const { default: init, Dataset, version } = await import(
+const { default: init, Dataset, version, blake3Hex } = await import(
   new URL("gmeow_query_wasm.js", SHIPPED).href
 );
 await init({
@@ -95,4 +95,33 @@ test("a SERVICE clause throws — the browser cannot resolve it", () => {
   assert.throws(() =>
     ds.query("SELECT ?s WHERE { SERVICE <https://example.org/sparql> { ?s ?p ?o } }"),
   );
+});
+
+test("the SHIPPED engine's blake3Hex computes the manifest's content-address hash", async () => {
+  // The docs site accepts the fetched 45 MB bundle ONLY if `blake3:${blake3Hex(bytes)}`
+  // equals the emitted manifest's recorded address, so this export IS the integrity
+  // check — a rebuild that broke it would ship a site that can never load the bundle.
+  // Two assertions, both against independently-derived values the wasm cannot fake:
+  //
+  // A pinned reference vector (b3sum of the five bytes `gmeow`), so the export is
+  // proven to compute REAL blake3 rather than any stable-but-wrong digest:
+  assert.equal(
+    blake3Hex(new TextEncoder().encode("gmeow")),
+    "abebd8d6f5d08000d2a61a9be44474bf78d5c8dc5d8e97a3de75af0b2eafaaf6",
+  );
+  // And the committed digest manifest: the shipped wasm module's own recorded digest,
+  // recomputed through the shipped engine, must match what `DIGESTS.blake3` pins —
+  // the exact comparison shape the browser loader performs against the bundle.
+  const digests = await readFile(
+    fileURLToPath(new URL("DIGESTS.blake3", SHIPPED)),
+    "utf8",
+  );
+  const recorded = digests
+    .split("\n")
+    .find((line) => line.endsWith("  gmeow_query_wasm_bg.wasm"));
+  assert.ok(recorded, "DIGESTS.blake3 must pin the wasm module");
+  const bytes = await readFile(
+    fileURLToPath(new URL("gmeow_query_wasm_bg.wasm", SHIPPED)),
+  );
+  assert.equal(blake3Hex(bytes), recorded.split("  ")[0]);
 });
