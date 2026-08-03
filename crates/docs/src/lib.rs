@@ -11,7 +11,9 @@
 //! analyzer.
 //!
 //! The model in [`model`] is PyO3-free so every consumer (renderers, lint,
-//! diagram, bundle) shares one source of truth. The [`render`] module turns the
+//! diagram, bundle) shares one source of truth — including its once-per-run disk
+//! cache, [`gmeow_docs_model::fixture`], on top of whose key [`fixture`] layers the
+//! rendered site and mdBook caches. The [`render`] module turns the
 //! model into a deterministic static-site tree (Markdown + self-contained HTML),
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
 //! The crate is native Rust throughout; lint and i18n consumers share the same

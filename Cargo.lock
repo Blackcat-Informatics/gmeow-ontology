@@ -1644,6 +1644,7 @@ dependencies = [
  "docs-print",
  "gmeow-cli-core",
  "gmeow-docs",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-foundation-corpus",
  "gmeow-license",

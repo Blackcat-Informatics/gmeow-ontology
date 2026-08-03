@@ -2857,10 +2857,11 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
 /// The repo-root-relative directory roots a `gmeow:cqQueryFile` may resolve into:
 /// the shared root-level SPARQL tree and a slice's own committed queries.
 ///
-/// Both are content-addressed by `crate::fixture::cache_key` (which walks `queries`
+/// Both are content-addressed by [`crate::fixture::cache_key`] (which walks `queries`
 /// and `slices` in full), which is what makes the documentation-model fixture cache
-/// sound with respect to competency-query text. `crate::fixture` re-exports this as
-/// its own boundary constant so the two can never drift.
+/// sound with respect to competency-query text. That key reads THIS constant directly
+/// — the boundary the model enforces and the roots the key walks are one constant, so
+/// they cannot drift.
 pub const COMPETENCY_QUERY_ROOTS: &[&str] = &["queries/", "slices/"];
 
 /// Whether `rel` is a legal `gmeow:cqQueryFile` value: repo-root-relative (never

@@ -3,10 +3,11 @@
 
 //! Shared, once-per-run fixture for the gmeow-docs integration tests.
 //!
-//! The cache machinery lives in [`gmeow_docs::fixture`]; this module only pins
-//! the repo root (via the crate manifest dir) and exposes the loaders under the
-//! `common::cached_model()` / `common::cached_site()` / `common::cached_book()`
-//! names the binaries call.
+//! The cache machinery lives in [`gmeow_docs::fixture`] (the rendered site and
+//! book) and [`gmeow_docs_model::fixture`] (the model, the shared cache key and the
+//! shared envelope digest); this module only pins the repo root (via the crate
+//! manifest dir) and exposes the loaders under the `common::cached_model()` /
+//! `common::cached_site()` / `common::cached_book()` names the binaries call.
 //! The cache is primed once before the test processes spawn by the
 //! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
 //! job run immediately before `cargo nextest`, so no test pays the ~12 s model
@@ -31,7 +32,7 @@ pub fn repo_root() -> PathBuf {
 
 /// The live documentation model, loaded from the shared once-per-run cache.
 pub fn cached_model() -> DocsModel {
-    gmeow_docs::fixture::load(&repo_root())
+    gmeow_docs_model::fixture::load(&repo_root())
 }
 
 /// The rendered English static site, loaded from the shared once-per-run cache.

@@ -32,6 +32,12 @@ gmeow-logic = { path = "../logic" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 gmeow-docs = { path = "../docs" }
+# The docs MODEL, direct: `doc-lint` loads the model from the content-addressed
+# `.cache/docs-fixture` store, whose model half + shared cache key live in this crate
+# (`gmeow_docs_model::fixture`) so that every model consumer — `gmeow-slice-quality`
+# included — can reach the cache without an edge to the renderer. The renderer-side
+# site loader still comes from `gmeow-docs` above.
+gmeow-docs-model = { path = "../docs-model" }
 docs-print = { path = "../docs-print" }
 gmeow-slice-quality = { path = "../slice-quality" }
 gmeow-music = { path = "../music" }

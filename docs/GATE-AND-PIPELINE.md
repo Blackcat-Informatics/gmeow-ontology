@@ -191,11 +191,25 @@ used it, because its key missed two workspace path dependencies on the model
 path — including `crates/ns`, which supplies the vocabulary deciding which
 predicates `discover` reads. Rather than name the two, `cache_key` in
 `crates/docs/src/fixture.rs` now folds `gmeow-docs`' full transitive path-dep
-closure, and `crate_dep_closure_is_fully_hashed` re-derives that closure from
-the live manifests and asserts set equality, so a new path dependency reds
-instead of silently reopening the hole. A `gmeow:cqQueryFile` resolving outside
-the hashed roots became an error rather than an unhashed input. `doc-lint` went
-from 1m17s cold to 1.96s warm, output byte-identical.
+closure, and `live_manifest_closure_is_closed_and_reaches_the_model` re-derives
+that closure from the live manifests and asserts it is transitively closed, so a
+new path dependency reds instead of silently reopening the hole. A
+`gmeow:cqQueryFile` resolving outside the hashed roots became an error rather
+than an unhashed input. `doc-lint` went from 1m17s cold to 1.96s warm, output
+byte-identical.
+
+The cache has since been split along the crate boundary so that every model
+consumer can reach it: the model envelope, the shared cache key, the shared
+payload digest and the shared atomic writer live in
+`crates/docs-model/src/fixture.rs`, and only the rendered-site / mdBook envelopes
+remain in `crates/docs/src/fixture.rs`. The key is unchanged — its derived
+implementation closure is still rooted at `crates/docs`, because the renderer's
+bytes must move the key its site and book caches hang off, and `crates/docs`
+depends on `crates/docs-model` so the model's own closure is a subset. The split
+is what lets `gmeow-slice-quality`'s `DocMaturity` axis read the cache: an edge
+from that crate to `gmeow-docs` would close a first-party cycle, because
+`gmeow-docs` dev-depends on `gmeow-mcp` and `gmeow-mcp` depends on
+`gmeow-slice-quality`, and the layering scan counts dev-dependencies.
 
 **Prerequisite 3 — the record could not prove it was current.** The naive claim
 that the second merged-SHACL pass was a bit-for-bit repeat was wrong twice over.

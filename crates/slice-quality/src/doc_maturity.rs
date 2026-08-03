@@ -16,15 +16,21 @@
 //!
 //! # Cost & caching
 //!
-//! [`DocsModel::discover`] is a repo-wide sweep, so it is built ONCE per repo root and
-//! memoized: every slice the quality sweep scores reads the same in-memory
-//! documentation model. The cost is the model the regenerate pipeline builds anyway,
-//! paid once behind a `make check` gate.
+//! [`DocsModel::discover`] is a ~12 s repo-wide sweep, so it is built ONCE per repo
+//! root and memoized: every slice the quality sweep scores reads the same in-memory
+//! documentation model. The disk-sourced arm goes further and reads the
+//! content-addressed `.cache/docs-fixture` store
+//! ([`gmeow_docs_model::fixture::try_load`]), so the sweep shares ONE build with the
+//! docs pipeline and `gmeow-dev doc-lint` instead of paying a third. `try_load` is
+//! byte-identical to `discover()`, and a cache miss runs the real sweep — the score is
+//! the same either way. The live-catalog arm cannot use it (this run's freshly-rendered
+//! constraint catalog is not part of the on-disk key) and builds directly.
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
+use gmeow_docs_model::fixture;
 use gmeow_docs_model::maturity::{Dimension, MaturityAnchor};
 use gmeow_docs_model::model::DocsModel;
 use gmeow_docs_model::rdf::{DocSliceFacts, documentation_graph};
@@ -373,35 +379,33 @@ pub(crate) fn prime_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) {
 ///
 /// `catalog_bytes` selects the constraint-catalog source: the live in-pipeline bytes
 /// ([`DocsModel::discover_with_catalog`]) when supplied, else the committed on-disk
-/// catalog ([`DocsModel::discover`]). The catalog content does not feed the coverage
-/// fraction; supplying live bytes only guarantees the model BUILDS on a cold tree.
+/// catalog ([`fixture::try_load`], which is [`DocsModel::discover`] behind a
+/// content-addressed cache). The catalog content does not feed the coverage fraction;
+/// supplying live bytes only guarantees the model BUILDS on a cold tree.
 fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
     let built = match catalog_bytes {
         // In-pipeline: the catalog is THIS run's freshly-rendered bytes, which are not
         // part of the on-disk content-addressed key, so the disk fixture cache cannot
         // and must not serve it.
         Some(bytes) => DocsModel::discover_with_catalog(root, bytes),
-        // Post-pipeline / CLI over a materialized tree: build the model from disk.
+        // Post-pipeline / CLI over a materialized tree: build the model from disk,
+        // through the content-addressed `.cache/docs-fixture` store.
         //
-        // This is deliberately the UNCACHED loader, and the reason is a layering
-        // constraint rather than a preference. The content-addressed
-        // `.cache/docs-fixture` store that would save this a fresh ~12 s `discover()`
-        // lives in `gmeow_docs::fixture` (`try_load`, byte-identical to `discover()`
-        // and Result-preserving), but reaching it means an edge
-        // `gmeow-slice-quality -> gmeow-docs`, and `gmeow-docs` dev-depends on
-        // `gmeow-mcp` (so `shipped_queries_execute` can run every SPARQL text the site
-        // ships against the real engine), while `gmeow-mcp` depends on THIS crate. That
-        // closes a first-party cycle `gmeow-docs -> gmeow-mcp -> gmeow-slice-quality ->
-        // gmeow-docs`, which `gmeow_validate::crate_layering` refuses — its dependency
-        // scan counts `dev-dependencies`.
+        // `try_load` is byte-identical to `DocsModel::discover` and Result-preserving:
+        // its envelope carries the three `#[serde(skip)]` i18n fields explicitly, so a
+        // warm hit reconstructs exactly what a fresh sweep would have built, and a
+        // model-BUILD failure still arrives here as `Err` to be recorded as
+        // `slice-quality.doc-maturity.model-unavailable` rather than crashing the
+        // process. A genuine cache MISS runs the full `discover()` and caches it — never
+        // a weaker model. A present-but-corrupt or edited entry hard-fails naming the
+        // file; it is never served.
         //
-        // Nothing about the SCORE differs: `try_load` returns what `discover` returns.
-        // What is lost is only the cache hit. The forward path is to move the MODEL half
-        // of `gmeow_docs::fixture` (the envelope + `cache_key` + the derived crate
-        // closure) into `gmeow-docs-model`, which this crate already depends on and
-        // which nothing depends on this crate for; the renderer-only `CachedSite` half
-        // stays in `gmeow-docs`. Then the cache is reachable from here with no new edge.
-        None => DocsModel::discover(root),
+        // The key folds every input `discover()` reads plus the transitive path-dependency
+        // closure of `crates/docs`, so nothing that could change the model can leave it
+        // unmoved. What this saves is the repeated ~12 s repo-wide sweep: `make check`
+        // builds the same model for the docs pipeline, `gmeow-dev doc-lint`, and this
+        // axis, and they now all read one cached build.
+        None => fixture::try_load(root),
     };
     match built {
         Ok(model) => {

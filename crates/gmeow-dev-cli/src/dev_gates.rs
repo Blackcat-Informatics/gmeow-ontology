@@ -576,7 +576,7 @@ pub fn doc_lint() -> i32 {
     let root = project_root();
     // The model and the English site come from the content-addressed
     // `.cache/docs-fixture` store, NOT a fresh ~12 s `DocsModel::discover` + render.
-    // This is the identical artifact by construction: `fixture::load` is
+    // This is the identical artifact by construction: `fixture::try_load` is
     // byte-identical to `discover()` (its envelope carries the three `#[serde(skip)]`
     // i18n fields explicitly) and `fixture::load_site` is byte-identical to
     // `render_site(&load(root))` (`render_site` IS `render_site_lang(_, ENGLISH)`).
@@ -584,8 +584,10 @@ pub fn doc_lint() -> i32 {
     // path-dependency closure of `gmeow-docs`, so no edit that could change what this
     // gate lints can leave the key unmoved; a present-but-corrupt entry panics rather
     // than silently rebuilding. Nothing about what doc-lint ASSERTS changes here —
-    // only how many times the same model gets built in one `make check`.
-    let model = match gmeow_docs::fixture::try_load(&root) {
+    // only how many times the same model gets built in one `make check`. The model
+    // loader lives in `gmeow-docs-model` and the site loader in `gmeow-docs`; both
+    // hang off the one cache key the model crate owns.
+    let model = match gmeow_docs_model::fixture::try_load(&root) {
         Ok(m) => m,
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };

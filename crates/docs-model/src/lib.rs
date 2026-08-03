@@ -26,6 +26,14 @@ pub mod coverage;
 pub mod describe;
 pub mod error;
 pub mod exec;
+// The once-per-run, content-addressed disk cache for the documentation MODEL, plus
+// the cache key / payload digest / atomic writer every fixture artifact shares. It
+// lives HERE rather than in `gmeow-docs` because every model consumer must be able to
+// reach it: `gmeow-slice-quality`'s DocMaturity axis reads the model once per repo
+// root, and an edge from that crate to `gmeow-docs` would close a first-party cycle
+// (`gmeow-docs` dev-depends on `gmeow-mcp`, which depends on `gmeow-slice-quality`).
+// The renderer-only site/book caches layer on top of this key in `gmeow_docs::fixture`.
+pub mod fixture;
 pub mod formats;
 pub mod gmn1_primer;
 pub mod i18n;

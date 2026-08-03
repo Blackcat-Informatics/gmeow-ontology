@@ -710,7 +710,7 @@ pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String
 /// closure from the workspace manifests, so a NEW path dependency reds a test instead of
 /// silently opening the hole again. The same defect (a path dependency carries no
 /// `Cargo.lock` checksum) is handled on the documentation-fixture side by
-/// `gmeow_docs::fixture::fixture_crate_dirs`, which DERIVES its closure from the
+/// `gmeow_docs_model::fixture`'s `fixture_crate_dirs`, which DERIVES its closure from the
 /// manifests rather than restating it; hand-picking "the crates that really matter" is
 /// exactly the argument that makes such a list wrong, which is why the test below is what
 /// owns this list's contents.
