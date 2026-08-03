@@ -77,3 +77,41 @@ fn every_asset_bless_env_is_distinct() {
         "two assets share a bless environment variable: {seen:?}"
     );
 }
+
+/// Each asset's `refresh_target` must be distinct AND must actually refresh THAT asset.
+///
+/// Existence alone is too weak: all four descriptors could name one real target and the
+/// existence gate would stay green, so three engines would advertise a command that
+/// re-vendors a different one. `bless_env` distinctness was already asserted; the target
+/// this failure message tells a reader to run was not.
+#[test]
+fn every_asset_refresh_target_is_distinct_and_refreshes_that_asset() {
+    let mut seen: Vec<&str> = ALL_ASSETS.iter().map(|a| a.refresh_target).collect();
+    seen.sort_unstable();
+    let before = seen.len();
+    seen.dedup();
+    assert_eq!(
+        seen.len(),
+        before,
+        "two assets share a refresh target, so one of them advertises a command that \
+         re-vendors a different engine: {seen:?}"
+    );
+
+    // The recipe must name the asset it claims to refresh. The rules are generated from a
+    // canned recipe keyed by the engine's short name, so the call carries that name.
+    let makefile = makefile();
+    for asset in ALL_ASSETS {
+        let recipe = makefile
+            .split(&format!("\n{}:", asset.refresh_target))
+            .nth(1)
+            .unwrap_or_else(|| panic!("no recipe body for {}", asset.refresh_target));
+        let body = recipe.split("\n\n").next().unwrap_or(recipe);
+        assert!(
+            body.contains(asset.name),
+            "`{}` never names `{}` in its recipe, so it does not demonstrably refresh the \
+             asset whose failure message advertises it",
+            asset.refresh_target,
+            asset.name
+        );
+    }
+}

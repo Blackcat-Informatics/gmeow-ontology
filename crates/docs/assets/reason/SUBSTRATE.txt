@@ -1,1 +1,1 @@
-purrdf 0.12.0; wasm-bindgen 0.2.125
+purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130

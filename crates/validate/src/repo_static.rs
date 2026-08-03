@@ -103,6 +103,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
     check_wasm_bindgen_pin_parity(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report);
     report
 }
 
@@ -1837,6 +1838,141 @@ fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
     }
 }
 
+/// The CI-installed `wasm-bindgen-cli` and the binaryen pin CI provisions.
+///
+/// Split out and called on EVERY path of [`check_wasm_bindgen_pin_parity`], including the
+/// ones that could not read the workspace pin. When it was inline, an unreadable or absent
+/// root manifest returned early and took this with it — so a genuinely wrong CI version went
+/// unreported because a DIFFERENT file was missing. `expected` is `None` exactly when the
+/// library pin could not be established; the CI surface is still checked for its own sake.
+fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut RepoStaticReport) {
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let ci = match fs::read_to_string(&workflow) {
+        Ok(ci) => ci,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen CLI version cannot be checked \
+                 against the workspace pin, which is a failure, not agreement",
+                workflow.display()
+            ));
+            return;
+        }
+    };
+    // EVERY occurrence, not the first: a second install step pinned to another version is
+    // exactly the drift this exists to catch, and `nth(1)` would never have seen it.
+    let installs: Vec<String> = ci
+        .split("wasm-bindgen-cli@")
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+        })
+        .collect();
+    if installs.is_empty() {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+    }
+    for installed in &installs {
+        if expected.is_some() && Some(installed.as_str()) != expected {
+            report.error(format!(
+                "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+                 wasm-bindgen {} — the CLI refuses any library version it does not match \
+                 byte-for-byte, so the wasm build fails naming a version mismatch rather than \
+                 this drift",
+                workflow.display(),
+                expected.unwrap_or("<unreadable>")
+            ));
+        }
+    }
+
+    // The binaryen pin has ONE home (the Makefile's `BINARYEN_VER`), and CI must keep
+    // READING it rather than repeating the literal. Those two constants drifted once
+    // already: CI provisioned a release predating `--enable-bulk-memory-opt`, and every
+    // wasm-opt rule died on an unknown option. Nothing stopped the literal coming back.
+    if !ci.contains("print-binaryen-ver") {
+        report.error(format!(
+            "{}: does not read the binaryen pin from `make print-binaryen-ver` — the Makefile \
+             is its single source of truth, and a literal `version_NNN` here is the two-constant \
+             drift that broke the wasm lanes",
+            workflow.display()
+        ));
+    }
+    if let Some(idx) = ci.find("BINARYEN_VER:") {
+        report.error(format!(
+            "{}: pins BINARYEN_VER as a literal at byte {idx} — read it from \
+             `make print-binaryen-ver` instead; two copies of this version drifted once and \
+             took every wasm parity lane with them",
+            workflow.display()
+        ));
+    }
+}
+
+/// `purrdf::gts_compose::emit_gts` may be called from exactly ONE place: the mandated
+/// authorship profile in `crates/gts-profile`.
+///
+/// That crate exists because the claim "`emit_gmeow_gts` is the only production entry to the
+/// GTS writer" was false — three crates called the writer directly, so bundles shipped
+/// without the mandated transform chain and compression level. Extracting the profile fixed
+/// the instances; nothing stopped the next one. A chokepoint nothing enforces is a
+/// convention, and this file already scans for three sibling structural invariants.
+///
+/// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
+/// to prove the profile's audit rejects it.
+fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    for file in files {
+        // The profile crate IS the permitted entry.
+        if file.starts_with(crates_dir.join("gts-profile")) {
+            continue;
+        }
+        // Integration-test crates and benches are test code: their files carry no
+        // `#[cfg(test)]` module for the scrubber to blank, but a test may legitimately
+        // build a deliberately non-conforming bundle to prove the audit rejects it.
+        if file
+            .components()
+            .any(|c| matches!(c.as_os_str().to_str(), Some("tests" | "benches")))
+        {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&file) else {
+            report.error(format!("{}: cannot read", file.display()));
+            continue;
+        };
+        let scrubbed = blank_comments_strings_and_cfg_test_modules(&text);
+        let lines: Vec<&str> = scrubbed.lines().collect();
+        for (idx, line) in lines.iter().enumerate() {
+            // `#[cfg(test)] use ...::emit_gts;` attaches the attribute to the item, not to a
+            // module, so the module scrubber cannot see it.
+            let test_gated = idx
+                .checked_sub(1)
+                .and_then(|prev| lines.get(prev))
+                .is_some_and(|prev| prev.trim() == "#[cfg(test)]");
+            if test_gated {
+                continue;
+            }
+            if line.contains("gts_compose::emit_gts") || line.contains("emit_gts(") {
+                let rel = file.strip_prefix(root).unwrap_or(&file);
+                report.error(format!(
+                    "{}:{}: calls the GTS writer directly — every production bundle must be \
+                     emitted through `gmeow_gts_profile::emit_gmeow_gts`, the single entry \
+                     that applies the mandated transform chain and compression level",
+                    rel.display(),
+                    idx + 1
+                ));
+            }
+        }
+    }
+}
+
 /// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
 /// all name ONE version.
 ///
@@ -1851,11 +1987,28 @@ fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
 /// version mismatch rather than the drift that caused it. Both halves are checked here.
 fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
     let root_manifest = root.join("Cargo.toml");
-    let Ok(text) = fs::read_to_string(&root_manifest) else {
+    // A tree with no root manifest is not a cargo workspace and has no pin to compare.
+    // A manifest that EXISTS but cannot be read is a different thing entirely: the guard
+    // could not run, and reporting agreement it never established is the silent
+    // degradation this file exists to prevent.
+    if !root_manifest.exists() {
         return;
+    }
+    let text = match fs::read_to_string(&root_manifest) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen pin cannot be checked, which is a \
+                 failure, not agreement",
+                root_manifest.display()
+            ));
+            check_wasm_bindgen_ci_pin(root, None, report);
+            return;
+        }
     };
     let Ok(manifest) = text.parse::<toml::Value>() else {
         report.error(format!("{}: cannot parse", root_manifest.display()));
+        check_wasm_bindgen_ci_pin(root, None, report);
         return;
     };
     let declared = manifest
@@ -1879,6 +2032,7 @@ fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
              all of them"
                 .to_owned(),
         );
+        check_wasm_bindgen_ci_pin(root, None, report);
         return;
     };
     let Some(exact) = declared.strip_prefix('=') else {
@@ -1887,11 +2041,24 @@ fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
              EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
              byte-for-byte"
         ));
+        check_wasm_bindgen_ci_pin(root, None, report);
         return;
     };
 
     // No `crates/*-wasm` crate may redeclare the version.
-    if let Ok(entries) = fs::read_dir(root.join("crates")) {
+    let crates_dir = root.join("crates");
+    let entries = match fs::read_dir(&crates_dir) {
+        Ok(entries) => Some(entries),
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the `*-wasm` members cannot be checked against the \
+                 workspace pin",
+                crates_dir.display()
+            ));
+            None
+        }
+    };
+    if let Some(entries) = entries {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().into_owned();
             if !name.ends_with("-wasm") {
@@ -1940,32 +2107,7 @@ fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
         }
     }
 
-    // The CLI CI installs must name that same version.
-    let workflow = root.join(".github").join("workflows").join("ci.yml");
-    let Ok(ci) = fs::read_to_string(&workflow) else {
-        return;
-    };
-    let Some(installed) = ci.split("wasm-bindgen-cli@").nth(1).map(|rest| {
-        rest.chars()
-            .take_while(|c| c.is_ascii_digit() || *c == '.')
-            .collect::<String>()
-    }) else {
-        report.error(format!(
-            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
-             generate bindings without it",
-            workflow.display()
-        ));
-        return;
-    };
-    if installed != exact {
-        report.error(format!(
-            "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
-             wasm-bindgen {exact} — the CLI refuses any library version it does not match \
-             byte-for-byte, so the wasm build fails naming a version mismatch rather than this \
-             drift",
-            workflow.display()
-        ));
-    }
+    check_wasm_bindgen_ci_pin(root, Some(exact), report);
 }
 
 /// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
@@ -2121,7 +2263,45 @@ pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
     let lock_path = root.join("Cargo.lock");
     let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
     let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
-    Ok(format!("purrdf {purrdf}; wasm-bindgen {bindgen}"))
+    let binaryen = declared_binaryen_version(root)?;
+    Ok(format!(
+        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+    ))
+}
+
+/// The binaryen release the Makefile pins, as `BINARYEN_VER`.
+///
+/// Read from the Makefile because that is where the pin lives — CI provisions exactly this
+/// via `make print-binaryen-ver`, and every `wasm-opt` rule refuses a binary reporting a
+/// different version.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the Makefile cannot be read or declares no `BINARYEN_VER`.
+fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
+    let makefile = root.join("Makefile");
+    let text = fs::read_to_string(&makefile).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", makefile.display()),
+        })
+    })?;
+    text.lines()
+        .find_map(|line| {
+            let rest = line.strip_prefix("BINARYEN_VER")?;
+            let rest = rest.trim_start().strip_prefix(":=")?;
+            Some(rest.trim().to_owned())
+        })
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+                     depend on the binaryen that optimized them, so the substrate they were \
+                     built against cannot be stated without it",
+                    makefile.display()
+                ),
+            })
+        })
 }
 
 /// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
@@ -2337,10 +2517,11 @@ mod tests {
             &root.join("crates/query-wasm/Cargo.toml"),
             &format!("[dependencies]\n{member}\n"),
         );
+        write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
         write(
             &root.join(".github/workflows/ci.yml"),
             &format!(
-                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n"
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n      - run: make print-binaryen-ver\n"
             ),
         );
     }
@@ -2397,6 +2578,73 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
             "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_an_absent_ci_workflow() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        fs::remove_file(tmp.path().join(".github/workflows/ci.yml")).unwrap();
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("cannot read")),
+            "an absent CI workflow must red — the CLI version cannot be checked, which is a \
+             failure, not agreement: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest() {
+        // The sharp case the old shape got wrong: `let Ok(text) = … else { return; }` made an
+        // unreadable manifest a SILENT pass, so a tree with a real CLI drift reported nothing
+        // at all. The comparison against the library pin genuinely cannot be performed
+        // without the manifest — but the run must red saying so, never go quiet.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.99",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "this is not valid toml = = =\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            !errors.is_empty(),
+            "an unparsable root manifest must not be a silent pass"
+        );
+        assert!(
+            errors.iter().any(|e| e.contains("cannot parse")),
+            "the failure must name the manifest it could not read: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_binaryen_literal() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - env:\n          BINARYEN_VER: version_119\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("BINARYEN_VER")),
+            "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
+             the wasm lanes: {errors:?}"
         );
     }
 

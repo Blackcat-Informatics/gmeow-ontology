@@ -252,36 +252,13 @@ impl VendoredWasmAsset {
     /// this compares that record to the live root manifest. A mismatch names the
     /// refresh target rather than describing a symptom.
     pub fn substrate_status(&self) -> Option<String> {
-        let recorded = match std::fs::read_to_string(self.asset_dir().join(SUBSTRATE_RECORD)) {
-            Ok(text) => text.trim().to_owned(),
-            Err(e) => {
-                return Some(format!(
-                    "engine '{}' has no {SUBSTRATE_RECORD}, so nothing proves it was built \
-                     against the purrdf the workspace pins (run make {}): {e}",
-                    self.name, self.refresh_target
-                ));
-            }
-        };
-        // A substrate key that cannot be computed is a FAILED comparison, never a passed one.
-        let current = match workspace_substrate_key() {
-            Ok(current) => current,
-            Err(diag) => {
-                return Some(format!(
-                    "engine '{}' cannot be checked against the workspace substrate: {diag} — \
-                     an unreadable pin is a failed comparison, not agreement",
-                    self.name
-                ));
-            }
-        };
-        if recorded != current {
-            return Some(format!(
-                "engine '{}' was built against substrate [{recorded}] but the workspace now \
-                 pins [{current}] — the shipped browser engine links a DIFFERENT purrdf than \
-                 native (run make {})",
-                self.name, self.refresh_target
-            ));
-        }
-        None
+        let recorded = std::fs::read_to_string(self.asset_dir().join(SUBSTRATE_RECORD));
+        substrate_verdict(
+            self.name,
+            self.refresh_target,
+            recorded.as_deref().map(str::trim),
+            workspace_substrate_key().as_deref(),
+        )
     }
 
     /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
@@ -379,6 +356,85 @@ impl VendoredWasmAsset {
 /// Behaviour (does a query actually evaluate?) is covered by the crate's Node parity
 /// lane; this descriptor drives the structural + digest anti-rot gate
 /// (`crates/docs/tests/query_asset.rs`).
+/// The substrate comparison itself, separated from reading the two inputs so its failure
+/// branches can be exercised.
+///
+/// Every branch that is not "the two agree" is a FAILURE. In particular an unreadable
+/// workspace key is not silence: a comparison that could not read its own input has not been
+/// performed, and reporting the asset current for it is the exact degradation this record
+/// exists to prevent.
+fn substrate_verdict<E: std::fmt::Display, F: std::fmt::Display>(
+    name: &str,
+    refresh_target: &str,
+    recorded: Result<&str, E>,
+    current: Result<&str, F>,
+) -> Option<String> {
+    let recorded = match recorded {
+        Ok(recorded) => recorded,
+        Err(e) => {
+            return Some(format!(
+                "engine '{name}' has no {SUBSTRATE_RECORD}, so nothing proves it was built \
+                 against the substrate the workspace pins (run make {refresh_target}): {e}"
+            ));
+        }
+    };
+    let current = match current {
+        Ok(current) => current,
+        Err(e) => {
+            return Some(format!(
+                "engine '{name}' cannot be checked against the workspace substrate: {e} — an \
+                 unreadable pin is a failed comparison, not agreement"
+            ));
+        }
+    };
+    if recorded != current {
+        return Some(format!(
+            "engine '{name}' was built against substrate [{recorded}] but the workspace now \
+             pins [{current}] — the shipped browser engine links a DIFFERENT substrate than \
+             native (run make {refresh_target})"
+        ));
+    }
+    None
+}
+
+/// The F4/F5 attestation gate. [`format_capabilities`] declares the per-format capability
+/// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
+/// REPRESENTS an interactive capability whose backing engine lacks a present, current
+/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
+/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
+/// parity for ALL FOUR engines (query/validate/reason/gmn) on the required CI `make heavy`
+/// lane (every pull request; lifted off the local `make check` only because four release
+/// wasm builds plus four Node suites are breadth-dominated), and the digest
+/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
+/// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
+/// "the format declares the capability AND its engine's parity is proven-and-current."
+/// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
+/// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
+/// drop. (Every engine's parity is executed by its own Node lane; the query engine's witness is
+/// the native `Dataset::query` corpus results, digest-pinned here.)
+///
+/// Returns one message per (format, capability, engine) violation; an empty vector is a
+/// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
+#[must_use]
+pub fn check_capability_attestations() -> Vec<String> {
+    let mut errors = Vec::new();
+    for fmt in DocFormat::ALL {
+        for cap in format_capabilities(fmt).representable {
+            for asset in capability_backing_assets(cap) {
+                if let Some(e) = asset.attestation_status() {
+                    errors.push(format!(
+                        "format '{}' represents interactive capability '{}', but its backing \
+                         engine's witness-attestation is not current: {e}",
+                        fmt.slug(),
+                        cap.slug(),
+                    ));
+                }
+            }
+        }
+    }
+    errors
+}
+
 /// EVERY wasm engine this repository ships, and the ONE list of them.
 ///
 /// Both the renderer (which emits them into the site) and the gates that police them
@@ -665,40 +721,58 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
     }
 }
 
-/// The F4/F5 attestation gate. [`format_capabilities`] declares the per-format capability
-/// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
-/// REPRESENTS an interactive capability whose backing engine lacks a present, current
-/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
-/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
-/// parity for the gmeow-owned engines (validate/reason/gmn) on the required CI `make heavy`
-/// lane (every pull request; lifted off the local `make check` only because four release
-/// wasm builds plus three Node suites are breadth-dominated), and the digest
-/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
-/// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
-/// "the format declares the capability AND its engine's parity is proven-and-current."
-/// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
-/// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
-/// drop. (Every engine's parity is executed by its own Node lane; the query engine's witness is
-/// the native `Dataset::query` corpus results, digest-pinned here.)
-///
-/// Returns one message per (format, capability, engine) violation; an empty vector is a
-/// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
-#[must_use]
-pub fn check_capability_attestations() -> Vec<String> {
-    let mut errors = Vec::new();
-    for fmt in DocFormat::ALL {
-        for cap in format_capabilities(fmt).representable {
-            for asset in capability_backing_assets(cap) {
-                if let Some(e) = asset.attestation_status() {
-                    errors.push(format!(
-                        "format '{}' represents interactive capability '{}', but its backing \
-                         engine's witness-attestation is not current: {e}",
-                        fmt.slug(),
-                        cap.slug(),
-                    ));
-                }
-            }
-        }
+#[cfg(test)]
+mod substrate_tests {
+    use super::*;
+
+    const OK: Result<&str, &str> = Ok("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130");
+
+    #[test]
+    fn agreeing_substrate_is_current() {
+        assert!(
+            substrate_verdict("query", "maint-refresh-query-asset", OK, OK).is_none(),
+            "matching records must report current"
+        );
     }
-    errors
+
+    #[test]
+    fn a_missing_stamp_is_a_failure() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            Err("No such file or directory"),
+            OK,
+        )
+        .expect("a missing stamp must not report current");
+        assert!(out.contains("has no SUBSTRATE.txt"), "{out}");
+        assert!(out.contains("maint-refresh-query-asset"), "{out}");
+    }
+
+    #[test]
+    fn a_mismatched_stamp_is_a_failure() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            Ok("purrdf 0.11.0; wasm-bindgen 0.2.125; binaryen version_130"),
+            OK,
+        )
+        .expect("a stale stamp must not report current");
+        assert!(out.contains("0.11.0"), "{out}");
+        assert!(out.contains("DIFFERENT substrate"), "{out}");
+    }
+
+    #[test]
+    fn an_unreadable_workspace_pin_is_a_failure_not_agreement() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            OK,
+            Err("Cargo.lock: cannot read"),
+        )
+        .expect("an unreadable pin must not report current");
+        assert!(
+            out.contains("failed comparison, not agreement"),
+            "the unreadable-pin branch must say so plainly: {out}"
+        );
+    }
 }

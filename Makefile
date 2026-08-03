@@ -87,15 +87,17 @@ endef
 #
 # $(1) = engine short name; $(2) = extra wasm-opt features that engine's module needs.
 define BUILD_WASM_PKG
+@# The binaryen refusal comes FIRST: wasm-opt output is part of the shipped bytes, so a
+@# wrong version invalidates this build — and checking it after the release wasm build and
+@# wasm-bindgen meant paying for both before a string comparison rejected the result.
+$(REQUIRE_WASM_OPT)
 @# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
 @# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
 $(WASM_CARGO) build -p gmeow-$(1)-wasm --target wasm32-unknown-unknown --release
 PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 	$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_$(1)_wasm.wasm \
 	--out-dir crates/$(1)-wasm/js/pkg --target web
-@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a hard
-@# dependency: a missing or unpinned wasm-opt is a build failure, never a note.
-$(REQUIRE_WASM_OPT)
+@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact).
 wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt $(2) \
 	-o crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm \
 	   crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm
