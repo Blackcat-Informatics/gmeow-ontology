@@ -57,7 +57,8 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
-/// byte-identical under both arms (the retention test in [`crate::tests`] pins that),
+/// byte-identical under both arms (`crate::tests::carrier_retention_is_bounded_by_the_live_frontier`
+/// pins that),
 /// because a released product keeps its `stage_id` and `digest` verbatim and keeps
 /// every committed artifact. The arms differ ONLY in whether material that no declared
 /// consumer can still read stays resident for the life of the [`RunResult`].

@@ -15,6 +15,10 @@
 //! byte-for-byte identical whether it is produced on the native gate or in the browser —
 //! the native≡wasm witness pins that identity.
 //!
+//! [`evaluate_conjecture_ttl`] and [`evaluate_conjecture_kb`] are the Turtle-in wrappers
+//! each surface actually calls; both funnel into the same [`evaluate_conjecture_eval`]
+//! core, so neither can drift from the other's verdict.
+//!
 //! Nothing here TR-gates, persists, or mutates the caller's KB (isolation is inherent):
 //! it is the pure evaluation core each surface wraps with its own tail.
 

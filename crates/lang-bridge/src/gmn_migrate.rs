@@ -568,8 +568,9 @@ fn surface_tokens(text: &str) -> impl Iterator<Item = &str> {
 /// + source binding strength), derived ENTIRELY from the graph. It unions two authored sources:
 ///
 /// * the dictionary's executable glyph registry — every operator the SOURCE major defines
-///   natively ([`GmnGlyphRegistry::bindings`]), its source precedence read off the operator's
-///   `lang:denotedForm` `gmeow:gmnPrecedence` in `ds`; and
+///   natively ([`GmnGlyphRegistry::bindings`](crate::gmn1_codec::GmnGlyphRegistry::bindings)),
+///   its source precedence read off the operator's `lang:denotedForm` `gmeow:gmnPrecedence`
+///   in `ds`; and
 /// * the migration leg's own rewrites — whose `gmeow:gmnRewriteFromGlyph` /
 ///   `gmeow:gmnRewriteFromPrecedence` carry the source surface of the bridged/renamed operators
 ///   the current registry no longer lists. These OVERRIDE the registry, because the leg is the

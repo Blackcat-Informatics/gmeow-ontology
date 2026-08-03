@@ -343,8 +343,9 @@ impl SliceReport {
     /// The axis IRI that produced `self.advisories[idx]`, read exactly from the
     /// stored [`Self`]`::advisory_axes` back-reference — never a guess from the
     /// finding's code. `None` when `idx` is out of range, or when this report
-    /// carries no axis provenance at all (the `#[cfg(test)]` [`Self::for_test`]
-    /// constructor accepts an empty `advisory_axes` for callers that do not need
+    /// carries no axis provenance at all (the `#[cfg(test)]`-only `Self::for_test`
+    /// constructor — absent from this documentation because it is compiled out of a
+    /// non-test build — accepts an empty `advisory_axes` for callers that do not need
     /// axis attribution).
     #[must_use]
     pub fn advisory_axis(&self, idx: usize) -> Option<&str> {
