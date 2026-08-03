@@ -676,11 +676,20 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	@# all four is therefore part of the bump, not a follow-up.
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=0.12.0"; exit 1; }
 	@echo "== re-pinning purrdf to $(VERSION) in both manifests =="
-	sed -i 's|^purrdf = .*|purrdf = "$(VERSION)"|' Cargo.toml fuzz/Cargo.toml
-	@grep -qx 'purrdf = "$(VERSION)"' Cargo.toml || { echo "FAIL: root Cargo.toml did not take the pin"; exit 1; }
-	@grep -qx 'purrdf = "$(VERSION)"' fuzz/Cargo.toml || { echo "FAIL: fuzz/Cargo.toml did not take the pin"; exit 1; }
+	@# EXACT (`=x.y.z`), never a caret range: every wasm engine records the RESOLVED
+	@# purrdf it was built against, and a range lets `cargo update` relink the RDF core
+	@# while both manifests still read the same. The repo-static gate rejects a
+	@# non-exact purrdf pin, so writing a range here would red the very next `make check`.
+	sed -i 's|^purrdf = .*|purrdf = "=$(VERSION)"|' Cargo.toml fuzz/Cargo.toml
+	@grep -qx 'purrdf = "=$(VERSION)"' Cargo.toml || { echo "FAIL: root Cargo.toml did not take the pin"; exit 1; }
+	@grep -qx 'purrdf = "=$(VERSION)"' fuzz/Cargo.toml || { echo "FAIL: fuzz/Cargo.toml did not take the pin"; exit 1; }
 	@echo "== re-resolving the lock =="
 	cargo update -p purrdf --precise $(VERSION)
+	@# The manifests are a REQUEST; the lock records what was actually resolved, and it
+	@# is what the wasm substrate records key off. Assert the resolution rather than
+	@# assuming `cargo update` produced it.
+	@awk '/^name = "purrdf"$$/ { getline; if ($$0 == "version = \"$(VERSION)\"") { found = 1 } } END { exit !found }' Cargo.lock \
+		|| { echo "FAIL: Cargo.lock does not resolve purrdf $(VERSION) — the manifests request it but the lock disagrees"; exit 1; }
 	@echo "== re-vendoring EVERY wasm engine against the new substrate =="
 	@# Each depends on its own *-pkg-test, so bytes that never passed parity can never be
 	@# pinned, and each re-stamps its SUBSTRATE.txt from the manifest we just wrote.

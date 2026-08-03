@@ -379,6 +379,16 @@ impl VendoredWasmAsset {
 /// Behaviour (does a query actually evaluate?) is covered by the crate's Node parity
 /// lane; this descriptor drives the structural + digest anti-rot gate
 /// (`crates/docs/tests/query_asset.rs`).
+/// EVERY wasm engine this repository ships, and the ONE list of them.
+///
+/// Both the renderer (which emits them into the site) and the gates that police them
+/// iterate this. When the list was copied per consumer, a gate could assert over four
+/// engines while the renderer shipped five, and its own docstring claimed a fifth engine
+/// "cannot" be added without reddening it — a claim the copy made false. Adding an engine
+/// here reaches every consumer at once.
+pub static ALL_ASSETS: &[&VendoredWasmAsset] =
+    &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
+
 pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     name: "query",
     emitted_files: &[

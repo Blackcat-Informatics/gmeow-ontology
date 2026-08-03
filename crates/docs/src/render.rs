@@ -93,16 +93,12 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
-/// The vendored wasm engines emitted under `assets/<name>/` when the playground is
-/// present: the offline SPARQL runtime (purrdf) and the repo-free Tier-1 validator
-/// (gmeow-validate-wasm). Pinned build inputs — one descriptor per asset lives in
-/// [`crate::vendored_asset`]; see each `PROVENANCE.md`.
-const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
-    &crate::vendored_asset::QUERY_ASSET,
-    &crate::vendored_asset::VALIDATE_ASSET,
-    &crate::vendored_asset::REASON_ASSET,
-    &crate::vendored_asset::GMN_ASSET,
-];
+/// The wasm engines emitted under `assets/<name>/` when the playground is present: the
+/// offline SPARQL/bundle-explorer runtime, the repo-free Tier-1 validator, the
+/// structured-DL reasoner and the GMN codec. Every one is built in this repository; one
+/// descriptor per asset lives in [`crate::vendored_asset`], and this is an alias for that
+/// module's single registry rather than a second copy of the list.
+use crate::vendored_asset::ALL_ASSETS as VENDORED_WASM_ASSETS;
 
 // ── Pages ──────────────────────────────────────────────────────────────────
 

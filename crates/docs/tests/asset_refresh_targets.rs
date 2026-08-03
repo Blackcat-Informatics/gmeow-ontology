@@ -11,12 +11,11 @@
 //!
 //! A `refresh_target` is a claim about the build. Per `docs/GATE-AND-PIPELINE.md`, a
 //! false claim in help text is a defect of the same kind as a broken assertion — so
-//! the claim gets an assertion. The descriptor table is the extension point: a fifth
-//! engine cannot reintroduce a phantom target without reddening here.
+//! the claim gets an assertion. It iterates `vendored_asset::ALL_ASSETS`, the same
+//! registry the renderer emits from — not a copy of it, which would let a fifth engine
+//! ship while this gate still asserted over four.
 
-use gmeow_docs::vendored_asset::{
-    GMN_ASSET, QUERY_ASSET, REASON_ASSET, VALIDATE_ASSET, VendoredWasmAsset,
-};
+use gmeow_docs::vendored_asset::ALL_ASSETS;
 use std::path::PathBuf;
 
 fn makefile() -> String {
@@ -34,12 +33,10 @@ fn defines_target(makefile: &str, target: &str) -> bool {
     makefile.lines().any(|line| line.starts_with(&prefix))
 }
 
-const ASSETS: &[&VendoredWasmAsset] = &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
-
 #[test]
 fn every_asset_refresh_target_is_a_real_makefile_rule() {
     let makefile = makefile();
-    for asset in ASSETS {
+    for asset in ALL_ASSETS {
         assert!(
             defines_target(&makefile, asset.refresh_target),
             "asset `{}` names refresh_target `{}`, which is NOT defined in the Makefile — \
@@ -70,7 +67,7 @@ fn the_target_check_rejects_a_name_the_makefile_does_not_define() {
 /// rewrite another's digest manifest.
 #[test]
 fn every_asset_bless_env_is_distinct() {
-    let mut seen: Vec<&str> = ASSETS.iter().map(|a| a.bless_env).collect();
+    let mut seen: Vec<&str> = ALL_ASSETS.iter().map(|a| a.bless_env).collect();
     seen.sort_unstable();
     let before = seen.len();
     seen.dedup();
