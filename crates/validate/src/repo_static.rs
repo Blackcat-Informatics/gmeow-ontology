@@ -3075,28 +3075,6 @@ const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
     "math.graph.no-cells",
     "math.graph.read",
     "math.index.out-of-range",
-    // ── MERGE RE-BASELINE: the `crates/math-lift` ingestion kinds ─────────────
-    // These eight entered this branch through the merge of `origin/main`, in the
-    // commit that first shipped `crates/math-lift` (the executable R/ONNX/TSTP
-    // front-ends). They were authored BEFORE the `failure_class` clause and this
-    // census existed — the mechanism is this branch's own — so they were never once
-    // subject to this ratchet, and no reviewer ever declined to classify them.
-    //
-    // Recording them here is a BASELINE EXTENSION, not a weakening: the census is the
-    // grandfathering record of kinds the ontology names no typed failure class for,
-    // and it is exactly the eighteen sibling `math.*` kinds' situation (all pinned
-    // above rather than minted). It leaves the shrink-only invariant untouched — the
-    // ratchet holds from here, a NEW unannotated kind still reds, and the honest
-    // discharge is still to mint the failure class in the owning `math:` slice (with
-    // the `logic:` constraint that enforces it) and delete the entry.
-    "math.lift.empty-codomain",
-    "math.lift.onnx.unliftable",
-    "math.lift.onnx.wire",
-    "math.lift.proof.parse",
-    "math.lift.proof.unliftable",
-    "math.lift.r.parse",
-    "math.lift.r.unliftable",
-    "math.lift.source.not-utf8",
     "math.rational.domain",
     "math.rational.overflow",
     "math.scale.degenerate",
@@ -5580,13 +5558,18 @@ mod tests {
         assert!(report.errors.is_empty(), "{:?}", report.errors);
     }
 
-    /// The seven medium kinds are bound on the LIVE tree: the census finds exactly
-    /// the seven `pipeline.medium.*` codes carrying a failure class, and each names a
-    /// real `gmeow:Medium*` individual. A non-vacuity guard for the live-repo gate —
-    /// if the scanner silently stopped reading `crates/pipeline/src/error.rs`, every
+    /// Every bound kind is bound on the LIVE tree: the census finds exactly the codes
+    /// listed below carrying a `failure_class`, and each names a real
+    /// `gmeow:enforcesFailureClass` individual. A non-vacuity guard for the live-repo
+    /// gate — if the scanner silently stopped reading a crate's `error.rs`, every
     /// assertion above would still pass on a synthetic fixture.
+    ///
+    /// The list GROWS as the shrink-only census
+    /// ([`PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS`]) shrinks: the two move in lockstep,
+    /// one entry leaving the pin for every kind that lands here, so a diff that adds a
+    /// code here without deleting it there (or vice versa) is visible at review.
     #[test]
-    fn the_live_medium_kinds_are_bound_to_their_ontology_classes() {
+    fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
         let root = live_repo_root();
         let mut report = RepoStaticReport::default();
         let decls = diag_kind_census(root, &mut report);
@@ -5598,6 +5581,14 @@ mod tests {
         assert_eq!(
             bound.keys().copied().collect::<Vec<_>>(),
             vec![
+                "math.lift.empty-codomain",
+                "math.lift.onnx.unliftable",
+                "math.lift.onnx.wire",
+                "math.lift.proof.parse",
+                "math.lift.proof.unliftable",
+                "math.lift.r.parse",
+                "math.lift.r.unliftable",
+                "math.lift.source.not-utf8",
                 "pipeline.medium.corpus-drift",
                 "pipeline.medium.dictionary-regression",
                 "pipeline.medium.digest-mismatch",
@@ -5605,8 +5596,9 @@ mod tests {
                 "pipeline.medium.undeclared-dictionary",
                 "pipeline.medium.unknown-dictionary",
                 "pipeline.medium.unknown-schema",
+                "slice-quality.record",
             ],
-            "the seven medium kinds are the only failure-class-bound kinds today"
+            "these are the failure-class-bound kinds today"
         );
         let declared = ontology_failure_classes(root, &mut report);
         for (code, iri) in bound {
