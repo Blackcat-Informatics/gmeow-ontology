@@ -68,11 +68,6 @@ const CSS_PATH: &str = "assets/gmeow.css";
 /// is emitted to. Language-neutral: the RDF is language-independent.
 const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 
-/// The site-relative path of the **core browser bundle** — the object-level ontology
-/// as N-Quads text ([`ExecutableDocsData::core_bundle_nquads`]). The bundle explorer
-/// parses it client-side (purrdf `Dataset.parse`) to answer `info`/`describe`.
-const CORE_BUNDLE_NQ_PATH: &str = "assets/gmeow-core.nq";
-
 /// The site-relative path of the **conjecture demo library** — the curated
 /// `logic:Conjecture` corpus as Turtle ([`ExecutableDocsData::conjectures_ttl`]). The W4
 /// conjecture playground fetches + byte-verifies it (via [`BUNDLE_MANIFEST_PATH`]) and
@@ -703,9 +698,9 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
 /// map from each bundle asset path to its `blake3:<hex>` content address and length.
 /// A pure function of the emitted bundle bytes; the client loader records/verifies it.
 fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
-    // One entry per shipped bundle asset, in a fixed deterministic order (core, full, then
+    // One entry per shipped bundle asset, in a fixed deterministic order (full, then
     // the optional conjecture demo library). Each entry is byte-identical to the others' shape,
-    // so the 2-entry (bundle-only) case is byte-for-byte unchanged from the fixed format.
+    // so the 1-entry (bundle-only) case is byte-for-byte unchanged from the fixed format.
     let entry = |path: &str, bytes: &[u8]| {
         format!(
             "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
@@ -713,10 +708,7 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
             n = bytes.len(),
         )
     };
-    let mut entries = vec![
-        entry(CORE_BUNDLE_NQ_PATH, &exec.core_bundle_nquads),
-        entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts),
-    ];
+    let mut entries = vec![entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts)];
     // The conjecture demo library ships iff the W4 playground surface is rendered.
     if exec.has_conjectures() {
         entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));
@@ -750,10 +742,6 @@ pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<Str
         );
     }
     if exec.has_bundle() {
-        files.insert(
-            CORE_BUNDLE_NQ_PATH.to_string(),
-            exec.core_bundle_nquads.clone(),
-        );
         files.insert(
             FULL_BUNDLE_GTS_PATH.to_string(),
             exec.full_bundle_gts.clone(),
@@ -1106,10 +1094,11 @@ fn append_term_export_section(
 
 /// The offline SPARQL playground page.
 /// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
-/// core bundle. The controller (`gmeow-docs.js`) loads the core N-Quads via the
-/// shared loader, shows the bundle's `info` summary on boot, and runs a client-side
-/// `DESCRIBE` for the entered term IRI — the same describe the native `gmeow describe`
-/// produces, proven byte-identical by the F2 witness lane.
+/// core bundle. The controller (`gmeow-docs.js`) loads the FULL `gmeow.gts` bundle
+/// via the shared loader (`Dataset.fromGts`, byte-verified against the manifest),
+/// shows the bundle's `info` summary on boot, and runs a client-side `DESCRIBE` for
+/// the entered term IRI — the same describe the native `gmeow describe` produces,
+/// proven byte-identical by the F2 witness lane.
 fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "Bundle explorer");
@@ -8956,34 +8945,23 @@ mod tests {
 
         // Model-only render ships none of the browser-bundle assets.
         let base = render_site_lang(&model, "english");
-        for path in [
-            CORE_BUNDLE_NQ_PATH,
-            FULL_BUNDLE_GTS_PATH,
-            BUNDLE_MANIFEST_PATH,
-        ] {
+        for path in [FULL_BUNDLE_GTS_PATH, BUNDLE_MANIFEST_PATH] {
             assert!(
                 !base.files.contains_key(path),
                 "the model-only render must not emit {path}"
             );
         }
 
-        // With both bundle bytes supplied, the core N-Quads + full gts + integrity
-        // manifest are emitted verbatim, with the manifest carrying each asset's
-        // blake3 content address and byte length.
-        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
+        // With the bundle bytes supplied, the full gts + integrity manifest are
+        // emitted verbatim, with the manifest carrying the asset's blake3 content
+        // address and byte length.
         let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
         let exec = ExecutableDocsData {
             playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
-            core_bundle_nquads: core.clone(),
             full_bundle_gts: full.clone(),
             ..Default::default()
         };
         let live = render_site_lang_exec(&model, "english", &exec);
-        assert_eq!(
-            live.files.get(CORE_BUNDLE_NQ_PATH).map(Vec::as_slice),
-            Some(core.as_slice()),
-            "the core bundle N-Quads must be emitted verbatim"
-        );
         assert_eq!(
             live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
             Some(full.as_slice()),
@@ -8997,26 +8975,24 @@ mod tests {
         )
         .expect("manifest is utf-8");
         assert!(
-            manifest.contains(&format!("blake3:{}", blake3::hash(&core).to_hex())),
-            "manifest carries the core asset's blake3 content address:\n{manifest}"
+            manifest.contains(&format!("blake3:{}", blake3::hash(&full).to_hex())),
+            "manifest carries the full bundle's blake3 content address:\n{manifest}"
         );
         assert!(
-            manifest.contains(&format!("\"bytes\": {}", core.len())),
-            "manifest carries the core asset's byte length:\n{manifest}"
+            manifest.contains(&format!("\"bytes\": {}", full.len())),
+            "manifest carries the full bundle's byte length:\n{manifest}"
         );
     }
 
     #[test]
     fn conjecture_playground_ships_page_asset_and_manifest_entry() {
         let model = tiny_model();
-        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
         let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
         let conjectures = b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
              ex:demo a logic:Conjecture .\n"
             .to_vec();
         let exec = ExecutableDocsData {
             playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
-            core_bundle_nquads: core,
             full_bundle_gts: full,
             conjectures_ttl: conjectures.clone(),
             ..Default::default()
@@ -9065,8 +9041,6 @@ mod tests {
         // A bundle-only exec (no conjecture library) must NOT emit the demo asset, the
         // playground page, or a conjectures entry in the manifest.
         let exec = ExecutableDocsData {
-            core_bundle_nquads: b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n"
-                .to_vec(),
             full_bundle_gts: b"\0opaque".to_vec(),
             ..Default::default()
         };

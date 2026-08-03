@@ -109,8 +109,9 @@ impl SerializationDist {
     }
 }
 
-/// A `site` sub-asset: one of the vendored interactive engines or the browser bundle
-/// the site (and the packed mdbook) ships EXTERNALLY, content-addressed. These are
+/// A `site` sub-asset: one of the vendored interactive engines or the conjecture
+/// demo library the site (and the packed mdbook) ships EXTERNALLY, content-addressed.
+/// These are
 /// SUB-ASSETS of the `site` distribution — never new top-level distributions — so they
 /// are NOT in [`declared_distribution_slugs`] and the eight-slug bijection is preserved.
 /// Their schema rows (family / consumer / media-type) ride here DIGEST-FREE; the
@@ -122,17 +123,15 @@ enum SiteSubAsset {
     ValidateWasm,
     ReasonWasm,
     GmnWasm,
-    CoreBundle,
     ConjectureDemo,
 }
 
 impl SiteSubAsset {
-    const ALL: [SiteSubAsset; 6] = [
+    const ALL: [SiteSubAsset; 5] = [
         SiteSubAsset::QueryWasm,
         SiteSubAsset::ValidateWasm,
         SiteSubAsset::ReasonWasm,
         SiteSubAsset::GmnWasm,
-        SiteSubAsset::CoreBundle,
         SiteSubAsset::ConjectureDemo,
     ];
 
@@ -142,16 +141,13 @@ impl SiteSubAsset {
             SiteSubAsset::ValidateWasm => "validate-wasm",
             SiteSubAsset::ReasonWasm => "reason-wasm",
             SiteSubAsset::GmnWasm => "gmn-wasm",
-            SiteSubAsset::CoreBundle => "core-bundle",
             SiteSubAsset::ConjectureDemo => "conjectures",
         }
     }
 
-    /// The wasm engines are `application/wasm`; the browser bundle is object-level
-    /// N-Quads text; the conjecture demo library is Turtle.
+    /// The wasm engines are `application/wasm`; the conjecture demo library is Turtle.
     fn media_type(&self) -> &'static str {
         match self {
-            SiteSubAsset::CoreBundle => "application/n-quads",
             SiteSubAsset::ConjectureDemo => "text/turtle",
             _ => "application/wasm",
         }
@@ -165,7 +161,6 @@ impl SiteSubAsset {
             SiteSubAsset::ValidateWasm => "assets/validate/",
             SiteSubAsset::ReasonWasm => "assets/reason/",
             SiteSubAsset::GmnWasm => "assets/gmn/",
-            SiteSubAsset::CoreBundle => "assets/gmeow-core.nq",
             SiteSubAsset::ConjectureDemo => "assets/conjectures.ttl",
         }
     }
@@ -177,7 +172,6 @@ impl SiteSubAsset {
             SiteSubAsset::ValidateWasm => "Tier-1 validator wasm engine",
             SiteSubAsset::ReasonWasm => "structured-DL reasoner wasm engine",
             SiteSubAsset::GmnWasm => "GMN-0/GMN-1 codec wasm engine",
-            SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
             SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }
     }
@@ -268,7 +262,7 @@ pub(crate) fn site_sub_asset_iri(slug: &str) -> String {
 }
 
 /// Every `site` sub-asset slug the catalog declares (the vendored interactive engines +
-/// the browser bundle). Exposed so the release-time instance producer prices the SAME
+/// the conjecture demo library). Exposed so the release-time instance producer prices the SAME
 /// set, and a contract gate can assert these are sub-assets of `site` — NOT members of
 /// the eight-slug distribution bijection.
 pub fn declared_site_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
@@ -451,7 +445,7 @@ fn emit_ntriples() -> Vec<u8> {
         ));
     }
 
-    // ── site sub-assets: the vendored interactive engines + the browser bundle ──
+    // ── site sub-assets: the vendored interactive engines + the conjecture demo library ──
     // First-class schema rows, DIGEST-FREE (the per-release content digests ride only in
     // the `dist/` instance manifest). Hung off the `site` distribution via
     // gmeow:hasSubAsset, so they are sub-assets — NOT top-level distributions — and the

@@ -36,7 +36,6 @@ fn exec_with_playground() -> ExecutableDocsData {
 /// them), so fixed sentinels suffice.
 fn exec_with_bundle() -> ExecutableDocsData {
     ExecutableDocsData {
-        core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n".to_vec(),
         full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
         ..Default::default()
     }
@@ -66,8 +65,9 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
             "vendored engine not packed into the book: {engine}"
         );
     }
-    // The browser bundle the explorer queries + its integrity manifest.
-    assert!(has("src/assets/gmeow-core.nq"), "core bundle not packed");
+    // The full gts bundle the explorer loads client-side (`Dataset.fromGts`) + its
+    // integrity manifest.
+    assert!(has("src/assets/gmeow.gts"), "full bundle not packed");
     assert!(
         has("src/assets/bundle-manifest.json"),
         "bundle manifest not packed"
