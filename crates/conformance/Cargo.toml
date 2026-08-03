@@ -65,7 +65,7 @@ serde_json = "1"
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
 # are deterministic and blank-node-free.
-blake3 = "1"
+blake3.workspace = true
 [dev-dependencies]
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never

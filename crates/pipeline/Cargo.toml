@@ -122,7 +122,7 @@ sha2 = "0.10"
 sha1 = "0.10"
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
-blake3 = "1"
+blake3.workspace = true
 serde = { version = "1", features = ["derive"] }
 # Stage products use compact binary encoding in the content-addressed cache; JSON
 # remains the deterministic human-readable cache index and several export formats.

@@ -12,9 +12,10 @@ language, calculus, and conformance layered over that boundary.
 
 This document is normative for the purrdf backend traits (`DatasetView`,
 `DatasetMut`, `TermFactory`, `RdfParserBackend`, `SparqlEngine`, and
-`RdfSerializer`). `DatasetView` landed in `rdf-core/src/dataset_view.rs` after the
-P2b crate split; `DatasetMut` landed as the P5 write substrate; the remaining four
-narrow seams land in P2d.
+`RdfSerializer`). `DatasetView` landed with the P2b crate split (then in
+`rdf-core/src/dataset_view.rs`, a path that no longer exists here — see the note
+below); `DatasetMut` landed as the P5 write substrate; the remaining four narrow
+seams land in P2d.
 
 > **Historical record.** The kernel crates named here were subsequently extracted into the sibling
 > **`purrdf`** package, so `crates/rdf-core` and its siblings no longer exist in this repository —

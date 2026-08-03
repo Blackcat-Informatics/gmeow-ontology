@@ -667,9 +667,16 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	@# purrdf it was built against, and a range lets `cargo update` relink the RDF core
 	@# while both manifests still read the same. The repo-static gate rejects a
 	@# non-exact purrdf pin, so writing a range here would red the very next `make check`.
+	@# The sed only understands the plain-string form. Refuse anything else BEFORE
+	@# editing: an inline table (`purrdf = { version = ..., features = [...] }`) also
+	@# matches `^purrdf = .*`, and replacing it would silently drop its options while
+	@# still leaving valid TOML the literal check below happily accepts.
+	@for m in Cargo.toml fuzz/Cargo.toml; do \
+		grep -qE '^purrdf = "[^"]*"$$' "$$m" || { echo "FAIL: $$m does not pin purrdf as a plain string — this target's rewrite only understands that form; re-pin it by hand"; exit 1; }; \
+	done
 	sed -i 's|^purrdf = .*|purrdf = "=$(VERSION)"|' Cargo.toml fuzz/Cargo.toml
-	@grep -qx 'purrdf = "=$(VERSION)"' Cargo.toml || { echo "FAIL: root Cargo.toml did not take the pin"; exit 1; }
-	@grep -qx 'purrdf = "=$(VERSION)"' fuzz/Cargo.toml || { echo "FAIL: fuzz/Cargo.toml did not take the pin"; exit 1; }
+	@grep -qxF 'purrdf = "=$(VERSION)"' Cargo.toml || { echo "FAIL: root Cargo.toml did not take the pin"; exit 1; }
+	@grep -qxF 'purrdf = "=$(VERSION)"' fuzz/Cargo.toml || { echo "FAIL: fuzz/Cargo.toml did not take the pin"; exit 1; }
 	@echo "== re-resolving the lock =="
 	cargo update -p purrdf --precise $(VERSION)
 	@# The manifests are a REQUEST; the lock records what was actually resolved, and it

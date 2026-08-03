@@ -144,6 +144,10 @@ purrdf = "=0.12.0"
 # manifests had to keep; declaring it here makes disagreement unrepresentable. The CI step
 # that installs `wasm-bindgen-cli` must name this same version.
 wasm-bindgen = "=0.2.125"
+# Declared once: thirteen crates hash bytes with blake3, and the docs site verifies the
+# fetched bundle against a manifest content address the renderer minted — the minting and
+# verifying sides must agree on the algorithm version, so the version has one home.
+blake3 = "1"
 
 [workspace.package]
 version = "0.2.0"

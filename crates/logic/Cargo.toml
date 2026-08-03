@@ -59,7 +59,7 @@ gmeow-lang-form = { path = "../lang-form" }
 # `content_address`, so `Checkpoint::verify` can still detect tampering.
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-blake3 = "1"
+blake3.workspace = true
 # Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
 # and STRICT uniform-arity parsing of ChaseBench-family CSV/TSV corpora. Already in the
 # workspace lock (a transitive dep), so this direct edge adds no new resolution.

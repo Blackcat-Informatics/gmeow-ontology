@@ -19,7 +19,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The wasm-clean RDF kernel surface — EXACTLY the crates/rdf-wasm pin (the
+# The wasm-clean RDF kernel surface — the single workspace `purrdf` pin (the
 # ring-fenced, native-codecs surface): the `gts` feature with oxigraph OFF and python
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
@@ -53,7 +53,7 @@ sha2 = "0.10"
 # blake3: the framed, domain-tagged content-digest discipline shared with
 # crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
 # the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
-blake3 = "1"
+blake3.workspace = true
 # serde: the projection-result ledger rows + report header counts are passed as an
 # in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
 # which assembles the FINAL projection report over the union of the logic rows and the

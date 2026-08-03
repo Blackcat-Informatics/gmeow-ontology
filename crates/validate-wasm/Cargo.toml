@@ -38,7 +38,7 @@ purrdf.workspace = true
 # Content-addresses the embedded codebook carrier: `gmn_codebook_digest()` folds the
 # frozen `module.ttl` bytes to the SAME blake3 digest the codec's codebook-digest layer
 # and the CLI report over, so a JS caller can pin the exact codebook it validated against.
-blake3 = "1"
+blake3.workspace = true
 # The `gmn_validate` verdict is marshalled as a canonical JSON object
 # (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
 # the Tier-1 `validate` Report crosses on. wasm-pure.

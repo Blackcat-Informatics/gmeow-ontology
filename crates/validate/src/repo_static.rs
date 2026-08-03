@@ -1987,13 +1987,10 @@ fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
 /// version mismatch rather than the drift that caused it. Both halves are checked here.
 fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
     let root_manifest = root.join("Cargo.toml");
-    // A tree with no root manifest is not a cargo workspace and has no pin to compare.
-    // A manifest that EXISTS but cannot be read is a different thing entirely: the guard
+    // The root manifest is a REQUIRED repository input: absent or unreadable, the guard
     // could not run, and reporting agreement it never established is the silent
-    // degradation this file exists to prevent.
-    if !root_manifest.exists() {
-        return;
-    }
+    // degradation this file exists to prevent. The CI half is still checked on every
+    // path, so a missing manifest can never swallow a real CLI drift.
     let text = match fs::read_to_string(&root_manifest) {
         Ok(text) => text,
         Err(err) => {
@@ -2046,17 +2043,23 @@ fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
     };
 
     // No `crates/*-wasm` crate may redeclare the version.
+    // An ABSENT crates/ directory means no members to check (minimal fixtures); a
+    // directory that exists but cannot be read is a failed check.
     let crates_dir = root.join("crates");
-    let entries = match fs::read_dir(&crates_dir) {
-        Ok(entries) => Some(entries),
-        Err(err) => {
-            report.error(format!(
-                "{}: cannot read: {err} — the `*-wasm` members cannot be checked against the \
-                 workspace pin",
-                crates_dir.display()
-            ));
-            None
+    let entries = if crates_dir.exists() {
+        match fs::read_dir(&crates_dir) {
+            Ok(entries) => Some(entries),
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read: {err} — the `*-wasm` members cannot be checked against \
+                     the workspace pin",
+                    crates_dir.display()
+                ));
+                None
+            }
         }
+    } else {
+        None
     };
     if let Some(entries) = entries {
         for entry in entries.flatten() {
@@ -2649,6 +2652,28 @@ mod tests {
     }
 
     #[test]
+    fn wasm_bindgen_parity_rejects_a_workspace_without_the_declaration() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "[workspace.dependencies]\nserde = \"1\"\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("declares no wasm-bindgen")),
+            "a workspace without the declaration must red: {errors:?}"
+        );
+    }
+
+    #[test]
     fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
         let tmp = tempfile::tempdir().unwrap();
         write_wasm_bindgen_tree(
@@ -2676,9 +2701,15 @@ mod tests {
         // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
         // uses the purrdf.compat.rdflib facade instead).
         write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
+        // The wasm-bindgen parity guard treats the root manifest and the CI pin lines as
+        // REQUIRED inputs, so the minimal repo carries an agreeing set of all three.
+        write(
+            &root.join("Cargo.toml"),
+            "[workspace.dependencies]\nwasm-bindgen = \"=0.2.125\"\n",
+        );
         write(
             &root.join(".github/workflows/ci.yml"),
-            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
         // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images

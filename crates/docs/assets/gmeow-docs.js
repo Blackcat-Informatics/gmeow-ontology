@@ -85,54 +85,62 @@ async function ensureValidator() {
   await _validatorReady;
 }
 
-// The ONE fetch of the bundle, and the ONE place its integrity is proven.
+// ONE manifest fetch and ONE integrity rule, shared by every verified asset.
 //
-// The promise is cached BEFORE the first await, so concurrent callers share one request:
-// caching the resolved bytes afterwards let every caller that arrived during the flight
-// start its own, and this asset is ~45 MB. The playground, the bundle explorer and the
-// Tier-1 validation panels all reach the bundle through here, so no surface invents a
-// second fetch, a second parse, or a second integrity rule.
+// Each promise is cached BEFORE the first await, so concurrent callers share one
+// request: caching resolved values afterwards let every caller that arrived during the
+// flight start its own, and the bundle is ~45 MB. The playground, the bundle explorer,
+// the Tier-1 validation panels and the conjecture library all reach their bytes through
+// here, so no surface invents a second fetch, a second parse, or a second integrity rule.
 //
 // Integrity is the manifest's own blake3 content address, not a byte-length comparison:
 // a length check accepts any same-length substitution, which is the substitution worth
 // worrying about. The engine is booted first because it supplies the hash.
+let _manifest = null;
+function bundleManifest() {
+  if (!_manifest) {
+    _manifest = fetch(new URL("./bundle-manifest.json", import.meta.url)).then((r) =>
+      r.json(),
+    );
+  }
+  return _manifest;
+}
+
+async function verifiedAssetBytes(assetPath, url) {
+  await ensureEngine();
+  const entry = (await bundleManifest())[assetPath];
+  if (entry === undefined) {
+    throw new Error(
+      `asset integrity: manifest is missing the ${assetPath} entry — ` +
+        "cannot verify the asset (a missing manifest entry is a hard failure, not a bypass)",
+    );
+  }
+  const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+  if (bytes.length !== entry.bytes) {
+    throw new Error(
+      `asset integrity: ${assetPath} expected ${entry.bytes} bytes, got ${bytes.length}`,
+    );
+  }
+  if (typeof entry.blake3 !== "string") {
+    throw new Error(
+      `asset integrity: manifest records no blake3 content address for ${assetPath} — ` +
+        "refusing to accept the asset on byte length alone",
+    );
+  }
+  const actual = `blake3:${blake3Hex(bytes)}`;
+  if (actual !== entry.blake3) {
+    throw new Error(
+      `asset integrity: ${assetPath} expected ${entry.blake3}, got ${actual} — the ` +
+        "fetched asset is not the one this site was built from",
+    );
+  }
+  return bytes;
+}
+
 let _bundleBytes = null;
 async function fullBundleBytes() {
   if (!_bundleBytes) {
-    _bundleBytes = (async () => {
-      await ensureEngine();
-      const manifest = await (
-        await fetch(new URL("./bundle-manifest.json", import.meta.url))
-      ).json();
-      const entry = manifest["assets/gmeow.gts"];
-      if (entry === undefined) {
-        throw new Error(
-          "bundle integrity: manifest is missing the assets/gmeow.gts entry — " +
-            "cannot verify the bundle (a missing manifest entry is a hard failure, not a bypass)",
-        );
-      }
-      const bytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
-      if (bytes.length !== entry.bytes) {
-        throw new Error(
-          `bundle integrity: expected ${entry.bytes} bytes, got ${bytes.length}`,
-        );
-      }
-      const expected = entry.blake3;
-      if (typeof expected !== "string") {
-        throw new Error(
-          "bundle integrity: manifest records no blake3 content address for " +
-            "assets/gmeow.gts — refusing to accept the bundle on byte length alone",
-        );
-      }
-      const actual = `blake3:${blake3Hex(bytes)}`;
-      if (actual !== expected) {
-        throw new Error(
-          `bundle integrity: expected ${expected}, got ${actual} — the fetched bundle is ` +
-            "not the one this site was built from",
-        );
-      }
-      return bytes;
-    })();
+    _bundleBytes = verifiedAssetBytes("assets/gmeow.gts", fullBundleUrl());
   }
   return _bundleBytes;
 }
@@ -362,41 +370,14 @@ if (conjectureForm) {
     selectEl.append(opt);
   }
 
-  // Verify the shipped curated demo library against the manifest — the same integrity
-  // discipline `fullBundleBytes` applies (a missing manifest entry, a byte-length
-  // mismatch, or a content-address mismatch is a HARD FAILURE, never a silent bypass).
+  // Verify the shipped curated demo library through the SAME verified-fetch helper the
+  // bundle rides (a missing manifest entry, a byte-length mismatch, or a content-address
+  // mismatch is a HARD FAILURE, never a silent bypass).
   const verifyLibrary = async () => {
-    await ensureEngine();
-    const manifest = await (
-      await fetch(new URL("./bundle-manifest.json", import.meta.url))
-    ).json();
-    const bytes = new Uint8Array(
-      await (await fetch(new URL("./conjectures.ttl", import.meta.url))).arrayBuffer(),
+    await verifiedAssetBytes(
+      "assets/conjectures.ttl",
+      new URL("./conjectures.ttl", import.meta.url),
     );
-    const entry = manifest["assets/conjectures.ttl"];
-    if (entry === undefined) {
-      throw new Error(
-        "conjecture library integrity: manifest is missing the assets/conjectures.ttl " +
-          "entry — cannot verify the demo library (a missing manifest entry is a hard failure)",
-      );
-    }
-    if (bytes.length !== entry.bytes) {
-      throw new Error(
-        `conjecture library integrity: expected ${entry.bytes} bytes, got ${bytes.length}`,
-      );
-    }
-    if (typeof entry.blake3 !== "string") {
-      throw new Error(
-        "conjecture library integrity: manifest records no blake3 content address for " +
-          "assets/conjectures.ttl — refusing to accept it on byte length alone",
-      );
-    }
-    const actual = `blake3:${blake3Hex(bytes)}`;
-    if (actual !== entry.blake3) {
-      throw new Error(
-        `conjecture library integrity: expected ${entry.blake3}, got ${actual}`,
-      );
-    }
   };
 
   // Parse the deterministic verdict N-Triples for the facets the panel renders: the

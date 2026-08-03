@@ -1101,10 +1101,11 @@ fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
     line(
         &mut out,
         "Explore the shipped ontology **entirely in your browser** — no server, no \
-         network. This loads the object-level core bundle and answers `info` (a summary \
-         of the loaded graph) and `describe <iri>` (every triple mentioning a term) via \
-         the native `purrdf` engine compiled to WebAssembly — the same answers the \
-         `gmeow` CLI gives.",
+         network. This loads the full `gmeow.gts` bundle — every named graph and the \
+         RDF 1.2 statement layer — and answers `info` (a summary of the loaded \
+         dataset) and `describe <iri>` (every triple mentioning a term) via the \
+         repository's own query engine compiled to WebAssembly — the same answers \
+         the `gmeow` CLI gives.",
     );
     // Raw HTML passes through the Markdown → HTML step; the controller script is
     // injected per page by the HTML shell (gated on `has_bundle()`).

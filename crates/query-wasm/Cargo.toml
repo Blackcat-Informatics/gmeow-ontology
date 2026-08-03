@@ -29,7 +29,7 @@ wasm-bindgen.workspace = true
 # fetched bundle against it, and the browser has no native blake3 — so the engine that
 # is already booted before the fetch exposes the same hash the manifest was written with,
 # rather than the site verifying under a second, weaker algorithm.
-blake3 = "1"
+blake3.workspace = true
 
 [dev-dependencies]
 # `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A
