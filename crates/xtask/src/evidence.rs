@@ -197,10 +197,20 @@ fn spawn_with_deadline(
                 if std::time::Instant::now() >= deadline {
                     let _ = child.kill();
                     let _ = child.wait();
-                    // Join the readers so the threads never outlive this call, even
-                    // though the buffers they collected are discarded on this path.
-                    let _ = stdout_reader.join();
-                    let _ = stderr_reader.join();
+                    // DETACH the readers; do NOT join them. `kill` reaches the child we
+                    // spawned, not its descendants, and a surviving grandchild keeps the
+                    // write end of both pipes open — `sh -c "cmd"` forks rather than
+                    // execs whenever the shell declines that optimization, which is
+                    // exactly the shape this deadline exists for. `read_to_end` does not
+                    // return until every writer closes, so joining here blocks for the
+                    // GRANDCHILD's full runtime and silently reinstates the hang this
+                    // function was written to remove. The buffers are discarded on this
+                    // path anyway, so the threads have nothing left to deliver: they end
+                    // when the pipe finally closes and drop what they read. Returning
+                    // promptly is the contract, and it must not depend on a process we
+                    // cannot reach.
+                    drop(stdout_reader);
+                    drop(stderr_reader);
                     return Err(failure(format!(
                         "{context}: timed out after {timeout:?} and was killed"
                     )));
@@ -243,12 +253,19 @@ mod tests {
     fn a_hanging_child_is_killed_and_the_call_returns_within_the_deadline() {
         // The bug this closes: every subprocess this module runs went through a
         // plain `.output()`, which hangs forever if the child never exits. Prove
-        // the fix with a genuinely hanging child (`sleep 100`) and a SHORT deadline
-        // — the call must return an error promptly, never block for anywhere near
-        // the child's own runtime.
+        // the fix with a genuinely hanging child and a SHORT deadline — the call
+        // must return an error promptly, never block for anywhere near the child's
+        // own runtime.
+        //
+        // `sleep 100 & wait` rather than a bare `sleep 100`: the bare form lets the
+        // shell `exec` the sleep, so killing the child closes the pipes and the
+        // hazard never appears. Backgrounding forces a real GRANDCHILD that keeps
+        // the write end open after the shell dies — on every shell, not only the
+        // ones that decline to exec. That is the case that made this green locally
+        // and red on CI, so it is the case the test has to pin.
         let start = std::time::Instant::now();
         let mut command = std::process::Command::new("sh");
-        command.args(["-c", "sleep 100"]);
+        command.args(["-c", "sleep 100 & wait"]);
         let err = super::spawn_with_deadline(
             &mut command,
             "test hang",
