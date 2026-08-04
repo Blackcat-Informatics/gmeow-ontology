@@ -4,7 +4,7 @@
 //! The `lpg` export leaf (P4): RDF → Labeled Property Graph.
 //!
 //! Renders the generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0
-//! packages via purrdf 0.7.0's native LPG projections
+//! packages via purrdf's native LPG projections
 //! (`purrdf::project_lpg_csv` / `project_neo4j_csv` / `project_lpg_cypher` /
 //! `project_lpg_graphml`), retiring gmeow's hand-rolled node/edge model and
 //! CSV/Cypher/GraphML writers (the former genuine port of

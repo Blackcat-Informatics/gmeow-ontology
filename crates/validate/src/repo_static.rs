@@ -102,6 +102,8 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
+    check_wasm_bindgen_pin_parity(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report);
     report
 }
 
@@ -1762,6 +1764,38 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 
     let lock_path = root.join("Cargo.lock");
+
+    // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
+    // above only proves the two MANIFESTS match each other; it cannot see the lock, so
+    // "the manifest pins one version, the lock resolves another" was undetectable.
+    //
+    // The pin must be EXACT (`=x.y.z`). A default caret requirement admits any compatible
+    // release, so `cargo update` can relink native — and any rebuilt wasm — against a
+    // different purrdf while every version string in the tree still reads the same. The
+    // substrate record keys off the LOCK for that reason; requiring an exact pin here keeps
+    // the manifest from silently disagreeing with it in the first place.
+    if lock_path.is_file()
+        && let Some(declared) = purrdf_declared_version(&root_manifest)
+    {
+        match declared.strip_prefix('=') {
+            None => report.error(format!(
+                "Cargo.toml pins purrdf {declared:?}, a range — it must be an EXACT pin \
+                 (=x.y.z). A caret requirement lets `cargo update` relink the RDF core \
+                 under a manifest that still reads the same"
+            )),
+            Some(exact) => {
+                if let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+                    && exact != locked
+                {
+                    report.error(format!(
+                        "Cargo.toml pins purrdf {exact} but Cargo.lock resolves {locked} — the \
+                         manifest and the lock must name the same version"
+                    ));
+                }
+            }
+        }
+    }
+
     if lock_path.is_file()
         && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
     {
@@ -1779,6 +1813,320 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
+/// The plain crates.io version `Cargo.toml` pins purrdf at, if it is a registry pin.
+///
+/// Returns `None` for a git/path source (which carries no comparable version) or when the
+/// manifest cannot be read — the lock comparison then simply does not bind.
+fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
+    let text = fs::read_to_string(manifest_path).ok()?;
+    let manifest = text.parse::<toml::Value>().ok()?;
+    let dep = manifest
+        .get("workspace")?
+        .as_table()?
+        .get("dependencies")?
+        .as_table()?
+        .get("purrdf")?;
+    match dep {
+        toml::Value::String(version) => Some(version.clone()),
+        toml::Value::Table(table) if !table.contains_key("git") && !table.contains_key("path") => {
+            table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        }
+        _ => None,
+    }
+}
+
+/// The CI-installed `wasm-bindgen-cli` and the binaryen pin CI provisions.
+///
+/// Split out and called on EVERY path of [`check_wasm_bindgen_pin_parity`], including the
+/// ones that could not read the workspace pin. When it was inline, an unreadable or absent
+/// root manifest returned early and took this with it — so a genuinely wrong CI version went
+/// unreported because a DIFFERENT file was missing. `expected` is `None` exactly when the
+/// library pin could not be established; the CI surface is still checked for its own sake.
+fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut RepoStaticReport) {
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let ci = match fs::read_to_string(&workflow) {
+        Ok(ci) => ci,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen CLI version cannot be checked \
+                 against the workspace pin, which is a failure, not agreement",
+                workflow.display()
+            ));
+            return;
+        }
+    };
+    // EVERY occurrence, not the first: a second install step pinned to another version is
+    // exactly the drift this exists to catch, and `nth(1)` would never have seen it.
+    let installs: Vec<String> = ci
+        .split("wasm-bindgen-cli@")
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+        })
+        .collect();
+    if installs.is_empty() {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+    }
+    for installed in &installs {
+        if expected.is_some() && Some(installed.as_str()) != expected {
+            report.error(format!(
+                "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+                 wasm-bindgen {} — the CLI refuses any library version it does not match \
+                 byte-for-byte, so the wasm build fails naming a version mismatch rather than \
+                 this drift",
+                workflow.display(),
+                expected.unwrap_or("<unreadable>")
+            ));
+        }
+    }
+
+    // The binaryen pin has ONE home (the Makefile's `BINARYEN_VER`), and CI must keep
+    // READING it rather than repeating the literal. Those two constants drifted once
+    // already: CI provisioned a release predating `--enable-bulk-memory-opt`, and every
+    // wasm-opt rule died on an unknown option. Nothing stopped the literal coming back.
+    if !ci.contains("print-binaryen-ver") {
+        report.error(format!(
+            "{}: does not read the binaryen pin from `make print-binaryen-ver` — the Makefile \
+             is its single source of truth, and a literal `version_NNN` here is the two-constant \
+             drift that broke the wasm lanes",
+            workflow.display()
+        ));
+    }
+    // ANY binaryen release literal is the drift, whatever idiom carries it. The first
+    // version of this detector matched only the YAML-mapping form (`BINARYEN_VER:`) —
+    // which this repository no longer contains, because the fix that introduced the
+    // detector also replaced that mapping with a shell read of `print-binaryen-ver`. A
+    // detector keyed to a retired idiom matches nothing; the literal itself is the
+    // invariant.
+    match Regex::new(r"version_[0-9]+") {
+        Ok(literal) => {
+            if let Some(m) = literal.find(&ci) {
+                report.error(format!(
+                    "{}: carries the binaryen release literal {:?} — read the pin from \
+                     `make print-binaryen-ver` instead; two copies of this version drifted \
+                     once and took every wasm parity lane with them",
+                    workflow.display(),
+                    m.as_str()
+                ));
+            }
+        }
+        Err(err) => report.error(format!("binaryen literal pattern failed to compile: {err}")),
+    }
+}
+
+/// `purrdf::gts_compose::emit_gts` may be called from exactly ONE place: the mandated
+/// authorship profile in `crates/gts-profile`.
+///
+/// That crate exists because the claim "`emit_gmeow_gts` is the only production entry to the
+/// GTS writer" was false — three crates called the writer directly, so bundles shipped
+/// without the mandated transform chain and compression level. Extracting the profile fixed
+/// the instances; nothing stopped the next one. A chokepoint nothing enforces is a
+/// convention, and this file already scans for three sibling structural invariants.
+///
+/// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
+/// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
+/// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
+/// the writer deliberately, the same exemption test crates get.
+fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    for file in files {
+        // The profile crate IS the permitted entry.
+        if file.starts_with(crates_dir.join("gts-profile")) {
+            continue;
+        }
+        // Integration-test crates and benches are test code: their files carry no
+        // `#[cfg(test)]` module for the scrubber to blank, but a test may legitimately
+        // build a deliberately non-conforming bundle to prove the audit rejects it.
+        if file
+            .components()
+            .any(|c| matches!(c.as_os_str().to_str(), Some("tests" | "benches")))
+        {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&file) else {
+            report.error(format!("{}: cannot read", file.display()));
+            continue;
+        };
+        let scrubbed = blank_comments_strings_and_cfg_test_modules(&text);
+        let lines: Vec<&str> = scrubbed.lines().collect();
+        for (idx, line) in lines.iter().enumerate() {
+            // `#[cfg(test)] use ...::emit_gts;` attaches the attribute to the item, not to a
+            // module, so the module scrubber cannot see it.
+            let test_gated = idx
+                .checked_sub(1)
+                .and_then(|prev| lines.get(prev))
+                .is_some_and(|prev| prev.trim() == "#[cfg(test)]");
+            if test_gated {
+                continue;
+            }
+            if line.contains("gts_compose::emit_gts") || line.contains("emit_gts(") {
+                let rel = file.strip_prefix(root).unwrap_or(&file);
+                report.error(format!(
+                    "{}:{}: calls the GTS writer directly — every production bundle must be \
+                     emitted through `gmeow_gts_profile::emit_gmeow_gts`, the single entry \
+                     that applies the mandated transform chain and compression level",
+                    rel.display(),
+                    idx + 1
+                ));
+            }
+        }
+    }
+}
+
+/// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
+/// all name ONE version.
+///
+/// The CLI that generates the JS bindings refuses to run against a library version it does
+/// not match byte-for-byte, and one CLI is on PATH for the whole build. The pin therefore
+/// lives in `[workspace.dependencies]` and every `crates/*-wasm` manifest must consume it
+/// with `wasm-bindgen.workspace = true`; a crate that redeclares its own version reopens
+/// the disagreement the single declaration exists to make unrepresentable.
+///
+/// The remaining live drift is the CLI: CI installs `wasm-bindgen-cli@<version>` by literal,
+/// and a bump to the library pin that forgets that line produces a build failure naming a
+/// version mismatch rather than the drift that caused it. Both halves are checked here.
+fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    // The root manifest is a REQUIRED repository input: absent or unreadable, the guard
+    // could not run, and reporting agreement it never established is the silent
+    // degradation this file exists to prevent. The CI half is still checked on every
+    // path, so a missing manifest can never swallow a real CLI drift.
+    let text = match fs::read_to_string(&root_manifest) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen pin cannot be checked, which is a \
+                 failure, not agreement",
+                root_manifest.display()
+            ));
+            check_wasm_bindgen_ci_pin(root, None, report);
+            return;
+        }
+    };
+    let Ok(manifest) = text.parse::<toml::Value>() else {
+        report.error(format!("{}: cannot parse", root_manifest.display()));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let declared = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|ws| ws.get("dependencies"))
+        .and_then(toml::Value::as_table)
+        .and_then(|deps| deps.get("wasm-bindgen"))
+        .and_then(|dep| match dep {
+            toml::Value::String(version) => Some(version.clone()),
+            toml::Value::Table(table) => table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned),
+            _ => None,
+        });
+    let Some(declared) = declared else {
+        report.error(
+            "the root [workspace.dependencies] declares no wasm-bindgen — every `crates/*-wasm` \
+             crate must consume ONE pin from there, so the wasm-bindgen CLI on PATH can match \
+             all of them"
+                .to_owned(),
+        );
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let Some(exact) = declared.strip_prefix('=') else {
+        report.error(format!(
+            "[workspace.dependencies] pins wasm-bindgen {declared:?}, a range — it must be an \
+             EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
+             byte-for-byte"
+        ));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+
+    // No `crates/*-wasm` crate may redeclare the version.
+    // An ABSENT crates/ directory means no members to check (minimal fixtures); a
+    // directory that exists but cannot be read is a failed check.
+    let crates_dir = root.join("crates");
+    let entries = if crates_dir.exists() {
+        match fs::read_dir(&crates_dir) {
+            Ok(entries) => Some(entries),
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read: {err} — the `*-wasm` members cannot be checked against \
+                     the workspace pin",
+                    crates_dir.display()
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    if let Some(entries) = entries {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !name.ends_with("-wasm") {
+                continue;
+            }
+            let manifest_path = entry.path().join("Cargo.toml");
+            if !manifest_path.is_file() {
+                continue;
+            }
+            let member = match fs::read_to_string(&manifest_path) {
+                Ok(member) => member,
+                Err(err) => {
+                    report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let parsed = match member.parse::<toml::Value>() {
+                Ok(parsed) => parsed,
+                Err(err) => {
+                    report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let dep = parsed
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+                .and_then(|deps| deps.get("wasm-bindgen"));
+            let uses_workspace = matches!(
+                dep,
+                Some(toml::Value::Table(table))
+                    if table.get("workspace").and_then(toml::Value::as_bool) == Some(true)
+            );
+            match dep {
+                None => report.error(format!(
+                    "{}: a `*-wasm` crate that declares no wasm-bindgen dependency",
+                    manifest_path.display()
+                )),
+                Some(_) if uses_workspace => {}
+                Some(other) => report.error(format!(
+                    "{}: redeclares wasm-bindgen as {other} — it must read the single \
+                     workspace pin with `wasm-bindgen.workspace = true`, so the version cannot \
+                     disagree with its sibling crates or with the CLI CI installs",
+                    manifest_path.display()
+                )),
+            }
+        }
+    }
+
+    check_wasm_bindgen_ci_pin(root, Some(exact), report);
+}
+
 /// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
 /// manifests compare equal iff they name the same source. Returns `None` (with a parse error
 /// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
@@ -1788,20 +2136,40 @@ fn purrdf_source_key(
     workspace: bool,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(manifest_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", manifest_path.display()));
-            return None;
+    match purrdf_source_key_of(manifest_path, workspace) {
+        Ok(key) => Some(key),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let manifest = match text.parse::<toml::Value>() {
-        Ok(manifest) => manifest,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
+/// recorded finding.
+///
+/// This is the ONE parser for the declared purrdf pin — a real TOML parse, never a line
+/// scanner, so a dotted key, a table-form `[workspace.dependencies.purrdf]`, or a commented
+/// header cannot silently read as "no pin". The docs-asset substrate gate keys off the LOCK
+/// via [`workspace_substrate_key`] rather than any manifest reader, so this stays private:
+/// visibility it earns only when a consumer outside this report actually exists.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
+/// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
+/// "no purrdf at all" still compares unequal instead of vanishing.
+fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(manifest_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", manifest_path.display()),
+        })
+    })?;
+    let manifest = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
+        })
+    })?;
     let deps = if workspace {
         manifest
             .get("workspace")
@@ -1813,7 +2181,7 @@ fn purrdf_source_key(
     let dep = deps
         .and_then(toml::Value::as_table)
         .and_then(|t| t.get("purrdf"));
-    Some(match dep {
+    Ok(match dep {
         None => "absent".to_owned(),
         Some(toml::Value::String(version)) => format!("registry;version={version}"),
         Some(toml::Value::Table(table)) => {
@@ -1843,26 +2211,114 @@ fn locked_package_version(
     name: &str,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(lock_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", lock_path.display()));
-            return None;
+    match locked_package_version_of(lock_path, name) {
+        Ok(version) => Some(version),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let lock = match text.parse::<toml::Value>() {
-        Ok(lock) => lock,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", lock_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The RESOLVED version of `name` in `Cargo.lock`, as a hard failure rather than a recorded
+/// finding, for callers outside this report.
+///
+/// The lock is the only place the version that actually got COMPILED is written down. A
+/// manifest requirement is a range: `purrdf = "0.12.0"` admits `0.12.1`, so a key derived from
+/// the manifest compares equal across a substrate change the lock can see.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or when it resolves no package
+/// named `name` — an absent package is a hard failure here, not a silent skip, because the
+/// caller asked for an identity it cannot substitute.
+pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(lock_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", lock_path.display()),
+        })
+    })?;
+    let lock = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", lock_path.display()),
+        })
+    })?;
     lock.get("package")
-        .and_then(toml::Value::as_array)?
-        .iter()
-        .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        .and_then(toml::Value::as_array)
+        .and_then(|packages| {
+            packages
+                .iter()
+                .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        })
         .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
         .map(str::to_owned)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: resolves no package named {name:?}",
+                    lock_path.display()
+                ),
+            })
+        })
+}
+
+/// The identity of the substrate a wasm engine built from this workspace statically links.
+///
+/// Both components are read from `Cargo.lock`, never from a manifest requirement: the lock
+/// records what was RESOLVED and therefore what was compiled into the `.wasm`, while a
+/// manifest requirement is a range that compares equal across the very bump this key exists
+/// to catch.
+///
+/// - `purrdf` is the RDF/SHACL/SPARQL core the browser and native engines must share.
+/// - `wasm-bindgen` fixes the JS glue ABI; a glue/library skew produces bindings that load
+///   but misbehave, which the digest manifest cannot see either.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or resolves neither package.
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    let lock_path = root.join("Cargo.lock");
+    let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
+    let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
+    let binaryen = declared_binaryen_version(root)?;
+    Ok(format!(
+        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+    ))
+}
+
+/// The binaryen release the Makefile pins, as `BINARYEN_VER`.
+///
+/// Read from the Makefile because that is where the pin lives — CI provisions exactly this
+/// via `make print-binaryen-ver`, and every `wasm-opt` rule refuses a binary reporting a
+/// different version.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the Makefile cannot be read or declares no `BINARYEN_VER`.
+fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
+    let makefile = root.join("Makefile");
+    let text = fs::read_to_string(&makefile).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", makefile.display()),
+        })
+    })?;
+    text.lines()
+        .find_map(|line| {
+            let rest = line.strip_prefix("BINARYEN_VER")?;
+            let rest = rest.trim_start().strip_prefix(":=")?;
+            Some(rest.trim().to_owned())
+        })
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+                     depend on the binaryen that optimized them, so the substrate they were \
+                     built against cannot be stated without it",
+                    makefile.display()
+                ),
+            })
+        })
 }
 
 /// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
@@ -2067,6 +2523,256 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 mod tests {
     use super::*;
 
+    /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
+    /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
+    fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\nwasm-bindgen = {workspace_pin}\n"),
+        );
+        write(
+            &root.join("crates/query-wasm/Cargo.toml"),
+            &format!("[dependencies]\n{member}\n"),
+        );
+        write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
+        write(
+            &root.join(".github/workflows/ci.yml"),
+            &format!(
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n      - run: make print-binaryen-ver\n"
+            ),
+        );
+    }
+
+    fn wasm_bindgen_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_wasm_bindgen_pin_parity(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        assert!(
+            wasm_bindgen_errors(tmp.path()).is_empty(),
+            "the agreeing arrangement must pass"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen = \"=0.2.100\"",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("redeclares wasm-bindgen")),
+            "a member redeclaring the pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.100",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
+            "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_an_absent_ci_workflow() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        fs::remove_file(tmp.path().join(".github/workflows/ci.yml")).unwrap();
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("cannot read")),
+            "an absent CI workflow must red — the CLI version cannot be checked, which is a \
+             failure, not agreement: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest() {
+        // The sharp case the old shape got wrong: `let Ok(text) = … else { return; }` made an
+        // unreadable manifest a SILENT pass, so a tree with a real CLI drift reported nothing
+        // at all. The comparison against the library pin genuinely cannot be performed
+        // without the manifest — but the run must red saying so, never go quiet.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.99",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "this is not valid toml = = =\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            !errors.is_empty(),
+            "an unparsable root manifest must not be a silent pass"
+        );
+        assert!(
+            errors.iter().any(|e| e.contains("cannot parse")),
+            "the failure must name the manifest it could not read: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_binaryen_literal() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - env:\n          BINARYEN_VER: version_119\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("binaryen release literal")),
+            "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
+             the wasm lanes: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal() {
+        // The idiom the repository actually uses is a shell assignment; a detector keyed
+        // to the YAML-mapping form alone matches nothing here.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n      - run: BINARYEN_VER=\"version_119\" ./install.sh\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("version_119")),
+            "a shell-form binaryen literal must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
+        let tmp = tempfile::tempdir().unwrap();
+        write(
+            &tmp.path().join("crates/rogue/src/lib.rs"),
+            "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("calls the GTS writer directly")),
+            "a production emit_gts call outside the profile crate must red: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
+        let tmp = tempfile::tempdir().unwrap();
+        // The permitted entry itself.
+        write(
+            &tmp.path().join("crates/gts-profile/src/lib.rs"),
+            "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        // An integration-test crate driving the writer deliberately.
+        write(
+            &tmp.path().join("crates/consumer/tests/audit.rs"),
+            "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
+        );
+        // A `#[cfg(test)]`-gated import inside production source.
+        write(
+            &tmp.path().join("crates/consumer/src/lib.rs"),
+            "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report.errors.is_empty(),
+            "the profile crate and test code are the permitted callers: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_workspace_without_the_declaration() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "[workspace.dependencies]\nserde = \"1\"\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("declares no wasm-bindgen")),
+            "a workspace without the declaration must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("a range")),
+            "a caret pin must red — the CLI matches one version only: {errors:?}"
+        );
+    }
+
     fn write(path: &Path, text: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
@@ -2079,9 +2785,15 @@ mod tests {
         // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
         // uses the purrdf.compat.rdflib facade instead).
         write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
+        // The wasm-bindgen parity guard treats the root manifest and the CI pin lines as
+        // REQUIRED inputs, so the minimal repo carries an agreeing set of all three.
+        write(
+            &root.join("Cargo.toml"),
+            "[workspace.dependencies]\nwasm-bindgen = \"=0.2.125\"\n",
+        );
         write(
             &root.join(".github/workflows/ci.yml"),
-            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
         // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images

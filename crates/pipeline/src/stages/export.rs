@@ -20,7 +20,7 @@
 //! projection boundary, and the remap is paid once, not once per surface.
 //!
 //! SKOS ([`render_skos`]), OBO Graphs ([`render_obographs`]), and CSVW
-//! ([`render_csvw`]) are purrdf 0.7.0 native projections
+//! ([`render_csvw`]) are purrdf native projections
 //! (`purrdf::project_skos` / `purrdf::project_obo_graphs` /
 //! `purrdf::project_csvw_exact`), retiring the former hand-rolled SKOS Turtle / OBO
 //! Graphs JSON writers and the curated class/property/individual CSV + CSVW
@@ -3050,7 +3050,7 @@ mod tests {
         let nq = arts[&format!("{DIST_DIR}/gmeow.nq")].clone();
         assert!(!nq.is_empty());
 
-        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf 0.7.0
+        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf
         // projections — see the module doc). purrdf's native Turtle serializer emits
         // full IRIs for the SKOS namespace (no `skos:` CURIE prefix declared), so
         // assert on the expanded predicate/class IRIs, not a CURIE form.

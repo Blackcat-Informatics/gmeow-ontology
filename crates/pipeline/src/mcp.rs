@@ -44,6 +44,7 @@ use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+use purrdf::gts::reader::read_file_segments;
 use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
@@ -3917,7 +3918,7 @@ pub struct ConjecturePureOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
 }
 
@@ -3947,7 +3948,7 @@ pub struct ConjectureRunOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
     /// The TR receipt gating the persist (rendered as the transaction summary by callers).
     pub receipt: TxReceipt,
@@ -5744,7 +5745,32 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
+    // `store_claim`/`revise_belief` already committed the claim (and, for `store_claim`, the
+    // `record_tool_call` provenance) into `memory.gts`'s ONE growing segment before this runs —
+    // so the file on disk is never empty here. Reading it back and CONTINUING that same segment
+    // (rather than minting a fresh header, as this used to do unconditionally) matters because
+    // `Memory::revise` resolves `claim_id` only against the term table of the store's LAST
+    // segment (see `purrdf::gts::examples::agent_memory::SegmentIris`): a second, independent
+    // segment tacked on after every write left every claim's own segment permanently behind the
+    // audit segment, so the very next `revise_belief` for that claim could never resolve it.
+    let existing = fs::read(memory_path).unwrap_or_default();
+    let term_base = read_file_segments(&existing)
+        .segments
+        .last()
+        .map_or(0, |segment| segment.terms.len());
+    let (terms, quads) = audit_triples(call_id, schema_iri, obtains, at_time, term_base);
+    let mut writer = if existing.is_empty() {
+        GtsWriter::new("ai-package")
+    } else {
+        GtsWriter::appending(&existing).map_err(|err| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("cannot continue memory.gts segment for audit record: {err}"),
+            })
+        })?
+    };
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    let segment = writer.into_bytes();
     let mut file = fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -5757,18 +5783,43 @@ fn write_audit_segment(
 /// half of [`write_audit_segment`], factored out so the conjecture-library commit path can
 /// build the verdict segment AND its audit segment in memory and commit both together via
 /// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
-/// the second can fail after the first has already landed.
+/// the second can fail after the first has already landed. The conjecture/candidate libraries
+/// always mint this as ITS OWN fresh segment (`term_base` 0), matching how `build_nt_segment`
+/// mints the verdict segment it rides alongside.
 fn build_audit_segment(
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
 ) -> Vec<u8> {
+    let (terms, quads) = audit_triples(call_id, schema_iri, obtains, at_time, 0);
+    let mut writer = GtsWriter::new("ai-package");
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    writer.to_bytes()
+}
+
+/// A GTS quad as term-table indices: `(subject, predicate, object, graph)`, where `graph`
+/// is `None` for the default graph. Indices are relative to whatever `term_base` the rows
+/// were numbered from.
+type GtsQuadRow = (usize, usize, usize, Option<usize>);
+
+/// Build the trajectory-audit context's `(terms, quads)`, numbered locally from `term_base` —
+/// the shared shape behind both [`build_audit_segment`] (always `term_base` 0, its own fresh
+/// segment) and [`write_audit_segment`] (`term_base` = the live memory segment's current term
+/// count, so the rows CONTINUE that segment instead of dangling in a disconnected one).
+fn audit_triples(
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+    term_base: usize,
+) -> (Vec<GtsTerm>, Vec<GtsQuadRow>) {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
     let mut terms: Vec<GtsTerm> = Vec::new();
-    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+    let mut quads: Vec<GtsQuadRow> = Vec::new();
 
     let t_call = push_gts_term(&mut terms, gts_iri(call_id));
     let t_anchor = push_gts_term(&mut terms, gts_iri(&anchor));
@@ -5799,10 +5850,32 @@ fn build_audit_segment(
         quads.push((t_start, t_so, t_sit, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
-    writer.to_bytes()
+    if term_base == 0 {
+        return (terms, quads);
+    }
+    // Shift every LOCALLY-numbered row (including a term's own `dt`/`rf` back-references, per
+    // §7.5) into the live segment's term-id space — mirrors
+    // `purrdf::gts::examples::agent_memory::Memory::store`'s `shift_terms`/`shift_quads`.
+    let terms = terms
+        .into_iter()
+        .map(|term| GtsTerm {
+            datatype: term.datatype.map(|id| id + term_base),
+            reifier: term.reifier.map(|id| id + term_base),
+            ..term
+        })
+        .collect();
+    let quads = quads
+        .into_iter()
+        .map(|(s, p, o, g)| {
+            (
+                s + term_base,
+                p + term_base,
+                o + term_base,
+                g.map(|g| g + term_base),
+            )
+        })
+        .collect();
+    (terms, quads)
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -5930,7 +6003,7 @@ fn intern_nt_term(
 /// together as one atomic file replace — see [`append_conjecture_segments`].
 fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
-    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+    let mut quads: Vec<GtsQuadRow> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
 
     for (lineno, raw) in nt_body.lines().enumerate() {
@@ -7397,7 +7470,7 @@ mod tests {
             "revise_belief",
             &json!({"claim_id": claim_id, "reason": "superseded"}),
         ));
-        assert_eq!(revised["ok"], true);
+        assert_eq!(revised["ok"], true, "revise_belief payload: {revised}");
         assert_eq!(revised["transaction"]["committed"], true);
 
         // Default recall hides it (suppressed) ...
@@ -12168,6 +12241,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny cert-carrying snapshot");
 
@@ -12240,6 +12314,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 
@@ -12357,6 +12432,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 

@@ -93,12 +93,6 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
         .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
         .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
-    // The browser bundle assets: the object-level core N-Quads (the explorer's
-    // client-side query dataset) and the full bundle bytes (the in-browser Tier-1
-    // validate surface's shapes source). Both ship as external site assets.
-    let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
-        .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
-        .into_bytes();
     // The W4 conjecture-playground demo library: the committed curated
     // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
     // a missing example is a HARD FAIL (never a silently empty playground); the release
@@ -112,7 +106,6 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     })?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
-        core_bundle_nquads,
         full_bundle_gts: bytes,
         conjectures_ttl,
         ..Default::default()
@@ -247,13 +240,14 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
             media_type: media_type.to_string(),
         });
     }
-    // Price the `site` sub-assets (the vendored interactive engines + the browser
-    // bundle) into the release-instance manifest: content-address each from the rendered
-    // site tree and hang its digest off the SAME site_sub_asset subject the carrier
-    // catalog prices digest-free. This release render is unconditionally interactive —
-    // `exec` (the playground data) is hard-required above, so the vendored engines + the
-    // browser bundle are ALWAYS emitted here. `site_sub_asset_pricing()` DECLARES every
-    // one; no-optionality makes each a mandatory output of this selected profile. A
+    // Price the `site` sub-assets (the vendored interactive engines + the conjecture
+    // demo library) into the release-instance manifest: content-address each from the
+    // rendered site tree and hang its digest off the SAME site_sub_asset subject the
+    // carrier catalog prices digest-free. This release render is unconditionally
+    // interactive — `exec` (the playground data) is hard-required above, so the
+    // vendored engines + the demo library are ALWAYS emitted here.
+    // `site_sub_asset_pricing()` DECLARES every one; no-optionality makes each a
+    // mandatory output of this selected profile. A
     // declared sub-asset that produced zero files is therefore a HARD FAIL (an incomplete
     // interactive site with a missing release digest), never a silent skip — a silent
     // skip would make a shipped engine and a dropped engine indistinguishable on the

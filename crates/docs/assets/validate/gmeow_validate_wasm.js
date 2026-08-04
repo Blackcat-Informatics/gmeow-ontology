@@ -2,7 +2,7 @@
 
 /**
  * Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
- * in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+ * in-browser RDF engine (gmeow-query-wasm) can parse and query the SAME
  * bundle the pipeline shipped — the browser source of truth for the documentation
  * playground and bundle explorer, replacing any second curated data path.
  *
@@ -27,6 +27,78 @@ export function bundle_dataset(gts) {
         const ptr0 = passArray8ToWasm0(gts, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.bundle_dataset(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
+ * hex. Lets a JS caller pin the EXACT codebook their document was validated against — the
+ * same content address the codec's codebook-digest layer and the `gmeow gmn digest` CLI
+ * report over the carrier bytes.
+ * @returns {string}
+ */
+export function gmn_codebook_digest() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.gmn_codebook_digest();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * Validate a GMN-1 document against the EMBEDDED codebook, returning a canonical JSON
+ * verdict.
+ *
+ * The `bytes` are the raw GMN-1 surface text (the `@gmn{…}` header plus one record per
+ * line). They are read through [`gmn1_read`] — the production codec's reader — against the
+ * dictionary/glyph registry resolved from the embedded [`GMN_CODEBOOK_TTL`]. Because the
+ * codebook is embedded, glyphs, dictionary aliases, and prefixed terms are actually
+ * RESOLVED: a document whose grammar is well-formed but which names a term the codebook
+ * does not cover is rejected as `lang:GmnUncoveredTerm`, and every other codec-tier
+ * violation resolves to its one typed `lang:LangConformanceFailure` class.
+ *
+ * # Returns
+ *
+ * A JSON object:
+ * - conformant: `{ "conformant": true }` — the document read back cleanly.
+ * - non-conformant: `{ "conformant": false, "failureClass":
+ *   "https://blackcatinformatics.ca/lang/Gmn…", "detail": "…" }` — `failureClass` is the
+ *   full `lang:` IRI from [`gmeow_lang_bridge::Gmn1Error::failure_class`] (the ONE
+ *   canonical classifier), `detail` its human-readable rendering.
+ *
+ * # Errors
+ *
+ * Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
+ * failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
+ * a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+ * — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
+ * degradation to a syntax-only check.
+ * @param {Uint8Array} bytes
+ * @returns {string}
+ */
+export function gmn_validate(bytes) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.gmn_validate(ptr0, len0);
         var ptr2 = ret[0];
         var len2 = ret[1];
         if (ret[3]) {

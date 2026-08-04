@@ -4,7 +4,7 @@
  * Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
  * engine and return the **deterministic verdict** as N-Triples text — the SAME projection
  * the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
- * witness). Powers the live documentation conjecture playground (issue #1406 W4).
+ * witness). Powers the live documentation conjecture playground (the WASM-interactive docs W4 deliverable).
  *
  * - `kb` — the knowledge base to test against (RDF text in `kb_format`).
  * - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,

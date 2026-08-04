@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# cargo-mutants config (T9, #790): grade whether the suite actually catches
+# cargo-mutants config (T9): grade whether the suite actually catches
 # regressions. Scoped to the logic + validate cores; benches/tests/generated are
 # not mutated. nextest is the runner (process-per-test → faster, non-flaky).
 # This is report-only and runs OFF the required gate (the scheduled suite-quality
 # workflow); the full logic-core run is hours, so locally use `-p <crate> -f <file>`.
 #
-# Known surviving-mutant backlog (T9 time-boxed validate triage, #790): the
+# Known surviving-mutant backlog (T9 time-boxed validate triage): the
 # constitution.rs literal_i64/literal_string cluster was killed; survivors still
 # open for future kill-or-justify: crates/validate/src/cache.rs `sanitize_kind`
 # boolean logic, constitution.rs `is_rdfs_class` / the `|=` accumulator, and

@@ -33,7 +33,7 @@ hand-renders the Markdown/YAML-frontmatter bytes — it does not call a shared
 codec, because the bundle shape (`okf:path`/`okf:body`/`okf:links` triples
 scoped per rendered document) is synthesized procedurally from the folded
 term surface, not carried natively by the RDF graph. The import lane is the
-inverse direction only: `gmeow transpile <dir>` calls purrdf 0.7.0's native,
+inverse direction only: `gmeow transpile <dir>` calls purrdf's native,
 in-process OKF reader (`purrdf::lift_okf_bundle`) directly to fold a bundle
 directory back to RDF, then lifts the recognized `okf:` predicates to GMEOW.
 There is no external binary or subprocess in either direction — the former
@@ -76,7 +76,7 @@ gmeow transpile path/to/okf-bundle/ --profiles all
 ```
 
 `gmeow transpile <dir>` detects an OKF directory, reads every `.md` file under
-it into a purrdf `OkfBundle` in-process, folds it through purrdf 0.7.0's native
+it into a purrdf `OkfBundle` in-process, folds it through purrdf's native
 OKF reader (`purrdf::lift_okf_bundle`), then lifts the recognized `okf:`
 predicates to GMEOW — `okf:title` → `rdfs:label`, `okf:description` →
 `skos:definition`, `okf:type` → `rdf:type`, `okf:scope_notes` / `okf:examples`
@@ -85,7 +85,7 @@ verbatim as a provenance-bearing annotation (lossy honesty — never silently
 dropped), and `MAXIMAL(G)` then runs over the draft exactly like the
 [Turtle / YAML-LD transpile paths](./transpile.md).
 
-There is no external binary dependency for this lane: purrdf 0.7.0 ships the
+There is no external binary dependency for this lane: purrdf ships the
 OKF Markdown ↔ RDF codec directly, so `gmeow transpile` never shells out. A
 malformed bundle (unsafe path, invalid YAML frontmatter, an unrecognized
 frontmatter key, a dangling Markdown-link target) is a hard failure with no

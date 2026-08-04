@@ -7,8 +7,8 @@
 > **JSON Schema** (`gmeow.schema.json`), **OpenAPI** (`gmeow.openapi.json`), **LinkML**
 > (`gmeow.linkml.yaml`), **TypeScript** (`gmeow.ts`), **GraphQL** (`gmeow.graphql` +
 > `gmeow.graphql.name-map.json`), and **Pydantic** (`gmeow_models/`) are ALL compiled
-> **natively in Rust from the SHACL shapes**, through purrdf 0.7.0's shared
-> `CompiledSchema` (tag `rust-v0.7.0`). They are ALL *closed-world* structural
+> **natively in Rust from the SHACL shapes**, through purrdf's shared
+> `CompiledSchema`. They are ALL *closed-world* structural
 > surfaces — `required` on every one of them is real, derived from `sh:minCount ≥ 1`,
 > not a stub.
 > There is no separate "OWL → LinkML" projection anymore: the former hand-rolled
@@ -39,7 +39,7 @@ Every developer schema surface compiles through ONE builder,
 [`crate::stages::schema_compile::enriched_compiled_schema`]
 (`crates/pipeline/src/stages/schema_compile.rs`):
 
-1. `purrdf::shapes::json_schema::compile` (purrdf 0.7.0, tag `rust-v0.7.0`) compiles
+1. `purrdf::shapes::json_schema::compile` compiles
    the fresh SHACL shape union into a closed-world JSON Schema (draft 2020-12) +
    OpenAPI 3.1 pair — the SAME shape union the live SHACL validator enforces.
 2. gmeow's own `crate::stages::value_vocab::enrich_value_vocab_enums` folds in the

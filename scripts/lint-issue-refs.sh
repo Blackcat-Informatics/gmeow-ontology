@@ -1,7 +1,7 @@
 #!/bin/sh
 # scripts/lint-issue-refs.sh
-# Reject issue/PR number references of the form #NNN in Rust comments and
-# developer-facing Markdown documentation.
+# Reject issue/PR number references of the form #NNN in Rust comments,
+# developer-facing Markdown documentation, and TOML manifests/config.
 #
 # This script is intentionally POSIX-shell and ripgrep-based so it adds no
 # Python/Rust runtime dependency beyond what the repository already uses.
@@ -58,6 +58,31 @@ if [ "$md_code" -eq 2 ]; then exit 2; fi
 if [ -n "$md_matches" ]; then
     echo "Found issue/PR number references in Markdown docs:" >&2
     echo "$md_matches" >&2
+    status=1
+fi
+
+# --- TOML manifests and config -------------------------------------------------
+# Scan Cargo manifests and other repo-authored TOML (mutants.toml,
+# rust-toolchain.toml, ...) for the same banned issue/PR references. Exclude
+# generated artifacts, vendored trees, and GitHub workflow config, mirroring the
+# Markdown section above. Cargo.lock is excluded defensively even though it is
+# not named *.toml and so would not match the glob anyway: it is a machine-written
+# lockfile, never a place to author prose. No other exclusion is needed — unlike
+# Markdown's brand-colour hex codes, no legitimate `#NNN`-shaped content (hex
+# colours, port numbers, etc.) exists in any tracked TOML file today.
+toml_code=0
+toml_matches=$(rg -n -e '#\d{3,}' \
+    --glob '*.toml' \
+    --glob '!Cargo.lock' \
+    --glob '!.github/**' \
+    --glob '!generated/**' \
+    --glob '!vendor/**' \
+    .) || toml_code=$?
+if [ "$toml_code" -eq 2 ]; then exit 2; fi
+
+if [ -n "$toml_matches" ]; then
+    echo "Found issue/PR number references in TOML manifests:" >&2
+    echo "$toml_matches" >&2
     status=1
 fi
 
