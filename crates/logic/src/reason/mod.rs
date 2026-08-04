@@ -370,6 +370,40 @@ const LOO_OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalent
 const LOO_OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
 const LOO_OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
 
+/// Lower a CANONICAL `logic:` subsumption predicate to the `rdfs:` spelling the fixed
+/// DL/RDFS calculus matches — the SAME EDB-boundary lowering `rl::encode_generic_edb`
+/// performs, applied here at the leave-one-out boundary. Every other predicate is
+/// itself.
+///
+/// # Why the leave-one-out path needs it
+///
+/// GMEOW authors subsumption in the canonical `logic:` vocabulary (Principle 17 —
+/// `rdfs:` is one of its lossy projections), but every device in this module that can
+/// answer a subsumption probe CHEAPLY is keyed on the `rdfs:` spelling: the
+/// [`TransitiveReachability`] index, the [`LOO_RDFS_SUBCLASS_OF`] /
+/// [`LOO_RDFS_SUBPROPERTY_OF`] dispatch arms in [`leave_one_out_rederived`], and the
+/// [`finite_dl_may_rederive_after_rule_miss`] negative filter. Without the lowering a
+/// canonical-spelled axiom matches NO analytic arm and falls to
+/// [`leave_one_out_probe`] — an incremental session fork PLUS a full finite-DL
+/// augmentation over a rebuilt reduced dataset, per axiom. It also gets the WRONG
+/// answer there: no fixed rule head is spelled `logic:subClassOf`, so the probe can
+/// only ever report "not re-derived", making the redundancy measurement vacuous for
+/// exactly the slices that re-authored their taxonomy canonically.
+///
+/// Lowering fixes both at once: the canonical edge joins the same reachability graph
+/// as its projection, so the probe is answered analytically AND correctly.
+///
+/// When the `rdfs:` projection ceilings reach zero corpus-wide and the `rdfs:` arm of
+/// the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the lowering
+/// (canonical → the fixed calculus's RDFS vocabulary) is what the calculus needs.
+fn loo_subsumption_spelling(predicate: &str) -> &str {
+    match predicate {
+        gmeow_ns::LOGIC_SUB_CLASS_OF => LOO_RDFS_SUBCLASS_OF,
+        gmeow_ns::LOGIC_SUB_PROPERTY_OF => LOO_RDFS_SUBPROPERTY_OF,
+        other => other,
+    }
+}
+
 fn dataset_has_pattern(
     edb: &RdfDataset,
     subject: Option<&str>,
@@ -409,10 +443,18 @@ fn dataset_has_pattern(
 /// predicates come from `owl:onProperty`, then may travel through the ordinary
 /// property schema. A direct schema mention is therefore a conservative witness
 /// that the post-pass might still create the predicate.
+///
+/// The property-subsumption hop is scanned under BOTH spellings
+/// ([`gmeow_ns::SUB_PROPERTY_OF`]): a canonical `logic:subPropertyOf` edge into or out
+/// of `predicate` is the same schema mention as its `rdfs:` projection, so missing it
+/// would let an exactness guard claim a fast path the dynamic producer can still
+/// invalidate.
 fn dataset_may_generate_dynamic_predicate(edb: &RdfDataset, predicate: &str) -> bool {
     dataset_has_pattern(edb, None, LOO_OWL_ON_PROPERTY, Some(predicate))
-        || dataset_has_pattern(edb, Some(predicate), LOO_RDFS_SUBPROPERTY_OF, None)
-        || dataset_has_pattern(edb, None, LOO_RDFS_SUBPROPERTY_OF, Some(predicate))
+        || gmeow_ns::SUB_PROPERTY_OF.iter().any(|subsumption| {
+            dataset_has_pattern(edb, Some(predicate), subsumption, None)
+                || dataset_has_pattern(edb, None, subsumption, Some(predicate))
+        })
         || dataset_has_pattern(edb, Some(predicate), LOO_OWL_INVERSE_OF, None)
         || dataset_has_pattern(edb, None, LOO_OWL_INVERSE_OF, Some(predicate))
         || dataset_has_pattern(edb, Some(predicate), LOO_OWL_EQUIVALENT_PROPERTY, None)
@@ -428,12 +470,19 @@ fn dataset_may_generate_dynamic_predicate(edb: &RdfDataset, predicate: &str) -> 
 /// `rdfs:subClassOf` can be introduced by an open-headed producer, a missing
 /// subclass target cannot appear later. Every other target conservatively keeps
 /// the full production pass.
+///
+/// The subsumption test runs on the LOWERED spelling
+/// ([`loo_subsumption_spelling`]), so a canonical `logic:subClassOf` axiom gets the
+/// same cheap negative filter as its `rdfs:` projection instead of falling through
+/// to the full production pass.
 fn finite_dl_may_rederive_after_rule_miss(
     edb: &RdfDataset,
     inferred: &[InferredAxiom],
     axiom: &LeaveOneOutAxiom,
 ) -> bool {
-    if axiom.predicate != LOO_RDFS_SUBCLASS_OF || axiom.object == LOO_OWL_NOTHING {
+    if loo_subsumption_spelling(&axiom.predicate) != LOO_RDFS_SUBCLASS_OF
+        || axiom.object == LOO_OWL_NOTHING
+    {
         return true;
     }
     let has_union = inferred.iter().any(|fact| {
@@ -444,18 +493,28 @@ fn finite_dl_may_rederive_after_rule_miss(
         || dataset_has_pattern(edb, None, LOO_OWL_DISJOINT_UNION_OF, None)
         || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
         || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
-        || dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+        || subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_CLASS_OF)
+}
+
+/// Whether EITHER spelling of one subsumption edge could be created by an
+/// open-headed producer — the exactness precondition of the batched reachability
+/// indexes, evaluated over the canonical predicate AND its `rdfs:` projection
+/// because [`TransitiveReachability`] now merges both into one edge set.
+fn subsumption_may_be_dynamic(edb: &RdfDataset, spellings: &[&str; 2]) -> bool {
+    spellings
+        .iter()
+        .any(|predicate| dataset_may_generate_dynamic_predicate(edb, predicate))
 }
 
 fn batch_subclass_reachability_is_exact(edb: &RdfDataset) -> bool {
     !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
-        && !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+        && !subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_CLASS_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_CLASS)
 }
 
 fn batch_subproperty_reachability_is_exact(edb: &RdfDataset) -> bool {
-    !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBPROPERTY_OF)
+    !subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_PROPERTY_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_PROPERTY)
 }
 
@@ -499,6 +558,15 @@ fn is_property_characteristic(iri: &str) -> bool {
 /// The boolean edge payload records a non-removable equivalence support. A raw
 /// `A rdfs:subClassOf B` edge is removed by the `(A, B)` probe, but the same edge
 /// remains justified when `A owl:equivalentClass B` is also authored.
+///
+/// Edges are collected under the LOWERED spelling ([`loo_subsumption_spelling`]), so
+/// a canonical `logic:subClassOf` / `logic:subPropertyOf` edge and its `rdfs:`
+/// projection are the SAME edge of this graph — the only reading consistent with
+/// Principle 17, and the reading the RL EDB boundary already takes. A subject/object
+/// pair authored under BOTH spellings collapses to one non-independently-supported
+/// entry, so a probe on either one removes both: the redundancy answer is then
+/// conservative (the duplicate is never counted as re-deriving its twin), never
+/// inventive.
 #[derive(Default)]
 struct TransitiveReachability {
     worlds: std::collections::BTreeMap<
@@ -521,7 +589,7 @@ impl TransitiveReachability {
             else {
                 continue;
             };
-            if fact.predicate == predicate {
+            if loo_subsumption_spelling(&fact.predicate) == predicate {
                 reachability.insert(&world, &subject, &object, false);
             } else if fact.predicate == equivalence
                 && (equivalence_in_finite_dl || structured_worlds.contains(&world))
@@ -740,12 +808,20 @@ pub fn leave_one_out_rederived(
     let mut results = vec![false; axioms.len()];
     let mut slow = Vec::new();
     for (index, axiom) in axioms.iter().enumerate() {
-        if axiom.predicate == LOO_RDFS_SUBCLASS_OF
+        // Dispatch on the LOWERED spelling: a canonical `logic:subClassOf` /
+        // `logic:subPropertyOf` axiom is the same subsumption edge as its `rdfs:`
+        // projection and takes the same analytic reachability answer. Without this the
+        // canonical spelling matches no arm, falls to the per-axiom incremental fork +
+        // full finite-DL augmentation, and is answered vacuously (no fixed rule head is
+        // spelled `logic:`), so the redundancy measurement would be both quadratically
+        // expensive and blind on every canonically-authored slice.
+        let subsumption = loo_subsumption_spelling(&axiom.predicate);
+        if subsumption == LOO_RDFS_SUBCLASS_OF
             && axiom.object != LOO_OWL_NOTHING
             && let Some(reachability) = &subclass_reachability
         {
             results[index] = reachability.rederived_without(axiom);
-        } else if axiom.predicate == LOO_RDFS_SUBPROPERTY_OF
+        } else if subsumption == LOO_RDFS_SUBPROPERTY_OF
             && let Some(reachability) = &subproperty_reachability
         {
             results[index] = reachability.rederived_without(axiom);
@@ -1841,6 +1917,67 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(incremental, scratch);
         assert_eq!(incremental, vec![true, true, false, false]);
+    }
+
+    /// A leave-one-out probe spelled in the CANONICAL `logic:` subsumption vocabulary
+    /// is answered by the same analytic reachability index as its `rdfs:` projection,
+    /// and the two spellings compose into ONE taxonomy.
+    ///
+    /// Both halves are load-bearing. Semantically: without the
+    /// [`loo_subsumption_spelling`] lowering the canonical probe reaches
+    /// [`leave_one_out_probe`], where no fixed rule head is spelled `logic:` — so a
+    /// transitively re-derivable canonical axiom is reported LOAD-BEARING, making the
+    /// redundancy measurement vacuous on exactly the slices that re-authored their
+    /// taxonomy canonically (Principle 17). Operationally: that same miss costs one
+    /// incremental session fork PLUS one full finite-DL augmentation over a rebuilt
+    /// reduced dataset per axiom, which is what turned the corpus-wide quality sweep
+    /// from minutes into hours.
+    ///
+    /// `scratch_leave_one_out` is deliberately NOT used as the oracle here: it runs the
+    /// fixed RDFS-vocabulary closure, which cannot derive a `logic:`-spelled head at
+    /// all, so it is precisely the vacuous answer this lowering exists to replace.
+    #[test]
+    fn leave_one_out_answers_canonical_logic_subsumption_analytically() {
+        const D: &str = "http://gmeow.example/D";
+        const E: &str = "http://gmeow.example/E";
+        const F: &str = "http://gmeow.example/F";
+        const P: &str = "http://gmeow.example/p";
+        const Q: &str = "http://gmeow.example/q";
+        const R: &str = "http://gmeow.example/r";
+        let logic_subclass = gmeow_ns::LOGIC_SUB_CLASS_OF;
+        let logic_subproperty = gmeow_ns::LOGIC_SUB_PROPERTY_OF;
+
+        let store = dataset(vec![
+            // A purely canonical chain: A ⊑ B ⊑ C makes the direct A ⊑ C redundant.
+            quad(A, logic_subclass, B),
+            quad(B, logic_subclass, C),
+            quad(A, logic_subclass, C),
+            // A MIXED chain: the canonical edge and its rdfs: projection are the same
+            // edge of the taxonomy, so D ⊑ E (rdfs) ⊑ F (logic) re-derives D ⊑ F.
+            quad(D, SUBCLASS, E),
+            quad(E, logic_subclass, F),
+            quad(D, logic_subclass, F),
+            // The property side takes the same lowering.
+            quad(P, logic_subproperty, Q),
+            quad(Q, logic_subproperty, R),
+            quad(P, logic_subproperty, R),
+        ]);
+        let probes = vec![
+            LeaveOneOutAxiom::new(A, logic_subclass, C),
+            LeaveOneOutAxiom::new(A, logic_subclass, B),
+            LeaveOneOutAxiom::new(D, logic_subclass, F),
+            LeaveOneOutAxiom::new(D, SUBCLASS, E),
+            LeaveOneOutAxiom::new(P, logic_subproperty, R),
+            LeaveOneOutAxiom::new(P, logic_subproperty, Q),
+        ];
+
+        let rederived = leave_one_out_rederived(&store, &probes).expect("batch reasons");
+        assert_eq!(
+            rederived,
+            vec![true, false, true, false, true, false],
+            "canonical logic: subsumption must take the analytic reachability answer, \
+             composing with its rdfs: projection as one taxonomy"
+        );
     }
 
     #[test]

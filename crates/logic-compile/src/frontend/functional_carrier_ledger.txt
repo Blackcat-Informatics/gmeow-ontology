@@ -517,6 +517,10 @@ https://blackcatinformatics.ca/gmeow/relayBy
 https://blackcatinformatics.ca/gmeow/relayFrom
 https://blackcatinformatics.ca/gmeow/relayProtocol
 https://blackcatinformatics.ca/gmeow/releaseOf
+https://blackcatinformatics.ca/gmeow/relocationDate
+https://blackcatinformatics.ca/gmeow/relocationFromSlice
+https://blackcatinformatics.ca/gmeow/relocationToSlice
+https://blackcatinformatics.ca/gmeow/relocationVocabulary
 https://blackcatinformatics.ca/gmeow/reminderAction
 https://blackcatinformatics.ca/gmeow/reminderTarget
 https://blackcatinformatics.ca/gmeow/repositoryType

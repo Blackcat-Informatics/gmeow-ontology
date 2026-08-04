@@ -233,21 +233,52 @@ fn every_pipeline_stage_is_a_documented_term() {
     );
 }
 
-/// A deterministic term that carries a per-term changelog: the first by
-/// (curie, iri) sort with a non-empty `changelog`. Keyed off the EXPLICIT
-/// `gmeow:hasChangelogEntry` data — not the richest-surface heuristic, which can
-/// shift — so the suppressed-when-empty Changelog + Profiles blocks are always
-/// exercised by a golden.
+/// The AUTHORED-changelog term this golden locks, pinned by CURIE: it carries an
+/// explicit `gmeow:hasChangelogEntry` record in `slices/core/versions/module.ttl`.
+const CHANGELOG_GOLDEN_CURIE: &str = "gmeow:ChangelogEntry";
+
+/// The `gmeow:entryVersion` of that term's AUTHORED changelog record. Distinct from
+/// the ontology's `owl:versionInfo` release (which is what a manifest-COMPUTED entry
+/// would carry), so its presence witnesses that the authored record — not build
+/// history — is what fills the golden's Changelog block.
+const CHANGELOG_GOLDEN_AUTHORED_VERSION: &str = "1.0.2";
+
+/// The term whose page locks the per-term changelog rendering: [`CHANGELOG_GOLDEN_CURIE`],
+/// so the suppressed-when-empty Changelog + Profiles blocks are always exercised by a
+/// golden.
+///
+/// The subject is PINNED BY NAME rather than picked as "the first by (curie, iri) sort
+/// with a non-empty `changelog`", because that sort was not a function of the repo's
+/// sources. [`gmeow_docs::DocTerm::changelog`] is the UNION of the AUTHORED
+/// `gmeow:hasChangelogEntry` records and the entries `stage-term-manifest` COMPUTES
+/// from a definition-digest divergence against the PRIOR
+/// `generated/catalog/term-content-manifest.nq`. `generated/` is git-ignored, so that
+/// computed set tracks the tree's build HISTORY: a bootstrap tree (fresh clone, CI, a
+/// just-materialized worktree) has no prior manifest and computes nothing, leaving only
+/// the authored entries, while a tree that has synced before computes a
+/// "Definition changed" entry for every term whose definition moved since. Sorting over
+/// the union therefore let a term with no authored changelog at all win the selection on
+/// one machine and not another, and the golden alternated between subjects on identical
+/// sources. Naming the subject removes that dependency outright — the strongest
+/// determinism available here, and it costs no extra model build.
 fn term_with_changelog_slug(model: &DocsModel) -> String {
-    let mut candidates: Vec<&gmeow_docs::DocTerm> = model
+    let term = model
         .terms
         .iter()
-        .filter(|t| !t.changelog.is_empty())
-        .collect();
-    candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
-    let term = candidates
-        .first()
-        .expect("at least one term carries a changelog entry (seed data)");
+        .find(|t| t.curie == CHANGELOG_GOLDEN_CURIE)
+        .unwrap_or_else(|| {
+            panic!("the pinned changelog golden subject `{CHANGELOG_GOLDEN_CURIE}` is documented")
+        });
+    // The pin must keep EXERCISING the block it exists for: the authored record has to
+    // still be there, in either the bootstrap or the synced condition.
+    assert!(
+        term.changelog
+            .iter()
+            .any(|e| e.version == CHANGELOG_GOLDEN_AUTHORED_VERSION),
+        "`{CHANGELOG_GOLDEN_CURIE}` must still carry its authored \
+         gmeow:hasChangelogEntry record for version {CHANGELOG_GOLDEN_AUTHORED_VERSION} \
+         — the golden's Changelog block is keyed off it"
+    );
     term_slug(term)
 }
 

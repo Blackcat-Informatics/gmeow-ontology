@@ -38,13 +38,14 @@ use gmeow_lang_bridge::GmnDictionary;
 use purrdf::RdfDataset;
 use rayon::prelude::*;
 
+pub use counting::{Construct, RelocationReason, Witness};
 pub use lint::{
     LintOutcome, declared_quality_tier, lint_report, resolve_min_tier, tier_gate_passes,
 };
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, CountKind, Exemption, GovernanceFloors,
-    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
-    SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, CeilingRelocation, ContextScope, CountKind, Exemption,
+    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
+    Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 pub use score::ScoringEnv;
 
@@ -219,6 +220,7 @@ pub fn segregate_rubric(canonical: Rubric, widened: Rubric) -> gmeow_errors::Res
             tier_floors: widened.floors.tier_floors,
             vocabularies: canonical.floors.vocabularies,
             ceilings: widened.floors.ceilings,
+            relocations: widened.floors.relocations,
         },
     })
 }
@@ -913,13 +915,17 @@ pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
 /// the ratchet (either inflating a slice's committed residue with non-authoring
 /// artifacts, or letting a fixture's removal shrink a ceiling nobody actually paid
 /// down), so only the slice's real authoring surface is scanned.
+///
+/// THE single definition of "which files are a ratchet surface", for BOTH sides of the
+/// gate: the merge-base measurement materializes the base tree with one `git archive`
+/// and then runs this exact scanner over it, so there is no base-only path
+/// reconstruction that could drift from the working-tree one.
 #[must_use]
 pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = vec![slice_dir.join("module.ttl"), slice_dir.join("shapes.ttl")];
-    // RECURSIVE over the whole mappings/ subtree, not just its immediate children —
-    // the base-side scanner (`is_ratchet_surface`) already matches any `/mappings/`
-    // path at any depth, so the working-tree scanner must too or the two diverge on a
-    // nested mapping file (correction: one recursive scanner for base and working).
+    // RECURSIVE over the whole mappings/ subtree, not just its immediate children — a
+    // nested mapping file is authoring surface exactly as an immediate child is, and
+    // the base side runs this same walk over the materialized base tree.
     collect_ttls_recursive(&slice_dir.join("mappings"), &mut paths);
     paths.retain(|p| p.is_file());
     paths.sort();
@@ -984,44 +990,88 @@ pub fn measure_repo_residues(
     repo_root: &Path,
     vocabularies: &[ProjectionVocabulary],
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
+    Ok(measure_repo_residue_constructs(repo_root, vocabularies)?
+        .into_iter()
+        .map(|(key, constructs)| (key, constructs.len() as u64))
+        .collect())
+}
+
+/// The CONSTRUCT SET behind [`measure_repo_residues`] — the same single sweep, keyed
+/// `(slice IRI, vocab prefix)`, with each residue construct's [`counting::Witness`]
+/// intact. [`measure_repo_residues`] is this function's `.len()` projection, so there
+/// is exactly ONE working-tree measurement and the relocation accounting can never
+/// disagree with the count gate about which constructs are in the residue.
+///
+/// # Errors
+/// As [`measure_repo_residues`].
+pub fn measure_repo_residue_constructs(
+    repo_root: &Path,
+    vocabularies: &[ProjectionVocabulary],
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), Vec<counting::Construct>>> {
     let mut out = std::collections::BTreeMap::new();
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         let slice_iri = report::slice_iri_of(&dir)?;
         let paths = ratchet_surface_paths(&dir);
-        let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
-        let ds = dataset_from_paths(&path_refs)?;
-        for vocab in vocabularies {
-            let residue = counting::residue_for_surface(&ds, vocab, &slice_iri);
-            if residue > 0 {
-                out.insert((slice_iri.clone(), vocab.prefix.clone()), residue);
-            }
+        for (prefix, constructs) in
+            measure_surface_residue_constructs(&paths, &slice_iri, vocabularies)?
+        {
+            out.insert((slice_iri.clone(), prefix), constructs);
         }
     }
     // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
     // under any slice — measure it once, attributed to the DSL surface IRI, so it is
     // guarded rather than silently missed.
     let dsl_paths = ratchet_dsl_surface_paths(repo_root);
-    if !dsl_paths.is_empty() {
-        let dsl_refs: Vec<&Path> = dsl_paths.iter().map(PathBuf::as_path).collect();
-        let dsl_ds = dataset_from_paths(&dsl_refs)?;
-        for vocab in vocabularies {
-            let residue = counting::residue_for_surface(&dsl_ds, vocab, DSL_MAPPING_SURFACE_IRI);
-            if residue > 0 {
-                out.insert(
-                    (DSL_MAPPING_SURFACE_IRI.to_owned(), vocab.prefix.clone()),
-                    residue,
-                );
-            }
+    for (prefix, constructs) in
+        measure_surface_residue_constructs(&dsl_paths, DSL_MAPPING_SURFACE_IRI, vocabularies)?
+    {
+        out.insert((DSL_MAPPING_SURFACE_IRI.to_owned(), prefix), constructs);
+    }
+    Ok(out)
+}
+
+/// Measure EVERY guarded vocab's ungrounded residue CONSTRUCT SET over one authoring
+/// surface fileset (`paths`, read as plain files off disk), attributed to
+/// `surface_iri`. Keyed by vocab prefix; a vocab whose residue is EMPTY is deliberately
+/// omitted, mirroring [`measure_repo_residues`]'s "a missing key means the vocab's
+/// `default_ceiling`" contract.
+///
+/// This is the SINGLE per-surface measurement primitive. [`measure_repo_residues`]
+/// (working tree) and the ratchet gate's merge-base reconstruction (which materializes
+/// the base tree with one `git archive` and then reads plain files) both go through it,
+/// so base and working are an apples-to-apples measurement of the same code rather than
+/// two parallel implementations that can drift. Each construct carries its
+/// [`counting::Witness`], so a caller can compare the two sides by relocation-invariant
+/// identity instead of by count alone.
+///
+/// # Errors
+/// HARD-FAILS (never a silent fallback to residue 0) if any path is unreadable or fails
+/// to parse as Turtle — this is the gate path, so a broken surface must stop the sweep.
+pub fn measure_surface_residue_constructs(
+    paths: &[PathBuf],
+    surface_iri: &str,
+    vocabularies: &[ProjectionVocabulary],
+) -> gmeow_errors::Result<std::collections::BTreeMap<String, Vec<counting::Construct>>> {
+    let mut out = std::collections::BTreeMap::new();
+    if paths.is_empty() {
+        return Ok(out);
+    }
+    let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
+    let ds = dataset_from_paths(&path_refs)?;
+    for vocab in vocabularies {
+        let constructs = counting::residue_constructs_for_surface(&ds, vocab, surface_iri);
+        if !constructs.is_empty() {
+            out.insert(vocab.prefix.clone(), constructs);
         }
     }
     Ok(out)
 }
 
 /// Resolve `slice_dir`'s `gmeow:Slice` IRI from its `manifest.ttl` — a thin `pub`
-/// wrapper over [`report::slice_iri_of`] so a consumer crate (the `gmeow-dev` CLI's
-/// ratchet-gate driver, reconstructing which discovered slice a merge-base surface
-/// set belongs to) can resolve the same slice IRI [`measure_repo_residues`] does,
-/// without a second re-implementation of manifest resolution.
+/// wrapper over [`report::slice_iri_of`] so a caller outside this module (the coat
+/// distinctiveness guard, and consumer-crate tests) resolves the same slice IRI
+/// [`measure_repo_residues`] does, without a second re-implementation of manifest
+/// resolution.
 ///
 /// # Errors
 /// As [`report::slice_iri_of`]: a message if the manifest cannot be read or
@@ -1030,37 +1080,123 @@ pub fn slice_iri_of_dir(slice_dir: &Path) -> gmeow_errors::Result<String> {
     report::slice_iri_of(slice_dir)
 }
 
-/// Measure `vocab`'s ungrounded [`counting::residue`] over an ALREADY-READ set of
-/// TTL texts, merged into one dataset — the base-reconstruction counterpart to
-/// [`measure_repo_residues`] (which reads surfaces off disk). This is the SAME
-/// counter ([`counting::residue`]) fed base-commit bytes instead of working-tree
-/// files, so the gate's grandfather check (ratchet invariant 3) can never diverge
-/// from what "measured" means on the working tree.
+/// Measure `vocab`'s ungrounded residue CONSTRUCT SET over an ALREADY-READ set of TTL
+/// texts, merged into one dataset — the in-memory counterpart to
+/// [`measure_surface_residue_constructs`] (which reads the same surfaces off disk).
+/// This is the SAME counter ([`counting::residue_constructs_for_surface`]) fed bytes
+/// instead of files, so "measured" can never diverge between the two carriers.
+///
+/// SURFACE-NORMALIZED MEASUREMENT: `surface_iri` is a free parameter, so measuring one
+/// slice's bytes AS IF they sat at a DIFFERENT (destination) surface is exactly this
+/// one call with the destination IRI — no second API. That matters because residue is
+/// NOT conserved under relocation: `counting::is_bridge_exempt` is exempt only when
+/// `surface_iri == vocab.owner`, so crossing the owner boundary creates or destroys
+/// residue with no authoring at all. See [`counting::RelocationReason`] and
+/// [`relocation_reasons_over_texts`].
 ///
 /// # Errors
-/// HARD-FAILS (never falls back to residue 0) if any text fails to parse as
+/// HARD-FAILS (never falls back to an empty residue) if any text fails to parse as
 /// Turtle, or if merging the parsed datasets fails — this is the gate path, so a
-/// broken base surface must stop the sweep, never silently score as clean.
+/// broken surface must stop the sweep, never silently score as clean.
+pub fn residue_constructs_over_texts(
+    texts: &[String],
+    vocab: &ProjectionVocabulary,
+    surface_iri: &str,
+) -> gmeow_errors::Result<Vec<counting::Construct>> {
+    let ds = residue_dataset_from_texts(texts)?;
+    Ok(counting::residue_constructs_for_surface(
+        &ds,
+        vocab,
+        surface_iri,
+    ))
+}
+
+/// The COUNT of [`residue_constructs_over_texts`] — a pure `.len()` projection of the
+/// one construct set, never a second enumeration.
+///
+/// # Errors
+/// As [`residue_constructs_over_texts`].
 pub fn residue_over_texts(
     texts: &[String],
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
 ) -> gmeow_errors::Result<u64> {
-    let mut builder = purrdf::RdfDatasetBuilder::new();
-    for text in texts {
-        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(error::Io {
-                detail: format!("residue_over_texts: Turtle parse failed: {e}"),
-            })
-        })?;
-        builder.push_dataset(&ds);
-    }
-    let ds = builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(error::Io {
-            detail: format!("residue_over_texts: dataset freeze failed: {e}"),
-        })
-    })?;
-    Ok(counting::residue_for_surface(&ds, vocab, surface_iri))
+    Ok(residue_constructs_over_texts(texts, vocab, surface_iri)?.len() as u64)
+}
+
+/// Parse and union owned TTL `texts` into one frozen dataset — the shared reader behind
+/// [`residue_constructs_over_texts`] and [`relocation_reasons_over_texts`].
+fn residue_dataset_from_texts(texts: &[String]) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let refs: Vec<&str> = texts.iter().map(String::as_str).collect();
+    dataset_from_texts(&refs)
+}
+
+/// Explain, per relocation-invariant anchor IRI, why `vocab`'s residue over
+/// `source_texts` (bytes as they sat on `source_surface_iri`) is NOT conserved when its
+/// constructs are attributed to `destination_surface_iri` in the destination surface's
+/// own bytes (`destination_texts`).
+///
+/// A thin text-carrier adapter over [`counting::relocation_reasons`] — the reasons are
+/// COMPUTED from three real measurements of the two datasets, never inferred from a
+/// count delta. The returned codes are [`counting::RelocationReason::code`].
+///
+/// # Errors
+/// HARD-FAILS if either side's text fails to parse as Turtle or cannot be frozen.
+pub fn relocation_reasons_over_texts(
+    source_texts: &[String],
+    source_surface_iri: &str,
+    destination_texts: &[String],
+    destination_surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+) -> gmeow_errors::Result<
+    std::collections::BTreeMap<String, std::collections::BTreeSet<counting::RelocationReason>>,
+> {
+    let source = residue_dataset_from_texts(source_texts)?;
+    let destination = residue_dataset_from_texts(destination_texts)?;
+    Ok(counting::relocation_reasons(
+        &source,
+        source_surface_iri,
+        &destination,
+        destination_surface_iri,
+        vocab,
+    ))
+}
+
+/// Explain, per relocation-invariant anchor IRI, why `vocab`'s residue is NOT
+/// conserved when constructs move from the authoring surfaces at `source_paths`
+/// (attributed to `source_surface_iri`) into those at `destination_paths`
+/// (attributed to `destination_surface_iri`) — the FILE-carrier counterpart to
+/// [`relocation_reasons_over_texts`], sharing the SAME
+/// [`counting::relocation_reasons`] core.
+///
+/// The ratchet gate's driver calls this: its source side is the MATERIALIZED merge-base
+/// tree (plain files, read through the very same [`ratchet_surface_paths`] scanner the
+/// working tree uses) and its destination side is the working tree, so a refusal can
+/// name the real reason a declared relocation failed to conserve residue rather than
+/// merely reporting a count delta.
+///
+/// # Errors
+/// HARD-FAILS if any path is unreadable or fails to parse as Turtle.
+pub fn relocation_reasons_for_surfaces(
+    source_paths: &[PathBuf],
+    source_surface_iri: &str,
+    destination_paths: &[PathBuf],
+    destination_surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+) -> gmeow_errors::Result<
+    std::collections::BTreeMap<String, std::collections::BTreeSet<counting::RelocationReason>>,
+> {
+    let src_refs: Vec<&Path> = source_paths.iter().map(PathBuf::as_path).collect();
+    let dst_refs: Vec<&Path> = destination_paths.iter().map(PathBuf::as_path).collect();
+    let source = dataset_from_paths(&src_refs)?;
+    let destination = dataset_from_paths(&dst_refs)?;
+    Ok(counting::relocation_reasons(
+        &source,
+        source_surface_iri,
+        &destination,
+        destination_surface_iri,
+        vocab,
+    ))
 }
 
 // -----------------------------------------------------------------------------
@@ -1257,5 +1393,132 @@ mod parallel_tests {
                 .collect();
             assert_eq!(output, serial);
         }
+    }
+}
+
+/// The text-carrier residue API: the ONE counter's `.len()` projection, the
+/// SURFACE-NORMALIZED base measurement (the same bytes measured as if they sat at a
+/// different destination surface), and the relocation reason codes derived from it.
+#[cfg(test)]
+mod residue_text_carrier_tests {
+    use super::{
+        ProjectionVocabulary, RelocationReason, relocation_reasons_over_texts,
+        residue_constructs_over_texts, residue_over_texts,
+    };
+    use crate::model::CountKind;
+
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    const KERNEL: &str = "https://blackcatinformatics.ca/gmeow/slices/kernel";
+
+    fn prefixes() -> &'static str {
+        "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix gufo: <https://w3id.org/gufo#> .\n"
+    }
+
+    fn text(body: &str) -> Vec<String> {
+        vec![format!("{}{body}", prefixes())]
+    }
+
+    fn gufo_vocab() -> ProjectionVocabulary {
+        ProjectionVocabulary {
+            prefix: "gufo".to_owned(),
+            namespaces: vec!["https://w3id.org/gufo#".to_owned()],
+            subsumed_by: LOGIC_NS.to_owned(),
+            owner: LOGIC_NS.to_owned(),
+            count_kind: CountKind::TypedAxiom,
+            default_ceiling: 0,
+            preservation: "SoundUnderApproximation".to_owned(),
+            alignment_predicates: Vec::new(),
+            counted_predicates: Vec::new(),
+        }
+    }
+
+    /// A validated grounding correspondence: exempt on the vocabulary's OWNER surface,
+    /// plain residue anywhere else.
+    fn grounding_cell() -> Vec<String> {
+        text(
+            r#"
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
+                gmeow:sssomFile "grounding.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration ;
+                logic:sourceEndpoint gmeow:MyKind ;
+                logic:targetEndpoint gufo:Kind ;
+                logic:morphismClass logic:WellBehavedLens ;
+                logic:morphismKind logic:InstitutionMorphism ;
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
+            "#,
+        )
+    }
+
+    #[test]
+    fn count_over_texts_is_the_construct_sets_length() {
+        let texts = text("gmeow:A a sh:NodeShape . gmeow:B a sh:NodeShape .");
+        let vocab = crate::counting::shacl_vocab();
+        let constructs = residue_constructs_over_texts(&texts, &vocab, &vocab.owner).unwrap();
+        assert_eq!(constructs.len(), 2);
+        assert_eq!(
+            residue_over_texts(&texts, &vocab, &vocab.owner).unwrap(),
+            constructs.len() as u64
+        );
+    }
+
+    #[test]
+    fn base_bytes_can_be_measured_at_a_destination_surface() {
+        // The SAME base bytes measured at the OWNER surface and at a destination slice
+        // surface differ — residue is not conserved across the owner boundary, and the
+        // existing `surface_iri` parameter is all it takes to see that.
+        let base = grounding_cell();
+        let vocab = gufo_vocab();
+        assert_eq!(residue_over_texts(&base, &vocab, &vocab.owner).unwrap(), 0);
+        assert_eq!(residue_over_texts(&base, &vocab, KERNEL).unwrap(), 1);
+    }
+
+    #[test]
+    fn relocation_reasons_over_texts_names_the_owner_boundary_shift() {
+        let base = grounding_cell();
+        let working = grounding_cell();
+        let vocab = gufo_vocab();
+        let reasons =
+            relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
+        let codes: Vec<&str> = reasons
+            .values()
+            .flat_map(|set| set.iter().map(|r| r.code()))
+            .collect();
+        assert_eq!(codes, vec!["exemption-shift-owner-boundary"], "{reasons:?}");
+        assert!(reasons.contains_key("https://blackcatinformatics.ca/gmeow/MyKind"));
+    }
+
+    #[test]
+    fn relocation_reasons_over_texts_names_an_orphaned_grounding() {
+        let base = text(
+            "gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .\n\
+             logic:sAxiom a logic:Formula .",
+        );
+        let working = text("gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .");
+        let vocab = crate::counting::shacl_vocab();
+        let reasons =
+            relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
+        assert_eq!(
+            reasons
+                .get("https://blackcatinformatics.ca/gmeow/S")
+                .map(|set| set.iter().copied().collect::<Vec<_>>()),
+            Some(vec![RelocationReason::GroundingOrphaned]),
+            "{reasons:?}"
+        );
+    }
+
+    #[test]
+    fn a_broken_base_surface_hard_fails_rather_than_measuring_zero() {
+        let broken = vec!["this is not turtle {{{".to_owned()];
+        let vocab = crate::counting::shacl_vocab();
+        assert!(
+            residue_constructs_over_texts(&broken, &vocab, &vocab.owner).is_err(),
+            "an unparsable surface must HARD FAIL, never silently score as clean"
+        );
     }
 }

@@ -28,6 +28,13 @@ purrdf.workspace = true
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON.
 gmeow-errors = { path = "../errors" }
+# THE single declaration site of GMEOW's registered namespaces and of the
+# subsumption-edge spellings (`gmeow_ns::SUB_CLASS_OF` / `SUB_PROPERTY_OF`): the
+# RL EDB encoder lowers the canonical `logic:` edge into the `rdfs:` spelling the
+# fixed W3C RL calculus matches on, and reads that pair from here rather than
+# minting a second copy of it. The workspace's lowest first-party rlib — it
+# depends on nothing first-party, so this introduces no layering cycle.
+gmeow-ns = { path = "../ns" }
 # The ONE exact-ℚ numeric core (i128 gcd-normalized Rational + the ℚ⁷ SI
 # DimVector): the moded-builtin value tower computes THROUGH this shared math
 # core rather than minting its own duplicate rational. No layering cycle:

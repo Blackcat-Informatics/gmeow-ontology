@@ -102,6 +102,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
+    check_slice_ttl_trailing_newline(root, &mut report);
     check_wasm_bindgen_pin_parity(root, &mut report);
     check_gts_emit_chokepoint(root, &mut report);
     report
@@ -670,6 +671,71 @@ fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport
                  a forbidden second source of validation truth. Ground its obligations in \
                  logic: and retire it — see docs/MIGRATING-SHAPES-TO-LOGIC.md — rather than \
                  adding it to the pin"
+            ));
+        }
+    }
+}
+
+/// Every authored Turtle surface under `slices/` ends with exactly one newline.
+///
+/// A bulk authoring pass once appended records to 67 slice `module.ttl` files
+/// without a terminating newline, and the state survived across several commits
+/// because the ONLY thing that noticed was the pre-commit `end-of-file-fixer`
+/// hook — which the offending commits bypassed, and which *rewrites* files
+/// rather than failing a lane. Every branch that subsequently ran the lint
+/// inherited 67 modified files it had not touched.
+///
+/// The renderer is not the culprit and needs no fix: `turtle_render::render`
+/// emits every statement with `writeln!`, so `gmeow-dev normalize` always
+/// terminates its output. The gap was purely the absence of an authority.
+///
+/// So: the pre-commit hook is the FIXER, this gate is the AUTHORITY. The scope
+/// here is deliberately a SUPERSET of the hook's selection over `slices/` — it
+/// covers every `.ttl` (not merely `module.ttl`), because the same bulk-edit
+/// failure mode reaches `shapes.ttl`, `examples/`, `tests/`, and `mappings/`,
+/// and a gate narrower than its fixer just relocates the recurrence into the
+/// uncovered set. "Exactly one" matches what the fixer normalizes to, so the two
+/// cannot disagree about what correct looks like.
+fn check_slice_ttl_trailing_newline(root: &Path, report: &mut RepoStaticReport) {
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut files);
+    files.sort();
+    for path in files {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .display()
+            .to_string();
+        let bytes = match fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if bytes.is_empty() {
+            report.error(format!(
+                "{rel}: is empty — an authored Turtle surface must carry content"
+            ));
+            continue;
+        }
+        if !bytes.ends_with(b"\n") {
+            report.error(format!(
+                "{rel}: has no trailing newline — authored Turtle surfaces end with exactly one, \
+                 which is what the renderer emits and what the end-of-file hook normalizes to; a \
+                 file without one makes every later branch that runs the lint inherit a \
+                 modification it did not author"
+            ));
+            continue;
+        }
+        if bytes.ends_with(b"\n\n") {
+            report.error(format!(
+                "{rel}: ends with a blank line — authored Turtle surfaces end with EXACTLY one \
+                 trailing newline, so the gate and the end-of-file hook agree on what correct is"
             ));
         }
     }
@@ -2979,6 +3045,104 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    /// Write one slice-owned Turtle surface with exactly the given bytes.
+    fn write_slice_ttl(root: &Path, rel: &str, body: &str) {
+        write(&root.join("slices").join(rel), body);
+    }
+
+    #[test]
+    fn a_slice_ttl_without_a_trailing_newline_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("no trailing newline")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn the_gate_covers_every_slice_ttl_not_only_module_ttl() {
+        // The bulk-edit failure mode reaches shapes.ttl, examples/, tests/ and
+        // mappings/ too; a gate narrower than its fixer only moves the recurrence.
+        for rel in [
+            "core/demo/shapes.ttl",
+            "core/demo/examples/sample.ttl",
+            "core/demo/tests/structural.ttl",
+            "core/demo/mappings/align.ttl",
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            write_minimal_repo(temp.path());
+            write_slice_ttl(temp.path(), rel, "ex:A a ex:B .");
+            let report = check_repo_static(temp.path());
+            assert!(
+                report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains(rel) && e.contains("no trailing newline")),
+                "{rel} must be covered; got {:?}",
+                report.errors
+            );
+        }
+    }
+
+    #[test]
+    fn a_slice_ttl_ending_in_a_blank_line_is_rejected() {
+        // "Exactly one" is what the end-of-file hook normalizes to; accepting two
+        // would let the gate and the fixer disagree about what correct looks like.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n\n");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("blank line")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn an_empty_slice_ttl_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("is empty")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn a_correctly_terminated_slice_ttl_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n");
+        let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn the_real_repository_holds_the_trailing_newline_invariant() {
+        // The production surface, not a fixture. This is the assertion whose
+        // absence let the 67-file state persist across several commits.
+        let mut report = RepoStaticReport::default();
+        check_slice_ttl_trailing_newline(live_repo_root(), &mut report);
         assert!(report.ok(), "{:?}", report.errors);
     }
 

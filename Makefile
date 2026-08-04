@@ -342,21 +342,20 @@ regen: ## REFUSES — the pipeline has ONE producer. Run `make check` (materiali
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
+# MESSAGE and GMEOW_DEV reach the script through the ENVIRONMENT, never through
+# recipe-text interpolation: `VAR="$(VAR)" cmd` has Make expand $(VAR) into the
+# recipe's shell text BEFORE the shell parses it, so a MESSAGE carrying a double
+# quote, a backtick, `$(...)`, or `;` breaks out of the quoting and executes.
+# `export` hands the shell process the value directly, with no quoting round-trip,
+# while preserving GMEOW_DEV's deliberate word-splitting inside the script.
+commit: export GMEOW_DEV := $(GMEOW_DEV)
+commit: export MESSAGE := $(MESSAGE)
 commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@# Materialization is a recipe step, not a prerequisite: the single producer is
 	@# read-only by default, and this lane needs it in update mode over every output
 	@# family, which a prerequisite edge cannot express.
 	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
-	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
-	for p in $${REGENERATED_PATHS}; do \
-	  if [ -e "$$p" ]; then git add "$$p"; fi; \
-	done; \
-	if git diff --cached --quiet; then \
-		echo "Nothing to commit."; exit 1; \
-	else \
-		git commit -m "$(MESSAGE)"; \
-	fi
-	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
+	@scripts/commit-generated.sh
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize

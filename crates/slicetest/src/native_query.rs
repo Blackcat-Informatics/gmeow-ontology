@@ -97,6 +97,68 @@ pub fn union(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> {
     Arc::new(RdfDataset::union(&refs))
 }
 
+/// `dataset` with the OWL/RDFS **projection** of its canonical subsumption edges
+/// materialized — the surface a SHACL shape set is written against.
+///
+/// # Why a SHACL data graph is not the authored graph
+///
+/// GMEOW's authored surface is the canonical `logic:` vocabulary; the OWL/RDFS
+/// surface is one of its lossy projections (Principle 17). `logic:subClassOf`'s
+/// own definition says it "lowers to `rdfs:subClassOf` on the OWL/RDFS projection
+/// surface", and the shipped projection does exactly that (`generated/owl/*.ttl`
+/// carries `<C> rdfs:subClassOf <D>` for an edge authored `logic:subClassOf`).
+///
+/// SHACL is a projection surface too, and the generated shape set is derived
+/// against the OWL/RDFS spelling — a `logic:Constraint` whose formula names
+/// `rdfs:subClassOf` projects a `sh:sparql` that matches `rdfs:subClassOf`. So a
+/// conformance cell that validates the RAW authored module against those shapes
+/// is comparing two different surfaces: every re-authored subsumption edge is
+/// invisible to the shape, and the constraint fails (or, worse for a negative
+/// constraint, passes vacuously). Lowering the data into the shape's own surface
+/// first is what restores the correspondence — the shapes and the ontology are
+/// both right; only the un-projected data graph was wrong.
+///
+/// The canonical edges are KEPT (the projection adds the RDFS view, it never
+/// rewrites the authored edge away), and blank-node identity is preserved so an
+/// `owl:Restriction`-encoded axiom survives intact.
+#[must_use]
+pub fn with_rdfs_subsumption_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    let mut projected = 0usize;
+    for quad in dataset.owned_quads() {
+        if let Some(rdfs) = rdfs_projection_of_subsumption(&quad.predicate) {
+            let mut lowered = quad.clone();
+            lowered.predicate = rdfs.to_owned();
+            builder.push_owned_quad(&lowered);
+            projected += 1;
+        }
+        builder.push_owned_quad(&quad);
+    }
+    if projected == 0 {
+        return Arc::clone(dataset);
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder
+        .freeze()
+        .expect("projecting a valid dataset's subsumption edges re-freezes successfully")
+}
+
+/// The `rdfs:` spelling a canonical `logic:` subsumption predicate projects to, or
+/// `None` for every other predicate ([`gmeow_ns::SUB_CLASS_OF`] /
+/// [`gmeow_ns::SUB_PROPERTY_OF`], canonical first, projected second).
+fn rdfs_projection_of_subsumption(predicate: &str) -> Option<&'static str> {
+    match predicate {
+        gmeow_ns::LOGIC_SUB_CLASS_OF => Some(gmeow_ns::RDFS_SUB_CLASS_OF),
+        gmeow_ns::LOGIC_SUB_PROPERTY_OF => Some(gmeow_ns::RDFS_SUB_PROPERTY_OF),
+        _ => None,
+    }
+}
+
 /// Merge frozen datasets into one **preserving blank-node identity** across inputs.
 ///
 /// Unlike [`union`] (which standardizes every input's blanks APART under a fresh

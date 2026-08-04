@@ -130,11 +130,107 @@ where
     command_output(Command::new("git").args(args).current_dir(root), "git")
 }
 
+/// How long a subprocess [`command_output`] spawns may run before it is killed. A
+/// child that never exits must never hang the whole gate: `git` here is local and
+/// finishes in well under this bound, but a plumbing call that blocks on an index
+/// lock, a credential prompt, or a wedged filesystem does not, and there is no
+/// caller in a position to interrupt it.
+const COMMAND_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// How often the deadline poll loop checks [`std::process::Child::try_wait`] while
+/// waiting for the child to exit.
+const COMMAND_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(25);
+
 fn command_output(command: &mut Command, context: &str) -> Result<String> {
-    let output = command
-        .output()
-        .map_err(|error| failure(format!("{context}: {error}")))?;
+    let output = spawn_with_deadline(command, context, COMMAND_TIMEOUT)?;
     output_text(output, context)
+}
+
+/// Spawn `command` with piped stdout/stderr and poll for exit until it completes or
+/// `timeout` elapses, killing the child on expiry — a bounded-deadline replacement
+/// for the blocking [`Command::output`], which has no timeout at all and hangs
+/// forever if the child never exits.
+///
+/// stdout/stderr are drained on dedicated threads WHILE polling, not read only
+/// after exit: a child that writes more than one pipe buffer (~64KiB on Linux)
+/// would otherwise deadlock against this thread only checking `try_wait`, exactly
+/// the failure mode a timeout exists to rule out.
+///
+/// On expiry the child is killed (best-effort — a kill failure is not itself
+/// surfaced) and this returns the SAME error shape [`Command::output`]'s I/O-error
+/// arm already returns, so every caller's existing error handling keeps working
+/// unchanged; a timeout is just one more way the command "failed to run".
+fn spawn_with_deadline(
+    command: &mut Command,
+    context: &str,
+    timeout: std::time::Duration,
+) -> Result<std::process::Output> {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| failure(format!("{context}: {error}")))?;
+    let mut stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| failure(format!("{context}: no stdout pipe")))?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| failure(format!("{context}: no stderr pipe")))?;
+    let stdout_reader = std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = std::io::Read::read_to_end(&mut stdout, &mut buf);
+        buf
+    });
+    let stderr_reader = std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = std::io::Read::read_to_end(&mut stderr, &mut buf);
+        buf
+    });
+
+    let deadline = std::time::Instant::now() + timeout;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) => {
+                if std::time::Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    // DETACH the readers; do NOT join them. `kill` reaches the child we
+                    // spawned, not its descendants, and a surviving grandchild keeps the
+                    // write end of both pipes open — `sh -c "cmd"` forks rather than
+                    // execs whenever the shell declines that optimization, which is
+                    // exactly the shape this deadline exists for. `read_to_end` does not
+                    // return until every writer closes, so joining here blocks for the
+                    // GRANDCHILD's full runtime and silently reinstates the hang this
+                    // function was written to remove. The buffers are discarded on this
+                    // path anyway, so the threads have nothing left to deliver: they end
+                    // when the pipe finally closes and drop what they read. Returning
+                    // promptly is the contract, and it must not depend on a process we
+                    // cannot reach.
+                    drop(stdout_reader);
+                    drop(stderr_reader);
+                    return Err(failure(format!(
+                        "{context}: timed out after {timeout:?} and was killed"
+                    )));
+                }
+                std::thread::sleep(COMMAND_POLL_INTERVAL);
+            }
+            Err(error) => return Err(failure(format!("{context}: {error}"))),
+        }
+    };
+    let stdout = stdout_reader
+        .join()
+        .map_err(|_| failure(format!("{context}: stdout reader thread panicked")))?;
+    let stderr = stderr_reader
+        .join()
+        .map_err(|_| failure(format!("{context}: stderr reader thread panicked")))?;
+    Ok(std::process::Output {
+        status,
+        stdout,
+        stderr,
+    })
 }
 
 fn output_text(output: std::process::Output, context: &str) -> Result<String> {
@@ -152,6 +248,56 @@ fn output_text(output: std::process::Output, context: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_hanging_child_is_killed_and_the_call_returns_within_the_deadline() {
+        // The bug this closes: every subprocess this module runs went through a
+        // plain `.output()`, which hangs forever if the child never exits. Prove
+        // the fix with a genuinely hanging child and a SHORT deadline — the call
+        // must return an error promptly, never block for anywhere near the child's
+        // own runtime.
+        //
+        // `sleep 100 & wait` rather than a bare `sleep 100`: the bare form lets the
+        // shell `exec` the sleep, so killing the child closes the pipes and the
+        // hazard never appears. Backgrounding forces a real GRANDCHILD that keeps
+        // the write end open after the shell dies — on every shell, not only the
+        // ones that decline to exec. That is the case that made this green locally
+        // and red on CI, so it is the case the test has to pin.
+        let start = std::time::Instant::now();
+        let mut command = std::process::Command::new("sh");
+        command.args(["-c", "sleep 100 & wait"]);
+        let err = super::spawn_with_deadline(
+            &mut command,
+            "test hang",
+            std::time::Duration::from_millis(200),
+        )
+        .expect_err("a child that never exits must time out, not hang forever");
+        let elapsed = start.elapsed();
+        assert!(
+            elapsed < std::time::Duration::from_secs(5),
+            "spawn_with_deadline must return promptly after its own deadline elapses, took {elapsed:?}"
+        );
+        assert!(
+            err.message().contains("timed out"),
+            "the timeout must name itself, not surface as an ordinary I/O failure: {err}"
+        );
+    }
+
+    #[test]
+    fn a_quick_child_returns_its_real_output_well_under_the_deadline() {
+        // Negative control: a child that exits immediately must not be affected by
+        // the polling/kill machinery at all — its real stdout comes back intact.
+        let mut command = std::process::Command::new("sh");
+        command.args(["-c", "echo hello"]);
+        let output = super::spawn_with_deadline(
+            &mut command,
+            "test quick",
+            std::time::Duration::from_secs(10),
+        )
+        .expect("a quick child must not time out");
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "hello");
+    }
 
     /// The receipt must name the exact commit, tree, registry digest, toolchain
     /// digest, and task set it attests — that binding is the whole artifact.

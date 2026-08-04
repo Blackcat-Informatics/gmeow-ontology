@@ -300,6 +300,17 @@ jobs:
         with:
           tool: cargo-nextest
 
+      # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
+      # hard-requires ripgrep and is not on the runner image by default — the same
+      # dependency the `lint` job already installs for `make lint`. Without it the
+      # script exits 2 ("ripgrep (rg) is required") and every case of that test reds on
+      # the exit code rather than on what it is asserting. The test runs in the nextest
+      # shards, so the tool has to be here too; a gate that cannot run is not a gate.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: ripgrep
+
       - name: Format gate
         if: ${{ matrix.shard == 1 }}
         run: cargo fmt --check

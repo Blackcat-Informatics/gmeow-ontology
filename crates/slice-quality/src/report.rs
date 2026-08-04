@@ -62,6 +62,10 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.documentation.no-docs",
     "slice-quality.translation.integrity-rejected",
     "slice-quality.translation.incomplete",
+    "slice-quality.translation.uncovered-literal",
+    "slice-quality.translation.uncovered-literal-truncated",
+    "slice-quality.translation.notation-excluded",
+    "slice-quality.translation.notation-excluded-truncated",
     "slice-quality.flagship.counterexample-structural-only",
     "slice-quality.gmn1-coverage.no-repo-root",
     "slice-quality.gmn1-coverage.no-dictionary",
@@ -106,6 +110,18 @@ pub struct SliceReport {
     pub assessment: SliceAssessment,
     /// Every advisory finding the axes surfaced, ranked (heaviest axis first).
     pub advisories: Vec<Finding>,
+    /// The axis IRI that PRODUCED `advisories[i]` — a stored back-reference, kept
+    /// index-parallel through the rank sort.
+    ///
+    /// This is the ONLY axis-provenance mechanism in the crate: both
+    /// [`Self::advisories_for_axis`] and `crate::lint`'s severity grading read this
+    /// exact back-reference via [`Self::advisory_axis`] / [`Self::grade_for_axis_iri`].
+    /// An earlier `crate::lint::attribute_axis` helper instead guessed the producing
+    /// axis with a best-effort textual join on the finding CODE (returning `None`
+    /// whenever the code's domain token matched no axis or more than one); it has
+    /// been removed in favor of this exact stored reference — a second, guessing
+    /// mechanism doing the same job was a GREENFIELD violation.
+    advisory_axes: Vec<String>,
     /// The axis IRI paired with each advisory, for weight-ranking and grouping.
     axis_weight: std::collections::HashMap<String, f64>,
 }
@@ -262,12 +278,18 @@ pub fn score_slice_with_standard(
             .then_with(|| a.3.code.cmp(&b.3.code))
             .then_with(|| a.3.message.cmp(&b.3.message))
     });
-    let advisories: Vec<Finding> = advisories.into_iter().map(|(_, _, _, f)| f).collect();
+    // Split the ranked pairs into the two index-parallel vectors AFTER the sort, so
+    // `advisory_axes[i]` is the producing axis of `advisories[i]` by construction.
+    let (advisory_axes, advisories): (Vec<String>, Vec<Finding>) = advisories
+        .into_iter()
+        .map(|(axis_iri, _, _, f)| (axis_iri, f))
+        .unzip();
 
     Ok(SliceReport {
         standard: standard.clone(),
         assessment,
         advisories,
+        advisory_axes,
         axis_weight,
     })
 }
@@ -279,22 +301,67 @@ impl SliceReport {
     /// Used by `crate::lint`'s unit tests to build synthetic reports (a
     /// declared tier ratchet, a graded advisory, a degenerate empty-grade
     /// slice, …) without a real slice directory or rubric dataset.
+    /// `advisory_axes` must be index-parallel to `advisories`; a caller that does
+    /// not care about axis provenance passes an empty vector and gets none.
     pub(crate) fn for_test(
         standard: MeasurementStandard,
         assessment: SliceAssessment,
         advisories: Vec<Finding>,
+        advisory_axes: Vec<String>,
         axis_weight: std::collections::HashMap<String, f64>,
     ) -> Self {
+        assert!(
+            advisory_axes.is_empty() || advisory_axes.len() == advisories.len(),
+            "advisory_axes must be index-parallel to advisories (or empty)"
+        );
         Self {
             standard,
             assessment,
             advisories,
+            advisory_axes,
             axis_weight,
         }
     }
 }
 
 impl SliceReport {
+    /// The advisories PRODUCED BY one axis, in report order.
+    ///
+    /// Reads the stored `advisory_axes` back-reference, so the answer is exact: it
+    /// never guesses from the finding code the way the severity-grading decoration in
+    /// `crate::lint` has to.
+    #[must_use]
+    pub fn advisories_for_axis(&self, axis_iri: &str) -> Vec<&Finding> {
+        self.advisory_axes
+            .iter()
+            .zip(&self.advisories)
+            .filter(|(produced_by, _)| produced_by.as_str() == axis_iri)
+            .map(|(_, finding)| finding)
+            .collect()
+    }
+
+    /// The axis IRI that produced `self.advisories[idx]`, read exactly from the
+    /// stored [`Self`]`::advisory_axes` back-reference — never a guess from the
+    /// finding's code. `None` when `idx` is out of range, or when this report
+    /// carries no axis provenance at all (the `#[cfg(test)]`-only `Self::for_test`
+    /// constructor — absent from this documentation because it is compiled out of a
+    /// non-test build — accepts an empty `advisory_axes` for callers that do not need
+    /// axis attribution).
+    #[must_use]
+    pub fn advisory_axis(&self, idx: usize) -> Option<&str> {
+        self.advisory_axes.get(idx).map(String::as_str)
+    }
+
+    /// The already-computed grade for a given axis IRI — an exact lookup against
+    /// `self.assessment.grades`, never a textual guess.
+    #[must_use]
+    pub fn grade_for_axis_iri(&self, axis_iri: &str) -> Option<&AxisGrade> {
+        self.assessment
+            .grades
+            .iter()
+            .find(|g| g.axis_iri == axis_iri)
+    }
+
     /// The roll-up tier label.
     #[must_use]
     pub fn rollup_label(&self) -> &str {

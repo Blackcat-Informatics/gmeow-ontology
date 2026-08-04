@@ -37,6 +37,26 @@ gmeow:DatingMethod
     gmeow:howToUse "Reference a seeded gmeow:DatingMethod individual from a measurement via gmeow:measurementMethod; mint a new individual rather than a subclass when a technique is missing."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for how a temporal measurement was derived — radiocarbon, dendrochronology, U-Pb, stratigraphic correlation — referenced via gmeow:measurementMethod."@x-gmeow-english .
 
+gmeow:DayOfWeek
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Day Of Week"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    # The closure the prose asserts, AUTHORED rather than merely described: ISO 8601
+    # fixes exactly seven weekday positions, so the class is EQUIVALENT to that
+    # enumeration (logic:oneOf, the EL-safe nominal set — the same closed-value-set
+    # idiom gmeow:ReproducibilityLevel uses). An eighth day-of-week individual is now
+    # a modelling error the reasoner sees, not a silently-accepted extension, and the
+    # week-cycle competency question can pin EXACT membership instead of containment.
+    logic:equivalentClass [ logic:oneOf ( gmeow:dayMonday gmeow:dayTuesday gmeow:dayWednesday gmeow:dayThursday gmeow:dayFriday gmeow:daySaturday gmeow:daySunday ) ] ;
+    skos:definition "A recurring position in the seven-day week cycle, seeded as a closed value vocabulary of the seven ISO-8601 weekdays from gmeow:dayMonday through gmeow:daySunday. A day-of-week value is a pattern slot rather than a located stretch of the timeline: it is distinct from gmeow:TimeInterval and gmeow:NamedPeriod, which are delimited by start and end instants, and it never fixes a date by itself — \"Monday\" picks out every Monday until an interval, a recurrence, or a gmeow:TemporalFrame anchors it to one. Projects to schema:dayOfWeek."@x-gmeow-english ;
+    skos:example "ex:libraryWinterHours gmeow:openingDay gmeow:dayMonday , gmeow:dayWednesday ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-day subclasses (the days are individuals), avoid a free-text day name, and avoid using a day-of-week value where a dated occurrence is meant — that is a gmeow:Instant or a gmeow:TimeInterval; the seven seeded individuals are closed and complete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded gmeow:dayMonday … gmeow:daySunday individuals from whatever recurs weekly — an opening-hours window via gmeow:openingDay, a recurring schedule, a business-day rule; the set is closed, so do not extend it, and state the week-start convention on the surrounding frame rather than inferring it from which day appears first."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for days of the week — the seven ISO-8601 days as individuals — whenever a fact recurs on a weekday position rather than falling on a specific date."@x-gmeow-english .
+
 gmeow:Instant
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -354,6 +374,83 @@ gmeow:datingMethodUraniumLead
     rdfs:label "uranium-lead (U-Pb)"@x-gmeow-english ;
     skos:definition "The uranium lead dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dayFriday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Friday"@x-gmeow-english ;
+    skos:definition "Friday, ISO-8601 weekday 5: the closing day of the Monday-to-Friday business week and the last day before the ISO weekend. It is not itself a weekend day — gmeow:daySaturday and gmeow:daySunday are — but it is the position most settlement, payroll, and publication deadlines land on, because it is the last point at which the business week can still absorb a delay."@x-gmeow-english ;
+    skos:example "ex:settlementWindow gmeow:openingDay gmeow:dayFriday ; gmeow:closesAt \"16:00:00\"^^xsd:time ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding it into the weekend partition; in a locale whose weekend runs Friday–Saturday this is a rest day, so the working/non-working split belongs on the schedule and not on the day value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:dayFriday from a recurrence or an opening-hours window; for an end-of-week deadline prefer naming this value outright over computing a four-day offset from gmeow:dayMonday."@x-gmeow-english ;
+    gmeow:useWhen "Use for the fifth day of the ISO week — the last working day of the Monday-to-Friday week and the usual anchor for weekly settlement, payroll, and publication cut-offs."@x-gmeow-english .
+
+gmeow:dayMonday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Monday"@x-gmeow-english ;
+    skos:definition "Monday, ISO-8601 weekday 1 and the day that opens the ISO week: an ISO week date such as \"2026-W31-1\" names the Monday its week begins on, so an ISO week is identified by its Monday and by no later day. It is not the opening day under the Gregorian liturgical and North American conventions, which start the week on gmeow:daySunday; the conventions disagree about where the boundary falls, never about the day itself."@x-gmeow-english ;
+    skos:example "ex:branchWeekdayHours gmeow:openingDay gmeow:dayMonday ; gmeow:opensAt \"09:00:00\"^^xsd:time ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a synonym for \"the start of the week\" in a Sunday-first locale; record the week-start convention on the surrounding gmeow:TemporalFrame instead of reading it off this value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:dayMonday from a weekly recurrence or an opening-hours window; to say \"the week of 2026-07-27\", pin a gmeow:TimeInterval start instant to that Monday and let this value carry the recurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use for the first day of the ISO week — the opening day of the Monday-to-Friday business week and the anchor an ISO week number is counted from."@x-gmeow-english .
+
+gmeow:daySaturday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Saturday"@x-gmeow-english ;
+    skos:definition "Saturday, ISO-8601 weekday 6: the sixth day of the ISO week and the first day of the two-day Saturday–Sunday weekend. It is not a working day under the Monday-to-Friday convention, yet it is an ordinary working day wherever the weekend runs Friday–Saturday or Thursday–Friday, so a schedule that means \"closed\" must say so rather than inferring rest from the day value."@x-gmeow-english ;
+    skos:example "ex:weekendHours gmeow:openingDay gmeow:daySaturday , gmeow:daySunday ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as automatically non-working: which days rest is a locale and employment-agreement policy, not a property carried by the weekday position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:daySaturday from a recurrence or an opening-hours window; pair it with gmeow:daySunday to state a Saturday–Sunday weekend explicitly instead of relying on an unstated default."@x-gmeow-english ;
+    gmeow:useWhen "Use for the sixth day of the ISO week — the first weekend day under the Saturday–Sunday convention, and a normal working day where the weekend falls elsewhere."@x-gmeow-english .
+
+gmeow:daySunday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Sunday"@x-gmeow-english ;
+    skos:definition "Sunday, ISO-8601 weekday 7: the day that closes the ISO week, even though the Gregorian liturgical calendar and North American convention both place it first. The two orderings disagree only about where the week boundary falls, never about the day, so a weekly rule must state which convention it counts in instead of assuming this value sits at either end."@x-gmeow-english ;
+    skos:example "ex:sundayServiceHours gmeow:openingDay gmeow:daySunday ; gmeow:opensAt \"10:00:00\"^^xsd:time ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hard-coding it as either week-start or week-end; carry the convention on the surrounding gmeow:TemporalFrame or schedule and let this value stay a bare weekday position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:daySunday from a recurrence or an opening-hours window; when writing an ISO week date, give it ordinal 7 and keep it in the week its preceding Monday opened, not in the week that follows."@x-gmeow-english ;
+    gmeow:useWhen "Use for the seventh and final day of the ISO week — the second weekend day under the Saturday–Sunday convention, and the leading day in Sunday-first locales."@x-gmeow-english .
+
+gmeow:dayThursday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Thursday"@x-gmeow-english ;
+    skos:definition "Thursday, ISO-8601 weekday 4: the median day of the seven-day ISO week and the day that fixes which year a week belongs to. ISO 8601 assigns a week to the year holding its Thursday, so week 1 is the week containing the first Thursday of January — the week opening 2026-12-28 is a 2026 week because its Thursday, not its Monday, decides."@x-gmeow-english ;
+    skos:example "ex:lateNightHours gmeow:openingDay gmeow:dayThursday , gmeow:dayFriday ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming a week takes its year from its Monday; a week straddling a year boundary is resolved by this day alone, so a Monday-based rule silently mis-numbers one week in most years."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:dayThursday from a weekly recurrence; when converting an ISO week date into a calendar year, read the year off this day rather than off the week's first or last day."@x-gmeow-english ;
+    gmeow:useWhen "Use for the fourth day of the ISO week — its median day, and the one a rule must reach for whenever the calendar YEAR of a week has to be settled."@x-gmeow-english .
+
+gmeow:dayTuesday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Tuesday"@x-gmeow-english ;
+    skos:definition "Tuesday, ISO-8601 weekday 2: the second day of the ISO week and the earliest one carrying no calendar-boundary role — it neither opens the week, as gmeow:dayMonday does, nor settles the week's year, as gmeow:dayThursday does. That very absence is why civic calendars concentrate elections, council sittings, and market days here: the slot disturbs no boundary rule and leaves Monday free for travel."@x-gmeow-english ;
+    skos:example "ex:farmersMarketHours gmeow:openingDay gmeow:dayTuesday , gmeow:daySaturday ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as interchangeable with gmeow:dayMonday in a business-day count: a Monday holiday pushes a Tuesday obligation outward, while a Tuesday holiday leaves the Monday one untouched."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:dayTuesday from a weekly recurrence; pair it with gmeow:dayThursday for the common twice-weekly Tuesday/Thursday cadence rather than encoding a two-day stride."@x-gmeow-english ;
+    gmeow:useWhen "Use for the second day of the ISO week — the conventional slot for recurring civic and market events chosen precisely because it carries no calendar boundary."@x-gmeow-english .
+
+gmeow:dayWednesday
+    a gmeow:DayOfWeek ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Wednesday"@x-gmeow-english ;
+    skos:definition "Wednesday, ISO-8601 weekday 3: the middle day of the five-day Monday-to-Friday business week, with two working days on either side. It is not the median day of the full seven-day ISO week — that is gmeow:dayThursday — so a rule phrased as \"midweek\" must first say which week it counts over before this value or Thursday is the correct one."@x-gmeow-english ;
+    skos:example "ex:midweekClinic gmeow:openingDay gmeow:dayWednesday ; gmeow:closesAt \"20:00:00\"^^xsd:time ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reaching for it when \"midweek\" is defined over the whole seven-day cycle; that median is gmeow:dayThursday, and conflating the two shifts every derived boundary by one day."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Reference gmeow:dayWednesday from a weekly recurrence; where a schedule alternates half-weeks, use it as the declared pivot instead of computing an offset from the week's opening day."@x-gmeow-english ;
+    gmeow:useWhen "Use for the third day of the ISO week, and for midweek rules stated over the five-day business week — two working days before it, two after."@x-gmeow-english .
 
 gmeow:duringInterval
     a owl:ObjectProperty ;

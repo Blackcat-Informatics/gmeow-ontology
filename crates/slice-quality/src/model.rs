@@ -199,6 +199,11 @@ pub struct GovernanceFloors {
     /// `gmeow:ProjectionCeilingCommitment` individuals, sorted by IRI, loaded
     /// from `module.ttl` by the ontology-resident rubric loader.
     pub ceilings: Vec<ProjectionCeilingCommitment>,
+    /// The AUTHORED relocation declarations — `gmeow:CeilingRelocation` individuals,
+    /// sorted by IRI. Each one re-projects the BASE ceiling of the cells it names
+    /// before the lower-only comparison runs; it never creates headroom on its own
+    /// (see [`CeilingRelocation`]).
+    pub relocations: Vec<CeilingRelocation>,
 }
 
 /// How a guarded [`ProjectionVocabulary`]'s hand-authored constructs are recognized
@@ -313,6 +318,44 @@ pub struct ProjectionCeilingCommitment {
     pub vocab_prefix: String,
     /// The committed maximum ungrounded-residue count (`gmeow:ceilingCount`).
     pub count: u64,
+}
+
+/// An AUTHORED declaration that a named set of terms MOVED from one slice to another
+/// — a `gmeow:CeilingRelocation` individual, modelled on the dated
+/// [`Exemption`]: a first-class, gate-checked, self-cleaning record, never a permit.
+///
+/// A projection ceiling budgets **net-new ungrounded authoring**, which is
+/// location-independent: relocating a term moves residue between two cells without
+/// authoring any. The gate therefore re-projects the BASE ceiling of the affected
+/// cells through the declared-and-corroborated relocation BEFORE the lower-only
+/// comparison runs, and then enforces the unchanged invariant
+/// `working <= relocation_adjusted_base`. A raise beyond that adjustment still reds,
+/// and is still a maintainer-only decision authorized out-of-band by merging past the
+/// red. The declaration alone creates NOTHING: every unit of adjustment must be
+/// corroborated by a derived witness (a construct that genuinely DEPARTED the source
+/// and ARRIVED at the destination) and PAID for by a matching lowering at the source.
+///
+/// Self-cleaning: a declaration whose relocation is fully absorbed at the merge base
+/// (its terms sit at the destination on BOTH sides) is dead and reds until deleted, so
+/// declarations can never accumulate into standing permits.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CeilingRelocation {
+    /// The declaration IRI.
+    pub iri: String,
+    /// The term IRIs that moved (`gmeow:relocationTerm`, 1..n) — matched against the
+    /// residue constructs' relocation-invariant [`crate::counting::Witness`] anchors.
+    pub terms: Vec<String>,
+    /// The slice IRI the terms departed (`gmeow:relocationFromSlice`).
+    pub from_slice: String,
+    /// The slice IRI the terms arrived at (`gmeow:relocationToSlice`).
+    pub to_slice: String,
+    /// The single guarded vocabulary PREFIX the declaration is scoped to
+    /// (`gmeow:relocationVocabulary`, optional) — `None` means every guarded
+    /// vocabulary the witness corroborates.
+    pub vocabulary: Option<String>,
+    /// The date the declaration was minted (`gmeow:relocationDate`, ISO `xsd:date`
+    /// lexical form) — the same dating discipline [`Exemption`] carries.
+    pub date: String,
 }
 
 /// The whole rubric loaded from the slice: the floor-free measurement `standard`

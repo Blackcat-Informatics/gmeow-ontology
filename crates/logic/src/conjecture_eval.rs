@@ -15,6 +15,10 @@
 //! byte-for-byte identical whether it is produced on the native gate or in the browser —
 //! the native≡wasm witness pins that identity.
 //!
+//! [`evaluate_conjecture_ttl`] and [`evaluate_conjecture_kb`] are the Turtle-in wrappers
+//! each surface actually calls; both funnel into the same [`evaluate_conjecture_eval`]
+//! core, so neither can drift from the other's verdict.
+//!
 //! [`evaluate_conjecture_eval`]: crate::conjecture_eval::evaluate_conjecture_eval
 //! [`Formula`]: gmeow_logic_compile::ir::Formula
 //! [`parse_candidate_formula`]: crate::conjecture_eval::parse_candidate_formula

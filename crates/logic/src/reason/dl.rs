@@ -3788,8 +3788,22 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
     // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
     // sits in a class-definition position — never when it is `rdf:type`d onto an
-    // individual (the Wave-A decided case). The committed bundle uses only exact
-    // `cardinality 1` and qualified cardinalities, none in the withheld shape.
+    // individual (the Wave-A decided case). What keeps this quiet on production is that
+    // REACH condition, not a corpus census of cardinality assertions: every
+    // class-definition restriction in the committed bundle is a value restriction
+    // (`some`/`all`/`hasValue`) or a QUALIFIED cardinality, and each plain cardinality
+    // restriction the bundle does carry misses `nodes_in_class_constraint_position`
+    // structurally. The two it carries today show the two ways to miss:
+    // `math:compilesToLogicFormula`'s two `owl:minCardinality "1"` companions hang off
+    // `rdfs:domain`, a property-scoping position that helper deliberately never
+    // collects; the `logic:` grounding-surface demonstrators
+    // (`ex:minMemberRestriction` / `ex:maxLeadRestriction` in
+    // `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) are NAMED
+    // declarations that no `rdfs:subClassOf`/`owl:equivalentClass`/`someValuesFrom`/
+    // `allValuesFrom` object — nor any `intersectionOf`/`unionOf` list reachable from
+    // one — ever references, so nothing puts them in a constraint position. A plain
+    // cardinality restriction that IS referenced from a definition position is
+    // withheld the moment it appears; that is the intended trigger, not a regression.
     // Family 2 — the counting sub-decider ([`crate::reason::refute::counting`]) now
     // COMPLETELY decides the pure class-definition cardinality fragment (a collapsed
     // `min > max` bound on a populated class materializes `owl:Nothing`; an
@@ -3997,10 +4011,17 @@ fn nodes_in_class_constraint_position(edb: &RdfDataset) -> BTreeSet<(String, Str
 /// `owl:min`/`maxCardinality` — is `owl:onProperty` a property typed
 /// `owl:DatatypeProperty`. That is the datatype value-space counting shape (G8):
 /// `cardinality 257` distinct `xsd:byte` values is unsatisfiable, but the chase
-/// carries no datatype value-space reasoning to refute it. Qualified cardinalities
-/// and the exact `cardinality 1` (functional) case — the only plain cardinality the
-/// committed bundle asserts — are deliberately NOT withheld, so this never fires on
-/// production.
+/// carries no datatype value-space reasoning to refute it. Qualified cardinalities and
+/// the exact `cardinality 1` (functional) case are deliberately NOT withheld. What keeps
+/// this quiet on production is the `owl:DatatypeProperty` conjunct, not a census of the
+/// corpus's cardinality assertions: every plain cardinality restriction the committed
+/// bundle carries is `owl:onProperty` a property that is never typed
+/// `owl:DatatypeProperty` — `math:compilesToLogicFormula`'s two `owl:minCardinality "1"`
+/// `rdfs:domain` companions target declared `owl:ObjectProperty`s, and the `logic:`
+/// grounding-surface demonstrators (`ex:minMemberRestriction` / `ex:maxLeadRestriction`)
+/// target `ex:member` / `ex:lead`, which carry no property typing at all. Typing a
+/// counted property `owl:DatatypeProperty` arms this withhold; that is the intended
+/// trigger.
 fn cardinality_on_datatype_property(edb: &RdfDataset) -> bool {
     const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_props: BTreeSet<(String, String)> = quads_by_subject(edb)

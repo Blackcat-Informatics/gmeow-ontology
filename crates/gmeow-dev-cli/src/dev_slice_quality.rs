@@ -559,6 +559,13 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     for (dir, assessment) in &scored {
         live_slices.insert(assessment.slice.clone());
         let grounding = is_grounding_slice(dir);
+        // The recorded corpus carries the GRADES but not the per-term advisories that
+        // produced them, so a below-floor axis re-scores THIS slice — once, lazily, and
+        // only this slice — to name the terms behind the number. The passing route
+        // never enters that arm, so the recorded-corpus fast path is untouched: scoring
+        // one slice is the price of diagnosing an already-red gate, not a return to
+        // sweeping the corpus.
+        let mut advisory_source: Option<SliceReport> = None;
         for grade in &assessment.grades {
             let axis_local = axis_local_name(&grade.axis_iri);
             let floor = match axis_floor_for(&axis_floors, &assessment.slice, axis_local, grounding)
@@ -584,6 +591,27 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                             assessment.slice, grade.score
                         ),
                     );
+                    // The failing axis already knows, per term, WHAT is wrong; print it
+                    // beneath the FAIL instead of making the author rebuild the set by
+                    // hand from a single aggregate line.
+                    if advisory_source.is_none() {
+                        let one = [dir.to_path_buf()];
+                        let mut scored_one =
+                            gmeow_slice_quality::score_slices_with_rubric(&root, &one, &rubric);
+                        match scored_one.remove(0) {
+                            Ok(r) => advisory_source = Some(r),
+                            Err(e) => {
+                                return fail(format!("slice-quality-gate: {}: {e}", dir.display()));
+                            }
+                        }
+                    }
+                    if let Some(report) = advisory_source.as_ref() {
+                        emit_axis_floor_advisories(
+                            &assessment.slice,
+                            axis_local,
+                            &report.advisories_for_axis(&grade.axis_iri),
+                        );
+                    }
                     axis_failures += 1;
                 }
             }
@@ -598,11 +626,26 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // this gate can emit is grouped by check rather than by where its inputs happen
     // to be computed.
     let vocabularies = &rubric.floors.vocabularies;
+    // Every discovered slice's (dir, IRI) pair, resolved ONCE by the corpus join above.
+    // The merge-base residue reconstruction reuses it instead of re-parsing every
+    // slice's manifest.ttl a second time just to discard all but the implicated few.
+    let slice_dirs: Vec<(&Path, String)> = scored
+        .iter()
+        .map(|(dir, assessment)| (*dir, assessment.slice.clone()))
+        .collect();
     let working_ceilings = ceilings_from_rubric(&rubric);
-    let working_residues = match gmeow_slice_quality::measure_repo_residues(&root, vocabularies) {
-        Ok(m) => m,
-        Err(e) => return fail(format!("slice-quality-gate: {e}")),
-    };
+    // ONE working-tree measurement, two views: the CONSTRUCT sets (which carry each
+    // residue construct's relocation-invariant witness, read by the rebalance) and
+    // their `.len()` counts (read by the count gate). Never two sweeps.
+    let working_constructs =
+        match gmeow_slice_quality::measure_repo_residue_constructs(&root, vocabularies) {
+            Ok(m) => m,
+            Err(e) => return fail(format!("slice-quality-gate: {e}")),
+        };
+    let working_residues: std::collections::BTreeMap<(String, String), u64> = working_constructs
+        .iter()
+        .map(|(key, constructs)| (key.clone(), constructs.len() as u64))
+        .collect();
     // The effective ceiling a (slice, vocab) cell with no explicit commitment is
     // held to: that vocab's `gmeow:vocabularyDefaultCeiling` (0 for every guarded
     // vocab today).
@@ -627,6 +670,12 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
         .iter()
         .map(|a| axis_local_name(&a.iri).to_owned())
         .collect();
+    // The relocation transfers the rebalance ACCEPTED, and the aggregate-conservation
+    // violations — both produced inside the merge-base arm below, both consumed after
+    // it (the accepted set is minted onto the diagnostics ledger; the conservation
+    // violations join the failure/green summary as the SIXTH check).
+    let mut accepted_transfers: Vec<gmeow_slice_quality::gate::AcceptedTransfer> = Vec::new();
+    let mut conservation: Vec<String> = Vec::new();
     let mono_failures = match resolve_base_ref(&root) {
         BaseRef::NoUpstream(reason) => {
             note(
@@ -682,15 +731,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     );
                     mono.extend(axis_mono.violations);
 
-                    // Projection-ceiling MONOTONICITY (ratchet invariant 2): a
-                    // committed ceiling shared by base and working may never RISE.
                     let base_ceilings = ceilings_from_rubric(&base_rubric);
-                    let cmono = gmeow_slice_quality::gate::projection_ceiling_monotonicity(
-                        GOVERNANCE_SOURCE_LABEL,
-                        &base_ceilings,
-                        &working_ceilings,
-                    );
-                    mono.extend(cmono.violations);
 
                     // Registry meta-ratchet (C8): the guarded-vocabulary REGISTRY may
                     // only get STRONGER — deleting a vocab, narrowing a namespace,
@@ -703,36 +744,68 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                         &rubric.floors.vocabularies,
                     ));
 
-                    // GRANDFATHER gate (ratchet invariant 3): a ceiling that is NEW
-                    // in the working tree (absent at base) may only record residue
-                    // that ALREADY EXISTED at the merge base — never freshly
-                    // authored constructs. Base measured is reconstructed by
-                    // feeding the SAME counter the base bytes over the SAME
-                    // multi-surface authoring set (module.ttl + shapes.ttl +
-                    // mappings/*.ttl), never a singular `git show`.
-                    let new_keys: std::collections::BTreeSet<String> = working_ceilings
-                        .keys()
-                        .filter(|k| !base_ceilings.contains_key(*k))
-                        .map(|(slice, _)| slice.clone())
-                        .collect();
-                    if !new_keys.is_empty() {
-                        let base_res =
-                            match measure_base_residues(&root, &base, vocabularies, &new_keys) {
-                                Ok(r) => r,
-                                Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                            };
-                        for (key, committed) in &working_ceilings {
-                            if base_ceilings.contains_key(key) {
-                                continue; // not new — covered by the monotonicity check above
+                    // Projection-ceiling REBALANCE — ratchet invariants 2 (base∩working
+                    // monotonicity) and 3 (the grandfather gate for a NEW ceiling) under
+                    // ONE rule: a committed ceiling may never exceed its
+                    // RELOCATION-ADJUSTED base allowance (the committed base ceiling, or
+                    // the measured BASE residue when the ceiling is new). A rule that
+                    // held at one ceiling gate and not the other would not be a rule.
+                    //
+                    // The base measurement is needed for exactly three families of cell:
+                    // a NEW ceiling (its grandfather allowance), a RAISED ceiling (its
+                    // arrival witness), and either endpoint of an authored
+                    // gmeow:CeilingRelocation (its departure/arrival witness). With no
+                    // raises, no new ceilings, and no declarations the set is empty and
+                    // no `git` work happens at all.
+                    let declarations = &rubric.floors.relocations;
+                    let mut needed: std::collections::BTreeSet<String> =
+                        std::collections::BTreeSet::new();
+                    for (key, committed) in &working_ceilings {
+                        match base_ceilings.get(key) {
+                            None => {
+                                needed.insert(key.0.clone());
                             }
-                            let (slice, vocab) = key;
-                            let bm = base_res.get(key).copied().unwrap_or(0);
-                            if *committed > bm {
-                                mono.push(format!(
-                                    "{GOVERNANCE_SOURCE_LABEL}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
-                                ));
+                            Some(before) if committed > before => {
+                                needed.insert(key.0.clone());
                             }
+                            Some(_) => {}
                         }
+                    }
+                    for d in declarations {
+                        needed.insert(d.from_slice.clone());
+                        needed.insert(d.to_slice.clone());
+                    }
+                    let rebalance = match ceiling_rebalance(&RebalanceInputs {
+                        root: &root,
+                        base: &base,
+                        vocabularies,
+                        slice_dirs: &slice_dirs,
+                        declarations,
+                        base_ceilings: &base_ceilings,
+                        working_ceilings: &working_ceilings,
+                        working_residues: &working_residues,
+                        working_constructs: &working_constructs,
+                        needed: &needed,
+                    }) {
+                        Ok(r) => r,
+                        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                    };
+                    mono.extend(rebalance.violations);
+                    accepted_transfers = rebalance.accepted;
+
+                    // SIXTH check: aggregate CONSERVATION, scoped to base ∩ working —
+                    // per vocabulary the TOTAL committed ceiling over the cells committed
+                    // on BOTH sides may never rise. Relocation moves budget between
+                    // cells; it can never create budget. Scoping is load-bearing: a
+                    // brand-new ceiling grandfathered under invariant 3 legitimately
+                    // raises an unscoped Σ, and deletions only ever lower it.
+                    conservation = gmeow_slice_quality::gate::ceiling_conservation(
+                        GOVERNANCE_SOURCE_LABEL,
+                        &base_ceilings,
+                        &working_ceilings,
+                    );
+                    for e in &conservation {
+                        emit_error("gmeow-dev.slice-quality.gate", format!("FAIL {e}"));
                     }
                 }
             }
@@ -811,20 +884,210 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
         }
     }
 
+    // Every ACCEPTED relocation transfer is minted onto the diagnostics LEDGER — a
+    // stable finding IRI, the destination cell as its anchor, and the witnessed anchor
+    // terms as its ANTECEDENTS. A hand-built Finding (or a bare println) could not be
+    // joined by the reasoner over the finding graph and would derive DARK, so the
+    // producer routes through the ledger like every other first-class witness.
+    let accepted_units: u64 = accepted_transfers.iter().map(|t| t.units).sum();
+    emit_accepted_transfers(&accepted_transfers);
+
     if failures > 0
         || axis_failures > 0
         || mono_failures > 0
         || coherence_failures > 0
         || ceiling_failures > 0
+        || !conservation.is_empty()
     {
         return fail(format!(
-            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s); {ceiling_failures} of {ceiling_checked} (slice,vocab) cell(s) above their committed projection ceiling"
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s); {ceiling_failures} of {ceiling_checked} (slice,vocab) cell(s) above their committed projection ceiling; {} aggregate ceiling-conservation violation(s)",
+            conservation.len()
         ));
     }
     println!(
-        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s)); {ceiling_checked} (slice,vocab) cell(s) hold their projection ceiling"
+        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s)); {ceiling_checked} (slice,vocab) cell(s) hold their projection ceiling; {} witnessed relocation transfer(s) carrying {accepted_units} unit(s) re-projected the base ceiling (0 aggregate conservation violation(s))",
+        accepted_transfers.len()
     );
     0
+}
+
+/// The finding code each WITNESS of a below-floor axis advisory is interned under —
+/// the antecedent node the advisory hangs its DAG edge on. For a translation
+/// advisory the witness is the catalog entry's `msgctxt`.
+const AXIS_ADVISORY_WITNESS_CODE: &str = "gmeow-dev.slice-quality.axis-floor.witness";
+
+/// Mint the failing axis's per-term advisories onto a [`gmeow_errors::DiagLedger`]
+/// and project the result onto the console sink, beneath the axis's FAIL line.
+///
+/// The gate holds the full [`gmeow_slice_quality::SliceReport`] — including every
+/// advisory the axis produced, each naming the offending term IRI (and, for
+/// translation, the uncovered `(term, predicate)` and the reason) — yet printed only
+/// the one-line aggregate FAIL. Reconstructing that detail by hand afterwards is
+/// days of work and produces a detector that disagrees with the scorer; the scorer
+/// already knows, so it says so.
+///
+/// Every line goes through the LEDGER, never a bare `println!` or a hand-built
+/// `Finding`: each advisory becomes a content-addressed witness anchored on the term
+/// it concerns (its [`gmeow_errors::Finding::documented_terms`] entry — read as DATA,
+/// never re-parsed out of the message prose), with its witnesses interned as
+/// ANTECEDENTS. A producer that bypasses the ledger carries no fingerprint identity,
+/// no anchor, and no antecedents, so nothing can join it and it derives DARK.
+///
+/// The advisories are NOTE-grade here: the FAIL above already gates and is already
+/// counted, so re-grading its explanation as a second error would double-count.
+fn emit_axis_floor_advisories(
+    slice_iri: &str,
+    axis_local: &str,
+    advisories: &[&gmeow_errors::Finding],
+) {
+    if advisories.is_empty() {
+        return;
+    }
+    crate::dev_common::emit_report(&axis_floor_advisory_report(
+        slice_iri, axis_local, advisories,
+    ));
+}
+
+/// The ledger PROJECTION [`emit_axis_floor_advisories`] prints — split out so the
+/// minted witnesses (their anchors, their antecedent edges, their messages) are
+/// assertable without capturing a console stream.
+fn axis_floor_advisory_report(
+    slice_iri: &str,
+    axis_local: &str,
+    advisories: &[&gmeow_errors::Finding],
+) -> gmeow_errors::Report {
+    use gmeow_errors::{DiagLedger, StageId};
+    let stage = StageId::new("slice-quality-gate");
+    let mut ledger = DiagLedger::new();
+    // The fallback anchor when an advisory concerns no single documented term (an
+    // axis-level advice template, a whole-catalog parse error): the failing cell
+    // itself, so the witness still lands somewhere joinable rather than nowhere.
+    let cell_anchor = format!("{slice_iri}#{axis_local}");
+    for advisory in advisories {
+        let antecedents: Vec<gmeow_errors::DiagRef> = advisory
+            .related_locations
+            .iter()
+            .filter_map(|loc| loc.logical.as_deref())
+            .map(|witness| {
+                let diag = gmeow_errors::Diag::note(
+                    gmeow_errors::register_code(AXIS_ADVISORY_WITNESS_CODE),
+                    format!("{axis_local} advisory witness: {witness}"),
+                )
+                .with_focus(witness.to_owned())
+                .with_location(gmeow_errors::Location {
+                    logical: Some(witness.to_owned()),
+                    ..gmeow_errors::Location::default()
+                });
+                ledger.attach(diag, stage.clone())
+            })
+            .collect();
+        // ANCHOR = the documented term the advisory concerns (the join key two
+        // different-code findings about one term share); falls back to the failing
+        // cell so a term-less advisory still lands somewhere joinable.
+        let anchor = advisory
+            .documented_terms
+            .first()
+            .cloned()
+            .unwrap_or_else(|| cell_anchor.clone());
+        // POSITION = what distinguishes THIS advisory from its same-code siblings.
+        // The ledger content-addresses on (code, category, position, focus) and never
+        // on the message, so without a distinct position `fr does not cover X` and
+        // `cmn does not cover X` merge into one node and a whole language vanishes
+        // from the report. The producer states the position (`with_position`); this
+        // reads it, falling back to the anchor when there are no siblings to separate.
+        let position = advisory
+            .locations
+            .iter()
+            .find_map(|loc| loc.logical.clone())
+            .unwrap_or_else(|| anchor.clone());
+        let mut diag = gmeow_errors::Diag::note(
+            gmeow_errors::register_code(&advisory.code),
+            advisory.message.clone(),
+        )
+        .with_focus(anchor)
+        .with_location(gmeow_errors::Location {
+            logical: Some(position),
+            ..gmeow_errors::Location::default()
+        })
+        .with_antecedents(antecedents);
+        for term in &advisory.documented_terms {
+            diag = diag.with_documented_term(term.clone());
+        }
+        ledger.attach(diag, stage.clone());
+    }
+    ledger.project_report("gmeow-dev").normalized()
+}
+
+/// The finding code every ACCEPTED relocation transfer is interned under.
+const RELOCATION_ACCEPTED_CODE: &str = "gmeow-dev.slice-quality.ceiling-relocation.accepted";
+
+/// The finding code each WITNESS term of an accepted transfer is interned under — the
+/// antecedent node the transfer's finding hangs its DAG edge on.
+const RELOCATION_WITNESS_CODE: &str = "gmeow-dev.slice-quality.ceiling-relocation.witness";
+
+/// Mint every accepted relocation transfer onto a [`gmeow_errors::DiagLedger`] and
+/// project the result onto the console sink.
+///
+/// Each transfer becomes ONE content-addressed witness whose ANTECEDENTS are the
+/// witnessed anchor terms that funded it, so the accepted adjustment is a joinable DAG
+/// node — `gmeow explain <finding-iri>` resolves it, and a reasoner pass over the
+/// finding graph can walk from the transfer to the exact terms that moved. A
+/// hand-built `Finding` (or a bare `println!`) would carry no fingerprint identity, no
+/// anchor, and no antecedents, so nothing could join it and it would derive DARK.
+///
+/// Transfers are NOTE-grade: an accepted transfer is an audited fact about a passing
+/// gate, never a failure, so it must not gate.
+fn emit_accepted_transfers(transfers: &[gmeow_slice_quality::gate::AcceptedTransfer]) {
+    use gmeow_errors::{DiagLedger, StageId};
+    if transfers.is_empty() {
+        return;
+    }
+    let stage = StageId::new("slice-quality-gate");
+    let mut ledger = DiagLedger::new();
+    for t in transfers {
+        // The witness antecedents FIRST: each witnessed term is its own interned node,
+        // anchored on the term IRI, so two transfers sharing a term share one witness.
+        let antecedents: Vec<gmeow_errors::DiagRef> = t
+            .witnesses
+            .iter()
+            .map(|term| {
+                let diag = gmeow_errors::Diag::note(
+                    gmeow_errors::register_code(RELOCATION_WITNESS_CODE),
+                    format!(
+                        "relocation witness: {term} departed {} and arrived at {} in the {} residue",
+                        t.from, t.to, t.vocab
+                    ),
+                )
+                .with_focus(term.clone())
+                .with_location(gmeow_errors::Location {
+                    logical: Some(term.clone()),
+                    ..gmeow_errors::Location::default()
+                });
+                ledger.attach(diag, stage.clone())
+            })
+            .collect();
+        let anchor = format!("{}#{}", t.to, t.vocab);
+        let diag = gmeow_errors::Diag::note(
+            gmeow_errors::register_code(RELOCATION_ACCEPTED_CODE),
+            format!(
+                "accepted relocation transfer: {} unit(s) of {} residue moved {} → {}, re-projecting the base ceiling of the destination cell by exactly that much; witnessed by {}; declared by {}",
+                t.units,
+                t.vocab,
+                t.from,
+                t.to,
+                t.witnesses.join(", "),
+                t.declarations.join(", ")
+            ),
+        )
+        .with_focus(anchor.clone())
+        .with_location(gmeow_errors::Location {
+            logical: Some(anchor),
+            ..gmeow_errors::Location::default()
+        })
+        .with_antecedents(antecedents);
+        ledger.attach(diag, stage.clone());
+    }
+    crate::dev_common::emit_report(&ledger.project_report("gmeow-dev").normalized());
 }
 
 /// The merge-base resolution outcome for the floor-monotonicity check.
@@ -1018,28 +1281,59 @@ fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, 
         .collect()
 }
 
-/// List every path `git ls-tree -r --name-only <base> -- <rel_dir>` reports —
-/// mirrors [`git_show_base`]'s `Command` style (local, no network,
-/// `current_dir(root)`, `LC_ALL=C`). `git ls-tree` does not error on a pathspec
-/// that matches nothing, so a `rel_dir` absent at `base` (a genuinely new slice)
-/// yields empty stdout with a SUCCESSFUL exit — `Ok(vec![])`, which the
-/// grandfather reconstruction ([`measure_base_residues`]) treats as "no surface
-/// texts at base," i.e. base measured 0. A non-zero exit means git itself could
-/// not answer the question and is a HARD-FAIL, never a silent "nothing there."
-fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<Vec<String>> {
+/// The repo-relative directory holding the repo-level (non-slice) `dsl/mappings/`
+/// authoring surface — the pathspec half of
+/// `gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI`.
+const DSL_MAPPINGS_REL_DIR: &str = "dsl/mappings";
+
+/// A temporary directory holding the merge base's AUTHORING SURFACES as plain files,
+/// materialized by ONE `git archive` (see [`materialize_base_tree`]).
+///
+/// The extraction root is a [`tempfile::TempDir`], so it is removed on drop — on the
+/// success path, on every `?` early return, and while unwinding from a panic. A
+/// hand-rolled `remove_dir_all` in a `Drop` impl covered only the first two and is banned
+/// repo-wide (`check_no_unmanaged_temp_dir`) for exactly that reason.
+struct BaseTree {
+    /// The RAII guard owning the extraction root. Never read directly — [`Self::root`]
+    /// is the accessor — but its lifetime is what keeps the tree on disk.
+    tmp: tempfile::TempDir,
+}
+
+impl BaseTree {
+    /// The extraction root; base surfaces sit under it at their repo-relative paths.
+    fn root(&self) -> &Path {
+        self.tmp.path()
+    }
+}
+
+/// Which of `dirs` (repo-relative directory paths) EXIST at `base`. One `git ls-tree`
+/// for the whole set, not one per directory.
+///
+/// This is a pure EXISTENCE probe, never a reconstruction of the ratchet's surface
+/// fileset: [`materialize_base_tree`] hands the surviving directories to `git archive`
+/// wholesale and `gmeow_slice_quality::ratchet_surface_paths` then scans the extracted
+/// tree, so there is exactly ONE definition of "which files are a ratchet surface" and
+/// it is shared with the working-tree measurement. The probe exists only because
+/// `git archive` HARD-FAILS on a pathspec matching nothing, while a slice directory
+/// that is genuinely new in the working tree must legitimately contribute base residue
+/// 0. `git ls-tree` does not error on a non-matching pathspec, so an absent directory
+/// is simply missing from the returned set; a non-zero exit means git could not answer
+/// and is a HARD FAIL, never a silent "nothing there".
+fn base_dirs_present(
+    root: &Path,
+    base: &str,
+    dirs: &[String],
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     let out = std::process::Command::new("git")
         .current_dir(root)
         .env("LC_ALL", "C")
-        .args(["ls-tree", "-r", "--name-only", base, "--", rel_dir])
+        .args(["ls-tree", "-d", "--name-only", base, "--"])
+        .args(dirs)
         .output()
-        .map_err(|e| {
-            sqe(format!(
-                "could not run `git ls-tree {base} -- {rel_dir}`: {e}"
-            ))
-        })?;
+        .map_err(|e| sqe(format!("could not run `git ls-tree -d {base}`: {e}")))?;
     if !out.status.success() {
         return Err(sqe(format!(
-            "`git ls-tree {base} -- {rel_dir}` failed ({}): {}",
+            "`git ls-tree -d {base}` failed ({}): {}",
             out.status,
             String::from_utf8_lossy(&out.stderr).trim()
         )));
@@ -1051,48 +1345,172 @@ fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<V
         .collect())
 }
 
-/// Whether `rel_path` (a repo-relative path as `git ls-tree` reports it) belongs
-/// to the ratchet's authoring surface — the SAME surface set
-/// `gmeow_slice_quality::ratchet_surface_paths` scans on the working tree:
-/// basename `module.ttl` or `shapes.ttl`, or any `.ttl` under a `mappings/`
-/// directory.
-fn is_ratchet_surface(rel_path: &str) -> bool {
-    let basename = rel_path.rsplit('/').next().unwrap_or(rel_path);
-    basename == "module.ttl"
-        || basename == "shapes.ttl"
-        || (rel_path.contains("/mappings/") && rel_path.ends_with(".ttl"))
-}
-
-/// Reconstruct the ungrounded residue AT THE MERGE BASE for exactly the (slice,
-/// vocab) cells whose slice appears in `needed` — the slices whose committed
-/// projection ceiling is NEW in the working tree (ratchet invariant 3, the
-/// grandfather gate). For each discovered (working-tree) slice dir whose
-/// `gmeow_slice_quality::slice_iri_of_dir` is in `needed`: list its base fileset
-/// via [`git_ls_tree`], keep only [`is_ratchet_surface`] paths, and read each via
-/// [`git_show_base`] — a surface ABSENT at base is skipped (a genuinely new file,
-/// not an error); any OTHER git failure is a HARD-FAIL, never silently treated as
-/// absent. A slice with no surface texts at base (the whole slice directory is
-/// new) contributes NOTHING (base residue 0 for every vocab, via the caller's
-/// `unwrap_or(0)`). This feeds the SAME `gmeow_slice_quality::counting::residue`
-/// counter base bytes instead of working-tree files
-/// (`gmeow_slice_quality::residue_over_texts`), so "measured" can never diverge
-/// between the working-tree gate and this base reconstruction.
+/// Materialize `pathspecs` as they existed at `base` into a fresh temp directory with a
+/// SINGLE `git archive <base> -- <pathspecs> | tar -x`, so the base surfaces can be read
+/// as plain files through the very same code path the working tree uses.
+///
+/// One archive replaces the former per-file `git show` fan-out, and — more importantly —
+/// removes the second, base-only path reconstruction that could drift from
+/// `gmeow_slice_quality::ratchet_surface_paths`: after extraction there is one scanner
+/// for both sides, so base-vs-working is an apples-to-apples measurement.
+///
+/// Any failure of either process is a HARD FAIL (propagated), never a silent fall-back
+/// to "no base surfaces" — a silently-empty base tree would measure residue 0 and hand
+/// out a free grandfather for freshly-authored constructs, exactly the degradation
+/// `counting`'s module doc forbids.
 ///
 /// # Errors
-/// HARD-FAILS on any `git` failure other than a legitimately-absent path/dir
-/// (propagated from [`git_ls_tree`] / [`git_show_base`]), or on a Turtle
-/// parse/merge failure of a present base surface (propagated from
-/// `gmeow_slice_quality::residue_over_texts`).
+/// A HARD FAIL if the temp directory cannot be created, if `git archive` or `tar` cannot
+/// be spawned, or if either exits non-zero.
+fn materialize_base_tree(
+    root: &Path,
+    base: &str,
+    pathspecs: &[String],
+) -> gmeow_errors::Result<BaseTree> {
+    use std::process::{Command, Stdio};
+
+    // A `pid-seq` path is guessable on a machine shared by 30+ developers: a symlink
+    // pre-planted at the predicted path, combined with `create_dir_all` succeeding
+    // THROUGH an existing symlink, would let `tar -x` write the base tree outside this
+    // temp root (TOCTOU). `tempfile` closes that on both counts — the suffix is drawn
+    // from the OS CSPRNG rather than from the pid, and the directory is created with
+    // `mkdir` (which FAILS on any pre-existing path, symlink included, and never
+    // follows one) and retried on collision — and it additionally removes the tree
+    // while unwinding from a panic, which the hand-rolled `Drop` did not.
+    let tmp = tempfile::Builder::new()
+        .prefix("gmeow-ratchet-base-")
+        .tempdir()
+        .map_err(|e| sqe(format!("could not create base-tree temp dir: {e}")))?;
+    // Construct the guard BEFORE anything else can fail, so every path below cleans up.
+    let tree = BaseTree { tmp };
+
+    let mut archive = Command::new("git")
+        .current_dir(root)
+        .env("LC_ALL", "C")
+        .args(["archive", "--format=tar", base, "--"])
+        .args(pathspecs)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| sqe(format!("could not run `git archive {base}`: {e}")))?;
+    let stdout = archive
+        .stdout
+        .take()
+        .ok_or_else(|| sqe(format!("`git archive {base}` produced no stdout pipe")))?;
+    let extract = Command::new("tar")
+        .current_dir(tree.root())
+        .env("LC_ALL", "C")
+        .args(["-x", "-f", "-"])
+        .stdin(Stdio::from(stdout))
+        .output()
+        .map_err(|e| {
+            sqe(format!(
+                "could not run `tar -x` for `git archive {base}`: {e}"
+            ))
+        })?;
+    let archived = archive
+        .wait_with_output()
+        .map_err(|e| sqe(format!("could not wait for `git archive {base}`: {e}")))?;
+    if !archived.status.success() {
+        return Err(sqe(format!(
+            "`git archive {base} -- {}` failed ({}): {}",
+            pathspecs.join(" "),
+            archived.status,
+            String::from_utf8_lossy(&archived.stderr).trim()
+        )));
+    }
+    if !extract.status.success() {
+        return Err(sqe(format!(
+            "extracting the `git archive {base}` stream failed ({}): {}",
+            extract.status,
+            String::from_utf8_lossy(&extract.stderr).trim()
+        )));
+    }
+    Ok(tree)
+}
+
+/// The merge-base residue measurement, with the materialized base tree kept ALIVE.
+///
+/// The tree is retained (rather than dropped as soon as the counts are read) because
+/// the relocation accounting needs to RE-READ the base authoring surfaces: deriving
+/// WHY a construct's residue membership failed to be conserved across a move
+/// ([`gmeow_slice_quality::relocation_reasons_for_surfaces`]) requires the real base
+/// dataset, not merely the constructs counted out of it. Dropping the struct removes
+/// the temp directory, so the lifetime is explicit rather than implicit.
+#[derive(Default)]
+struct BaseMeasurement {
+    /// The extracted base tree — `None` when no slice was implicated and no `git`
+    /// work was done at all.
+    tree: Option<BaseTree>,
+    /// `slice IRI (or the DSL surface IRI) -> repo-relative directory`, for exactly the
+    /// implicated surfaces that EXIST at base.
+    dirs: std::collections::BTreeMap<String, String>,
+    /// `(slice IRI, vocab prefix) -> the residue CONSTRUCTS at base`, each carrying its
+    /// relocation-invariant [`gmeow_slice_quality::Witness`].
+    constructs: std::collections::BTreeMap<(String, String), Vec<gmeow_slice_quality::Construct>>,
+}
+
+impl BaseMeasurement {
+    /// The `.len()` projection of [`Self::constructs`] — the counted base residue the
+    /// grandfather gate compares a NEW ceiling against. One measurement, two views.
+    fn counts(&self) -> std::collections::BTreeMap<(String, String), u64> {
+        self.constructs
+            .iter()
+            .map(|(key, constructs)| (key.clone(), constructs.len() as u64))
+            .collect()
+    }
+
+    /// The base authoring-surface fileset for `slice_iri`, inside the materialized
+    /// tree — empty when the surface did not exist at base.
+    fn surface_paths(&self, slice_iri: &str) -> Vec<std::path::PathBuf> {
+        let (Some(tree), Some(rel)) = (self.tree.as_ref(), self.dirs.get(slice_iri)) else {
+            return Vec::new();
+        };
+        if slice_iri == gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI {
+            gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root())
+        } else {
+            gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel))
+        }
+    }
+}
+
+/// Reconstruct the ungrounded residue AT THE MERGE BASE for exactly the (slice, vocab)
+/// cells whose slice appears in `needed` — the slices whose committed projection ceiling
+/// is NEW in the working tree (ratchet invariant 3, the grandfather gate).
+///
+/// `slices` carries the working tree's ALREADY-RESOLVED `(slice dir, slice IRI)` pairs
+/// (the gate's scoring pass resolved every manifest once), so the `needed` filter is
+/// applied FIRST and no manifest is re-parsed here at all — the former sweep resolved
+/// `slice_iri_of_dir` for all ~600 discovered slices before discarding all but a
+/// handful. Attribution stays on the WORKING slice IRI, exactly as before.
+///
+/// The surviving directories are materialized at `base` by ONE
+/// [`materialize_base_tree`] call and then measured through
+/// `gmeow_slice_quality::ratchet_surface_paths` +
+/// `gmeow_slice_quality::measure_surface_residue_constructs` — the SAME functions
+/// `measure_repo_residues` runs over the working tree. A slice directory absent at base
+/// (a genuinely new slice) is dropped by the [`base_dirs_present`] probe and contributes
+/// NOTHING, i.e. base residue 0 for every vocab via the caller's `unwrap_or(0)`.
+///
+/// # Errors
+/// HARD-FAILS on any `git`/`tar` failure (propagated from [`base_dirs_present`] /
+/// [`materialize_base_tree`]), on a working-tree path that is not under `root`, or on a
+/// Turtle parse/merge failure of a present base surface (propagated from
+/// `gmeow_slice_quality::measure_surface_residue_constructs`). Never a silent fall-back
+/// to residue 0.
 fn measure_base_residues(
     root: &Path,
     base: &str,
     vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
     needed: &std::collections::BTreeSet<String>,
-) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
-    let mut out = std::collections::BTreeMap::new();
-    for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
-        let slice_iri = gmeow_slice_quality::slice_iri_of_dir(&dir)?;
-        if !needed.contains(&slice_iri) {
+    slices: &[(&Path, String)],
+) -> gmeow_errors::Result<BaseMeasurement> {
+    let mut out = BaseMeasurement::default();
+
+    // FILTER FIRST: only the slices a new ceiling actually implicates do any work.
+    let mut wanted: Vec<(&str, String)> = Vec::new(); // (slice IRI, repo-relative dir)
+    for (dir, slice_iri) in slices {
+        if !needed.contains(slice_iri) {
             continue;
         }
         let rel_dir = dir
@@ -1100,59 +1518,352 @@ fn measure_base_residues(
             .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
             .to_string_lossy()
             .replace('\\', "/");
-        let entries = git_ls_tree(root, base, &rel_dir)?;
-        let mut texts: Vec<String> = Vec::new();
-        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
-            match git_show_base(root, base, rel) {
-                BaseFile::Absent => {}
-                BaseFile::Error(e) => return Err(sqe(e)),
-                BaseFile::Contents(text) => texts.push(text),
-            }
+        wanted.push((slice_iri.as_str(), rel_dir));
+    }
+    let dsl_needed = needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI);
+    if wanted.is_empty() && !dsl_needed {
+        return Ok(out);
+    }
+
+    let mut probe: Vec<String> = wanted.iter().map(|(_, rel)| rel.clone()).collect();
+    if dsl_needed {
+        probe.push(DSL_MAPPINGS_REL_DIR.to_owned());
+    }
+    let present = base_dirs_present(root, base, &probe)?;
+    let pathspecs: Vec<String> = probe.into_iter().filter(|p| present.contains(p)).collect();
+    if pathspecs.is_empty() {
+        return Ok(out); // every implicated directory is new at base → base residue 0
+    }
+    let tree = materialize_base_tree(root, base, &pathspecs)?;
+
+    for (slice_iri, rel_dir) in &wanted {
+        if !present.contains(rel_dir) {
+            continue; // the slice directory does not exist at base → base residue 0
         }
-        if texts.is_empty() {
-            continue; // the slice is new at base → contributes 0 to every vocab
-        }
-        for vocab in vocabularies {
-            let r = gmeow_slice_quality::residue_over_texts(&texts, vocab, &slice_iri)?;
-            if r > 0 {
-                out.insert((slice_iri.clone(), vocab.prefix.clone()), r);
-            }
+        out.dirs.insert((*slice_iri).to_owned(), rel_dir.clone());
+        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel_dir));
+        for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
+            &paths,
+            slice_iri,
+            vocabularies,
+        )? {
+            out.constructs
+                .insert(((*slice_iri).to_owned(), prefix), constructs);
         }
     }
     // The repo-level dsl/mappings/ surface (attributed to the DSL surface IRI) is not
-    // under any slice dir, so reconstruct its base residue separately — the same
-    // recursive `/mappings/` surfaces `is_ratchet_surface` matches, read at base — so a
-    // NEW dsl-surface ceiling can be grandfathered against real base residue.
-    if needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI) {
-        let entries = git_ls_tree(root, base, "dsl/mappings")?;
-        let mut texts: Vec<String> = Vec::new();
-        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
-            match git_show_base(root, base, rel) {
-                BaseFile::Absent => {}
-                BaseFile::Error(e) => return Err(sqe(e)),
-                BaseFile::Contents(text) => texts.push(text),
-            }
+    // under any slice dir — measure it from the same materialized base tree, through the
+    // same scanner the working tree uses, so a NEW dsl-surface ceiling is grandfathered
+    // against real base residue.
+    if dsl_needed && present.contains(DSL_MAPPINGS_REL_DIR) {
+        out.dirs.insert(
+            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+            DSL_MAPPINGS_REL_DIR.to_owned(),
+        );
+        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root());
+        for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
+            &paths,
+            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
+            vocabularies,
+        )? {
+            out.constructs.insert(
+                (
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                    prefix,
+                ),
+                constructs,
+            );
         }
-        if !texts.is_empty() {
-            for vocab in vocabularies {
-                let r = gmeow_slice_quality::residue_over_texts(
-                    &texts,
-                    vocab,
-                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
-                )?;
-                if r > 0 {
-                    out.insert(
-                        (
-                            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
-                            vocab.prefix.clone(),
-                        ),
-                        r,
-                    );
+    }
+    out.tree = Some(tree);
+    Ok(out)
+}
+
+/// Derive, per declared `(from, to, vocab)` edge, WHY the residue of the moving
+/// constructs is not conserved across the move — the three Task-2 reason codes
+/// (`exemption-shift-owner-boundary`, `grounding-orphaned`, `bridge-exempt-both-sides`),
+/// keyed by relocation-invariant anchor IRI.
+///
+/// Residue is a function of `(dataset, surface_iri)`, not of the construct alone, so a
+/// construct crossing a vocabulary's owner boundary — or moving away from the
+/// `logic:Formula` that grounded it — has residue CREATED or DESTROYED with no
+/// authoring at all. The gate reports these verbatim on a refusal so a maintainer sees
+/// the real reason a declared relocation failed to balance instead of only a count
+/// delta.
+///
+/// The SOURCE side is read out of the MATERIALIZED merge-base tree (where the
+/// constructs sat) and the DESTINATION side out of the working tree (where they now
+/// live) — the same two views the rebalance itself compares.
+///
+/// # Errors
+/// HARD-FAILS if either side's authoring surface cannot be read or parsed. A
+/// declaration whose source surface is absent at base contributes NO reasons (there is
+/// nothing to have moved), which is a real measurement, not a fallback.
+fn derive_edge_reasons(
+    base: &BaseMeasurement,
+    declarations: &[gmeow_slice_quality::CeilingRelocation],
+    vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
+    slices: &[(&Path, String)],
+) -> gmeow_errors::Result<gmeow_slice_quality::gate::EdgeRelocationReasons> {
+    let mut out = gmeow_slice_quality::gate::EdgeRelocationReasons::new();
+    let working_dir = |iri: &str| -> Option<&Path> {
+        slices
+            .iter()
+            .find(|(_, slice_iri)| slice_iri == iri)
+            .map(|(dir, _)| *dir)
+    };
+    for d in declarations {
+        let source_paths = base.surface_paths(&d.from_slice);
+        if source_paths.is_empty() {
+            continue; // the source surface did not exist at base — nothing moved out of it
+        }
+        let Some(dest_dir) = working_dir(&d.to_slice) else {
+            continue; // the destination is not a discovered slice — the witness will red
+        };
+        let dest_paths = gmeow_slice_quality::ratchet_surface_paths(dest_dir);
+        for vocab in vocabularies {
+            if d.vocabulary.as_ref().is_some_and(|dv| dv != &vocab.prefix) {
+                continue;
+            }
+            let reasons = gmeow_slice_quality::relocation_reasons_for_surfaces(
+                &source_paths,
+                &d.from_slice,
+                &dest_paths,
+                &d.to_slice,
+                vocab,
+            )?;
+            let declared: std::collections::BTreeSet<&str> =
+                d.terms.iter().map(String::as_str).collect();
+            let scoped: std::collections::BTreeMap<_, _> = reasons
+                .into_iter()
+                .filter(|(anchor, _)| declared.contains(anchor.as_str()))
+                .collect();
+            if !scoped.is_empty() {
+                // Two `gmeow:CeilingRelocation` individuals may legitimately share the
+                // same `(from, to, vocab)` edge — the gate itself merges witnesses and
+                // declaration IRIs per edge (`network.witnesses`/`network.declarations`
+                // in `gate.rs`) — so a plain `insert` here would silently DROP the
+                // earlier declaration's reason codes rather than merge them. Union
+                // per-anchor instead.
+                let edge = out
+                    .entry((
+                        d.from_slice.clone(),
+                        d.to_slice.clone(),
+                        vocab.prefix.clone(),
+                    ))
+                    .or_default();
+                for (anchor, codes) in scoped {
+                    edge.entry(anchor).or_default().extend(codes);
                 }
             }
         }
     }
     Ok(out)
+}
+
+/// The projection-ceiling REBALANCE verdict for one comparison: base residue
+/// measurement (scoped to `needed`) → derived edge reasons → default-ceiling
+/// projection → [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`].
+///
+/// This is the exact tail both [`slice_quality_gate_at`] and the test-only
+/// `rebalance_for` helper compose — extracted into ONE function so a change to
+/// any of its steps (how the base is measured, how edge reasons are derived, how
+/// the default-ceiling map is built, or which `CeilingComparison` fields feed the
+/// gate) cannot silently drift between the production gate and the fixture-driven
+/// test helper. A hand-duplicated copy is exactly the failure mode this closes:
+/// every `assert_violation_contains` fixture would otherwise keep asserting
+/// against a stale composition and silently stop covering the real gate.
+///
+/// `needed` decides which slices the base residue measurement bothers reading:
+/// the production gate passes the implicated-only pre-filter (cells whose
+/// committed ceiling is new or raised, plus every declared relocation's
+/// endpoints — a repo can have hundreds of slices and most need no base read at
+/// all); the test helper passes every fixture slice (fixtures are tiny, so
+/// pre-filtering buys nothing and a complete measurement is easier to reason
+/// about against the assertions).
+///
+/// The inputs [`ceiling_rebalance`] composes — grouped into one struct (mirroring
+/// [`gmeow_slice_quality::gate::CeilingComparison`]'s own shape) rather than a long
+/// positional argument list, so the production gate and the test helper cannot
+/// silently swap two same-typed arguments past each other.
+#[derive(Clone, Copy)]
+struct RebalanceInputs<'a> {
+    root: &'a Path,
+    base: &'a str,
+    vocabularies: &'a [gmeow_slice_quality::model::ProjectionVocabulary],
+    slice_dirs: &'a [(&'a Path, String)],
+    declarations: &'a [gmeow_slice_quality::CeilingRelocation],
+    base_ceilings: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_ceilings: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_residues: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_constructs:
+        &'a std::collections::BTreeMap<(String, String), Vec<gmeow_slice_quality::Construct>>,
+    needed: &'a std::collections::BTreeSet<String>,
+}
+
+/// # Errors
+/// Returns a message on a base residue measurement or edge-reason derivation
+/// failure.
+fn ceiling_rebalance(
+    inputs: &RebalanceInputs<'_>,
+) -> gmeow_errors::Result<gmeow_slice_quality::gate::CeilingRebalance> {
+    let RebalanceInputs {
+        root,
+        base,
+        vocabularies,
+        slice_dirs,
+        declarations,
+        base_ceilings,
+        working_ceilings,
+        working_residues,
+        working_constructs,
+        needed,
+    } = *inputs;
+    let base_meas = measure_base_residues(root, base, vocabularies, needed, slice_dirs)?;
+    let base_measured = base_meas.counts();
+    let edge_reasons = derive_edge_reasons(&base_meas, declarations, vocabularies, slice_dirs)?;
+    let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> = vocabularies
+        .iter()
+        .map(|v| (v.prefix.clone(), v.default_ceiling))
+        .collect();
+    Ok(gmeow_slice_quality::gate::projection_ceiling_monotonicity(
+        &gmeow_slice_quality::gate::CeilingComparison {
+            file_label: GOVERNANCE_SOURCE_LABEL,
+            base_ceilings,
+            working_ceilings,
+            base_measured: &base_measured,
+            working_measured: working_residues,
+            base_constructs: &base_meas.constructs,
+            working_constructs,
+            default_ceilings: &default_ceiling_by_prefix,
+            declarations,
+            edge_reasons: &edge_reasons,
+        },
+    ))
+}
+
+#[cfg(test)]
+mod edge_reason_merge_tests {
+    use super::*;
+
+    /// A scratch tree that removes itself on drop — including while unwinding from a
+    /// failed assertion, which is when a fixture leaves the most litter.
+    struct TempDir {
+        _tmp: tempfile::TempDir,
+        path: std::path::PathBuf,
+    }
+    fn temp_dir(label: &str) -> TempDir {
+        let tmp = tempfile::Builder::new()
+            .prefix(&format!("gmeow-edge-reason-{label}-"))
+            .tempdir()
+            .expect("create temp dir");
+        let path = tmp.path().to_path_buf();
+        TempDir { _tmp: tmp, path }
+    }
+
+    /// A `gmeow:CeilingRelocation` declaring `terms` on the `from -> to` edge, dated
+    /// arbitrarily (the merge under test does not read the date).
+    fn reloc(
+        iri: &str,
+        terms: &[&str],
+        from: &str,
+        to: &str,
+    ) -> gmeow_slice_quality::CeilingRelocation {
+        gmeow_slice_quality::CeilingRelocation {
+            iri: iri.to_owned(),
+            terms: terms.iter().map(|s| (*s).to_owned()).collect(),
+            from_slice: from.to_owned(),
+            to_slice: to.to_owned(),
+            vocabulary: Some("sh".to_owned()),
+            date: "2026-01-01".to_owned(),
+        }
+    }
+
+    #[test]
+    fn two_declarations_on_one_edge_both_survive_the_merge() {
+        // Two DISTINCT `gmeow:CeilingRelocation` individuals legitimately share the
+        // same (from, to, vocab) edge — the gate itself merges witnesses and
+        // declaration IRIs per edge. Each declares a DIFFERENT term, and each term's
+        // grounding axiom is left behind at the destination (GroundingOrphaned for
+        // both). Before the fix, `out.insert` on the second declaration silently
+        // DROPPED the first declaration's reason codes; the merge must union them.
+        const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        const FROM: &str = "https://blackcatinformatics.ca/gmeow/slices/src";
+        const TO: &str = "https://blackcatinformatics.ca/gmeow/slices/dst";
+        let prefixes = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix gmeow: <{NS}> .\n\
+             @prefix logic: <{LOGIC}> .\n"
+        );
+
+        // The base tree's guard is handed to the `BaseTree` below, exactly as production
+        // does: the materialized tree is owned by the measurement that reads it, so it
+        // dies with the measurement rather than being cleaned up by a second owner.
+        let base_tmp = tempfile::Builder::new()
+            .prefix("gmeow-edge-reason-base-")
+            .tempdir()
+            .expect("create temp dir");
+        let source_dir = base_tmp.path().join("rel/src");
+        std::fs::create_dir_all(&source_dir).unwrap();
+        std::fs::write(
+            source_dir.join("module.ttl"),
+            format!(
+                "{prefixes}\
+                 gmeow:S1 a sh:NodeShape ; logic:formalizes logic:s1Axiom .\n\
+                 logic:s1Axiom a logic:Formula .\n\
+                 gmeow:S2 a sh:NodeShape ; logic:formalizes logic:s2Axiom .\n\
+                 logic:s2Axiom a logic:Formula .\n"
+            ),
+        )
+        .unwrap();
+
+        let dest_root = temp_dir("dest");
+        std::fs::write(
+            dest_root.path.join("module.ttl"),
+            format!(
+                "{prefixes}\
+                 gmeow:S1 a sh:NodeShape ; logic:formalizes logic:s1Axiom .\n\
+                 gmeow:S2 a sh:NodeShape ; logic:formalizes logic:s2Axiom .\n"
+            ),
+        )
+        .unwrap();
+
+        let base = BaseMeasurement {
+            tree: Some(BaseTree { tmp: base_tmp }),
+            dirs: std::collections::BTreeMap::from([(FROM.to_owned(), "rel/src".to_owned())]),
+            constructs: std::collections::BTreeMap::new(),
+        };
+        let declarations = vec![
+            reloc("gmeow:reloc1", &[&format!("{NS}S1")], FROM, TO),
+            reloc("gmeow:reloc2", &[&format!("{NS}S2")], FROM, TO),
+        ];
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let slices: Vec<(&Path, String)> = vec![(dest_root.path.as_path(), TO.to_owned())];
+
+        let out = derive_edge_reasons(&base, &declarations, std::slice::from_ref(&vocab), &slices)
+            .expect("both fixture surfaces parse");
+
+        let edge = out
+            .get(&(FROM.to_owned(), TO.to_owned(), "sh".to_owned()))
+            .expect("the shared edge carries reasons");
+        assert_eq!(
+            edge.get(&format!("{NS}S1"))
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![
+                gmeow_slice_quality::RelocationReason::GroundingOrphaned
+            ]),
+            "reloc1's reason survives the merge: {edge:?}"
+        );
+        assert_eq!(
+            edge.get(&format!("{NS}S2"))
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![
+                gmeow_slice_quality::RelocationReason::GroundingOrphaned
+            ]),
+            "reloc2's reason survives the merge, not just the LAST declaration processed: {edge:?}"
+        );
+    }
 }
 
 /// Resolve the committed floor for one `(slice, axis)` grade: the explicit
@@ -1705,6 +2416,654 @@ pub fn slice_quality_projection_debt() -> i32 {
         cells.len()
     );
     0
+}
+
+/// One vocabulary's relocation TRANSPORT PLAN: what the source's lowering would raise
+/// as credit, what the destination's raise would demand, and how much of that demand no
+/// credit covers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct RelocationPlan {
+    /// The credit the source's lowering-to-its-post-move-measured-residue would raise,
+    /// clamped to the units that actually move (the gate applies the same clamp against
+    /// the DECLARED, WITNESSED departures, so a lowering of dead headroom buys nothing).
+    credit: u64,
+    /// The raise the destination would have to commit: its post-move measured residue
+    /// minus the ceiling it already holds.
+    demand: u64,
+    /// The part of `demand` no credit covers — exactly what the gate would refuse.
+    unpaid: u64,
+}
+
+/// Compute one vocabulary's transport plan from the two live measurements and the two
+/// committed ceilings. Pure, so the arithmetic the preview reports is testable
+/// independently of a repository state.
+///
+/// The maintainer's move is modelled as the gate expects it to be authored: lower the
+/// source's `gmeow:ceilingCount` to its post-move measured residue, and pin the
+/// destination's to ITS post-move measured residue.
+///
+/// The `demand`/supply-headroom ARITHMETIC below is the same per-cell bookkeeping
+/// [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`] performs before it
+/// ever asks whether a raise is payable — that part is not "the solver", it is
+/// deriving this single proposed move's inputs. But WHETHER the raise is payable is
+/// answered by building a [`gmeow_slice_quality::gate::Transport`] (one source, one
+/// destination, one witnessed edge) and calling
+/// [`gmeow_slice_quality::gate::solve_transport`] on it — the EXACT function the gate
+/// itself calls. `gmeow-dev-cli/src/lib.rs`'s seed-command doctrine states the
+/// discipline this exists to uphold: "seed and gate can never diverge" — a second,
+/// hand-rolled flow computation here could promise an acceptance the gate then
+/// refuses, which is exactly the bug this delegation forecloses. (A single `--from`/
+/// `--to` pair is always a one-source/one-destination network, where a greedy pass
+/// and a true max flow agree — but the point is there is now only ONE algorithm that
+/// could ever answer this question, not two that happen to agree today.)
+///
+/// Note the structural consequence, which the preview states in its legend rather than
+/// leaving implicit: on a corpus where the COUNT gate is green (`to_measured <=
+/// to_ceiling` everywhere), `demand = to_measured + moving - to_ceiling <= moving` and
+/// `credit = moving`, so `unpaid` is necessarily `0`. A nonzero `unpaid` therefore means
+/// the destination cell is ALREADY over its ceiling — the move is not the problem, the
+/// destination is.
+fn relocation_plan(
+    moving: u64,
+    from_measured: u64,
+    from_ceiling: u64,
+    to_measured: u64,
+    to_ceiling: u64,
+) -> RelocationPlan {
+    // The source's lowering-to-post-move-measured headroom, clamped to what
+    // actually moves — the same `lowering.min(live)` supply the gate computes per
+    // source cell before it ever builds a `Transport`.
+    let supply = from_ceiling
+        .saturating_sub(from_measured.saturating_sub(moving))
+        .min(moving);
+    let demand = (to_measured + moving).saturating_sub(to_ceiling);
+    if demand == 0 {
+        // The gate's own per-vocabulary loop `continue`s before building a
+        // `Transport` at all when nothing is being raised (`gate.rs`:
+        // `if network.demand.is_empty() { continue; }`) — there is nothing to
+        // solve, so `credit` here is purely informational: the headroom the
+        // source's lowering COULD pay, not what a flow actually delivered.
+        return RelocationPlan {
+            credit: supply,
+            demand: 0,
+            unpaid: 0,
+        };
+    }
+    const FROM: &str = "from";
+    const TO: &str = "to";
+    let mut network = gmeow_slice_quality::gate::Transport::default();
+    if supply > 0 {
+        network.supply.insert(FROM.to_owned(), supply);
+    }
+    network.demand.insert(TO.to_owned(), demand);
+    if moving > 0 {
+        network
+            .capacity
+            .insert((FROM.to_owned(), TO.to_owned()), moving);
+    }
+    let flow = gmeow_slice_quality::gate::solve_transport(&network);
+    let credit = flow
+        .edges
+        .get(&(FROM.to_owned(), TO.to_owned()))
+        .copied()
+        .unwrap_or(0);
+    let unpaid = flow.residual.get(TO).copied().unwrap_or(demand);
+    RelocationPlan {
+        credit,
+        demand,
+        unpaid,
+    }
+}
+
+/// How many relocatable anchor terms the preview's DISCOVERY listing prints per
+/// vocabulary before it truncates. A slice can carry dozens of anchors and the listing
+/// is a navigation aid, not a report — but a silent truncation would be a lie about
+/// what is movable, so the cap is always accompanied by an explicit "… and N more"
+/// line naming the remainder count.
+const RELOCATION_ANCHOR_LISTING_CAP: usize = 20;
+
+/// Split the requested `terms` that contributed nothing to the transport plan (none of
+/// them anchors any residue construct in `from_iri`) into the two semantically distinct
+/// reasons that can be:
+///
+/// - **absent** — the term anchors NO residue construct anywhere the preview measures
+///   (neither `from_iri` nor `to_iri`). A relocation of this term genuinely moves
+///   nothing; the term is likely mistyped or was never authored.
+/// - **unwitnessed** — the term DOES anchor residue, just at the DESTINATION rather
+///   than the source. There is no departure to pair with an arrival, so this specific
+///   `from → to` declaration could never be corroborated as witnessed — mirroring the
+///   departed/arrived pairing
+///   [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`] requires of an
+///   authored `gmeow:CeilingRelocation` (`crates/slice-quality/src/gate.rs`,
+///   `departed`/`arrived`). This is exactly the shape of mistake a maintainer makes
+///   running the preview as its own negative control (e.g. `--from`/`--to` swapped):
+///   the term is real and does carry residue, so telling them "nothing would move"
+///   would be silently wrong.
+///
+/// Order-preserving over `terms` so the printed lists read in the order the caller
+/// asked for them.
+fn classify_unmoved_terms<'a>(
+    terms: &'a [String],
+    to_residue: &std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>>,
+    vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
+) -> (Vec<&'a str>, Vec<&'a str>) {
+    let to_anchors: std::collections::BTreeSet<&str> = vocabularies
+        .iter()
+        .filter_map(|v| to_residue.get(&v.prefix))
+        .flat_map(|constructs| constructs.iter())
+        .filter_map(|c| c.witness.anchor())
+        .collect();
+    let mut unwitnessed = Vec::new();
+    let mut absent = Vec::new();
+    for term in terms {
+        if to_anchors.contains(term.as_str()) {
+            unwitnessed.push(term.as_str());
+        } else {
+            absent.push(term.as_str());
+        }
+    }
+    (unwitnessed, absent)
+}
+
+/// The human-facing line for the `absent` half of `classify_unmoved_terms`'s split (a
+/// term anchoring no residue construct in either slice — a relocation of it genuinely
+/// moves nothing). Deliberately scoped wording, never a universal "NONE of the
+/// requested terms": `absent` is a SUBSET of `terms` (the other subset is
+/// `unwitnessed`, printed separately), so a mixed request must never read as if the
+/// ENTIRE requested set were absent. A stand-alone, testable function so the exact
+/// production wording is pinned by a test rather than merely eyeballed.
+fn absent_terms_message(
+    absent: &[&str],
+    total_requested: usize,
+    from_iri: &str,
+    to_iri: &str,
+) -> String {
+    format!(
+        "# absent: {} of {total_requested} requested term(s) anchor no residue construct in {from_iri} or {to_iri} — those would move nothing: {}",
+        absent.len(),
+        absent.join(", ")
+    )
+}
+
+/// Print, per guarded vocabulary, the terms in `slice_iri`'s residue that DO anchor at
+/// least one construct, with the construct count each would carry across a move.
+///
+/// This is the preview's DISCOVERY surface. A maintainer asking "what would this move
+/// cost me?" does not know the anchor IRIs, and there is no other way to find them: the
+/// residue counter's relocation-invariant anchor is a derived quantity (a nested
+/// anonymous `sh:property` block anchors on the nearest NAMED ancestor, which is not
+/// visible by reading the Turtle), so guessing a term IRI out of a slice's source is
+/// unreliable. Without this listing the command cannot be used at all.
+///
+/// Deterministic: vocabularies in registry order, anchors sorted by descending construct
+/// count then by IRI, so the terms that would carry the most residue lead. Truncation is
+/// NEVER silent — a capped list always states how many anchors it omitted.
+fn print_relocatable_anchors(
+    residue: &std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>>,
+    vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
+    slice_iri: &str,
+) {
+    println!("# relocatable anchor terms in {slice_iri} — pass one of these as --term");
+    println!("vocab\tterm\tconstructs");
+    let mut any = false;
+    for vocab in vocabularies {
+        let Some(constructs) = residue.get(&vocab.prefix) else {
+            continue;
+        };
+        let mut by_anchor: std::collections::BTreeMap<&str, u64> =
+            std::collections::BTreeMap::new();
+        let mut non_relocatable = 0u64;
+        for c in constructs {
+            match c.witness.anchor() {
+                Some(anchor) => *by_anchor.entry(anchor).or_insert(0) += 1,
+                None => non_relocatable += 1,
+            }
+        }
+        // Descending construct count, then IRI — the biggest movers first, ties stable.
+        let mut ranked: Vec<(&str, u64)> = by_anchor.into_iter().collect();
+        ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+        if ranked.is_empty() {
+            // Every construct in this vocabulary is blank-subject residue: it is real
+            // residue, but NONE of it can ever witness a relocation. Say so rather than
+            // omit the vocabulary and imply it is clean.
+            if non_relocatable > 0 {
+                println!(
+                    "# {}: {non_relocatable} construct(s), all blank-subject with no named anchor — none can witness a relocation",
+                    vocab.prefix
+                );
+            }
+            continue;
+        }
+        any = true;
+        let shown = ranked.len().min(RELOCATION_ANCHOR_LISTING_CAP);
+        for (anchor, count) in &ranked[..shown] {
+            println!("{}\t{anchor}\t{count}", vocab.prefix);
+        }
+        if ranked.len() > shown {
+            println!(
+                "# {}: … and {} more anchor term(s) not shown",
+                vocab.prefix,
+                ranked.len() - shown
+            );
+        }
+        if non_relocatable > 0 {
+            println!(
+                "# {}: plus {non_relocatable} blank-subject construct(s) with no named anchor — none can witness a relocation",
+                vocab.prefix
+            );
+        }
+    }
+    if !any {
+        println!(
+            "# {slice_iri} carries no anchored residue in any guarded vocabulary — no relocation out of it can be witnessed"
+        );
+    }
+}
+
+/// `gmeow-dev slice-quality-relocation-preview --term <iri>… --from <slice> --to <slice>`
+/// — a REPORT-ONLY preview of what relocating `terms` from `from` to `to` would cost
+/// and what it would need to be paid for.
+///
+/// The ratchet's ceiling side is relocation-aware: a ceiling budgets NET-NEW UNGROUNDED
+/// AUTHORING, which is location-independent, so a declared-and-corroborated relocation
+/// re-projects the base ceiling before the lower-only comparison runs. Its FLOOR side
+/// deliberately is NOT: an axis floor measures the documentation quality of the
+/// inventory a slice currently OWNS, which genuinely is location-dependent — importing
+/// an under-documented term really does lower the destination's quality, and the answer
+/// is to document it, not to net it away. This command prints both halves so the
+/// asymmetry is visible BEFORE the move, not discovered after it.
+///
+/// Per guarded vocabulary it reports:
+/// - the TRANSPORT PLAN: how many residue constructs anchored on the named terms would
+///   move, the credit the source's lowering-to-measured would raise, and the demand the
+///   destination's raise-to-measured would create;
+/// - the RESIDUAL UNPAID demand (`max(0, demand − credit)`), which is exactly what the
+///   gate would refuse;
+/// - the three residue-conservation reason codes
+///   ([`gmeow_slice_quality::RelocationReason`]) for every named term whose residue
+///   membership genuinely changes across the move.
+///
+/// When NONE of the requested terms contributes to the transport plan, it distinguishes
+/// two semantically different reasons ([`classify_unmoved_terms`]) rather than
+/// conflating them into one misleading "nothing would move": a term ABSENT from both
+/// slices' residue genuinely moves nothing, while a term already anchoring residue at
+/// the DESTINATION is UNWITNESSED — real, but with no departure from the requested
+/// source to pair with an arrival. Either way it then prints the DISCOVERY listing
+/// ([`print_relocatable_anchors`]): every term in the source that DOES anchor residue,
+/// per vocabulary, with the construct count each would carry.
+///
+/// Then, once, the AXIS-FLOOR COLLATERAL: every committed `gmeow:AxisFloorCommitment`
+/// on either slice with its live measured score and headroom.
+///
+/// Never gates on its findings; malformed input, rubric-load and measurement errors
+/// still fail non-zero (an unresolvable `--from`/`--to`, `from == to`, a rubric-load
+/// or empty-registry error, and every residue/axis-floor measurement error below —
+/// `return fail(...)` at every one of those sites, never a swallowed `Result`). Its
+/// numbers are never fed back into a ceiling (a ceiling is lowered only by a
+/// deliberate hand-edit after a genuine measured migration, and raised only through
+/// an authored `gmeow:CeilingRelocation` the gate then corroborates against the
+/// derived witness).
+pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) -> i32 {
+    let root = project_root();
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+    };
+    let vocabularies = &rubric.floors.vocabularies;
+    if vocabularies.is_empty() {
+        return fail(
+            "slice-quality-relocation-preview: no gmeow:ProjectionVocabulary individuals loaded from the rubric — the guarded projection-vocabulary registry must be loaded before residue can be measured",
+        );
+    }
+
+    // Resolve each slice reference to a discovered slice directory + IRI. A full IRI
+    // or a bare local name both resolve; an unresolvable reference is a hard fail
+    // (never a silent empty report).
+    let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    let mut resolved: Vec<(std::path::PathBuf, String)> = Vec::with_capacity(dirs.len());
+    for dir in &dirs {
+        match gmeow_slice_quality::slice_iri_of_dir(dir) {
+            Ok(iri) => resolved.push((dir.clone(), iri)),
+            Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+        }
+    }
+    let find = |reference: &str| -> Option<&(std::path::PathBuf, String)> {
+        resolved
+            .iter()
+            .find(|(_, iri)| iri == reference || axis_local_name(iri) == reference)
+    };
+    let (Some((from_dir, from_iri)), Some((to_dir, to_iri))) = (find(from), find(to)) else {
+        return fail(format!(
+            "slice-quality-relocation-preview: --from {from:?} / --to {to:?} must each name a discovered gmeow:Slice (by full IRI or local name)"
+        ));
+    };
+    if from_iri == to_iri {
+        return fail(
+            "slice-quality-relocation-preview: --from and --to name the same slice — a relocation that does not cross a slice boundary moves no residue",
+        );
+    }
+    let wanted: std::collections::BTreeSet<&str> = terms.iter().map(String::as_str).collect();
+
+    let from_paths = gmeow_slice_quality::ratchet_surface_paths(from_dir);
+    let to_paths = gmeow_slice_quality::ratchet_surface_paths(to_dir);
+    let from_residue = match gmeow_slice_quality::measure_surface_residue_constructs(
+        &from_paths,
+        from_iri,
+        vocabularies,
+    ) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+    };
+    let to_residue = match gmeow_slice_quality::measure_surface_residue_constructs(
+        &to_paths,
+        to_iri,
+        vocabularies,
+    ) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+    };
+    let ceilings = &rubric.floors.ceilings;
+    let ceiling_of =
+        |slice: &str, vocab: &gmeow_slice_quality::model::ProjectionVocabulary| -> u64 {
+            ceilings
+                .iter()
+                .find(|c| c.slice == slice && c.vocab_prefix == vocab.prefix)
+                .map_or(vocab.default_ceiling, |c| c.count)
+        };
+
+    println!("# relocation preview: {from_iri} → {to_iri}");
+    println!("# terms: {}", terms.join(", "));
+    println!(
+        "vocab\tmoving\tfrom-measured\tfrom-ceiling\tcredit\tto-measured\tto-ceiling\tdemand\tunpaid"
+    );
+    let mut any_moving = false;
+    for vocab in vocabularies {
+        let from_constructs = from_residue
+            .get(&vocab.prefix)
+            .map_or(&[][..], Vec::as_slice);
+        let to_constructs = to_residue.get(&vocab.prefix).map_or(&[][..], Vec::as_slice);
+        let moving = from_constructs
+            .iter()
+            .filter(|c| c.witness.anchor().is_some_and(|a| wanted.contains(a)))
+            .count() as u64;
+        if moving == 0 {
+            continue;
+        }
+        any_moving = true;
+        let from_measured = from_constructs.len() as u64;
+        let to_measured = to_constructs.len() as u64;
+        let from_ceiling = ceiling_of(from_iri, vocab);
+        let to_ceiling = ceiling_of(to_iri, vocab);
+        // The maintainer lowers the source ceiling to its post-move measured residue
+        // and raises the destination ceiling to its post-move measured residue; the
+        // gate then clamps the credit to the DECLARED, WITNESSED departures.
+        let plan = relocation_plan(moving, from_measured, from_ceiling, to_measured, to_ceiling);
+        let RelocationPlan {
+            credit,
+            demand,
+            unpaid,
+        } = plan;
+        println!(
+            "{}\t{moving}\t{from_measured}\t{from_ceiling}\t{credit}\t{to_measured}\t{to_ceiling}\t{demand}\t{unpaid}",
+            vocab.prefix
+        );
+        // State the verdict in WORDS, not only as a column a reader must interpret —
+        // "nothing would move" and "something would move but is unpaid" must be
+        // distinguishable without arithmetic.
+        if demand == 0 {
+            println!(
+                "# {}: {moving} unit(s) would move; {to_iri} already holds enough committed headroom, so no ceiling raise is needed at all.",
+                vocab.prefix
+            );
+        } else if unpaid == 0 {
+            println!(
+                "# {}: {moving} unit(s) would move and the whole {demand}-unit raise is payable — the gate would accept it, given a gmeow:CeilingRelocation declaring these terms.",
+                vocab.prefix
+            );
+        } else {
+            println!(
+                "# {}: {moving} unit(s) would move but {unpaid} of the {demand}-unit raise is UNPAID (credit {credit}) — the gate would REFUSE it. A nonzero unpaid means {to_iri} is already above its {} ceiling; fix that first, the move is not what is wrong.",
+                vocab.prefix, vocab.prefix
+            );
+        }
+
+        match gmeow_slice_quality::relocation_reasons_for_surfaces(
+            &from_paths,
+            from_iri,
+            &to_paths,
+            to_iri,
+            vocab,
+        ) {
+            Ok(reasons) => {
+                for (anchor, codes) in reasons.iter().filter(|(a, _)| wanted.contains(a.as_str())) {
+                    let codes: Vec<&str> = codes.iter().map(|c| c.code()).collect();
+                    println!(
+                        "# {} residue NOT conserved moving {anchor}: {}",
+                        vocab.prefix,
+                        codes.join(", ")
+                    );
+                }
+            }
+            Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+        }
+    }
+    if !any_moving {
+        let (unwitnessed, absent) = classify_unmoved_terms(terms, &to_residue, vocabularies);
+        // The two cases are semantically different and must never be conflated: a
+        // maintainer running this preview in the wrong direction (its own negative
+        // control, e.g. --from/--to swapped) must not be told a real, existing term
+        // "would move nothing" when it genuinely anchors residue — just not at the
+        // requested source.
+        if !unwitnessed.is_empty() {
+            println!(
+                "# unwitnessed: {} of {} requested term(s) already anchor residue in {to_iri} (the DESTINATION), not {from_iri} — there is no departure to pair with an arrival, so this from→to move cannot be witnessed for: {}",
+                unwitnessed.len(),
+                terms.len(),
+                unwitnessed.join(", ")
+            );
+        }
+        if !absent.is_empty() {
+            println!(
+                "{}",
+                absent_terms_message(&absent, terms.len(), from_iri, to_iri)
+            );
+        }
+        println!(
+            "# (This says nothing about whether {from_iri} carries residue: the terms below are the ones that DO.)"
+        );
+        print_relocatable_anchors(&from_residue, vocabularies, from_iri);
+    }
+
+    // AXIS-FLOOR COLLATERAL. Floors are deliberately NOT netted by relocation: the
+    // destination genuinely takes on the documentation debt of what it imports. Print
+    // every committed floor on both slices with its live measured score and headroom
+    // so the cost is visible before the move.
+    let axis_floors = match axis_floors_from_rubric(&rubric) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+    };
+    println!(
+        "# axis-floor collateral (floors are NOT netted by relocation — the importer pays the full documentation cost)"
+    );
+    println!("slice\taxis\tfloor\tmeasured\theadroom");
+    let scored = gmeow_slice_quality::score_slices_with_rubric(
+        &root,
+        &[from_dir.clone(), to_dir.clone()],
+        &rubric,
+    );
+    for report in scored {
+        let report = match report {
+            Ok(r) => r,
+            Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+        };
+        let slice = &report.assessment.slice;
+        let grounding = slice == from_iri && is_grounding_slice(from_dir)
+            || slice == to_iri && is_grounding_slice(to_dir);
+        for grade in &report.assessment.grades {
+            let axis_local = axis_local_name(&grade.axis_iri);
+            let floor = match axis_floor_for(&axis_floors, slice, axis_local, grounding) {
+                Ok(Some(f)) => f,
+                Ok(None) => continue, // unfloored → the move cannot cost it anything gate-visible
+                Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
+            };
+            println!(
+                "{slice}\t{axis_local}\t{floor:.6}\t{:.6}\t{:.6}",
+                grade.score,
+                grade.score - floor
+            );
+        }
+    }
+    0
+}
+
+#[cfg(test)]
+mod relocation_preview_tests {
+    use super::*;
+
+    #[test]
+    fn a_full_move_off_a_green_corpus_is_always_payable() {
+        // The live-corpus case: the source sits AT its ceiling and the destination is at
+        // or under its own, so the credit the lowering raises exactly covers the raise
+        // the destination must commit. This is why the `unpaid` column reads 0 on every
+        // real preview — the preview says so in words rather than leaving a maintainer
+        // to wonder whether the column is even wired up.
+        assert_eq!(
+            relocation_plan(4, 17, 17, 0, 0),
+            RelocationPlan {
+                credit: 4,
+                demand: 4,
+                unpaid: 0
+            }
+        );
+        // The same with stale headroom at the source and existing headroom at the
+        // destination: the credit is still clamped to what actually moves, and the
+        // demand shrinks because the destination already had room.
+        assert_eq!(
+            relocation_plan(3, 39, 40, 0, 4),
+            RelocationPlan {
+                credit: 3,
+                demand: 0,
+                unpaid: 0
+            }
+        );
+    }
+
+    #[test]
+    fn unpaid_is_nonzero_only_when_the_destination_is_already_over_its_ceiling() {
+        // The structural fact the preview's verdict line names: `demand` exceeds
+        // `moving` — and therefore exceeds the clamped `credit` — exactly when the
+        // destination's measured residue already sits above its committed ceiling. Here
+        // the destination measures 5 against a ceiling of 2, so three units of the raise
+        // are debt that predates the move and no relocation can pay for.
+        assert_eq!(
+            relocation_plan(1, 10, 10, 5, 2),
+            RelocationPlan {
+                credit: 1,
+                demand: 4,
+                unpaid: 3
+            }
+        );
+    }
+
+    #[test]
+    fn the_credit_clamp_is_load_bearing() {
+        // A source carrying huge STALE headroom (ceiling 90 against a measured residue
+        // of 10) lowers by a lot, but only ONE construct actually moves. Lowering dead
+        // headroom surrenders no authoring, so the credit is clamped to the one unit
+        // that moved — never the 81-unit paper drop.
+        assert_eq!(relocation_plan(1, 10, 90, 0, 0).credit, 1);
+    }
+
+    fn construct(anchor: &str) -> gmeow_slice_quality::Construct {
+        gmeow_slice_quality::Construct {
+            key: anchor.to_owned(),
+            grounded: false,
+            is_bridge: false,
+            witness: gmeow_slice_quality::Witness::Anchored(anchor.to_owned()),
+        }
+    }
+
+    #[test]
+    fn case_a_a_term_absent_from_both_slices_is_not_unwitnessed() {
+        // Neither slice's residue anchors "ex:ghost" at all — a relocation of it
+        // genuinely moves nothing, and it must land in `absent`, never `unwitnessed`.
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(vocab.prefix.clone(), vec![construct("ex:real")])]);
+        let terms = vec!["ex:ghost".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, Vec::<&str>::new());
+        assert_eq!(absent, vec!["ex:ghost"]);
+    }
+
+    #[test]
+    fn case_b_a_term_anchored_only_at_the_destination_is_unwitnessed_not_absent() {
+        // This is the preview's own negative control: a maintainer runs the preview
+        // with --from/--to swapped (or simply names a term that already lives at the
+        // destination). "ex:emotion" DOES anchor real residue — just at `to_iri`, not
+        // the requested `from_iri` — so there is no departure to pair with an arrival.
+        // It must be reported as `unwitnessed: 1 of 1`, never folded into "nothing
+        // would move".
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(
+                vocab.prefix.clone(),
+                vec![construct("ex:emotion")],
+            )]);
+        let terms = vec!["ex:emotion".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, vec!["ex:emotion"]);
+        assert_eq!(absent, Vec::<&str>::new());
+    }
+
+    #[test]
+    fn a_mixed_request_splits_cleanly_between_both_classes() {
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(
+                vocab.prefix.clone(),
+                vec![construct("ex:emotion")],
+            )]);
+        let terms = vec!["ex:ghost".to_owned(), "ex:emotion".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, vec!["ex:emotion"]);
+        assert_eq!(absent, vec!["ex:ghost"]);
+    }
+
+    #[test]
+    fn absent_terms_message_never_reads_as_a_universal_none() {
+        // The mixed case this wording exists to get right: `absent` (1 term) is a
+        // SUBSET of `total_requested` (2 terms) — the other one is `unwitnessed`,
+        // printed separately. The old "NONE of the 1 of 2 requested term(s)" wording
+        // read as a contradiction (it asserted both "NONE" and "1 of 2" for the same
+        // count). The fixed wording must scope the sentence to the absent subset,
+        // never assert a universal "NONE", and still carry every exact number/term.
+        let msg = absent_terms_message(&["ex:ghost"], 2, "ex:from", "ex:to");
+        assert!(
+            !msg.contains("NONE"),
+            "must not read as a universal claim over all requested terms: {msg:?}"
+        );
+        assert_eq!(
+            msg,
+            "# absent: 1 of 2 requested term(s) anchor no residue construct in ex:from or ex:to — those would move nothing: ex:ghost"
+        );
+    }
+
+    #[test]
+    fn absent_terms_message_all_absent_still_reads_correctly() {
+        // The degenerate case where every requested term is absent — `absent.len() ==
+        // total_requested` — must still read correctly (this is the one case where
+        // "NONE of the requested terms" would have been literally true, but the
+        // scoped wording must not regress to a special-cased sentence for it).
+        let msg = absent_terms_message(&["ex:ghost", "ex:phantom"], 2, "ex:from", "ex:to");
+        assert_eq!(
+            msg,
+            "# absent: 2 of 2 requested term(s) anchor no residue construct in ex:from or ex:to — those would move nothing: ex:ghost, ex:phantom"
+        );
+    }
 }
 
 #[cfg(test)]
@@ -2328,6 +3687,12 @@ mod seed_floors_tests {
 /// repo (a base commit authoring a non-rubric floor, a working tree lowering/deleting
 /// it) and drive the real [`base_rubric_at`] multi-slice `git show` reconstruction, so
 /// they fail against the pre-widening single-file base read and pass after it.
+///
+/// The second half of the module covers the grandfather gate's BASE RESIDUE
+/// reconstruction over a real materialized base tree ([`measure_base_residues`]):
+/// authoring surfaces present at base but deleted in the working tree, a deeply nested
+/// `mappings/` file, the repo-level `dsl/mappings/` surface, a slice directory that does
+/// not exist at base, and the hard-fail on a base tree that cannot be materialized.
 #[cfg(test)]
 mod base_monotonicity_git_tests {
     use super::*;
@@ -2511,6 +3876,918 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
             mono.violations
         );
     }
+
+    // -------------------------------------------------------------------------
+    // The GRANDFATHER gate's base measurement, over a REAL materialized base tree.
+    // -------------------------------------------------------------------------
+
+    const DEMO_SLICE: &str = "https://blackcatinformatics.ca/gmeow/sliceDemo";
+    const FRESH_SLICE: &str = "https://blackcatinformatics.ca/gmeow/sliceFresh";
+
+    fn shapes_doc(locals: &[&str]) -> String {
+        let mut out =
+            format!("@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix gmeow: <{NS}> .\n");
+        for local in locals {
+            out.push_str(&format!("gmeow:{local} a sh:NodeShape .\n"));
+        }
+        out
+    }
+
+    /// A git repo whose BASE commit carries real ratchet AUTHORING surfaces — a slice
+    /// `shapes.ttl`, a DEEPLY NESTED `mappings/` file, and the repo-level
+    /// `dsl/mappings/` surface — and whose WORKING TREE has deleted every one of them
+    /// and added a brand-new slice directory that never existed at base.
+    fn fixture_with_base_surfaces() -> (GitFixture, String) {
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-basesurf-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = GitFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
+
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(demo_dir.join("mappings/nested")).unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        std::fs::write(
+            demo_dir.join("module.ttl"),
+            format!("@prefix gmeow: <{NS}> .\n"),
+        )
+        .unwrap();
+        std::fs::write(demo_dir.join("shapes.ttl"), shapes_doc(&["BaseA", "BaseB"])).unwrap();
+        std::fs::write(
+            demo_dir.join("mappings/nested/extra.ttl"),
+            shapes_doc(&["BaseC"]),
+        )
+        .unwrap();
+        let dsl_dir = root.join("dsl/mappings");
+        std::fs::create_dir_all(&dsl_dir).unwrap();
+        std::fs::write(dsl_dir.join("transforms.ttl"), shapes_doc(&["BaseD"])).unwrap();
+
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "user.email", "test@example.com"]);
+        git(&root, &["config", "user.name", "Test"]);
+        git(&root, &["config", "commit.gpgsign", "false"]);
+        git(&root, &["add", "-A"]);
+        git(&root, &["commit", "-q", "-m", "base surfaces"]);
+        let out = Command::new("git")
+            .current_dir(&root)
+            .env("HOME", &root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(["rev-parse", "HEAD"])
+            .output()
+            .expect("git rev-parse runs");
+        assert!(out.status.success(), "git rev-parse failed");
+        let base = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+
+        // The WORKING tree keeps nothing of the base authoring surfaces, so any residue
+        // the base measurement reports can only have come out of the materialized base
+        // tree — never out of the files sitting on disk.
+        std::fs::remove_file(demo_dir.join("shapes.ttl")).unwrap();
+        std::fs::remove_dir_all(demo_dir.join("mappings")).unwrap();
+        std::fs::remove_dir_all(&dsl_dir).unwrap();
+        // A brand-new slice directory that does not exist at base at all.
+        let fresh_dir = root.join("slices/demo/fresh");
+        std::fs::create_dir_all(&fresh_dir).unwrap();
+        std::fs::write(fresh_dir.join("manifest.ttl"), "# fresh slice\n").unwrap();
+        std::fs::write(fresh_dir.join("shapes.ttl"), shapes_doc(&["FreshA"])).unwrap();
+
+        (fx, base)
+    }
+
+    fn demo_slices(root: &std::path::Path) -> Vec<(std::path::PathBuf, String)> {
+        vec![
+            (root.join("slices/demo/demo"), DEMO_SLICE.to_owned()),
+            (root.join("slices/demo/fresh"), FRESH_SLICE.to_owned()),
+        ]
+    }
+
+    #[test]
+    fn base_residue_is_read_from_the_materialized_base_tree() {
+        let (fx, base) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        let needed: std::collections::BTreeSet<String> = [
+            DEMO_SLICE.to_owned(),
+            FRESH_SLICE.to_owned(),
+            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+        ]
+        .into_iter()
+        .collect();
+
+        let measured = measure_base_residues(&fx.root, &base, &vocabularies, &needed, &slices)
+            .unwrap()
+            .counts();
+
+        // shapes.ttl (2) + the DEEPLY NESTED mappings file (1) — proving the base tree is
+        // scanned by the very same recursive `ratchet_surface_paths` the working tree uses.
+        assert_eq!(
+            measured
+                .get(&(DEMO_SLICE.to_owned(), "sh".to_owned()))
+                .copied(),
+            Some(3),
+            "{measured:?}"
+        );
+        // The repo-level dsl/mappings surface is measured from the same materialized tree.
+        assert_eq!(
+            measured
+                .get(&(
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                    "sh".to_owned()
+                ))
+                .copied(),
+            Some(1),
+            "{measured:?}"
+        );
+        // A slice directory that does not exist at base contributes NOTHING — the caller
+        // reads that as base residue 0, never as the working tree's freshly-authored 1.
+        assert!(
+            !measured.contains_key(&(FRESH_SLICE.to_owned(), "sh".to_owned())),
+            "{measured:?}"
+        );
+    }
+
+    #[test]
+    fn nothing_needed_does_no_git_work_at_all() {
+        let (fx, _) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        // An unresolvable base ref would hard-fail if git were consulted; with no
+        // implicated slice the whole reconstruction is skipped before that can happen.
+        let measured = measure_base_residues(
+            &fx.root,
+            "0000000000000000000000000000000000000000",
+            &vocabularies,
+            &std::collections::BTreeSet::new(),
+            &slices,
+        )
+        .unwrap();
+        assert!(measured.constructs.is_empty() && measured.tree.is_none());
+    }
+
+    #[test]
+    fn an_unusable_base_ref_hard_fails_rather_than_measuring_zero() {
+        let (fx, _) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        let needed: std::collections::BTreeSet<String> =
+            [DEMO_SLICE.to_owned()].into_iter().collect();
+        assert!(
+            measure_base_residues(
+                &fx.root,
+                "0000000000000000000000000000000000000000",
+                &vocabularies,
+                &needed,
+                &slices,
+            )
+            .is_err(),
+            "a base tree that cannot be materialized must HARD FAIL — a silent residue 0 \
+             would grandfather freshly-authored constructs for free"
+        );
+    }
+}
+
+/// END-TO-END coverage of the RELOCATION-AWARE ceiling accounting, driven through the
+/// real root-parameterized [`slice_quality_gate_at`] against a generated two-state git
+/// repository.
+///
+/// The existing `base_monotonicity_git_tests` harness cannot host these: it declares no
+/// `gmeow:ProjectionVocabulary` individual at all (so every ceiling/residue assertion
+/// there is vacuously green), and it writes each `manifest.ttl` as the literal
+/// `"# rubric slice\n"`, which declares no `gmeow:Slice` — a manifest
+/// [`gmeow_slice_quality::slice_iri_of_dir`] HARD-FAILS on. This module therefore builds
+/// a real fixture repository: a complete rubric (tier ladder, one axis per implemented
+/// primitive, the two dated exemptions the completeness gate demands, and a guarded
+/// `sh` vocabulary registry), real slice manifests declaring real `gmeow:Slice`
+/// individuals, committed ceilings, authored `gmeow:CeilingRelocation` declarations, and
+/// slices carrying genuine residue-producing SHACL triples.
+#[cfg(test)]
+mod relocation_gate_tests {
+    use super::*;
+    use std::process::Command;
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+
+    /// The slice IRI a fixture slice local name resolves to — the on-disk shape every
+    /// real manifest uses, so the gate's joins behave exactly as they do in the repo.
+    fn slice_iri(local: &str) -> String {
+        format!("{NS}slices/{local}")
+    }
+
+    /// The term IRI a fixture shape local name resolves to — the relocation-invariant
+    /// witness anchor the residue counter records for `gmeow:<local> a sh:NodeShape`.
+    fn term_iri(local: &str) -> String {
+        format!("{NS}{local}")
+    }
+
+    /// One fixture slice: its directory under `slices/`, its local name, and the SHACL
+    /// node-shape local names its `shapes.ttl` authors (each one ungrounded residue
+    /// anchored on its own term IRI). A local name of `_` authors an ANONYMOUS
+    /// `[ sh:path … ]` block instead — a blank-subject construct with no named ancestor,
+    /// which is [`gmeow_slice_quality::Witness::NonRelocatable`] and can never witness a
+    /// relocation.
+    #[derive(Clone)]
+    struct SliceSpec {
+        dir: String,
+        local: String,
+        shapes: Vec<String>,
+    }
+
+    impl SliceSpec {
+        fn new(local: &str, shapes: &[&str]) -> Self {
+            Self {
+                dir: format!("demo/{local}"),
+                local: local.to_owned(),
+                shapes: shapes.iter().map(|s| (*s).to_owned()).collect(),
+            }
+        }
+    }
+
+    /// One authored `gmeow:CeilingRelocation` in a fixture rubric.
+    #[derive(Clone)]
+    struct RelocSpec {
+        local: String,
+        terms: Vec<String>,
+        from: String,
+        to: String,
+    }
+
+    impl RelocSpec {
+        fn new(local: &str, terms: &[&str], from: &str, to: &str) -> Self {
+            Self {
+                local: local.to_owned(),
+                terms: terms.iter().map(|s| (*s).to_owned()).collect(),
+                from: from.to_owned(),
+                to: to.to_owned(),
+            }
+        }
+    }
+
+    /// One whole repository state: the slices and their residue, the committed
+    /// `(slice local, ceiling count)` cells, and the authored relocation declarations.
+    #[derive(Clone, Default)]
+    struct State {
+        slices: Vec<SliceSpec>,
+        ceilings: Vec<(String, u64)>,
+        relocations: Vec<RelocSpec>,
+    }
+
+    impl State {
+        fn ceiling(mut self, local: &str, count: u64) -> Self {
+            self.ceilings.push((local.to_owned(), count));
+            self
+        }
+        fn reloc(mut self, spec: RelocSpec) -> Self {
+            self.relocations.push(spec);
+            self
+        }
+    }
+
+    fn state(slices: &[SliceSpec]) -> State {
+        State {
+            slices: slices.to_vec(),
+            ..State::default()
+        }
+    }
+
+    /// A fixture repository whose tree lives in an owned temp directory: dropping the
+    /// fixture drops the [`tempfile::TempDir`], which removes the tree — on success, on
+    /// early return, and while unwinding from a failed assertion alike.
+    struct RepoFixture {
+        _tmp: tempfile::TempDir,
+        root: std::path::PathBuf,
+    }
+
+    fn git(root: &std::path::Path, args: &[&str]) {
+        let out = Command::new("git")
+            .current_dir(root)
+            .env("LC_ALL", "C")
+            .env("HOME", root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(args)
+            .output()
+            .expect("git runs");
+        assert!(
+            out.status.success(),
+            "git {args:?} failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    /// The fixture's `crates/` tree: ONE Rust file defining an item per implemented
+    /// axis primitive, so the gate's axis→producer BINDING gate (which resolves every
+    /// rubric producer to a real Rust item under `<root>/crates`) is satisfied. The two
+    /// exemption producer symbols are deliberately ABSENT so the staleness gate stays
+    /// silent — an exemption whose producer resolved would red.
+    fn producer_stub_source() -> String {
+        let mut out = String::from("// fixture producer stubs\n");
+        for producer in gmeow_slice_quality::axes::IMPLEMENTED {
+            out.push_str(&format!("fn {producer}() {{}}\n"));
+        }
+        out
+    }
+
+    /// A structurally-complete fixture rubric module: a one-rung ladder, one
+    /// `gmeow:QualityAxis` per implemented primitive (each with a `0.0` threshold so
+    /// nothing is floored out), the two dated exemptions the completeness gate demands
+    /// for the unlanded `gmn` / `docs-panels` projection surfaces, the guarded `sh`
+    /// vocabulary registry, and this state's ceiling commitments + relocation
+    /// declarations.
+    fn rubric_module(state: &State) -> String {
+        let mut out = format!(
+            r#"@prefix gmeow: <{NS}> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:thr0 a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
+    gmeow:vocabularyPrefix "sh" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <{LOGIC_SLICE}> ;
+    gmeow:vocabularyOwner <{LOGIC_SLICE}> ;
+    gmeow:vocabularyCountKind "countKindShape" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation gmeow:soundUnder .
+"#
+        );
+        for producer in gmeow_slice_quality::axes::IMPLEMENTED {
+            out.push_str(&format!(
+                "gmeow:axis-{producer} a gmeow:QualityAxis ; gmeow:axisProducer \"{producer}\" ; gmeow:axisDimension gmeow:dimFixture ; gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thr0 .\n"
+            ));
+        }
+        // The two projection surfaces with no landed axis must each carry a dated
+        // exemption naming their producer symbol, or the completeness gate reds.
+        for (local, producer) in [
+            ("exGmn", "GmnProjectionTarget"),
+            ("exPanels", "DocMaturityPanels"),
+        ] {
+            out.push_str(&format!(
+                "gmeow:{local} a gmeow:AxisExemption ; gmeow:exemptsAxis gmeow:axis-grounding_axis ; gmeow:exemptionReason \"the producer is genuinely unlanded in this fixture\" ; gmeow:exemptionDate \"2026-07-28\" ; gmeow:exemptionProducer \"{producer}\" .\n"
+            ));
+        }
+        for (local, count) in &state.ceilings {
+            out.push_str(&format!(
+                "gmeow:pcc-{local}-sh a gmeow:ProjectionCeilingCommitment ; gmeow:ceilingSlice <{}> ; gmeow:ceilingVocabulary gmeow:projVocab-sh ; gmeow:ceilingCount {count} .\n",
+                slice_iri(local)
+            ));
+        }
+        for r in &state.relocations {
+            let terms = r
+                .terms
+                .iter()
+                .map(|t| format!("<{}>", term_iri(t)))
+                .collect::<Vec<_>>()
+                .join(", ");
+            out.push_str(&format!(
+                "gmeow:{} a gmeow:CeilingRelocation ; gmeow:relocationTerm {terms} ; gmeow:relocationFromSlice <{}> ; gmeow:relocationToSlice <{}> ; gmeow:relocationDate \"2026-07-28\" .\n",
+                r.local,
+                slice_iri(&r.from),
+                slice_iri(&r.to)
+            ));
+        }
+        out
+    }
+
+    /// A slice `shapes.ttl` authoring one ungrounded residue construct per local name.
+    fn shapes_doc(shapes: &[String]) -> String {
+        let mut out =
+            format!("@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix gmeow: <{NS}> .\n");
+        for local in shapes {
+            if local == "_" {
+                // A blank subject with no named sh:property/sh:node ancestor — a
+                // NonRelocatable construct that can never witness a relocation.
+                out.push_str("[] sh:path gmeow:anonymousPath .\n");
+            } else {
+                out.push_str(&format!("gmeow:{local} a sh:NodeShape .\n"));
+            }
+        }
+        out
+    }
+
+    /// Write a whole repository state onto `root` (creating every directory).
+    fn write_state(root: &std::path::Path, state: &State) {
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::write(
+            rubric_dir.join("manifest.ttl"),
+            format!(
+                "@prefix gmeow: <{NS}> .\n<{}> a gmeow:Slice .\n",
+                slice_iri("slice-quality-rubric")
+            ),
+        )
+        .unwrap();
+        std::fs::write(rubric_dir.join("module.ttl"), rubric_module(state)).unwrap();
+        std::fs::create_dir_all(root.join("crates")).unwrap();
+        std::fs::write(root.join("crates/producers.rs"), producer_stub_source()).unwrap();
+
+        // Rewrite every demo slice from scratch so a state transition can DELETE a
+        // shape (the departure half of the relocation witness) rather than only add.
+        let demo_root = root.join("slices/demo");
+        let _ = std::fs::remove_dir_all(&demo_root);
+        for s in &state.slices {
+            let dir = root.join("slices").join(&s.dir);
+            std::fs::create_dir_all(&dir).unwrap();
+            std::fs::write(
+                dir.join("manifest.ttl"),
+                format!(
+                    "@prefix gmeow: <{NS}> .\n<{}> a gmeow:Slice .\n",
+                    slice_iri(&s.local)
+                ),
+            )
+            .unwrap();
+            std::fs::write(dir.join("module.ttl"), format!("@prefix gmeow: <{NS}> .\n")).unwrap();
+            std::fs::write(dir.join("shapes.ttl"), shapes_doc(&s.shapes)).unwrap();
+        }
+    }
+
+    /// Build the fixture repository at `base`, commit it, point `origin/main` at the
+    /// commit (the comparand [`resolve_base_ref`] resolves), then overwrite the working
+    /// tree with `working`. Returns the fixture; the caller drives
+    /// [`slice_quality_gate_at`] over `fixture.root`.
+    fn fixture(base: &State, working: &State) -> RepoFixture {
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-reloc-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = RepoFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
+
+        write_state(&root, base);
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "user.email", "test@example.com"]);
+        git(&root, &["config", "user.name", "Test"]);
+        git(&root, &["config", "commit.gpgsign", "false"]);
+        git(&root, &["add", "-A"]);
+        git(&root, &["commit", "-q", "-m", "base"]);
+        // The gate diffs against `git merge-base HEAD origin/main`; in a fixture repo
+        // that ref must exist or the whole comparison is a loud SKIP.
+        git(&root, &["update-ref", "refs/remotes/origin/main", "HEAD"]);
+
+        write_state(&root, working);
+        record_quality_corpus(&root);
+        fx
+    }
+
+    /// Project the recorded quality-assessment corpus into the fixture, exactly as the
+    /// pipeline's DAG-root sweep does.
+    ///
+    /// The gate no longer scores slices itself: it LOADS `graph/quality-assessment` and
+    /// hard-fails when the record is absent or stale (that refusal is the whole warrant
+    /// for reading a record instead of recomputing). A fixture repository therefore has
+    /// to carry the record too, or every scenario below reds on the missing projection
+    /// before it ever reaches the ceiling passes it is testing — and the scenarios that
+    /// EXPECT a non-zero exit would go on passing for entirely the wrong reason.
+    ///
+    /// It is written from [`gmeow_slice_quality::assessment_artifacts`], the same single
+    /// producer the pipeline stage uses, so the fixture record is what the pipeline would
+    /// have written and never a hand-built stand-in. It runs LAST, after the working tree
+    /// is final, because the corpus stamps a freshness fingerprint over the sources it
+    /// scored and the gate recomputes that fingerprint over the tree it finds.
+    fn record_quality_corpus(root: &std::path::Path) {
+        let artifacts =
+            gmeow_slice_quality::assessment_artifacts(root).expect("score the fixture corpus");
+        let recorded = root.join(gmeow_slice_quality::read::RECORDED_CORPUS_PATH);
+        std::fs::create_dir_all(recorded.parent().expect("the corpus path has a parent")).unwrap();
+        std::fs::write(&recorded, artifacts.nquads.as_bytes()).unwrap();
+    }
+
+    /// The two slices every scenario uses: `alpha` (the source) and `beta` (the
+    /// destination).
+    fn alpha(shapes: &[&str]) -> SliceSpec {
+        SliceSpec::new("alpha", shapes)
+    }
+    fn beta(shapes: &[&str]) -> SliceSpec {
+        SliceSpec::new("beta", shapes)
+    }
+
+    fn reloc_s1() -> RelocSpec {
+        RelocSpec::new("relocS1", &["S1"], "alpha", "beta")
+    }
+
+    /// The relocation-aware ceiling comparator's OWN structured verdict for `root` —
+    /// the same sequence [`slice_quality_gate_at`] composes internally
+    /// (`load_repo_rubric` → `score_slices_with_rubric` → `ceilings_from_rubric` /
+    /// `measure_repo_residue_constructs` → `resolve_base_ref` → `measure_base_residues`
+    /// / `derive_edge_reasons` → `projection_ceiling_monotonicity`), called directly
+    /// here so a scenario can assert on its OWN violation message — a bare
+    /// `assert_ne!(slice_quality_gate_at(...), 0, ...)` cannot distinguish "this
+    /// scenario's intended refusal" from an unrelated gate (binding/completeness/coat)
+    /// reddening first, which would leave every one of these fixtures green on the
+    /// assertion while silently exercising nothing.
+    ///
+    /// The comparison itself — base residue measurement, edge-reason derivation,
+    /// default-ceiling projection, and the `projection_ceiling_monotonicity` call —
+    /// is [`ceiling_rebalance`], the SAME function [`slice_quality_gate_at`] calls in
+    /// production; only the surrounding rubric/score/measure plumbing (identical in
+    /// shape to production, but without its other five checks interleaved) and the
+    /// `needed` pre-filter (every fixture slice, not just the implicated ones) are
+    /// re-composed here.
+    fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRebalance {
+        let rubric = gmeow_slice_quality::load_repo_rubric(root).expect("fixture rubric loads");
+        let vocabularies = &rubric.floors.vocabularies;
+        let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+        let score_results = gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric);
+        let mut slice_dirs: Vec<(&Path, String)> = Vec::with_capacity(dirs.len());
+        for (dir, result) in dirs.iter().zip(&score_results) {
+            let report = result.as_ref().expect("fixture slice scores");
+            slice_dirs.push((dir.as_path(), report.assessment.slice.clone()));
+        }
+        let working_ceilings = ceilings_from_rubric(&rubric);
+        let working_constructs =
+            gmeow_slice_quality::measure_repo_residue_constructs(root, vocabularies)
+                .expect("fixture working residue measures");
+        let working_residues: std::collections::BTreeMap<(String, String), u64> =
+            working_constructs
+                .iter()
+                .map(|(key, constructs)| (key.clone(), constructs.len() as u64))
+                .collect();
+        let base = match resolve_base_ref(root) {
+            BaseRef::Resolved(base) => base,
+            BaseRef::NoUpstream(reason) => panic!("fixture must resolve a base ref: {reason}"),
+            BaseRef::Unresolvable(reason) => panic!("fixture base ref unresolvable: {reason}"),
+        };
+        let declarations = &rubric.floors.relocations;
+        // Every fixture slice — the fixtures are tiny (2-3 slices), so there is no
+        // benefit to the production path's "only implicated slices" pre-filter.
+        let needed: std::collections::BTreeSet<String> =
+            slice_dirs.iter().map(|(_, iri)| iri.clone()).collect();
+        let base_rubric = base_rubric_at(root, &base)
+            .expect("fixture base rubric reads")
+            .expect("fixture base rubric is present (the fixture always commits one)");
+        let base_ceilings = ceilings_from_rubric(&base_rubric);
+        ceiling_rebalance(&RebalanceInputs {
+            root,
+            base: &base,
+            vocabularies,
+            slice_dirs: &slice_dirs,
+            declarations,
+            base_ceilings: &base_ceilings,
+            working_ceilings: &working_ceilings,
+            working_residues: &working_residues,
+            working_constructs: &working_constructs,
+            needed: &needed,
+        })
+        .expect("fixture ceiling rebalance composes")
+    }
+
+    /// Assert `root`'s relocation-aware rebalance carries a violation containing
+    /// `needle` — the scenario's OWN reason, not merely SOME red somewhere.
+    #[track_caller]
+    fn assert_violation_contains(root: &std::path::Path, needle: &str) {
+        let rebalance = rebalance_for(root);
+        assert!(
+            rebalance.violations.iter().any(|v| v.contains(needle)),
+            "expected a violation containing {needle:?}; got: {:#?}",
+            rebalance.violations
+        );
+    }
+
+    #[test]
+    fn declared_witnessed_and_paid_transfer_is_accepted() {
+        // S1 genuinely DEPARTS alpha and ARRIVES at beta; alpha's ceiling falls by
+        // exactly one and beta's brand-new ceiling is pinned to its measured residue.
+        // The base ceiling is re-projected through the declared relocation and the
+        // unchanged lower-only comparison then holds — the gate is green.
+        let base = state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 3);
+        let working = state(&[alpha(&["S2", "S3"]), beta(&["S1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_eq!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a declared, witnessed, funded, and pinned transfer must be accepted"
+        );
+    }
+
+    #[test]
+    fn a_copy_rather_than_a_move_is_rejected() {
+        // S1 is COPIED: it stays in alpha AND appears in beta — two second sources of
+        // truth, strictly worse than one. Nothing departed, so the departure half of
+        // the witness is empty and the raise is unwitnessed. Alpha's ceiling is
+        // unchanged (nothing left it), so nothing funds beta either.
+        let base = state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 3);
+        let working = state(&[alpha(&["S1", "S2", "S3"]), beta(&["S1"])])
+            .ceiling("alpha", 3)
+            .ceiling("beta", 1)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a construct COPIED into a second slice must never be netted as a transfer"
+        );
+        // The SPECIFIC refusal: the declaration names S1 but NONE of it departed
+        // alpha — a fixture drift that reds some unrelated gate first would still
+        // pass the exit-code check above without ever exercising this reason.
+        assert_violation_contains(
+            &fx.root,
+            &format!("but NONE of them departed {}", slice_iri("alpha")),
+        );
+    }
+
+    #[test]
+    fn a_lowering_with_no_shared_key_is_rejected() {
+        // S3 genuinely DEPARTS alpha (so the declaration itself is corroborated) and
+        // alpha's ceiling duly falls by one — but what beta gained is S9, freshly
+        // authored there, not S3. `departed(alpha) ∩ arrived(beta)` is empty, so the
+        // edge carries no capacity and beta's raise is unwitnessed.
+        let base = state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 3);
+        let working = state(&[alpha(&["S1", "S2"]), beta(&["S9"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1)
+            .reloc(RelocSpec::new("relocS3", &["S3"], "alpha", "beta"));
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a lowering that shares no witnessed key with the raise funds nothing"
+        );
+        // The SPECIFIC refusal: S9 arrived at beta but no declaration covers IT
+        // (the declaration names S3, which never arrived anywhere).
+        assert_violation_contains(
+            &fx.root,
+            &format!(
+                "undeclared: term {} moved but no relocation declaration covers it",
+                term_iri("S9")
+            ),
+        );
+    }
+
+    #[test]
+    fn lowering_stale_headroom_buys_nothing() {
+        // Alpha's committed ceiling is 9 against a measured residue of 3 — six units of
+        // DEAD headroom. It lowers to 2 (a five-unit drop) while only ONE construct
+        // actually departed, so the supply clamp (`min(lowering, |departed ∩ declared|)`)
+        // caps the credit at one. Beta asks for three (S1 arrived plus two freshly
+        // authored), so two units are unpaid.
+        let base = state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 9);
+        let working = state(&[alpha(&["S2", "S3"]), beta(&["S1", "N1", "N2"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 3)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "lowering dead headroom surrenders no authoring and must never buy live headroom"
+        );
+        // The SPECIFIC refusal: only ONE of the THREE units beta asks for is
+        // witnessed (the supply clamp caps the credit at the one construct that
+        // actually departed alpha).
+        assert_violation_contains(&fx.root, "unwitnessed: 1 of 3");
+    }
+
+    #[test]
+    fn a_raise_not_pinned_to_measured_is_rejected() {
+        // The transfer is fully witnessed and fully funded — S1 departs alpha, arrives
+        // at beta, and alpha's ceiling falls by exactly one — but beta ALSO deletes two
+        // of its own pre-existing constructs and commits 4 against a measured residue
+        // of 2. The flow saturates, the aggregate total is unchanged (6 → 6), and the
+        // ONLY thing wrong is that the relocation banked two units of durable surplus
+        // headroom, spendable forever with no witness.
+        let base = state(&[alpha(&["S1", "A2", "A3"]), beta(&["B1", "B2", "B3"])])
+            .ceiling("alpha", 3)
+            .ceiling("beta", 3);
+        let working = state(&[alpha(&["A2", "A3"]), beta(&["S1", "B1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 4)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a raised ceiling must equal the destination's measured residue"
+        );
+        // The SPECIFIC refusal: the transfer is fully witnessed and fully funded
+        // (demand is satisfied, residual 0) — the ONLY thing wrong is the pin.
+        assert_violation_contains(&fx.root, "is not pinned to its measured residue");
+    }
+
+    #[test]
+    fn an_undeclared_move_is_rejected() {
+        // Exactly the accepted scenario with the gmeow:CeilingRelocation deleted: the
+        // witness alone authorizes nothing, because the declaration is a MAINTAINER
+        // decision the tool never writes.
+        let base = state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 3);
+        let working = state(&[alpha(&["S2", "S3"]), beta(&["S1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1);
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "an undeclared move authorizes no adjustment — the tool never writes the declaration"
+        );
+        // The SPECIFIC refusal: S1 genuinely arrived at beta, but no declaration
+        // names it — the witness alone authorizes nothing.
+        assert_violation_contains(
+            &fx.root,
+            &format!(
+                "undeclared: term {} moved but no relocation declaration covers it",
+                term_iri("S1")
+            ),
+        );
+    }
+
+    #[test]
+    fn a_stale_declaration_is_rejected() {
+        // S1 already sits at beta on BOTH sides and nothing departs alpha: the
+        // relocation is fully ABSORBED at the merge base. The declaration is dead and
+        // must red until deleted, or declarations accumulate into standing permits.
+        let base = state(&[alpha(&["S2", "S3"]), beta(&["S1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1);
+        let working = state(&[alpha(&["S2", "S3"]), beta(&["S1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a declaration whose relocation is fully absorbed at base is dead and must red"
+        );
+        // The SPECIFIC refusal: staleness, named as such — never conflated with an
+        // ordinary unwitnessed/unpaid shortfall.
+        assert_violation_contains(&fx.root, "stale-declaration");
+        assert_violation_contains(&fx.root, "fully ABSORBED at the merge base");
+    }
+
+    #[test]
+    fn a_blank_subject_construct_cannot_witness_a_relocation() {
+        // S1 genuinely DEPARTS alpha (the declaration is corroborated on its source
+        // side) and alpha's ceiling falls by one — but what beta actually gained is an
+        // anonymous `[ sh:path … ]` block: a blank subject with no named
+        // sh:property/sh:node ancestor, hence NO cross-view identity at all. It can
+        // never be the arrival half of a witness, so beta's raise is unwitnessed and
+        // the refusal says so by name.
+        let base = state(&[alpha(&["S1", "_"]), beta(&[])]).ceiling("alpha", 2);
+        let working = state(&[alpha(&["_"]), beta(&["_"])])
+            .ceiling("alpha", 1)
+            .ceiling("beta", 1)
+            .reloc(reloc_s1());
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a blank-subject construct with no named anchor has no cross-view identity"
+        );
+        // The SPECIFIC refusal: named as non-relocatable, not merely "unwitnessed"
+        // (which would also be true, but would not name WHY).
+        assert_violation_contains(&fx.root, "non-relocatable: 1 blank-subject construct");
+    }
+
+    #[test]
+    fn one_source_cannot_fund_two_destinations() {
+        // The exact case a per-destination GREEDY sum gets wrong. Alpha lowers by
+        // THREE, and the three constructs it lost landed in BOTH beta and gamma, each
+        // of which raises by three. Every arrival at both destinations is genuinely
+        // witnessed (each key departed alpha and arrived there), so a greedy
+        // per-destination accounting sees `witnessed >= demand` twice and accepts both
+        // — then the aggregate conservation check reds with "Σ increased", a verdict
+        // that contradicts its own audit lines and names no culprit.
+        //
+        // The transport solution instead saturates ONE destination, refuses the other,
+        // names the blocking edge, and prints the residual demand.
+        let base = state(&[
+            alpha(&["S1", "S2", "S3", "A4"]),
+            beta(&[]),
+            SliceSpec::new("gamma", &[]),
+        ])
+        .ceiling("alpha", 4);
+        let working = state(&[
+            alpha(&["A4"]),
+            beta(&["S1", "S2", "S3"]),
+            SliceSpec::new("gamma", &["S1", "S2", "S3"]),
+        ])
+        .ceiling("alpha", 1)
+        .ceiling("beta", 3)
+        .ceiling("gamma", 3)
+        .reloc(RelocSpec::new(
+            "relocBeta",
+            &["S1", "S2", "S3"],
+            "alpha",
+            "beta",
+        ))
+        .reloc(RelocSpec::new(
+            "relocGamma",
+            &["S1", "S2", "S3"],
+            "alpha",
+            "gamma",
+        ));
+        let fx = fixture(&base, &working);
+        assert_ne!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "one three-unit lowering can fund exactly one three-unit arrival, never two"
+        );
+        // The SPECIFIC refusal: the transport solution names the BLOCKING edge (the
+        // destination its single source could not also fund) — never the
+        // aggregate-conservation "Σ increased" verdict a greedy per-destination sum
+        // would produce instead.
+        assert_violation_contains(&fx.root, "blocking edge");
+    }
+
+    #[test]
+    fn a_relocation_into_a_brand_new_cell_passes_the_grandfather_gate() {
+        // The destination cell has NO committed ceiling at base at all, so the path the
+        // raise actually takes is invariant 3 (the grandfather gate), not the
+        // monotonicity comparator. The same declaration, witness, and flow apply — a
+        // rule that held at one ceiling gate and not the other would not be a rule.
+        // (This is the accepted scenario stated from the grandfather side, with TWO
+        // terms moving so the transported amount is more than a single unit.)
+        let base = state(&[alpha(&["S1", "S4", "S2"]), beta(&[])]).ceiling("alpha", 3);
+        let working = state(&[alpha(&["S2"]), beta(&["S1", "S4"])])
+            .ceiling("alpha", 1)
+            .ceiling("beta", 2)
+            .reloc(RelocSpec::new("relocPair", &["S1", "S4"], "alpha", "beta"));
+        let fx = fixture(&base, &working);
+        assert_eq!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "the grandfather gate honours the same relocation adjustment the monotonicity comparator does"
+        );
+    }
+
+    #[test]
+    fn a_legitimate_grandfathered_addition_is_not_red_by_the_conservation_check() {
+        // The workflow the ratchet documentation advertises: a slice with PRE-EXISTING
+        // residue commits a matching ceiling for the first time. Nothing moved and no
+        // declaration exists; the addition is governed by invariant 3 alone. An
+        // UNSCOPED Σ would rise here and false-red — the conservation check is scoped
+        // to base ∩ working precisely so it does not.
+        let base = state(&[alpha(&["S1", "S2"]), beta(&["B1"])]).ceiling("alpha", 2);
+        let working = state(&[alpha(&["S1", "S2"]), beta(&["B1"])])
+            .ceiling("alpha", 2)
+            .ceiling("beta", 1);
+        let fx = fixture(&base, &working);
+        assert_eq!(
+            slice_quality_gate_at(&fx.root),
+            0,
+            "a new ceiling grandfathering pre-existing base residue is exactly what invariant 3 permits"
+        );
+    }
+
+    #[test]
+    fn an_empty_declaration_set_reproduces_the_pre_relocation_behaviour() {
+        // With no gmeow:CeilingRelocation anywhere, inflow is identically zero and the
+        // rule degenerates to the original comparator. A hold is clean; a bare raise on
+        // a shared key reds; a lowering is clean.
+        let base = state(&[alpha(&["S1", "S2"]), beta(&[])]).ceiling("alpha", 2);
+        let held = fixture(
+            &base,
+            &state(&[alpha(&["S1", "S2"]), beta(&[])]).ceiling("alpha", 2),
+        );
+        assert_eq!(
+            slice_quality_gate_at(&held.root),
+            0,
+            "holding a ceiling is clean with no declarations"
+        );
+
+        let lowered_base = state(&[alpha(&["S1", "S2"]), beta(&[])]).ceiling("alpha", 2);
+        let lowered = fixture(
+            &lowered_base,
+            &state(&[alpha(&["S1"]), beta(&[])]).ceiling("alpha", 1),
+        );
+        assert_eq!(
+            slice_quality_gate_at(&lowered.root),
+            0,
+            "lowering a ceiling to the new measured residue is clean with no declarations"
+        );
+
+        let raised_base = state(&[alpha(&["S1", "S2"]), beta(&[])]).ceiling("alpha", 2);
+        let raised = fixture(
+            &raised_base,
+            &state(&[alpha(&["S1", "S2", "S3"]), beta(&[])]).ceiling("alpha", 3),
+        );
+        assert_ne!(
+            slice_quality_gate_at(&raised.root),
+            0,
+            "a bare raise on a shared key still reds with no declarations — unchanged behaviour"
+        );
+    }
 }
 
 /// End-to-end coverage of the ratchet gate's floor ENFORCEMENT after the
@@ -2622,5 +4899,352 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
             0,
             "the real-repo slice-quality gate must stay green after the governance-source widening"
         );
+    }
+}
+
+/// The BELOW-FLOOR DIAGNOSTIC: when an axis measures under its committed floor, the
+/// gate must print that axis's per-term advisories, not only the one-line aggregate.
+///
+/// The fixture forces a demo slice under a 1.0 floor on two axes at once —
+/// `axisProseQuality` (a definition with no boundary, an example that is not a worked
+/// triple) and `axisTranslationCoverage` (no catalogs at all) — and asserts the
+/// LEDGER PROJECTION the gate prints names the offending term IRI, the uncovered
+/// `(term, predicate)` pairs with their reasons, and carries the ledger identity
+/// (`finding_iri` + anchor + antecedents) without which a reasoner pass over the
+/// finding graph could not join it.
+#[cfg(test)]
+mod axis_floor_diagnostics_tests {
+    use super::*;
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    /// A fixture repo whose tree lives in an owned temp directory: dropping the fixture
+    /// drops the [`tempfile::TempDir`], which removes the tree — on success, on early
+    /// return, and while unwinding from a failed assertion alike.
+    struct TempFixture {
+        _tmp: tempfile::TempDir,
+        root: std::path::PathBuf,
+    }
+
+    /// A fixture repo whose demo slice measures BELOW a 1.0 floor on both
+    /// `axisProseQuality` and `axisTranslationCoverage`.
+    fn fixture_below_two_floors() -> (TempFixture, std::path::PathBuf) {
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-axis-diag-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(
+            rubric_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisProseQuality a gmeow:QualityAxis ;
+    gmeow:axisProducer "prose_axis" ;
+    gmeow:axisDimension gmeow:dimProse ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrProse .
+gmeow:thrProse a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+gmeow:axisTranslationCoverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "translation_axis" ;
+    gmeow:axisDimension gmeow:dimTranslation ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrTranslation .
+gmeow:thrTranslation a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+gmeow:afc-demo-prose a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisProseQuality ;
+    gmeow:floorValue 1.0 .
+gmeow:afc-demo-translation a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisTranslationCoverage ;
+    gmeow:floorValue 1.0 .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            rubric_dir.join("manifest.ttl"),
+            format!("@prefix gmeow: <{NS}> .\ngmeow:sliceRubric a gmeow:Slice .\n"),
+        )
+        .unwrap();
+        // The demo term: a TBox class whose definition draws NO boundary and whose
+        // example is prose rather than a worked triple, with three localizable prose
+        // literals and no `i18n/` catalogs at all.
+        std::fs::write(
+            demo_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+gmeow:DemoThing a owl:Class ;
+    rdfs:isDefinedBy gmeow:sliceDemo ;
+    rdfs:label "Demo Thing"@x-gmeow-english ;
+    skos:definition "A demo thing that exists in the demo slice."@x-gmeow-english ;
+    skos:example "see the demo documentation for usage"@x-gmeow-english .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            demo_dir.join("manifest.ttl"),
+            format!("@prefix gmeow: <{NS}> .\ngmeow:sliceDemo a gmeow:Slice .\n"),
+        )
+        .unwrap();
+        (
+            TempFixture {
+                _tmp: tmp,
+                root: root.clone(),
+            },
+            demo_dir,
+        )
+    }
+
+    /// Score the fixture demo slice and project the below-floor advisories for one
+    /// axis exactly as the gate's `MeasuredBelowFloor` arm does.
+    fn advisory_report_for(
+        root: &std::path::Path,
+        demo_dir: &std::path::Path,
+        axis_local: &str,
+    ) -> (f64, gmeow_errors::Report) {
+        let rubric = gmeow_slice_quality::load_repo_rubric(root).unwrap();
+        let mut reports = gmeow_slice_quality::score_slices_with_rubric(
+            root,
+            std::slice::from_ref(&demo_dir.to_path_buf()),
+            &rubric,
+        );
+        let report = reports.remove(0).unwrap();
+        let grade = report
+            .assessment
+            .grades
+            .iter()
+            .find(|g| axis_local_name(&g.axis_iri) == axis_local)
+            .expect("the fixture rubric grades the axis");
+        let advisories = report.advisories_for_axis(&grade.axis_iri);
+        assert!(
+            !advisories.is_empty(),
+            "{axis_local} scored {} yet produced no advisory to print",
+            grade.score
+        );
+        (
+            grade.score,
+            axis_floor_advisory_report(&report.assessment.slice, axis_local, &advisories),
+        )
+    }
+
+    #[test]
+    fn a_below_floor_prose_axis_prints_the_offending_term_iris() {
+        let (fx, demo_dir) = fixture_below_two_floors();
+        let (score, report) = advisory_report_for(&fx.root, &demo_dir, "axisProseQuality");
+        assert!(
+            gmeow_slice_quality::gate::evaluate_axis_floor(score, 1.0).is_failure(),
+            "the fixture must sit below the 1.0 prose floor, measured {score}"
+        );
+
+        let messages: Vec<&str> = report.findings.iter().map(|f| f.message.as_str()).collect();
+        let joined = messages.join("\n");
+        assert!(
+            joined.contains(&format!("{NS}DemoThing")),
+            "the printed advisories must NAME the offending term IRI; got:\n{joined}"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "slice-quality.prose.definition-no-boundary"),
+            "the no-boundary advisory must survive into the printed report:\n{joined}"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "slice-quality.prose.example-not-triple"),
+            "the not-a-worked-triple advisory must survive into the printed report:\n{joined}"
+        );
+
+        // Ledger identity: every printed witness carries a content-addressed finding
+        // IRI and its ANCHOR term. A hand-built Finding would carry neither and could
+        // not be joined by a reasoner pass over the finding graph (it derives DARK).
+        for finding in &report.findings {
+            if finding.code.starts_with("slice-quality.prose.") {
+                assert!(
+                    finding.finding_iri.is_some(),
+                    "{} was not minted through the ledger",
+                    finding.code
+                );
+                assert_eq!(
+                    finding.documented_terms,
+                    vec![format!("{NS}DemoThing")],
+                    "{} lost its anchor term",
+                    finding.code
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_below_floor_translation_axis_prints_each_uncovered_pair_with_its_reason() {
+        let (fx, demo_dir) = fixture_below_two_floors();
+        let (score, report) = advisory_report_for(&fx.root, &demo_dir, "axisTranslationCoverage");
+        assert!(
+            gmeow_slice_quality::gate::evaluate_axis_floor(score, 1.0).is_failure(),
+            "the fixture must sit below the 1.0 translation floor, measured {score}"
+        );
+
+        let uncovered: Vec<&gmeow_errors::Finding> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "slice-quality.translation.uncovered-literal")
+            .collect();
+        let joined = report
+            .findings
+            .iter()
+            .map(|f| f.message.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        // Three authored prose literals × two target languages: every one of them is
+        // named individually, with a reason, not folded into a bare count.
+        assert_eq!(
+            uncovered.len(),
+            6,
+            "every uncovered (term, predicate) in every target language must be named:\n{joined}"
+        );
+        for predicate in [
+            "http://www.w3.org/2000/01/rdf-schema#label",
+            "http://www.w3.org/2004/02/skos/core#definition",
+            "http://www.w3.org/2004/02/skos/core#example",
+        ] {
+            assert!(
+                uncovered
+                    .iter()
+                    .any(|f| f.message.contains(&format!("({NS}DemoThing, {predicate})"))),
+                "the uncovered pair for {predicate} must be named:\n{joined}"
+            );
+        }
+        assert!(
+            uncovered
+                .iter()
+                .all(|f| f.message.contains("no catalog entry for this literal")),
+            "each uncovered literal must carry its REASON:\n{joined}"
+        );
+
+        // Ledger identity again, plus the witness ANTECEDENT edge: the uncovered
+        // literal's msgctxt is interned as its own node and the advisory derives from
+        // it, so the DAG walks from the failing axis down to the exact catalog key.
+        for finding in &uncovered {
+            assert!(finding.finding_iri.is_some(), "not minted via the ledger");
+            assert_eq!(finding.documented_terms, vec![format!("{NS}DemoThing")]);
+            assert_eq!(
+                finding.antecedents.len(),
+                1,
+                "the uncovered literal's msgctxt must be an ANTECEDENT node"
+            );
+        }
+        let witnesses: Vec<&gmeow_errors::Finding> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == AXIS_ADVISORY_WITNESS_CODE)
+            .collect();
+        assert!(
+            witnesses.iter().any(|f| f
+                .message
+                .contains("http://www.w3.org/2004/02/skos/core#definition")),
+            "the msgctxt witness node must be interned and printed:\n{joined}"
+        );
+    }
+
+    #[test]
+    fn the_per_literal_list_is_capped_but_never_silently_truncated() {
+        // The cap is a rendering bound; the remainder must be STATED. Build a slice
+        // with more uncovered literals than the cap and assert the explicit tail.
+        let tmp = tempfile::Builder::new()
+            .prefix("gmeow-axis-diag-cap-")
+            .tempdir()
+            .expect("create temp dir");
+        let root = tmp.path().to_path_buf();
+        let fx = TempFixture {
+            _tmp: tmp,
+            root: root.clone(),
+        };
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(
+            rubric_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisTranslationCoverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "translation_axis" ;
+    gmeow:axisDimension gmeow:dimTranslation ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrTranslation .
+gmeow:thrTranslation a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            rubric_dir.join("manifest.ttl"),
+            format!("@prefix gmeow: <{NS}> .\ngmeow:sliceRubric a gmeow:Slice .\n"),
+        )
+        .unwrap();
+        let mut module = format!(
+            "@prefix gmeow: <{NS}> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n"
+        );
+        // 2 prose literals per term × 15 terms = 30 uncovered literals per language,
+        // comfortably over the cap.
+        for i in 0..15 {
+            module.push_str(&format!(
+                "gmeow:DemoThing{i} a owl:Class ;\n    rdfs:isDefinedBy gmeow:sliceDemo ;\n    rdfs:label \"Demo Thing {i}\"@x-gmeow-english ;\n    skos:definition \"A demo thing number {i} that exists.\"@x-gmeow-english .\n"
+            ));
+        }
+        std::fs::write(demo_dir.join("module.ttl"), module).unwrap();
+        std::fs::write(
+            demo_dir.join("manifest.ttl"),
+            format!("@prefix gmeow: <{NS}> .\ngmeow:sliceDemo a gmeow:Slice .\n"),
+        )
+        .unwrap();
+
+        let (_score, report) = advisory_report_for(&fx.root, &demo_dir, "axisTranslationCoverage");
+        let listed = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "slice-quality.translation.uncovered-literal")
+            .count();
+        assert_eq!(
+            listed,
+            2 * gmeow_slice_quality::axes::UNCOVERED_LITERAL_CAP,
+            "each language lists exactly the cap"
+        );
+        let tail: Vec<&gmeow_errors::Finding> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "slice-quality.translation.uncovered-literal-truncated")
+            .collect();
+        assert_eq!(tail.len(), 2, "one explicit tail per language");
+        for finding in tail {
+            assert!(
+                finding.message.contains(&format!(
+                    "… and {} more",
+                    30 - gmeow_slice_quality::axes::UNCOVERED_LITERAL_CAP
+                )),
+                "the truncated remainder must be stated exactly: {}",
+                finding.message
+            );
+        }
     }
 }

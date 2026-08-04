@@ -33,6 +33,7 @@ pub mod llms;
 pub mod maturity;
 pub mod mdbook;
 pub mod model;
+pub mod prose;
 pub mod rdf;
 pub mod render;
 pub mod source_map;

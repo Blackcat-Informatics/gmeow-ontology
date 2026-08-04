@@ -75,6 +75,30 @@ exactly one timescale, realm, and kind.)*
 Open value vocabularies (Principle 9 — never enums): a new calendar is data, not a schema
 change. The calendar slice builds its scheduling machinery atop these.
 
+### gmeow:DayOfWeek and the week cycle
+
+The seven ISO-8601 weekday positions (`gmeow:dayMonday` … `gmeow:daySunday`) are a *closed*
+value vocabulary — closed because ISO 8601 closes it, which is exactly the case Principle 9
+exempts from the open-vocabulary rule. A weekday is a **pattern slot, not a located span**:
+`gmeow:dayMonday` picks out every Monday until an interval, a recurrence, or a frame anchors
+it to one. That is why the class sits beside `gmeow:CalendarSystem` and `gmeow:PeriodType`
+rather than beside the intervals: it is calendar *structure*, not a stretch of timeline.
+
+Each day is documented by what actually distinguishes it — its ISO-8601 ordinal, its role in
+the business-week / weekend partition, and the boundary rule it does or does not carry.
+`gmeow:dayMonday` opens the ISO week and is what an ISO week number counts from;
+`gmeow:dayThursday` is the week's median day and the one that decides which *year* a week
+belongs to (week 1 holds January's first Thursday); `gmeow:daySunday` closes the ISO week
+even though the Gregorian liturgical and North American conventions place it first. A rule
+that says "the start of the week" or "midweek" must therefore name its convention — the days
+themselves stay bare positions.
+
+Two consumers reach this vocabulary. Opening hours in the **organization** slice range
+`gmeow:openingDay` over it; the **calendar** slice's `gmeow:EventSchedule` /
+`gmeow:ScheduleException` recurrence machinery needs the same seven values. `temporal` is
+the right home precisely because `calendar` already depends on it, so both consumers reach
+the days without `calendar` having to depend on `organization`.
+
 ### gmeow:NamedPeriod
 
 A first-class named span — "the Bronze Age", "Q3 FY2026", "the Edo period" — with

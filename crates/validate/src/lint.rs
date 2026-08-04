@@ -683,8 +683,13 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 3. Dangling GMEOW subclass/subproperty targets.
-    for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
+    // 3. Dangling GMEOW subclass/subproperty targets — both the canonical
+    // `logic:subClassOf`/`logic:subPropertyOf` edges and their `rdfs:` projection
+    // (gmeow_ns::subsumption_predicates doctrine; crates/ns/src/lib.rs:106-166).
+    for predicate in gmeow_ns::SUB_CLASS_OF
+        .into_iter()
+        .chain(gmeow_ns::SUB_PROPERTY_OF)
+    {
         let Some(p_id) = ds_iri_id(ds, predicate) else {
             continue;
         };
@@ -705,9 +710,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 4. Comprehensiveness heuristic.
-    let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    if let Some(p_id) = ds_iri_id(ds, rdfs::SUB_CLASS_OF) {
+    // 4. Comprehensiveness heuristic — scan both class-subsumption spellings
+    // (canonical `logic:subClassOf` + projected `rdfs:subClassOf`) into ONE
+    // `parent_to_children` map so a re-authored taxonomy stays visible.
+    let mut parent_to_children: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for predicate in gmeow_ns::SUB_CLASS_OF {
+        let Some(p_id) = ds_iri_id(ds, predicate) else {
+            continue;
+        };
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
             let TermRef::Iri(child) = ds.resolve(q.s) else {
                 continue;
@@ -719,7 +729,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
                 parent_to_children
                     .entry(parent.to_owned())
                     .or_default()
-                    .push(child.to_owned());
+                    .insert(child.to_owned());
             }
         }
     }
@@ -2402,6 +2412,7 @@ mod tests {
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
@@ -2424,6 +2435,54 @@ mod tests {
                 .errors()
                 .iter()
                 .any(|e| e.contains("skos:definition"))
+        );
+    }
+
+    /// G9 canonical-subsumption sweep: a typo'd target reached ONLY over the
+    /// canonical `logic:subClassOf` edge must still be reported dangling — scanning
+    /// `rdfs:subClassOf` alone would silently miss it (crates/ns/src/lib.rs:106-166).
+    #[test]
+    fn dangling_target_seen_via_canonical_logic_subclass_of() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Documented a owl:Class ;\n\
+               rdfs:label \"Documented\" ;\n\
+               skos:definition \"A well-formed term.\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> ;\n\
+               logic:subClassOf gmeow:MissingParent .\n"
+        ));
+        let report = structural_lint_dataset(&store, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("dangling") && e.contains("/gmeow/MissingParent")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    /// G9: the comprehensiveness heuristic's `parent_to_children` map must also see
+    /// subclasses re-authored under the canonical `logic:subClassOf` edge, not only
+    /// the `rdfs:subClassOf` projection.
+    #[test]
+    fn comprehensiveness_heuristic_sees_canonical_logic_subclass_of() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Parent a owl:Class ; rdfs:label \"Parent\" ; skos:definition \"p\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n\
+             gmeow:ChildA a owl:Class ; logic:subClassOf gmeow:Parent .\n\
+             gmeow:ChildB a owl:Class ; logic:subClassOf gmeow:Parent .\n\
+             gmeow:ChildC a owl:Class ; logic:subClassOf gmeow:Parent .\n"
+        ));
+        let report = structural_lint_dataset(&store, &cfg());
+        assert!(
+            report
+                .warnings()
+                .iter()
+                .any(|w| w.contains("/gmeow/Parent") && w.contains("systematic documentation gap")),
+            "warnings: {:?}",
+            report.warnings()
         );
     }
 
