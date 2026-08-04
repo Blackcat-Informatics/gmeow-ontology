@@ -251,7 +251,7 @@ check: ## Synchronize generated outputs, then run the local gate DAG (every task
 heavy: ## CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates lifted off `make check`. Refuses to run outside CI.
 	@# `make check` must fail fast and deterministically on THIS branch's own changes.
 	@# The tasks below fail on breadth instead: a repeat-for-confidence soak, a
-	@# whole-external-corpus recall sweep, and a five-crate release wasm build plus four
+	@# whole-external-corpus recall sweep, and a four-crate release wasm build plus four
 	@# Node execution lanes that SKIP locally whenever the wasm32 target or node is
 	@# absent. Running them per-commit costs every developer minutes of wall clock for a
 	@# signal that does not track the edit under test, so they run once per PR in CI.
@@ -702,7 +702,7 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
 	@# re-vendoring cannot re-pin bytes that never passed parity).
 	@#
-	@# HEAVY, not per-commit: this builds five crates for wasm32 in RELEASE, runs
+	@# HEAVY, not per-commit: this release-builds the four engine crates for wasm32, runs
 	@# wasm-bindgen + wasm-opt over each, and then four Node suites. Its cost is set by
 	@# that breadth, not by the edit under test — and locally it SKIPs outright whenever
 	@# the wasm32 target or node is absent, so on a developer's gate it was frequently a

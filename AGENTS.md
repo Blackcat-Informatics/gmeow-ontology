@@ -248,7 +248,7 @@ without running anything or taking the host gate lock, and
 `CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
 
 `make heavy` is the CI-only companion: the lanes whose runtime is set by breadth
-(a whole-external-corpus recall sweep, five release wasm builds plus four Node
+(a whole-external-corpus recall sweep, four release wasm builds plus four Node
 execution lanes) or by a repeat-for-confidence soak. It refuses to run unless both
 `CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
 on every PR — and each task stays runnable by name (`make wasm-parity`).

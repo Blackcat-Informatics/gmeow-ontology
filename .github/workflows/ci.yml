@@ -597,7 +597,7 @@ jobs:
 
   # === THE CI-ONLY HEAVY LANE (`make heavy`) ===
   # Every task here was lifted OFF the local `make check` DAG because its runtime is
-  # dominated by BREADTH (a whole external corpus, five release wasm builds) or by a
+  # dominated by BREADTH (a whole external corpus, four release wasm builds) or by a
   # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
   # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
   #
