@@ -39,8 +39,8 @@ bundle at full fidelity, and trimmed only at the exit a consumer asks for.
 ## 2. The carrier is the spine
 
 There is **one** internal transport: an in-memory bundle value (the
-`PipelineBundle` carrier, `crates/rdf-core`) threaded through the whole run. It
-holds:
+`PipelineBundle` carrier, defined by the `purrdf` substrate) threaded through the
+whole run. It holds:
 
 - the **dataset** — every named graph the build accumulates (authored default,
   statement layer, import closure, alignments, the reasoned closure, diagnostics,

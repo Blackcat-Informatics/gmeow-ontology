@@ -543,7 +543,7 @@ pub fn run(
 /// life of the [`RunResult`]. The map is total over the consumed stages, so the
 /// retention bound is exact rather than a hand-picked special case: after level `N`, the
 /// stages still holding a live carrier are precisely `{ s : last_consumer_level(s) > N }`
-/// ∪ `{ s : s has no consumer }` — the property [`crate::tests`] pins.
+/// ∪ `{ s : s has no consumer }` — the property `crate::tests` pins.
 ///
 /// Soundness rests on ONE fact: [`exec_stage`] assembles a stage's `StageInput` from
 /// exactly the ids the stage declares in `consumes()`. A stage therefore CANNOT read a

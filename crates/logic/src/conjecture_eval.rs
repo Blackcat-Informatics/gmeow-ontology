@@ -19,6 +19,15 @@
 //! each surface actually calls; both funnel into the same [`evaluate_conjecture_eval`]
 //! core, so neither can drift from the other's verdict.
 //!
+//! [`evaluate_conjecture_eval`]: crate::conjecture_eval::evaluate_conjecture_eval
+//! [`Formula`]: gmeow_logic_compile::ir::Formula
+//! [`parse_candidate_formula`]: crate::conjecture_eval::parse_candidate_formula
+//! [`CONJECTURE_SCENARIO_WORLD`]: crate::conjecture_eval::CONJECTURE_SCENARIO_WORLD
+//! [`rehome_kb_into_scenario`]: crate::conjecture_eval::rehome_kb_into_scenario
+//! [`conjecture_test`]: crate::conjecture::conjecture_test
+//! [`project_conjecture_verdict`]: crate::result_rdf::project_conjecture_verdict
+//! [`conjecture_node_iri`]: crate::result_rdf::conjecture_node_iri
+//!
 //! Nothing here TR-gates, persists, or mutates the caller's KB (isolation is inherent):
 //! it is the pure evaluation core each surface wraps with its own tail.
 

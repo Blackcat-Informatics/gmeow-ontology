@@ -2,6 +2,8 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const bundle_dataset: (a: number, b: number) => [number, number, number, number];
+export const gmn_codebook_digest: () => [number, number];
+export const gmn_validate: (a: number, b: number) => [number, number, number, number];
 export const validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
 export const version: () => [number, number];
 export const __wbindgen_externrefs: WebAssembly.Table;

@@ -22,6 +22,9 @@ gmeow-cli-core = { path = "../cli-core" }
 clap = { version = "4", features = ["derive"] }
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandatory GTS authorship profile: the feedback bundle is an authored GMEOW
+# bundle and uses the one permitted production entry.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The repo-maintenance engines the dev toolchain drives (default features, no python).
 gmeow-pipeline = { path = "../pipeline" }
 gmeow-logic = { path = "../logic" }

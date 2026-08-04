@@ -27,6 +27,6 @@ gmeow-logic = { path = "../logic" }
 # input RDF into the native dataset and serialize the reasoned closure to N-Quads.
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }
-# EXACT pin: the wasm-bindgen CLI that generates the JS bindings must match the
-# library version byte-for-byte or it refuses to run.
-wasm-bindgen = "=0.2.125"
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+wasm-bindgen.workspace = true

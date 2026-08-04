@@ -58,8 +58,11 @@ fn reasoning_graphs_source() -> String {
     read("crates/logic/src/reasoning_graphs.rs")
 }
 
+/// The mandated-profile source. It lives in the `gmeow-gts-profile` LEAF crate, not
+/// in `gmeow-pipeline`: the profile only binds if every bundle author can reach it,
+/// and `gmeow-math` cannot depend on the pipeline (the pipeline depends on math).
 fn gts_profile_source() -> String {
-    read("crates/pipeline/src/gts_profile.rs")
+    read("crates/gts-profile/src/lib.rs")
 }
 
 // ── Makefile target parsing (mirrors make_gate_contract.rs) ────────────────────────
@@ -539,11 +542,11 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let gts_profile = gts_profile_source();
     assert!(
         gts_profile.contains("pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;"),
-        "AC4: gts_profile.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
+        "AC4: the gts-profile leaf must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
     );
     assert!(
         gts_profile.contains("pub fn validate_mandated_frames"),
-        "AC4: gts_profile.rs must keep `validate_mandated_frames`, the function that \
+        "AC4: the gts-profile leaf must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
 
@@ -601,6 +604,7 @@ fn synthetic_gts_with_dcat_query() -> Vec<u8> {
         None,
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(Some(&["zstd-rsyncable".to_string()])),
     )
     .expect("frame the synthetic GTS snapshot")
 }

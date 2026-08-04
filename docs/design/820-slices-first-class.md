@@ -12,6 +12,12 @@ This is a design RFC. No engine code lands with this document; the architecture 
 realized through the staged children S0–S8 below. **S0 (a semantic RFC + crate-layering
 gate) is a mandatory first child.**
 
+> **Historical record.** The RDF-kernel crates this RFC reasons about — `gmeow-rdf-core`,
+> `gmeow-rdf`, `gmeow-rdf-events` — were subsequently extracted into the sibling **`purrdf`**
+> package and no longer exist in this repository; the kernel is consumed here as one exact-pinned
+> dependency. The layering argument is unchanged, but the "core" it names is now an external
+> boundary rather than an in-workspace crate. Current layout: [`crates/README.md`](../../crates/README.md).
+
 ## Context
 
 A **slice** (`slices/<group>/<name>/`) is the authoring and policy unit, but current Rust

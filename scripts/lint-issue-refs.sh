@@ -1,13 +1,13 @@
 #!/bin/sh
 # scripts/lint-issue-refs.sh
 # Reject issue/PR number references of the form #NNN in Rust comments,
-# developer-facing Markdown documentation, and the build surface (Makefiles and
-# shell scripts).
+# developer-facing Markdown documentation, the build surface (Makefiles and shell
+# scripts), and TOML manifests/config.
 #
-# The build surface was added after two references survived indefinitely in the
-# Makefile precisely because nothing scanned it: process-flow information belongs
-# in GitHub, not in the repository, and a rule that is only enforced on some file
-# types is a rule that migrates to the unenforced ones.
+# The build surface and TOML were both added after references survived in them
+# precisely because nothing scanned them: process-flow information belongs in
+# GitHub, not in the repository, and a rule enforced on only some file types is a
+# rule that migrates to the unenforced ones.
 #
 # This script is intentionally POSIX-shell and ripgrep-based so it adds no
 # Python/Rust runtime dependency beyond what the repository already uses.
@@ -94,6 +94,31 @@ if [ "$build_code" -eq 2 ]; then exit 2; fi
 if [ -n "$build_matches" ]; then
     echo "Found issue/PR number references in Makefiles or shell scripts:" >&2
     echo "$build_matches" >&2
+    status=1
+fi
+
+# --- TOML manifests and config -------------------------------------------------
+# Scan Cargo manifests and other repo-authored TOML (mutants.toml,
+# rust-toolchain.toml, ...) for the same banned issue/PR references. Exclude
+# generated artifacts, vendored trees, and GitHub workflow config, mirroring the
+# Markdown section above. Cargo.lock is excluded defensively even though it is
+# not named *.toml and so would not match the glob anyway: it is a machine-written
+# lockfile, never a place to author prose. No other exclusion is needed — unlike
+# Markdown's brand-colour hex codes, no legitimate `#NNN`-shaped content (hex
+# colours, port numbers, etc.) exists in any tracked TOML file today.
+toml_code=0
+toml_matches=$(rg -n -e '#\d{3,}' \
+    --glob '*.toml' \
+    --glob '!Cargo.lock' \
+    --glob '!.github/**' \
+    --glob '!generated/**' \
+    --glob '!vendor/**' \
+    .) || toml_code=$?
+if [ "$toml_code" -eq 2 ]; then exit 2; fi
+
+if [ -n "$toml_matches" ]; then
+    echo "Found issue/PR number references in TOML manifests:" >&2
+    echo "$toml_matches" >&2
     status=1
 fi
 

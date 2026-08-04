@@ -3,16 +3,16 @@
 
 // The offline documentation SPARQL playground controller.
 //
-// Loaded as an ES module only on the playground page. It boots the vendored purrdf
+// Loaded as an ES module only on the playground page. It boots the committed query
 // wasm engine, parses the bundled TriG asset once, runs the reader's SPARQL query
 // entirely in-browser (no server, no network), and renders the result — a table for
 // SELECT/ASK, and a graph with "copy as <format>" transcoding for CONSTRUCT/DESCRIBE.
 //
 // Every path is resolved relative to THIS module's URL, so it works at any site depth
-// and offline (file://): the purrdf bindings sit in ./purrdf/, the RDF asset is
-// ./playground.trig.
+// and offline (file://): the query engine's bindings sit in ./query/, and the
+// playground's own RDF asset is ./playground.trig.
 
-import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
+import init, { Dataset, blake3Hex } from "./query/gmeow_query_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
 import reasonInit, {
   reason as wasmReason,
@@ -38,39 +38,28 @@ const FORMATS = [
 // ── Shared browser-bundle loader ────────────────────────────────────────────
 // The single client entry point every browser surface (SPARQL playground, bundle
 // explorer, validation panels) uses to obtain the queryable ontology — so no
-// surface invents a second fetch/parse path. It boots the purrdf engine once,
-// fetches the object-level core bundle N-Quads, verifies its byte length against
-// the emitted content-address manifest (a truncated or swapped asset is rejected),
-// and returns the parsed Dataset. Iteration order over the returned dataset is
-// stable-sorted by callers so a native↔wasm witness can byte-compare results.
+// surface invents a second fetch/parse path. It boots the engine once, obtains the
+// SHIPPED `gmeow.gts` bundle through the single verified fetch in `fullBundleBytes`
+// (byte length AND the manifest's blake3 content address), and returns the dataset
+// read from it.
+//
+// It reads the BUNDLE, not a flattened `gmeow-core.nq` extract: flattening collapses
+// the named-graph structure and destroys the RDF 1.2 statement layer, so a browser
+// query could not reach either. Reading the bundle keeps every named graph and every
+// quoted triple addressable — information is trimmed only at exit gates, and the
+// playground IS the exit gate.
 let _engineReady = null;
 async function ensureEngine() {
   if (!_engineReady) {
-    _engineReady = init(new URL("./purrdf/gmeow_rdf_wasm_bg.wasm", import.meta.url));
+    _engineReady = init({
+      module_or_path: new URL("./query/gmeow_query_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _engineReady;
 }
 
 export async function loadCoreBundle() {
-  await ensureEngine();
-  const manifest = await (
-    await fetch(new URL("./bundle-manifest.json", import.meta.url))
-  ).json();
-  const nq = await (await fetch(new URL("./gmeow-core.nq", import.meta.url))).text();
-  const expected = manifest["assets/gmeow-core.nq"]?.bytes;
-  const actual = new TextEncoder().encode(nq).length;
-  if (expected === undefined) {
-    throw new Error(
-      "core bundle integrity: manifest is missing the assets/gmeow-core.nq entry — " +
-        "cannot verify the bundle byte length (a missing manifest entry is a hard failure, not a bypass)",
-    );
-  }
-  if (actual !== expected) {
-    throw new Error(
-      `core bundle integrity: expected ${expected} bytes, got ${actual}`,
-    );
-  }
-  return Dataset.parse(nq, "nquads");
+  return Dataset.fromGts(await fullBundleBytes());
 }
 
 /** The URL of the full `gmeow.gts` bundle (the Tier-1 validate surface's shapes
@@ -89,17 +78,69 @@ export function fullBundleUrl() {
 let _validatorReady = null;
 async function ensureValidator() {
   if (!_validatorReady) {
-    _validatorReady = validateInit(
-      new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
-    );
+    _validatorReady = validateInit({
+      module_or_path: new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _validatorReady;
+}
+
+// ONE manifest fetch and ONE integrity rule, shared by every verified asset.
+//
+// Each promise is cached BEFORE the first await, so concurrent callers share one
+// request: caching resolved values afterwards let every caller that arrived during the
+// flight start its own, and the bundle is ~45 MB. The playground, the bundle explorer,
+// the Tier-1 validation panels and the conjecture library all reach their bytes through
+// here, so no surface invents a second fetch, a second parse, or a second integrity rule.
+//
+// Integrity is the manifest's own blake3 content address, not a byte-length comparison:
+// a length check accepts any same-length substitution, which is the substitution worth
+// worrying about. The engine is booted first because it supplies the hash.
+let _manifest = null;
+function bundleManifest() {
+  if (!_manifest) {
+    _manifest = fetch(new URL("./bundle-manifest.json", import.meta.url)).then((r) =>
+      r.json(),
+    );
+  }
+  return _manifest;
+}
+
+async function verifiedAssetBytes(assetPath, url) {
+  await ensureEngine();
+  const entry = (await bundleManifest())[assetPath];
+  if (entry === undefined) {
+    throw new Error(
+      `asset integrity: manifest is missing the ${assetPath} entry — ` +
+        "cannot verify the asset (a missing manifest entry is a hard failure, not a bypass)",
+    );
+  }
+  const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+  if (bytes.length !== entry.bytes) {
+    throw new Error(
+      `asset integrity: ${assetPath} expected ${entry.bytes} bytes, got ${bytes.length}`,
+    );
+  }
+  if (typeof entry.blake3 !== "string") {
+    throw new Error(
+      `asset integrity: manifest records no blake3 content address for ${assetPath} — ` +
+        "refusing to accept the asset on byte length alone",
+    );
+  }
+  const actual = `blake3:${blake3Hex(bytes)}`;
+  if (actual !== entry.blake3) {
+    throw new Error(
+      `asset integrity: ${assetPath} expected ${entry.blake3}, got ${actual} — the ` +
+        "fetched asset is not the one this site was built from",
+    );
+  }
+  return bytes;
 }
 
 let _bundleBytes = null;
 async function fullBundleBytes() {
   if (!_bundleBytes) {
-    _bundleBytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
+    _bundleBytes = verifiedAssetBytes("assets/gmeow.gts", fullBundleUrl());
   }
   return _bundleBytes;
 }
@@ -205,7 +246,9 @@ if (explorerForm) {
 let _reasonReady = null;
 const ensureReasoner = async () => {
   if (!_reasonReady) {
-    _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
+    _reasonReady = reasonInit({
+      module_or_path: new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url),
+    });
   }
   await _reasonReady;
 };
@@ -327,29 +370,14 @@ if (conjectureForm) {
     selectEl.append(opt);
   }
 
-  // Verify the shipped curated demo library is byte-intact against the manifest — the
-  // same integrity discipline `loadCoreBundle` applies (a missing manifest entry or a
-  // byte-length mismatch is a HARD FAILURE, never a silent bypass).
+  // Verify the shipped curated demo library through the SAME verified-fetch helper the
+  // bundle rides (a missing manifest entry, a byte-length mismatch, or a content-address
+  // mismatch is a HARD FAILURE, never a silent bypass).
   const verifyLibrary = async () => {
-    const manifest = await (
-      await fetch(new URL("./bundle-manifest.json", import.meta.url))
-    ).json();
-    const ttl = await (
-      await fetch(new URL("./conjectures.ttl", import.meta.url))
-    ).text();
-    const expected = manifest["assets/conjectures.ttl"]?.bytes;
-    const actual = new TextEncoder().encode(ttl).length;
-    if (expected === undefined) {
-      throw new Error(
-        "conjecture library integrity: manifest is missing the assets/conjectures.ttl " +
-          "entry — cannot verify the demo library (a missing manifest entry is a hard failure)",
-      );
-    }
-    if (actual !== expected) {
-      throw new Error(
-        `conjecture library integrity: expected ${expected} bytes, got ${actual}`,
-      );
-    }
+    await verifiedAssetBytes(
+      "assets/conjectures.ttl",
+      new URL("./conjectures.ttl", import.meta.url),
+    );
   };
 
   // Parse the deterministic verdict N-Triples for the facets the panel renders: the
@@ -451,7 +479,9 @@ if (gmnForm) {
   let _gmnReady = null;
   const ensureGmn = async () => {
     if (!_gmnReady) {
-      _gmnReady = gmnInit(new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url));
+      _gmnReady = gmnInit({
+        module_or_path: new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url),
+      });
     }
     await _gmnReady;
   };
@@ -519,7 +549,12 @@ async function main() {
   await ensureEngine();
 
   setStatus("Loading the ontology…");
-  const trig = await (await fetch(new URL("./playground.trig", import.meta.url))).text();
+  const trig = new TextDecoder().decode(
+    await verifiedAssetBytes(
+      "assets/playground.trig",
+      new URL("./playground.trig", import.meta.url),
+    ),
+  );
   dataset = Dataset.parse(trig, "trig");
   setStatus(`Ready — ${dataset.size} triples loaded. Run a query.`);
 

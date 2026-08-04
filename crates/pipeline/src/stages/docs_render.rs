@@ -1074,7 +1074,7 @@ mod tests {
         // any `.rs`, the only thing `GMEOW_BUILD_FINGERPRINT` folds).
         let has_vendored_asset = files
             .iter()
-            .any(|p| p.ends_with("crates/docs/assets/purrdf/gmeow_rdf_wasm_bg.wasm"));
+            .any(|p| p.ends_with("crates/docs/assets/query/gmeow_query_wasm_bg.wasm"));
         assert!(
             has_vendored_asset,
             "docs_source_files must include the vendored crates/docs/assets/** site assets"
@@ -1085,7 +1085,7 @@ mod tests {
         // interactive preservation-kind is causally downstream of the proven parity — not
         // a decorative gate.
         for witness in [
-            "crates/docs/assets/purrdf/WITNESS.describe.nt",
+            "crates/docs/assets/query/WITNESS.describe.nt",
             "crates/docs/assets/validate/WITNESS.validate.json",
             "crates/docs/assets/reason/WITNESS.reason.nq",
             "crates/docs/assets/gmn/WITNESS.gmn1.txt",

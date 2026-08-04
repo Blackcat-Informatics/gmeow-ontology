@@ -163,7 +163,7 @@ pub fn render_skos_surface_from_axioms(
     .map_err(|e| parse_err(format!("skos-surface: serialize failed: {e}")))?;
     let raw = String::from_utf8(bytes)
         .map_err(|e| parse_err(format!("skos-surface: non-UTF8 serialization: {e}")))?;
-    // purrdf 0.8.x's parallel de-dup serializer does NOT pin its row order across runs
+    // purrdf's parallel de-dup serializer does NOT pin its row order across runs
     // (the order varies with thread scheduling under load). Partition the `@prefix`/
     // `@base` directives from the triple rows and sort each block bytewise so this
     // stage's direct render is a reproducible, byte-stable artifact regardless of thread
@@ -277,7 +277,7 @@ mod tests {
         // `generated/skos/gmeow-skos.ttl` is a git-ignored, pipeline-materialized product:
         // this stage builds the named-graph CONTENT via `render_skos_surface`, and the
         // materializer (the RDF-fanout writer / bundle serializer) writes it back through
-        // purrdf's canonical serializer. purrdf 0.8.x's parallel de-dup serializer does not
+        // purrdf's canonical serializer. purrdf's parallel de-dup serializer does not
         // pin its concrete Turtle/N-Triples surface (prefixing, grouping, and row order vary
         // with thread scheduling), so a byte comparison is not the invariant — the invariant
         // is that the materialized surface carries EXACTLY the triples this stage projects

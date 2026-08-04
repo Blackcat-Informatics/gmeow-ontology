@@ -48,7 +48,7 @@ purrdf.workspace = true
 serde_json = "1"
 # blake3 fingerprints of canonically-sorted engine result rows / answer bindings,
 # the stable verdict-agreement tokens the divergence ledger folds.
-blake3 = "1"
+blake3.workspace = true
 # The R1 pool-quiesce discipline: the MEASURED native run is `install`ed on a
 # single-thread Rayon pool so the engine's parallel work executes on the measuring
 # thread. That makes the thread-local allocation counters (bytes / count / peak-live)
