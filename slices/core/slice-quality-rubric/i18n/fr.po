@@ -1399,7 +1399,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisContextScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1415,7 +1415,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisWeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1431,7 +1431,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1447,7 +1447,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1463,7 +1463,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingVocabulary, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1479,7 +1479,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exemptionDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1495,7 +1495,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorAxis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1511,7 +1511,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1527,7 +1527,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1543,7 +1543,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1559,7 +1559,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdFloor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1575,7 +1575,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1591,7 +1591,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tierRank, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1607,7 +1607,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyCountKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1623,7 +1623,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1639,7 +1639,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1655,7 +1655,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPrefix, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1671,7 +1671,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPreservation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1687,7 +1687,7 @@ msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gme
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularySubsumedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
@@ -1772,6 +1772,154 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:vocabularySubsumedBy, et rien d'autre. Ce n'est pas une définition de gmeow:vocabularySubsumedBy (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceiling relocation — the week cycle, organization to temporal"
+msgstr "relocalisation de plafond — le cycle hebdomadaire, d'organization vers temporal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
+msgstr "Le constat que le vocabulaire de valeurs du cycle hebdomadaire a quitté la tranche organization pour la tranche temporal : gmeow:DayOfWeek et ses sept individus de jour ISO-8601 relèvent de la structure calendaire, et ils ne siégeaient dans organization que parce que gmeow:openingDay avait besoin d'un domaine de valeurs. L'arête de subsomption rdfs gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue est la seule construction gardée que le déplacement emporte : organization cède donc une unité de marge rdfs et temporal reprend exactement cette unité. C'est l'enregistrement de mouvement auquel la comptabilité des plafonds se joint face à la mesure ; il ne vaut pas lui-même autorisation, et il s'éteint dès que le déplacement est absorbé à la base de fusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ceiling Relocation"
+msgstr "Relocalisation de plafond"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dated declaration that a named set of terms MOVED from one slice to another, so the ratchet re-projects the affected cells' merge-base residue ceiling through that move before its lower-only comparison runs. A projection ceiling budgets net-new ungrounded authoring, which is location-independent: carrying a term across a slice boundary shifts residue between two cells without authoring any of it, so the accounting must follow the term rather than punish the destination twice. The declaration authorizes NOTHING by itself — each unit of adjustment must additionally be corroborated by a derived witness (a construct that genuinely departed the source and arrived at the destination) and funded by a matching lowering at the source, and a demand beyond that adjustment still reds. It is NOT a gmeow:ProjectionCeilingCommitment (that pins one cell's committed maximum) and NOT a gmeow:AxisExemption (that stands in for an unlanded producer): it is the movement record the ceiling accounting joins against the measurement."
+msgstr "Une déclaration datée selon laquelle un ensemble nommé de termes A DÉMÉNAGÉ d'une slice vers une autre, de sorte que le cliquet reprojette le plafond de résidu de base de fusion des cellules concernées à travers ce déplacement avant que sa comparaison à baisse seule ne s'exécute. Un plafond de projection budgète l'écriture non ancrée nette-nouvelle, qui est indépendante du lieu : faire traverser une frontière de slice à un terme déplace du résidu entre deux cellules sans en écrire la moindre part, si bien que la comptabilité doit suivre le terme plutôt que pénaliser deux fois la destination. La déclaration n'autorise RIEN par elle-même — chaque unité d'ajustement doit en outre être corroborée par un témoin dérivé (une construction ayant véritablement quitté la source et atteint la destination) et financée par un abaissement correspondant à la source, et une demande au-delà de cet ajustement fait toujours passer la barrière au rouge. Ce n'est PAS un gmeow:ProjectionCeilingCommitment (qui épingle le maximum engagé d'une cellule) et PAS une gmeow:AxisExemption (qui tient lieu d'échappatoire pour un producteur non atterri) : c'est l'enregistrement de mouvement auquel se joint la comptabilité des plafonds face à la mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "Exemple : gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation term"
+msgstr "terme de relocalisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One term IRI a relocation declaration claims moved — NON-FUNCTIONAL, because a migration normally carries a family of terms across together, and at least one is required (a declaration naming none can be corroborated by nothing, so the loader rejects it outright). Each value is matched against the relocation-invariant subject anchor the residue counter records for every construct, so a construct nested under an anonymous block still resolves to the named term that owns it. It is NOT the source or destination slice (those are gmeow:relocationFromSlice and gmeow:relocationToSlice) and NOT a vocabulary reference: it names WHAT moved."
+msgstr "L'IRI d'un terme que la déclaration de relocalisation prétend avoir déplacé — NON FONCTIONNELLE, car une migration transporte normalement toute une famille de termes ensemble, et au moins une valeur est requise (une déclaration n'en nommant aucun ne pourrait être corroborée par rien, si bien que le chargeur la rejette d'emblée). Chaque valeur est confrontée à l'ancre de sujet invariante à la relocalisation que le compteur de résidu enregistre pour chaque construction, de sorte qu'une construction imbriquée sous un bloc anonyme se résout tout de même vers le terme nommé qui la possède. Ce n'est NI la slice source NI la slice de destination (ce sont gmeow:relocationFromSlice et gmeow:relocationToSlice) NI une référence de vocabulaire : elle nomme CE QUI a été déplacé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation from slice"
+msgstr "slice de départ de la relocalisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms DEPARTED — the origin whose committed ceiling must fall by at least the transported amount for the move to be funded. Departure is measured, not asserted: a named term counts as departed only when it sits in this slice's merge-base residue and is gone from its working residue, which is precisely what distinguishes a genuine move from a copy that left the original in place. It is NOT the destination (that is gmeow:relocationToSlice) and NOT the vocabulary owner (that is gmeow:vocabularyOwner): it is the slice that gives the budget up."
+msgstr "La slice que les termes relocalisés ONT QUITTÉE — l'origine dont le plafond engagé doit baisser d'au moins le montant transporté pour que le déplacement soit financé. Le départ est mesuré, non affirmé : un terme nommé ne compte comme parti que lorsqu'il figure dans le résidu de base de fusion de cette slice et a disparu de son résidu de travail, ce qui distingue précisément un véritable déplacement d'une copie ayant laissé l'original en place. Ce n'est PAS la destination (c'est gmeow:relocationToSlice) et PAS le propriétaire du vocabulaire (c'est gmeow:vocabularyOwner) : c'est la slice qui cède le budget."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+msgstr "Exemple : gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation to slice"
+msgstr "slice d'arrivée de la relocalisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms ARRIVED at — the destination whose merge-base ceiling the accounting re-projects upward by exactly the transported amount. Arrival is measured the mirror way to departure: a named term counts as arrived only when it is absent from this slice's merge-base residue and present in its working residue. The destination's committed ceiling must additionally be pinned to its post-move measured residue, so a migration that also deletes pre-existing residue cannot bank the difference as durable surplus. It is NOT the origin (that is gmeow:relocationFromSlice) and NOT gmeow:ceilingSlice (that pins one committed cell): it is the slice that takes the budget on."
+msgstr "La slice que les termes relocalisés ONT ATTEINTE — la destination dont le plafond de base de fusion la comptabilité reprojette à la hausse d'exactement le montant transporté. L'arrivée est mesurée de façon symétrique au départ : un terme nommé ne compte comme arrivé que lorsqu'il est absent du résidu de base de fusion de cette slice et présent dans son résidu de travail. Le plafond engagé de la destination doit en outre être épinglé à son résidu mesuré après le déplacement, afin qu'une migration supprimant en même temps du résidu préexistant ne puisse pas mettre la différence en banque comme un surplus durable. Ce n'est PAS l'origine (c'est gmeow:relocationFromSlice) et PAS gmeow:ceilingSlice (qui épingle une cellule engagée) : c'est la slice qui prend le budget en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+msgstr "Exemple : gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation vocabulary"
+msgstr "vocabulaire de relocalisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single guarded projection vocabulary a relocation declaration is narrowed to — OPTIONAL, and omitting it deliberately widens the declaration to every guarded vocabulary the derived witness corroborates for the same terms, which is the common case because one migrated term usually carries shape, taxonomy, and bridge residue at once. A present value must resolve to a registered gmeow:ProjectionVocabulary; an unresolvable reference would narrow the declaration to nothing and is a load-time failure rather than a silently dead record. It is NOT gmeow:ceilingVocabulary (that names which surface one committed cell caps): it is an optional narrowing of which surfaces this movement record speaks for."
+msgstr "L'unique vocabulaire de projection surveillé auquel une déclaration de relocalisation est restreinte — FACULTATIF, et son omission élargit délibérément la déclaration à tout vocabulaire surveillé que le témoin dérivé corrobore pour les mêmes termes, ce qui est le cas courant car un terme migré porte généralement à la fois du résidu de forme, de taxonomie et de passerelle. Une valeur présente doit se résoudre vers un gmeow:ProjectionVocabulary enregistré ; une référence non résolvable restreindrait la déclaration à rien et constitue un échec au chargement plutôt qu'un enregistrement mort en silence. Ce n'est PAS gmeow:ceilingVocabulary (qui nomme la surface qu'une cellule engagée plafonne) : c'est une restriction facultative des surfaces pour lesquelles cet enregistrement de mouvement parle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation date"
+msgstr "date de relocalisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The date a relocation declaration was minted — the same dating discipline every gmeow:AxisExemption carries, so a movement record that has outlived its move is visible and auditable rather than anonymous. It is NOT an expiry: what retires the declaration is the staleness rule, which reds once the relocation is fully absorbed at the merge base (the named terms sit at the destination on both sides), not the passage of time. It is NOT gmeow:exemptionDate (that stamps an unlanded-producer escape): it stamps a movement."
+msgstr "La date à laquelle une déclaration de relocalisation a été frappée — la même discipline de datation que porte chaque gmeow:AxisExemption, de sorte qu'un enregistrement de mouvement ayant survécu à son propre déplacement reste visible et auditable plutôt qu'anonyme. Ce n'est PAS une expiration : ce qui retire la déclaration est la règle de péremption, qui fait passer la barrière au rouge une fois la relocalisation entièrement absorbée à la base de fusion (les termes nommés siègent des deux côtés à la destination), et non l'écoulement du temps. Ce n'est PAS gmeow:exemptionDate (qui horodate une échappatoire de producteur non atterri) : elle horodate un mouvement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+msgstr "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationDate is functional"
+msgstr "relocationDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationDate is functional: each gmeow:CeilingRelocation is stamped with exactly one minting date, so a second date would leave an audit of movement records by age unable to say when the relocation was actually declared. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relocationDate est fonctionnelle : chaque gmeow:CeilingRelocation est horodatée d'exactement une date de frappe, de sorte qu'une seconde date empêcherait un audit des enregistrements de mouvement par ancienneté de dire quand la relocalisation a réellement été déclarée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+msgstr "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationDate and nothing else. It is not a definition of gmeow:relocationDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relocationDate, et rien d'autre. Ce n'est pas une définition de gmeow:relocationDate (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationFromSlice is functional"
+msgstr "relocationFromSlice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationFromSlice is functional: each gmeow:CeilingRelocation describes exactly one transport edge, so a second origin would leave the ceiling accounting unable to decide whose committed ceiling has to fall to fund the move. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relocationFromSlice est fonctionnelle : chaque gmeow:CeilingRelocation décrit exactement une arête de transport, de sorte qu'une seconde origine laisserait la comptabilité des plafonds incapable de décider quel plafond engagé doit baisser pour financer le déplacement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+msgstr "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationFromSlice and nothing else. It is not a definition of gmeow:relocationFromSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relocationFromSlice, et rien d'autre. Ce n'est pas une définition de gmeow:relocationFromSlice (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationToSlice is functional"
+msgstr "relocationToSlice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationToSlice is functional: each gmeow:CeilingRelocation re-projects the merge-base ceiling of exactly one destination cell family, so a second destination would let one witnessed departure be counted as arriving in two places at once. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relocationToSlice est fonctionnelle : chaque gmeow:CeilingRelocation reprojette le plafond de base de fusion d'exactement une famille de cellules de destination, de sorte qu'une seconde destination permettrait à un seul départ constaté d'être compté comme arrivant à deux endroits à la fois. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+msgstr "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationToSlice and nothing else. It is not a definition of gmeow:relocationToSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relocationToSlice, et rien d'autre. Ce n'est pas une définition de gmeow:relocationToSlice (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationVocabulary is functional"
+msgstr "relocationVocabulary est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationVocabulary is functional: a gmeow:CeilingRelocation is either unnarrowed or narrowed to exactly one guarded surface, so a second vocabulary would be an ambiguous half-narrowing neither the widened nor the scoped reading could resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relocationVocabulary est fonctionnelle : un gmeow:CeilingRelocation est soit non restreint, soit restreint à exactement une surface surveillée, de sorte qu'un second vocabulaire constituerait une restriction ambiguë à moitié faite, que ni la lecture élargie ni la lecture ciblée ne pourrait résoudre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+msgstr "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationVocabulary and nothing else. It is not a definition of gmeow:relocationVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:relocationVocabulary, et rien d'autre. Ce n'est pas une définition de gmeow:relocationVocabulary (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|rdfs:label"
 msgid "assessment axis"

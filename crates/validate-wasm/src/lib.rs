@@ -182,7 +182,7 @@ pub fn validate(
 }
 
 /// Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
-/// in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+/// in-browser RDF engine (gmeow-query-wasm) can parse and query the SAME
 /// bundle the pipeline shipped — the browser source of truth for the documentation
 /// playground and bundle explorer, replacing any second curated data path.
 ///

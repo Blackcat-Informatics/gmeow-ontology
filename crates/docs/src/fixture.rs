@@ -415,6 +415,7 @@ const HASHED_CRATE_ROOTS: &[&str] = &[
     "cost-measure",
     "docs",
     "errors",
+    "gts-profile",
     "lang-bridge",
     "lang-form",
     "license",
@@ -423,6 +424,7 @@ const HASHED_CRATE_ROOTS: &[&str] = &[
     "math",
     "math-lift",
     "ns",
+    "query-wasm",
     "term-arena",
     "validate",
 ];

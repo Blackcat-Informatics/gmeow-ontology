@@ -33,7 +33,7 @@ tokenizers = { version = "0.22", default-features = false, features = ["fancy-re
 # blake3 verifies each vendored/fetched tokenizer asset against its committed pin — the
 # SAME digest primitive the GMN codebook Merkle root folds with, so a corrupted vendored
 # file or a drifted fetch is a HARD FAIL, never silently tokenized.
-blake3 = "1"
+blake3.workspace = true
 # The GMN-0 → GMN-1 codec, the pinned glyph registry, and the Turtle/JSON-LD
 # serializers all come from the ONE canonical lang bridge — the matrix runs the five
 # tokenizer families over the SAME emitted GMN / Turtle / JSON-LD bytes the on-gate

@@ -2171,14 +2171,19 @@ pub fn logic_fragments(
 
 // ── logic backward ───────────────────────────────────────────────────────────
 
-/// `rdfs:subClassOf` — the covering-edge predicate `stage-goal-directed` filters
-/// its reasoned closure on (`crates/pipeline/src/stages/goal_directed.rs`), read
-/// here directly off a parsed source graph instead of a full pipeline reasoning
-/// pass.
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-/// The TOLD `rdfs:subClassOf` covering edges `(sub IRI, super IRI)` in `dataset`
-/// — an IRI-to-IRI triple on that predicate — deduplicated and sorted.
+/// The TOLD class-subsumption covering edges `(sub IRI, super IRI)` in `dataset`
+/// — an IRI-to-IRI triple on EITHER spelling of the subsumption predicate
+/// ([`gmeow_ns::SUB_CLASS_OF`]: the canonical `logic:subClassOf` and its `rdfs:`
+/// projection) — deduplicated and sorted. These are the covering edges
+/// `stage-goal-directed` filters its reasoned closure on
+/// (`crates/pipeline/src/stages/goal_directed.rs`), read here directly off a
+/// parsed source graph instead of a full pipeline reasoning pass.
+///
+/// Reading only the `rdfs:` projection makes this command silently return NOTHING
+/// for a subsort chain authored in the canonical spelling — `--subsort` would hand
+/// the engine an empty sort order and every subsort-dependent goal would simply
+/// fail to prove, with no diagnostic.
+///
 /// `crate::physical::unify::SortOrder::from_subclass_edges` (inside
 /// `gmeow_logic`) computes its OWN reflexive-transitive closure over whatever
 /// covering edges it is handed, so passing the told edges of a simple subsort
@@ -2189,7 +2194,7 @@ const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
 fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
     let mut edges: Vec<(String, String)> = dataset
         .owned_quads()
-        .filter(|q| q.predicate == RDFS_SUBCLASS_OF)
+        .filter(|q| gmeow_ns::SUB_CLASS_OF.contains(&q.predicate.as_str()))
         .filter_map(|q| match (&q.subject, &q.object) {
             (RdfTerm::Iri(s), RdfTerm::Iri(o)) => Some((s.clone(), o.clone())),
             _ => None,
@@ -2200,11 +2205,12 @@ fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
     edges
 }
 
-/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
-/// extraction — deliberately independent of the `logic:` compiler frontend
-/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
-/// `Formula` data an engine caller can read back), so this reads the file's own
-/// triples directly.
+/// Parse a Turtle file into a raw [`RdfDataset`] for class-subsumption edge
+/// extraction (either spelling — see [`collect_subclass_edges`]) —
+/// deliberately independent of the `logic:` compiler frontend (which never
+/// surfaces a told `logic:subClassOf`/`rdfs:subClassOf` triple as
+/// `LogicAxiom`/`Formula` data an engine caller can read back), so this reads
+/// the file's own triples directly.
 fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
     let bytes = read_bytes(reporter, path)?;
     purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
@@ -2222,9 +2228,9 @@ fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfD
 /// production path `stage-goal-directed` folds into `gmeow.gts`'s
 /// `graph/goal-directed`. Never a reimplementation: this command lowers the
 /// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
-/// collects `rdfs:subClassOf` covering edges straight off the parsed source
-/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
-/// point the pipeline stage calls.
+/// collects class-subsumption covering edges (either spelling) straight off
+/// the parsed source (see [`collect_subclass_edges`]), and hands both to the
+/// SAME engine entry point the pipeline stage calls.
 ///
 /// Hard-fails (exit 1, never a silent empty success) on: a missing
 /// `--program-file`, an unparsable file (or one carrying error-grade parse
@@ -2302,8 +2308,9 @@ pub fn logic_backward(
         }
     };
 
-    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
-    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    // Collect class-subsumption covering edges (either spelling) directly off
+    // the parsed source graph(s) — never a hardcoded subsort tower (see
+    // `collect_subclass_edges`).
     let program_dataset = match parse_turtle_dataset(reporter, program_file) {
         Ok(ds) => ds,
         Err(code) => return code,
@@ -5325,6 +5332,46 @@ mod explain_tests {
             explain(reporter.as_ref(), iri, None),
             0,
             "a shipped chase-invented null explains successfully"
+        );
+    }
+}
+
+#[cfg(test)]
+mod subsort_tests {
+    use super::*;
+
+    /// `gmeow logic backward --subsort` collects covering edges under BOTH
+    /// spellings of the subsumption predicate.
+    ///
+    /// The blinding regression this pins: an `rdfs:`-only read handed the engine
+    /// an EMPTY sort order for a subsort tower authored in the canonical
+    /// `logic:subClassOf`, so every subsort-dependent goal silently failed to
+    /// prove with no diagnostic on the shipped CLI.
+    #[test]
+    fn subsort_edges_are_collected_under_both_spellings() {
+        let ttl = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             math:Integer logic:subClassOf math:RationalNumber .\n\
+             math:RationalNumber rdfs:subClassOf math:RealNumber .\n\
+             math:Opaque logic:subClassOf [ rdfs:label \"a class expression\" ] .\n";
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let edges = collect_subclass_edges(&dataset);
+
+        assert_eq!(
+            edges,
+            vec![
+                (
+                    "https://blackcatinformatics.ca/math/Integer".to_owned(),
+                    "https://blackcatinformatics.ca/math/RationalNumber".to_owned(),
+                ),
+                (
+                    "https://blackcatinformatics.ca/math/RationalNumber".to_owned(),
+                    "https://blackcatinformatics.ca/math/RealNumber".to_owned(),
+                ),
+            ],
+            "the canonical edge is collected alongside the projected one, and a \
+             blank-node object is never a covering edge"
         );
     }
 }

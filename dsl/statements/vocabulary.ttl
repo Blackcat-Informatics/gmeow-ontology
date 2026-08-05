@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 
 # =============================================================================
 # GMEOW statement DSL — the canonical source for the RDF 1.2 / RDF* statement-
@@ -44,7 +45,12 @@
 
 gmeow:StatementMetadata a owl:Class ;
     rdfs:label "statement metadata"@x-gmeow-english ;
-    skos:definition "One reified RDF 1.2 statement: a quoted base triple (qSubject/qPredicate/qObject) plus the metadata annotations hung off its reifier (confidence, provenance, temporal scope). The structural isomorph of `?reifier rdf:reifies <<( ?s ?p ?o )>> . ?reifier <annProp> <annVal> .` — authored as plain Turtle, compiled to both RDF 1.2 and the OWL owl:Axiom downcast."@x-gmeow-english .
+    skos:definition "One reified RDF 1.2 statement: a quoted base triple (qSubject/qPredicate/qObject) plus the metadata annotations hung off its reifier (confidence, provenance, temporal scope). The structural isomorph of `?reifier rdf:reifies <<( ?s ?p ?o )>> . ?reifier <annProp> <annVal> .` — authored as plain Turtle, compiled to both RDF 1.2 and the OWL owl:Axiom downcast."@x-gmeow-english ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty rdfs:label ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] .
 
 # --------------------------------------------------------------------------- #
 # The reifier and the quoted triple
@@ -107,6 +113,112 @@ gmeow:reifier rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-d
 
 gmeow:statement-dsl skos:definition "The GMEOW statement DSL vocabulary — terms used to author RDF 1.2 / RDF* statement-level metadata (provenance, confidence, temporal scope, standpoint) that compile to both native RDF 1.2 and OWL axiom-annotation forms (Principles 2–3)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Migrated procedural + declarative constraints: the closed-world
+# gmeow:StatementMetadataShape / gmeow:StatementAnnotationShape /
+# gmeow:StatementDslVocabularyTermShape shapes from
+# shapes/statement-dsl-shapes.ttl, re-expressed as canonical logic: records
+# (Principle 17). The authored shapes stay (additive); the sweep verifies.
+# --------------------------------------------------------------------------- #
+
+gmeow:StatementMetadataSubjectRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "StatementMetadata subject requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:StatementMetadata must carry exactly one gmeow:qSubject."@x-gmeow-english ;
+    logic:onClass gmeow:StatementMetadata ;
+    logic:anyOf gmeow:qSubject ;
+    logic:formalizes gmeow:StatementMetadata ;
+    logic:message "StatementMetadata must have exactly one gmeow:qSubject (IRI)"@x-gmeow-english .
+
+gmeow:StatementMetadataPredicateRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "StatementMetadata predicate requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:StatementMetadata must carry exactly one gmeow:qPredicate."@x-gmeow-english ;
+    logic:onClass gmeow:StatementMetadata ;
+    logic:anyOf gmeow:qPredicate ;
+    logic:formalizes gmeow:StatementMetadata ;
+    logic:message "StatementMetadata must have exactly one gmeow:qPredicate (IRI)"@x-gmeow-english .
+
+gmeow:StatementMetadataObjectChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "StatementMetadata object choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StatementMetadata carries exactly one of gmeow:qObject (IRI) or gmeow:qObjectLiteral."@x-gmeow-english ;
+    logic:onClass gmeow:StatementMetadata ;
+    logic:choicePredicate gmeow:qObject , gmeow:qObjectLiteral ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:StatementMetadata ;
+    logic:message "StatementMetadata needs exactly one of qObject (IRI) or qObjectLiteral"@x-gmeow-english .
+
+# gmeow:StatementAnnotationShape targets every subject of gmeow:annProperty (not
+# a class), so this mirrors the kernel gmeow:UseForConsumerTargetConstraint
+# subjectsOf idiom: the guard is the property assertion itself, not an rdf:type
+# check.
+gmeow:StatementAnnotationValueRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "Statement annotation value requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every subject of gmeow:annProperty carries exactly one gmeow:annValue."@x-gmeow-english ;
+    logic:formalizes gmeow:StatementAnnotationShape ;
+    logic:message "Annotation must have exactly one gmeow:annValue (IRI or literal)"@x-gmeow-english ;
+    logic:integrity logic:savForall .
+logic:savForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] ;
+    logic:forall logic:savImpl .
+logic:savImpl a logic:Formula ; logic:antecedent logic:savGuard ; logic:consequent logic:savExists .
+logic:savGuard a logic:Formula ; logic:relation gmeow:annProperty ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:savExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:savAtom .
+logic:savAtom a logic:Formula ; logic:relation gmeow:annValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# gmeow:StatementDslVocabularyTermShape — the repo-wide annotation-completeness
+# meta-gate, scoped to the statement-dsl namespace, mirrors
+# logic:GmeowClassCompletenessConstraint / GmeowPropertyCompletenessConstraint's
+# logic:sparqlTarget idiom for a raw sh:SPARQLTarget focus set.
+gmeow:StatementDslVocabularyTermCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "Statement DSL vocabulary term completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every term declared in the statement DSL vocabulary namespace (a class, object/datatype/annotation property, ontology, or datatype) carries at least one rdfs:label, one skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl>."@x-gmeow-english ;
+    logic:formalizes gmeow:StatementDslVocabularyTermShape ;
+    logic:message "Every statement DSL vocabulary term must carry rdfs:label, skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl>."@x-gmeow-english ;
+    logic:integrity logic:sdvForall .
+logic:sdvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:sdvImpl .
+logic:sdvImpl a logic:Formula ; logic:antecedent logic:sdvTarget ; logic:consequent logic:sdvAnd .
+logic:sdvTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this a ?t .
+    FILTER(?t IN (
+        <http://www.w3.org/2002/07/owl#Class>,
+        <http://www.w3.org/2002/07/owl#ObjectProperty>,
+        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+        <http://www.w3.org/2002/07/owl#AnnotationProperty>,
+        <http://www.w3.org/2002/07/owl#Ontology>,
+        <http://www.w3.org/2000/01/rdf-schema#Datatype>
+    ))
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:sdvAnd a logic:Formula ; logic:and logic:sdvLabel , logic:sdvDef , logic:sdvDefBy .
+logic:sdvLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:sdvLabelAtom .
+logic:sdvLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:sdvDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:sdvDefAtom .
+logic:sdvDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:sdvDefBy a logic:Formula ; logic:relation rdfs:isDefinedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri <https://blackcatinformatics.ca/gmeow/statement-dsl> ] .
 
 # --------------------------------------------------------------------------- #
 # Graph box role coverage (canonical explicit annotations).

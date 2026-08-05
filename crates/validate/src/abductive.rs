@@ -89,6 +89,9 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+// BENIGN: reads the REASONED dataset (the native chase's `rdfs:subClassOf`
+// closure output), not the authored surface — the reasoner's own output vocabulary
+// is `rdfs:`, so there is no canonical `logic:subClassOf` spelling to miss here.
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The three disjointness forms that occur in the reasoned object-level graph. The sortal
 /// clash-set lookup ([`sortal_suggestions`]) reads ALL of them so no refutation the old

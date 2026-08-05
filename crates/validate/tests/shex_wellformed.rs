@@ -4,7 +4,7 @@
 //! Well-formedness gate for the emitted ShEx projections.
 //!
 //! gmeow projects its shape layer to ShExC, but nothing machine-checked that
-//! the emitted `.shex` documents actually parse. purrdf 0.3.x ships a
+//! the emitted `.shex` documents actually parse. purrdf ships a
 //! conformance-tested ShEx 2.1 parser (`purrdf::shex::parse_shexc`); this test
 //! feeds each emitted projection back through it and hard-fails on any parse
 //! error, so a malformed projection can never be shipped silently.

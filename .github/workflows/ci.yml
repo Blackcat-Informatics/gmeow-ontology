@@ -300,6 +300,17 @@ jobs:
         with:
           tool: cargo-nextest
 
+      # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
+      # hard-requires ripgrep and is not on the runner image by default — the same
+      # dependency the `lint` job already installs for `make lint`. Without it the
+      # script exits 2 ("ripgrep (rg) is required") and every case of that test reds on
+      # the exit code rather than on what it is asserting. The test runs in the nextest
+      # shards, so the tool has to be here too; a gate that cannot run is not a gate.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: ripgrep
+
       - name: Format gate
         if: ${{ matrix.shard == 1 }}
         run: cargo fmt --check
@@ -601,13 +612,13 @@ jobs:
   # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
   # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
   #
-  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the three Node lanes
-  #                 that RUN the shipped wasm (validate / reason / gmn) and assert
-  #                 byte-identity to native — the "every gmeow surface proven
-  #                 native≡wasm" contract. `make wasm` hard-fails in CI if the wasm32
-  #                 target is absent, so the criterion is never silently unverified.
-  #                 (The purrdf RDF/JS engine ships + tests its own npm package on
-  #                 purrdf's CI.)
+  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the four Node lanes
+  #                 that RUN the shipped wasm (query / validate / reason / gmn) and
+  #                 assert byte-identity to native — the "every gmeow surface proven
+  #                 native≡wasm" contract. Every engine is built in this repository
+  #                 from the workspace purrdf pin. `make wasm` hard-fails in CI if the
+  #                 wasm32 target is absent, so the criterion is never silently
+  #                 unverified.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
   heavy:
@@ -658,11 +669,16 @@ jobs:
       # release explicitly so the hard
       # dependency — and the optimized artifact bytes — are reproducible, rather than
       # relying on whatever the runner image happens to preinstall.
+      #
+      # The tag is read FROM the Makefile, not repeated here. When it was written down in
+      # both places the two drifted: this step installed a release predating
+      # `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown option and
+      # took all four Node parity lanes with it.
       - name: Install binaryen (wasm-opt) — pinned release
-        env:
-          BINARYEN_VER: version_119
         run: |
           set -euo pipefail
+          BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
+          echo "pinned binaryen: ${BINARYEN_VER}"
           curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
             "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
           mkdir -p /tmp/binaryen

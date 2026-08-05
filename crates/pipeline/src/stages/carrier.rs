@@ -6604,6 +6604,7 @@ mod ustar_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["zstd-rsyncable".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6708,6 +6709,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6759,6 +6761,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6811,6 +6814,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6881,6 +6885,7 @@ mod validation_shape_typed_lookaside_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -7026,6 +7031,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -7105,6 +7111,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -7195,6 +7202,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -7258,6 +7266,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -7368,6 +7377,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };

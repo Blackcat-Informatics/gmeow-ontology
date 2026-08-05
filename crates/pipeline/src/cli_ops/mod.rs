@@ -12,7 +12,7 @@
 //!      events model through the native [`purrdf::sparql::NativeSparqlEngine`], with
 //!      injection-free parameter pre-binding.
 //!    * [`okf_import`] — the OKF lift lane (the port of `gmeow_tools.okf_import`):
-//!      fold a bundle directory in-process through purrdf 0.7.0's native OKF codec
+//!      fold a bundle directory in-process through purrdf's native OKF codec
 //!      (`purrdf::lift_okf_bundle`, no external binary), lift the recognized
 //!      `okf:` predicates to the `rdfs:`/`skos:`/`rdf:` surface, and drive the
 //!      native MAXIMAL(G) back-half.

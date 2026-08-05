@@ -1032,7 +1032,7 @@ lang:inFeatureInventory
 # --- Form-situating and surface properties ---------------------------------- #
 
 lang:inSignSystem
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "in sign system"@x-gmeow-english ;
     skos:definition "Situates a form in the sign system it belongs to. Domain lang:Form, range lang:SignSystem (stated in prose). Every lang:Form declares exactly one — an unsituated form is ill-formed. Code-switching is compositional: a composed form belongs to its matrix system while embedded constituents carry their own."@x-gmeow-english ;
@@ -1123,7 +1123,7 @@ lang:offsetSpace
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:analysisLevel
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "analysis level"@x-gmeow-english ;
     skos:definition "Names how far a surface form has been analyzed. Domain lang:SurfaceForm, range lang:AnalysisLevel (stated in prose). Exactly one per surface, and the surface's structure must match the declared level."@x-gmeow-english ;
@@ -1196,7 +1196,7 @@ lang:morphFeature
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:featureKey
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "feature key"@x-gmeow-english ;
     skos:definition "Names the key of a morphological feature. Domain lang:MorphFeature, range lang:FeatureKey (stated in prose). An inventory individual, never a bare string."@x-gmeow-english ;
@@ -1709,7 +1709,7 @@ lang:denotedForm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:denotationKind
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "denotation kind"@x-gmeow-english ;
     skos:definition "Names what kind of thing a denotation means. Domain lang:Denotation, range lang:DenotationKind (stated in prose). The kind fixes the type of lang:denotationTarget."@x-gmeow-english ;
@@ -2052,7 +2052,7 @@ lang:renderingForm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:renderingKind
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "rendering kind"@x-gmeow-english ;
     skos:definition "Names the kind of a rendering. Domain lang:Rendering, range lang:RenderingKind (stated in prose). A facet only; the preservation and morphism class of the crossing live on the linked logic:Correspondence."@x-gmeow-english ;
@@ -2126,7 +2126,7 @@ lang:translationMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:translationCorrespondence
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "translation correspondence"@x-gmeow-english ;
     skos:definition "Relates a lang:TranslationUnit to the single logic:Correspondence node it carries — THE attachment point of the law-spine. Domain lang:TranslationUnit, range logic:Correspondence (stated in prose). Everything about the crossing that is a law rather than a facet lives on that Correspondence: its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and any logic:hasLawClaim with its logic:lawClaimed and logic:lawDischargeVerdict. lang: never shadows those properties; it only points at the node that holds them, and each unit carries exactly one."@x-gmeow-english ;
@@ -2177,7 +2177,7 @@ lang:paraphraseForm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:paraphraseSamenessKind
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "paraphrase sameness kind"@x-gmeow-english ;
     skos:definition "Names the kind of sameness a paraphrase claims to preserve. Domain lang:Paraphrase, range lang:ParaphraseSamenessKind (stated in prose). The kind fixes which corner of the Frege triangle is held constant; a paraphrase that declares no sameness kind is ill-formed, because an undeclared sameness is an equivalence smuggled in without saying what it preserves."@x-gmeow-english ;
@@ -9139,8 +9139,7 @@ lang:paraphraseSamenessClosure
     logic:closureValue logic:ClosedWorldClosure .
 
 lang:Form logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:allValuesFrom lang:SignSystem ] ,
-    [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:SignSystem ] .
+    [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:allValuesFrom lang:SignSystem ] .
 
 lang:WordForm logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:lexemeOf ; logic:allValuesFrom lang:Lexeme ] .
@@ -9153,7 +9152,6 @@ lang:GrammarRule logic:subClassOf
 
 lang:SurfaceForm logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:analysisLevel ; logic:allValuesFrom lang:AnalysisLevel ] ,
-    [ a logic:Restriction ; logic:onProperty lang:analysisLevel ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:AnalysisLevel ] ,
     [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
     [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:minQualifiedCardinality 1 ; logic:onClass lang:Script ] ,
     [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:allValuesFrom rdfs:Literal ] ,
@@ -9166,9 +9164,7 @@ lang:FormSlot rdfs:subClassOf
 
 lang:MorphFeature logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:featureKey ; logic:allValuesFrom lang:FeatureKey ] ,
-    [ a logic:Restriction ; logic:onProperty lang:featureKey ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:FeatureKey ] ,
-    [ a logic:Restriction ; logic:onProperty lang:featureValue ; logic:allValuesFrom lang:FeatureValue ] ,
-    [ a logic:Restriction ; logic:onProperty lang:featureValue ; logic:minQualifiedCardinality 1 ; logic:onClass lang:FeatureValue ] .
+    [ a logic:Restriction ; logic:onProperty lang:featureValue ; logic:allValuesFrom lang:FeatureValue ] .
 
 lang:SurfaceAnchor logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:anchorSource ; logic:allValuesFrom owl:Thing ] ,
@@ -9182,13 +9178,21 @@ lang:SurfaceAnchor logic:subClassOf
 
 lang:Grapheme logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
-    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:Script ] .
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+# NOTE: lang:inScript is shared with lang:SurfaceForm, which legitimately allows more than one
+# script (mixed-script surfaces) — so lang:inScript cannot be declared owl:FunctionalProperty
+# globally without wrongly tightening SurfaceForm. Scoping the max bound to lang:Grapheme's OWN
+# restriction avoids that: a qualified max cardinality with onClass lang:Script would project to
+# a QUALIFIED sh:qualifiedMaxCount (never matching the legacy BARE sh:maxCount 1), but onClass
+# owl:Thing degrades a qualified cardinality to a bare, class-scoped sh:maxCount (the same proven
+# recipe used for gmeow:citingEntity/gmeow:citedEntity in slices/core/citations/module.ttl), so it
+# combines with the allValuesFrom restriction above into bare min=1/max=1/class=Script — exactly
+# lang:GraphemeGroundedShape's covered fragment — without touching lang:SurfaceForm's own,
+# separate inScript restrictions at all.
 
 lang:Denotation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:denotedForm ; logic:allValuesFrom lang:Form ] ,
-    [ a logic:Restriction ; logic:onProperty lang:denotedForm ; logic:minQualifiedCardinality 1 ; logic:onClass lang:Form ] ,
     [ a logic:Restriction ; logic:onProperty lang:denotationKind ; logic:allValuesFrom lang:DenotationKind ] ,
-    [ a logic:Restriction ; logic:onProperty lang:denotationKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:DenotationKind ] ,
     [ a logic:Restriction ; logic:onProperty lang:denotationTarget ; logic:allValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:denotationTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:denotationContext ; logic:allValuesFrom owl:Thing ] ,
@@ -9197,8 +9201,7 @@ lang:Denotation logic:subClassOf
 lang:Paraphrase logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:paraphraseOf ; logic:allValuesFrom lang:Form ] ,
     [ a logic:Restriction ; logic:onProperty lang:paraphraseForm ; logic:allValuesFrom lang:Form ] ,
-    [ a logic:Restriction ; logic:onProperty lang:paraphraseSamenessKind ; logic:allValuesFrom lang:ParaphraseSamenessKind ] ,
-    [ a logic:Restriction ; logic:onProperty lang:paraphraseSamenessKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:ParaphraseSamenessKind ] .
+    [ a logic:Restriction ; logic:onProperty lang:paraphraseSamenessKind ; logic:allValuesFrom lang:ParaphraseSamenessKind ] .
 
 lang:Rendering logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:renderedContent ; logic:allValuesFrom owl:Thing ] ,
@@ -9207,8 +9210,7 @@ lang:Rendering logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:renderingConvention ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:renderingPreservation ; logic:allValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:renderingPreservation ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty lang:renderingKind ; logic:allValuesFrom lang:RenderingKind ] ,
-    [ a logic:Restriction ; logic:onProperty lang:renderingKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:RenderingKind ] .
+    [ a logic:Restriction ; logic:onProperty lang:renderingKind ; logic:allValuesFrom lang:RenderingKind ] .
 
 lang:TranslationUnit logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:translationSource ; logic:allValuesFrom owl:Thing ] ,
@@ -9216,9 +9218,7 @@ lang:TranslationUnit logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:translationTarget ; logic:allValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:translationTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:translationCorrespondence ; logic:allValuesFrom logic:Correspondence ] ,
-    [ a logic:Restriction ; logic:onProperty lang:translationCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] ,
-    [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:allValuesFrom lang:TranslationMethod ] ,
-    [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:minQualifiedCardinality 1 ; logic:onClass lang:TranslationMethod ] .
+    [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:allValuesFrom lang:TranslationMethod ] .
 
 lang:TransliterationMap rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:transliterationSourceOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -9233,18 +9233,42 @@ lang:GmnImportedPlane rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:cites ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty dcterms:hasVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+gmeow:GmnEnvelope logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnSecurityRing ; logic:allValuesFrom gmeow:GmnSecurityRing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnEnvelopeCorrespondence ; logic:allValuesFrom logic:Correspondence ] .
+
 gmeow:GmnEnvelope rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gmnSchemaVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnGlyphTableVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:GmnSecurityRing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GmnSecurityRing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:accordingTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:wasGeneratedBy ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnCodebookDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnEnvelopeCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnCodebookDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:gmnSecurityRingClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn envelope security-ring closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnSecurityRing; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnSecurityRing" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+gmeow:gmnEnvelopeCorrespondenceClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn envelope correspondence closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnEnvelopeCorrespondence; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+gmeow:GmnCompaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnCompacts ; logic:allValuesFrom owl:Thing ] .
 
 gmeow:GmnCompaction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -9252,9 +9276,17 @@ gmeow:GmnCompaction rdfs:subClassOf
 
 gmeow:GmnSecurityRing logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:allValuesFrom gmeow:GmnRingLevel ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:GmnRingLevel ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:GmnRingLevel ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnRingCompartment ; logic:allValuesFrom gmeow:GmnCompartment ] .
+
+gmeow:gmnRingLevelClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring level closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every gmeow:GmnSecurityRing to carry gmeow:gmnRingLevel; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:GmnSecurityRing ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnRingLevel" ;
+    logic:closureValue logic:ClosedWorldClosure .
 
 lang:FlagshipScenario rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:demonstratedByExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
@@ -9404,18 +9436,10 @@ lang:ReadingClaimVantageConstraint
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/lang/FormSlot> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/slotIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/lang/MorphFeature> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/featureKey> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/FeatureKey> ] .
-<https://blackcatinformatics.ca/lang/Grapheme> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/inScript> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/Script> ] .
-<https://blackcatinformatics.ca/lang/Denotation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/denotationKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/DenotationKind> ] .
-<https://blackcatinformatics.ca/lang/Paraphrase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/paraphraseSamenessKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/ParaphraseSamenessKind> ] .
-<https://blackcatinformatics.ca/lang/Rendering> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/renderingKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/RenderingKind> ] .
-<https://blackcatinformatics.ca/lang/TranslationUnit> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/translationCorrespondence> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/Correspondence> ] .
-<https://blackcatinformatics.ca/lang/Form> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/inSignSystem> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/SignSystem> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/demonstratedByExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/demonstratedByCompetency> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/lang/SurfaceForm> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/analysisLevel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/AnalysisLevel> ] .
 
 # A lang:slotForm value must be a resource (a blank node or IRI), never a literal
 # (a path node-kind constraint targeting subjects of lang:slotForm).
@@ -10875,4 +10899,20 @@ gmeow:gmnSymbolDispositionFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gmnSymbolDisposition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gmnSymbolDisposition and nothing else. It is not a definition of gmeow:gmnSymbolDisposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:gmnSymbolDispositionFunctionality logic:characterizes gmeow:gmnSymbolDisposition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSecurityRingFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnSecurityRing is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnSecurityRing is functional: a gmeow:GmnEnvelope names exactly one admission ring, because the ring IS the single boundary class the serializer checked the payload against — two rings on one envelope would leave the admission decision undetermined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnSecurityRing ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnSecurityRing ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gmnSecurityRing names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gmnSecurityRing, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gmnSecurityRing and nothing else. It is not a definition of gmeow:gmnSecurityRing (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gmnSecurityRingFunctionality logic:characterizes gmeow:gmnSecurityRing ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

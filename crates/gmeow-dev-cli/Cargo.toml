@@ -22,6 +22,9 @@ gmeow-cli-core = { path = "../cli-core" }
 clap = { version = "4", features = ["derive"] }
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandatory GTS authorship profile: the feedback bundle is an authored GMEOW
+# bundle and uses the one permitted production entry.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The repo-maintenance engines the dev toolchain drives (default features, no python).
 gmeow-pipeline = { path = "../pipeline" }
 gmeow-logic = { path = "../logic" }
@@ -46,9 +49,13 @@ toml = "0.8"
 ureq = "3"
 # CBOR public-metadata extraction for the feedback-bundle blob reader.
 ciborium = "0.2"
+# Self-cleaning system temp dirs. A normal (not dev-only) dependency because the
+# slice-quality ratchet materializes the merge-base authoring surfaces into one on the
+# PRODUCTION gate path; the guard is what removes that tree on a hard-failing gate and
+# while unwinding from a panic. Same pin as every other crate in the workspace.
+tempfile = "3"
 
 [dev-dependencies]
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-tempfile = "3"

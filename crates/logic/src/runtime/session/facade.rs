@@ -782,5 +782,20 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
                 detail: format!("open_paged: paged source delivered invalid data: {error}"),
             }),
         },
+        // `PagedQueryError` is `#[non_exhaustive]` upstream, so a new variant can arrive
+        // in a routine dependency bump. Classifying an UNRECOGNIZED failure as
+        // `Incomplete` would be a silent degradation: it would report a partial result
+        // whose cause this mapping cannot actually name, and the budget/cancellation
+        // semantics callers read off `IncompleteCause` would be fabricated. An unmapped
+        // variant is therefore an engine failure that names itself, so the gap surfaces
+        // as a defect to classify rather than as a plausible-looking partial answer.
+        unmapped => OperationOutcome::EngineFailure {
+            diagnostic: gmeow_errors::Diag::of_kind(crate::error::Engine {
+                detail: format!(
+                    "open_paged: unmapped PagedQueryError variant — purrdf added a \
+                     failure mode this mapping does not classify: {unmapped}"
+                ),
+            }),
+        },
     }
 }

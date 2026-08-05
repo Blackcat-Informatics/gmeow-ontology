@@ -127,7 +127,8 @@ pub struct Card {
     /// `skos:definition` (falling back to `rdfs:comment`), one-lined.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub definition: Option<String>,
-    /// `rdfs:subClassOf` / `rdfs:subPropertyOf` parent display names.
+    /// `logic:subClassOf`/`logic:subPropertyOf` (canonical) ∪ `rdfs:subClassOf`/
+    /// `rdfs:subPropertyOf` (projection) parent display names.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub parents: Vec<String>,
     /// `rdfs:domain` display names.

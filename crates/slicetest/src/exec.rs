@@ -221,12 +221,20 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
                 detail: format!("building module dataset: {e}"),
             })
         })?;
-    let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-        .map_err(|e| {
-            Diag::of_kind(DatasetRead {
-                detail: format!("building conformance module dataset: {e}"),
-            })
-        })?;
+    // The shape set is the GENERATED SHACL projection, written against the OWL/RDFS
+    // surface; the module is the CANONICAL authored surface. Lower the module's
+    // canonical subsumption edges into their `rdfs:` projection (once, shared by
+    // every cell) so both sides of the validation speak the same surface — see
+    // `native_query::with_rdfs_subsumption_projection`.
+    let module = native_query::with_rdfs_subsumption_projection(
+        &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir)).map_err(
+            |e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("building conformance module dataset: {e}"),
+                })
+            },
+        )?,
+    );
     let local_shapes = slice_dir.join("shapes.ttl");
     let shapes = scope_shapes_to_slice(
         shapes,
@@ -751,11 +759,17 @@ fn run_conformance_cell(
     failure_class_index: &BTreeMap<String, String>,
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
-    let example = native_query::dataset_from_file(&example_path).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("parsing example {}: {e}", example_path.display()),
-        })
-    })?;
+    // Lowered onto the shape set's own OWL/RDFS surface for the same reason the
+    // module is (`native_query::with_rdfs_subsumption_projection`): an example that
+    // authors a canonical subsumption edge must be visible to a shape written
+    // against the projection.
+    let example = native_query::with_rdfs_subsumption_projection(
+        &native_query::dataset_from_file(&example_path).map_err(|e| {
+            Diag::of_kind(DatasetRead {
+                detail: format!("parsing example {}: {e}", example_path.display()),
+            })
+        })?,
+    );
 
     // Validate (module + example) against the slice shapes. The IR is immutable, so
     // instead of an in-place insert/remove overlay we UNION the module and example

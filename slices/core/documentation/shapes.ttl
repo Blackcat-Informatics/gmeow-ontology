@@ -15,6 +15,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
 # A documented term names its owning slice and its category.
@@ -24,6 +25,7 @@ gmeow:DocumentedTermShape
     rdfs:label "documented-term shape"@x-gmeow-english ;
     skos:definition "Every gmeow:DocumentedTerm must name exactly one owning slice (gmeow:docOwnerSlice) and carry its display category (gmeow:docCategory)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    logic:formalizes gmeow:DocumentedTermCategoryConstraint ;
     sh:targetClass gmeow:DocumentedTerm ;
     sh:property [
         sh:path gmeow:docOwnerSlice ;
@@ -55,6 +57,7 @@ gmeow:DocEvidenceGroundingShape
     rdfs:label "doc-evidence grounding shape"@x-gmeow-english ;
     skos:definition "Every gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy carrier truthmaker and exactly one gmeow:docEvidenceKind — a claim without its grounds is a DARK finding."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    logic:formalizes gmeow:DocEvidenceGroundingConstraint ;
     sh:targetClass gmeow:DocEvidence ;
     sh:property [
         sh:path gmeow:docGroundedBy ;

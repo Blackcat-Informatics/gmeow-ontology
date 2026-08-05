@@ -864,7 +864,7 @@ fn inject_subclass_shortcuts(
             shortcuts.push('<');
             shortcuts.push_str(class_iri);
             shortcuts.push_str("> <");
-            shortcuts.push_str(crate::model::rdfs::SUB_CLASS_OF);
+            shortcuts.push_str(gmeow_ns::RDFS_SUB_CLASS_OF);
             shortcuts.push_str("> <");
             shortcuts.push_str(&ancestor);
             shortcuts.push_str("> .\n");

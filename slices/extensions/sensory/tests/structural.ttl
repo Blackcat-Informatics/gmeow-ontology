@@ -89,11 +89,11 @@ ex:saSensoryQuantitySpecializesMathQuantity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:SensoryQuantity logic:subClassOf math:Quantity .
+    gmeow:SensoryQuantity (logic:subClassOf|rdfs:subClassOf) math:Quantity .
 }""" ;
     gmeow:saRationale "gmeow:SensoryQuantity MUST specialize math:Quantity so sensory semantics remain domain-specific without creating a second quantity authority." .
 
@@ -113,26 +113,24 @@ ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    VALUES ?sub { logic:subPropertyOf rdfs:subPropertyOf }
-    gmeow:sensoryResult ?sub gmeow:observationResult .
+    gmeow:sensoryResult (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST specialize gmeow:observationResult under EITHER subsumption spelling (the canonical logic:subPropertyOf or the legacy rdfs:subPropertyOf the module still carries) so generic consumers can query all observation results without knowing the domain." .
+    gmeow:saRationale "gmeow:sensoryResult MUST be a subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    VALUES ?sub { logic:subPropertyOf rdfs:subPropertyOf }
-    gmeow:sensoryObservationOf ?sub gmeow:observedFeature .
+    gmeow:sensoryObservationOf (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST specialize gmeow:observedFeature under EITHER subsumption spelling (the canonical logic:subPropertyOf or the legacy rdfs:subPropertyOf the module still carries) so generic observation-about-X queries reach sensory observations." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be a subproperty of gmeow:observedFeature so generic observation-about-X queries reach sensory observations." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;

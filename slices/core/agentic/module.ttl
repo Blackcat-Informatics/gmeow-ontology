@@ -11,26 +11,27 @@ gmeow:ToolCall
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "Tool Call"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ,
+    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:usedTool ;
-            owl:someValuesFrom gmeow:SoftwareAgent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:usedTool ;
+            logic:someValuesFrom gmeow:SoftwareAgent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:calledByInvocation ;
-            owl:allValuesFrom gmeow:ModelInvocation ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:calledByInvocation ;
+            logic:allValuesFrom gmeow:ModelInvocation ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:toolArguments ;
-            owl:allValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:toolArguments ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:toolResult ;
-            owl:allValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:toolResult ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "One invocation of a tool by an agent: the tool agent (gmeow:usedTool), the requesting model invocation when known (gmeow:calledByInvocation), and the verbatim arguments/result payloads. The agent's actions join the same provenance graph as its claims — an entity the call produced links back via gmeow:wasGeneratedBy (no forward output property, Principle 5), so 'which tool, called by which invocation, with what arguments?' is answerable after the fact. The ModelInvocation idiom one level down."@x-gmeow-english ;
     skos:example "An assistant's MCP store_claim call: the ToolCall records the tool agent, the verbatim JSON arguments, and the stored claim's id as the result payload; the claim itself links back with gmeow:wasGeneratedBy."@x-gmeow-english ;
@@ -105,15 +106,26 @@ DOCTRINE.
 # stays on the procedural constraint fragment.
 # =========================================================================== #
 
-gmeow:ToolCall rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelInvocation ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] .
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/ToolCall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/usedTool> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
+# onClass owl:Thing (not the specific class) so the qualified count degrades to
+# the bare sh:minCount/maxCount gmeow:ToolCallShape wants, matching the class
+# component already supplied by the someValuesFrom/allValuesFrom restrictions
+# in this class's own definition above.
+gmeow:ToolCall logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:ToolCallShape: gmeow:calledByInvocation is already owl:FunctionalProperty
+# with rdfs:range gmeow:ModelInvocation (sh:maxCount 1); the explicit allValuesFrom
+# restriction below is the class-restriction idiom (Pattern 2) alongside it.
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:allValuesFrom gmeow:ModelInvocation ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

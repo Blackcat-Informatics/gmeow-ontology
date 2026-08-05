@@ -2422,7 +2422,7 @@ fn functional_carrier_integrity_flags_duplicate_carrier() {
 #[test]
 fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
     // Prove the completeness ledger is NON-VACUOUS: a small store carries NONE of the frozen
-    // ledger's 720 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
+    // ledger's 724 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
     // the exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
     // (g:unexpectedProp, absent from the ledger) surfaces as a LedgerUnexpected that names it.
     let ds = shape_dataset(
@@ -2441,7 +2441,7 @@ fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
         .collect();
     assert_eq!(
         missing.len(),
-        720,
+        724,
         "every frozen ledger entry with no live carrier is named as LedgerMissing"
     );
     assert!(

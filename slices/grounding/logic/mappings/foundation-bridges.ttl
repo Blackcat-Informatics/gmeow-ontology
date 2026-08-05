@@ -32,7 +32,7 @@ gmeow:mapsetLogicObi a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-obi" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Bridge views from the prescription/enactment spine onto OBI's planned-process backbone. OBI's catalog is logic:-owned because that backbone is an upper-ontology surface (protocol, planned process), so these rows are authored here — the one boundary at which an OBI term may be named — and every OBI surface downstream (SSSOM, EDOAL, the alignment and correspondence-law graphs) is a generated projection of them." .
+    gmeow:setComment "Bridge views from the prescription/enactment spine and the individuation kinds onto OBI's four upper-ontology branches: protocol, planned process, assay, and device. OBI's catalog is logic:-owned because that backbone is an upper-ontology surface, so these rows are authored here — the one boundary at which an OBI term may be named — and every OBI surface downstream (SSSOM, EDOAL, the alignment and correspondence-law graphs) is a generated projection of them. A consuming slice reaches an OBI branch through the logic: source term (gmeow:Sensor reaches the device branch by logic:subClassOf logic:FunctionalComplex; an observing slice reaches the assay and planned-process branches through logic:Plan and logic:Enactment) instead of re-minting an obi: cell of its own." .
 
 gmeow:mapsetLogicPato a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-pato.sssom.tsv" ;
@@ -144,12 +144,14 @@ gmeow:InformationObject skos:closeMatch iao:0000030 {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-# OBI's planned-process backbone. These two rows carry the prescription/enactment
-# alignments the retired process-model slice held. They are authored HERE, on the
-# logic: owner surface, because an external grounding term has exactly one
-# authoring home (docs/GROUNDING.md, "External grounding ownership"): a domain
-# slice consumes the logic: term and this one correspondence instead of asserting
-# an OBI term again.
+# OBI's upper-ontology branches. The first two rows carry the prescription/enactment
+# alignments the retired process-model slice held; the third specializes the
+# enactment bridge onto OBI's information-producing planned process (assay), and the
+# fourth grounds OBI's device branch on the functional-complex individuation kind.
+# All four are authored HERE, on the logic: owner surface, because an external
+# grounding term has exactly one authoring home (docs/GROUNDING.md, "External
+# grounding ownership"): a domain slice consumes the logic: term and this one
+# correspondence instead of asserting an OBI term again.
 
 logic:Plan skos:closeMatch obi:0000272 {|
     a logic:GroundingCorrespondence ;
@@ -176,6 +178,36 @@ logic:Enactment skos:closeMatch obi:0000011 {|
     gmeow:lossyDrop "OBI planned process carries no prescription-version pin and no closed input snapshot, so the two bindings that make a logic:Enactment reproducible are dropped in the projection" ;
     logic:sourceEndpoint logic:Enactment ;
     logic:targetEndpoint obi:0000011 ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Enactment skos:narrowMatch obi:0000070 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "OBI assay" ;
+    gmeow:comment "OBI assay (OBI_0000070) is a planned process whose objective is to produce information about an evaluant. It specializes the OBI planned process the row above already bridges, so the direction here is narrowMatch and not closeMatch: every assay is enactment-shaped, while a logic:Enactment may pursue any goal at all — a build, a remediation, a curriculum run — rather than an information-producing one. The measuring and observing slices reach OBI's assay branch through this row and through logic:Plan → OBI protocol for the method side, instead of aiming an obi: cell of their own at the same term." ;
+    gmeow:lossyDrop "The projection keeps neither the prescription-version pin nor the closed input snapshot a logic:Enactment carries, and it cannot recover which enactments have the information-producing objective that makes an OBI assay an assay — the OBI term is narrower along that one axis and blind along the other two." ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint obi:0000070 ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:FunctionalComplex skos:narrowMatch obi:0000968 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-obi.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "OBI device" ;
+    gmeow:comment "OBI device (OBI_0000968) is a material entity designed to perform a function in a scientific investigation. That is strictly narrower than logic:FunctionalComplex, the individuation kind for a whole whose parts play distinct functional roles: every OBI device is such a complex, but a functional complex need be neither artefactual nor designed nor scoped to an investigation — an organism and an organization are functional complexes and neither is a device. The alignment is therefore narrowMatch. This is OBI's device branch in its one authoring home; a sensing or instrument slice reaches it through logic:FunctionalComplex (gmeow:Sensor does, by logic:subClassOf) rather than naming the OBI term a second time." ;
+    gmeow:lossyDrop "logic:FunctionalComplex is domain-neutral and states no designed function and no investigation scoping, so a projection onto the OBI term cannot recover WHICH functional complexes are devices; the OBI side in turn drops the mereological commitment (parts related by logic:properPartOf, each contributing a different function) that distinguishes a functional complex from a collection or a quantity." ;
+    logic:sourceEndpoint logic:FunctionalComplex ;
+    logic:targetEndpoint obi:0000968 ;
     logic:morphismClass logic:BridgeView ;
     logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly

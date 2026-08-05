@@ -103,6 +103,67 @@ pub fn registered_term_namespace(iri: &str) -> Option<&'static str> {
         .max_by_key(|ns| ns.len())
 }
 
+// ── Subsumption edges ───────────────────────────────────────────────────────
+
+/// `logic:subClassOf` — **the** class-subsumption edge.
+pub const LOGIC_SUB_CLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+
+/// `logic:subPropertyOf` — **the** property-subsumption edge.
+pub const LOGIC_SUB_PROPERTY_OF: &str = "https://blackcatinformatics.ca/logic/subPropertyOf";
+
+/// `rdfs:subClassOf` — the RDFS projection of [`LOGIC_SUB_CLASS_OF`].
+pub const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// `rdfs:subPropertyOf` — the RDFS projection of [`LOGIC_SUB_PROPERTY_OF`].
+pub const RDFS_SUB_PROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+
+/// Both spellings of the CLASS-subsumption edge, canonical first.
+pub const SUB_CLASS_OF: [&str; 2] = [LOGIC_SUB_CLASS_OF, RDFS_SUB_CLASS_OF];
+
+/// Both spellings of the PROPERTY-subsumption edge, canonical first.
+pub const SUB_PROPERTY_OF: [&str; 2] = [LOGIC_SUB_PROPERTY_OF, RDFS_SUB_PROPERTY_OF];
+
+/// **The** definition of "this triple asserts a subsumption edge": every predicate
+/// a reader must scan to see the whole authored taxonomy, in a fixed order —
+/// canonical class, projected class, canonical property, projected property.
+///
+/// ## Why two spellings, and why that is not a compat shim
+///
+/// Principle 17 makes `logic:` the CANONICAL vocabulary and `rdfs:` one of its
+/// lossy projections, so a reader of the *authored* surface has to accept both:
+/// the canonical spelling because it is the truth, and the projected spelling
+/// because parts of the corpus have not been re-authored into the canonical one
+/// yet. Reading only `rdfs:` blinds a consumer to every re-authored term (it sees
+/// an empty taxonomy and reports no error); reading only `logic:` blinds it to
+/// every term not yet converted. This is a canonical-plus-projection read, not a
+/// backwards-compatibility arm.
+///
+/// ## Terminal condition — when the `rdfs:` arm is deleted
+///
+/// The `rdfs:` entries are TRANSITIONAL RESIDUE. They are live only while the
+/// `rdfs` projection ceilings in the slice-quality ratchet are nonzero, i.e. only
+/// while some slice still authors a raw `rdfs:subClassOf` / `rdfs:subPropertyOf`
+/// edge. The ratchet drives those ceilings monotonically down; when they reach 0
+/// corpus-wide, no authored surface spells a subsumption edge in `rdfs:` any more,
+/// [`RDFS_SUB_CLASS_OF`] / [`RDFS_SUB_PROPERTY_OF`] become dead code here, and
+/// this accessor collapses to the two `logic:` entries. Deleting the `rdfs:` arm
+/// is then a required cleanup, not an optional one.
+///
+/// ```
+/// let preds = gmeow_ns::subsumption_predicates();
+/// assert_eq!(preds[0], "https://blackcatinformatics.ca/logic/subClassOf");
+/// assert_eq!(preds.len(), 4);
+/// ```
+#[must_use]
+pub fn subsumption_predicates() -> [&'static str; 4] {
+    [
+        SUB_CLASS_OF[0],
+        SUB_CLASS_OF[1],
+        SUB_PROPERTY_OF[0],
+        SUB_PROPERTY_OF[1],
+    ]
+}
+
 /// GMEOW's single ontology profile: the `gmeow:` primary namespace plus the
 /// authored `logic:`, `lang:`, and `math:` prefixes. purrdf's builtins
 /// (xsd/rdf/rdfs/owl/sh) are always available on top of these, so the profile only
@@ -231,6 +292,54 @@ mod tests {
             registered_term_namespace("https://blackcatinformatics.ca/gmeow/slices/math"),
             Some(GMEOW_NS)
         );
+    }
+
+    /// The canonical spellings are minted in [`LOGIC_NS`] and the projected ones
+    /// are not GMEOW-authored at all — the property that makes "canonical first"
+    /// mean something rather than being an arbitrary array order.
+    #[test]
+    fn the_subsumption_predicates_are_canonical_first() {
+        let preds = subsumption_predicates();
+        assert_eq!(
+            preds,
+            [
+                LOGIC_SUB_CLASS_OF,
+                RDFS_SUB_CLASS_OF,
+                LOGIC_SUB_PROPERTY_OF,
+                RDFS_SUB_PROPERTY_OF
+            ]
+        );
+        for canonical in [LOGIC_SUB_CLASS_OF, LOGIC_SUB_PROPERTY_OF] {
+            assert_eq!(registered_term_namespace(canonical), Some(LOGIC_NS));
+        }
+        for projected in [RDFS_SUB_CLASS_OF, RDFS_SUB_PROPERTY_OF] {
+            assert_eq!(registered_term_namespace(projected), None);
+        }
+        let distinct: std::collections::BTreeSet<&str> = preds.into_iter().collect();
+        assert_eq!(distinct.len(), preds.len(), "a predicate is listed twice");
+    }
+
+    /// The two per-kind arrays partition the accessor: a consumer that needs only
+    /// class edges (a class hierarchy) and one that needs the whole taxonomy read
+    /// the SAME spellings, so neither can drift into seeing half the corpus.
+    #[test]
+    fn the_per_kind_arrays_partition_the_accessor() {
+        let preds = subsumption_predicates();
+        let mut joined: Vec<&str> = SUB_CLASS_OF.to_vec();
+        joined.extend(SUB_PROPERTY_OF);
+        assert_eq!(joined, preds.to_vec());
+        for kind in [SUB_CLASS_OF, SUB_PROPERTY_OF] {
+            assert!(
+                kind[0].starts_with(LOGIC_NS),
+                "{} must be canonical",
+                kind[0]
+            );
+            assert!(
+                !kind[1].starts_with(GMEOW_AUTHORITY),
+                "{} must be foreign",
+                kind[1]
+            );
+        }
     }
 
     /// The JSON-Schema keying view carries the same four prefixes.

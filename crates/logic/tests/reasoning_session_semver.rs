@@ -283,8 +283,54 @@ use session_common::*;
 /// operands"). The one-operand case still interns the bare body, so a `math:` binder and its
 /// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
 /// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
+/// Re-blessed once more for a COMMENT correction in `reason/dl.rs`: the notes on
+/// `refutation_shape_withholds` and `cardinality_on_datatype_property` claimed the committed
+/// bundle asserts only exact `cardinality 1` and qualified cardinalities, which was untrue
+/// (`math:compilesToLogicFormula` carries two plain `owl:minCardinality "1"` `rdfs:domain`
+/// companions) and is now stated correctly. `native_contract_hash()` `include_str!`s the
+/// whole file, so the raw-source content digest folded into this descriptor moves. No engine
+/// capability, withhold, or decider registration changed — the diff is comment lines only, so
+/// no reasoning verdict on any input changes.
+/// Re-blessed once more for a FURTHER `reason/dl.rs` comment correction on the same two
+/// notes: the previous wording still claimed those two `math:compilesToLogicFormula`
+/// companions were the committed bundle's ONLY plain cardinality restrictions, which the
+/// `logic:` grounding-surface demonstrators (`ex:minMemberRestriction` /
+/// `ex:maxLeadRestriction`) falsify. Both notes now state the REACH condition that actually
+/// keeps the withholds quiet (never in a class-definition position; never `owl:onProperty`
+/// an `owl:DatatypeProperty`) instead of an unqualified corpus census.
+/// `native_contract_hash()` `include_str!`s the whole file, so the raw-source content digest
+/// folded into this descriptor moves. No engine capability, withhold, or decider
+/// registration changed — the diff is comment lines only, so no reasoning verdict on any
+/// input changes.
+/// Re-blessed once more on integrating main into this branch, for the same structural reason
+/// as the two integration notes above: both sides had again moved this golden away from the
+/// merge base — main by the RDF 1.2 statement-metadata lowering, this branch by the two
+/// `reason/dl.rs` comment corrections — and `native_contract_hash()` `include_str!`s the whole
+/// of `dl.rs`, so the merged contract text is the UNION of both sides' bytes and its digest is
+/// a third value that is neither side's. It was recomputed from the merged engine rather than
+/// resolved by taking a side. Every contributing change is individually verdict-preserving on
+/// the fixed edge-only input, so only the identity moved.
+/// Re-blessed once more for the leave-one-out canonical-subsumption lowering in
+/// `reason/mod.rs`: a probe spelled `logic:subClassOf`/`logic:subPropertyOf` is now lowered
+/// to the `rdfs:` spelling the fixed calculus matches — the SAME EDB-boundary lowering
+/// `reason/rl.rs` already performs — so it is answered by the analytic
+/// `TransitiveReachability` index instead of falling through to a per-axiom incremental
+/// fork plus a full finite-DL augmentation that could only ever answer "not re-derived"
+/// (no fixed rule head is spelled `logic:`). `native_contract_hash()` `include_str!`s the
+/// whole of `reason/mod.rs`, so the raw-source content digest folded into this descriptor
+/// moves. No rule, decider, or profile capability changed, and the fixed edge-only input
+/// authors no subsumption edge in either spelling, so its reasoning verdict is unchanged.
+/// Re-blessed once more on integrating main into this branch, for the same structural reason
+/// as every integration note above: BOTH sides had again moved this golden away from the merge
+/// base — main by the two `reason/dl.rs` comment corrections and the leave-one-out canonical
+/// subsumption lowering in `reason/mod.rs`, this branch by the expression-identity, structural
+/// key, and binder-arity work in `physical/lower.rs` — and the descriptor folds the bytes of
+/// every engine source. The merged contract text is therefore the UNION of both sides' bytes
+/// and its digest is a THIRD value that is neither side's; taking a side would pin a hash no
+/// build produces. Recomputed from the merged engine. Every contributing change is
+/// individually verdict-preserving on the fixed edge-only input, so only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f3f9de74cb6795a342e645c734c4132a1072c006b78a978280fbfb4fba3b411d";
+    "eb741f90d6d66b70bac2c612515fcdab316c873c77e90c6bffccaf7d77737c74";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -425,8 +471,33 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// operands"). The one-operand case still interns the bare body, so a `math:` binder and its
 /// alpha-equivalent `logic:` quantifier still collapse to ONE node and no existing digest
 /// moved; only `physical/lower.rs`'s bytes did, and it is a BACKWARD_SOURCE member.
+/// Re-blessed once more for the `reason/dl.rs` comment correction (see the engine-descriptor
+/// golden above): the native contract hash is one of the seven folded identity axes and
+/// `native_contract_hash()` `include_str!`s the whole file, so a comment-only edit moves the
+/// raw-source content digest and with it this fixed-input session identity. No engine
+/// capability changed and the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the FURTHER `reason/dl.rs` comment correction (see the
+/// engine-descriptor golden above — the two notes now state the reach condition rather than
+/// an unqualified "only plain cardinality restrictions in the bundle" census): the native
+/// contract hash is one of the seven folded identity axes and `native_contract_hash()`
+/// `include_str!`s the whole file, so a comment-only edit moves the raw-source content
+/// digest and with it this fixed-input session identity. No engine capability changed and
+/// the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more on integrating main into this branch, for the same reason as the
+/// engine descriptor above: both sides had again moved this golden away from the merge base,
+/// so the merged fixed-input session identity is a third value recomputed from the merged
+/// engine rather than a choice between the two sides.
+/// Re-blessed once more for the leave-one-out canonical-subsumption lowering (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and `native_contract_hash()` `include_str!`s the whole of `reason/mod.rs`,
+/// so this fixed-input session identity moves with it. The fixed edge-only input authors no
+/// subsumption edge in either spelling, so its reasoning verdict is unchanged.
+/// Re-blessed once more on integrating main into this branch, for the same reason as the
+/// engine descriptor above: both sides had again moved this golden away from the merge base,
+/// so the merged fixed-input session identity is a THIRD value recomputed from the merged
+/// engine rather than a choice between the two sides.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "0f79980e097b7b6b4b80115c40ecceba72cb1ee52589a0285613eb7489ce66d5";
+    "027dc877a67b388666f65810236f06505dab157b426147d0ff9b81d36566a4d1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

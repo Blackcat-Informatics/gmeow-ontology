@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-query-wasm"
+description = "wasm32 bindings for the RDF 1.2 query engine behind the offline documentation SPARQL playground: parse, serialize, and run named-graph-aware SPARQL over a gmeow.gts bundle, client-side"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "sparql", "rdf-12", "wasm", "knowledge-graph"]
+
+[lib]
+# cdylib for the wasm-bindgen build (the shipped docs-site engine); rlib so the thin
+# binding logic still compiles + unit-tests on the native workspace gate.
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The ONE canonical RDF/SPARQL/GTS engine. This crate is a marshalling shim over it and
+# adds no second parser, no second evaluator, and no second bundle reader — the browser
+# runs exactly the engine the native gate runs, at exactly the pinned version.
+purrdf.workspace = true
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+wasm-bindgen.workspace = true
+# The content-address the emitted bundle manifest records. The docs site verifies the
+# fetched bundle against it, and the browser has no native blake3 — so the engine that
+# is already booted before the fetch exposes the same hash the manifest was written with,
+# rather than the site verifying under a second, weaker algorithm.
+blake3.workspace = true
+
+[dev-dependencies]
+# `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A
+# hand-rolled string splitter cannot see JSON escaping and truncates any query
+# containing an embedded quoted literal; `serde_json` is a dev-only dependency
+# (`tests/` is never linked into the `cdylib` wasm-bindgen artifact), so pulling it in
+# here adds nothing to the shipped engine's dependency tree.
+serde_json = "1"
+# `tests/from_gts.rs` drives `Dataset::from_gts` on a real GTS bundle. This is the
+# mandated production entry point (`emit_gmeow_gts`), never a direct
+# `purrdf::gts_compose::emit_gts` call, so the fixture bundle is built the same way
+# every real GMEOW bundle is.
+gmeow-gts-profile = { path = "../gts-profile" }

@@ -13,6 +13,7 @@
 @prefix gts: <http://resource.geosciml.org/ontology/timescale/gts#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix ivoa: <http://www.ivoa.net/rdf/> .
+@prefix schema: <https://schema.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
 
@@ -361,6 +362,50 @@ gmeow:calendarPersian skos:exactMatch wd:Q181229 {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
     gmeow:comment "Persian calendar (Q181229)"
+|} .
+
+# --------------------------------------------------------------------------- #
+# Week cycle → schema.org DayOfWeek enumeration members
+#
+# The seven gmeow:DayOfWeek individuals are exactly schema.org's DayOfWeek
+# enumeration members; the alignment is BY REFERENCE (Principle 5) and lives with
+# the terms it aligns, in the slice that owns the week-cycle vocabulary.
+# --------------------------------------------------------------------------- #
+
+gmeow:dayMonday skos:exactMatch schema:Monday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayTuesday skos:exactMatch schema:Tuesday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayWednesday skos:exactMatch schema:Wednesday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayThursday skos:exactMatch schema:Thursday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayFriday skos:exactMatch schema:Friday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:daySaturday skos:exactMatch schema:Saturday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:daySunday skos:exactMatch schema:Sunday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
 |} .
 
 # --------------------------------------------------------------------------- #

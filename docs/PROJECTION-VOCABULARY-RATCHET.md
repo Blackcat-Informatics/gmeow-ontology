@@ -128,14 +128,16 @@ The current membership is exactly two rows: PROV-O (ceiling 4) and schema.org Ho
 widening the carve-out means editing the ceiling deliberately, in review, with the
 reason written down.
 
-## 4. The three ratchet invariants
+## 4. The four ratchet invariants
 
 Let `measured(view, slice, vocab)` be the ungrounded residue from the shared
 counter (§2) over a given view (the working tree, or a reconstructed merge base).
 Let `effectiveCeiling(view, slice, vocab)` be the explicit `gmeow:ceilingCount` of
 the matching `gmeow:ProjectionCeilingCommitment` if one exists for that
 `(slice, vocab)`, else that vocabulary's `gmeow:vocabularyDefaultCeiling` (`0` for
-every guarded vocabulary).
+every guarded vocabulary). Let `inflow(slice, vocab)` be the residue a
+**declared and corroborated relocation** transported *into* that cell (§4.1);
+with no relocation declarations `inflow` is identically `0`.
 
 1. **Count gate (working tree).** `measured(working) <= effectiveCeiling(working)`
    for every guarded vocabulary and slice. A failure names the slice, the
@@ -143,23 +145,107 @@ every guarded vocabulary).
    *first* ungrounded use of a vocabulary a slice has never used before.
 2. **Monotonicity (base ∩ working).** For every `(slice, vocab)` with a ceiling
    committed in *both* the merge-base and the working tree,
-   `ceilingCount(working) <= ceilingCount(base)`. Raising a ceiling is a hard
-   violation ("projection ceiling RAISED n→m"); lowering or removing a ceiling is
-   always allowed. This is the exact inverse of `axis_floor_monotonicity` (floors
-   only rise; ceilings only fall).
+   `ceilingCount(working) <= ceilingCount(base) + inflow`. Raising a ceiling beyond
+   its relocation-adjusted base is a hard violation ("projection ceiling RAISED
+   n→m"); lowering or removing a ceiling is always allowed. This is the exact
+   inverse of `axis_floor_monotonicity` (floors only rise; ceilings only fall).
 3. **Grandfather gate (new ceilings only).** For every `(slice, vocab)` whose
    ceiling is *new* in the working tree (absent at the merge base),
-   `ceilingCount(working) <= measured(base)` — a newly-committed ceiling may only
-   record residue that already existed at the merge base, never freshly-authored
-   residue. This closes the net-new-vocabulary loophole: without it, an author
+   `ceilingCount(working) <= measured(base) + inflow` — a newly-committed ceiling
+   may only record residue that already existed at the merge base or arrived by a
+   corroborated relocation, never freshly-authored residue. This closes the
+   net-new-vocabulary loophole: without it, an author
    could introduce a brand-new ungrounded construct in a previously-clean
    `(slice, vocab)` cell and simultaneously mint a ceiling that grandfathers it in
-   the same change. Base `measured` is reconstructed by enumerating the slice's
-   base fileset (`git ls-tree <base> <slice-dir>`, not a single `git show
-   <base>:<path>`) and reading each surface via `git show <base>:<file>`: a
+   the same change. Base `measured` is reconstructed by materializing the base
+   tree once (`git archive <base> -- <slice-dirs>`) and scanning it with the very
+   same surface scanner the working tree uses: a
    surface **present at working but absent at base** contributes `0` (a
    genuinely new file, not an error); a surface **present but unreadable at
    base** is a HARD-FAIL (stop-and-report) — the two cases are never conflated.
+   Invariants 2 and 3 are one rule evaluated by one comparator: a rule that held
+   at one ceiling gate and not the other would not be a rule.
+4. **Conservation (base ∩ working).** For every guarded vocabulary,
+   `Σ ceilingCount(working) <= Σ ceilingCount(base)` summed over exactly the cells
+   committed in **both** views. Relocation moves budget between cells; it can never
+   create budget, so the aggregate is lower-only. The scoping to `base ∩ working` is
+   load-bearing: invariant 3 explicitly *permits* a brand-new ceiling up to
+   `measured(base)` (the worked example below is a new slice with pre-existing
+   residue committing a matching ceiling), and every such legitimate addition would
+   raise an unscoped Σ while violating nothing. New cells are governed by
+   invariant 3; deletions only ever lower Σ.
+
+### 4.1 Relocation-aware accounting — the base ceiling is re-projected, never raised
+
+A ceiling budgets **net-new ungrounded authoring**, and that quantity is
+*location-independent*: carrying a term from one slice to another moves residue
+between two cells without authoring any of it. So before the lower-only comparison
+runs, the **base** ceiling of the affected cells is *re-projected* through the
+declared-and-corroborated relocation, and the invariant that then runs is unchanged:
+
+```text
+working <= relocation_adjusted_base
+```
+
+**No tool ever creates headroom.** A raise beyond the adjustment still reds, and is
+still a maintainer-only decision authorized out-of-band by merging past that red —
+there is no in-repo permit to raise a ceiling, just as there is none to lower a
+floor. Every unit of `inflow` must clear four independent tests:
+
+- **Declared.** A `gmeow:CeilingRelocation` — a dated record modelled on
+  `gmeow:AxisExemption` — names the moved `gmeow:relocationTerm`s, the
+  `gmeow:relocationFromSlice`, the `gmeow:relocationToSlice`, and optionally the one
+  `gmeow:relocationVocabulary` the move is scoped to. The declaration is authored by
+  a maintainer; no tool writes one.
+- **Witnessed.** `departed(src,v) = base_keys(src,v) − working_keys(src,v)` and
+  `arrived(dst,v) = working_keys(dst,v) − base_keys(dst,v)`; an edge's capacity is
+  `|departed ∩ arrived ∩ declared|` over the residue constructs' relocation-invariant
+  subject anchors. **The departure requirement is load-bearing:** without it a
+  construct merely *copied* into a second slice — two second-sources-of-truth,
+  strictly worse than one, and what the ratchet exists to prevent — would be
+  indistinguishable from a relocated one. A construct whose subject is a blank node
+  with no named ancestor has no cross-view identity and can never witness anything.
+- **Paid.** Feasibility is a **transport problem**, solved per vocabulary as
+  max-flow over the bipartite `(source → destination)` graph, not a per-destination
+  greedy sum. Source supply is
+  `min( max(0, base_ceil − work_ceil), |departed ∩ declared| )`; the `min` is
+  load-bearing, because the corpus carries large *stale* headroom and lowering dead
+  headroom surrenders no authoring, so it must never buy live headroom elsewhere. A
+  greedy sum accepts the case "two destinations each raised 3, one source lowered 3
+  whose keys landed in both" and then reds at invariant 4 with a verdict that
+  contradicts its own audit lines and names no culprit; the flow rejects exactly one
+  destination, names the blocking edge, and prints the residual demand.
+- **Pinned.** Every raised destination's `ceilingCount` must *equal* its measured
+  working residue. Without this a relocation that also deletes pre-existing residue
+  banks durable surplus headroom, spendable forever with no witness.
+
+**A coincident lowering in the same diff is not credit.** Only a lowering whose
+witnessed, declared departures actually landed at the raised destination funds a
+transfer; two unrelated edits that happen to move opposite directions in one commit
+buy nothing.
+
+**Self-cleaning.** A declaration whose relocation is fully **absorbed at base** (its
+terms sit at the destination on *both* sides) is dead and reds until deleted —
+otherwise declarations accumulate into standing permits, which is what the
+doctrine forbids. A declared term that did not move likewise reds.
+
+### 4.2 The floor/ceiling asymmetry — why floors are not netted
+
+A ceiling and an axis floor look like mirror images, and under relocation they are
+deliberately **not** treated alike:
+
+- A **ceiling** budgets net-new ungrounded *authoring*. Authoring is an act, not a
+  location, so moving an already-authored construct must cost nothing — hence the
+  base re-projection above.
+- An **axis floor** measures the *documentation quality of the inventory a slice
+  currently owns*. That genuinely **is** location-dependent: importing an
+  under-documented term really does lower the destination's measured quality, and the
+  correct response is to document the term, not to net the loss away against the
+  source's improvement.
+
+So a relocation nets on the ceiling side and never on the floor side.
+`gmeow-dev slice-quality-relocation-preview` prints the **axis-floor collateral**
+alongside the transport plan so a maintainer sees that cost *before* moving.
 
 **Back-ref integrity.** As stated in §2, a construct is excluded from the residue
 as "grounded" only if its `logic:formalizes` back-reference *resolves* to an
@@ -248,8 +334,24 @@ exercise each invariant directly against inline fixtures.
   (never hand-typed, never tuned) for every `(slice, vocab)` with a nonzero
   residue.
 - **The gate:** `gmeow-dev slice-quality-gate` — runs the four floor checks plus
-  the ceiling pass (count gate, monotonicity, grandfather) and fails `make check`
-  on any violation.
+  the ceiling pass (count gate, the one relocation-aware rebalance covering both
+  monotonicity and grandfather, and aggregate conservation) and fails `make check`
+  on any violation. Every ACCEPTED relocation transfer is minted onto the
+  diagnostics ledger with a stable finding IRI, the destination cell as its anchor,
+  and the witnessed terms as its antecedents — never a bare printed line.
+- **The relocation preview:** `gmeow-dev slice-quality-relocation-preview --term
+  <iri>… --from <slice> --to <slice>` — report-only (always exits 0). Per guarded
+  vocabulary it prints the transport plan, the residual **unpaid** demand, and the
+  residue-conservation reason codes; then, once, the **axis-floor collateral** for
+  both slices, because floors are deliberately not netted (§4.2) and the cost must
+  be visible before the move rather than after it. If none of the requested terms
+  anchors residue in the source slice it says exactly that — a statement about the
+  *requested terms*, never about whether the slice carries residue — and then lists
+  every term in the source that **does** anchor residue, with the construct count
+  each would carry. That listing is the discovery surface: the relocation-invariant
+  anchor is a *derived* quantity (a nested anonymous `sh:property` block anchors on
+  its nearest named ancestor), so it cannot be read off the Turtle and a maintainer
+  has no other way to find a `--term` value.
 - **The debt report:** `gmeow-dev slice-quality-projection-debt` — a ranked,
   report-only CLI surface that computes `measured` live via the same shared
   counter the gate uses and joins it against the resident `ceilingCount`, showing
