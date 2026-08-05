@@ -318,3 +318,69 @@ ex:leaf a math:NumberLiteral ;
          chase invented the missing operator) rather than the asserted graph"
     );
 }
+
+/// Every SHIPPED `math:` example is clean through the expression-identity gate on the
+/// MULTI-GRAPH substrate production builds.
+///
+/// The other tests here reason a single-graph parse. `gmeow validate --deep` does not: it
+/// assembles an EDB whose graphs can each carry a slice's triples, and the gate's obligations
+/// are cardinality claims. Counting assertions rather than distinct triples therefore reported
+/// this slice's own conforming examples as carrying two `math:operator` values where they
+/// author one — `alpha-equivalent-twins.ttl`, minted to demonstrate the α-class JOIN to a
+/// consumer, was rejected by the shipped validator while every in-crate test stayed green.
+///
+/// So drive the gate over the examples through a dataset that really does hold each triple in
+/// more than one graph. A regression in the index's distinctness reds this and nothing else.
+#[test]
+fn shipped_examples_are_clean_over_a_multi_graph_substrate() {
+    const EXAMPLES: &[(&str, &str)] = &[
+        (
+            "alpha-equivalent-twins.ttl",
+            include_str!("../../../slices/grounding/math/examples/alpha-equivalent-twins.ttl"),
+        ),
+        (
+            "reference-ast-act.ttl",
+            include_str!("../../../slices/grounding/math/examples/reference-ast-act.ttl"),
+        ),
+        (
+            "closed-form-functions.ttl",
+            include_str!("../../../slices/grounding/math/examples/closed-form-functions.ttl"),
+        ),
+    ];
+
+    for (name, ttl) in EXAMPLES {
+        let single = asserted(ttl);
+
+        // The SAME triples again under a named graph, which is what makes this a real probe of
+        // the multi-graph EDB rather than a second copy of the single-graph tests above.
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(&single);
+        for quad in single.owned_quads() {
+            builder.push_owned_quad(
+                &purrdf::RdfQuad::new(
+                    quad.subject.clone(),
+                    quad.predicate.clone(),
+                    quad.object.clone(),
+                )
+                .in_graph(purrdf::RdfTerm::iri(
+                    "https://blackcatinformatics.ca/gmeow/graph/probe",
+                )),
+            );
+        }
+        let multi = builder
+            .freeze()
+            .expect("the example plus a named-graph copy of itself is a valid dataset");
+
+        let errors: Vec<String> = check_math_expression_findings(&multi, &multi)
+            .into_iter()
+            .filter(|f| f.severity == gmeow_errors::Severity::Error)
+            .map(|f| format!("{} {}", f.code, f.message))
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "{name} is a SHIPPED conforming example, but the expression-identity gate errors \
+             on it once its triples appear in more than one graph — the substrate \
+             `gmeow validate --deep` actually builds: {errors:?}"
+        );
+    }
+}

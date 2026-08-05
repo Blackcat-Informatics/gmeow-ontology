@@ -759,13 +759,22 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
             }
             TermRef::Triple { .. } => continue,
         };
-        index
+        // DISTINCT (s, p, o), never once per graph carrying it. `quads_for_pattern` walks
+        // every graph, and a slice's triples reach the reasoning EDB in more than one, so a
+        // plain push counted each authored triple as many times as graphs held it. Cardinality
+        // obligations read this index — an RDF triple is identity-bearing regardless of which
+        // graphs assert it, so "exactly one math:operator" must count operators, not
+        // assertions of one. Left unguarded, `gmeow validate --deep` reported this slice's own
+        // conforming examples as carrying two operators where they author one.
+        let objects = index
             .by_subject
             .entry(subject)
             .or_default()
             .entry(predicate.to_owned())
-            .or_default()
-            .push(object);
+            .or_default();
+        if !objects.contains(&object) {
+            objects.push(object);
+        }
     }
     index
 }
