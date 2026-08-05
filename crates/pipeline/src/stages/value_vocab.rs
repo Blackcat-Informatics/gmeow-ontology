@@ -31,21 +31,33 @@
 //! derivation the LinkML/TS/GraphQL schema leaf ([`crate::stages::schemas`]) also
 //! uses, so the two surfaces read the same individuals off the same store.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use purrdf::{Namespaces, RdfDataset, parse_dataset};
 use serde_json::{Value, json};
 
-use crate::gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS};
 use crate::stages::export::{DEFAULT_SCOPE, FoldView};
+use gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS};
 
 /// The open-value-vocabulary metaclass: a class typed `logic:AbstractIndividualType`
 /// declares its members as `gmeow:` individuals (Principle 17).
 const LOGIC_ABSTRACT_INDIVIDUAL_TYPE: &str =
     "https://blackcatinformatics.ca/logic/AbstractIndividualType";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+
+/// The canonical `logic:` carrier of a property characteristic: a
+/// `logic:PropertyCharacteristicAssertion` names the property with
+/// `logic:characterizes` and the characteristic marker with `logic:characteristicSort`.
+/// The `logic:functionalProperty` marker on that pair is the SOLE source of a
+/// property's single-valued (functional) status — no `owl:FunctionalProperty`
+/// dependency; the OWL surface is a downstream projection of this carrier.
+const LOGIC_PROPERTY_CHARACTERISTIC_ASSERTION: &str =
+    "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion";
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
 
 /// The `gmeow:` local part of an IRI in a declared ecosystem namespace: `None` for
 /// an IRI outside the authored `gmeow`/`logic`/`lang`/`math` namespaces.
@@ -154,6 +166,37 @@ pub(crate) fn derive_value_vocabs(view: &FoldView<'_>, ns: &Namespaces) -> Vec<V
     vocabs
 }
 
+/// The full IRIs of every property characterized FUNCTIONAL (globally single-valued)
+/// by the canonical `logic:PropertyCharacteristicAssertion` carrier in `view`.
+///
+/// A property is functional iff some carrier subject bears
+/// `logic:characteristicSort logic:functionalProperty` and names it via
+/// `logic:characterizes`. The carrier is the SOLE source (no `owl:FunctionalProperty`
+/// read). Deterministic: `subjects_by_type`/`objects` are id-sorted and the result set
+/// is a `BTreeSet` (sorted, deduplicated).
+fn functional_property_iris(view: &FoldView<'_>) -> BTreeSet<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    let Some(functional_tid) = view.tid_of_iri(LOGIC_FUNCTIONAL_PROPERTY) else {
+        return out;
+    };
+    for assertion in view.subjects_by_type(LOGIC_PROPERTY_CHARACTERISTIC_ASSERTION, DEFAULT_SCOPE) {
+        if !view.has(
+            assertion,
+            LOGIC_CHARACTERISTIC_SORT,
+            functional_tid,
+            DEFAULT_SCOPE,
+        ) {
+            continue;
+        }
+        for prop in view.objects(assertion, LOGIC_CHARACTERIZES, DEFAULT_SCOPE) {
+            if view.is_iri(prop) {
+                out.insert(view.lex(prop).to_owned());
+            }
+        }
+    }
+    out
+}
+
 /// Whether a `$def` value is a standalone value-vocabulary enum (a bare
 /// `{"type":"string","enum":[…]}`) rather than a model object.
 pub(crate) fn is_enum_def(def: &Value) -> bool {
@@ -183,12 +226,16 @@ fn is_multivalued(pv: &Value) -> bool {
     pv.get("type").and_then(Value::as_str) == Some("array")
 }
 
-/// Rewrite a value-vocabulary-ranged property schema to reference its enum `$def`,
-/// preserving the field's cardinality (a single ref, or the multivalued
-/// `anyOf:[ref, {array of ref}]`).
-fn repoint_to_enum(pv: &mut Value, enum_key: &str) {
+/// Rewrite a value-vocabulary-ranged property schema to reference its enum `$def`.
+///
+/// A `functional` property (single-valued per its canonical `logic:` carrier) always
+/// narrows to the SCALAR single-`$ref` form — the array branch is dropped for EVERY
+/// class schema, regardless of whether that class's node shape carried a cardinality
+/// cap. A NON-functional property preserves the field's authored cardinality (a single
+/// ref, or the multivalued `anyOf:[ref, {array of ref}]`).
+fn repoint_to_enum(pv: &mut Value, enum_key: &str, functional: bool) {
     let make_ref = || json!({ "$ref": format!("#/$defs/{enum_key}") });
-    *pv = if is_multivalued(pv) {
+    *pv = if !functional && is_multivalued(pv) {
         json!({
             "anyOf": [
                 make_ref(),
@@ -216,6 +263,10 @@ pub(crate) fn enrich_value_vocab_enums(
     if vocabs.is_empty() {
         return vocabs;
     }
+
+    // The functional (globally single-valued) properties, straight off the canonical
+    // `logic:` carrier — the sole source of a property's single-valued status.
+    let functional_props = functional_property_iris(view);
 
     let Some(defs) = schema.get_mut("$defs").and_then(Value::as_object_mut) else {
         return vocabs;
@@ -287,6 +338,11 @@ pub(crate) fn enrich_value_vocab_enums(
         }
     }
     for (def_key, prop_key, enum_key) in targets {
+        // Functional-ness is a property-global fact from the carrier, independent of the
+        // class schema the field appears on: a functional property narrows to a scalar
+        // `$ref` on EVERY class, even one whose node shape never carried the cap.
+        let functional =
+            expand_ecosystem_curie(&prop_key).is_some_and(|iri| functional_props.contains(&iri));
         if let Some(pv) = defs
             .get_mut(&def_key)
             .and_then(Value::as_object_mut)
@@ -294,7 +350,7 @@ pub(crate) fn enrich_value_vocab_enums(
             .and_then(Value::as_object_mut)
             .and_then(|p| p.get_mut(&prop_key))
         {
-            repoint_to_enum(pv, &enum_key);
+            repoint_to_enum(pv, &enum_key, functional);
         }
     }
 
@@ -347,4 +403,166 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
         stage: "value-vocab-enrich".into(),
         message: message.into(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::stages::export::FoldView;
+    use gmeow_ns::gmeow_json_schema_namespaces;
+
+    /// A synthetic ontology store exercising the functional-vs-multivalued split:
+    ///
+    /// * `gmeow:FrameKind` is an open value vocabulary (`logic:AbstractIndividualType`)
+    ///   with two `gmeow:` members;
+    /// * `gmeow:frameKind` is FUNCTIONAL — a `logic:PropertyCharacteristicAssertion`
+    ///   carrier characterizes it `logic:functionalProperty`;
+    /// * `gmeow:frameTag` ranges over the SAME vocabulary but carries NO functional
+    ///   assertion, so it is (correctly) multivalued.
+    const SYNTH_STORE: &str = r#"
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+        gmeow:FrameKind a logic:AbstractIndividualType .
+        gmeow:cartesian a gmeow:FrameKind .
+        gmeow:grid      a gmeow:FrameKind .
+
+        gmeow:frameKind a owl:ObjectProperty ;
+            rdfs:range gmeow:FrameKind .
+        gmeow:frameTag a owl:ObjectProperty ;
+            rdfs:range gmeow:FrameKind .
+
+        logic:frameKindFunctionality
+            a owl:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+            logic:characterizes gmeow:frameKind ;
+            logic:characteristicSort logic:functionalProperty ;
+            logic:formalizes gmeow:frameKind .
+    "#;
+
+    /// A node-reference-only property schema (`purrdf`'s shape for an object property
+    /// whose range class has no NodeShape — every value vocabulary).
+    fn node_ref() -> Value {
+        json!({
+            "type": "object",
+            "properties": { "@id": { "type": "string" } },
+            "required": ["@id"]
+        })
+    }
+
+    /// The multivalued (`anyOf:[node-ref, {array of node-ref}]`) property schema
+    /// `purrdf` emits for a class whose node shape lacks a single-valued cap.
+    fn multivalued_node_ref() -> Value {
+        json!({
+            "anyOf": [
+                node_ref(),
+                { "type": "array", "items": node_ref() }
+            ]
+        })
+    }
+
+    fn parse_store() -> std::sync::Arc<RdfDataset> {
+        parse_dataset(SYNTH_STORE.as_bytes(), "text/turtle", None).expect("parse synthetic store")
+    }
+
+    /// A functional enum-ranged property narrows to a SCALAR `$ref` (no array branch)
+    /// even on a class whose node shape lacked the cap — the widened
+    /// `anyOf:[ref, array]` input is dropped — while a NON-functional property ranging
+    /// over the same vocabulary keeps its `anyOf:[ref, array]` multivalued form.
+    #[test]
+    fn functional_enum_property_narrows_to_scalar_ref() {
+        let store = parse_store();
+        let view = FoldView::new(&store);
+        let ns = gmeow_json_schema_namespaces();
+
+        // Both fields arrive multivalued (the un-capped class node shape). The
+        // functional/non-functional split, not the input cardinality, decides output.
+        let mut schema = json!({
+            "$defs": {
+                "NarrativeReferenceFrame": {
+                    "type": "object",
+                    "properties": {
+                        "@id": { "type": "string" },
+                        "gmeow:frameKind": multivalued_node_ref(),
+                        "gmeow:frameTag": multivalued_node_ref()
+                    }
+                }
+            }
+        });
+
+        let vocabs = enrich_value_vocab_enums(&mut schema, &ns, &view);
+        assert!(
+            vocabs.iter().any(|v| v.enum_key == "FrameKindEnum"),
+            "value vocabulary derived"
+        );
+
+        let props = &schema["$defs"]["NarrativeReferenceFrame"]["properties"];
+
+        // Functional: scalar single-`$ref`, array branch DROPPED.
+        assert_eq!(
+            props["gmeow:frameKind"],
+            json!({ "$ref": "#/$defs/FrameKindEnum" }),
+            "functional property must narrow to a scalar $ref"
+        );
+
+        // Non-functional: the multivalued `anyOf:[ref, {array of ref}]` is preserved.
+        assert_eq!(
+            props["gmeow:frameTag"],
+            json!({
+                "anyOf": [
+                    { "$ref": "#/$defs/FrameKindEnum" },
+                    { "type": "array", "items": { "$ref": "#/$defs/FrameKindEnum" } }
+                ]
+            }),
+            "non-functional property must stay multivalued"
+        );
+    }
+
+    /// `functional_property_iris` reads the carrier and ONLY the carrier: it reports the
+    /// property named by a `logic:functionalProperty` assertion and nothing else.
+    #[test]
+    fn functional_property_iris_reads_only_the_carrier() {
+        let store = parse_store();
+        let view = FoldView::new(&store);
+        let functional = functional_property_iris(&view);
+
+        assert!(
+            functional.contains("https://blackcatinformatics.ca/gmeow/frameKind"),
+            "carrier-characterized functional property is reported"
+        );
+        assert!(
+            !functional.contains("https://blackcatinformatics.ca/gmeow/frameTag"),
+            "a property with no functional carrier is NOT reported"
+        );
+        assert_eq!(functional.len(), 1, "exactly the one carried property");
+    }
+
+    /// A functional property whose field arrives ALREADY scalar stays scalar (the fix is
+    /// idempotent), and repointing still lands on the enum `$def`.
+    #[test]
+    fn functional_scalar_input_stays_scalar() {
+        let store = parse_store();
+        let view = FoldView::new(&store);
+        let ns = gmeow_json_schema_namespaces();
+
+        let mut schema = json!({
+            "$defs": {
+                "ReferenceFrame": {
+                    "type": "object",
+                    "properties": {
+                        "@id": { "type": "string" },
+                        "gmeow:frameKind": node_ref()
+                    }
+                }
+            }
+        });
+
+        enrich_value_vocab_enums(&mut schema, &ns, &view);
+
+        assert_eq!(
+            schema["$defs"]["ReferenceFrame"]["properties"]["gmeow:frameKind"],
+            json!({ "$ref": "#/$defs/FrameKindEnum" }),
+        );
+    }
 }

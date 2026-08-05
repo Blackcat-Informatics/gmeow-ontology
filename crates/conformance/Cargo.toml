@@ -54,6 +54,7 @@ gmeow-cli-core = { path = "../cli-core" }
 # named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
 # native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
+gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
@@ -64,8 +65,14 @@ serde_json = "1"
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
 # are deterministic and blank-node-free.
-blake3 = "1"
+blake3.workspace = true
 [dev-dependencies]
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
+tempfile = "3"
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
 # case directory), run in parallel. Mirrors crates/slicetest.
 datatest-stable = "0.3"
@@ -83,6 +90,16 @@ harness = false
 # the standard libtest harness (not datatest-stable).
 [[test]]
 name = "dl_oracle_gold"
+
+# The per-op numeric-builtin oracle-gold lane: drives each frozen,
+# independently hand-derived case under `coverage/external/1428-numeric-builtin-oracle-gold/`
+# through the PUBLIC `gmeow_logic::dispatch::dispatch_query` surface (never the
+# crate-private `builtin_eval::eval`), so the exact-ℚ arithmetic / comparison / SI-dimension
+# / dimensioned-quantity builtins are each anchored to an oracle independent of the engine
+# under test. Offline + deterministic (no Docker/Java/network); the standard libtest harness
+# (not datatest-stable).
+[[test]]
+name = "numeric_builtin_oracle_gold"
 
 # The W3C OWL 2 EL soundness-divergence regression gate: re-runs the eight
 # correctness-crux cases (seven agreeing soundness fixes + the owl:Thing-oneOf

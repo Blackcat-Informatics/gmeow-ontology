@@ -257,8 +257,7 @@ gmeow:availabilityAgent
     gmeow:useWhen "Use to name the agent a free-busy statement is about — the subject whose availability the slot and status describe."@x-gmeow-english .
 
 gmeow:availabilitySlot
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Availability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availability slot"@x-gmeow-english ;
@@ -325,8 +324,7 @@ gmeow:calendarMember
     gmeow:useWhen "Use to place an event into a calendar collection — the membership edge a CalDAV-style aggregation reads to list a calendar's contents."@x-gmeow-english .
 
 gmeow:calendarTimeZone
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Calendar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "calendar time zone"@x-gmeow-english ;
@@ -339,8 +337,7 @@ gmeow:calendarTimeZone
     gmeow:useWhen "Use to set the fallback IANA time zone a calendar's members are reckoned in when an individual event states no zone of its own."@x-gmeow-english .
 
 gmeow:eventTimeZone
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "event time zone"@x-gmeow-english ;
@@ -353,8 +350,7 @@ gmeow:eventTimeZone
     gmeow:useWhen "Use to fix the civil offset an event's wall-clock placement is read in — overriding the calendar default when an occurrence sits in a different zone."@x-gmeow-english .
 
 gmeow:exceptionOriginalDate
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception original date"@x-gmeow-english ;
@@ -367,8 +363,7 @@ gmeow:exceptionOriginalDate
     gmeow:useWhen "Use to identify WHICH generated occurrence an exception overrides, by the date/time the recurrence rule would have produced — the RFC 5545 RECURRENCE-ID anchor."@x-gmeow-english .
 
 gmeow:exceptionReplacementEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception replacement event"@x-gmeow-english ;
@@ -381,8 +376,7 @@ gmeow:exceptionReplacementEvent
     gmeow:useWhen "Use to name the moved-to gmeow:Event of a rescheduled occurrence — the new placement that stands in for the one at gmeow:exceptionOriginalDate."@x-gmeow-english .
 
 gmeow:exceptionSchedule
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception schedule"@x-gmeow-english ;
@@ -395,8 +389,7 @@ gmeow:exceptionSchedule
     gmeow:useWhen "Use to bind an exception to the one gmeow:EventSchedule whose series it overrides — the back-edge that lets a schedule enumerate its deviations."@x-gmeow-english .
 
 gmeow:exceptionType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception type"@x-gmeow-english ;
@@ -423,8 +416,7 @@ gmeow:exceptionTypeRescheduling
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:invitationEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EventInvitation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "invitation event"@x-gmeow-english ;
@@ -491,8 +483,7 @@ gmeow:invitationStatusTentative
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reminderAction
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Reminder ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminder action"@x-gmeow-english ;
@@ -526,8 +517,7 @@ gmeow:reminderActionEmail
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reminderTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Reminder ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminder target"@x-gmeow-english ;
@@ -623,8 +613,7 @@ gmeow:scheduleRecurrenceRule
     gmeow:useWhen "Use to attach the recurrence pattern a schedule expands — the structured/RFC 5545 rule the occurrence engine iterates to produce the series."@x-gmeow-english .
 
 gmeow:scheduleTemplateEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule template event"@x-gmeow-english ;
@@ -637,8 +626,7 @@ gmeow:scheduleTemplateEvent
     gmeow:useWhen "Use to name the single anchor event a schedule clones — the carrier of the recurring title, location, participants, and duration that every occurrence inherits."@x-gmeow-english .
 
 gmeow:scheduleTimeZone
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule time zone"@x-gmeow-english ;
@@ -651,8 +639,7 @@ gmeow:scheduleTimeZone
     gmeow:useWhen "Use to fix the IANA zone a recurrence rule expands in — the offset that decides where each occurrence's local wall-clock time falls across DST boundaries."@x-gmeow-english .
 
 gmeow:taskDueDate
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task due date"@x-gmeow-english ;
@@ -665,8 +652,7 @@ gmeow:taskDueDate
     gmeow:useWhen "Use to stamp a task's deadline — the iCalendar VTODO DUE moment by which it should be completed."@x-gmeow-english .
 
 gmeow:taskPriority
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task priority"@x-gmeow-english ;
@@ -679,8 +665,7 @@ gmeow:taskPriority
     gmeow:useWhen "Use to rank a task's urgency on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest)."@x-gmeow-english .
 
 gmeow:taskRecurrenceUntilDone
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task recurrence until done"@x-gmeow-english ;
@@ -734,8 +719,7 @@ gmeow:taskStatusNotStarted
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:timeZoneIanaId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TimeZone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "time zone IANA id"@x-gmeow-english ;
@@ -879,3 +863,255 @@ gmeow:ReminderTriggerLiteralConstraint
     logic:nodeKind "Literal" ;
     logic:formalizes gmeow:ReminderHasTriggerAndActionShape ;
     logic:message "A Reminder must have exactly one reminderTrigger (xsd:duration or xsd:dateTime)." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:availabilitySlotFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "availabilitySlot is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:availabilitySlot ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:availabilitySlot ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:availabilitySlot names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:availabilitySlot, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:availabilitySlot and nothing else. It is not a definition of gmeow:availabilitySlot (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:availabilitySlotFunctionality logic:characterizes gmeow:availabilitySlot ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarTimeZoneFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "calendarTimeZone is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:calendarTimeZone ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:calendarTimeZone ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:calendarTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:calendarTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:calendarTimeZone and nothing else. It is not a definition of gmeow:calendarTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:calendarTimeZoneFunctionality logic:characterizes gmeow:calendarTimeZone ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:eventTimeZoneFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "eventTimeZone is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:eventTimeZone ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:eventTimeZone ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:eventTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:eventTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:eventTimeZone and nothing else. It is not a definition of gmeow:eventTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:eventTimeZoneFunctionality logic:characterizes gmeow:eventTimeZone ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exceptionOriginalDateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "exceptionOriginalDate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exceptionOriginalDate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exceptionOriginalDate ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exceptionOriginalDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionOriginalDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exceptionOriginalDate and nothing else. It is not a definition of gmeow:exceptionOriginalDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exceptionOriginalDateFunctionality logic:characterizes gmeow:exceptionOriginalDate ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exceptionReplacementEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "exceptionReplacementEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exceptionReplacementEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exceptionReplacementEvent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exceptionReplacementEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionReplacementEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exceptionReplacementEvent and nothing else. It is not a definition of gmeow:exceptionReplacementEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exceptionReplacementEventFunctionality logic:characterizes gmeow:exceptionReplacementEvent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exceptionScheduleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "exceptionSchedule is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exceptionSchedule ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exceptionSchedule ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exceptionSchedule names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionSchedule, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exceptionSchedule and nothing else. It is not a definition of gmeow:exceptionSchedule (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exceptionScheduleFunctionality logic:characterizes gmeow:exceptionSchedule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exceptionTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "exceptionType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionType is functional: a schedule exception is exactly one kind — either a cancellation or a rescheduling of its occurrence, never both at once."@x-gmeow-english ;
+    logic:characterizes gmeow:exceptionType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exceptionType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exceptionType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exceptionType and nothing else. It is not a definition of gmeow:exceptionType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exceptionTypeFunctionality logic:characterizes gmeow:exceptionType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invitationEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "invitationEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:invitationEvent is functional: a reified invitation concerns exactly one event — the single concrete occurrence the invitee is asked to attend, never a recurrence generator."@x-gmeow-english ;
+    logic:characterizes gmeow:invitationEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:invitationEvent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:invitationEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:invitationEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:invitationEvent and nothing else. It is not a definition of gmeow:invitationEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:invitationEventFunctionality logic:characterizes gmeow:invitationEvent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderActionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "reminderAction is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:reminderAction ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reminderAction ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reminderAction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reminderAction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reminderAction and nothing else. It is not a definition of gmeow:reminderAction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reminderActionFunctionality logic:characterizes gmeow:reminderAction ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "reminderTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:reminderTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reminderTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reminderTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reminderTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reminderTarget and nothing else. It is not a definition of gmeow:reminderTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reminderTargetFunctionality logic:characterizes gmeow:reminderTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scheduleTemplateEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "scheduleTemplateEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:scheduleTemplateEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scheduleTemplateEvent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scheduleTemplateEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scheduleTemplateEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scheduleTemplateEvent and nothing else. It is not a definition of gmeow:scheduleTemplateEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scheduleTemplateEventFunctionality logic:characterizes gmeow:scheduleTemplateEvent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scheduleTimeZoneFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "scheduleTimeZone is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:scheduleTimeZone ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scheduleTimeZone ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scheduleTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scheduleTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scheduleTimeZone and nothing else. It is not a definition of gmeow:scheduleTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scheduleTimeZoneFunctionality logic:characterizes gmeow:scheduleTimeZone ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskDueDateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "taskDueDate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:taskDueDate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taskDueDate ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taskDueDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskDueDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taskDueDate and nothing else. It is not a definition of gmeow:taskDueDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taskDueDateFunctionality logic:characterizes gmeow:taskDueDate ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskPriorityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "taskPriority is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:taskPriority ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taskPriority ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taskPriority names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskPriority, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taskPriority and nothing else. It is not a definition of gmeow:taskPriority (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taskPriorityFunctionality logic:characterizes gmeow:taskPriority ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskRecurrenceUntilDoneFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "taskRecurrenceUntilDone is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taskRecurrenceUntilDone is functional: a task bears exactly one until-done recurrence flag — the single boolean deciding whether it re-arms until marked completed rather than ending at a fixed count or date."@x-gmeow-english ;
+    logic:characterizes gmeow:taskRecurrenceUntilDone ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taskRecurrenceUntilDone ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taskRecurrenceUntilDone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskRecurrenceUntilDone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taskRecurrenceUntilDone and nothing else. It is not a definition of gmeow:taskRecurrenceUntilDone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taskRecurrenceUntilDoneFunctionality logic:characterizes gmeow:taskRecurrenceUntilDone ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeZoneIanaIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    rdfs:label "timeZoneIanaId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeZoneIanaId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeZoneIanaId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeZoneIanaId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeZoneIanaId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeZoneIanaId and nothing else. It is not a definition of gmeow:timeZoneIanaId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeZoneIanaIdFunctionality logic:characterizes gmeow:timeZoneIanaId ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

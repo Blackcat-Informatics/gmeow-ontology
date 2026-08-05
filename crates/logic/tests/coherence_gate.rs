@@ -47,6 +47,11 @@ const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// Characteristic-assertion CARRIERS are authored in the slice that owns the property they
+/// characterize, so they are minted in that slice's namespace — `gmeow:` for every domain
+/// slice. Only the characteristic SORT they name (`logic:transitiveProperty`, …) stays
+/// `logic:`-namespaced, because the sort vocabulary is the reasoning core's own.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
 const LOGIC_MEDIATES: &str = "https://blackcatinformatics.ca/logic/mediates";
 const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
@@ -445,7 +450,13 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         format!("<{rec}> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}{sort_local}> <{CHAR_WORLD}> .\n")
     };
     // (property, OWL marker, logic: record local name, characteristic-sort local name).
-    let production: [(&str, &str, &str, &str); 8] = [
+    // Only the DUAL-authored characteristics live here: transitivity and symmetry keep both
+    // their OWL marker and their logic: record in the shipped bundle. Functionality was
+    // deprecated at source (issue 1579) to a logic:-ONLY carrier — owl:FunctionalProperty is
+    // now a generated-view-only projection, absent from the bundle — so gmeow:versionOf /
+    // gmeow:editionOf are asserted below via the same logic:-only treatment as
+    // counterGoal irreflexivity, not through this dual-carrier loop.
+    let production: [(&str, &str, &str, &str); 6] = [
         (
             GMEOW_SUB_EVENT_OF,
             OWL_TRANSITIVE_PROPERTY,
@@ -482,44 +493,53 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
             "counterpartOfSymmetry",
             "symmetricProperty",
         ),
-        (
-            GMEOW_VERSION_OF,
-            OWL_FUNCTIONAL_PROPERTY,
-            "versionOfFunctionality",
-            "functionalProperty",
-        ),
-        (
-            GMEOW_EDITION_OF,
-            OWL_FUNCTIONAL_PROPERTY,
-            "editionOfFunctionality",
-            "functionalProperty",
-        ),
     ];
     for (prop, marker, rec_local, sort_local) in production {
-        let rec = format!("{LOGIC_NS}{rec_local}");
+        let rec = format!("{GMEOW_NS}{rec_local}");
         assert!(
             facts.contains(&marker_fact(prop, marker)),
             "the committed gmeow.gts must declare {prop} with OWL characteristic {marker}"
         );
         assert!(
             facts.contains(&characterizes_fact(&rec, prop)),
-            "the committed gmeow.gts must carry the logic: record {rec} characterizing {prop}"
+            "the committed gmeow.gts must carry the carrier record {rec} characterizing {prop}"
         );
         assert!(
             facts.contains(&sort_fact(&rec, sort_local)),
-            "the logic: record {rec} must assert characteristic sort logic:{sort_local}"
+            "the carrier record {rec} must assert characteristic sort logic:{sort_local}"
         );
     }
     // counterGoal irreflexivity is a logic:-only carrier (no OWL projection, DL-clean).
-    let cg_irr = format!("{LOGIC_NS}counterGoalIrreflexivity");
+    let cg_irr = format!("{GMEOW_NS}counterGoalIrreflexivity");
     assert!(
         facts.contains(&characterizes_fact(&cg_irr, GMEOW_COUNTER_GOAL)),
-        "the committed gmeow.gts must carry the logic:-only counterGoal irreflexivity record"
+        "the committed gmeow.gts must carry the counterGoal irreflexivity carrier record"
     );
     assert!(
         facts.contains(&sort_fact(&cg_irr, "irreflexiveProperty")),
         "the counterGoal irreflexivity record must assert logic:irreflexiveProperty"
     );
+
+    // Functionality is a logic:-ONLY carrier (issue 1579): the source owl:FunctionalProperty
+    // marker was deprecated and now exists only in the generated OWL view, so the bundle
+    // carries NO marker triple for these — only the logic: record. The pair (record →
+    // characterizes property, record → characteristicSort functionalProperty) is the single
+    // carrier, so dropping either half goes red exactly as the dual-carrier loop does above.
+    let functional_only: [(&str, &str); 2] = [
+        (GMEOW_VERSION_OF, "versionOfFunctionality"),
+        (GMEOW_EDITION_OF, "editionOfFunctionality"),
+    ];
+    for (prop, rec_local) in functional_only {
+        let rec = format!("{GMEOW_NS}{rec_local}");
+        assert!(
+            facts.contains(&characterizes_fact(&rec, prop)),
+            "the committed gmeow.gts must carry the carrier-only record {rec} characterizing {prop}"
+        );
+        assert!(
+            facts.contains(&sort_fact(&rec, "functionalProperty")),
+            "the carrier record {rec} must assert characteristic sort logic:functionalProperty"
+        );
+    }
 
     // HOLDS: the shipped ontology satisfies its property characteristics.
     let clean = run_characteristic_gate(&projection);

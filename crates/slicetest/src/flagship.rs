@@ -34,7 +34,7 @@ use crate::native_query::{dataset_from_file, render_term, select, union};
 use crate::paths::{example_file, query_file};
 
 /// The shared `gmeow:` namespace the flagship acceptance manifest vocabulary lives under.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// Render one bound cell to its N-Triples lexical form, hard-failing on an unbound slot —
 /// every column projected below is required, so an unbound cell is a bug in the manifest,

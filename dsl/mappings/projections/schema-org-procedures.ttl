@@ -1,121 +1,138 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix schema:  <https://schema.org/> .
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
 
-# Projection mappings: GMEOW Procedure / ProcedureStep / Execution → schema.org
-# HowTo / HowToStep / Recipe / Action. Compiled to
-# projections/schema-org-procedures.edoal.ttl + queries/projections/schema-org-procedures.rq
-# by `gmeow compile-mappings`.
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:  <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+# Projection mappings: the canonical prescription / enactment spine → schema.org
+# HowTo / HowToStep / Recipe / Action. Compiled into the `schema-org` profile's
+# generated EDOAL alignment and SPARQL CONSTRUCT by the registered mappings
+# generator, and executed by `gmeow project --profile schema-org`.
+#
+# The subject side is logic:, not a domain process vocabulary: logic:Plan,
+# logic:ActionSchema and logic:Enactment are the canonical terms, so the consumer
+# down-projection reads them directly. Each cell's direction and residue are the
+# ones the logic: owner surface already declares as grounding law in
+# slices/grounding/logic/mappings/plan-enactment-bridges.ttl — this file is the
+# EXECUTABLE lowering of that reading, never a second alignment: it is registered
+# in the consumer-profile inventory (dsl/mappings/projection-profiles.ttl), which
+# pins both this document's existence and its cell count.
 
 # --------------------------------------------------------------------------- #
-# Procedure → schema:HowTo (default) or schema:Recipe (when procedureType = recipe)
+# logic:Plan → schema:HowTo (default) or schema:Recipe (prescription kind recipe)
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaHowTo a gmeow:ProjectionMapping ;
-    rdfs:label "Procedure → schema:HowTo"@x-gmeow-english ;
+    rdfs:label "Plan → schema:HowTo"@x-gmeow-english ;
     gmeow:hasMappingPattern [
-        gmeow:anchor "proc" ;
+        gmeow:anchor "plan" ;
         gmeow:atom (
-            [ gmeow:subjectVar "proc" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Procedure ]
-            [ gmeow:subjectVar "proc" ; gmeow:predicate gmeow:procedureType ; gmeow:objectValue gmeow:procedureTypeRecipe ; gmeow:optional true ] ) ] ;
+            [ gmeow:subjectVar "plan" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Plan ]
+            [ gmeow:subjectVar "plan" ; gmeow:predicate logic:prescriptionKind ; gmeow:objectValue logic:prescriptionKindRecipe ; gmeow:optional true ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "schema:HowTo carries a flat ordered step list, so the transaction-program combinators reachable through logic:planBody (choice, iteration, concurrency, fallback) are unrolled or dropped" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "proc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:HowTo ] ) ] .
+            [ gmeow:tSubj "plan" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:HowTo ] ) ] .
 
 gmeow:mapSchemaRecipe a gmeow:ProjectionMapping ;
-    rdfs:label "Procedure (type=recipe) → schema:Recipe"@x-gmeow-english ;
+    rdfs:label "Plan (prescription kind recipe) → schema:Recipe"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "recipe" ;
         gmeow:atom (
-            [ gmeow:subjectVar "recipe" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Procedure ]
-            [ gmeow:subjectVar "recipe" ; gmeow:predicate gmeow:procedureType ; gmeow:objectValue gmeow:procedureTypeRecipe ] ) ] ;
+            [ gmeow:subjectVar "recipe" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Plan ]
+            [ gmeow:subjectVar "recipe" ; gmeow:predicate logic:prescriptionKind ; gmeow:objectValue logic:prescriptionKindRecipe ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the recipe reading is a logic:prescriptionKind FACET on a domain-neutral plan, so a plan holding several kinds has no single schema.org class and its other kinds are dropped" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "recipe" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Recipe ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# ProcedureStep → schema:HowToStep
+# logic:ActionSchema → schema:HowToStep
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaHowToStep a gmeow:ProjectionMapping ;
-    rdfs:label "ProcedureStep → schema:HowToStep"@x-gmeow-english ;
+    rdfs:label "ActionSchema → schema:HowToStep"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ;
         gmeow:atom (
-            [ gmeow:subjectVar "step" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ProcedureStep ] ) ] ;
+            [ gmeow:subjectVar "step" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:ActionSchema ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the eight action-theory facets and the schema's plan-independent reusability are dropped: schema:HowToStep is a positioned member of exactly one HowTo" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "step" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:HowToStep ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# hasProcedureStep → schema:step
+# logic:planBody → schema:step
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaStep a gmeow:ProjectionMapping ;
-    rdfs:label "hasProcedureStep → schema:step"@x-gmeow-english ;
+    rdfs:label "planBody → schema:step"@x-gmeow-english ;
     gmeow:hasMappingPattern [
-        gmeow:anchor "proc" ; gmeow:value "step" ;
-        gmeow:atom ( [ gmeow:subjectVar "proc" ; gmeow:predicate gmeow:hasProcedureStep ; gmeow:objectVar "step" ] ) ;
-        gmeow:edoalSource gmeow:hasProcedureStep ] ;
+        gmeow:anchor "plan" ; gmeow:value "step" ;
+        gmeow:atom ( [ gmeow:subjectVar "plan" ; gmeow:predicate logic:planBody ; gmeow:objectVar "step" ] ) ;
+        gmeow:edoalSource logic:planBody ] ;
     gmeow:hasBinding [
-        gmeow:profile "schema-org" ; gmeow:toPredicate schema:step ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:step ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "arity and shape: logic:planBody names ONE program root, while schema:step is a flat many-valued list — the tree below the root is flattened away" ] .
 
 # --------------------------------------------------------------------------- #
-# stepInput → schema:supply / schema:tool
+# logic:precondition → schema:supply / schema:tool
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaSupply a gmeow:ProjectionMapping ;
-    rdfs:label "stepInput → schema:supply"@x-gmeow-english ;
+    rdfs:label "precondition → schema:supply"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "inp" ;
-        gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate gmeow:stepInput ; gmeow:objectVar "inp" ] ) ;
-        gmeow:edoalSource gmeow:stepInput ] ;
+        gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate logic:precondition ; gmeow:objectVar "inp" ] ) ;
+        gmeow:edoalSource logic:precondition ] ;
     gmeow:hasBinding [
-        gmeow:profile "schema-org" ; gmeow:toPredicate schema:supply ; gmeow:relation "<=" ; gmeow:confidence 0.75 ;
-        gmeow:lossyDrop "the typed stepInput collapses to a flat schema:supply edge" ] .
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:supply ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "schema:supply names a consumable ENTITY; the situation a precondition gates on is not reducible to the presence of a supply, so a precondition over a state of affairs has no schema.org form" ] .
 
 gmeow:mapSchemaTool a gmeow:ProjectionMapping ;
-    rdfs:label "stepInput (tool) → schema:tool"@x-gmeow-english ;
+    rdfs:label "precondition (physical object) → schema:tool"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "tool" ;
         gmeow:atom (
-            [ gmeow:subjectVar "step" ; gmeow:predicate gmeow:stepInput ; gmeow:objectVar "tool" ]
+            [ gmeow:subjectVar "step" ; gmeow:predicate logic:precondition ; gmeow:objectVar "tool" ]
             [ gmeow:subjectVar "tool" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:PhysicalObject ] ) ;
-        gmeow:edoalSource gmeow:stepInput ] ;
+        gmeow:edoalSource logic:precondition ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:tool ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
-        gmeow:lossyDrop "the typed stepInput collapses to a flat schema:tool edge when the input is a physical object" ] .
+        gmeow:lossyDrop "the consumable / non-consumable distinction schema.org draws between supply and tool is carried in logic: by logic:actionResource and logic:capability, not by logic:precondition, so it is reconstructed here only from the object's physical sort" ] .
 
 # --------------------------------------------------------------------------- #
-# stepOutput → schema:result
+# logic:effect → schema:result
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaResult a gmeow:ProjectionMapping ;
-    rdfs:label "stepOutput → schema:result"@x-gmeow-english ;
+    rdfs:label "effect → schema:result"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "out" ;
-        gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate gmeow:stepOutput ; gmeow:objectVar "out" ] ) ;
-        gmeow:edoalSource gmeow:stepOutput ] ;
+        gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate logic:effect ; gmeow:objectVar "out" ] ) ;
+        gmeow:edoalSource logic:effect ] ;
     gmeow:hasBinding [
-        gmeow:profile "schema-org" ; gmeow:toPredicate schema:result ; gmeow:relation "<=" ; gmeow:confidence 0.75 ;
-        gmeow:lossyDrop "the typed stepOutput collapses to a flat schema:result edge" ] .
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:result ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the del half of logic:effect: schema:result names only what is produced, never what an effect retracts" ] .
 
 # --------------------------------------------------------------------------- #
-# Execution → schema:Action (lossy — schema.org has no plan/execution split)
+# logic:Enactment → schema:Action (lossy — schema.org has no plan/run split)
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaAction a gmeow:ProjectionMapping ;
-    rdfs:label "Execution → schema:Action"@x-gmeow-english ;
+    rdfs:label "Enactment → schema:Action"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "exec" ;
         gmeow:atom (
-            [ gmeow:subjectVar "exec" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Execution ] ) ] ;
+            [ gmeow:subjectVar "exec" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Enactment ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
-        gmeow:lossyDrop "schema.org has no plan/execution de-conflation; the Execution is projected as a flat Action" ;
+        gmeow:lossyDrop "schema.org has no prescription/enactment de-conflation; the enactment is projected as a flat Action, dropping its version pin, input snapshot and transition journal" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "exec" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Action ] ) ] .

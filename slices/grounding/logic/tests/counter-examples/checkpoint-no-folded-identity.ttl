@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N1 - a checkpoint with no folded identity. Restore is identity-gated across seven
+# axes and the fold is what the gate compares first, so a checkpoint without it cannot
+# be gated at all. MUST trip logic:CheckpointCarriesFoldedIdentityConstraint and nothing
+# else. NOT logic:CheckpointRestoreIdentityConstraint: that law COMPARES a restore's fold
+# with its checkpoint's and its guard binds both, so a checkpoint carrying none falls
+# outside it. The mismatch is checkpoint-restored-under-a-drifted-fold.ttl.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:ckptNoIdentity a logic:EnactmentCheckpoint ;
+    rdfs:label "a checkpoint carrying no folded identity"@en .

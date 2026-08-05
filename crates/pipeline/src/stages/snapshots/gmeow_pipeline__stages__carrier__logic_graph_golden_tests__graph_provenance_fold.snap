@@ -1,74 +1,129 @@
 ---
 source: crates/pipeline/src/stages/carrier.rs
-assertion_line: 2933
 expression: folded
 ---
-<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/2000/01/rdf-schema#label> conformance carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/2004/02/skos/core#definition> The conformance carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/conformance; droppable: trimming this lane only pessimizes, never changes the answer. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/conformance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/gmeow/laneSlug> conformance .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/logic/loadBearing> false .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/2000/01/rdf-schema#label> correspondence carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/2004/02/skos/core#definition> The correspondence carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/correspondence; load-bearing: trimming this lane drops correctness. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/correspondence> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/gmeow/laneSlug> correspondence .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/logic/loadBearing> true .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/2000/01/rdf-schema#label> dataset carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/2004/02/skos/core#definition> The dataset carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/base; load-bearing: trimming this lane drops correctness. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/base> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/gmeow/laneSlug> dataset .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/logic/loadBearing> true .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <http://www.w3.org/2000/01/rdf-schema#label> diagnostics carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <http://www.w3.org/2004/02/skos/core#definition> The diagnostics carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/diagnostics; droppable: trimming this lane only pessimizes, never changes the answer. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <https://blackcatinformatics.ca/gmeow/laneSlug> diagnostics .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> <https://blackcatinformatics.ca/logic/loadBearing> false .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <http://www.w3.org/2000/01/rdf-schema#label> logic carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <http://www.w3.org/2004/02/skos/core#definition> The logic carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/logic; load-bearing: trimming this lane drops correctness. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/logic> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <https://blackcatinformatics.ca/gmeow/laneSlug> logic .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> <https://blackcatinformatics.ca/logic/loadBearing> true .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <http://www.w3.org/2000/01/rdf-schema#label> projection-ledger carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <http://www.w3.org/2004/02/skos/core#definition> The projection-ledger carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/projection-ledger; droppable: trimming this lane only pessimizes, never changes the answer. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <https://blackcatinformatics.ca/gmeow/laneSlug> projection-ledger .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> <https://blackcatinformatics.ca/logic/loadBearing> false .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <http://www.w3.org/2000/01/rdf-schema#label> provenance carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <http://www.w3.org/2004/02/skos/core#definition> The provenance carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/provenance; droppable: trimming this lane only pessimizes, never changes the answer. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <https://blackcatinformatics.ca/gmeow/laneSlug> provenance .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> <https://blackcatinformatics.ca/logic/loadBearing> false .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <http://www.w3.org/2000/01/rdf-schema#label> reasoning carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <http://www.w3.org/2004/02/skos/core#definition> The reasoning carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/reasoning; load-bearing: trimming this lane drops correctness. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <https://blackcatinformatics.ca/gmeow/laneSlug> reasoning .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> <https://blackcatinformatics.ca/logic/loadBearing> true .
-<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionSchema> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <http://www.w3.org/2000/01/rdf-schema#label> relational-core carrier lane .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <http://www.w3.org/2004/02/skos/core#definition> The relational-core carrier lane, folding into https://blackcatinformatics.ca/gmeow/graph/relational-core; load-bearing: trimming this lane drops correctness. .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <https://blackcatinformatics.ca/gmeow/laneSlug> relational-core .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> <https://blackcatinformatics.ca/logic/loadBearing> true .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Execution> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesProcedure> <https://blackcatinformatics.ca/gmeow/provenance/pipeline> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Procedure> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> .
-<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Enactment> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/2000/01/rdf-schema#label> Regeneration enactment .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/2004/02/skos/core#definition> The logic:Enactment carrying out the regeneration plan for this compilation. .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/enactsPrescriptionVersion> <https://blackcatinformatics.ca/gmeow/provenance/pipeline> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/logic/instantiatesSchema> <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Plan> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/2000/01/rdf-schema#label> Regeneration plan .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/2004/02/skos/core#definition> The gmeow: pipeline DAG realized as one logic:Plan, enacted once per compilation. .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/projection-ledger> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/reasoning> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/logic/planBody> <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CompilationUnit> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <http://www.w3.org/2000/01/rdf-schema#label> imports/prov.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <http://www.w3.org/2004/02/skos/core#definition> import compilation unit at imports/prov.ttl. .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <https://blackcatinformatics.ca/gmeow/carriesArtifact> imports/prov.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <https://blackcatinformatics.ca/gmeow/originKind> import .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/imports-prov-ttl> <https://blackcatinformatics.ca/gmeow/unitName> imports/prov.ttl .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CompilationUnit> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <http://www.w3.org/2000/01/rdf-schema#label> ontology/gmeow.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <http://www.w3.org/2004/02/skos/core#definition> root-ontology compilation unit at ontology/gmeow.ttl. .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <https://blackcatinformatics.ca/gmeow/carriesArtifact> ontology/gmeow.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <https://blackcatinformatics.ca/gmeow/originKind> root-ontology .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/ontology-gmeow-ttl> <https://blackcatinformatics.ca/gmeow/unitName> ontology/gmeow.ttl .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CompilationUnit> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/provenance> .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <http://www.w3.org/2000/01/rdf-schema#label> slices/core/epistemics/module.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <http://www.w3.org/2004/02/skos/core#definition> source compilation unit at slices/core/epistemics/module.ttl. .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <https://blackcatinformatics.ca/gmeow/carriesArtifact> slices/core/epistemics/module.ttl .
+<https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <https://blackcatinformatics.ca/gmeow/originKind> source .
 <https://blackcatinformatics.ca/gmeow/provenance/unit/slices-core-epistemics-module-ttl> <https://blackcatinformatics.ca/gmeow/unitName> slices/core/epistemics/module.ttl .

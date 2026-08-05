@@ -1,0 +1,706 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: slice-quality-rubric, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisContextScope is functional"
+msgstr "axisContextScope 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:axisContextScope 是函数性的:每个 gmeow:QualityAxis 恰好被授予一个读取广度协同效应——切片本地、依赖闭包或合并闭包——因此若存在第二个范围,作用域门将无法判定该轴的基元可以读取多大范围的图。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisWeight is functional"
+msgstr "axisWeight 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisWeight is functional: each gmeow:QualityAxis carries exactly one advice-ranking priority, so a second weight would make the advisor's remediation ordering ambiguous — and because the weight only orders advice (never the unweighted lattice-meet roll-up), one value per axis is all the ranking can consume."
+msgstr "在规范载体上断言 gmeow:axisWeight 是函数性的:每个 gmeow:QualityAxis 恰好携带一个建议排序优先级,因此若存在第二个权重,顾问的整改排序将变得含糊——而且由于该权重仅用于排序建议(而绝不用于无权重的格交汇汇总),每个轴一个值正是排序所能消耗的全部。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingCount is functional"
+msgstr "ceilingCount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:ceilingCount 是函数式的：每个按(切片,词表)划分的 gmeow:ProjectionCeilingCommitment 固定恰好一个承诺的最大残余计数，若存在第二个计数，则会使关卡强制执行的仅可下降的回归上限变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingSlice is functional"
+msgstr "ceilingSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:ceilingSlice 是函数式的：每个 gmeow:ProjectionCeilingCommitment 恰好指定一个主体切片，其被度量的残余由该上限所守护，若存在第二个切片，棘轮单元所固定的目标将变得含糊。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingVocabulary is functional"
+msgstr "ceilingVocabulary 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:ceilingVocabulary 是函数式的：每个 gmeow:ProjectionCeilingCommitment 恰好为一个受保护的 gmeow:ProjectionVocabulary 设定上限，若存在第二个词表，该上限将无法应用于任何单一的受保护表面。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exemptionDate is functional"
+msgstr "exemptionDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exemptionDate 是函数性的：每个 gmeow:AxisExemption 恰好在一个日期被铸造，若存在第二个日期，该豁免用以揭示长期存在缺口的审计年限就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorAxis is functional"
+msgstr "floorAxis 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:floorAxis 是函数性的：每个 gmeow:AxisFloorCommitment 恰好守护一个被测量的 gmeow:QualityAxis，若存在第二个维度，该按维度设定的回归下限就无法应用于任何单一的被测维度。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorSlice is functional"
+msgstr "floorSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:floorSlice 是函数性的：每个 gmeow:AxisFloorCommitment 或 gmeow:SliceTierFloor 恰好针对一个主题切片作出承诺，若存在第二个切片，棘轮单元所守护的目标就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorTier is functional"
+msgstr "floorTier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:floorTier 是函数性的：每个 gmeow:SliceTierFloor 在格序上恰好钉住一个最低汇总等级，若存在第二个等级，仅允许上调的等级回归门槛就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorValue is functional"
+msgstr "floorValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:floorValue 是函数性的：每个 gmeow:AxisFloorCommitment 恰好钉住一个已承诺的最低十进制分数，若存在第二个值，该关卡所强制执行的仅允许上调的回归下限就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdFloor is functional"
+msgstr "thresholdFloor 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:thresholdFloor 是函数性的:每一对 gmeow:AxisThreshold 恰好为其分层确定一个归一化的分数下限,第二个下限将使评分器失去唯一一条可用来比较所测轴分数的基准线。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdTier is functional"
+msgstr "thresholdTier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:thresholdTier 是函数性的:每一对 gmeow:AxisThreshold 恰好把关一个分层等级,第二个分层将使这个具化的 (tier, floor) 单元瓦解为一种含混不清的映射。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tierRank is functional"
+msgstr "tierRank 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:tierRank 是函数性的:每个 gmeow:QualityTier 在该阶梯的全序中恰好占据一个位置,若某一分层同时带有两个等级,将使该顺序变得不明确,并破坏汇总所依赖的格论交(最小等级)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyCountKind is functional"
+msgstr "vocabularyCountKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularyCountKind 是函数性的:每个 gmeow:ProjectionVocabulary 恰好选定三种封闭构造识别策略之一,若存在第二种类型,共享计数器的 Rust 分派就无法解析出唯一的枚举路径。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyDefaultCeiling is functional"
+msgstr "vocabularyDefaultCeiling 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularyDefaultCeiling 是函数性的:每个 gmeow:ProjectionVocabulary 恰好携带一个针对缺乏明确承诺切片的空案例默认上限,若存在第二个默认值,每个未列出的切片都将受制于一个含糊的回退值,并重新打开「全新词汇」漏洞。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyOwner is functional"
+msgstr "vocabularyOwner 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularyOwner 是函数性的:每个 gmeow:ProjectionVocabulary 恰好有一个基础切片(logic:、math: 或 lang:)持有其外部著录权威,若存在第二个所有者,外部术语将拥有两个著录归属地,从而破坏所有者边界本应强制执行的「防第二来源」棘轮机制。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPrefix is functional"
+msgstr "vocabularyPrefix 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularyPrefix 是函数性的:每个 gmeow:ProjectionVocabulary 恰好有一个简短的 CURIE 前缀,用作上限承诺据以解析的连接键,若存在第二个前缀,将破坏上限承诺与其词汇之间的唯一键绑定关系。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPreservation is functional"
+msgstr "vocabularyPreservation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularyPreservation 是函数性的:每个 gmeow:ProjectionVocabulary 从 logic: 的降阶恰好携带一个损失账本保真极性,若存在第二个判定,该投影向共享损失账本所宣称的保证将变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularySubsumedBy is functional"
+msgstr "vocabularySubsumedBy 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:vocabularySubsumedBy 是函数性的:每个受保护的 gmeow:ProjectionVocabulary 恰好是某一个 logic: 核心生成出的有损投影,若存在第二个包摄者,将与原则 17「表层由单一规范来源投影而来」的前提相矛盾。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:axisContextScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:axisContextScope 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisContextScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:axisContextScope, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:axisContextScopeFunctionality logic:characterizes gmeow:axisContextScope ."
+msgstr "gmeow:axisContextScopeFunctionality logic:characterizes gmeow:axisContextScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:axisWeight names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:axisWeight 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisWeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:axisWeight, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:axisWeightFunctionality logic:characterizes gmeow:axisWeight ."
+msgstr "gmeow:axisWeightFunctionality logic:characterizes gmeow:axisWeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ceilingCount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:ceilingCount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:ceilingCount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ceilingCountFunctionality logic:characterizes gmeow:ceilingCount ."
+msgstr "gmeow:ceilingCountFunctionality logic:characterizes gmeow:ceilingCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ceilingSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:ceilingSlice 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:ceilingSlice, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ceilingSliceFunctionality logic:characterizes gmeow:ceilingSlice ."
+msgstr "gmeow:ceilingSliceFunctionality logic:characterizes gmeow:ceilingSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ceilingVocabulary names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:ceilingVocabulary 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingVocabulary, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:ceilingVocabulary, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ceilingVocabularyFunctionality logic:characterizes gmeow:ceilingVocabulary ."
+msgstr "gmeow:ceilingVocabularyFunctionality logic:characterizes gmeow:ceilingVocabulary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:exemptionDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:exemptionDate 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exemptionDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:exemptionDate, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:exemptionDateFunctionality logic:characterizes gmeow:exemptionDate ."
+msgstr "gmeow:exemptionDateFunctionality logic:characterizes gmeow:exemptionDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:floorAxis names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:floorAxis 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorAxis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:floorAxis, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:floorAxisFunctionality logic:characterizes gmeow:floorAxis ."
+msgstr "gmeow:floorAxisFunctionality logic:characterizes gmeow:floorAxis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:floorSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:floorSlice 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:floorSlice, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:floorSliceFunctionality logic:characterizes gmeow:floorSlice ."
+msgstr "gmeow:floorSliceFunctionality logic:characterizes gmeow:floorSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:floorTier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:floorTier 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:floorTier, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:floorTierFunctionality logic:characterizes gmeow:floorTier ."
+msgstr "gmeow:floorTierFunctionality logic:characterizes gmeow:floorTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:floorValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:floorValue 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:floorValueFunctionality logic:characterizes gmeow:floorValue ."
+msgstr "gmeow:floorValueFunctionality logic:characterizes gmeow:floorValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:thresholdFloor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:thresholdFloor 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdFloor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:thresholdFloor, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:thresholdFloorFunctionality logic:characterizes gmeow:thresholdFloor ."
+msgstr "gmeow:thresholdFloorFunctionality logic:characterizes gmeow:thresholdFloor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:thresholdTier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:thresholdTier 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:thresholdTier, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:thresholdTierFunctionality logic:characterizes gmeow:thresholdTier ."
+msgstr "gmeow:thresholdTierFunctionality logic:characterizes gmeow:thresholdTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tierRank names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:tierRank 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tierRank, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:tierRank, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tierRankFunctionality logic:characterizes gmeow:tierRank ."
+msgstr "gmeow:tierRankFunctionality logic:characterizes gmeow:tierRank ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularyCountKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularyCountKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyCountKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyCountKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularyCountKindFunctionality logic:characterizes gmeow:vocabularyCountKind ."
+msgstr "gmeow:vocabularyCountKindFunctionality logic:characterizes gmeow:vocabularyCountKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularyDefaultCeiling names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularyDefaultCeiling 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
+msgstr "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularyOwner names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularyOwner 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
+msgstr "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularyPrefix names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularyPrefix 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPrefix, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyPrefix, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularyPrefixFunctionality logic:characterizes gmeow:vocabularyPrefix ."
+msgstr "gmeow:vocabularyPrefixFunctionality logic:characterizes gmeow:vocabularyPrefix ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularyPreservation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularyPreservation 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPreservation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyPreservation, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularyPreservationFunctionality logic:characterizes gmeow:vocabularyPreservation ."
+msgstr "gmeow:vocabularyPreservationFunctionality logic:characterizes gmeow:vocabularyPreservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vocabularySubsumedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vocabularySubsumedBy 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularySubsumedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularySubsumedBy, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vocabularySubsumedByFunctionality logic:characterizes gmeow:vocabularySubsumedBy ."
+msgstr "gmeow:vocabularySubsumedByFunctionality logic:characterizes gmeow:vocabularySubsumedBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:axisContextScope and nothing else. It is not a definition of gmeow:axisContextScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:axisContextScope 的一项完整性义务，别无其他。它不是 gmeow:axisContextScope 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:axisWeight and nothing else. It is not a definition of gmeow:axisWeight (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:axisWeight 的一项完整性义务，别无其他。它不是 gmeow:axisWeight 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ceilingCount and nothing else. It is not a definition of gmeow:ceilingCount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:ceilingCount 的一项完整性义务，别无其他。它不是 gmeow:ceilingCount 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ceilingSlice and nothing else. It is not a definition of gmeow:ceilingSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:ceilingSlice 的一项完整性义务，别无其他。它不是 gmeow:ceilingSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ceilingVocabulary and nothing else. It is not a definition of gmeow:ceilingVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:ceilingVocabulary 的一项完整性义务，别无其他。它不是 gmeow:ceilingVocabulary 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:exemptionDate and nothing else. It is not a definition of gmeow:exemptionDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:exemptionDate 的一项完整性义务，别无其他。它不是 gmeow:exemptionDate 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:floorAxis and nothing else. It is not a definition of gmeow:floorAxis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:floorAxis 的一项完整性义务，别无其他。它不是 gmeow:floorAxis 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:floorSlice and nothing else. It is not a definition of gmeow:floorSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:floorSlice 的一项完整性义务，别无其他。它不是 gmeow:floorSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:floorTier and nothing else. It is not a definition of gmeow:floorTier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:floorTier 的一项完整性义务，别无其他。它不是 gmeow:floorTier 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:floorValue and nothing else. It is not a definition of gmeow:floorValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:floorValue 的一项完整性义务，别无其他。它不是 gmeow:floorValue 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:thresholdFloor and nothing else. It is not a definition of gmeow:thresholdFloor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:thresholdFloor 的一项完整性义务，别无其他。它不是 gmeow:thresholdFloor 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:thresholdTier and nothing else. It is not a definition of gmeow:thresholdTier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:thresholdTier 的一项完整性义务，别无其他。它不是 gmeow:thresholdTier 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tierRank and nothing else. It is not a definition of gmeow:tierRank (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:tierRank 的一项完整性义务，别无其他。它不是 gmeow:tierRank 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyCountKind and nothing else. It is not a definition of gmeow:vocabularyCountKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularyCountKind 的一项完整性义务，别无其他。它不是 gmeow:vocabularyCountKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyDefaultCeiling and nothing else. It is not a definition of gmeow:vocabularyDefaultCeiling (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularyDefaultCeiling 的一项完整性义务，别无其他。它不是 gmeow:vocabularyDefaultCeiling 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyOwner and nothing else. It is not a definition of gmeow:vocabularyOwner (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularyOwner 的一项完整性义务，别无其他。它不是 gmeow:vocabularyOwner 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPrefix and nothing else. It is not a definition of gmeow:vocabularyPrefix (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularyPrefix 的一项完整性义务，别无其他。它不是 gmeow:vocabularyPrefix 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPreservation and nothing else. It is not a definition of gmeow:vocabularyPreservation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularyPreservation 的一项完整性义务，别无其他。它不是 gmeow:vocabularyPreservation 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vocabularySubsumedBy 的一项完整性义务，别无其他。它不是 gmeow:vocabularySubsumedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceiling relocation — the week cycle, organization to temporal"
+msgstr "上限迁移——星期周期，由 organization 迁往 temporal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
+msgstr "该记录表明：星期周期的取值词表已经离开 organization 切片、迁往 temporal 切片。gmeow:DayOfWeek 及其七个 ISO-8601 日期个体属于历法结构，它们当初留在 organization，只是因为 gmeow:openingDay 需要一个值域。此次移动所携带的唯一受守卫构造，是 rdfs 包含边 gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue，因此 organization 让出一个单位的 rdfs 余量，而 temporal 恰好承接这一个单位。这是上限核算据以与测量相互印证的移动记录；它本身并不构成许可，一旦该移动在合并基线处被吸收，它就随即失效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ceiling Relocation"
+msgstr "上限迁移"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dated declaration that a named set of terms MOVED from one slice to another, so the ratchet re-projects the affected cells' merge-base residue ceiling through that move before its lower-only comparison runs. A projection ceiling budgets net-new ungrounded authoring, which is location-independent: carrying a term across a slice boundary shifts residue between two cells without authoring any of it, so the accounting must follow the term rather than punish the destination twice. The declaration authorizes NOTHING by itself — each unit of adjustment must additionally be corroborated by a derived witness (a construct that genuinely departed the source and arrived at the destination) and funded by a matching lowering at the source, and a demand beyond that adjustment still reds. It is NOT a gmeow:ProjectionCeilingCommitment (that pins one cell's committed maximum) and NOT a gmeow:AxisExemption (that stands in for an unlanded producer): it is the movement record the ceiling accounting joins against the measurement."
+msgstr "一条带日期的声明，表明一组具名术语已从一个切片迁移到另一个切片，使得棘轮在其仅可下降的比较运行之前，先通过该迁移重新投影受影响单元格的合并基线残余上限。投影上限所预算的是位置无关的净新增未锚定编写：让一个术语跨越切片边界，只是在两个单元格之间转移残余，并未编写其中任何一分，因此核算必须跟随术语本身，而不是让目的地承受双重惩罚。该声明本身不授予任何权限——每一单位的调整都必须另外由一个派生见证（一个确实离开源头并抵达目的地的构造）加以佐证，并由源头处相应的下调提供资金；超出该调整量的需求仍会使关卡变红。它不是 gmeow:ProjectionCeilingCommitment（后者固定某个单元格的承诺上限），也不是 gmeow:AxisExemption（后者代替未落地生产者的豁免）：它是上限核算据以与测量相互印证的移动记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "示例：gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation term"
+msgstr "迁移术语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One term IRI a relocation declaration claims moved — NON-FUNCTIONAL, because a migration normally carries a family of terms across together, and at least one is required (a declaration naming none can be corroborated by nothing, so the loader rejects it outright). Each value is matched against the relocation-invariant subject anchor the residue counter records for every construct, so a construct nested under an anonymous block still resolves to the named term that owns it. It is NOT the source or destination slice (those are gmeow:relocationFromSlice and gmeow:relocationToSlice) and NOT a vocabulary reference: it names WHAT moved."
+msgstr "迁移声明所声称已迁移的某个术语的 IRI——非函数式，因为一次迁移通常会将一整族术语一并携带过去，且至少需要一个值（若声明未指名任何术语，就无从被任何东西佐证，加载器会直接拒绝该声明）。每个值都会与残余计数器为每个构造记录的、对迁移不变的主体锚点进行匹配，因此嵌套在匿名块下的构造仍会解析到拥有它的具名术语。它既不是来源切片也不是目的切片（那分别是 gmeow:relocationFromSlice 与 gmeow:relocationToSlice），也不是词表引用：它指明的是迁移了什么。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation from slice"
+msgstr "迁移来源切片"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms DEPARTED — the origin whose committed ceiling must fall by at least the transported amount for the move to be funded. Departure is measured, not asserted: a named term counts as departed only when it sits in this slice's merge-base residue and is gone from its working residue, which is precisely what distinguishes a genuine move from a copy that left the original in place. It is NOT the destination (that is gmeow:relocationToSlice) and NOT the vocabulary owner (that is gmeow:vocabularyOwner): it is the slice that gives the budget up."
+msgstr "被迁移术语所离开的切片——其承诺上限必须至少下降迁移量、该次迁移才算获得资金支持的起点切片。离开与否是被测量的，而非断言的：只有当某具名术语位于该切片的合并基线残余中、且已从其工作残余中消失时，它才算已离开，这正是区分真正迁移与留下原件的复制的关键所在。它不是目的地（那是 gmeow:relocationToSlice），也不是词表所有者（那是 gmeow:vocabularyOwner）：它是让出预算的那个切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+msgstr "示例：gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation to slice"
+msgstr "迁移目的切片"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms ARRIVED at — the destination whose merge-base ceiling the accounting re-projects upward by exactly the transported amount. Arrival is measured the mirror way to departure: a named term counts as arrived only when it is absent from this slice's merge-base residue and present in its working residue. The destination's committed ceiling must additionally be pinned to its post-move measured residue, so a migration that also deletes pre-existing residue cannot bank the difference as durable surplus. It is NOT the origin (that is gmeow:relocationFromSlice) and NOT gmeow:ceilingSlice (that pins one committed cell): it is the slice that takes the budget on."
+msgstr "被迁移术语所到达的切片——核算将其合并基线上限恰好按迁移量向上重新投影的目的地。到达的测量方式与离开对称：只有当某具名术语不在该切片的合并基线残余中、而出现在其工作残余中时，它才算已到达。目的切片的承诺上限还必须被钉定到迁移后测得的残余上，这样一次同时删除了原有残余的迁移就无法把差额当作持久盈余入账。它不是起点（那是 gmeow:relocationFromSlice），也不是 gmeow:ceilingSlice（后者钉定单个承诺单元格）：它是承接预算的那个切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+msgstr "示例：gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation vocabulary"
+msgstr "迁移词表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single guarded projection vocabulary a relocation declaration is narrowed to — OPTIONAL, and omitting it deliberately widens the declaration to every guarded vocabulary the derived witness corroborates for the same terms, which is the common case because one migrated term usually carries shape, taxonomy, and bridge residue at once. A present value must resolve to a registered gmeow:ProjectionVocabulary; an unresolvable reference would narrow the declaration to nothing and is a load-time failure rather than a silently dead record. It is NOT gmeow:ceilingVocabulary (that names which surface one committed cell caps): it is an optional narrowing of which surfaces this movement record speaks for."
+msgstr "迁移声明所收窄到的唯一受保护投影词表——可选，省略该值会有意将声明扩大到派生见证针对同一批术语所佐证的每一个受保护词表，这也是常见情形，因为一个被迁移的术语通常会同时携带形状、分类法与桥接残余。若给出该值，则必须解析到一个已注册的 gmeow:ProjectionVocabulary；无法解析的引用会把声明收窄至空，这是加载期失败，而不是一条悄然失效的记录。它不是 gmeow:ceilingVocabulary（后者指明某个承诺单元格所限定的表面）：它是对该移动记录所涉及表面的一种可选收窄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation date"
+msgstr "迁移日期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The date a relocation declaration was minted — the same dating discipline every gmeow:AxisExemption carries, so a movement record that has outlived its move is visible and auditable rather than anonymous. It is NOT an expiry: what retires the declaration is the staleness rule, which reds once the relocation is fully absorbed at the merge base (the named terms sit at the destination on both sides), not the passage of time. It is NOT gmeow:exemptionDate (that stamps an unlanded-producer escape): it stamps a movement."
+msgstr "迁移声明被创建时所标注的日期——与每个 gmeow:AxisExemption 所遵循的相同日期标注规范，使得一条已经超出其迁移生命周期的移动记录仍然可见、可审计，而不是匿名的。它不是失效期限：使声明退役的是过期规则——一旦该迁移在合并基线处被完全吸收（具名术语在目的地两侧均已就位），关卡才会变红，而不是时间的流逝本身使其失效。它不是 gmeow:exemptionDate（后者为未落地生产者的豁免打上时间戳）：它为一次迁移打上时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+msgstr "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationDate is functional"
+msgstr "relocationDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationDate is functional: each gmeow:CeilingRelocation is stamped with exactly one minting date, so a second date would leave an audit of movement records by age unable to say when the relocation was actually declared. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationDate 是函数式的：每个 gmeow:CeilingRelocation 都恰好标注一个创建日期，若存在第二个日期，按时间排序审计移动记录时将无法确定该迁移实际是何时声明的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+msgstr "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationDate and nothing else. It is not a definition of gmeow:relocationDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationDate 的一项完整性义务，别无其他。它不是 gmeow:relocationDate 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationFromSlice is functional"
+msgstr "relocationFromSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationFromSlice is functional: each gmeow:CeilingRelocation describes exactly one transport edge, so a second origin would leave the ceiling accounting unable to decide whose committed ceiling has to fall to fund the move. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationFromSlice 是函数式的：每个 gmeow:CeilingRelocation 恰好描述一条迁移边，若存在第二个来源，上限核算将无法判断应由哪一方的承诺上限下降来为该迁移提供资金。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+msgstr "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationFromSlice and nothing else. It is not a definition of gmeow:relocationFromSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationFromSlice 的一项完整性义务，别无其他。它不是 gmeow:relocationFromSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationToSlice is functional"
+msgstr "relocationToSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationToSlice is functional: each gmeow:CeilingRelocation re-projects the merge-base ceiling of exactly one destination cell family, so a second destination would let one witnessed departure be counted as arriving in two places at once. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationToSlice 是函数式的：每个 gmeow:CeilingRelocation 恰好为一个目的单元格族重新投影合并基线上限，若存在第二个目的地，同一次被见证的离开就会被同时计为抵达两个地方。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+msgstr "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationToSlice and nothing else. It is not a definition of gmeow:relocationToSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationToSlice 的一项完整性义务，别无其他。它不是 gmeow:relocationToSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationVocabulary is functional"
+msgstr "relocationVocabulary 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationVocabulary is functional: a gmeow:CeilingRelocation is either unnarrowed or narrowed to exactly one guarded surface, so a second vocabulary would be an ambiguous half-narrowing neither the widened nor the scoped reading could resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationVocabulary 是函数式的：一个 gmeow:CeilingRelocation 要么不作收窄，要么恰好收窄到一个受保护表面，若存在第二个词表，就会形成一种含糊的半收窄状态，既无法按放宽的读法解析，也无法按限定的读法解析。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+msgstr "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationVocabulary and nothing else. It is not a definition of gmeow:relocationVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationVocabulary 的一项完整性义务，别无其他。它不是 gmeow:relocationVocabulary 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|rdfs:label"
+msgid "assessment axis"
+msgstr "评估轴"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|skos:definition"
+msgid "The rubric axis a per-axis slice-quality assessment measured — the identity of the measurement, carried on the assessment itself so a reader recovers WHICH axis produced a score without re-scoring the slice. It is the inverse direction of gmeow:axisDimension: that names the ISO dimension an axis PUBLISHES under (many axes to one dimension, deliberately lossy), while this names the one axis the assessment IS. Because the dimension mapping is non-injective, gmeow:qualityDimension can never substitute for it. A roll-up assessment — the unweighted lattice meet, which spans every axis — carries NO gmeow:assessmentAxis, exactly as it carries no gmeow:qualityDimension."
+msgstr "某个按轴进行的切片质量评估所测量的评价标准轴——测量的身份，由评估本身携带，使读者无需重新评分该切片即可还原是哪一个轴产生了该分数。它是 gmeow:axisDimension 的反方向：后者指明某个轴所发布到的 ISO 维度（多个轴对应一个维度，属于刻意的有损映射），而它指明该评估所是的那唯一一个轴。由于维度映射并非单射，gmeow:qualityDimension 永远无法替代它。汇总评估——即跨越全部轴的非加权格下确界——不携带任何 gmeow:assessmentAxis，正如它也不携带 gmeow:qualityDimension。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|skos:scopeNote"
+msgid "Scope: it names the axis and nothing beyond it — no score, no tier, no threshold floor, and no recency follow from it, so a grade whose axis was later retired stays readable rather than becoming an untyped number. It is equally NOT an identity key: two passes over the same slice produce two distinct assessments carrying the SAME axis, so per-axis governance must join on the (assessed entity, axis, pass) triple, and deduplicating grades on the axis alone would silently discard a re-score. The subject is what separates it from gmeow:axisDimension: this is asserted on the ASSESSMENT, that one on the AXIS, so a graph carrying only gmeow:axisDimension describes the rubric and records no measurement of anything."
+msgstr "范围：它只指明轴，别无其他——分数、层级、阈值下限与新近程度都不由它推出，因此某个轴日后被撤销的评分仍然可读，而不会退化为无类型的数字。它同样不是身份键：对同一切片的两轮评估会产生两条携带相同轴的不同评估记录，因此按轴治理必须在（被评估实体、轴、评估轮次）三元组上连接，仅按轴去重会悄然丢弃一次重新评分。主语正是它与 gmeow:axisDimension 的分野：它断言在评估之上，而后者断言在轴之上，因此仅携带 gmeow:axisDimension 的图描述的是评价标准，并未记录对任何事物的测量。"

@@ -86,7 +86,7 @@ fn goal_pattern(goal: &QAtom) -> BindingPattern {
     BindingPattern::from_bools(
         goal.args
             .iter()
-            .map(|t| matches!(t, QTerm::Const(_) | QTerm::Num(_))),
+            .map(|t| matches!(t, QTerm::Const(_) | QTerm::Num(_) | QTerm::Triple { .. })),
     )
 }
 
@@ -527,6 +527,11 @@ fn project_generic(rows: &[(TypedRow, TypedProvenance)], goal: &QAtom) -> Vec<Bi
                     n.to_string(),
                     crate::physical::XSD_INTEGER,
                 ))),
+                // A ground quoted-triple is a flat constant constraint: match a row whose
+                // reconstructed surface equals the triple's canonical `<<( s p o )>>` form.
+                QTerm::Triple { .. } => super::magic::qterm_to_value(t)
+                    .ok()
+                    .map(|value| term_display(&value)),
                 // A structured argument is not a flat constant constraint; structured goals
                 // route to the full-FOL resolver, never the generic n-ary path.
                 QTerm::Var(_) | QTerm::Struct(_) => None,
@@ -619,7 +624,9 @@ pub(super) fn resolve_native_generic(
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
                 }
                 QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic(
+                        Vec::new(),
+                    )));
                 }
                 QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
             }
@@ -1030,7 +1037,9 @@ where
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
                 }
                 QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic(
+                        Vec::new(),
+                    )));
                 }
                 QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
             }

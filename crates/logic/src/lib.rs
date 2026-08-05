@@ -10,6 +10,7 @@ pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
 pub mod conjecture;
+pub mod conjecture_eval;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
@@ -54,6 +55,11 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
+// The math: measure-and-dimension reasoned-graph gate — dimensional homogeneity,
+// integral composition, math:dimensionVector drift, and Gram positive-definiteness,
+// all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
+// speed. Runs alongside the obligation checks in `verify`.
+pub mod math_dimension;
 // Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
 // forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
@@ -63,9 +69,16 @@ pub mod obligations;
 // Native physical execution core: columnar RelationStore + the semi-naive / magic-sets
 // engine that the materialize and dispatch routers invoke native-first. Crate-internal.
 mod physical;
+/// The native bilinear-form distance authority: the exact-ℚ squared-distance builtin
+/// `(x−y)ᵀG(x−y)` and its overflow-safe ordering, exposed so external crates
+/// (gmeow-affect's nearest-prototype classifier) compute Q9 metric
+/// distances THROUGH the governed moded-builtin family rather than a private path.
+pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
+pub mod proof_tree;
 pub mod provenance;
+pub mod purremb_relation;
 pub mod query_ir;
 pub mod reason;
 /// The shared named-graph boundary of the object-level reasoning EDB.
@@ -87,8 +100,8 @@ pub mod rule_ir;
 /// backwards-compat freeze of the churning core.
 pub mod runtime;
 pub mod seam;
-pub mod slme;
 pub mod stablemodel;
+pub mod statement_lowering;
 pub mod store;
 /// Synthetic relational-core Datalog generators (transitive closure, SCC, same
 /// generation, reachability) for the engine benchmark harness: each returns
@@ -96,7 +109,15 @@ pub mod store;
 /// in-crate benches and the `gmeow-conformance` bench-corpus loader.
 pub mod synth_corpus;
 pub mod teleology;
+/// The shared structured-term arena's façade (`ContentKey` / `TermArena` / `StructNode` /
+/// `InterningStats`, re-exported from the reasoner-free [`gmeow_term_arena`] crate) plus
+/// [`term_arena::MathGraphInterning`] — the thin `math:`-graph interning wrapper, which
+/// lives here because it needs this crate's `purrdf`-backed `math:` expression lowering.
+pub mod term_arena;
 mod term_codec;
+/// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general
+/// existential program per broader chase-termination class, each in its own world).
+pub mod termination_demonstrators;
 pub mod transaction;
 pub mod transition;
 pub mod verify;
@@ -112,3 +133,23 @@ pub(crate) mod oracle;
 
 // Static profile / decidability certifier.
 pub mod certify;
+
+// ---------------------------------------------------------------------------
+// Means–end refinement (RQ2/RQ3/RQ10) — public façade.
+//
+// The implementation lives in `reason::enactment::refine`, which is crate-private
+// because the reasoning internals are. This façade is the shipped surface a consumer
+// (the `gmeow logic refine` command) drives, so the refinement is a reachable
+// capability rather than a module nothing calls.
+//
+// There is deliberately NO refinement-specific status type here. A refinement reports
+// the same six-way [`runtime::OperationOutcome`] every other engine operation does, on
+// [`RefineReport::outcome`]: a private three-valued fold could express neither a
+// cancellation nor a malformed request, and inventing a second vocabulary for the same
+// question is how two parts of one engine come to disagree about what "incomplete"
+// means.
+// ---------------------------------------------------------------------------
+
+pub use reason::enactment::refine::{
+    ProofWitness, RefineCandidate, RefineRejection, RefineReport, RejectionKind, refine,
+};

@@ -132,6 +132,109 @@ pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     })
 }
 
+/// Project a full `gmeow.gts` bundle into a **core browser bundle** — graph-preserving
+/// N-Quads text carrying only the object-level ontology (the default graph) plus any
+/// explicitly kept named graphs, with every derived/heavy graph dropped (the
+/// documentation projection, the `graph/fanout/*` flat-file re-embeds, diagnostics,
+/// authoring briefs, the reasoned closure, …).
+///
+/// The FULL bundle extracts to ~948 MB of N-Quads — far too large to load and query
+/// in a browser (it OOMs the wasm engine). This projection keeps the queryable
+/// object-level ontology (~124 k quads → ~24 MB N-Quads, well within a browser's
+/// reach once the web server gzips it) so the in-browser playground/explorer can
+/// parse and SPARQL over the SAME authored ontology the pipeline shipped. It is
+/// shipped as N-Quads TEXT (not a GTS container) so the in-page purrdf RDF engine
+/// parses it directly with no container codec, and it is a pure, deterministic
+/// function of the input bytes (order-preserving filter + deterministic serializer),
+/// so the emitted asset is byte-reproducible.
+///
+/// `keep_named_graphs` is the allow-list of named-graph IRIs to retain ALONGSIDE the
+/// default graph (e.g. grounding graphs); pass an empty slice for object-level only.
+///
+/// # Errors
+///
+/// Returns `Err` if the container cannot be read, the statement layer cannot be
+/// folded, or the filtered dataset cannot be serialized.
+pub fn core_browser_bundle_nquads(
+    full_bytes: &[u8],
+    keep_named_graphs: &[&str],
+) -> gmeow_errors::Result<String> {
+    use std::collections::HashSet;
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let mut graph = purrdf::gts::read_all_segments(full_bytes).map_err(to_diag)?;
+    // Term ids whose value is a kept named-graph IRI. The default graph (`None` slot)
+    // is always retained; every other named graph is dropped.
+    let keep: HashSet<usize> = graph
+        .terms
+        .iter()
+        .enumerate()
+        .filter_map(|(i, t)| match t.value.as_deref() {
+            Some(v) if keep_named_graphs.contains(&v) => Some(i),
+            _ => None,
+        })
+        .collect();
+    let kept = |slot: Option<usize>| slot.is_none_or(|gid| keep.contains(&gid));
+    graph.quads.retain(|q| kept(q.3));
+    graph.reifiers.retain(|r| kept(r.2));
+    graph.annotations.retain(|a| kept(a.3));
+    // Fold the filtered graph into a graph-preserving dataset and serialize to
+    // N-Quads over the full dataset selection (the term table rides in the codec, so
+    // no term-pruning is needed — dropped quads simply do not appear).
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("core browser bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
+/// Read a `gmeow.gts` bundle's bytes into **graph-preserving** N-Quads text — every
+/// base quad keeps its named-graph component (unlike [`dataset_from_gts`], which
+/// folds them into the default graph). This is the browser bundle-read primitive:
+/// the wasm shim (`gmeow-validate-wasm::bundle_dataset`) hands the resulting N-Quads
+/// to the in-page purrdf RDF engine so the documentation playground/explorer query
+/// the SAME bundle the pipeline shipped, rather than a second curated data path.
+///
+/// Uses the oxigraph-free container reader (`read_all_segments` →
+/// `dataset_from_gts_graph`, which retains each quad's graph) and the native
+/// N-Quads serializer over the full dataset selection; both are wasm-clean (no
+/// reasoner, no filesystem).
+///
+/// # Errors
+///
+/// Returns `Err` if the GTS container cannot be read, the statement layer cannot be
+/// folded, or the dataset cannot be serialized.
+pub fn dataset_nquads_from_gts(bytes: &[u8]) -> gmeow_errors::Result<String> {
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let graph = purrdf::gts::read_all_segments(bytes).map_err(to_diag)?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
 /// Render a resolved subject term the way the legacy `_ox_term_display` did:
 /// IRI → its value; blank → `_:b`.
 ///
@@ -207,10 +310,18 @@ pub fn read_gts_graph(bytes: &[u8]) -> gmeow_errors::Result<purrdf::gts::model::
 mod tests {
     use super::*;
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the parser dispatches on the
+    /// `.ttl` extension and the parse-error assertions match on the file name.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     use purrdf::{DatasetView, GraphMatch};
@@ -219,53 +330,47 @@ mod tests {
 
     #[test]
     fn parse_file_dataset_rejects_bad_turtle() {
-        let path = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
+        let (_tmp, path) = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         assert!(result.is_err(), "malformed Turtle must parse-error");
     }
 
     #[test]
     fn parse_file_dataset_accepts_good_turtle() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_store_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         let ds = result.expect("well-formed Turtle must parse");
         assert_eq!(ds.quad_count(), 1);
     }
 
     #[test]
     fn dataset_from_paths_loads_multiple_files() {
-        let a = write_tmp(
+        let (_tmp_a, a) = write_tmp(
             "gmeow_validate_store_multi_a.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let b = write_tmp(
+        let (_tmp_b, b) = write_tmp(
             "gmeow_validate_store_multi_b.ttl",
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
         let ds = dataset_from_paths(&[a.clone(), b.clone()]).expect("both files must load");
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
         assert_eq!(ds.quad_count(), 2);
     }
 
     #[test]
     fn dataset_from_paths_propagates_parse_error() {
-        let good = write_tmp(
+        let (_tmp_good, good) = write_tmp(
             "gmeow_validate_parsed_err_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let bad = write_tmp(
+        let (_tmp_bad, bad) = write_tmp(
             "gmeow_validate_parsed_err_bad.ttl",
             "this is not turtle @@@ <<<",
         );
         let result = dataset_from_paths(&[good.clone(), bad.clone()]);
-        std::fs::remove_file(&good).ok();
-        std::fs::remove_file(&bad).ok();
         assert!(result.is_err(), "a malformed file must propagate");
         let err = result.err().unwrap();
         let msg = err.message();
@@ -424,6 +529,101 @@ mod tests {
             }
             other => panic!("object must be a literal, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn core_browser_bundle_keeps_default_drops_named_graphs() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // A bundle with one quad in the DEFAULT graph (object-level) and one quad in
+        // a heavy named graph (`graph/documentation`). The core browser projection
+        // must keep the default-graph quad and DROP the named-graph quad.
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://blackcatinformatics.ca/gmeow/Cat", // 0: default s
+            "http://www.w3.org/2000/01/rdf-schema#label", // 1: default p
+            "https://blackcatinformatics.ca/gmeow/DocNode", // 2: named s
+            "https://blackcatinformatics.ca/gmeow/docTitle", // 3: named p
+            "https://blackcatinformatics.ca/gmeow/graph/documentation", // 4: named graph
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        for lit in ["Cat", "A documentation node"] {
+            graph.terms.push(Term {
+                kind: TermKind::Literal,
+                value: Some(lit.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        // default-graph quad: Cat rdfs:label "Cat" .
+        graph.quads.push((0, 1, 5, None));
+        // named-graph quad: DocNode docTitle "A documentation node" <graph/documentation>
+        graph.quads.push((2, 3, 6, Some(4)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[])
+            .expect("core browser bundle must serialize");
+        assert!(
+            nq.contains("https://blackcatinformatics.ca/gmeow/Cat"),
+            "core keeps the default-graph object-level quad:\n{nq}"
+        );
+        assert!(
+            !nq.contains("graph/documentation") && !nq.contains("DocNode"),
+            "core drops the heavy named graph and its quads:\n{nq}"
+        );
+    }
+
+    #[test]
+    fn dataset_nquads_from_gts_preserves_named_graph() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // The same one-quad-in-a-named-graph bundle, but read through the
+        // graph-PRESERVING browser primitive: the emitted N-Quads MUST carry the
+        // named-graph IRI as the fourth term (a flatten would drop it to the default
+        // graph and the assertion would fail).
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://example.org/s",
+            "https://example.org/p",
+            "https://example.org/o",
+            "https://blackcatinformatics.ca/gmeow/graph/metadata",
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        graph.quads.push((0, 1, 2, Some(3)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nquads = dataset_nquads_from_gts(&writer.to_bytes())
+            .expect("graph-preserving bundle N-Quads must serialize");
+        assert!(
+            nquads.contains("https://blackcatinformatics.ca/gmeow/graph/metadata"),
+            "bundle N-Quads must retain the named-graph component (graph-preserving), got:\n{nquads}"
+        );
+        assert!(
+            nquads.contains("https://example.org/s") && nquads.contains("https://example.org/o"),
+            "bundle N-Quads must carry the quad's subject and object:\n{nquads}"
+        );
     }
 
     #[test]

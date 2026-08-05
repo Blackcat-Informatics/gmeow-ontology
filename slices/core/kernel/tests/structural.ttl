@@ -50,12 +50,13 @@ ex:saHasAboutnessNotObjectFunctionalOrDomained a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     { gmeow:hasAboutness a owl:ObjectProperty . }
     UNION
-    { gmeow:hasAboutness a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:hasAboutness ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { gmeow:hasAboutness rdfs:domain ?d . }
 }""" ;
@@ -119,10 +120,10 @@ ex:saHasDeterminacyNotFunctionalOrDomained a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    { gmeow:hasDeterminacy a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:hasDeterminacy ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { gmeow:hasDeterminacy rdfs:domain ?d . }
 }""" ;
@@ -249,10 +250,10 @@ ex:saEligibleForConsumerNotFunctionalOrDomained a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    { gmeow:eligibleForConsumer a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:eligibleForConsumer ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { gmeow:eligibleForConsumer rdfs:domain ?d . }
 }""" ;
@@ -276,10 +277,10 @@ ex:saHasDisclosurePolicyNotFunctionalOrDomained a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    { gmeow:hasDisclosurePolicy a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:hasDisclosurePolicy ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { gmeow:hasDisclosurePolicy rdfs:domain ?d . }
 }""" ;
@@ -301,9 +302,9 @@ ASK {
     gmeow:consumerResearchQueue           a gmeow:ProjectionContext .
     gmeow:consumerAdviceCatalog           a gmeow:ProjectionContext .
 }""" ;
-    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the nine declared gmeow:ProjectionContext individuals." .
+    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the original nine declared gmeow:ProjectionContext individuals — the founding members of what is now a closed fourteen-member enumeration (Principle 9): the nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client)." .
 
-# --- 7.8 No tenth ProjectionContext member in the kernel module (MUST-NOT) ---
+# --- 7.8 No unlisted ProjectionContext member in the kernel module (MUST-NOT) ---
 ex:saProjectionContextNoTenthMember a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
@@ -319,10 +320,15 @@ ASK {
         ?m != gmeow:consumerSchemaOrgJsonLd &&
         ?m != gmeow:consumerFoafExport &&
         ?m != gmeow:consumerResearchQueue &&
-        ?m != gmeow:consumerAdviceCatalog
+        ?m != gmeow:consumerAdviceCatalog &&
+        ?m != gmeow:consumerKnowledgeFederation &&
+        ?m != gmeow:consumerLinkedDataTooling &&
+        ?m != gmeow:consumerOfflineBook &&
+        ?m != gmeow:consumerPrintArchive &&
+        ?m != gmeow:consumerTypedModelClient
     )
 }""" ;
-    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed nine-member enumeration (Principle 9): the kernel module MUST NOT declare any gmeow:ProjectionContext individual other than the nine seeds." .
+    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed fourteen-member enumeration (Principle 9): the original nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client). The kernel module MUST NOT declare any gmeow:ProjectionContext individual outside this closed set." .
 
 # --- 7.9 DisclosurePolicy seeds are declared (MUST) --------------------------
 ex:saDisclosurePolicySeedsDeclared a gmeow:StructuralAssertion ;
@@ -437,10 +443,10 @@ ex:saHasSensitivityNotFunctionalOrDomained a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    { gmeow:hasSensitivity a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:hasSensitivity ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { gmeow:hasSensitivity rdfs:domain ?d . }
 }""" ;
@@ -545,11 +551,11 @@ ex:saUniversalPartPropertiesNotFunctionalOrTyped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     {
-        ?prop a owl:FunctionalProperty .
+        ?rec logic:characterizes ?prop ; logic:characteristicSort logic:functionalProperty .
         FILTER (?prop IN (gmeow:partOf, gmeow:hasPart))
     } UNION {
         ?prop rdfs:domain ?d .

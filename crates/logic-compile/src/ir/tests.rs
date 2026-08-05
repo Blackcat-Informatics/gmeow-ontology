@@ -373,6 +373,7 @@ fn node_kind_values_match_module_ttl() {
         NodeKind::ActionSchema,
         NodeKind::ValidationShape,
         NodeKind::Correspondence,
+        NodeKind::Annotation,
     ]
     .iter()
     .map(|k| k.as_str())
@@ -1719,7 +1720,7 @@ fn with_formulas_sorts_canonically() {
     let pz = pred("z", vec![tv("x")]);
     let prog =
         LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![pz.clone(), pa.clone()]);
-    let keys: Vec<String> = prog.formulas.iter().map(Formula::content_key).collect();
+    let keys: Vec<ContentKey> = prog.formulas.iter().map(Formula::content_key).collect();
     let mut expected = vec![pa.content_key(), pz.content_key()];
     expected.sort();
     assert_eq!(keys, expected);

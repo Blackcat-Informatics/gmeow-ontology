@@ -16,38 +16,30 @@ gmeow:mapsetVersions a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Cross-cutting version-set alignments. VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity.".
 
-gmeow:eqVersions001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:versionLabel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:version ;
+gmeow:versionLabel skos:closeMatch schema:version {|
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema:version is a flat literal on the versioned entity; GMEOW keeps versionLabel as a general designation across all entity kinds." ;
-    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+    gmeow:comment "schema:version is a flat literal on the versioned entity; GMEOW keeps versionLabel as a general designation across all entity kinds."
+|} .
 
-gmeow:eqVersions002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:versionLabel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:revision ;
+gmeow:versionLabel skos:closeMatch doap:revision {|
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DOAP revision is the flat version string on a software release; GMEOW's versionLabel generalises this to all entity kinds." ;
-    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+    gmeow:comment "DOAP revision is the flat version string on a software release; GMEOW's versionLabel generalises this to all entity kinds."
+|} .
 
-gmeow:eqVersions003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:VersionSet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:Project ;
+gmeow:VersionSet skos:closeMatch doap:Project {|
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "A DOAP Project is the lineage/container for releases; GMEOW's VersionSet is a more general information-object lineage that also covers books, datasets, emails, etc." ;
-    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+    gmeow:comment "A DOAP Project is the lineage/container for releases; GMEOW's VersionSet is a more general information-object lineage that also covers books, datasets, emails, etc."
+|} .
 
-gmeow:eqVersions004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:termStability ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vs:term_status ;
+gmeow:termStability skos:closeMatch vs:term_status {|
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "W3C SemWeb Vocab Status vs:term_status annotates a vocabulary term with its maturity (stable/unstable/testing/deprecated/archaic) — the canonical status vocabulary used by FOAF, Dublin Core, etc. GMEOW's termStability is the direct dogfooded counterpart (stable/experimental/deprecated); vs: uses literal status values while GMEOW reifies them as gmeow:TermStability individuals, hence closeMatch rather than exactMatch." ;
-    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+    gmeow:comment "W3C SemWeb Vocab Status vs:term_status annotates a vocabulary term with its maturity (stable/unstable/testing/deprecated/archaic) — the canonical status vocabulary used by FOAF, Dublin Core, etc. GMEOW's termStability is the direct dogfooded counterpart (stable/experimental/deprecated); vs: uses literal status values while GMEOW reifies them as gmeow:TermStability individuals, hence closeMatch rather than exactMatch."
+|} .

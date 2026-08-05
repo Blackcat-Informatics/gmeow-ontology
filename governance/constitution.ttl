@@ -70,11 +70,11 @@ meta:gate-generator-registry a meta:Gate ;
     meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
     meta:cliCommand "sync", "compile-gts" ;
-    meta:makeTarget "sync" ;
+    meta:makeTarget "check-sync" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
         "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
-        "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals", "parquet",
+        "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals",
         "research-objects", "references", "export", "okf", "bench", "conformance" .
 
 meta:gate-docs-export a meta:Gate ;
@@ -361,7 +361,7 @@ meta:gate-cost-ledger a meta:Gate ;
         "generated/bench/cost-ledger.md",
         "bench/cost-baseline.json" ;
     meta:symbol "CostLedgerStage" ;
-    meta:makeTarget "sync" .
+    meta:makeTarget "check-sync" .
 
 # The instruction-count corroboration lane (off-gate). iai-callgrind measures
 # RETIRED INSTRUCTIONS under Valgrind Callgrind — a machine-independent, run-to-run
@@ -535,7 +535,7 @@ meta:gate-projection-compute-purity a meta:Gate ;
         "slices/grounding/logic/design/LOGIC-RDFQUERY.md" ;
     meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
     meta:cliCommand "crate-check", "sync" ;
-    meta:makeTarget "crate-check", "sync" .
+    meta:makeTarget "crate-check", "check-sync" .
 
 # The shape-half peer of gate-projection-compute-purity: an open-world FOL axiom
 # (irreflexivity / acyclicity / relatum-distinctness) is authored in the logic: canon
@@ -553,7 +553,7 @@ meta:gate-projection-shape-purity a meta:Gate ;
         "slices/grounding/logic/design/LOGIC-VALIDATION.md" ;
     meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
     meta:cliCommand "crate-check", "sync" ;
-    meta:makeTarget "crate-check", "sync" .
+    meta:makeTarget "crate-check", "check-sync" .
 
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;
@@ -582,14 +582,15 @@ meta:gate-lang-conformance a meta:Gate ;
     meta:makeTarget "validate", "rust-test" .
 
 meta:gate-math-conformance a meta:Gate ;
-    rdfs:label "the math: conformance surface — native dimensional/ingest invariants + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
+    rdfs:label "the math: conformance surface — the reasoned-graph dimensional gate + native ingest invariant + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
     meta:artifact "crates/validate/src/lint.rs",
+        "crates/logic/src/math_dimension.rs",
         "crates/slicetest/tests/flagship_manifest.rs",
         "slices/grounding/math/tests/competency.ttl",
         "slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md" ;
-    meta:symbol "check_math_dimension_invariants", "check_math_ingest_invariants",
+    meta:symbol "check_math_dimension_findings", "check_math_ingest_invariants",
         "every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts" ;
-    meta:makeTarget "validate", "rust-test" .
+    meta:makeTarget "validate", "reason-verify", "rust-test" .
 
 meta:Principle19 a meta:Principle ;
     meta:number 19 ;

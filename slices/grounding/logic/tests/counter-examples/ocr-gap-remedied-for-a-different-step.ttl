@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The silent substitution, caught at the only point where it leaves a trace.
+#
+# The deployment holds no OCR capability. The discipline says: raise a
+# logic:OperationalCapabilityGap naming the blocked step, and let it ARRIVE WITH the
+# logic:CapabilityGapProposal that would close it. What happened instead is what
+# always happens under time pressure — ex:ocrStep was dispatched anyway, against a
+# plain-text extractor that cannot read a scanned page, and the gap was filed.
+#
+# Nothing here is missing. The gap names its blocked step, so
+# logic:OperationalGapNamesBlockedStepConstraint passes. A complete eight-field
+# proposal is present in the scene, so a reader counting proposals against gaps sees a
+# backlog that is being attended to. The dispatch intent binds all nine of its
+# mandatory fields, so its completeness law passes. The defect is the JOIN: the
+# proposal's logic:proposalBlockedStep is ex:thumbnailStep, and the gap's blocked step
+# is ex:ocrStep. No proposal answers the OCR blockage at all.
+#
+# What it costs in the world: the extractor returns empty text with no error, the run
+# records a completed step, and the missing capability is now indistinguishable from a
+# document that happened to contain no words. An unanswered gap is a provisioning
+# complaint, and a backlog of them is indistinguishable from a system that silently
+# degraded instead — which is precisely the state this scene is in.
+#
+# It is the substitution case, not the absence case: the absence sibling
+# (capability-gap-without-blocked-step.ttl) names no step and can only reach
+# logic:OperationalGapNamesBlockedStepConstraint, because the remedy law's guard needs
+# the blocked step bound before the join is even attempted.
+#
+# MUST trip logic:OperationalGapCarriesProposalConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:noOcrProvider a logic:OperationalCapabilityGap ;
+    rdfs:label "no available actor can read a scanned page"@en ;
+    logic:gapBlockedStep ex:ocrStep .
+
+# The proposal that is present, complete, and about a different blockage.
+ex:thumbnailProposal a logic:CapabilityGapProposal ;
+    rdfs:label "what it would take to render page thumbnails — a different gap entirely"@en ;
+    logic:proposalMissingCapability ex:pageThumbnailRendering ;
+    logic:proposalRequiredContract "Page image in, fixed-width preview raster out." ;
+    logic:proposalExpectedInputs "Rasterised page images, 300dpi or better." ;
+    logic:proposalExpectedOutputs "One 240px-wide preview per page." ;
+    logic:proposalExpectedEffects "Reads batch images; writes previews alongside them." ;
+    logic:proposalVerificationMethod "Byte-identical previews across two runs on the frozen corpus." ;
+    logic:proposalSecurityLifecycle "Runs inside the data boundary; retains no page content." ;
+    logic:proposalBlockedStep ex:thumbnailStep .
+
+# The weaker parser that ran in OCR's place, recorded in full.
+ex:ocrStepIntent a logic:DispatchIntent ;
+    rdfs:label "the OCR step, dispatched against a plain-text extractor"@en ;
+    logic:intentOfEnactment ex:adrReviewWeek13 ;
+    logic:intentOfStep ex:ocrStep ;
+    logic:intentActionSchemaVersion ex:plainTextExtractV3 ;
+    logic:intentNormalizedArguments ex:ocrStepArguments ;
+    logic:intentTarget ex:documentIngestService ;
+    logic:intentPolicy ex:ingestPolicy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest "b3:5a3e08c7b16d29f405ac83b71e0d64f2a97c5308be14d7a2609f3bc851d0e746" ;
+    logic:expectedJournalHead "b3:c04b91e7a5d3268f0b17ce49d0a53f8261bd794c0e5a3f16b28d0c74a9e5312" .

@@ -11,11 +11,11 @@
 # (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue,
 # logic:Relator), not gufo:.
 #
-# RETAINED in pytest (cross-slice subject):
-#   test_version_label_domain_is_entity — gmeow:versionLabel is defined in
-#   slices/extensions/languages/module.ttl, not here; a scopeModule cell would
-#   silently miss it.
-#
+# gmeow:versionLabel (domain gmeow:Entity, domain-general — any versioned
+# artifact, not only versions-slice types) is now defined here rather than in
+# slices/extensions/languages/module.ttl, so its domain is covered by a
+# scopeModule assertion below (assertion 17) instead of a cross-slice pytest
+# check.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/versions/tests/> .
@@ -49,27 +49,27 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:VersionMembership MUST be an owl:Class, a subclass of gmeow:Observation (universal claim stack), and a subclass of logic:Relator (reified mediation relator) — the dual typing keeps it in OWL 2 DL and hooks it into the observation spine." .
 
-# --- 3a. versionMember is an ObjectProperty and FunctionalProperty (MUST) -----
+# --- 3a. versionMember is an ObjectProperty (MUST) -----
 ex:saVersionMemberFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionMember a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:versionMember a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:versionMember MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one member per VersionMembership relator; a second member collapses the two." .
+    gmeow:saRationale "gmeow:versionMember MUST be an owl:ObjectProperty — one member per VersionMembership relator; a second member collapses the two." .
 
-# --- 3b. versionSet is an ObjectProperty and FunctionalProperty (MUST) --------
+# --- 3b. versionSet is an ObjectProperty (MUST) --------
 ex:saVersionSetPropertyFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionSet a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:versionSet a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:versionSet MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one set per VersionMembership relator." .
+    gmeow:saRationale "gmeow:versionSet MUST be an owl:ObjectProperty — one set per VersionMembership relator." .
 
 # --- 4a. versionRole is an ObjectProperty (MUST) ------------------------------
 ex:saVersionRoleIsObjectProperty a gmeow:StructuralAssertion ;
@@ -87,9 +87,10 @@ ex:saVersionRoleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionRole a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:versionRole ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:versionRole MUST NOT be functional — competing authority roles coexist without privilege (Principle 9); standpoint-indexed coexistence requires non-functionality." .
 
@@ -109,9 +110,10 @@ ex:saVersionScaleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionScale a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:versionScale ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:versionScale MUST NOT be functional — rival scheme classifications coexist; standpoint-indexed coexistence requires non-functionality (Principle 9)." .
 
@@ -340,3 +342,17 @@ ASK {
        owl:someValuesFrom gmeow:Agent .
 }""" ;
     gmeow:saRationale "gmeow:VersionMembership MUST have an EL someValuesFrom restriction on gmeow:membershipAuthority with filler gmeow:Agent — the existential ensures every membership claim is attributed to an asserting agent (Principle 9)." .
+
+# --- 17. versionLabel is a domain-general owl:DatatypeProperty on gmeow:Entity (MUST) ---
+ex:saVersionLabelDomainIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:versionLabel a owl:DatatypeProperty ;
+        rdfs:domain gmeow:Entity ;
+        rdfs:range rdfs:Literal .
+}""" ;
+    gmeow:saRationale "gmeow:versionLabel MUST be an owl:DatatypeProperty with domain gmeow:Entity and range rdfs:Literal — the version designation is domain-general so any versioned artifact (language, software release, book edition, dataset, email variant) may carry it, not only versions-slice types." .

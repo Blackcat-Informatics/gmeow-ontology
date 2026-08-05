@@ -33,7 +33,7 @@ use rayon::prelude::*;
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// The committed logical path of the serialized GTS bundle — the single artifact
 /// this stage produces and every fold-reading leaf (and the sink) consumes.
@@ -46,6 +46,29 @@ pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/
 pub(crate) const GRAPH_STATEMENTS: &str = gmeow_logic::reasoning_graphs::GRAPH_STATEMENTS;
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
+/// The grounding seam registry: every `gmeow:Seam` individual authored in a grounding
+/// slice's `manifest.ttl` — the CLOSED set of sanctioned cross-grounding reference
+/// channels (docs/GROUNDING.md, "The seam registry") — re-projected LOSSLESSLY as its
+/// own queryable named graph: each seam's `rdfs:label`(s), every `gmeow:seamDirection`
+/// leg (with its `gmeow:seamFromSlice` / `gmeow:seamToSlice`), every
+/// `gmeow:seamCarryingTerm`, and every `gmeow:seamOwningDoc`.
+///
+/// A slice `manifest.ttl` is NOT part of the composed fold (only `module.ttl` feeds it,
+/// see `crate::stages::source_load`), so without this graph the registry would reach no
+/// committed artifact at all — the governance data that gates every peered cross-grounding
+/// crossing would exist only in the authored manifests and a git-ignored docs page. This
+/// graph is what makes it ship: a repo-free consumer reconstructs the whole registry from
+/// `gmeow.gts` alone.
+///
+/// Built at the parallel DAG root (`build_self_description_dataset_with_quality`, off the
+/// SAME `SliceCatalog` that feeds `graph/slice-analysis`) and read back by the presenter
+/// via `source_load_graph`. Excluded from the reasoned object-level EDB exactly like
+/// `graph/correspondence-laws` (it asserts governance/policy data, not object-level
+/// axioms — the reasoned EDB reads named graphs by IRI allowlist, see
+/// `gmeow_logic::reasoning_graphs::is_object_level_named_graph`, so this one never
+/// pollutes it).
+pub(crate) const GRAPH_GROUNDING_SEAMS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/grounding-seams";
 /// The per-slice quality-assessment corpus: every slice scored against the
 /// ontology-resident rubric, projected as `gmeow:QualityAssessment` observations (each
 /// per-axis grade a scalar reading + a categorical tier, plus a roll-up meet tier) by
@@ -98,6 +121,15 @@ const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The advisory dual-projection's second wing (D4): the materialised
+/// `gmeow:ComplianceAssessment` / `deonticRecommendation` claim graph
+/// `stage-validate` emits alongside `graph/diagnostics`'s flat Note finding —
+/// ONE `Advisory::project()` call, two carrier destinations. Single-producer
+/// (only `stage-validate` writes it) and bundle-internal like the
+/// `MATH_PRODUCER_GRAPHS`: no committed `generated/` byte artifact, so it
+/// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
+/// (`gts_compose` folds only the default graph).
+pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 /// The by-reference blob `representation` under which a diagnostics producer
 /// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
@@ -149,6 +181,15 @@ pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
 /// self-description corpus, not object-level axioms).
 pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus";
+/// The per-slice terminology-glossary corpus: every reviewed `.po` catalog pair folded into
+/// a `gmeow:Glossary` of `gmeow:GlossaryEntry` records (term, predicate, English source,
+/// rendering, `gmeow:glossaryConcept` sense anchor, and the `gmeow:glossaryUnit` join to the
+/// crossing's `lang:TranslationUnit`). Folded as its own queryable named graph so a repo-free
+/// consumer reads a slice's agreed fr/zh terminology directly. Excluded from the reasoned
+/// object-level EDB exactly like `graph/lang-translation-corpus` (a self-description view of
+/// the catalogs, not object-level axioms).
+pub(crate) const GRAPH_LANG_GLOSSARY_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus";
 /// The total prose-lift corpus: every distinct `@x-gmeow-english` source literal interned
 /// as a raw `lang:SurfaceForm` carrying its `logic:candidateSourceHash` and an exact
 /// surface-round-trip `logic:Correspondence` (Gate 1: total prose lift). Folded as its own
@@ -245,14 +286,21 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
-/// The eight `math:` producer graphs, one per native producer entrypoint — five bound to the
-/// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
+/// The ten `math:` producer graphs, one per native producer entrypoint — five bound to the
+/// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals (`e8-weyl`,
+/// `additive-he`, `proof-ingest`, `r-lift`, `pca-residual`), plus
 /// `probability-model` ([`gmeow_math::producers::probability_model_seam`]), the probability
 /// layer's live `logic:probabilityModel` seam producer, and `pvalue-tri-slice`
 /// ([`gmeow_math::producers::pvalue_tri_slice`]), the signature `lang:` → `logic:` → `math:`
 /// p-value round-trip, and `clifford-12-13`
 /// ([`gmeow_math::producers::clifford_twelve_thirteen`]), the exact positive-extension
-/// calculation (all three NOT flagship-bound; the manifest's "five, not adjectives"
+/// calculation. `r-lift` / `onnx-lift` /
+/// `proof-lift` ([`gmeow_math::producers::r_lift`], [`onnx_lift`](gmeow_math::producers::onnx_lift),
+/// [`proof_lift`](gmeow_math::producers::proof_lift)) are the EXECUTABLE ingestion lifts, each
+/// of which runs the shipped
+/// `gmeow_math_lift` front-end over a real committed artifact embedded at compile time, so
+/// `gmeow.gts` carries the output of the ACTUAL R / ONNX / TSTP parsers (`r-lift` IS the
+/// `rBridge` flagship's producer, the other two are not; the manifest's "five, not adjectives"
 /// depth-bar contract stays exactly five). The `stage-math-producers`
 /// stage RUNS each `gmeow_math::producers::*` function and parses its deterministic `.turtle`
 /// into the matching named graph here; the snapshot presenter reads each back via
@@ -262,15 +310,17 @@ pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
 /// and NOT a `generated/` file, so they map to no committed path — the superset gate's orphan
 /// sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array order pins
 /// the producer→graph pairing shared by the stage and the presenter.
-pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 8] = [
+pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 10] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
-    "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/onnx-lift",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift",
 ];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
@@ -309,7 +359,7 @@ pub(crate) fn serialize_carrier_snapshot(
 /// Assemble the terminal GTS from the logical carrier and non-document runtime
 /// lookasides. Documentation projections are deliberately external artifacts:
 /// ontology-docs, mdbook, print, OKF, JSON-LD, and YAML-LD are regenerated by
-/// `make sync SYNC_OUTPUTS=docs` and never embedded in `gmeow.gts`.
+/// `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` and never embedded in `gmeow.gts`.
 #[cfg(test)]
 pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     root: &Path,
@@ -420,7 +470,7 @@ fn serialize_carrier_snapshot_without_docs(
         &models_python_artifacts,
     )?;
     // Slice guides are documentation projections too. They remain canonical
-    // source inputs for `make sync SYNC_OUTPUTS=docs`, but do not ride the logical bundle.
+    // source inputs for `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`, but do not ride the logical bundle.
     // The document-scale surface blobs: every `@x-gmeow-english` source literal whose
     // byte-length crosses the document-scale threshold rides here by content-addressed
     // reference (the `lang:surfaceBlob "blake3:<hex>"` anchor the lang-form corpus emits),
@@ -428,18 +478,21 @@ fn serialize_carrier_snapshot_without_docs(
     // from `root` exactly like the guide blobs (its own freshly-discovered catalog, so the
     // set stays a pure function of the sources); empty until a source literal crosses the
     // threshold.
-    let lang_form_catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
+    let lang_form_catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
     blobs.extend(crate::stages::lang_form::build_surface_blobs(Some(
         &lang_form_catalog,
     ))?);
     blobs.push(build_reasoning_blob(upstream)?);
-    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
-    // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
-    blobs.push(build_fanout_opaque_blob(carrier, upstream)?);
+    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed from
+    // THIS run's carrier (superset law — RDF rides as named graphs, not here). Collect the
+    // member set ONCE and derive BOTH the archive blob AND the declared `opaque` fanout
+    // rows from that exact set, so the blob bytes and the manifest rows can never disagree
+    // about which paths the opaque lane carries.
+    let opaque_members = collect_fanout_opaque_members(carrier, upstream)?;
+    let opaque_manifest = build_fanout_opaque_manifest(opaque_members.keys())?;
+    blobs.push(opaque_blob_from_members(opaque_members)?);
     // The typed Shacl/Shex validation-shape sidecars: the SAME validation surfaces the
     // REP_GENERATED archive carries (one source — `validation_shape_surfaces`), ALSO folded
     // as content-addressed blobs whose media type classifies each on decode into its typed
@@ -469,7 +522,21 @@ fn serialize_carrier_snapshot_without_docs(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    serialize_snapshot(carrier, &[], blobs, report_blobs)
+    // The canonical distribution catalog (AC2/AC6): a carrier-time,
+    // clock-free, byte-stable meta-level graph declaring which documentation
+    // distributions exist, their family, their consumer class, and their declared
+    // capability loss — folded alongside the opaque-fanout manifest.
+    let distribution_catalog = crate::stages::distribution_catalog::build_distribution_catalog()?;
+    // The opaque-fanout manifest and the distribution catalog both ride as meta-level
+    // named graphs alongside the assembled carrier, so the shipped bundle DECLARES its
+    // opaque byte lane and its distribution catalog as data (read back by the superset
+    // gate / catalog consumers) without entering object-level reasoning closure.
+    serialize_snapshot(
+        carrier,
+        &[opaque_manifest, distribution_catalog],
+        blobs,
+        report_blobs,
+    )
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -575,7 +642,7 @@ pub(crate) fn self_description_source_files(
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
-    files.extend(gmeow_slice_quality::scored_source_files(root)?);
+    files.extend(gmeow_slice_quality::scored_source_files(root));
     files.sort();
     files.dedup();
     Ok(files)
@@ -637,7 +704,15 @@ pub(crate) fn build_self_description_dataset_with_quality(
 
     let imports = load_imports(root)?;
     let metadata = load_metadata(root)?;
-    let slice_analysis = build_slice_analysis(root, &authored)?;
+    // The authored slice catalog is discovered ONCE and shared by both manifest-derived
+    // graphs: the ownership/dependency analysis (graph/slice-analysis) and the grounding
+    // seam registry (graph/grounding-seams).
+    let catalog = discover_slice_catalog(root)?;
+    let slice_analysis = build_slice_analysis(&catalog, &authored)?;
+    // graph/grounding-seams — the authored `gmeow:Seam` registry, re-projected losslessly.
+    // A `manifest.ttl` never enters the composed fold, so this graph is the ONLY way the
+    // closed set of sanctioned cross-grounding channels reaches `gmeow.gts`.
+    let grounding_seams = build_grounding_seams(&catalog)?;
     let verify_attestation = {
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
             .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
@@ -656,6 +731,11 @@ pub(crate) fn build_self_description_dataset_with_quality(
         parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
         parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
         parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(
+            &grounding_seams,
+            "application/n-quads",
+            GRAPH_GROUNDING_SEAMS,
+        )?,
         parse_into_graph(
             quality_assessment.as_bytes(),
             "application/n-quads",
@@ -807,6 +887,8 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_LOWERING_CORPUS)?;
     let lang_docs_rendering_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
+    let lang_glossary_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_GLOSSARY_CORPUS)?;
     let correspondence_laws =
         producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
     // The on-disk projection of the correspondence-laws corpus: the SAME triples re-rooted into
@@ -864,16 +946,27 @@ fn assemble_carrier(
         // fresh stage-mappings product (not source-load's stale disk read).
         producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
         source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
+        // graph/grounding-seams — the authored `gmeow:Seam` registry (the closed set of
+        // sanctioned cross-grounding reference channels), read off the stage-source-load
+        // product's attached graph (a pure keyed fold, PIPELINE_SPINE §4). Bundle-internal
+        // like graph/norm-claims: it carries no committed `generated/` file, so it maps to
+        // no reconstruction rep, and it stays OUT of the reasoned object-level EDB.
+        source_load_graph(upstream, GRAPH_GROUNDING_SEAMS)?,
         source_load_graph(upstream, GRAPH_VERIFY)?,
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         documentation,
         std::sync::Arc::new(diagnostics),
+        // graph/norm-claims — the advisory dual-projection's materialised
+        // ComplianceAssessment claim graph (D4), read off stage-validate's attached
+        // graph the same way graph/diagnostics is (a pure keyed fold).
+        producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
         lang_lowering_corpus,
         lang_docs_rendering_corpus,
+        lang_glossary_corpus,
         correspondence_laws,
         correspondence_laws_fanout,
         quality_assessment,
@@ -881,8 +974,9 @@ fn assemble_carrier(
         authoring_briefs,
         authoring_briefs_fanout,
     ];
-    // graph/math-producers/<name> — the eight `math:` producers' (five flagship producers,
-    // the probability-model seam, p-value tri-slice, and Clifford producers) deterministic
+    // graph/math-producers/<name> — the ten `math:` producers' (five flagship producers —
+    // one of which, r_lift, IS an executable lift — the probability-model seam, p-value
+    // tri-slice, and Clifford producers, and the ONNX / proof lifts) deterministic
     // RDF graphs, each read off the
     // `stage-math-producers` product's attached named graph (a pure keyed fold,
     // PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output ships in
@@ -914,6 +1008,22 @@ fn assemble_carrier(
             .project_named_graph(goal_directed_iri),
         goal_directed_iri,
     )?);
+    // graph/gmn-training-corpus ← the rejection-sampled, proof-carrying GMN training corpus
+    // (and its typed rejections), read off the stage-gmn-training-corpus product's attached
+    // named graph and folded into gmeow.gts (dual carriage, exactly like graph/goal-directed).
+    // Bundle-internal (no committed byte artifact) and excluded from the object-level EDB
+    // (gts_compose folds only the default graph).
+    let gmn_training = upstream.get("stage-gmn-training-corpus").ok_or_else(|| {
+        stage_err("missing stage-gmn-training-corpus product for the GMN training corpus graph")
+    })?;
+    let gmn_training_iri = crate::stages::gmn_training_corpus::GRAPH_GMN_TRAINING_CORPUS;
+    datasets.push(rooted_in_graph(
+        &gmn_training
+            .bundle()
+            .dataset()
+            .project_named_graph(gmn_training_iri),
+        gmn_training_iri,
+    )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
     if conformance.quad_count() != 0 {
         datasets.push(conformance);
@@ -924,10 +1034,17 @@ fn assemble_carrier(
     let mappings = upstream
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+    // The RDF-fanout attach class, DERIVED from the authored gmeow:fanoutExtracts rows in
+    // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
+    // memory — a source input, not the bundle being produced), so the carrier's attach set
+    // and the superset gate's claim set read ONE inventory (no hand-list to drift).
+    let rdf_fanout_classes = crate::stages::superset::RdfFanoutClasses::from_source(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    )?;
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
             datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
-        } else if crate::stages::superset::is_rdf_fanout_class(&path) {
+        } else if rdf_fanout_classes.contains(&path) {
             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
             // list-functions), now emitted canonically by the mappings stage.
             if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
@@ -958,7 +1075,8 @@ fn assemble_carrier(
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
     // materializes gmeow:findingGateVerdict for the shipped findings — an up-set finding
     // (Error / blocking category / Binding) rides the bundle missing its verdict and
-    // gmeow:GateFatalUpsetShape fires under validate-gts. Run the AUTHORED rule (via the
+    // gmeow:GateFatalUpsetShape fires under the authored-source `make validate` /
+    // stage-validate SHACL pass. Run the AUTHORED rule (via the
     // native chase, never the Rust gate() morphism) over the COMPLETE composed bundle —
     // where every finding-bearing graph AND the rule + gmeow:categoryBlocking wiring are
     // assembled — and fold the derived verdicts into graph/diagnostics, so the shipped
@@ -1101,6 +1219,25 @@ fn rdf_fanout_members(
             out.insert(path, bytes);
         }
     }
+    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
+    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
+    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
+    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
+    // named graph (mirrors evals scores.ttl).
+    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
+    // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
+    // lifted NodeKind::Annotation axioms. Read off the stage-export-skos-surface
+    // product; it is a single RDF `.ttl` member, so it folds as its own
+    // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
+    for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
     // product (already emitted canonically).
     let gufo = upstream
@@ -1197,6 +1334,15 @@ pub(crate) fn assemble_object_level_edb(
         source_load_graph(upstream, GRAPH_IMPORTS)?,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
+    // The termination-class ladder demonstrators: one general existential program per
+    // broader chase-termination class, each rooted into its own reasoning world so its
+    // per-world certificate ships into `gmeow.gts` (the reasoner dogfooding its full
+    // termination-certification power into the deliverable).
+    for (graph, turtle) in
+        gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
+    {
+        datasets.push(parse_into_graph(turtle.as_bytes(), "text/turtle", graph)?);
+    }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
 }
@@ -1542,7 +1688,8 @@ mod reasoning_edb_projection_tests {
         assert_eq!(
             edb.quad_count(),
             5,
-            "default plus four admitted reasoning worlds"
+            "default plus the four admitted reasoning worlds present in this fixture \
+             (the three demonstrator worlds are admitted too but carry no quad here)"
         );
         let graph_iris: std::collections::BTreeSet<String> = edb
             .owned_quads()
@@ -1653,10 +1800,27 @@ fn snapshot_product(
 /// statements, imports, metadata, alignments, slice-analysis, verify, documentation,
 /// diagnostics, conformance, projection-ledger, provenance, logic, relational-core,
 /// correspondence, reasoning).
+///
+/// A product whose carrier has been RELEASED
+/// ([`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released)) is a
+/// HARD FAIL, never an empty dataset: reaching for a released carrier means reading past
+/// the drop-after-last-consumer point, exactly as a post-drop `span_index()` read does.
+/// Inside the DAG that cannot happen (the release runs only after the last declared
+/// consumer); it is the guard for an out-of-band whole-run reader that took
+/// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention) and
+/// then reached for an intermediate carrier.
 pub(crate) fn snapshot_dataset(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    Ok(snapshot_product(upstream)?.bundle().dataset_arc())
+    let product = snapshot_product(upstream)?;
+    if product.carrier_released {
+        return Err(stage_err(
+            "the stage-snapshot product's carrier was RELEASED at its \
+             drop-after-last-consumer point; a reader of the terminal carrier must run \
+             inside the DAG or select CarrierRetention::RetainAll",
+        ));
+    }
+    Ok(product.bundle().dataset_arc())
 }
 
 // ── Archive blobs (regression fix) ──────────────────────────────────────────────
@@ -1680,7 +1844,7 @@ pub(crate) fn snapshot_dataset(
 /// carrier (carrier-reading leaves) or source (source-reading leaves) inside the
 /// snapshot and keyed repo-relative. RDF outputs (`.ttl`/`.nt`/`.nq`) are NEVER
 /// here: they ride as named graphs so the superset law reconstructs them as folds.
-const REP_GENERATED: &str = "generated-opaque-archive";
+pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 
 const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
@@ -2115,18 +2279,33 @@ fn build_validation_shape_typed_blobs(
     ])
 }
 
-/// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
-/// fanout members that ride as opaque byte projections (as opposed to named-graph
-/// folds). Each rides in from a sink-consumed stage product — either projected from
-/// THIS run's carrier dataset (lpg) or read off its producing export leaf's
-/// product (the render ran once, in the leaf; the presenter never re-renders from
+/// Archive the collected opaque `members` map into the deterministic [`REP_GENERATED`]
+/// blob (sorted, byte-stable). Split from [`collect_fanout_opaque_members`] so the SAME
+/// member set drives both the blob AND the emitted `opaque` fanout rows
+/// ([`build_fanout_opaque_manifest`]) from one build-time computation — the rows and the
+/// bytes can never disagree about which paths the opaque archive carries.
+fn opaque_blob_from_members(
+    members: BTreeMap<String, Vec<u8>>,
+) -> Result<BlobRow, gmeow_errors::Diag> {
+    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_GENERATED, &members)
+}
+
+/// Collect the byte-exact `generated/` opaque fanout members of the generated-fanout
+/// archive [`REP_GENERATED`] (committed path → bytes) that ride as opaque byte projections
+/// (as opposed to named-graph folds). Each rides in from a sink-consumed stage product —
+/// either projected from THIS run's carrier dataset (lpg) or read off its producing export
+/// leaf's product (the render ran once, in the leaf; the presenter never re-renders from
 /// disk). Byte-decorated RDF reports whose committed form carries generated comments /
 /// section markers ride here rather than as canonical graph folds. The bytes are
-/// byte-identical to the committed files, which the superset gate proves.
-fn build_fanout_opaque_blob(
+/// byte-identical to the committed files, which the superset gate proves; the member key
+/// set is ALSO the source the `opaque` fanout rows are derived from
+/// ([`build_fanout_opaque_manifest`]).
+fn collect_fanout_opaque_members(
     carrier: &purrdf::RdfDataset,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // carrier-reading leaves (project from THIS run's carrier dataset — §8 permits a
@@ -2175,6 +2354,13 @@ fn build_fanout_opaque_blob(
     take_opaque(
         &mut members,
         producer_artifacts("stage-export-matrix", upstream)?,
+    );
+    // The human-readable per-slice terminology glossary table: projected once in
+    // stage-export-glossary from the reviewed `.po` fold (the SAME entry list the
+    // graph/lang-glossary-corpus graph carries); read off its product, never re-rendered.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-glossary", upstream)?,
     );
     // The two slice-quality floor TSVs (P17 projection of the ontology-resident
     // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): projected once in
@@ -2419,9 +2605,113 @@ fn build_fanout_opaque_blob(
         }
     }
 
-    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
-    members.sort_by(|a, b| a.0.cmp(&b.0));
-    archive_blob(REP_GENERATED, &members)
+    Ok(members)
+}
+
+/// The meta-level named graph carrying the emitted `opaque` fanout rows (one
+/// `gmeow:FanoutExtraction` per [`REP_GENERATED`] archive member). Deliberately NOT an
+/// object-level EDB graph (`gmeow_logic::reasoning_graphs::is_object_level_named_graph`
+/// returns false for it) so the ~hundred build-time rows never enter reasoning closure and
+/// so a fresh reason-verify over the shipped snapshot stays byte-aligned with stage-reason;
+/// the superset gate finds the rows regardless of graph label because `read_fanout_rules`
+/// scans every quad. Distinct from the `graph/fanout/` reconstruction namespace (no
+/// trailing `/fanout/` segment), so the superset reverse sweep never mistakes it for a
+/// reconstruction graph.
+pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/fanout-opaque-manifest";
+
+/// The meta-level named graph carrying the canonical distribution catalog (AC2/AC6):
+/// WHICH documentation distributions exist, their FAMILY, their
+/// CONSUMER class, and (for the doc-render family) their declared capability LOSS. See
+/// [`crate::stages::distribution_catalog`]. NOT in
+/// `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`, so — like
+/// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] — it stays out of the object-level reasoning EDB.
+pub(crate) const GRAPH_DISTRIBUTION_CATALOG: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/distribution-catalog";
+
+/// The subject-IRI namespace of an emitted opaque fanout row: `…/fanout-opaque/<path>`.
+/// The committed path is already unique, so the identity mapping is collision-free by
+/// construction. Slashes/dots in the tail are legal IRI characters and (as the constraint
+/// catalog's `…/rule/<slug>` subjects prove) pass the whole-bundle lint/SHACL flatten.
+const FANOUT_OPAQUE_SUBJECT_NS: &str = "https://blackcatinformatics.ca/gmeow/fanout-opaque/";
+
+/// Emit one `gmeow:FanoutExtraction` row per opaque archive member into the meta-level
+/// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] graph, so the opaque byte lane is DECLARED as data (the
+/// superset gate reads these back through `read_fanout_rules` and bijection-checks them
+/// against the archive members). Derived from the EXACT member key set of
+/// [`collect_fanout_opaque_members`] — one build-time computation feeds both the blob and
+/// these rows — and emitted in sorted (deterministic) order.
+///
+/// Each row mirrors the proven generated-aBox skeleton (constraint-catalog / diagnostics
+/// findings): `rdf:type` + `rdfs:label` + `rdfs:isDefinedBy <graph>` + `gmeow:graphBoxRole
+/// gmeow:boxABox`, which the whole-bundle structural lint accepts as an assertional
+/// (graph-provenanced) individual without a `skos:definition`, plus the four fanout facets
+/// (`extractsPath`/`extractsMatch "exact"`/`extractsGraphFamily "opaque"`/`extractsForm
+/// "blob"`).
+fn build_fanout_opaque_manifest<'a>(
+    member_paths: impl Iterator<Item = &'a String>,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    use std::fmt::Write;
+
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+    const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+
+    // BTreeSet → deterministic (sorted) emission order regardless of the caller's order.
+    // Emitted as N-Triples; parse_into_graph re-roots every triple into the manifest graph.
+    // Scoped to `generated/` EXACTLY as the superset gate scopes the opaque archive members
+    // it bijection-checks against these rows (a non-`generated/` archive member is dropped
+    // by the reconstruction sweep, so a row for it would claim no member) — symmetric by
+    // construction.
+    let paths: std::collections::BTreeSet<&String> = member_paths
+        .filter(|p| p.starts_with("generated/"))
+        .collect();
+    let mut out = String::new();
+    for path in paths {
+        let subject = format!("{FANOUT_OPAQUE_SUBJECT_NS}{path}");
+        let triple_iri = |out: &mut String, p: &str, o: &str| {
+            writeln!(out, "<{subject}> <{p}> <{o}> .").expect("write to String");
+        };
+        let triple_str = |out: &mut String, p: &str, lit: &str| {
+            writeln!(out, "<{subject}> <{p}> \"{}\" .", nquads_escape(lit))
+                .expect("write to String");
+        };
+        triple_iri(&mut out, RDF_TYPE, &format!("{GMEOW}FanoutExtraction"));
+        triple_iri(&mut out, RDFS_IS_DEFINED_BY, GRAPH_FANOUT_OPAQUE_MANIFEST);
+        triple_iri(
+            &mut out,
+            &format!("{GMEOW}graphBoxRole"),
+            &format!("{GMEOW}boxABox"),
+        );
+        triple_str(&mut out, RDFS_LABEL, &format!("fanout opaque {path}"));
+        triple_str(&mut out, &format!("{GMEOW}extractsPath"), path);
+        triple_str(&mut out, &format!("{GMEOW}extractsMatch"), "exact");
+        triple_str(&mut out, &format!("{GMEOW}extractsGraphFamily"), "opaque");
+        triple_str(&mut out, &format!("{GMEOW}extractsForm"), "blob");
+    }
+    parse_into_graph(
+        out.as_bytes(),
+        "application/n-triples",
+        GRAPH_FANOUT_OPAQUE_MANIFEST,
+    )
+}
+
+/// Minimal N-Quads/N-Triples literal escaping for the opaque-manifest emitter (the paths
+/// contain no control characters, but escape defensively for byte-stable output).
+fn nquads_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
@@ -2533,11 +2823,9 @@ fn build_docs_archive(
     exec: &gmeow_docs::ExecutableDocsData,
     slice_quality_html: &[u8],
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
 
     // Render each language's full site in parallel: the per-language renders are
@@ -2589,11 +2877,9 @@ fn build_docs_book_archive(
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
     let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
 
@@ -3526,16 +3812,22 @@ impl SnapshotStage {
                 "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores.ttl / research-
-                // object graphs. `rdf_fanout_members` reads them off these products.
+                // render ran once, in the leaf): profiles / evals scores.ttl / glossary
+                // vartrans.ttl / research-object graphs. `rdf_fanout_members` reads them off
+                // these products.
                 "stage-export-evals".to_string(),
+                "stage-export-glossary".to_string(),
                 "stage-export-profiles".to_string(),
                 "stage-export-research-objects".to_string(),
+                // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
+                // folded as its own graph/fanout/skos named graph by rdf_fanout_members.
+                "stage-export-skos-surface".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
-                // The eight math producer graphs (five flagship producers plus the
-                // probability-model seam, p-value tri-slice, and Clifford producers), folded
+                // The ten math producer graphs (five flagship producers — the R one being
+                // the executable r_lift — plus the probability-model seam, p-value
+                // tri-slice, Clifford, and the ONNX / proof lift producers), folded
                 // into gmeow.gts as their own bundle-internal named graphs (Design A — the
                 // producer output ships).
                 "stage-math-producers".to_string(),
@@ -3549,6 +3841,9 @@ impl SnapshotStage {
                 // committed schema from disk and lag a regenerate behind (the bytes
                 // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
                 "stage-export-json-schema".to_string(),
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus".to_string(),
                 // The native proof-carrying backward engine's checked answers + proof
                 // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
                 "stage-goal-directed".to_string(),
@@ -3666,7 +3961,7 @@ impl Stage for SnapshotStage {
         // question set, so the rendered site bytes change shape again.
         // v25 removes every derived documentation/presentation payload from the
         // logical bundle: site, mdbook, print, slice guides, OKF, JSON-LD, and
-        // YAML-LD are regenerated externally by `make sync SYNC_OUTPUTS=docs`.
+        // YAML-LD are regenerated externally by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
         // v26 additionally folds `stage-math-producers`' SIXTH graph
         // (graph/math-producers/probability-model, `gmeow_math::producers::
         // probability_model_seam`) — the probability layer's live
@@ -3688,7 +3983,23 @@ impl Stage for SnapshotStage {
         // v29 additionally folds `stage-math-producers`' EIGHTH graph
         // (graph/math-producers/clifford-12-13, `gmeow_math::producers::
         // clifford_twelve_thirteen`) carrying both exact Cl12 -> Cl13 positive extensions.
-        "snapshot.v29-clifford-12-13-producer"
+        // v30 additionally folds `stage-math-producers`' NINTH, TENTH, and ELEVENTH graphs
+        // (graph/math-producers/{r-lift,onnx-lift,proof-lift}, `gmeow_math::producers::
+        // {r_lift,onnx_lift,proof_lift}`): the output of the SHIPPED executable
+        // `gmeow_math_lift` R / ONNX / TSTP front-ends over real committed artifacts
+        // embedded at compile time, so the bundle carries what the actual parsers derive
+        // rather than a hand-written imitation of them.
+        // v31 DROPS `graph/math-producers/r-bridge`: the `r_bridge_lift` producer parsed
+        // nothing (it pushed a fixed Turtle string) and is strictly subsumed by `r_lift`,
+        // which the `rBridge` flagship now names. Ten math-producer graphs fold, not eleven.
+        // v32 is the MERGE of the two independent v30/v31 lines: main's grounding-seam fold
+        // (graph/grounding-seams, one gmeow:Seam block per authored seam with its labels,
+        // directed legs, carrying terms, and owning docs — the closed set of sanctioned
+        // cross-grounding reference channels, which lives only in the slice manifests and so
+        // reaches no committed artifact without this fold) AND the executable-lift folds
+        // above. Both change the bundle's content, so neither version string alone busts the
+        // cache correctly for the merged product.
+        "snapshot.v32-grounding-seams-and-executable-lifts"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -3853,7 +4164,7 @@ fn build_snapshot_bundle(
 /// `graph/provenance` N-Triples. Only public unit names/IRIs + kinds +
 /// artifact paths reach the projection — NO runtime `UnitId` / `ArtifactId` /
 /// `OriginSetId` (S0.5). The fixed carrier-lane manifest + the realized process
-/// vocab (`gmeow:Procedure` / `gmeow:ProcedureStep` / `gmeow:Execution`) round it out.
+/// vocab (`logic:Plan` / `logic:ActionSchema` / `logic:Enactment`) round it out.
 fn build_provenance_projection(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let (prov, expected) = crate::stages::source_load::attributed_base_provenance(root)?;
     // The hard-fail gate: every authored quad has ≥1 stage-origin occurrence and every
@@ -3960,11 +4271,9 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
 /// additions), so a translated literal is never itself re-scanned — matching the
 /// original `quads_for_pattern` view of the base store.
 fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
     let langs: Vec<String> = translations.languages().to_vec();
     if langs.is_empty() {
@@ -4030,19 +4339,30 @@ fn load_metadata(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
 
 // ── slice-analysis (graph/slice-analysis) ───────────────────────────────────────
 
+/// Discover the authored slice catalog ONCE per self-description build. Both
+/// [`build_slice_analysis`] and [`build_grounding_seams`] read it (the ownership
+/// report and the seam registry are two projections of the same authored manifests),
+/// so discovering it here keeps the manifest parse a transform-once step
+/// (PIPELINE_SPINE §3.2) instead of one parse per derived graph.
+fn discover_slice_catalog(root: &Path) -> Result<purrdf::slice::SliceCatalog, gmeow_errors::Diag> {
+    let slices_dir = root.join("slices");
+    purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| stage_err(&format!("slice catalog discover: {e}")))
+}
+
 /// Build the `gmeow:graph/slice-analysis` graph via the native ownership
 /// analyzer — the Rust twin of `gts_gen.build_slice_analysis_graph`. The analyzer
 /// reads AUTHORED slices only; `authored_nq` (the authored base graph as text)
 /// feeds the emitter's self-attestation guard.
-fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
+fn build_slice_analysis(
+    catalog: &purrdf::slice::SliceCatalog,
+    authored_nq: &[u8],
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     use purrdf::slice::{
-        OwnershipAnalyzer, OwnershipStatus, SliceCatalog, ToolchainContext, emit_analysis_graph,
+        OwnershipAnalyzer, OwnershipStatus, ToolchainContext, emit_analysis_graph,
     };
 
-    let slices_dir = root.join("slices");
-    let catalog = SliceCatalog::discover(&slices_dir, crate::gmeow_ns::gmeow_slice_vocab())
-        .map_err(|e| stage_err(&format!("slice catalog discover: {e}")))?;
-    let report = OwnershipAnalyzer::new(&catalog)
+    let report = OwnershipAnalyzer::new(catalog)
         .analyze()
         .map_err(|e| stage_err(&format!("ownership analysis: {e}")))?;
 
@@ -4094,8 +4414,8 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
         .map(|quad| format!("{} <{}> {} .", quad.subject, quad.predicate, quad.object))
         .collect::<Vec<_>>()
         .join("\n");
-    let graph = emit_analysis_graph(
-        &crate::gmeow_ns::gmeow_slice_vocab(),
+    let mut graph = emit_analysis_graph(
+        &gmeow_ns::gmeow_slice_vocab(),
         &report.edges,
         &authored_text,
         &digests,
@@ -4105,9 +4425,558 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
     )
     .map_err(|e| stage_err(&format!("slice-analysis emit: {e}")))?;
 
+    // Peerage+seam coverage verdict: `gmeow_validate::slice_peerage::classify` joins
+    // every undeclared semantic dependency edge in `report` to the grounding-peerage
+    // relation + seam registry read off `catalog` and computes, among other things,
+    // exactly which crossings ride a registered seam (`PeerageClassification::crossings`).
+    // That verdict already gates `make validate`; ship it as DATA too (maximal
+    // information flow / dogfooding — see `gmeow:crossingCoverage` in
+    // `slices/vocabulary.ttl`) rather than discarding it once the gate has run. A
+    // classification failure here is the same internal-invariant HARD FAIL
+    // `classify` documents (a diagnostic/edge join that cannot total) — propagate it,
+    // never swallow it.
+    let classification = gmeow_validate::slice_peerage::classify(&report, catalog)?;
+    graph
+        .turtle_body
+        .push_str(&crossing_coverage_turtle(&classification.crossings));
+
     // The emitter returns a Turtle body; normalize to N-Quads natively so the builder
     // ingests it the same way as every other named-graph source.
     turtle_to_nquads(graph.turtle_body.as_bytes())
+}
+
+// ── grounding seams (graph/grounding-seams) ─────────────────────────────────────
+
+/// Build the [`GRAPH_GROUNDING_SEAMS`] graph: the authored `gmeow:Seam` registry,
+/// re-projected losslessly as shippable RDF.
+///
+/// The seam records come from `gmeow_validate::slice_peerage::seam_registry` — the SAME
+/// catalog-scoped reader `classify` uses for the `make validate` peerage gate and the R7
+/// seam-registry drift gate. One reader, so the gate and the shipped data can never
+/// disagree about what the registry says (a second parser here would be exactly the
+/// forbidden second source of truth).
+fn build_grounding_seams(
+    catalog: &purrdf::slice::SliceCatalog,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let seams = gmeow_validate::slice_peerage::seam_registry(catalog)?;
+    turtle_to_nquads(grounding_seams_turtle(&seams).as_bytes())
+}
+
+/// Deterministic Turtle for the grounding seam registry: one `gmeow:Seam` block per
+/// authored seam, carrying every `rdfs:label` (with its language tag), every
+/// `gmeow:seamDirection` leg as a blank node with its `gmeow:seamFromSlice` /
+/// `gmeow:seamToSlice`, every `gmeow:seamCarryingTerm`, and every `gmeow:seamOwningDoc` —
+/// the WHOLE registry, so a bundle-only consumer reconstructs it without the repository.
+///
+/// **Determinism.** Seams are sorted by IRI and every multi-valued field is sorted before
+/// emission, and the direction legs' blank-node labels are `_:seamdir{i}` assigned from
+/// the globally sorted `(seam IRI, from, to)` key — mirroring `crossing_coverage_turtle`'s
+/// `_:cov{i}` and `emit_analysis_graph`'s `_:dep{i}` conventions. Same input ⇒ identical
+/// bytes, whatever order the catalog yielded its records in.
+///
+/// Every triple uses a FULL IRI (never a `@prefix`-relative CURIE) so the body needs no
+/// prefix block and is safe to concatenate. Returns the empty string for an empty registry
+/// (no-optionality: absence of data is absence of output, never a placeholder record).
+fn grounding_seams_turtle(seams: &[gmeow_validate::slice_peerage::SeamRecord]) -> String {
+    use std::fmt::Write;
+
+    /// `rdfs:label` as a full IRI (the emitted body declares no prefixes).
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+    // Sorted by the WHOLE record (`SeamRecord`'s derived `Ord` leads with the seam IRI), so
+    // the block order is a function of the authored data alone. `dedup` removes only EXACT
+    // duplicates: two distinct records that happen to share an IRI (a seam registered in
+    // two grounding manifests) both emit, and the parser unions them — nothing is dropped.
+    let mut sorted: Vec<&gmeow_validate::slice_peerage::SeamRecord> = seams.iter().collect();
+    sorted.sort();
+    sorted.dedup();
+
+    // Every direction leg, keyed globally by `(seam IRI, from, to)` and sorted BEFORE index
+    // assignment, so each leg's `_:seamdir{i}` label is a pure function of the authored data
+    // rather than of iteration order (`crossing_coverage_turtle`'s `_:cov{i}` convention).
+    let mut legs: Vec<(&str, &str, &str)> = Vec::new();
+    for seam in &sorted {
+        for (from, to) in &seam.directions {
+            legs.push((seam.iri.as_str(), from.as_str(), to.as_str()));
+        }
+    }
+    legs.sort_unstable();
+    legs.dedup();
+    let leg_label = |leg: (&str, &str, &str)| -> String {
+        let idx = legs
+            .binary_search(&leg)
+            .expect("every emitted direction leg is in the globally sorted leg table");
+        format!("_:seamdir{idx}")
+    };
+
+    let mut body = String::new();
+    for seam in &sorted {
+        // The seam's predicate-object list, assembled as a Vec so the ` ;` separators and the
+        // final ` .` terminator are structural — never a branch on which fields are present.
+        let mut pairs: Vec<String> = vec![format!("a <{GMEOW_NS}Seam>")];
+        for (value, language) in &seam.labels {
+            let literal = match language {
+                Some(tag) => format!("\"{}\"@{tag}", escape_turtle_literal(value)),
+                None => format!("\"{}\"", escape_turtle_literal(value)),
+            };
+            pairs.push(format!("<{RDFS_LABEL}> {literal}"));
+        }
+        for (from, to) in &seam.directions {
+            pairs.push(format!(
+                "<{GMEOW_NS}seamDirection> {}",
+                leg_label((seam.iri.as_str(), from.as_str(), to.as_str()))
+            ));
+        }
+        for term in &seam.carrying_term_iris {
+            pairs.push(format!("<{GMEOW_NS}seamCarryingTerm> <{term}>"));
+        }
+        for doc in &seam.owning_docs {
+            pairs.push(format!(
+                "<{GMEOW_NS}seamOwningDoc> \"{}\"",
+                escape_turtle_literal(doc)
+            ));
+        }
+        writeln!(body, "<{}>", seam.iri).unwrap();
+        writeln!(body, "    {} .", pairs.join(" ;\n    ")).unwrap();
+        writeln!(body).unwrap();
+    }
+    // The direction legs themselves, one blank-node block each, emitted in the same globally
+    // sorted order their labels were assigned from.
+    for leg in &legs {
+        let (_, from, to) = *leg;
+        writeln!(body, "{}", leg_label(*leg)).unwrap();
+        writeln!(body, "    <{GMEOW_NS}seamFromSlice> <{from}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}seamToSlice> <{to}> .").unwrap();
+        writeln!(body).unwrap();
+    }
+    body
+}
+
+/// Escape a string to a valid Turtle quoted-literal body (without the surrounding
+/// quotes). Mirrors `term_manifest::escape_literal`.
+fn escape_turtle_literal(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod grounding_seams_turtle_tests {
+    use super::*;
+    use gmeow_validate::slice_peerage::SeamRecord;
+    use std::collections::BTreeSet;
+
+    const LANG: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+    const LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+    const MATH: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
+
+    fn set(values: &[&str]) -> BTreeSet<String> {
+        values.iter().map(|v| (*v).to_string()).collect()
+    }
+
+    fn seam(iri: &str, label: &str, directions: &[(&str, &str)]) -> SeamRecord {
+        SeamRecord {
+            iri: iri.to_string(),
+            name: label.to_string(),
+            labels: vec![(label.to_string(), Some("x-gmeow-english".to_string()))],
+            carrying_terms: set(&["logic:Foo"]),
+            carrying_term_iris: set(&["https://blackcatinformatics.ca/logic/Foo"]),
+            directions: directions
+                .iter()
+                .map(|(f, t)| ((*f).to_string(), (*t).to_string()))
+                .collect(),
+            owning_docs: set(&["TEST.md"]),
+        }
+    }
+
+    /// An empty registry emits nothing (no-optionality: absence of data is absence of
+    /// output, never a placeholder record).
+    #[test]
+    fn empty_registry_yields_empty_turtle() {
+        assert_eq!(grounding_seams_turtle(&[]), "");
+    }
+
+    /// DETERMINISM: the emitted bytes are a pure function of the seam SET, never of the
+    /// order the catalog yielded its records in — the emitter sorts seams by IRI and
+    /// assigns every `_:seamdir{i}` label from the globally sorted `(seam, from, to)` key
+    /// BEFORE emission. Catches a regression that emitted in iteration order (which would
+    /// churn `gmeow.gts` bytes on every run and break the cache/superset gates).
+    #[test]
+    fn emitted_bytes_are_independent_of_input_order() {
+        let a = seam(
+            "https://blackcatinformatics.ca/gmeow/seam/alpha",
+            "Alpha seam",
+            &[(LANG, LOGIC)],
+        );
+        let b = seam(
+            "https://blackcatinformatics.ca/gmeow/seam/beta",
+            "Beta seam",
+            &[(MATH, LOGIC), (LANG, LOGIC)],
+        );
+        let forward = grounding_seams_turtle(&[a.clone(), b.clone()]);
+        // Same input, run again: byte-identical (no hashed/interior-mutable state).
+        assert_eq!(forward, grounding_seams_turtle(&[a.clone(), b.clone()]));
+        // Reversed input: still byte-identical (the sort happens before emission).
+        assert_eq!(
+            forward,
+            grounding_seams_turtle(&[b, a]),
+            "input order must not affect the emitted byte sequence"
+        );
+        let alpha = forward.find("seam/alpha").expect("alpha emitted");
+        let beta = forward.find("seam/beta").expect("beta emitted");
+        assert!(
+            alpha < beta,
+            "seams must be emitted in IRI order:\n{forward}"
+        );
+    }
+
+    /// ROUND-TRIP: the emitted body parses as valid Turtle and every authored field
+    /// survives into the N-Quads projection the carrier actually ingests — including a
+    /// seam with TWO direction legs, whose blank nodes must stay distinct and correctly
+    /// paired (the `correspondence-and-preservation` seam's real shape).
+    #[test]
+    fn emitted_turtle_round_trips_through_the_parser() {
+        let mut two_legged = seam(
+            "https://blackcatinformatics.ca/gmeow/seam/two-legged",
+            "Two legged seam",
+            &[(LANG, LOGIC), (MATH, LOGIC)],
+        );
+        two_legged.carrying_term_iris = set(&[
+            "https://blackcatinformatics.ca/logic/Correspondence",
+            "https://blackcatinformatics.ca/logic/preservationKind",
+        ]);
+        two_legged.owning_docs = set(&["LANG-TRANSLATION.md", "LOGIC-CORRESPONDENCE.md"]);
+
+        let body = grounding_seams_turtle(&[two_legged]);
+        let nq = turtle_to_nquads(body.as_bytes())
+            .expect("the emitted seam registry must be valid Turtle");
+        let text = String::from_utf8(nq).expect("utf8");
+
+        for expected in [
+            "<https://blackcatinformatics.ca/gmeow/Seam>",
+            "\"Two legged seam\"",
+            "<https://blackcatinformatics.ca/gmeow/seamCarryingTerm> <https://blackcatinformatics.ca/logic/Correspondence>",
+            "<https://blackcatinformatics.ca/gmeow/seamCarryingTerm> <https://blackcatinformatics.ca/logic/preservationKind>",
+            "<https://blackcatinformatics.ca/gmeow/seamOwningDoc> \"LANG-TRANSLATION.md\"",
+            "<https://blackcatinformatics.ca/gmeow/seamOwningDoc> \"LOGIC-CORRESPONDENCE.md\"",
+            "<https://blackcatinformatics.ca/gmeow/seamFromSlice> <https://blackcatinformatics.ca/gmeow/slices/lang>",
+            "<https://blackcatinformatics.ca/gmeow/seamFromSlice> <https://blackcatinformatics.ca/gmeow/slices/math>",
+            "<https://blackcatinformatics.ca/gmeow/seamToSlice> <https://blackcatinformatics.ca/gmeow/slices/logic>",
+        ] {
+            assert!(
+                text.contains(expected),
+                "the parsed registry must carry {expected}:\n{text}"
+            );
+        }
+        assert_eq!(
+            text.matches("<https://blackcatinformatics.ca/gmeow/seamDirection>")
+                .count(),
+            2,
+            "both direction legs must survive as distinct blank nodes:\n{text}"
+        );
+        // The two legs are distinct blank nodes with distinct `from` slices.
+        assert_eq!(
+            text.matches("<https://blackcatinformatics.ca/gmeow/seamFromSlice>")
+                .count(),
+            2,
+            "each leg keeps its own gmeow:seamFromSlice:\n{text}"
+        );
+    }
+
+    /// A label's language tag survives emission (the authored seams are all
+    /// `@x-gmeow-english`), and an untagged label emits a plain literal.
+    #[test]
+    fn label_language_tags_are_preserved() {
+        let mut untagged = seam(
+            "https://blackcatinformatics.ca/gmeow/seam/untagged",
+            "Untagged seam",
+            &[(LANG, LOGIC)],
+        );
+        untagged.labels = vec![("Untagged seam".to_string(), None)];
+        let tagged = seam(
+            "https://blackcatinformatics.ca/gmeow/seam/tagged",
+            "Tagged seam",
+            &[(LANG, LOGIC)],
+        );
+        let body = grounding_seams_turtle(&[tagged, untagged]);
+        assert!(
+            body.contains("\"Tagged seam\"@x-gmeow-english"),
+            "an authored language tag must survive:\n{body}"
+        );
+        assert!(
+            body.contains("\"Untagged seam\" ;") || body.contains("\"Untagged seam\" ."),
+            "an untagged label must emit a plain literal, never a fabricated tag:\n{body}"
+        );
+    }
+
+    /// NON-VACUITY, over the REAL repository: the shipped `graph/grounding-seams` payload
+    /// built from the real slice catalog carries ALL EIGHT authored seams, each with its
+    /// real `rdfs:label`, its real owning design doc, and at least one direction leg.
+    /// This is the test that fails if the registry ever stops reaching the bundle — a
+    /// fixture-only suite would pass while `gmeow.gts` shipped nothing.
+    #[test]
+    fn the_real_registry_ships_all_eight_authored_seams() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
+        let catalog = discover_slice_catalog(&root).expect("discover the slice catalog");
+        let nq = build_grounding_seams(&catalog).expect("build graph/grounding-seams");
+        let text = String::from_utf8(nq).expect("utf8");
+
+        // (seam IRI local name, authored rdfs:label, an authored owning doc)
+        const AUTHORED: [(&str, &str, &str); 8] = [
+            ("denotation", "Denotation seam", "LANG-MEANING.md"),
+            (
+                "compilation",
+                "Compilation seam",
+                "MATHEMATICS-EXPRESSIONS.md",
+            ),
+            (
+                "laws-and-boundaries",
+                "Laws and boundaries seam",
+                "MATHEMATICS-ANALYSIS-AND-GEOMETRY.md",
+            ),
+            (
+                "correspondence-and-preservation",
+                "Correspondence and preservation seam",
+                "LOGIC-CORRESPONDENCE.md",
+            ),
+            ("rendering", "Rendering seam", "MATHEMATICS-EXPRESSIONS.md"),
+            (
+                "quantity",
+                "Quantity seam",
+                "MATHEMATICS-MEASURE-AND-DIMENSION.md",
+            ),
+            (
+                "gmn-mathematical-plane",
+                "GMN mathematical-plane seam",
+                "LANG-GMN.md",
+            ),
+            (
+                "quantity-boundary",
+                "Quantity boundary seam",
+                "LOGIC-CORRESPONDENCE.md",
+            ),
+        ];
+        for (local, label, doc) in AUTHORED {
+            let iri = format!("https://blackcatinformatics.ca/gmeow/seam/{local}");
+            assert!(
+                text.contains(&format!("<{iri}> <{RDF_TYPE}> <{GMEOW_NS}Seam>")),
+                "the shipped registry must type <{iri}> as gmeow:Seam:\n{text}"
+            );
+            assert!(
+                text.contains(&format!("\"{label}\"")),
+                "the shipped registry must carry seam \"{label}\"'s authored rdfs:label"
+            );
+            assert!(
+                text.contains(&format!("<{iri}> <{GMEOW_NS}seamOwningDoc> \"{doc}\"")),
+                "seam \"{label}\" must carry its authored owning doc {doc}"
+            );
+            assert!(
+                text.contains(&format!("<{iri}> <{GMEOW_NS}seamDirection>")),
+                "seam \"{label}\" must carry at least one direction leg"
+            );
+        }
+        // The registry is CLOSED at eight: an added or dropped seam is a governance change
+        // that must be made deliberately, not discovered by drift.
+        let seam_types = text
+            .matches(&format!("<{RDF_TYPE}> <{GMEOW_NS}Seam>"))
+            .count();
+        assert_eq!(
+            seam_types, 8,
+            "the authored registry is the CLOSED set of eight sanctioned seams; got {seam_types}"
+        );
+        // Every leg is fully paired: as many seamToSlice as seamFromSlice assertions.
+        assert_eq!(
+            text.matches(&format!("<{GMEOW_NS}seamFromSlice>")).count(),
+            text.matches(&format!("<{GMEOW_NS}seamToSlice>")).count(),
+            "every direction leg must carry BOTH a from-slice and a to-slice:\n{text}"
+        );
+    }
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+}
+
+/// Deterministic Turtle for the shipped `gmeow:crossingCoverage` verdict: one
+/// record per covered peered crossing (`from`, `to`, covering seam, covered term),
+/// using a stable `_:cov{i}` blank-node label per record — mirroring
+/// `emit_analysis_graph`'s own `_:dep{i}` convention. Records are sorted by
+/// `(from, to, seam, term)` BEFORE index assignment, so the emitted bytes never
+/// depend on `PeerageClassification::crossings`' incoming (HashMap-adjacent
+/// iteration) order. Every triple uses a FULL IRI (never a `@prefix`-relative
+/// CURIE) so the snippet is safe to concatenate onto `AnalysisGraph::turtle_body`
+/// verbatim regardless of that body's own prefix declarations. Returns the empty
+/// string for no covered crossings (no-optionality: absence of data is absence of
+/// output, never an empty placeholder record).
+fn crossing_coverage_turtle(covered: &[gmeow_validate::slice_peerage::CrossingCoverage]) -> String {
+    use std::fmt::Write;
+
+    let mut records: Vec<(&str, &str, &str, &str)> = covered
+        .iter()
+        .map(|c| {
+            (
+                c.from_slice.as_str(),
+                c.to_slice.as_str(),
+                c.seam_iri.as_str(),
+                c.term.as_str(),
+            )
+        })
+        .collect();
+    records.sort_unstable();
+    records.dedup();
+
+    let mut body = String::new();
+    for (i, (from, to, seam, term)) in records.iter().enumerate() {
+        writeln!(body, "_:cov{i}").unwrap();
+        writeln!(body, "    a <{GMEOW_NS}crossingCoverage> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredEdgeFrom> <{from}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredEdgeTo> <{to}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveringSeam> <{seam}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredTerm> <{term}> .").unwrap();
+        writeln!(body).unwrap();
+    }
+    body
+}
+
+#[cfg(test)]
+mod crossing_coverage_turtle_tests {
+    use super::*;
+    use gmeow_validate::slice_peerage::CrossingCoverage;
+    use purrdf::slice::NamedNode;
+
+    fn nn(iri: &str) -> NamedNode {
+        NamedNode::new_unchecked(iri)
+    }
+
+    fn crossing(from: &str, to: &str, seam: &str, term: &str) -> CrossingCoverage {
+        CrossingCoverage {
+            from_slice: from.to_string(),
+            to_slice: to.to_string(),
+            seam_iri: seam.to_string(),
+            term: nn(term),
+        }
+    }
+
+    const LANG: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+    const LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+    const SEAM: &str = "https://blackcatinformatics.ca/gmeow/seam/test-seam";
+    const TERM: &str = "https://blackcatinformatics.ca/logic/Foo";
+
+    /// No covered crossings → no output (no-optionality: absence of data is
+    /// absence of output, never an empty placeholder record).
+    #[test]
+    fn empty_input_yields_empty_turtle() {
+        assert_eq!(crossing_coverage_turtle(&[]), "");
+    }
+
+    /// One covered crossing emits exactly one `gmeow:crossingCoverage` record
+    /// with the right `coveredEdgeFrom`/`coveredEdgeTo`/`coveringSeam`/`coveredTerm`
+    /// full-IRI triples, and the record is a valid Turtle predicate-object list
+    /// (a stable `_:cov0` blank-node subject).
+    #[test]
+    fn one_covered_crossing_emits_the_expected_record() {
+        let body = crossing_coverage_turtle(&[crossing(LANG, LOGIC, SEAM, TERM)]);
+        assert!(body.contains("_:cov0"));
+        assert!(body.contains("a <https://blackcatinformatics.ca/gmeow/crossingCoverage> ;"));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredEdgeFrom> <{LANG}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredEdgeTo> <{LOGIC}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveringSeam> <{SEAM}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredTerm> <{TERM}> ."
+        )));
+    }
+
+    /// Records are sorted by `(from, to, seam, term)` BEFORE blank-node index
+    /// assignment, so the emitted bytes are independent of the input `Vec`'s
+    /// order — feeding the two crossings in reverse-sorted order still assigns
+    /// `_:cov0` to the lexically-first record.
+    #[test]
+    fn records_are_sorted_before_index_assignment() {
+        let first = crossing(LANG, LOGIC, SEAM, TERM);
+        let second = crossing(
+            "https://blackcatinformatics.ca/gmeow/slices/math",
+            LOGIC,
+            SEAM,
+            TERM,
+        );
+        let forward = crossing_coverage_turtle(&[first.clone(), second.clone()]);
+        let reversed = crossing_coverage_turtle(&[second, first]);
+        assert_eq!(
+            forward, reversed,
+            "input order must not affect the emitted byte sequence"
+        );
+        let cov0_pos = forward.find("_:cov0").unwrap();
+        let lang_pos = forward.find(LANG).unwrap();
+        assert!(
+            lang_pos > cov0_pos,
+            "the lexically-first from_slice ({LANG}) must sort into _:cov0"
+        );
+    }
+
+    /// An exact duplicate `(from, to, seam, term)` record is deduplicated — the
+    /// classifier can never actually emit one (each `(edge, term)` join is
+    /// unique in `PeerageClassification::crossings`), but the helper does not
+    /// trust that upstream invariant silently.
+    #[test]
+    fn duplicate_records_are_deduplicated() {
+        let body = crossing_coverage_turtle(&[
+            crossing(LANG, LOGIC, SEAM, TERM),
+            crossing(LANG, LOGIC, SEAM, TERM),
+        ]);
+        assert_eq!(body.matches("_:cov").count(), 1, "{body}");
+    }
+
+    /// The emitted snippet, concatenated onto a realistic `graph/slice-analysis`
+    /// Turtle body (with its own `@prefix` block and a `_:dep0` record), still
+    /// parses as ONE valid Turtle document — the full-IRI snippet never depends
+    /// on the preceding body's prefixes, and blank-node labels never collide.
+    #[test]
+    fn concatenated_onto_a_prefixed_body_still_parses() {
+        let existing_body = format!(
+            "@prefix gmeow: <{GMEOW_NS}> .\n\
+             @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\
+             @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             \n\
+             _:dep0\n\
+             \x20   a <{GMEOW_NS}computedSliceDependency> ;\n\
+             \x20   <{GMEOW_NS}dependencyFromSlice> <{LANG}> ;\n\
+             \x20   <{GMEOW_NS}dependencyToSlice> <{LOGIC}> .\n\
+             \n"
+        );
+        let mut combined = existing_body;
+        combined.push_str(&crossing_coverage_turtle(&[crossing(
+            LANG, LOGIC, SEAM, TERM,
+        )]));
+
+        let nq = turtle_to_nquads(combined.as_bytes())
+            .expect("the concatenated body must still parse as valid Turtle");
+        let text = String::from_utf8(nq).expect("utf8");
+        assert!(
+            text.contains("crossingCoverage"),
+            "the coverage record must survive the parse+N-Quads round-trip: {text}"
+        );
+        assert!(
+            text.contains("computedSliceDependency"),
+            "the pre-existing dependency record must also survive: {text}"
+        );
+    }
 }
 
 fn tier_priority(tier: Option<&purrdf::slice::SliceTier>) -> u8 {
@@ -5561,6 +6430,7 @@ mod ustar_tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             has_thesis_sentence: false,
             realized_state_complete: false,
         };
@@ -5744,7 +6614,7 @@ mod ustar_tests {
     /// straight from the docs-print blob (untar, find the `gmeow.pdf` member, digest it)
     /// and assert it EQUALS the `gmeow:contentDigest` the docs-format corpus emits on the
     /// `application/pdf` attestation artifact — proving the binding is real and non-DARK
-    /// on the committed-bundle production path (the exact path `make sync` runs).
+    /// on the committed-bundle production path (the exact path `make check` runs).
     #[test]
     fn shipped_pdf_attestation_binds_the_raw_pdf_bytes() {
         let model = small_docs_model();
@@ -5823,6 +6693,7 @@ mod ustar_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["zstd-rsyncable".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -5927,6 +6798,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -5978,6 +6850,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6030,6 +6903,7 @@ mod conformance_fold_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6100,6 +6974,7 @@ mod validation_shape_typed_lookaside_tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
         )
         .expect("emit snapshot");
 
@@ -6245,6 +7120,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -6324,6 +7200,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -6414,6 +7291,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -6477,6 +7355,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -6587,6 +7466,7 @@ mod logic_graph_golden_tests {
                 None,
                 None,
                 purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+                &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
             )
             .expect("emit snapshot")
         };
@@ -7867,7 +8747,7 @@ mod quality_assessment_tests {
         // and N-Triples fold form stay on-gate via the fast sibling tests
         // `quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
         // `superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
-        // and any real drift is caught on every `make check` by `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`.
+        // and any real drift is caught on every `make check` by `make check-sync SYNC_MODE=check`.
         let root = repo_root();
         let ds = build_self_description_dataset(&root).expect("self-description dataset");
 
@@ -7900,8 +8780,12 @@ mod quality_assessment_tests {
         // attaches `graph/fanout/quality/gmeow.quality-assessment.nt` and the gate claims
         // the same committed path as an N-Triples fanout fold. A committed path with no
         // attaching stage (or vice-versa) is a wiring contradiction — this pins both legs.
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let source = parse_dataset(&ttl, "text/turtle", None).unwrap();
+        let rdf_fanout_classes =
+            crate::stages::superset::RdfFanoutClasses::from_source(&source).unwrap();
         assert!(
-            crate::stages::superset::is_rdf_fanout_class(QUALITY_ASSESSMENT_PATH),
+            rdf_fanout_classes.contains(QUALITY_ASSESSMENT_PATH),
             "the quality-assessment committed path must be a registered RDF-fanout class"
         );
         let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
@@ -7991,5 +8875,132 @@ mod coherence_certificate_tests {
         let nq1 = purrdf::canonical_flat_nquads(folded.as_ref()).unwrap();
         let nq2 = purrdf::canonical_flat_nquads(folded2.as_ref()).unwrap();
         assert_eq!(nq1, nq2, "the folded certificate is deterministic");
+    }
+}
+
+#[cfg(test)]
+mod fanout_opaque_manifest_tests {
+    use super::*;
+
+    const EXTRACTS_PATH: &str = "https://blackcatinformatics.ca/gmeow/extractsPath";
+    const EXTRACTS_FAMILY: &str = "https://blackcatinformatics.ca/gmeow/extractsGraphFamily";
+    const GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+    const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+    fn members() -> BTreeMap<String, Vec<u8>> {
+        // A byte-decorated RDF (`.ttl`) member AND non-RDF members — all ride the opaque lane.
+        [
+            ("generated/n3/gmeow.n3", b"@prefix : <> .".as_slice()),
+            ("generated/logic/inferred-closure.rdf12.ttl", b"# closure"),
+            ("generated/cl/gmeow.clif", b";; clif"),
+        ]
+        .into_iter()
+        .map(|(p, b)| (p.to_string(), b.to_vec()))
+        .collect()
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_roundtrips_through_read_fanout_rules() {
+        let members = members();
+        let manifest = build_fanout_opaque_manifest(members.keys()).expect("manifest");
+
+        // The manifest rides in its own meta-level graph (excluded from object-level EDB).
+        assert!(!gmeow_logic::reasoning_graphs::is_object_level_named_graph(
+            GRAPH_FANOUT_OPAQUE_MANIFEST
+        ));
+        for q in manifest.owned_quads() {
+            assert_eq!(
+                q.graph_name.as_ref(),
+                Some(&RdfTerm::Iri(GRAPH_FANOUT_OPAQUE_MANIFEST.to_string())),
+                "every manifest quad rides the fanout-opaque-manifest graph"
+            );
+        }
+
+        // The superset gate's own reader must recover one opaque row per member path.
+        let rules =
+            crate::stages::superset::read_fanout_rules(manifest.as_ref()).expect("read rules");
+        let opaque_paths: std::collections::BTreeSet<String> = rules
+            .iter()
+            .filter(|r| r.is_opaque())
+            .map(|r| r.path().to_string())
+            .collect();
+        let want: std::collections::BTreeSet<String> = members.keys().cloned().collect();
+        assert_eq!(
+            opaque_paths, want,
+            "one opaque row per opaque member, exactly"
+        );
+        assert_eq!(rules.len(), members.len(), "no non-opaque rows emitted");
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_carries_the_assertional_abox_skeleton() {
+        // Each row must carry the type + label + graph-provenance + boxABox skeleton the
+        // whole-bundle structural lint accepts for a generated assertional individual, plus
+        // the opaque family facet — mirroring the constraint-catalog Finding projection.
+        let members = members();
+        let manifest = build_fanout_opaque_manifest(members.keys()).expect("manifest");
+        let has = |s: &str, p: &str, o_iri: Option<&str>, lit_pred: bool| {
+            manifest.owned_quads().any(|q| {
+                let subj = matches!(&q.subject, RdfTerm::Iri(i) if i == s);
+                let pred = q.predicate == p;
+                let obj = match (&q.object, o_iri, lit_pred) {
+                    (RdfTerm::Iri(i), Some(o), _) => i == o,
+                    (RdfTerm::Literal(_), None, true) => true,
+                    _ => false,
+                };
+                subj && pred && obj
+            })
+        };
+        for path in members.keys() {
+            let subject = format!("{FANOUT_OPAQUE_SUBJECT_NS}{path}");
+            assert!(
+                has(&subject, RDFS_LABEL, None, true),
+                "row {path} must carry rdfs:label"
+            );
+            assert!(
+                has(
+                    &subject,
+                    RDFS_IS_DEFINED_BY,
+                    Some(GRAPH_FANOUT_OPAQUE_MANIFEST),
+                    false
+                ),
+                "row {path} must be provenanced to the manifest graph (assertional)"
+            );
+            assert!(
+                has(
+                    &subject,
+                    GRAPH_BOX_ROLE,
+                    Some("https://blackcatinformatics.ca/gmeow/boxABox"),
+                    false
+                ),
+                "row {path} must declare gmeow:graphBoxRole gmeow:boxABox"
+            );
+            assert!(
+                has(&subject, EXTRACTS_PATH, None, true),
+                "row {path} must carry gmeow:extractsPath"
+            );
+            assert!(
+                manifest.owned_quads().any(|q| {
+                    q.predicate == EXTRACTS_FAMILY
+                        && matches!(&q.object, RdfTerm::Literal(l) if l.lexical_form == "opaque")
+                }),
+                "an opaque family facet must be present"
+            );
+        }
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_is_deterministic_regardless_of_key_order() {
+        let members = members();
+        let a = build_fanout_opaque_manifest(members.keys()).expect("a");
+        // Feed the keys in reverse to prove the sorted emission is order-independent.
+        let reversed: Vec<&String> = members.keys().rev().collect();
+        let b = build_fanout_opaque_manifest(reversed.into_iter()).expect("b");
+        assert_eq!(
+            purrdf::canonical_flat_nquads(a.as_ref()).unwrap(),
+            purrdf::canonical_flat_nquads(b.as_ref()).unwrap(),
+            "the opaque manifest is a deterministic function of the member set"
+        );
     }
 }

@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A landed logic:PrescriptionVersion whose bytes were EDITED IN PLACE while a run was
+# executing against them. The version is content-addressed, so the presence law
+# (logic:PrescriptionVersionIsContentAddressedConstraint) passes; the enactment pins
+# both its version and its input snapshot, so the enactment completeness law passes.
+# The version pointer still resolves and nothing in the record looks broken.
+#
+# The only witness is the digest the run FROZE at pin time. A version and its own
+# address agree by construction however many times the bytes were rewritten, which is
+# why immutability is unfalsifiable from a single record: only a value recorded
+# elsewhere, before the edit, can testify against it. Here the run pinned
+# ...b74e2a and the version now addresses ...31f907, so the run's recoverable account
+# of what it executed describes something that no longer exists.
+#
+# It is the overwrite case, not the missing-digest case: the absence sibling
+# (prescription-version-not-content-addressed.ttl) reaches only
+# logic:PrescriptionVersionIsContentAddressedConstraint, because the comparison law's
+# guard needs the current address, the run, and the frozen address all bound.
+#
+# MUST trip logic:PrescriptionVersionImmutabilityConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:adrReviewPrescriptionV4 a logic:PrescriptionVersion ;
+    rdfs:label "revision 4 of the review prescription, edited after week 13 pinned it"@en ;
+    logic:prescriptionDigest "b3:31f9075c8e2b40a6d139c7fa5083be241d09c7a6b5e830f142ad9c60b7e35128" .
+
+ex:adrReviewWeek13 a logic:Enactment ;
+    rdfs:label "the week-13 occurrence, still running against what revision 4 used to be"@en ;
+    logic:enactsPrescriptionVersion ex:adrReviewPrescriptionV4 ;
+    logic:enactmentInputSnapshot ex:week13InputGeneration ;
+    logic:enactedPrescriptionDigest "b3:b74e2a19c50d38f7ae6104b92cd75f038a1e6b4d09c27fa5813de640b2c9a731" .

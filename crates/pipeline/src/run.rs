@@ -8,7 +8,7 @@
 //!
 //! # The single-pass property
 //!
-//! The fold-reading export leaves (lpg, metadata, export, okf, parquet) consume
+//! The fold-reading export leaves (lpg, metadata, export, okf) consume
 //! the in-memory `stage-snapshot` product — THIS run's freshly-composed
 //! `gmeow.gts` — rather than re-reading the committed file from disk. The sole
 //! [`crate::stages::gts_sink::GtsSinkStage`] re-emits those snapshot bytes as its
@@ -36,9 +36,11 @@ use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
 use crate::loader::{PipelineSpec, StageSpec, bind};
-use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
+use crate::node::{
+    ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct,
+};
 use crate::registry::default_registry;
-use crate::scheduler::{RunContext, run};
+use crate::scheduler::{CarrierRetention, RunContext, run};
 
 /// The stage id every drift/superset diagnostic is attributed to on the carrier
 /// ledger (pin-on-attach).
@@ -203,15 +205,39 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-source-load"],
         ),
-        // Leaf compute: RUN the eight math producers (five flagship producers plus the
-        // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
+        // Leaf compute: RUN the ten math producers (five flagship producers — the rBridge
+        // one being the executable r_lift — plus the probability-model seam, p-value
+        // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
-        // Leaf compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and
-        // attach the union as graph/authoring-briefs (folded into gmeow.gts by
-        // stage-snapshot). It reads the authored slice sources directly — no upstream.
-        st("stage-slice-brief", "slice-brief", &[]),
+        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
+        // #21/#20). A productive functor over the glyph signature: it consumes
+        // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
+        // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
+        // each through five verifiers, and attaches the certified corpus (+ typed rejections)
+        // as graph/gmn-training-corpus (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-gmn-training-corpus",
+            "gmn-training-corpus",
+            &["stage-compile-logic", "stage-mappings"],
+        ),
+        // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
+        // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
+        // It reads the authored slice sources directly, but consumes the four
+        // generated-shape producers so its exemplar-tiering shape union folds THIS run's
+        // fresh generated/shapes/*.ttl bytes (never the committed files — the
+        // stale-disk-fold class) and is scheduled AFTER they materialize generated/shapes.
+        st(
+            "stage-slice-brief",
+            "slice-brief",
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+            ],
+        ),
         // mappings additionally consumes the constraint-shapes export leaf: the
         // shape-grounding certificate ledger re-derives every logic:formalizes record's
         // preservation judgment over THIS run's projected constraint surfaces (the
@@ -255,7 +281,9 @@ pub fn full_spec() -> PipelineSpec {
         // `generated/shapes/*.ttl` members are read off THIS run's producer products
         // (compile-logic + the three shape export leaves), never the stale committed
         // files (the stale-disk-fold class). The compile-logic edge is narrowed to
-        // the object-level graphs (see `st_validate`).
+        // the object-level graphs (see `st_validate`). It also consumes stage-reason,
+        // narrowed to graph/reasoning: the D5 abductive tier reads the reasoned closure
+        // (asserted OR entailed), so the validator is a DESCENDANT of the reasoner.
         st_validate(
             "stage-validate",
             "validate",
@@ -264,6 +292,7 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-constraint-shapes",
                 "stage-export-frame-shapes",
                 "stage-export-result-shapes",
+                "stage-reason",
                 "stage-source-load",
             ],
         ),
@@ -321,22 +350,33 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-constraint-catalog",
                 "stage-docs-render",
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores / research-object
-                // graphs. The presenter reads them off these products, never re-rendered.
+                // render ran once, in the leaf): profiles / evals scores / glossary
+                // vartrans.ttl / research-object graphs. The presenter reads them off these
+                // products, never re-rendered.
                 "stage-export-evals",
+                // The OntoLex vartrans lowering (generated/projections/glossary.vartrans.ttl),
+                // folded as its own graph/fanout/projections named graph.
+                "stage-export-glossary",
                 // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
+                // folded as its own graph/fanout/skos named graph.
+                "stage-export-skos-surface",
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus",
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
-                // The eight math producer graphs (five flagship producers plus the
-                // probability-model seam, p-value tri-slice, and Clifford producers),
-                // folded into gmeow.gts.
+                // The ten math producer graphs (five flagship producers — the rBridge one
+                // being the executable r_lift — plus the probability-model seam, p-value
+                // tri-slice, Clifford, and the ONNX / proof lift producers), folded into
+                // gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
                 // The authoring-packet corpus (graph/authoring-briefs), folded into
@@ -357,19 +397,27 @@ pub fn full_spec() -> PipelineSpec {
     // ── fold-reading export leaves (consume THIS run's snapshot) ──
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
-        ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-okf", "okf"),
-        ("stage-export-parquet", "parquet"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
+    // The YAML-LD leaf is a fold-reading leaf like the three above, but it materializes
+    // the WHOLE carrier as JSON-LD-star and again as YAML-LD-star, so it holds the
+    // serialization-buffer permit (see `st_serializing`).
+    stages.push(st_serializing(
+        "stage-export-yaml-ld",
+        "yaml_ld",
+        &["stage-snapshot"],
+    ));
     // `stage-export-export` additionally consumes THIS run's fresh
     // `stage-export-json-schema` product: its `llms-full.txt` inlined cards gate
     // their `python_model` link on the JSON Schema `$defs` key set (a class with
     // no `$defs` entry has no generated Pydantic model), so it needs the schema
     // in hand, not only the snapshot fold.
-    stages.push(st(
+    // It also holds the serialization-buffer permit (see `st_serializing`): it
+    // materializes the whole carrier as N-Quads and again as TriG.
+    stages.push(st_serializing(
         "stage-export-export",
         "export",
         &["stage-export-json-schema", "stage-snapshot"],
@@ -390,6 +438,15 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-projection-ceilings", "projection_ceilings"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-matrix", "matrix"),
+        // The human-readable per-slice terminology glossary table: a byte-decorated
+        // Markdown projection of the graph/lang-glossary-corpus fold, derived from the
+        // SAME reviewed `.po` entry list (crate::stages::lang_glossary::build_entries),
+        // never a second parse. Source-reading leaf like matrix (consumes nothing).
+        ("stage-export-glossary", "glossary"),
+        // The generated SKOS concept-scheme surface: a projection of the lifted
+        // NodeKind::Annotation axioms. A source-reading leaf like glossary;
+        // its RDF `.ttl` folds as the RDF-fanout named graph graph/fanout/skos/gmeow-skos.ttl.
+        ("stage-export-skos-surface", "skos_surface"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
@@ -426,14 +483,15 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ));
     }
-    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
-    // product (never the stale committed generated/queries/dcat.rq on disk), so it
-    // consumes that stage rather than running source-only (kept in sorted position to
-    // match the registry consumes() and the module.ttl dataflowConsumes).
+    // research-objects reads two generated projections off upstream products, never the
+    // stale/absent committed files on disk: `generated/evals/scores.ttl` off the
+    // stage-export-evals product and `generated/queries/dcat.rq` off the stage-mappings
+    // product. It therefore consumes both rather than running source-only (kept in sorted
+    // position to match the registry consumes() and the module.ttl dataflowConsumes).
     stages.push(st(
         "stage-export-research-objects",
         "research-objects",
-        &["stage-mappings"],
+        &["stage-export-evals", "stage-mappings"],
     ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
@@ -454,7 +512,7 @@ pub fn full_spec() -> PipelineSpec {
         &[
             "stage-compile-logic",
             // The opaque fanout members ride in from their producing export leaves (each
-            // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
+            // rendered once, in the leaf); `collect_fanout_opaque_members` reads them off these
             // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
             "stage-export-agreement",
             "stage-export-apache",
@@ -474,9 +532,13 @@ pub fn full_spec() -> PipelineSpec {
             // these edges a competency/frame-shape edit could never reach the bundle,
             // and the fanout would rewrite the stale committed bytes forever.
             "stage-export-frame-shapes",
+            // The human-readable terminology glossary table (byte-decorated Markdown)
+            // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
+            // product (sorted position: frame-shapes < glossary < governance-floors).
+            "stage-export-glossary",
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: frame-shapes < governance-floors < json-schema).
+            // leaf's product (sorted position: glossary < governance-floors < json-schema).
             "stage-export-governance-floors",
             "stage-export-json-schema",
             "stage-export-matrix",
@@ -496,7 +558,7 @@ pub fn full_spec() -> PipelineSpec {
             // competency ResultShape edit reaches the bundle without a manual disk write.
             "stage-export-result-shapes",
             // THIS run's freshly-rendered LinkML/TypeScript/GraphQL developer schema
-            // surfaces, folded into REP_GENERATED by build_fanout_opaque_blob (sorted
+            // surfaces, folded into REP_GENERATED by collect_fanout_opaque_members (sorted
             // position: result-shapes < schemas < mappings) — schemas moved from a
             // carrier projection to a fresh SHACL-shape-union compilation, so the sink
             // now reads its product instead of re-deriving from the in-memory carrier.
@@ -594,6 +656,18 @@ fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s
 }
 
+/// A whole-dataset serialization leaf: it requires the exclusive serialization buffer
+/// ([`SERIALIZATION_BUFFER_RESOURCE`]), so the scheduler runs at most one such leaf at a
+/// time while every cheap leaf in the same level keeps full parallelism. Mirrors the
+/// declaring stages' `resources()` ([`crate::stages::export::ExportStage`] /
+/// [`crate::stages::yaml_ld::YamlLdStage`]) so the dag_dogfood parity and the loader's
+/// bind-agreement both hold.
+fn st_serializing(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.resources = vec![SERIALIZATION_BUFFER_RESOURCE.to_string()];
+    s
+}
+
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
 /// serialization) AND reads only the object-level named graphs
 /// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) from `stage-compile-logic`
@@ -615,15 +689,24 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// — the program-level digest standing in for the validation-shape byte artifacts it
 /// reads off that product, and the narrowing that keeps its `graph/diagnostics`
 /// attachment a genuine delta (compile-logic's product carries a graph of the same
-/// name). Derives the SAME entity list as
+/// name). Its `stage-reason` dependency is narrowed to the single `graph/reasoning` named
+/// graph (mirroring `st_goal_directed`): the D5 abductive tier reads the reasoned closure,
+/// and that projection reifies every derived axiom, so its digest is a faithful key for the
+/// closure this stage folds. Derives the SAME entity list as
 /// [`crate::stages::validate::ValidateStage`]'s consumed_entities() so the
 /// dag_dogfood parity and the loader's bind-agreement both hold.
 fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
-    s.dataflow_entities = vec![(
-        "stage-compile-logic".to_string(),
-        crate::stages::compile_logic::carrier_entity_list(),
-    )];
+    s.dataflow_entities = vec![
+        (
+            "stage-compile-logic".to_string(),
+            crate::stages::compile_logic::carrier_entity_list(),
+        ),
+        (
+            "stage-reason".to_string(),
+            vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
+        ),
+    ];
     s
 }
 
@@ -688,6 +771,14 @@ pub fn run_full_scoped_with_progress(
     // multi-gigabyte duplicate state and measured slower than recomputation. On a
     // manifest miss, execute the DAG once with no per-stage cache I/O.
     let mut ctx = RunContext::open_uncached(root, jobs);
+    // Bound peak residency: release each stage's carrier once its last declared consumer
+    // has run. This path is the whole-repository build — ~47 stages, each emitting a
+    // CUMULATIVE carrier snapshot — so retaining every product's bundle for the run's life
+    // makes peak memory the SUM over the DAG rather than the live frontier, which is what
+    // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
+    // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
+    // written/compared bytes and `combined_digest` are byte-identical either way.
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     if let Some(progress) = progress.as_ref() {
         ctx = ctx.with_progress(Arc::clone(progress));
         progress.stage_start("pipeline:dag");
@@ -770,7 +861,9 @@ pub fn run_full_scoped_with_progress(
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.
-            if path.starts_with("pipeline/") {
+            // ONE constant with the scheduler's carrier release, which drops exactly
+            // these once their last declared consumer has run.
+            if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
                 continue;
             }
             output_paths.push(path.clone());
@@ -778,8 +871,10 @@ pub fn run_full_scoped_with_progress(
 
             // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
             // bundle to disk (the terminal's sole output — without this a stale
-            // `merge=ours` bundle survives an `integrate-main` + update, the exact
-            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // local bundle survives an `integrate-main` + update, the exact trap
+            // CLAUDE.md warns about). The bundle is a git-ignored local product with
+            // no committed copy to fall back on, so it must be regenerated, never
+            // trusted stale. In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
             // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
@@ -1251,12 +1346,13 @@ fn reconcile_gmn1_digest_gates(
 
     let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
     if !pack_report.is_clean() {
-        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
-        drifted.push(focus.to_string());
+        // The finding focus is the version-keyed pack path the check resolved (gmn1/v<major>/…).
+        let focus = pack_report.pack_rel.clone();
+        drifted.push(focus.clone());
         attach_pipeline_finding(
             ledger,
             CODE_GMN1_PACK_ROOT_MISMATCH,
-            focus,
+            &focus,
             format!(
                 "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
                 pack_report.declared_root, pack_report.recomputed_root
@@ -1819,6 +1915,13 @@ ex:RequiredShape a sh:NodeShape ;
                 &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
             ),
         );
+        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure;
+        // an empty-EDB reason product yields an empty closure, so the reasoned union is the
+        // authored source graph alone (this harness drives SHACL/enrichment, not entailment).
+        upstream.insert(
+            "stage-reason".to_owned(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
     }
 
     /// Run the real `stage-validate` stage over the violating fixture, returning its
@@ -2094,9 +2197,14 @@ ex:RequiredShape a sh:NodeShape ;
             "a triggered SHACL violation must change the shacl.nq artifact"
         );
         // And the run-ledger node set differs: the violation contributes real finding
-        // nodes; the conforming run contributes exactly the one informational
-        // `shacl.clean` record that keeps stage-validate's graph/diagnostics attach delta
-        // stable on a clean corpus (a zero-findings validation is a report, not an absence).
+        // nodes; the conforming run contributes exactly the informational `shacl.clean`
+        // record (keeps stage-validate's graph/diagnostics attach delta stable on a
+        // clean corpus — a zero-findings validation is a report, not an absence). With
+        // the fixed advisory demonstrator removed (greenfield), this candidate-free
+        // conforming corpus harvests NO advisory (no accepted logic:CategoryRecommendation
+        // candidate is authored in it), so the clean run is exactly the one shacl.clean
+        // node. (Harvested advisories surfacing on a candidate-bearing source is proven
+        // by the stage test `stage_validate_emits_both_advice_projections`.)
         assert!(
             !violating.diags.is_empty(),
             "the violating run must contribute run-ledger nodes"
@@ -2104,12 +2212,14 @@ ex:RequiredShape a sh:NodeShape ;
         assert_eq!(
             conforming.diags.len(),
             1,
-            "the conforming run contributes exactly the shacl.clean record"
+            "the conforming candidate-free run contributes exactly the shacl.clean record \
+             (no harvested advisory): {:?}",
+            conforming.diags
         );
         assert_eq!(
             conforming.diags[0].grade.severity,
             gmeow_errors::Severity::Info,
-            "the conforming run's sole node is the informational shacl.clean record"
+            "the conforming run's only node is the informational shacl.clean record"
         );
         assert_ne!(
             violating.diags, conforming.diags,

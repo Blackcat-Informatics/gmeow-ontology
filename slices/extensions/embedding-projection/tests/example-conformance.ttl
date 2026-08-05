@@ -1,0 +1,150 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the embedding-projection slice. Each cell unions the
+# module with the named counter-example fixture and validates it against the derived
+# global shapes (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl)
+# under the native Rust SHACL harness (crates/slicetest). gmeow:exampleFile is
+# SLICE-RELATIVE; gmeow:expectedViolationCode is the native finding code
+# finding_from_shacl builds as "shacl.<ConstraintComponentLocalName>"
+# (crates/validate/src/findings.rs) — logic:Constraint integrity conditions project to
+# sh:SPARQLConstraint (shacl.SPARQLConstraintComponent); a missing required datum
+# projects to shacl.MinCountConstraintComponent. These pin the counter-examples whose
+# rejection rides the DERIVED SHACL surface; the collision, RDF-1.2-legacy, provenance,
+# tolerance, and similarity-overclaim counter-examples are exercised by their competency
+# SPARQL finders in tests/competency.ttl instead (they carry no derived-SHACL shape).
+# Each sh:SPARQLConstraint cell additionally pins gmeow:expectedSourceShape — the exact
+# derived sh:NodeShape (gmeow:<Constraint>ProceduralConstraintShape, which logic:formalizes
+# the constraint's gmeow:*Shape) whose sh:sourceShape the finding must carry. Because every
+# logic:Constraint projects to the same generic shacl.SPARQLConstraintComponent, the code
+# alone cannot prove the SPECIFIC named rule fired; the source shape does.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ep:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/> .
+
+# --- logic:Constraint rejections (sh:SPARQLConstraint) ----------------------------
+
+ep:ecSourceDigestMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-source-digest-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:SourceDigestMatchConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose recorded gmeow:projectionSourceDigest disagrees with its resolved source's gmeow:contentDigest violates gmeow:SourceDigestMatchConstraint, projected to a sh:SPARQLConstraint — validation MUST emit shacl.SPARQLConstraintComponent from the derived gmeow:SourceDigestMatchConstraintProceduralConstraintShape (which logic:formalizes gmeow:SourceDigestMatchShape)." .
+
+ep:ecSourceDigestAbsent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-source-digest-absent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ProjectionSourceDigestPresentConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose resolved gmeow:projectionSource carries no gmeow:contentDigest violates gmeow:ProjectionSourceDigestPresentConstraint, projected to a sh:SPARQLConstraint — validation MUST emit shacl.SPARQLConstraintComponent. Closes the CT1 hole gmeow:SourceDigestMatchConstraint cannot reach: a digest-less source leaves its equality guard vacuous. The live SPARQL twin source-digest-absent.rq exercises the same invariant in tests/competency.ttl." .
+
+ep:ecCrossSpaceRejected a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-cross-space-rejected.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:CrossSpaceComparisonConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A cross-effective-space similarity comparison with no justifying logic:Correspondence violates gmeow:CrossSpaceComparisonConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecSecurityMonotonic a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-security-monotonic.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:SecurityMonotonicityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose gmeow:hasSensitivity sits below its source's without a gmeow:DeclassificationAct violates gmeow:SecurityMonotonicityConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecTargetExactIdentity a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-target-exact-identity.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TargetExactIdentityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:VectorTarget carrying only a non-identifying gmeow:targetOrdinal (no gmeow:targetsResource or gmeow:contentDigest) violates gmeow:TargetExactIdentityConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecTargetSetUnordered a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-targetset-unordered.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TargetSetOrderedMembershipConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:TargetSet whose gmeow:targetSetMember carries no gmeow:targetOrdinal leaves the ordered membership (matrix row order) unreconstructable and violates gmeow:TargetSetOrderedMembershipConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecManifestContainerDisagree a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-manifest-container-disagree.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ProfileSourceDigestAgreementConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose container and manifest surfaces record different gmeow:recordsSourceDigest values violates gmeow:ProfileSourceDigestAgreementConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecDisagreementModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-disagreement-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ProfileModelContractAgreementConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose container and manifest surfaces record different gmeow:recordsModelContractDigest values violates gmeow:ProfileModelContractAgreementConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecDisagreementTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-disagreement-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ProfileTargetTableAgreementConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection whose container and manifest surfaces record different gmeow:recordsTargetTableDigest values violates gmeow:ProfileTargetTableAgreementConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecGtsHeadIdPropagation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-gts-head-id-propagation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:GtsHeadIdPropagationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A projection over a certified source that fails to propagate the source's gmeow:gtsHeadId as an equal gmeow:projectionSourceGtsHeadId violates gmeow:GtsHeadIdPropagationConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+ep:ecWithMetricDisagree a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-with-metric-disagree.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:WithMetricAgreementConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A gmeow:SimilarityObservation whose gmeow:withMetric disagrees with its gmeow:overVectorSpace's gmeow:distanceMetric violates gmeow:WithMetricAgreementConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
+# --- requiredness rejections (sh:minCount 1) --------------------------------------
+#
+# These cells stay component-only (no gmeow:expectedSourceShape). A sh:minCount is
+# derived onto a CLASS-level sh:NodeShape (e.g. gmeow:EmbeddingProjection-shape) as a
+# blank-node sh:property, and the harness receives sh:sourceShape = the PARENT class
+# shape (purrdf reports parent_shape.id for a property-shape violation), which is
+# SHARED across every required property on that class. It therefore does not identify
+# WHICH property's minCount fired, so pinning it would not narrow to the specific
+# rule — the per-property discriminator is the finding's sh:resultPath, not its
+# sh:sourceShape. gmeow:expectedSourceShape is only meaningful where the source shape
+# is per-rule stable (the sh:SPARQLConstraint cells above, each its own NodeShape).
+
+ep:ecSourceDigestMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-source-digest-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A projection omitting the required gmeow:projectionSourceDigest violates the sh:minCount 1 derived from its allValuesFrom carrier + class-scoped ClosureEntry — shacl.MinCountConstraintComponent. Closes the CT1 hole the present-but-wrong mismatch fixture cannot reach." .
+
+ep:ecDeclassUnreviewed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-declass-unreviewed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A BARE gmeow:DeclassificationAct — one asserting gmeow:declassifies but carrying no reviewing invocation (gmeow:wasGeneratedBy) and no authorizing agent (gmeow:wasAssociatedWith) — is itself invalid: it violates the sh:minCount 1 derived from the DeclassificationAct reviewability allValuesFrom carriers + their class-scoped ClosureEntries, so an unreviewable act never authorizes a sensitivity drop (P15: absence of review never implies public). The strengthened gmeow:SecurityMonotonicityConstraint existential (which also rejects this projection on the derived SPARQL surface) is exercised live by the declass-unreviewed.rq competency finder." .
+
+ep:ecDerivedIndexUnbound a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-derived-index-bound.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:DerivedVectorIndex omitting its required gmeow:indexOverSpace binding violates the sh:minCount 1 on that path — shacl.MinCountConstraintComponent — so an accelerator that never states the exact effective/prefix space it approximates is rejected." .
+
+ep:ecSimilarityOperandsMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-similarity-operands-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A score-bearing gmeow:SimilarityObservation naming neither operand row omits the required gmeow:comparesLeftTarget / gmeow:comparesRightTarget, violating the sh:minCount 1 derived from their allValuesFrom carriers + class-scoped ClosureEntries — shacl.MinCountConstraintComponent — so a gmeow:similarityScore that cannot identify the vector pair it measured is rejected. The live SPARQL twin similarity-operands.rq exercises the same invariant in tests/competency.ttl." .
+
+ep:ecVscIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-vsc-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:VectorSpaceContract omitting its required comparability metric gmeow:distanceMetric violates the sh:minCount 1 derived from the gmeow:distanceMetric allValuesFrom carrier + its class-scoped ClosureEntry — shacl.MinCountConstraintComponent — so an effective space that cannot decide near-from-far is rejected. gmeow:distanceMetric, gmeow:embeddingDimensions, and gmeow:normalizationKind (space) plus gmeow:embeddingModel (family) are the individually-required core; the remaining contract components are declared, not individually required. The live SPARQL twin vsc-incomplete.rq exercises the same invariant in tests/competency.ttl." .
+
+ep:ecSurfaceDigestOmitted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-surface-digest-omitted.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProfileSurface omitting a required shared-referent digest (here the manifest surface lacks gmeow:recordsTargetTableDigest) violates the sh:minCount 1 derived from that records*Digest allValuesFrom carrier + its class-scoped ClosureEntry — shacl.MinCountConstraintComponent. Every surface must record all three digests individually, so a container/manifest pair can no longer dodge gmeow:ProfileTargetTableAgreementConstraint (or its source/model siblings) by one surface omitting the compared value. The live SPARQL twin surface-digest-omitted.rq exercises the same invariant in tests/competency.ttl." .

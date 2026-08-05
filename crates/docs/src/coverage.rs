@@ -81,80 +81,14 @@ pub fn alignment_subjects(model: &DocsModel) -> HashSet<&str> {
 
 // ── Deterministic prose heuristics (structural, ratchet-safe) ───────────────────
 //
-// These mirror the CONSERVATIVE, word-boundary-checked heuristics the
-// slice-quality kernel uses (`crates/slice-quality/src/axes.rs`), reimplemented
-// here as pure functions over the doc model's own strings — the two crates read
-// DIFFERENT inputs (slice-quality reads the raw RDF dataset + filesystem; this
-// reads the typed [`DocsModel`]), so this is not a duplicated producer but the
-// same deterministic idea applied to a different carrier. Each is a present/absent
-// structural fact, never a tuned score.
-
-/// True if `word` occurs in `corpus` at identifier/word boundaries — the char on
-/// each side is neither an ASCII alphanumeric nor `_`/`-`. Keeps an INCIDENTAL
-/// substring (`"whenever"` containing `"never"`, `"NOTE"` containing `"not"`) from
-/// counting, which would silently inflate a ratchet-gated dimension.
-fn word_at_boundary(corpus: &str, word: &str) -> bool {
-    if word.is_empty() {
-        return false;
-    }
-    let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-';
-    corpus.match_indices(word).any(|(idx, _)| {
-        let before = corpus[..idx].chars().next_back();
-        let after = corpus[idx + word.len()..].chars().next();
-        before.is_none_or(|c| !is_ident(c)) && after.is_none_or(|c| !is_ident(c))
-    })
-}
-
-/// True if a definition states a boundary ("what it is NOT") via a negation cue,
-/// matched at word boundaries on the lowercased text.
-fn states_boundary(def: &str) -> bool {
-    const CUES: &[&str] = &[
-        "not",
-        "never",
-        "nor",
-        "cannot",
-        "rather than",
-        "as opposed to",
-        "instead of",
-        "unlike",
-        "distinct from",
-    ];
-    let d = def.to_lowercase();
-    CUES.iter().any(|cue| word_at_boundary(&d, cue))
-}
-
-/// True if `s` carries a turtle CURIE token (`prefix:local`): a `:` with a name
-/// char before it and an alphanumeric/`_` after. Rejects a bare prose colon and a
-/// full-IRI scheme (`http://`).
-fn has_curie(s: &str) -> bool {
-    let bytes = s.as_bytes();
-    let is_name = |c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-';
-    for (i, &c) in bytes.iter().enumerate() {
-        if c != b':' {
-            continue;
-        }
-        let before = i.checked_sub(1).map(|j| bytes[j]);
-        let after = bytes.get(i + 1).copied();
-        if before.is_some_and(is_name)
-            && after.is_some_and(|a| a.is_ascii_alphanumeric() || a == b'_')
-        {
-            return true;
-        }
-    }
-    false
-}
-
-/// A worked triple names a term via a CURIE and carries turtle statement structure
-/// (the `a` type keyword or a `; , .` terminator).
-fn is_worked_triple(example: &str) -> bool {
-    has_curie(example)
-        && (word_at_boundary(example, "a")
-            || example.contains(" ;")
-            || example.contains(" .")
-            || example.contains(" ,")
-            || example.ends_with('.')
-            || example.ends_with(';'))
-}
+// The boundary/worked-triple PREDICATES themselves live once, in [`crate::prose`],
+// and are shared verbatim with the slice-quality kernel
+// (`crates/slice-quality/src/axes.rs`). What legitimately differs between the two
+// crates is the INPUT, not the predicate: slice-quality reads the raw RDF dataset +
+// filesystem, this module reads the typed [`DocsModel`]. That input separation is by
+// design and stays; the predicate is one definition so the two scores can never
+// disagree about whether the same string states a boundary. Each remaining detector
+// here is a present/absent structural fact, never a tuned score.
 
 /// True if a rationale string names a TEST ARTIFACT rather than an ontological
 /// reason — a Rust test fn (`test_…`), a `.rs::`/`.py` source reference, or the
@@ -720,6 +654,98 @@ impl TermCoverage {
     }
 }
 
+/// The FOUR conjuncts of `dimProseQuality`, reported individually.
+///
+/// `dimProseQuality` is covered iff all four hold. Collapsing them to one bool at
+/// the point of computation threw away exactly the information an author needs to
+/// fix the term, so the conjunction is computed here and reduced by
+/// [`ProseQualityDetail::covered`] only at the point of use.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ProseQualityDetail {
+    /// The authored definition states a boundary — what the term is NOT
+    /// ([`crate::prose::states_boundary`]).
+    pub boundary: bool,
+    /// At least one authored example is a worked triple
+    /// ([`crate::prose::is_worked_triple`]).
+    pub worked_example: bool,
+    /// The usage coat (useWhen/avoidWhen/howToUse) is non-blank AND says something
+    /// other than a verbatim restatement of the definition.
+    pub usage_distinct: bool,
+    /// At least one competency rationale is non-blank AND is not a verbatim
+    /// restatement of the term's own label.
+    pub rationale_distinct: bool,
+}
+
+impl ProseQualityDetail {
+    /// The single bool `dimProseQuality` reads: every conjunct holds.
+    #[must_use]
+    pub fn covered(&self) -> bool {
+        self.boundary && self.worked_example && self.usage_distinct && self.rationale_distinct
+    }
+
+    /// The names of the conjuncts that FAILED, in declaration order — the
+    /// actionable per-term detail a diagnostic prints. Empty iff [`Self::covered`].
+    #[must_use]
+    pub fn unmet(&self) -> Vec<&'static str> {
+        let mut out = Vec::new();
+        if !self.boundary {
+            out.push("definition states no boundary (what it is NOT)");
+        }
+        if !self.worked_example {
+            out.push("no example is a worked triple");
+        }
+        if !self.usage_distinct {
+            out.push("usage coat is blank or restates the definition");
+        }
+        if !self.rationale_distinct {
+            out.push("no competency rationale distinct from the label");
+        }
+        out
+    }
+}
+
+/// The four-way `dimProseQuality` conjunction for one term, reported per conjunct.
+///
+/// # This is `dimProseQuality`, feeding `axisDocMaturity` — NOT `axisProseQuality`
+///
+/// This function is the truthmaker for the `dimProseQuality` coverage dimension,
+/// which enters the FCA maturity closure ([`crate::maturity`]) and so feeds the
+/// slice-quality **`axisDocMaturity`** axis.
+///
+/// **`axisProseQuality` is a DIFFERENT measure.** It is
+/// `gmeow_slice_quality::axes::prose_axis`, and it scores a different input set: the
+/// mean pass-rate of two independent per-term checks (`skos:definition` states a
+/// boundary; `skos:example` is a worked triple) over the slice's TBox terms read
+/// straight from the RDF dataset — no usage coat, no competency rationale, no
+/// four-way conjunction, and no doc-model filtering. The two share the STRICT
+/// [`crate::prose`] predicates and nothing else. Confusing them is not hypothetical:
+/// a hand-rolled detector built against one and compared against the other's score
+/// disagreed for exactly this reason.
+#[must_use]
+pub fn prose_quality_detail(term: &DocTerm, ctx: &CoverageContext) -> ProseQualityDetail {
+    // Read the CANONICAL (authored English) definition/label, never the localized
+    // display text — see `term_coverage`.
+    let definition = term.coverage_definition().unwrap_or("");
+    let usage_joined = [
+        term.use_when.join(" "),
+        term.avoid_when.join(" "),
+        term.how_to_use.join(" "),
+    ]
+    .join(" ");
+    let rationales = ctx.rationales(term);
+    ProseQualityDetail {
+        boundary: crate::prose::states_boundary(definition),
+        worked_example: term
+            .examples
+            .iter()
+            .any(|e| crate::prose::is_worked_triple(e)),
+        usage_distinct: !usage_joined.trim().is_empty() && usage_joined.trim() != definition.trim(),
+        rationale_distinct: rationales.iter().any(|r| {
+            !r.trim().is_empty() && Some(r.trim()) != term.coverage_label().map(str::trim)
+        }),
+    }
+}
+
 /// Compute a term's per-term coverage against a precomputed [`CoverageContext`].
 pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
     let use_when = !term.use_when.is_empty();
@@ -732,24 +758,12 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
     // `DocTerm::coverage_label`). On an English/unlocalized model these fall back to
     // the display fields, so English scoring is unchanged.
     let definition = term.coverage_definition().unwrap_or("");
-    let usage_joined = [
-        term.use_when.join(" "),
-        term.avoid_when.join(" "),
-        term.how_to_use.join(" "),
-    ]
-    .join(" ");
-    let usage_distinct =
-        !usage_joined.trim().is_empty() && usage_joined.trim() != definition.trim();
 
     let rationales = ctx.rationales(term);
     let provenance_honesty = !rationales.iter().any(|r| names_test_artifact(r));
-    let rationale_distinct = rationales
-        .iter()
-        .any(|r| !r.trim().is_empty() && Some(r.trim()) != term.coverage_label().map(str::trim));
-    let prose_quality = states_boundary(definition)
-        && term.examples.iter().any(|e| is_worked_triple(e))
-        && usage_distinct
-        && rationale_distinct;
+    // The four-way conjunction is computed per conjunct and reduced here, so the
+    // per-conjunct detail survives for diagnostics instead of collapsing at source.
+    let prose_quality = prose_quality_detail(term, ctx).covered();
 
     // Applicability of the external-correspondence dimensions: the term declares an
     // external-correspondence intent (a non-empty `gmeow:adoptionTarget`) OR is
@@ -1227,10 +1241,8 @@ mod tests {
 
     #[test]
     fn prose_heuristics_are_conservative() {
-        assert!(states_boundary("A relator, never a mere pair."));
-        assert!(!states_boundary("Applies whenever a bearer exists."));
-        assert!(is_worked_triple("ex:x a gmeow:Foo ."));
-        assert!(!is_worked_triple("See section 3: important."));
+        // The boundary / worked-triple predicates themselves are owned and tested by
+        // `crate::prose`; what this module still owns is the test-artifact detector.
         assert!(names_test_artifact("see test_foo_bar for evidence"));
         assert!(names_test_artifact("Mirrors the fixture behaviour"));
         assert!(!names_test_artifact("a genuine ontological rationale"));

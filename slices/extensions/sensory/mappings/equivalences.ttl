@@ -5,6 +5,11 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix afo: <https://w3id.org/afo/onto/1.1#> .
 @prefix afv: <https://w3id.org/afo/vocab/1.1#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix oboe: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#> .
+@prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
+@prefix loinc: <http://loinc.org/rdf/> .
 
 # Sensory slice alignments.
 # Compiled to mappings/gmeow-sensory.sssom.tsv by `gmeow compile-mappings`.
@@ -22,62 +27,141 @@ gmeow:mapsetSensory a gmeow:MappingSet ;
 # AFO 1.1 — timbre & sensory features
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSens001 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimbre ↔ AFO AudioFeature"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timbre observable property to AFO AudioFeature."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimbre ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afo:AudioFeature ;
+gmeow:observablePropertyTimbre skos:closeMatch afo:AudioFeature {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "AFO 1.1 AudioFeature is the abstract superclass for all audio features, including timbral ones." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFO 1.1 AudioFeature is the abstract superclass for all audio features, including timbral ones."
+|} .
 
-gmeow:eqSens002 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimbre ↔ AFV TimbreDistribution"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timbre observable property to AFV TimbreDistribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimbre ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject afv:TimbreDistribution ;
+gmeow:observablePropertyTimbre skos:relatedMatch afv:TimbreDistribution {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "AFV TimbreDistribution is a concrete distributional feature model; the GMEOW observable property is the broader perceptual category." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV TimbreDistribution is a concrete distributional feature model; the GMEOW observable property is the broader perceptual category."
+|} .
 
-gmeow:eqSens003 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyLoudness ↔ AFV Loudness"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW loudness observable property to AFV Loudness."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyLoudness ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afv:Loudness ;
+gmeow:observablePropertyLoudness skos:closeMatch afv:Loudness {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "AFV Loudness is the closest computational counterpart to the perceptual loudness observable property." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Loudness is the closest computational counterpart to the perceptual loudness observable property."
+|} .
 
-gmeow:eqSens004 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyRoughness ↔ AFV Roughness"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW roughness observable property to AFV Roughness."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyRoughness ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afv:Roughness ;
+gmeow:observablePropertyRoughness skos:closeMatch afv:Roughness {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "AFV Roughness is a direct computational correlate of the perceptual roughness observable property." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Roughness is a direct computational correlate of the perceptual roughness observable property."
+|} .
 
-gmeow:eqSens005 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimingDeviation ↔ AFV Onset"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timing-deviation observable property to AFV Onset."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimingDeviation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject afv:Onset ;
+gmeow:observablePropertyTimingDeviation skos:relatedMatch afv:Onset {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "AFV Onset is an onset detection function; timing deviation is a derived perceptual/computational property relative to a reference grid." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Onset is an onset detection function; timing deviation is a derived perceptual/computational property relative to a reference grid."
+|} .
+
+# --------------------------------------------------------------------------- #
+# SOSA/SSN — precise sensor / platform / observable property / result alignments
+# (relocated from observations/mappings/equivalences.ttl — these subjects are
+# owned by this slice, not observations)
+# --------------------------------------------------------------------------- #
+
+gmeow:Sensor skos:closeMatch sosa:Sensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018)."
+|} .
+
+gmeow:SensorPlatform skos:closeMatch sosa:Platform {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031)."
+|} .
+
+gmeow:ObservableProperty skos:closeMatch sosa:ObservableProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class."
+|} .
+
+gmeow:SensoryQuantity skos:closeMatch sosa:Result {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority."
+|} .
+
+gmeow:sensoryProperty skos:closeMatch sosa:observedProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "The observable property that a sensory observation measures."
+|} .
+
+gmeow:platformLocation skos:closeMatch geo:location {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference."
+|} .
+
+# OBOE — Extensible Observation Ontology
+
+gmeow:ObservableProperty skos:closeMatch oboe:Characteristic {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)."
+|} .
+
+# PATO and OBI are grounding vocabularies the logic: slice owns (docs/GROUNDING.md,
+# "External grounding ownership": upper ontologies and logical formalisms ground in
+# logic:). Both groundings are authored ONCE on that owner surface and are reached
+# from here through the grounding term, never re-minted in this slice:
+#
+#   PATO — logic:Quality skos:closeMatch pato:0000001, a complete
+#          logic:GroundingCorrespondence in slices/grounding/logic/mappings/
+#          foundation-bridges.ttl. gmeow:ObservableProperty reaches it by
+#          logic:subClassOf logic:QualityValue in this slice's module.ttl.
+#   OBI  — OBI's device branch is grounded by logic:FunctionalComplex
+#          skos:narrowMatch obi:0000968, a complete logic:GroundingCorrespondence
+#          in the same foundation-bridges.ttl (OBI device is narrower: a functional
+#          complex designed for an investigative function). gmeow:Sensor reaches it
+#          by logic:subClassOf logic:FunctionalComplex in this slice's module.ttl,
+#          so the DEVICE sense of a sensor is carried by the owner correspondence
+#          rather than by a second obi: cell here; the ROLE sense stays with the
+#          sosa:Sensor closeMatch above, and the concrete instrument/facility sense
+#          with the IVOA ObsCore bridges below. math: keeps only its one
+#          pre-existing data-transformation row (math:DataTransformation
+#          skos:relatedMatch obi:0200000), an explicitly ceilinged off-owner
+#          residue, never a second OBI authoring home.
+
+# IVOA ObsCore — astronomical facility/instrument alignment
+
+gmeow:Sensor skos:relatedMatch obscore:facility {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation."
+|} .
+
+gmeow:Sensor skos:relatedMatch obscore:instrument {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument."
+|} .
+
+# LOINC — clinical observable-property alignment
+
+gmeow:ObservableProperty skos:relatedMatch loinc:Component {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)."
+|} .

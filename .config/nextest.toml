@@ -18,6 +18,7 @@ default-filter = '''
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-conformance) & binary(full_divergence_gate) & test(/_heavy_offgate/))
+    | (package(gmeow-conformance) & binary(full_decided_gate) & test(/_heavy_offgate/))
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & binary(fanout_parity))
@@ -77,6 +78,36 @@ fail-fast = false
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The three book-PACKING cases render the whole mdBook and vendor the wasm engines
+# into it; the rest of that binary checks summaries and links and costs 12-15s. Only
+# the packing three are bundle-scale, and they too were on the 60s unit-test default.
+#
+# MEASURED across consecutive gate runs on this 32-CPU host: 78s, 95s, and 116s —
+# the last 3.6 seconds inside its 120s ceiling — against ~23s each when the binary
+# runs alone. Two of the three were killed at 120s on the next run with no source
+# change. Scoped to the packing tests so the cheap siblings keep the strict default.
+[[profile.default.overrides]]
+filter = 'package(gmeow-docs) & binary(mdbook_render) & test(/(interactive_book_packs_the_vendored_engines_and_host_chapter|non_interactive_book_packs_no_engines|cached_book_matches_live_render)/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The MCP tool tests drive validate/advise/verify over the WHOLE shipped bundle —
+# `verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle` says so in its
+# own name — so they are bundle-scale work that was inheriting the 60s unit-test
+# default and therefore a 120s ceiling.
+#
+# MEASURED 2026-08-03 on this 32-CPU host, build cached, running the module ALONE at
+# load average 55: the whole-bundle cases land at 92-107s, and 25 of the 93 needed a
+# retry to pass. That is a ceiling only 1.1x the cost of the work, which is not a
+# margin — the same two tests passed at 56-81s on a quiet host and timed out at 120s
+# on a busy one, in consecutive gate runs with no source change between them. A test
+# whose verdict tracks the load average has stopped testing the code.
+#
+# Same 300s x 2 backstop as the sibling bundle-assembly lanes: ~5.6x the measured
+# worst case, which absorbs contention while still failing a tool call that has hung.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/mcp::tests::/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 # The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
 # WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
 # artifact — the same order of magnitude as the pipeline whole-run parity lanes above,
@@ -86,9 +117,77 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & test(/dev_logic::compile_tests::mode_(owl_dl|datalog|report)_matches/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The dev-cli real-repository docs-distribution contract tests assemble the full
+# bundle; the advice-catalog content pushed them past the 60s default under gate
+# parallelism (they pass at ~97-115s). Same 300s backstop the sibling
+# bundle-assembly proofs use.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & binary(docs_distribution_contract)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The whole-repo slice-quality gate end-to-end proof drives `slice_quality_gate_at`
+# over the LIVE checkout — the production-surface analog of the `make check`
+# slice-quality-gate task, not a focused unit test. It scores every axis of all 85
+# slices and runs the reasoner axis's leave-one-out re-derivation per authored
+# axiom. It does NOT re-measure the whole corpus at the merge base: that pass is
+# scoped to a `needed` set — new ceilings, raised ceilings, and relocation
+# endpoints — and `measure_base_residues` skips every slice outside it
+# (crates/gmeow-dev-cli/src/dev_slice_quality.rs:754-776, :1513). On a branch with
+# one relocation that is two slices, not eighty-five.
+#
+# MEASURED 2026-08-02 on this 32-CPU host, build fully cached, after the
+# leave-one-out canonical-subsumption fix:
+#   * `cargo run -p gmeow-dev-cli -- slice-quality-gate` (exit 0), host load ~43:
+#     161 s wall, 117 s CPU.
+#   * this test under nextest, host load ~35: PASS at 100.6 s.
+#
+# An earlier revision of this comment claimed 1082 s wall / 220 CPU-minutes for the
+# first and 1795 s for the second, and asserted the corpus was measured twice. All
+# three were wrong. The timings were taken while the reasoner axis was falling
+# through to a full session fork per canonical axiom — a defect, now fixed — so they
+# measured a pathology rather than the gate, and the budget derived from them was
+# ~24x the real cost, which bounds nothing. A false number in a governance comment
+# is itself a defect; it is corrected here rather than left to mislead the next
+# reader.
+#
+# Two consequences:
+#  * `threads-required = "num-cpus"` — this gate creates its own full-width worker
+#    pool, exactly the case this file already reserves the host for. Co-scheduling it
+#    with dozens of other bundle-builders is what starved it into a timeout, and that
+#    remains the real fix.
+#  * a 300 s x 2 = 600 s runaway backstop: ~6x the measured 100 s, matching the
+#    convention the sibling whole-pipeline lanes in this file already use. That
+#    absorbs ordinary contention while still failing a gate that has genuinely
+#    stopped making progress.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+# Heavy whole-bundle "discharge/parity by execution" proofs: they assemble the merged
+# bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
+# The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
+# close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
+# from gmeow.gts twice — once directly for the projection assertions, once more inside
+# `check_superset` (the production entry point, kept so the gate's own composition is
+# exercised rather than only its parts) — then reads all 400+ materialized files back
+# off disk to compare. A single `project_bundle` over the current bundle measures ~71s,
+# so the pair sits past the 60s-x2 default kill by construction, not by load: it is the
+# same class as the sibling whole-bundle proofs above and gets the same 300s backstop.
+# It is maint-heavy-only (the default filter excludes it), which is why the overrun went
+# unseen — `make check` never ran it. Assertions unchanged; only the budget it is allowed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
@@ -97,6 +196,49 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+# Real-slice batch reasoning parity is a heavy whole-repository proof (purrdf
+# 0.8.x parallel SHACL): it runs ~90-120s and starves past the 60s default under
+# gate parallelism. Give it the same 300s backstop the sibling bundle-building
+# proofs use — it passes on content, it is only slow.
+[[profile.default.overrides]]
+filter = 'package(gmeow-slice-quality) & test(reasoner::tests::curated_real_slices_batch_matches_scratch)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# Whole-bundle SSSOM lowering parity assembles the merged DSL and lowers every
+# SSSOM set against the committed corpus — a ~85-120s bundle-assembly proof that
+# likewise starves past the 60s default. Same 300s backstop.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(sssom_correspondence_parity) & test(sssom_lowering_matches_committed_corpus)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The OBI planned-process bridge proof drives BOTH producer legs — the typed
+# correspondence frontend and the SSSOM lowering — over the real corpus, reading
+# only authored sources. It measures ~118s uncontended, which lands inside the
+# 60s default group's 120s kill by a margin small enough that gate parallelism
+# alone decides it: it passed at 118s on a quiet box and timed out here under
+# load. That is a red on timing rather than on content, which is the failure the
+# host lock exists to prevent and the one that teaches people to re-run reds.
+# Same 300s backstop the sibling whole-corpus parity proofs use. The assertions
+# are unchanged; only the budget it is allowed.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(obi_planned_process_projection)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# Its sibling consumer-projection proof, and the same measurement. The schema.org
+# HowTo/Recipe lowering compiles the mappings from the AUTHORED corpus and then runs
+# the real `project_graph` executor over the worked prescription instance — a
+# whole-corpus proof sized like the lanes above, not a focused unit test. Measured
+# uncontended on a quiet host: 97.7s against purrdf 0.8.3, 119.4s against 0.12.0.
+# Both sit inside the 60s group's 120s kill by a margin that gate parallelism alone
+# decides, and the substrate bump spent most of what was left, so it now reds on
+# LOAD rather than on content. That is the failure the host lock exists to prevent
+# and the one that teaches people to re-run reds. Same 300s backstop its siblings
+# use; assertions unchanged, only the budget it is allowed, and the 600s ceiling
+# still bounds a genuine runaway.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(schema_org_procedures_projection)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
@@ -126,9 +268,16 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The grounding conformance files run the whole-slice SHACL corpus, so they already
+# reserve the full host. The budget must match that size too: measured uncontended on a
+# 32-CPU host under purrdf 0.12.0, lang takes 40.9s and logic 35.4s — on the 4-core CI
+# runner that same work lands beyond the 60s group's 120s kill, so both shards redded on
+# timing rather than content (3/3 tries each, 0 assertion failures). Same 300s backstop
+# the sibling whole-corpus proofs use; assertions unchanged, only the budget.
 [[profile.default.overrides]]
 filter = 'package(gmeow-slicetest) & test(/run_conformance_file::grounding\//)'
 threads-required = "num-cpus"
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
@@ -141,3 +290,16 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & test(/mcp::tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
 threads-required = "num-cpus"
+
+# The docs-distribution, scoreboards, slice-brief, translation-rollup, and mappings
+# module tests each materialize or verify the WHOLE gmeow.gts bundle (the same order
+# of magnitude as the mappings byte-parity lanes above) — purrdf 0.8.x's parallel
+# SHACL made that assembly heavier still. As a class they belong in the extended
+# runaway backstop rather than the 60s-x2 default that only fits focused unit tests;
+# otherwise many bundle-builders running in parallel starve each other past the 120s
+# edge under host contention (0 assertion failures — they pass at ~100-118s each). A
+# fast test in one of these modules simply never approaches the backstop; the 600s
+# ceiling still bounds a genuine runaway.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::/) | test(/stages::mappings::tests::/) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }

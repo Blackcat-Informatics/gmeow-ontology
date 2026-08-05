@@ -810,10 +810,37 @@ struct LoweredEntry {
 ///
 /// The `world_iri_prefix` is prepended to the slug to form the world IRI:
 /// `{world_iri_prefix}{slug}/w`.
+/// The outcome of attempting to lower one consistency manifest entry to a
+/// world-scoped EDB for the native DL consistency path.
+///
+/// The variant distinguishes WHY a premise could not be lowered so the grade lane
+/// can categorize it correctly for the soundness gate. Collapsing every failure to
+/// a single opaque `None` (the previous shape) forced two mis-categorizations: a
+/// malformed premise (a corpus defect) and an empty dual-typed premise (an
+/// entailment case) both became spurious consistency `DlGap` rows.
+enum LowerOutcome {
+    /// Successfully lowered to a non-empty world-scoped EDB.
+    Lowered(LoweredEntry),
+    /// The premise document could not be parsed to RDF at all (malformed RDF/XML: a
+    /// DTD, an illegal `rdf:datatype` node nesting, …). Per LOGIC-CONFORMANCE
+    /// doctrine ("a malformed source is a corpus defect, not a capability gap") the
+    /// reasoner never runs, so this is a PURE skip and must NEVER become a `DlGap`.
+    Unparsable,
+    /// The premise parsed to zero quads (an empty ontology, e.g. `<rdf:RDF/>`). The
+    /// caller routes it: a dual-typed (also `PositiveEntailmentTest`) empty premise
+    /// is an entailment case (its real content is the conclusion), out of the
+    /// consistency lane.
+    Empty,
+    /// The premise is a non-inline reference (a Lane-B IRI reference, or no premise
+    /// document) or its N-Quads build failed — an honest, un-lowerable consistency
+    /// case that IS recorded as a `DlGap` (the gate flags it unless quarantined).
+    Unlowerable,
+}
+
 fn lower_entry(
     entry: &gmeow_conformance::external::ManifestEntry,
     world_iri_prefix: &str,
-) -> Option<LoweredEntry> {
+) -> LowerOutcome {
     let slug = to_slug(&entry.name);
     let world_iri = format!("{world_iri_prefix}{slug}/w");
 
@@ -822,13 +849,13 @@ fn lower_entry(
         Some(OntologyDoc::InlineRdfXml(xml)) => xml.clone(),
         Some(OntologyDoc::Reference(_)) => {
             println!("SKIP {slug}: premise is an IRI reference, not inline RDF/XML (Lane-B)");
-            return None;
+            return LowerOutcome::Unlowerable;
         }
         None => {
             println!(
                 "SKIP {slug}: no recognized premise document (e.g. fsPremiseOntology only) — Lane-B"
             );
-            return None;
+            return LowerOutcome::Unlowerable;
         }
     };
 
@@ -840,13 +867,14 @@ fn lower_entry(
     ) {
         Ok(ds) => ds,
         Err(e) => {
+            // Malformed premise = corpus defect, not a reasoner gap: PURE skip.
             println!("SKIP {slug}: premise unparsable: {e}");
-            return None;
+            return LowerOutcome::Unparsable;
         }
     };
     if premise_ds.quad_refs().count() == 0 {
         println!("SKIP {slug}: premise parsed to zero quads (vacuous pass not permitted)");
-        return None;
+        return LowerOutcome::Empty;
     }
 
     // ── Build world-scoped N-Quads ────────────────────────────────────────
@@ -854,16 +882,16 @@ fn lower_entry(
         Ok(r) => r,
         Err(e) => {
             println!("SKIP {slug}: premise N-Quads build failed: {e}");
-            return None;
+            return LowerOutcome::Unlowerable;
         }
     };
 
     if input_nq.trim().is_empty() {
         println!("SKIP {slug}: premise yields zero valid N-Quads (vacuous pass not permitted)");
-        return None;
+        return LowerOutcome::Empty;
     }
 
-    Some(LoweredEntry {
+    LowerOutcome::Lowered(LoweredEntry {
         slug,
         world_iri,
         input_nq,
@@ -1388,8 +1416,10 @@ fn vendor_lane_a_from_manifest(
     // already sorted by IRI from the manifest parser. Collect slugs in order.
     for entry in &consistency_entries {
         let lowered = match lower_entry(entry, &base_iri) {
-            Some(l) => l,
-            None => {
+            LowerOutcome::Lowered(l) => l,
+            // The vendor step commits only decided, agreeing deciders; any premise it
+            // cannot lower (unparsable, empty, or non-inline) is skipped uniformly.
+            LowerOutcome::Unparsable | LowerOutcome::Empty | LowerOutcome::Unlowerable => {
                 skipped_unparsable += 1;
                 continue;
             }
@@ -2264,6 +2294,10 @@ fn grade_suite_corpus(
 
     let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
     let mut unlowerable: usize = 0;
+    // Premises that are a corpus defect (unparsable) or an empty dual-typed
+    // metamodeling premise routed to the entailment lane: pure skips, NOT graded and
+    // NOT recorded as consistency DlGaps (the reasoner never decided them).
+    let mut skipped_unparsable: usize = 0;
 
     let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
 
@@ -2292,10 +2326,39 @@ fn grade_suite_corpus(
         let world_iri = format!("{world_iri_prefix}{slug}/w");
 
         let lowered = match lower_entry(entry, &world_iri_prefix) {
-            Some(l) => l,
-            None => {
-                // Record as DlGap rather than silently dropping: the native path
-                // could not ingest the premise (IRI reference, vacuous, or unparsable).
+            LowerOutcome::Lowered(l) => l,
+            LowerOutcome::Unparsable => {
+                // A malformed premise is a CORPUS DEFECT, not a reasoner capability
+                // gap: the reasoner never ran. It is a pure skip — indistinguishable
+                // to the soundness gate from any other legitimately-skipped
+                // unparsable case — and must NOT be recorded as a consistency DlGap.
+                skipped_unparsable += 1;
+                continue;
+            }
+            LowerOutcome::Empty if entry.also_positive_entailment => {
+                // A dual-typed (ConsistencyTest + PositiveEntailmentTest) entry whose
+                // consistency premise is EMPTY (`<rdf:RDF/>`): its real content is the
+                // entailment conclusion (OWL-Full metamodeling). Route it to the
+                // ENTAILMENT lane exactly like the other entailment cases — its slug
+                // joins `entailment_slugs`, so the resulting `incomplete` DlGap row is
+                // accepted as out-of-consistency-lane scope, NOT a vacuous-consistency
+                // DlGap.
+                let published = entry.outcome().verdict_status().as_str().to_string();
+                entailment_slugs.insert(slug.clone());
+                comparisons.push(gmeow_logic::reason::ExternalComparison {
+                    case: slug,
+                    world: world_iri,
+                    native: "incomplete".to_string(),
+                    published,
+                });
+                skipped_unparsable += 1;
+                continue;
+            }
+            LowerOutcome::Empty | LowerOutcome::Unlowerable => {
+                // A non-inline (Lane-B IRI reference / no premise) or genuinely empty
+                // NON-dual-typed consistency premise: an honest un-lowerable
+                // consistency case. Record it as a DlGap — the soundness gate flags it
+                // unless it is in the committed quarantine baseline.
                 let published = entry.outcome().verdict_status().as_str().to_string();
                 comparisons.push(gmeow_logic::reason::ExternalComparison {
                     case: slug.clone(),
@@ -2395,7 +2458,7 @@ fn grade_suite_corpus(
     let dl_gap = ledger.dl_gap;
 
     println!(
-        "graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap} entailment_skipped={entailment_skipped} unlowerable={unlowerable}"
+        "graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap} entailment_skipped={entailment_skipped} unlowerable={unlowerable} skipped_unparsable={skipped_unparsable}"
     );
 
     // ── Invoke the strict enforce() authority and surface its reasons ─────────
@@ -2685,11 +2748,10 @@ mod tests {
     /// left the license unresolved or mis-parsed).
     #[test]
     fn read_ontouml_license_resolves_relative_iri_against_file_base() {
-        // Self-contained temp dir (tempfile is not a dep of this crate); the process
-        // id keeps concurrent nextest cases from colliding.
-        let dir =
-            std::env::temp_dir().join(format!("gmeow-ontouml-license-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
+        // RAII scratch dir: unique per case and removed on drop, so concurrent
+        // nextest cases cannot collide and none of them leaves litter behind.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
         std::fs::write(
             dir.join("metadata.ttl"),
             "@prefix dcterms: <http://purl.org/dc/terms/> .\n\
@@ -2699,7 +2761,6 @@ mod tests {
         // read_ontouml_license derives `metadata.ttl` from the model's parent dir.
         let model_path = dir.join("model.ttl");
         let result = super::read_ontouml_license(&model_path);
-        let _ = std::fs::remove_dir_all(&dir);
         let license = result
             .expect("license read must not error")
             .expect("a declared license must be found");
@@ -2831,16 +2892,12 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
   </otest:PositiveEntailmentTest>
 </rdf:RDF>"#;
 
-        // Write manifest to a temp file.
-        let dir = std::env::temp_dir();
-        let manifest_path = dir.join(format!(
-            "gmeow-test-grade-suite-dlgap-{}.rdf",
-            std::process::id()
-        ));
-        let out_nq = dir.join(format!(
-            "gmeow-test-grade-suite-dlgap-{}.nq",
-            std::process::id()
-        ));
+        // Write manifest to a file in an RAII scratch dir; the `.rdf`/`.nq`
+        // extensions are load-bearing for the grader.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
+        let manifest_path = dir.join("grade-suite-dlgap.rdf");
+        let out_nq = dir.join("grade-suite-dlgap.nq");
         std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
 
         // Run grade_suite_corpus.  The `ref-premise` consistency test has an
@@ -2881,10 +2938,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             finding_type_count >= 2,
             "expected at least 2 dl-gap Findings (ref-premise + entailment-case), got {finding_type_count}: {nq:?}"
         );
-
-        // Clean up.
-        let _ = std::fs::remove_file(&manifest_path);
-        let _ = std::fs::remove_file(&out_nq);
     }
 
     // ── soundness_gate unit tests ─────────────────────────────────────────────
@@ -3006,6 +3059,108 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         );
     }
 
+    // ── lower_entry categorization tests ──────────────────────────────────────
+    //
+    // These pin the two skip/route categorizations that keep a corpus defect
+    // (unparsable premise) and an empty dual-typed metamodeling premise from
+    // becoming spurious consistency DlGaps that the soundness gate would flag.
+
+    fn consistency_entry_with_inline(
+        name: &str,
+        premise_xml: &str,
+        also_positive_entailment: bool,
+    ) -> gmeow_conformance::external::ManifestEntry {
+        gmeow_conformance::external::ManifestEntry {
+            iri: format!("http://example.org/test/{name}"),
+            name: name.to_owned(),
+            kind: gmeow_conformance::external::ManifestTestKind::Consistency,
+            also_positive_entailment,
+            action: Some(gmeow_conformance::external::OntologyDoc::InlineRdfXml(
+                premise_xml.to_owned(),
+            )),
+            result: None,
+        }
+    }
+
+    /// A malformed premise (RDF/XML with a DTD — a corpus defect) must categorize as
+    /// `Unparsable`, so the grade lane skips it instead of recording a DlGap.
+    #[test]
+    fn lower_entry_reports_unparsable_premise() {
+        let entry = consistency_entry_with_inline(
+            "unparsable-case",
+            "<?xml version=\"1.0\"?><!DOCTYPE rdf:RDF>\
+             <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"></rdf:RDF>",
+            false,
+        );
+        assert!(
+            matches!(
+                super::lower_entry(&entry, "https://gmeow.example/test/"),
+                super::LowerOutcome::Unparsable
+            ),
+            "a premise with a DTD is a corpus defect and must categorize as Unparsable"
+        );
+    }
+
+    /// An empty premise (`<rdf:RDF/>` → 0 quads) must categorize as `Empty`, so a
+    /// dual-typed entry can be routed to the entailment lane rather than graded as a
+    /// vacuous consistency case.
+    #[test]
+    fn lower_entry_reports_empty_premise() {
+        let entry = consistency_entry_with_inline(
+            "empty-case",
+            "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"></rdf:RDF>",
+            true,
+        );
+        assert!(
+            matches!(
+                super::lower_entry(&entry, "https://gmeow.example/test/"),
+                super::LowerOutcome::Empty
+            ),
+            "an empty premise must categorize as Empty"
+        );
+    }
+
+    /// End-to-end teeth check: a manifest containing ONLY an unparsable-premise
+    /// consistency test and a dual-typed empty-premise metamodeling test must PASS
+    /// the soundness gate — neither is a divergence. (Contrast
+    /// `grade_suite_emits_dlgap_for_unlowerable_and_entailment`, where a real
+    /// un-lowerable IRI-reference consistency gap DOES hard-fail the gate.)
+    #[test]
+    fn grade_suite_skips_unparsable_and_routes_empty_dual_typed() {
+        let manifest_xml = r#"<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:mf="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"
+         xmlns:otest="http://www.w3.org/2007/OWL/testOntology#">
+  <otest:ConsistencyTest rdf:about="http://example.org/test/unparsable-premise">
+    <mf:name>unparsable-premise</mf:name>
+    <otest:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;?xml version="1.0"?&gt;&lt;!DOCTYPE rdf:RDF&gt;&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;&lt;/rdf:RDF&gt;</otest:rdfXmlPremiseOntology>
+    <mf:result rdf:resource="http://www.w3.org/2007/OWL/testOntology#Consistent"/>
+  </otest:ConsistencyTest>
+  <otest:ConsistencyTest rdf:about="http://example.org/test/empty-dual">
+    <rdf:type rdf:resource="http://www.w3.org/2007/OWL/testOntology#PositiveEntailmentTest"/>
+    <mf:name>empty-dual</mf:name>
+    <otest:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;&lt;/rdf:RDF&gt;</otest:rdfXmlPremiseOntology>
+    <otest:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"&gt;&lt;owl:Class rdf:about="http://www.w3.org/2002/07/owl#Nothing"/&gt;&lt;/rdf:RDF&gt;</otest:rdfXmlConclusionOntology>
+    <mf:result rdf:resource="http://www.w3.org/2007/OWL/testOntology#Consistent"/>
+  </otest:ConsistencyTest>
+</rdf:RDF>"#;
+
+        // RAII scratch dir; the `.rdf`/`.nq` extensions are load-bearing for the grader.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dir = tmp.path();
+        let manifest_path = dir.join("grade-skip.rdf");
+        let out_nq = dir.join("grade-skip.nq");
+        std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
+
+        let result = super::grade_suite_corpus(&manifest_path, "test-corpus", &out_nq);
+
+        assert!(
+            result.is_ok(),
+            "an unparsable premise and an empty dual-typed premise must NOT trip the \
+             soundness gate: {result:?}"
+        );
+    }
+
     // ── ORE grading-adapter unit tests ───────────────────────────────────────
     //
     // These are network-free: they synthesize a tiny ORE-shaped ontology directory
@@ -3039,9 +3194,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// DlGap must surface as a `dl-gap` Finding, and the consistent one must NOT.
     #[test]
     fn grade_ore_records_functional_syntax_gap_and_passes_soundness() {
-        let base = std::env::temp_dir().join(format!("gmeow-ore-grade-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create ORE dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         // ORE-shaped OWL 2 Functional-Syntax ontology (native codecs cannot read it).
         std::fs::write(
@@ -3065,7 +3219,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         .expect("write rdfxml ontology");
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        let result = super::grade_ore_corpus(base, "ore-test", &out_nq);
         assert!(
             result.is_ok(),
             "ORE soundness gate must pass (no CorpusOnly): {result:?}"
@@ -3092,20 +3246,18 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             !nq.contains("reason.divergence.corpus-only"),
             "no soundness (corpus-only) divergence expected for trivial consistent ontology: {nq:?}"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// An empty (or no-`.owl`) directory must hard-fail rather than silently pass a
     /// vacuous grade — a broken extract is a real error.
     #[test]
     fn grade_ore_hard_fails_on_empty_dir() {
-        let base = std::env::temp_dir().join(format!("gmeow-ore-empty-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create empty ORE dir");
+        // A freshly created scratch dir IS the empty extract under test.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        let result = super::grade_ore_corpus(base, "ore-test", &out_nq);
         assert!(
             result.is_err(),
             "an empty ORE extract must hard-fail, not vacuously pass"
@@ -3117,8 +3269,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 .contains("no *.owl ontologies"),
             "error must name the empty-extract condition"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     // ── OntoUML vendoring/grading-adapter unit tests ─────────────────────────
@@ -3144,10 +3294,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// generated `input.nq`, and the blessed `expected/{materialized.nq,verdicts.json}`.
     #[test]
     fn write_ontouml_case_round_trips_documented_case() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-doc", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create case dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let world = "https://gmeow.example/ontouml-mini/free-role/w";
         let input_nq = format!(
@@ -3160,7 +3308,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             world,
         )];
 
-        super::write_ontouml_case(&base, &input_nq, &quads, Some("FreeRole"))
+        super::write_ontouml_case(base, &input_nq, &quads, Some("FreeRole"))
             .expect("write_ontouml_case must succeed");
 
         // profile.json — native foundation-lowering, certify:false, documented label.
@@ -3222,8 +3370,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             "{verdicts}"
         );
         assert!(verdicts.contains("\"quads\": 1"), "{verdicts}");
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A clean-control case (`documented == None`) must OMIT the
@@ -3231,17 +3377,15 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// semantics), and its `materialized.nq` must be empty (nothing fired).
     #[test]
     fn write_ontouml_case_clean_control_omits_documented_key() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-clean", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create case dir");
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let world = "https://gmeow.example/ontouml-mini/clean/w";
         let input_nq = format!(
             "<https://ex/Person> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Person> <{world}> .\n"
         );
 
-        super::write_ontouml_case(&base, &input_nq, &[], None)
+        super::write_ontouml_case(base, &input_nq, &[], None)
             .expect("write_ontouml_case must succeed");
 
         let profile = std::fs::read_to_string(base.join("profile.json")).expect("profile.json");
@@ -3252,20 +3396,18 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         let mat =
             std::fs::read_to_string(base.join("expected").join("materialized.nq")).expect("mat.nq");
         assert_eq!(mat, "");
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// An empty (or no-model) directory must hard-fail rather than silently pass a
     /// vacuous grade — a broken extract / unpopulated catalog is a real error.
     #[test]
     fn grade_ontouml_hard_fails_on_empty_dir() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-empty-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&base).expect("create empty catalog dir");
+        // A freshly created scratch dir IS the empty catalog under test.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
 
         let out_nq = base.join("divergence.nq");
-        let result = super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq);
+        let result = super::grade_ontouml_corpus(base, "ontouml-catalog", &out_nq);
         assert!(
             result.is_err(),
             "an empty OntoUML catalog must hard-fail, not vacuously pass"
@@ -3277,8 +3419,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 .contains("no ontology.ttl / model.ttl"),
             "error must name the empty-catalog condition"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A missing ROOT catalog directory must hard-fail (Gap G3): it is a required
@@ -3287,10 +3427,10 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// empty model set.
     #[test]
     fn collect_ontouml_models_hard_fails_on_missing_root() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-missing-root-{}", std::process::id()));
-        // Ensure it genuinely does not exist.
-        let _ = std::fs::remove_dir_all(&base);
+        // A path under a live scratch dir that was never created: it genuinely
+        // does not exist, and never did.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path().join("absent");
 
         let result = super::collect_ontouml_models(&base);
         assert!(
@@ -3312,22 +3452,20 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// walk over-eager and start rejecting ordinary empty subdirectories too.
     #[test]
     fn collect_ontouml_models_tolerates_blank_subdir_but_finds_present_models() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-blank-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("present")).expect("create present model dir");
         std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
         // A subdir with no model files in it at all.
         std::fs::create_dir_all(base.join("blank")).expect("create blank dir");
 
-        let result = super::collect_ontouml_models(&base);
+        let result = super::collect_ontouml_models(base);
         let models = result.expect("a present root with a blank sibling subdir must still succeed");
         assert_eq!(
             models,
             vec![base.join("present").join("model.ttl")],
             "the present model must still be found despite the blank sibling subdir"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// A subdirectory that is removed between being *listed* by its parent and being
@@ -3339,9 +3477,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// `collect_ontouml_models`, proving that arm is reachable and does not abort.
     #[test]
     fn collect_ontouml_models_tolerates_subdir_removed_mid_walk() {
-        let base =
-            std::env::temp_dir().join(format!("gmeow-ontouml-midwalk-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("present")).expect("create present model dir");
         std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
 
@@ -3362,7 +3499,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             }
         });
 
-        let result = super::collect_ontouml_models(&base);
+        let result = super::collect_ontouml_models(base);
         stop.store(true, std::sync::atomic::Ordering::Relaxed);
         racer.join().expect("racer thread must not panic");
 
@@ -3374,8 +3511,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             vec![base.join("present").join("model.ttl")],
             "the present model must still be found regardless of the vanished sibling subdir"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
@@ -3384,8 +3519,8 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     /// Finding). The FreeRole divergence must surface as a `corpus-only` Finding.
     #[test]
     fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
-        let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&base);
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let base = tmp.path();
         std::fs::create_dir_all(base.join("clean")).expect("create clean dir");
         std::fs::create_dir_all(base.join("freerole")).expect("create freerole dir");
 
@@ -3408,7 +3543,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         .expect("write freerole model");
 
         let out_nq = base.join("divergence.nq");
-        super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq)
+        super::grade_ontouml_corpus(base, "ontouml-catalog", &out_nq)
             .expect("grade must succeed (grading never gates)");
 
         let nq = std::fs::read_to_string(&out_nq).expect("read divergence nq");
@@ -3427,8 +3562,6 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.agreement"),
             "the clean model folds as a corroboration Finding: {nq}"
         );
-
-        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// When a ledger has only agreeing rows, the gate passes regardless of what

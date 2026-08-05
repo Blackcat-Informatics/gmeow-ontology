@@ -22,15 +22,13 @@ use crate::render::{
     concern_display, concern_slug, precompute_alignment_facets, provenance_chain, slice_display,
     slice_slug, term_advice_facet, term_slug,
 };
+use crate::source_map::SourceToPageMap;
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The named graph the documentation projection lives in.
 const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
-const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
@@ -126,17 +124,22 @@ pub fn to_gmeow_rdf(
     // named-graph provenance anchor, and the assertional `gmeow:boxABox` role so
     // the folded bundle satisfies the assertional-tier validation contract while
     // staying genuinely self-describing (the validator requires the box role and
-    // a provenance link on every materialized individual).
-    let role_object = format!("<{GMEOW}boxABox>");
-    let isdefinedby_object = format!("<{DOCUMENTATION_GRAPH}>");
+    // a provenance link on every materialized individual). Routed through the
+    // single `gmeow_errors::abox::annotate_nquads` contract every generated
+    // A-Box individual satisfies identically (the same primitive
+    // `gmeow-errors`'s own `to_gmeow_rdf_in_graph` uses for `gmeow:Finding`
+    // individuals), rather than a second hand-rolled copy of the four triples.
     let annotate = |subject: &str, label: &str, definition: &str, lines: &mut Vec<String>| {
-        triple(subject, RDFS_LABEL, &literal(label), lines);
-        triple(subject, SKOS_DEFINITION, &literal(definition), lines);
-        triple(subject, RDFS_IS_DEFINED_BY, &isdefinedby_object, lines);
-        triple(
-            subject,
-            &format!("{GMEOW}graphBoxRole"),
-            &role_object,
+        // Every caller here already formats `subject` bracketed (`<iri>`) for its
+        // OTHER triples in the same block; the shared adapter takes the bare IRI
+        // and re-brackets it itself, so strip the brackets back off here rather
+        // than thread a second, unbracketed variable through every call site.
+        let bare_subject = subject.trim_start_matches('<').trim_end_matches('>');
+        gmeow_errors::abox::annotate_nquads(
+            bare_subject,
+            label,
+            definition,
+            DOCUMENTATION_GRAPH,
             lines,
         );
     };
@@ -547,6 +550,76 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}docEarnedMaturity"),
                 &format!("<{GMEOW}{}>", anchor.local_name()),
+                &mut lines,
+            );
+        }
+    }
+
+    // Canonical slice-Markdown documents (docs.md + every recursively-discovered
+    // `text/markdown` source). Each document is projected as a first-class
+    // `gmeow:DocumentedDocument` carrying its owning slice, normalized source path,
+    // title, raw content digest, and its RESOLVED generated page location — the
+    // last minted by the single `SourceToPageMap` link-rewrite authority, so the
+    // "no dangling internal document link" invariant is a graph-level check rather
+    // than a per-renderer string pass. The map is a pure function of the model's
+    // document set, already validated at discovery (a UTF-8, path-collision, or
+    // page-collision defect hard-fails there), so re-building it here is total.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    for slice in &model.slices {
+        for doc in &slice.documents {
+            let Some(node_slug) = page_map.node_slug(&doc.slice_iri, &doc.source_path) else {
+                continue;
+            };
+            let subject = format!("<{GMEOW}documentation/document/{node_slug}>");
+            triple(
+                &subject,
+                RDF_TYPE,
+                &format!("<{GMEOW}DocumentedDocument>"),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}documents"),
+                &format!("<{}>", doc.slice_iri),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docSourcePath"),
+                &literal(&doc.source_path),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docTitle"),
+                &literal(&doc.title),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docRawDigest"),
+                &literal(&doc.raw_digest),
+                &mut lines,
+            );
+            // The RESOLVED page location — the resolver projection. `page_of`
+            // returns the trailing-slash page path the `SourceToPageMap` minted;
+            // the top-level `docs.md` resolves to its slice page.
+            if let Some(page) = page_map.page_of(&doc.slice_iri, &doc.source_path) {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}docUrl"),
+                    &literal(page),
+                    &mut lines,
+                );
+            }
+            annotate(
+                &subject,
+                &doc.title,
+                &format!(
+                    "Documentation page for `{}` in slice {}.",
+                    doc.source_path, doc.slice_iri
+                ),
                 &mut lines,
             );
         }
@@ -1489,9 +1562,11 @@ mod tests {
             worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            seams: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,
@@ -1550,9 +1625,11 @@ mod tests {
             worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            seams: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,

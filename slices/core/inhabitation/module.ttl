@@ -492,8 +492,7 @@ gmeow:bearsDigitalSubject
         gmeow:boxRBox .
 
 gmeow:configurationEmbodiment
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration embodiment"@x-gmeow-english ;
@@ -515,8 +514,7 @@ gmeow:configurationFacet
         gmeow:boxRBox .
 
 gmeow:configurationOfTenure
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration of tenure"@x-gmeow-english ;
@@ -737,8 +735,7 @@ gmeow:hasTransferManifest
         gmeow:boxRBox .
 
 gmeow:inhabitationLocusKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation locus kind"@x-gmeow-english ;
@@ -748,8 +745,7 @@ gmeow:inhabitationLocusKind
         gmeow:boxRBox .
 
 gmeow:inhabitationSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation subject"@x-gmeow-english ;
@@ -760,8 +756,7 @@ gmeow:inhabitationSubject
         gmeow:boxRBox .
 
 gmeow:inhabitedHost
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabited host"@x-gmeow-english ;
@@ -942,3 +937,107 @@ gmeow:InhabitationConfiguration logic:subClassOf [ a logic:Restriction ; logic:o
 # derive_validation_shapes reads to emit sh:class alongside it.
 gmeow:InhabitationConfiguration logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:configurationEmbodiment ; logic:allValuesFrom gmeow:EmbodimentAssignment ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:MediatedPropertyRequirementAssertion — the mediated value must itself carry the required property.
+
+gmeow:configurationEmbodimentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configurationEmbodiment is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationEmbodiment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationEmbodiment ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationEmbodiment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationEmbodiment and nothing else. It is not a definition of gmeow:configurationEmbodiment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:configurationOfTenureFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configurationOfTenure is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationOfTenure ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationOfTenure ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationOfTenure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationOfTenure and nothing else. It is not a definition of gmeow:configurationOfTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inhabitationLocusKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitationLocusKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitationLocusKind is functional: a gmeow:InhabitationTenure has exactly one locus kind, either gmeow:locusSelf or gmeow:locusVessel, while tenancy cardinality is derived from overlapping tenures rather than set here."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitationLocusKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitationLocusKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:inhabitationLocusKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:inhabitationLocusKind and nothing else. It is not a definition of gmeow:inhabitationLocusKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inhabitationSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitationSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitationSubject is functional: a gmeow:InhabitationTenure has exactly one inhabiting subject, and because that single slot has a gmeow:Agent range a contested inhabitation must use gmeow:InhabitationClaim rather than assert a rival subject here."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitationSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitationSubject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:inhabitationSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:inhabitationSubject and nothing else. It is not a definition of gmeow:inhabitationSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inhabitedHostFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitedHost is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitedHost ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitedHost ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:inhabitedHost names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:inhabitedHost and nothing else. It is not a definition of gmeow:inhabitedHost (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inhabitationIntervalFrameRequirement
+    a owl:NamedIndividual ,
+        logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;
+    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:mediatedRequirementTarget gmeow:InhabitationTenure ;
+    logic:mediatedRequirementVia gmeow:duringInterval ;
+    logic:mediatedRequirementProperty gmeow:hasTemporalFrame ;
+    logic:formalizes gmeow:hasTemporalFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InhabitationTenure; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:InhabitationTenure no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:InhabitationTenure and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

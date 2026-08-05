@@ -37,9 +37,11 @@
 //! per carried capability and a `gmeow:declaredLoss` → `gmeow:ProjectionLoss`
 //! (`gmeow:accountsForParameter` the dropped capability) per lost one — and the same
 //! capability slugs are folded into the projection loss ledger by
-//! [`fold_docs_format_loss`]. The dropped sets are monotone `site ⊆ mdbook ⊆ pdf ⊆
-//! snippets`; the A3 gate ([`crate::docs_loss_lattice`]) proves totality +
-//! monotonicity over the same table.
+//! [`fold_docs_format_loss`]. The dropped sets are monotone along this DAG's covering
+//! edges (`gmeow_docs::formats::PROJECTION_DAG_EDGES` — `site → snippets`; mdbook and
+//! pdf are incomparable siblings off the body-set), NOT a linear chain; the A3 gate
+//! ([`crate::docs_loss_lattice`]) proves totality + DAG-edge monotonicity over the
+//! same table.
 //!
 //! ## Blob self-description (F4)
 //!
@@ -60,9 +62,9 @@ use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::GMEOW_NS;
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
@@ -565,15 +567,16 @@ mod tests {
 
     #[test]
     fn derived_preservation_matches_the_honest_join() {
-        // site keeps live SPARQL → SoundUnderApproximation; every other format drops it
-        // → the ValidationOnly floor. Never a flat asserted grade.
+        // The site AND the mdbook keep live SPARQL (the book packs the vendored engines)
+        // → SoundUnderApproximation; the print PDF and flat snippets drop it → the
+        // ValidationOnly floor. Never a flat asserted grade.
         assert_eq!(
             derived_preservation(DocFormat::Site),
             PreservationKind::SoundUnder
         );
         assert_eq!(
             derived_preservation(DocFormat::Mdbook),
-            PreservationKind::ValidationOnly
+            PreservationKind::SoundUnder
         );
         assert_eq!(
             derived_preservation(DocFormat::Pdf),
@@ -587,6 +590,41 @@ mod tests {
         for fmt in DocFormat::ALL {
             assert_ne!(derived_preservation(fmt), PreservationKind::Exact);
         }
+    }
+
+    /// The format→format DAG edges gmeow_docs declares must be exactly the format
+    /// surface-legs the composition DAG here carries: a `src → tgt` edge exists iff
+    /// `tgt` composes THROUGH `src`'s output surface (the `<src>-><tgt>` leg). This is
+    /// the machine cross-check that the loss-poset edge set and the projection legs
+    /// cannot drift — the linear-chain assumption is gone; only real legs are edges.
+    #[test]
+    fn declared_dag_edges_match_the_composition_legs() {
+        use gmeow_docs::formats::PROJECTION_DAG_EDGES;
+        use std::collections::BTreeSet;
+
+        // Derive the format→format edges from the legs: for each format `tgt`, the leg
+        // it composes through whose SOURCE is another format's output surface.
+        let surface_to_fmt: Vec<(String, DocFormat)> =
+            DocFormat::ALL.iter().map(|&f| (surface(f), f)).collect();
+        let mut derived: BTreeSet<(DocFormat, DocFormat)> = BTreeSet::new();
+        for tgt in DocFormat::ALL {
+            for key in composition_leg_keys(tgt) {
+                if let Some(leg) = legs().into_iter().find(|l| &l.key == key)
+                    && let Some(&(_, src_fmt)) =
+                        surface_to_fmt.iter().find(|(s, _)| *s == leg.source)
+                    && leg.target_fmt == Some(tgt)
+                {
+                    derived.insert((src_fmt, tgt));
+                }
+            }
+        }
+        let declared: BTreeSet<(DocFormat, DocFormat)> =
+            PROJECTION_DAG_EDGES.iter().copied().collect();
+        assert_eq!(
+            declared, derived,
+            "PROJECTION_DAG_EDGES drifted from the composition legs: the loss poset and \
+             the projection DAG must declare the SAME format→format refinement edges"
+        );
     }
 
     #[test]

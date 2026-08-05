@@ -1,0 +1,394 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency cells for the work-orchestration slice.
+#
+# Each cell pins an EXACT roster rather than a lower bound, so that adding or
+# dropping a member fails on diff. A count-only or contains-only pin would let
+# the vocabulary drift silently, which for closed value classes is precisely the
+# failure they exist to prevent.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
+@prefix exr:   <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+
+ex:cqFrontierLabels a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-frontier-labels.rq" ;
+    gmeow:cqRationale "The frontier label set is closed and DERIVED from the axis tuple, so its membership is a contract rather than a convenience. Three of the sixteen have no home in a bare twelve-state reading — compensation failed with the forward effect still committed, reconciliation foreclosed rather than pending, and cancellation with effects in flight — and those are exactly the positions an operator most needs surfaced, so a pin that tolerated their loss would be worthless. Each label is therefore pinned BY IRI rather than by a bare count: a count of sixteen survives a rename or a swap that silently substitutes a twelfth-state paraphrase for one of those three, and the substitution is exactly the drift this question exists to catch."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqFrontierLabelsShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqFrontierRowReadyAuthorized , ex:cqFrontierRowReadyApprovalRequired ,
+        ex:cqFrontierRowBlockedPrecondition , ex:cqFrontierRowBlockedCapabilityOrResource ,
+        ex:cqFrontierRowWaitingOnEventTimeOrInput , ex:cqFrontierRowMutuallyExclusive ,
+        ex:cqFrontierRowReconciliationRequired , ex:cqFrontierRowCompensationEligible ,
+        ex:cqFrontierRowCompensationRequired , ex:cqFrontierRowCompleted ,
+        ex:cqFrontierRowSkippedWithTypedReason , ex:cqFrontierRowCancelled ,
+        ex:cqFrontierRowTerminallyFailed , ex:cqFrontierRowCompensationFailedForwardCommitted ,
+        ex:cqFrontierRowReconciliationImpossible , ex:cqFrontierRowCancelledWithInFlightEffects .
+
+ex:cqFrontierLabelsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "label" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+# The twelve positions a bare state-machine reading can express …
+ex:cqFrontierRowReadyAuthorized a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReadyAuthorized ] .
+ex:cqFrontierRowReadyApprovalRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReadyApprovalRequired ] .
+ex:cqFrontierRowBlockedPrecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierBlockedPrecondition ] .
+ex:cqFrontierRowBlockedCapabilityOrResource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierBlockedCapabilityOrResource ] .
+ex:cqFrontierRowWaitingOnEventTimeOrInput a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierWaitingOnEventTimeOrInput ] .
+ex:cqFrontierRowMutuallyExclusive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierMutuallyExclusive ] .
+ex:cqFrontierRowReconciliationRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReconciliationRequired ] .
+ex:cqFrontierRowCompensationEligible a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationEligible ] .
+ex:cqFrontierRowCompensationRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationRequired ] .
+ex:cqFrontierRowCompleted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompleted ] .
+ex:cqFrontierRowSkippedWithTypedReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierSkippedWithTypedReason ] .
+ex:cqFrontierRowCancelled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCancelled ] .
+ex:cqFrontierRowTerminallyFailed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierTerminallyFailed ] .
+
+# … and the three the rationale names, which a twelve-state reading cannot host.
+ex:cqFrontierRowCompensationFailedForwardCommitted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationFailedForwardCommitted ] .
+ex:cqFrontierRowReconciliationImpossible a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReconciliationImpossible ] .
+ex:cqFrontierRowCancelledWithInFlightEffects a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCancelledWithInFlightEffects ] .
+
+ex:cqReviewContents a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-review-contents.rq" ;
+    gmeow:cqRationale "The operator review projection must carry all eight required contents plus its cluster subject and its projection receipt. Pinning each content BY IRI is what stops a surface that silently omits effect status or dissent from looking complete: partial completeness is the failure mode here, because the omission is invisible to the reader it misleads, and a bare count of ten cannot tell a review that dropped gmeow:reviewEffectStatus apart from one that added an eleventh convenience edge and lost it."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqReviewContentsShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqReviewRowOfCluster , ex:cqReviewRowReceipt ,
+        ex:cqReviewRowGoalAndRecurrence , ex:cqReviewRowPrescriptionLineage ,
+        ex:cqReviewRowCurrentEnactment , ex:cqReviewRowFrontier ,
+        ex:cqReviewRowApprovalsAndPending , ex:cqReviewRowEffectStatus ,
+        ex:cqReviewRowAccumulatedRecord , ex:cqReviewRowTimelineRepresentation .
+
+ex:cqReviewContentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "content" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+# The cluster the review is OF, and the receipt that discloses the collapse it performs.
+ex:cqReviewRowOfCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewOfCluster ] .
+ex:cqReviewRowReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewReceipt ] .
+
+# The eight required contents.
+ex:cqReviewRowGoalAndRecurrence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewGoalAndRecurrence ] .
+ex:cqReviewRowPrescriptionLineage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewPrescriptionLineage ] .
+ex:cqReviewRowCurrentEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewCurrentEnactment ] .
+ex:cqReviewRowFrontier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewFrontier ] .
+ex:cqReviewRowApprovalsAndPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewApprovalsAndPending ] .
+ex:cqReviewRowEffectStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewEffectStatus ] .
+ex:cqReviewRowAccumulatedRecord a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewAccumulatedRecord ] .
+ex:cqReviewRowTimelineRepresentation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewTimelineRepresentation ] .
+
+ex:cqContributionKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-contribution-kinds.rq" ;
+    gmeow:cqRationale "Exactly three contribution kinds, because the three carry different authority: model output is advice and may never authorize, an operator contribution may be a decision, and a tool contribution is an observation whose authority is the tool's correctness. A fourth kind, or a missing one, would blur the line the approval machinery depends on."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContributionKindsShape ;
+    gmeow:cqExpectRow ex:cqContributionModelRow , ex:cqContributionOperatorRow , ex:cqContributionToolRow ;
+    gmeow:cqExactRows true .
+
+ex:cqContributionKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqContributionModelRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionModel ] .
+ex:cqContributionOperatorRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionOperator ] .
+ex:cqContributionToolRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionTool ] .
+
+# =========================================================================== #
+# === The three contextual verdicts, read back off the shipped example    === #
+# =========================================================================== #
+#
+# Three questions over ONE candidate field and ONE example scene. Together they
+# are the executable form of the slice's central claim: a recommendation is
+# relative to a context, and the three contexts reach three DIFFERENT and
+# non-interchangeable verdicts — a strict order, a tie, and a positive
+# incomparability. Each question is pinned to its exact rows, so a scene that
+# quietly collapsed the tie into the order, or the Pareto void into the tie,
+# fails here rather than reading as a tidier answer.
+
+ex:cqContextStrictOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-strict-order.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "The frontier must be able to answer 'under this policy, what is the order?' — and answer it as an ORDER rather than as a list of recorded opinions. The scene asserts only the two covering edges (feature flag over rollback, rollback over hotfix); the third row, feature flag over hotfix, is closed here by the transitive path and appears in no triple of the file. Pinning all three rows exactly is what makes the derivation probative: drop the transitivity and the pin loses a row, assert the third edge by hand and the file has stopped demonstrating an order. The two other contexts contribute nothing, which is the second half of the claim — a tie and a Pareto void are not orders, and this question refuses to manufacture one for them."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextStrictOrderShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqStrictRowFlagHotfix , ex:cqStrictRowFlagRollback ,
+                      ex:cqStrictRowRollbackHotfix .
+
+ex:cqContextStrictOrderShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "winner" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "loser" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqStrictRowFlagRollback a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:featureFlag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:rollback ] .
+
+# The DERIVED row: no triple in the scene says this, and the order does.
+ex:cqStrictRowFlagHotfix a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:featureFlag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:hotfix ] .
+
+ex:cqStrictRowRollbackHotfix a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:rollback ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:hotfix ] .
+
+ex:cqContextTie a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-tie.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "A tie is a comparable indifference and must survive as one: 'these are equally good, pick either' is a more useful answer than a tiebreak the policy never authorized. The pin is exactly one row — rollback and the feature flag under minimise-customer-impact — and its value lies in what does NOT come back. The same two candidates are strictly ordered under the fastest-restore context, and that context's observations are excluded here because each of them names a winner, which a tie observation cannot. A scene that recorded the tie as a zero-length preference, or that let the strict context's rows leak in, fails on this row count."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextTieShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqTieRowRollbackFlag .
+
+ex:cqContextTieShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqTieRowRollbackFlag a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseImpact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exr:rollback ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exr:featureFlag ] .
+
+ex:cqContextIncomparable a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-incomparable.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "An incomparability is a positive verdict, not missing data: this policy names no exchange rate between reportable exposure and reversibility, so neither candidate dominates and a human must choose knowing that. The query demands the structure that MAKES it one — two observations under a single context preferring opposite sides of the same pair — before it will read the incomparability relation, which is why the fastest-restore context, whose order also spans rollback and the hotfix, contributes no row. The single pinned row is what stops the void being written up as a tie: a tie says the choice does not matter, and this says the policy will not make it."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextIncomparableShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqIncomparableRowHotfixRollback .
+
+ex:cqContextIncomparableShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqIncomparableRowHotfixRollback a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseExposure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exr:hotfix ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exr:rollback ] .
+
+# --- The standpoint index the operator view collapses -------------------------
+ex:cqContextStandpointIndex a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-standpoint-index.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "The slice claims that collapsing coexisting standpoint-indexed classifications into one operator view is a real loss, and ships a projection receipt to disclose it. This question is that claim's uncollapsed form: three contexts, three standpoints, one shared interval. The shared interval is load-bearing — it is what makes the three verdicts a genuine coexistence at one decision moment rather than a change of mind over time, and only a recorded time scope can tell those apart. Both indexes are reused rather than re-minted (the core gmeow:Standpoint and the core gmeow:TimeScopedRelation), which is also what makes the slice's dependency on those two vocabularies real rather than declared."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextStandpointIndexShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqStandpointRowCommander , ex:cqStandpointRowSupport ,
+                      ex:cqStandpointRowCompliance .
+
+ex:cqContextStandpointIndexShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "standpoint" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "interval" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqStandpointRowCommander a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:incidentCommanderStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+ex:cqStandpointRowSupport a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseImpact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:supportLeadStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+ex:cqStandpointRowCompliance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseExposure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:complianceOfficerStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+# =========================================================================== #
+# === Carrier rosters for the operator-facing records                     === #
+# =========================================================================== #
+#
+# Each of these records is a SURFACE — the thing a human reads instead of the
+# enactment itself — so its failure mode is partial completeness: a cluster with
+# no schedule edge, an explanation with no dissent edge, a guidance set with no
+# rubric. Each still validates, still renders, and still looks whole. The pin is
+# over (record, carrier) pairs rather than over a per-record count, because a
+# count survives a swap that drops one carrier and adds another, and the swap is
+# what a reviewer would never notice.
+
+ex:cqSurfaceCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqSurfaceCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { gmeow:WorkCluster gmeow:GuidanceSet gmeow:FrontierExplanation gmeow:WorkReviewProjection } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Four operator-facing records, twenty-seven carriers, pinned as pairs. The cluster is the unit a person actually manages, and its eight edges are the reason it is not just a folder: goal, policy, schedule, occurrence series, active prescription, enactment, guidance set and note, each of which a review must be able to reach without knowing where the work was filed. The explanation carries the entry it explains plus criterion, policy, evidence, proof and dissent — and dissent is a carrier rather than a footnote precisely because an explanation that can only record agreement is advocacy. The guidance set carries its checklist, rubric and version membership; the review projection carries the ten contents its own question pins. Reading all four off rdfs:domain rather than off prose is what makes the roster a contract instead of a description."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqSurfaceCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqSurfaceCarriersRowFrontierExplanationexplainsEntry , ex:cqSurfaceCarriersRowFrontierExplanationexplanationCriterion , ex:cqSurfaceCarriersRowFrontierExplanationexplanationDissent , ex:cqSurfaceCarriersRowFrontierExplanationexplanationEvidence , ex:cqSurfaceCarriersRowFrontierExplanationexplanationPolicy , ex:cqSurfaceCarriersRowFrontierExplanationexplanationProof , ex:cqSurfaceCarriersRowGuidanceSetguidanceChecklist , ex:cqSurfaceCarriersRowGuidanceSetguidanceRubric , ex:cqSurfaceCarriersRowGuidanceSetguidanceVersionMembership , ex:cqSurfaceCarriersRowWorkClusterclusterActivePrescription , ex:cqSurfaceCarriersRowWorkClusterclusterEnactment , ex:cqSurfaceCarriersRowWorkClusterclusterGoal , ex:cqSurfaceCarriersRowWorkClusterclusterGuidanceSet , ex:cqSurfaceCarriersRowWorkClusterclusterNote , ex:cqSurfaceCarriersRowWorkClusterclusterOccurrenceSeries , ex:cqSurfaceCarriersRowWorkClusterclusterPolicy , ex:cqSurfaceCarriersRowWorkClusterclusterSchedule , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewAccumulatedRecord , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewApprovalsAndPending , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewCurrentEnactment , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewEffectStatus , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewFrontier , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewGoalAndRecurrence , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewOfCluster , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewPrescriptionLineage , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewReceipt , ex:cqSurfaceCarriersRowWorkReviewProjectionreviewTimelineRepresentation  .
+
+ex:cqSurfaceCarriersRowFrontierExplanationexplainsEntry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explainsEntry ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationCriterion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationCriterion ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationDissent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationDissent ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationEvidence ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationPolicy ] .
+ex:cqSurfaceCarriersRowFrontierExplanationexplanationProof a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:FrontierExplanation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:explanationProof ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceChecklist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceChecklist ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceRubric a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceRubric ] .
+ex:cqSurfaceCarriersRowGuidanceSetguidanceVersionMembership a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GuidanceSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceVersionMembership ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterActivePrescription a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterActivePrescription ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterEnactment ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterGoal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterGoal ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterGuidanceSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterGuidanceSet ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterNote a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterNote ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterOccurrenceSeries a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterOccurrenceSeries ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterPolicy ] .
+ex:cqSurfaceCarriersRowWorkClusterclusterSchedule a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkCluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:clusterSchedule ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewAccumulatedRecord a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewAccumulatedRecord ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewApprovalsAndPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewApprovalsAndPending ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewCurrentEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewCurrentEnactment ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewEffectStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewEffectStatus ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewFrontier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewFrontier ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewGoalAndRecurrence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewGoalAndRecurrence ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewOfCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewOfCluster ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewPrescriptionLineage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewPrescriptionLineage ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewReceipt ] .
+ex:cqSurfaceCarriersRowWorkReviewProjectionreviewTimelineRepresentation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:WorkReviewProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:reviewTimelineRepresentation ] .
+
+# --- The carriers of the two work-orchestration value axes -------------------
+ex:cqWorkAxisCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqWorkAxisCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?axis ?term WHERE { VALUES ?axis { gmeow:ContributionKind math:Quantity } ?term rdfs:range ?axis ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> } ORDER BY ?axis ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Two questions the slice must be able to answer about its own quantitative and attributive surface, asked together because they share a shape. The query is scoped by rdfs:isDefinedBy to the terms this slice OWNS, which is what makes the answer a statement about this vocabulary rather than about every relation in the canon that happens to reach a math:Quantity. Exactly one work-orchestration relation carries the contribution kind, so a record cannot be attributed to a model and an operator at once; and exactly one carries a decision criterion's magnitude into the math: quantity spine, so a criterion's number arrives with its dimension rather than as a bare literal that nobody can convert or compare. A second carrier on either axis would be the drift: two contribution-kind edges make attribution ambiguous, and a second magnitude edge is how an ungrounded number gets back in beside the grounded one."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqWorkAxisCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqWorkAxisCarriersRowContributionKindcontributionKind , ex:cqWorkAxisCarriersRowQuantitycriterionMagnitude  .
+
+ex:cqWorkAxisCarriersRowContributionKindcontributionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri gmeow:ContributionKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:contributionKind ] .
+ex:cqWorkAxisCarriersRowQuantitycriterionMagnitude a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri math:Quantity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:criterionMagnitude ] .
+
+# --- The relations this slice deliberately leaves untyped at both ends -------
+ex:cqUntypedSeamRelationsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqUntypedSeamRelations a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?term WHERE { ?term a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> . FILTER NOT EXISTS { ?term rdfs:domain ?d } FILTER NOT EXISTS { ?term rdfs:range ?r } } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Leaving both ends of a relation to prose is a real cost — no derived shape can check either side — so the slice should be able to say exactly how often it does so and answer for each case. The answer is one: the rendering seam, which applies to any item carrying authored prose (a guidance item, a note, a dissent, a review rendering) and points into lang:, so declaring a domain would exclude legitimate bearers and declaring a range would duplicate the grounding slice's own typing. Pinning the roster at exactly one entry is what makes the exception stay an exception: a second untyped relation cannot be added without this question failing and the justification being written down."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqUntypedSeamRelationsShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqUntypedSeamRowGuidanceRendering .
+
+ex:cqUntypedSeamRowGuidanceRendering a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:guidanceRendering ] .

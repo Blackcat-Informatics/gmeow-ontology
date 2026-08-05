@@ -1,0 +1,13 @@
+# CT4b — target-set ordered membership (violation finder). A gmeow:VectorTarget that
+# is a gmeow:targetSetMember of some gmeow:TargetSet but carries NO gmeow:targetOrdinal
+# — an unorderable member that leaves the set's row order (and its "same digest ⇔ same
+# ordered membership" identity claim) unreconstructable. Independent SPARQL twin of
+# gmeow:TargetSetOrderedMembershipConstraint (C4b), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?vt WHERE {
+  ?ts a gmeow:TargetSet ;
+      gmeow:targetSetMember ?vt .
+  FILTER NOT EXISTS { ?vt gmeow:targetOrdinal ?o }
+}
+ORDER BY ?vt

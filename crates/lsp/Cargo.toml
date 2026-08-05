@@ -3,8 +3,8 @@
 
 [package]
 name = "gmeow-lsp"
-description = "GMEOW synchronous LSP server for .ttl and .logic files, plus a sarif CLI subcommand (#671)"
-version = "0.1.0"
+description = "GMEOW synchronous LSP server for .ttl and .logic files, plus a sarif CLI subcommand"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -32,9 +32,9 @@ gmeow-errors = { path = "../errors" }
 gmeow-cli-core = { path = "../cli-core" }
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str) the LSP analyzer drives, split out of
-# gmeow-logic in #732; the runtime-side diagnostics_report still comes from gmeow-logic.
+# gmeow-logic; the runtime-side diagnostics_report still comes from gmeow-logic.
 gmeow-logic-compile = { path = "../logic-compile" }
-# Native (oxigraph-free) Turtle parse for the .ttl linter (EPIC #906): the `gts`
+# Native (oxigraph-free) Turtle parse for the .ttl linter: the `gts`
 # feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
 purrdf.workspace = true

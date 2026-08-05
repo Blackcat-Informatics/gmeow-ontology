@@ -29,7 +29,7 @@ use purrdf::{TermRef, parse_dataset};
 /// The OntoUML metamodel vocabulary namespace (local names appended verbatim).
 pub const ONTOUML_NS: &str = "https://w3id.org/ontouml#";
 /// The `logic:` vocabulary namespace the foundation chase reads.
-pub const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+pub use gmeow_ns::LOGIC_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 

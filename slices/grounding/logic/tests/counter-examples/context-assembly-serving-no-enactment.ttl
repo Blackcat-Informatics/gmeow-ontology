@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:ContextAssembly that records what was surfaced and what was withheld, states
+# why it was withheld, and never says WHOSE run it served. Unbound, the record answers
+# the audit question about nobody: the guidance versions it names were surfaced to some
+# occurrence, and no later reader can say which — so "the operator saw the objection and
+# proceeded" is unrecoverable for every run at once.
+# MUST trip logic:ContextAssemblyNamesItsEnactmentConstraint, and it alone. The two
+# exclusion laws are guarded here and PASS on their merits rather than vacuously: the
+# withheld item carries its logic:assemblyExclusionReason, and the included and excluded
+# items are different items. The assembly also records the guidance revision it was
+# judged under, so gmeow:GuidanceVersionRecordedConstraint — the work-orchestration law
+# that governs this same kernel class — is satisfied too, and the one unanswerable
+# question left is WHOSE run this record is about.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:assemblyServingNobody a logic:ContextAssembly ;
+    logic:assemblyGuidanceVersion ex:adrReviewGuidanceV7 ;
+    logic:assemblyIncluded ex:adrRiskNote ;
+    logic:assemblyExcluded ex:staleSecurityObjection ;
+    logic:assemblyExclusionReason "Superseded by revision 4 of the threat model." ;
+    rdfs:label "a context assembly that served no nameable run"@en .

@@ -35,6 +35,10 @@ pub mod correspondence_lower;
 pub mod constraint_shapes;
 pub mod correspondence_soundness;
 pub mod diag_render;
+// The canonical distribution catalog (AC2/AC6): the meta-level named graph
+// declaring which documentation distributions exist, their family, their consumer
+// class, and their declared capability loss — folded at carrier time.
+pub mod distribution_catalog;
 pub mod docs_format_rendering;
 pub mod docs_render;
 pub mod evals;
@@ -55,11 +59,16 @@ pub mod projection_ceilings;
 // `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
 // `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
 pub mod gmn1_gate;
+// The rejection-sampled, proof-carrying GMN training-corpus emitter: a productive functor
+// over the glyph signature that enumerates well-typed GMN terms, filters each through five
+// verifiers, and folds the certified corpus (+ typed rejections) as graph/gmn-training-corpus.
+pub mod gmn_training_corpus;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;
 pub mod lang_docs_rendering;
 pub mod lang_form;
+pub mod lang_glossary;
 pub mod lang_lowering;
 pub mod lang_projection;
 pub mod lang_translation;
@@ -71,7 +80,6 @@ pub mod meta_findings;
 pub mod metadata;
 pub mod native_query;
 pub mod okf;
-pub mod parquet;
 pub mod profiles;
 pub mod provenance_graph;
 // The SHACL-derived Pydantic v2 package emitter (`gmeow_models/<slice>.py`),
@@ -98,6 +106,9 @@ pub(crate) mod schema_ident;
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
 // pydantic, and validate).
 pub mod shape_union_fresh;
+// The SKOS concept-scheme export leaf (AC1/R3): a generated projection
+// of the lifted NodeKind::Annotation axioms (GMEOW-authored RDFS/SKOS annotations).
+pub mod skos_surface;
 // The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
 // slice batch and folds the union into the carrier as graph/authoring-briefs.
 pub mod slice_brief;
@@ -132,6 +143,10 @@ pub fn register_default(registry: &mut StageRegistry) {
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),
     );
+    registry.register(
+        "gmn-training-corpus",
+        Arc::new(gmn_training_corpus::GmnTrainingCorpusStage::new()),
+    );
     registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("conformance", Arc::new(conformance::ConformanceStage));
@@ -148,6 +163,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
+    registry.register("skos_surface", Arc::new(skos_surface::SkosSurfaceStage));
     registry.register(
         "constraint_shapes",
         Arc::new(constraint_shapes::ConstraintShapesStage),
@@ -168,6 +184,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage::new()));
     registry.register("pydantic", Arc::new(pydantic::PydanticStage::new()));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
+    registry.register("glossary", Arc::new(lang_glossary::GlossaryTableStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage::new()));
@@ -178,7 +195,6 @@ pub fn register_default(registry: &mut StageRegistry) {
         "research-objects",
         Arc::new(research_objects::ResearchObjectsStage::new()),
     );
-    registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
     registry.register("okf", Arc::new(okf::OkfStage::new()));
     registry.register("export", Arc::new(export::ExportStage::new()));
     registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));

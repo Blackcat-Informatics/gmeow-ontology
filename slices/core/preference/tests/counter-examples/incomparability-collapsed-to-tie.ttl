@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:TieIncomparabilityDistinctnessConstraint (G1): a single
+# candidate pair (ex:candX, ex:candY) is asserted BOTH gmeow:preferentiallyEquivalentWith
+# (a comparable tie) AND gmeow:incomparableWith (a positive non-order). The two are distinct
+# verdicts, and collapsing incomparability into a tie erases the Pareto void the slice records
+# positively. The ∀→¬∃ SPARQL constraint testing a pair carrying both relations MUST reject it
+# with shacl.SPARQLConstraintComponent and NO other finding — the pair is otherwise a plain,
+# well-formed candidate field, isolating the tie/incomparability collapse.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candX a gmeow:InformationObject ; rdfs:label "candidate X"@en .
+ex:candY a gmeow:InformationObject ; rdfs:label "candidate Y"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candX , ex:candY .
+
+# The DEFECT: the SAME pair is asserted as a tie AND as a positive incomparability.
+ex:candX gmeow:preferentiallyEquivalentWith ex:candY .   # <-- a comparable tie
+ex:candX gmeow:incomparableWith             ex:candY .   # <-- AND a positive incomparability

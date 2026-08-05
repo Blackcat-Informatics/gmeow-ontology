@@ -24,6 +24,10 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -33,6 +37,14 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
           toolchain: nightly
+
+      # `make release` -> `make build` -> the $(RUST_READY_STAMP) prereq runs
+      # `cargo nextest run --no-run --workspace`, so the release runner needs
+      # cargo-nextest just like the ci.yml jobs do.
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: cargo-nextest
 
       - name: Build release artifacts
         run: make release
@@ -55,6 +67,32 @@ jobs:
 
       - name: Verify signed gmeow.gts
         run: dist/bin/gmeow verify dist/gmeow.gts
+
+      # The bundle is regenerated from canonical sources by `make release` (it is a
+      # git-ignored product, not a committed input), so publish a checksum manifest that
+      # pins the exact validated bytes a consumer receives.
+      - name: Generate SHA-256 checksums for the release artifacts
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp)
+          # Clean up on EVERY exit path, not just the happy one: under `set -o pipefail`
+          # a failure in the checksum pipeline below aborts before the `mv` consumes the
+          # file, which would otherwise leave it behind. Mirrors the `trap ... EXIT`
+          # idiom the Makefile's own mktemp sites use. `rm -f` after a successful `mv`
+          # is a no-op, so the trap is safe on the success path too.
+          trap 'rm -f "$tmp"' EXIT
+          ( cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$tmp"
+          mv "$tmp" dist/SHA256SUMS
+          cat dist/SHA256SUMS
+
+      # Provenance attestation over the regenerated bundle and the consumer binary that
+      # embeds it — so a clean-checkout build's outputs are independently verifiable.
+      - name: Attest release bundle + CLI provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v3.1.0
+        with:
+          subject-path: |
+            dist/gmeow.gts
+            dist/bin/gmeow
 
       - name: Upload published artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

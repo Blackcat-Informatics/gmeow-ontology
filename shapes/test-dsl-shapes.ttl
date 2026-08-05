@@ -188,6 +188,21 @@ gmeow:ExampleConformanceShape
         sh:severity sh:Violation ;
         sh:message "ExampleConformance must have exactly one gmeow:expectedOutcome in (gmeow:conforms, gmeow:violates)"
     ] ;
+    sh:property [
+        sh:path gmeow:expectedSourceShape ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance may have at most one gmeow:expectedSourceShape (the sh:sourceShape IRI the expected finding must originate from)"
+    ] ;
+    sh:property [
+        sh:path gmeow:expectedSoleFinding ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:hasValue true ;
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance may have at most one gmeow:expectedSoleFinding, and its only meaningful value is true — an authored false is a dead claim the harness never reads; omit the property instead"
+    ] ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "ExampleConformance with gmeow:expectedOutcome gmeow:violates must carry gmeow:expectedViolationCode; gmeow:conforms must NOT" ;
@@ -200,6 +215,35 @@ gmeow:ExampleConformanceShape
                     $this gmeow:expectedOutcome gmeow:conforms .
                     FILTER EXISTS { $this gmeow:expectedViolationCode ?code }
                 }
+            }
+        """
+    ] ;
+    # gmeow:expectedSourceShape and gmeow:expectedSoleFinding are EXPECTATIONS about a
+    # violation report, so neither may ride on a cell that expects conformance — a
+    # gmeow:conforms cell has no findings for them to constrain and the harness would
+    # never read them, which is a silently-dead claim.
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance with gmeow:expectedOutcome gmeow:conforms must NOT carry gmeow:expectedSourceShape or gmeow:expectedSoleFinding (both constrain a violation report)" ;
+        sh:select """
+            SELECT $this WHERE {
+                $this gmeow:expectedOutcome gmeow:conforms .
+                { $this gmeow:expectedSourceShape ?s } UNION { $this gmeow:expectedSoleFinding ?b }
+            }
+        """
+    ] ;
+    # Soleness is a claim about WHICH law is the only one that fired, so the law must be
+    # named. Without gmeow:expectedSourceShape the flag would degrade to "no other shape
+    # raised a finding carrying the same component code", which is vacuous on the generic
+    # components (shacl.MinCountConstraintComponent, shacl.SPARQLConstraintComponent) that
+    # dozens of shapes raise. crates/slicetest/src/exec.rs hard-fails the same pairing.
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance declaring gmeow:expectedSoleFinding true must also bind gmeow:expectedSourceShape: soleness names WHICH law is the only one, and an unnamed law cannot carry the claim" ;
+        sh:select """
+            SELECT $this WHERE {
+                $this gmeow:expectedSoleFinding true .
+                FILTER NOT EXISTS { $this gmeow:expectedSourceShape ?shape }
             }
         """
     ] .

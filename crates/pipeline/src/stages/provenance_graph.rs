@@ -8,12 +8,13 @@
 //! net-new named graph the bundle carries, so a repo-free consumer reads the full
 //! compilation-unit + per-lane carrier manifest WITHOUT re-running the build:
 //!
-//! * each compilation unit becomes a `gmeow:Procedure`-step input describing its
+//! * each compilation unit becomes a plan-step input describing its
 //!   public name/IRI and its [`OriginKind`](purrdf::provenance::OriginKind), and
 //! * each carrier lane (dataset / logic / reasoning / relational-core / the report
-//!   lanes) becomes a `gmeow:ProcedureStep` carrying a `logic:loadBearing` bit
+//!   lanes) becomes a `logic:ActionSchema` carrying a `logic:loadBearing` bit
 //!   (true = a trim drops correctness, false = a droppable annotation/report lane).
-//! * the pipeline itself is one `gmeow:Procedure` enacted by one `gmeow:Execution`.
+//! * the pipeline itself is one `logic:Plan` enacted by one `logic:Enactment` — the
+//!   canonical prescription/enactment spine, dogfooded on our own regeneration.
 //!
 //! ## S0.5 — no runtime ids
 //!
@@ -31,6 +32,9 @@
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
+
+use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
+use gmeow_errors::render::nq_escape;
 
 /// The net-new named-graph IRI carrying the dogfooded provenance projection.
 pub const GRAPH_PROVENANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/provenance";
@@ -107,9 +111,9 @@ const LANES: &[Lane] = &[
     },
 ];
 
-/// The `gmeow:Procedure` node for the pipeline DAG.
+/// The `logic:Plan` node for the pipeline DAG — the prescription.
 const PROCEDURE_IRI: &str = "https://blackcatinformatics.ca/gmeow/provenance/pipeline";
-/// The `gmeow:Execution` node enacting the procedure for this compilation.
+/// The `logic:Enactment` node enacting the plan for this compilation — the occurrence.
 const EXECUTION_IRI: &str = "https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution";
 
 /// Render one `gmeow:`-local IRI node from a stable slug, percent-safe (slugs are
@@ -151,22 +155,29 @@ pub fn project_provenance_graph(
     let mut out = String::new();
 
     // ── the Procedure + its Execution (the realized process vocab) ───────────────
-    triple_iri(
+    triple_iri(&mut out, PROCEDURE_IRI, RDF_TYPE, &format!("{LOGIC}Plan"));
+    annotate_abox(
         &mut out,
         PROCEDURE_IRI,
-        RDF_TYPE,
-        &format!("{GMEOW}Procedure"),
+        "Regeneration plan",
+        "The gmeow: pipeline DAG realized as one logic:Plan, enacted once per compilation.",
     );
     triple_iri(
         &mut out,
         EXECUTION_IRI,
         RDF_TYPE,
-        &format!("{GMEOW}Execution"),
+        &format!("{LOGIC}Enactment"),
+    );
+    annotate_abox(
+        &mut out,
+        EXECUTION_IRI,
+        "Regeneration enactment",
+        "The logic:Enactment carrying out the regeneration plan for this compilation.",
     );
     triple_iri(
         &mut out,
         EXECUTION_IRI,
-        &format!("{GMEOW}executesProcedure"),
+        &format!("{LOGIC}enactsPrescriptionVersion"),
         PROCEDURE_IRI,
     );
 
@@ -176,6 +187,12 @@ pub fn project_provenance_graph(
         triple_iri(&mut out, &iri, RDF_TYPE, &format!("{GMEOW}CompilationUnit"));
         triple_lit(&mut out, &iri, &format!("{GMEOW}unitName"), name);
         triple_lit(&mut out, &iri, &format!("{GMEOW}originKind"), kind);
+        annotate_abox(
+            &mut out,
+            &iri,
+            name,
+            &format!("{kind} compilation unit at {name}."),
+        );
     }
 
     // ── each carriage edge (unit → artifact path) ────────────────────────────────
@@ -184,20 +201,15 @@ pub fn project_provenance_graph(
         triple_lit(&mut out, &iri, &format!("{GMEOW}carriesArtifact"), artifact);
     }
 
-    // ── each carrier lane: a ProcedureStep with its loadBearing bit ──────────────
+    // ── each carrier lane: an ActionSchema with its loadBearing bit ─────────────
     for lane in LANES {
         let iri = lane_iri(lane.slug);
-        triple_iri(&mut out, &iri, RDF_TYPE, &format!("{GMEOW}ProcedureStep"));
-        triple_iri(
-            &mut out,
-            PROCEDURE_IRI,
-            &format!("{GMEOW}hasProcedureStep"),
-            &iri,
-        );
+        triple_iri(&mut out, &iri, RDF_TYPE, &format!("{LOGIC}ActionSchema"));
+        triple_iri(&mut out, PROCEDURE_IRI, &format!("{LOGIC}planBody"), &iri);
         triple_iri(
             &mut out,
             EXECUTION_IRI,
-            &format!("{GMEOW}executesStep"),
+            &format!("{LOGIC}instantiatesSchema"),
             &iri,
         );
         triple_lit(&mut out, &iri, &format!("{GMEOW}laneSlug"), lane.slug);
@@ -208,6 +220,24 @@ pub fn project_provenance_graph(
             &format!("{LOGIC}loadBearing"),
             lane.load_bearing,
         );
+        // The definition is derived from this lane's own `load_bearing` doc
+        // semantics (see the `Lane` struct doc comment above): load-bearing means
+        // a trim drops correctness, non-load-bearing means the lane is a
+        // droppable report/annotation surface — never fabricated prose.
+        let bearing_clause = if lane.load_bearing {
+            "load-bearing: trimming this lane drops correctness"
+        } else {
+            "droppable: trimming this lane only pessimizes, never changes the answer"
+        };
+        annotate_abox(
+            &mut out,
+            &iri,
+            &format!("{} carrier lane", lane.slug),
+            &format!(
+                "The {} carrier lane, folding into {}; {bearing_clause}.",
+                lane.slug, lane.graph
+            ),
+        );
     }
 
     // Sort every line so the projection is byte-stable independent of emission order.
@@ -217,6 +247,31 @@ pub fn project_provenance_graph(
     let mut sorted = lines.join("\n");
     sorted.push('\n');
     sorted
+}
+
+/// Render the four canonical A-Box structural annotations
+/// (`rdfs:label` / `skos:definition` / `rdfs:isDefinedBy` / `gmeow:graphBoxRole`)
+/// for `subject_iri` into `out`, in THIS file's plain-N-Triples style (no graph
+/// column — the snapshot's `add_named` routes every triple this module emits into
+/// [`GRAPH_PROVENANCE`] downstream, so `rdfs:isDefinedBy` points there directly;
+/// unlike [`gmeow_errors::abox::annotate_nquads`], which appends a graph column
+/// this file's substrate does not carry).
+///
+/// Routed through the single [`gmeow_errors::abox::abox_annotations`] contract
+/// every generated A-Box individual satisfies identically, rather than a second
+/// hand-rolled copy of the four-triple shape; literals are escaped with the same
+/// [`nq_escape`] every other N-Quads/N-Triples emitter in the workspace uses (not
+/// this file's local [`escape_literal`], which targets plain untagged literals).
+fn annotate_abox(out: &mut String, subject_iri: &str, label: &str, definition: &str) {
+    for (predicate, object) in abox_annotations(subject_iri, label, definition, GRAPH_PROVENANCE) {
+        let object_text = match object {
+            AboxObject::Iri(iri) => format!("<{iri}>"),
+            AboxObject::CarrierLiteral(value) => {
+                format!("\"{}\"@{X_GMEOW_ENGLISH}", nq_escape(&value))
+            }
+        };
+        writeln!(out, "<{subject_iri}> <{predicate}> {object_text} .").expect("write to String");
+    }
 }
 
 fn triple_iri(out: &mut String, s: &str, p: &str, o: &str) {
@@ -287,14 +342,12 @@ mod tests {
     #[test]
     fn projection_carries_procedure_and_execution_nodes() {
         let nt = project_provenance_graph(&sample_projection());
+        assert!(nt.contains(&format!("<{PROCEDURE_IRI}> <{RDF_TYPE}> <{LOGIC}Plan> .")));
         assert!(nt.contains(&format!(
-            "<{PROCEDURE_IRI}> <{RDF_TYPE}> <{GMEOW}Procedure> ."
+            "<{EXECUTION_IRI}> <{RDF_TYPE}> <{LOGIC}Enactment> ."
         )));
         assert!(nt.contains(&format!(
-            "<{EXECUTION_IRI}> <{RDF_TYPE}> <{GMEOW}Execution> ."
-        )));
-        assert!(nt.contains(&format!(
-            "<{EXECUTION_IRI}> <{GMEOW}executesProcedure> <{PROCEDURE_IRI}> ."
+            "<{EXECUTION_IRI}> <{LOGIC}enactsPrescriptionVersion> <{PROCEDURE_IRI}> ."
         )));
     }
 
@@ -304,15 +357,13 @@ mod tests {
         for lane in LANES {
             let iri = lane_iri(lane.slug);
             assert!(
-                nt.contains(&format!("<{iri}> <{RDF_TYPE}> <{GMEOW}ProcedureStep> .")),
-                "lane {} must be a ProcedureStep",
+                nt.contains(&format!("<{iri}> <{RDF_TYPE}> <{LOGIC}ActionSchema> .")),
+                "lane {} must be an ActionSchema",
                 lane.slug
             );
             assert!(
-                nt.contains(&format!(
-                    "<{PROCEDURE_IRI}> <{GMEOW}hasProcedureStep> <{iri}> ."
-                )),
-                "lane {} must link to the procedure",
+                nt.contains(&format!("<{PROCEDURE_IRI}> <{LOGIC}planBody> <{iri}> .")),
+                "lane {} must link to the plan",
                 lane.slug
             );
             let expect = format!(
@@ -362,5 +413,46 @@ mod tests {
         let root = unit_iri("ontology/gmeow.ttl");
         assert!(nt.contains(&format!("<{root}> <{RDF_TYPE}> <{GMEOW}CompilationUnit> .")));
         assert!(nt.contains(&format!("<{root}> <{GMEOW}originKind> \"root-ontology\" .")));
+    }
+
+    /// Shift-left: drive the SAME native structural lint `make validate`/`make
+    /// check` run (`gmeow_validate::lint::structural_lint_dataset`) over this
+    /// generator's real output fragment, so a missing/incorrect A-Box annotation
+    /// on a minted `CompilationUnit`/`ActionSchema`/`Plan`/`Enactment`
+    /// individual reds HERE — a fast `cargo nextest -p gmeow-pipeline` — rather
+    /// than only surfacing at the next expensive whole-bundle SHACL validation
+    /// (`make validate` / the pipeline stage-validate).
+    #[test]
+    fn minted_individuals_satisfy_the_assertional_abox_contract() {
+        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+
+        let nt = project_provenance_graph(&sample_projection());
+        // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
+        // kernel slice; add it here (same pattern as
+        // `release.rs`'s `minted_attestations_satisfy_the_assertional_contract`)
+        // so the graphBoxRole-typing check has its declaration to resolve against.
+        let doc = format!("{nt}<{GMEOW}boxABox> <{RDF_TYPE}> <{GMEOW}GraphBoxRole> .\n");
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "application/n-triples", None)
+            .expect("parse the provenance N-Triples fragment");
+
+        let cfg = LintConfig {
+            namespace: GMEOW.to_string(),
+            ontology_iri: GMEOW.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: Default::default(),
+        };
+        let report = structural_lint_dataset(&ds, &cfg);
+        let errors = report.errors();
+        let provenance_errors: Vec<&String> = errors
+            .iter()
+            .filter(|e| e.contains(&format!("{GMEOW}provenance/")))
+            .collect();
+        assert!(
+            provenance_errors.is_empty(),
+            "every minted provenance individual must satisfy the A-Box annotation \
+             contract (rdfs:label / skos:definition / rdfs:isDefinedBy / \
+             gmeow:graphBoxRole): {provenance_errors:?}"
+        );
     }
 }

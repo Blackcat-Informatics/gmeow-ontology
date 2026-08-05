@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT5 / F4 counter-example (Don't): two gmeow:SimilarityObservations illegitimately
+# PROMOTED to logical identities — one via owl:sameAs, one via owl:equivalentClass.
+# A pairwise similarity CLAIM is logic:Vague and never an entailment or an equality.
+# Triggers similarity-not-equivalence.rq (→ ce:obsOverSame, ce:obsOverEquiv).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:obsOverSame a gmeow:SimilarityObservation ;
+    gmeow:withMetric gmeow:distanceMetricCosine ;
+    gmeow:queryContext "overclaim: proximity asserted as owl:sameAs identity" ;
+    owl:sameAs ce:someResource .
+
+ce:obsOverEquiv a gmeow:SimilarityObservation ;
+    gmeow:withMetric gmeow:distanceMetricCosine ;
+    gmeow:queryContext "overclaim: proximity asserted as owl:equivalentClass" ;
+    owl:equivalentClass ce:someClass .

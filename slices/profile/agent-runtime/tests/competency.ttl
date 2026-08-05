@@ -6,9 +6,13 @@
 # (asserted lane), overlaying the fixture via gmeow:cqDataFile. This is where the
 # profile EARNS its selection: the true end-to-end resolution and the
 # projection-agreement gate that reach the durable gmeow:SubjectLineage need BOTH
-# extensions/model-serving and core/inhabitation present — which is exactly what
-# this profile composes. The profile itself mints nothing (Principle 16); it only
-# proves that the composition works.
+# extensions/model-serving and core/inhabitation present, and the CQ5
+# capability-versus-delegation discriminator needs BOTH extensions/model-serving
+# and extensions/agentic — which is exactly what this profile composes. Two
+# sibling extensions may not depend on each other (Principle 16), so a question
+# that spans them is answerable only from the profile that selects both. The
+# profile itself mints nothing (Principle 16); it only proves that the
+# composition works.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -41,3 +45,30 @@ ex:cqEndToEndShape a logic:ResultShape ;
 ex:cqEndToEndRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "shortcutSubject" ; gmeow:cellValueIri exd:lillithLineage ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditSubject" ; gmeow:cellValueIri exd:lillithLineage ] .
+
+# --- CQ5 / tool call: passive capability or delegated agent? -------------------
+# A gmeow:usedCapability edge to a logic:ActionSchema is passive; a gmeow:ToolCall
+# whose gmeow:usedTool points to a distinct gmeow:SoftwareAgent is delegation.
+# The discriminator straddles extensions/model-serving (gmeow:usedCapability) and
+# extensions/agentic (gmeow:ToolCall / gmeow:usedTool), which may not depend on
+# each other (Principle 16), so — exactly like the end-to-end question above —
+# this profile is the only place the question is legally askable. RowsExact: one
+# row binding the delegated tool agent and the passive capability.
+ex:cqToolUsage a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/profile/agent-runtime/queries/competency/tool-usage.rq" ;
+    gmeow:cqDataFile "examples/tool-usage.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqToolUsageShape ;
+    gmeow:cqRationale "GMEOW must answer 'was a tool call made through a passive capability or delegated to another agent?' — without a wrapper class. The passive use is a gmeow:usedCapability edge from ex:invSort to the logic:ActionSchema ex:sortSchema; the delegation is a gmeow:ToolCall (ex:tcSearch) whose gmeow:usedTool is the distinct gmeow:SoftwareAgent ex:webSearchAgent. The asserted answer binds both structurally distinct forms in one row — a resolution impossible in either extension alone, since neither may reference the other's half." ;
+    gmeow:cqExpectRow ex:cqToolUsageRow .
+
+ex:cqToolUsageShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "delegatedTool" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "passiveCapability" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqToolUsageRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "delegatedTool" ; gmeow:cellValueIri exd:webSearchAgent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "passiveCapability" ; gmeow:cellValueIri exd:sortSchema ] .

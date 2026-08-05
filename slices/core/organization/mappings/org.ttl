@@ -40,11 +40,16 @@ gmeow:mapOrgMembership a gmeow:ProjectionMapping ;
               gmeow:objectValue gmeow:Membership ]
             [ gmeow:subjectVar "mship" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "agent" ]
             [ gmeow:subjectVar "mship" ; gmeow:predicate gmeow:membershipOrganization ; gmeow:objectVar "mbOrg" ]
-            # the role leg fans in over the subproperty (queries run without
-            # RDFS closure): Employment's employmentRole ⊑ hasRole
-            [ gmeow:optionalGroup ( [ gmeow:subjectVar "mship" ;
-                gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasRole gmeow:employmentRole ) ] ;
-                gmeow:objectVar "mrole" ] ) ] ) ;
+            # the role leg fans in over the core hasRole superproperty with genuine
+            # subproperty-CLOSURE (queries run without RDFS closure, so the path
+            # itself walks rdfs:subPropertyOf* over the actual bound predicate —
+            # the mapSchemaHasPart/mapSchemaPartOf idiom, dsl/mappings/projections/
+            # schema-org.ttl) rather than hand-enumerating each extension's
+            # hasRole subproperty (e.g. employment's employmentRole ⊑ hasRole).
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "mship" ; gmeow:predicateVar "mrolePredicate" ; gmeow:objectVar "mrole" ]
+                [ gmeow:subjectVar "mrolePredicate" ;
+                  gmeow:path [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subPropertyOf ] ;
+                  gmeow:objectValue gmeow:hasRole ] ) ] ) ;
         gmeow:edoalSource gmeow:Membership ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "org" ; gmeow:toClass org:Membership ; gmeow:relation "=" ; gmeow:confidence 0.95 ;

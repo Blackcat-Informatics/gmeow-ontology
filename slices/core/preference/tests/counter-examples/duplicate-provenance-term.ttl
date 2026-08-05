@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the no-duplicate ban on PROVENANCE (charter Hard Rule 10,
+# ex:saNoRemintProvenanceTerms): a fixture that RE-MINTS gmeow:wasGeneratedBy as rdfs:isDefinedBy
+# the preference slice — the AC7 no-duplication violation (Principle 16). The slice REUSES the
+# provenance spine (e.g. gmeow:cellObservation ⊑ gmeow:wasDerivedFrom) at the instance level,
+# never re-minting it. Unioned with the module by the gmeow:saFailWitness teeth check, it makes
+# the ∃-redeclared-term ASK HOLD, proving the mustNot ban has teeth. The module must never carry
+# this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:wasGeneratedBy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .

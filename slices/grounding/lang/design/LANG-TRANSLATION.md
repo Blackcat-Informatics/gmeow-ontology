@@ -119,6 +119,25 @@ becomes a competency query over translation preservation records instead of a di
 This is dogfooding with teeth — the docs pipeline already produces the pairs; the slice gives the
 pairs their honest type.
 
+### The per-slice glossary — the term grain of the corpus
+
+The per-slice terminology glossary is not a new artifact: it is the **term-grain slice
+of the translation corpus above**. The pipeline folds every reviewed `.po` pair into a
+`gmeow:Glossary` (one per slice and language) of `gmeow:GlossaryEntry` records, each
+sense-anchored on a `lang:LexicalConcept` (the `ontolex:LexicalConcept` peer, so
+synonymy is derived, not asserted) and carrying its crossing's law-spine by pointing at
+the same `lang:TranslationUnit` the corpus already mints — the two graphs join in
+`gmeow.gts`, no duplication. Terminology *consistency* is then a formal property on that
+grain: the `(concept → rendering)` relation must be single-valued per language, so one
+sense never reads back as two divergent translations across batches. That invariant is
+the **functional-dependency dual** of the GMN alias-dictionary bijection (alias→term
+injective there; concept→translation single-valued here), authored as a `logic:Constraint`
+and enforced as the fast `make i18n-lint` gate over the `.po` substrate, with a declared
+`lang:DeclaredTerminologyHomograph` the honest, ontology-resident escape for a genuine
+homograph. "How is term X agreed to render in French?" becomes a competency query over
+the glossary, and a divergent rendering is a typed `lang:GlossaryTermInconsistency`
+rather than a drift nobody reads.
+
 ### The GMN dialect crossings ride the same rail
 
 The GMN dialect ladder ([`LANG-GMN.md`](LANG-GMN.md)) is this layer's formal-language corpus: each

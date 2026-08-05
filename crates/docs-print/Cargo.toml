@@ -4,7 +4,7 @@
 [package]
 name = "docs-print"
 description = "Deterministic Typst-source renderer and byte-reproducible in-memory PDF compiler for the GMEOW print documentation projection"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -33,7 +33,7 @@ typst-pdf = "=0.13.1"
 typst-assets = { version = "=0.13.1", features = ["fonts"] }
 # BLAKE3 for the embedded-font-set digest; the resulting digest is pinned by the
 # golden test, so compatible 1.x implementation updates do not need a manifest pin.
-blake3 = "1"
+blake3.workspace = true
 
 [dev-dependencies]
 insta = "1.48"

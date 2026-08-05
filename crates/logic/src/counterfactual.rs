@@ -32,6 +32,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use crate::dispatch::dispatch_query;
+// The sealed engine-tier accessor for the arena-branded `StructNode` handle: a
+// structured argument enters the plan/scenario key by its dense node ordinal, which is
+// only reachable through this trait.
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::physical::IncrementalQuerySession;
 use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
@@ -39,6 +42,7 @@ use crate::result::ReasoningResult;
 use crate::seam::{BudgetStatus, WorldFactSnapshot};
 use crate::store::WorldStore;
 use crate::versioning::{CounterfactualKeyInputs, counterfactual_world_key};
+use gmeow_term_arena::engine::StructNodeParts;
 
 /// Wrap a counterfactual-construction condition message as a typed diagnostic on
 /// the shared substrate, preserving the authored text verbatim.
@@ -732,6 +736,14 @@ fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
                     hasher.update(&[3]);
                     hasher.update(&(sn.node().index() as u64).to_le_bytes());
                 }
+                // A ground RDF 1.2 quoted-triple term — hash its components recursively
+                // under a distinct tag so it never collides with a flat constant.
+                QTerm::Triple { s, p, o } => {
+                    hasher.update(&[4]);
+                    for component in [s, p, o] {
+                        frame(&mut hasher, atom_str_term(component).as_bytes());
+                    }
+                }
             }
         }
     }
@@ -873,31 +885,32 @@ fn hash_rules(program: &QProgram) -> [u8; 32] {
     *blake3::hash(lines.join("\n").as_bytes()).as_bytes()
 }
 
+/// Canonical text for one `QTerm` in the rule-hash serialization. A quoted-triple term
+/// renders as `<<( s p o )>>` (recursively), matching the query surface.
+fn atom_str_term(t: &QTerm) -> String {
+    match t {
+        QTerm::Const(c) => c.clone(),
+        QTerm::Var(v) => format!("?{v}"),
+        QTerm::Num(n) => n.to_string(),
+        QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
+        QTerm::Triple { s, p, o } => format!(
+            "<<( {} {} {} )>>",
+            atom_str_term(s),
+            atom_str_term(p),
+            atom_str_term(o)
+        ),
+    }
+}
+
 fn atom_str(a: &QAtom) -> String {
-    let args: Vec<String> = a
-        .args
-        .iter()
-        .map(|t| match t {
-            QTerm::Const(c) => c.clone(),
-            QTerm::Var(v) => format!("?{v}"),
-            QTerm::Num(n) => n.to_string(),
-            QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
-        })
-        .collect();
+    let args: Vec<String> = a.args.iter().map(atom_str_term).collect();
     format!("<{}>({})", a.pred, args.join(", "))
 }
 
 /// Canonical text for a `QBuiltin` used only in the rule-hash serialization.
 fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
     use crate::query_ir::QBuiltin;
-    fn term(t: &QTerm) -> String {
-        match t {
-            QTerm::Const(c) => c.clone(),
-            QTerm::Var(v) => format!("?{v}"),
-            QTerm::Num(n) => n.to_string(),
-            QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
-        }
-    }
+    let term = atom_str_term;
     match b {
         QBuiltin::Is {
             target,
@@ -914,6 +927,17 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
         QBuiltin::Compare { lhs, op, rhs } => {
             format!("{} {} {}", term(lhs), op.token(), term(rhs))
         }
+        QBuiltin::BilinearSqDist { target, gram, x, y } => format!(
+            "{} is bilinearSqDist({}, {}, {})",
+            term(target),
+            term(gram),
+            term(x),
+            term(y)
+        ),
+        QBuiltin::DimEqual { d1, d2 } => format!("dimEqual({}, {})", term(d1), term(d2)),
+        QBuiltin::DimProduct { d_f, d_m, d_r } => {
+            format!("dimProduct({}, {}, {})", term(d_f), term(d_m), term(d_r))
+        }
     }
 }
 
@@ -929,7 +953,7 @@ fn strip_brackets(s: &str) -> String {
 fn const_iri(t: &QTerm) -> Option<String> {
     match t {
         QTerm::Const(c) => Some(strip_brackets(c)),
-        QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
+        QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => None,
     }
 }
 

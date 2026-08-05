@@ -111,9 +111,10 @@ Idiom cheatsheet:
 
 ## Prove parity, then retire
 
-1. `make sync` **once** (the JSON-Schema/OpenAPI, Pydantic, and SHACL-diagnostics
+1. `make check` **once** (the JSON-Schema/OpenAPI, Pydantic, and SHACL-diagnostics
    stages consume the generated shape surfaces as in-memory products, so a shape edit
-   reaches `gmeow.{openapi,schema}.json` in a single pass), then `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`.
+   reaches `gmeow.{openapi,schema}.json` in a single pass; the gate materializes and
+   then proves that fixed point itself).
 2. Confirm the slice's `tests/example-conformance.ttl` + `tests/counter-examples/*.ttl`
    still pass/fail identically against the projected union (each migrated constraint needs
    a ≥1-pass / ≥1-fail witness pair).

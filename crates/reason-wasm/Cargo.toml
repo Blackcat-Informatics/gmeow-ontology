@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-reason-wasm"
+description = "wasm32 bindings for the native GMEOW logic reasoner: run the structured-DL chase over authored RDF client-side (browser / editor / LLM client) and return the reasoned closure"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "reasoning", "datalog", "wasm", "knowledge-graph"]
+
+[lib]
+# cdylib for the wasm-bindgen build (the shipped npm/ESM artifact); rlib so the thin
+# binding logic still compiles + unit-tests on the native workspace gate.
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The native logic reasoner. It cross-compiles to wasm32 as-is: rayon has a
+# single-threaded wasm fallback and the chase's `should_parallelize` gate returns
+# false when `current_num_threads() == 1`, so the browser runs the SERIAL chase —
+# byte-identical to the parallel one (proven by the rule-parallel evidence probe).
+gmeow-logic = { path = "../logic" }
+# The ONE canonical RDF parser/serializer (never a second RDF stack): parse the
+# input RDF into the native dataset and serialize the reasoned closure to N-Quads.
+purrdf.workspace = true
+gmeow-errors = { path = "../errors" }
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+wasm-bindgen.workspace = true

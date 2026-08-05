@@ -147,6 +147,28 @@ pub fn crate_check() -> i32 {
             .with_tool("docs-loss-lattice"),
         );
     }
+    // F4/F5 attestation gate: no documentation format may REPRESENT an interactive
+    // capability (LiveSparql / Interactivity / LiveReasoning) unless every shipped engine
+    // backing it carries a present, current native↔wasm witness-attestation. Composed with
+    // the `wasm-parity` lane on the required CI `make heavy` lane (which RUNS the parity
+    // for ALL FOUR engines — query/validate/reason/gmn, on every pull request; it is off
+    // the local `make check` only because its cost is breadth, not the change under test)
+    // and the digest pin, this enforces the conjunction "the format
+    // declares the capability AND its engine's parity is proven-and-current", so the
+    // interactive preservation-kind is not a decorative self-claim. Every engine is built
+    // in this repository from the workspace purrdf pin; the query engine's witness is the
+    // digest-pinned native query attestation its own Node lane byte-compares. A
+    // missing/stale attestation HARD-FAILS here.
+    for message in gmeow_docs::vendored_asset::check_capability_attestations() {
+        report.add_finding(
+            Finding::new(
+                Severity::Error,
+                "interactive-capability-attestation-missing",
+                message,
+            )
+            .with_tool("capability-attestation-gate"),
+        );
+    }
     // Vendored-corpus license guard: every `crates/*/tests/vendored/*/corpus.json` descriptor
     // must classify IMPORT_OK under `gmeow_license::policy_for_vendored_corpus`, so an
     // unattributed/unfenced (or otherwise restrictive) vendored corpus hard-fails on-gate
@@ -501,27 +523,108 @@ fn collect_ttl_all(dir: &Path, out: &mut Vec<PathBuf>) {
 
 // ── doc-lint ────────────────────────────────────────────────────────────────
 
+/// The site-relative path of the rendered grounding seam-registry page
+/// (`gmeow_docs::render::Page::SeamRegistry`), keyed exactly as
+/// [`gmeow_docs::render::Site::files`] keys it.
+const SEAM_REGISTRY_SITE_PAGE: &str = "seams/index.md";
+
+/// The UNCONDITIONAL leg of the R7 seam-registry drift gate.
+///
+/// `gmeow-validate`'s on-disk leg can only compare against `ontology-docs/`, which a
+/// docs-selected sync writes — and neither `make validate` (no sync) nor the
+/// `make check` DAG (`check-sync --outputs generated`) materializes it, so on the
+/// gate path that leg has no page to read. Here the page ALWAYS exists: `doc-lint`
+/// has just rendered the whole site in memory, and `doc-lint` is itself a
+/// `make check` DAG task. So the per-seam comparison
+/// ([`gmeow_validate::authoring_integrity::detect_seam_registry_drift`]) runs on
+/// every gate run, over the authored `gmeow:Seam` registry read through the one
+/// shared reader — and a missing seam page, an unreadable manifest, or any drift is
+/// a HARD FAIL, never a skip.
+///
+/// This is the ONLY direction the dependency can go: `gmeow-docs` depends on
+/// `gmeow-validate`, so `gmeow-validate` cannot render the page itself; this crate
+/// depends on both and is where the two halves legitimately meet.
+fn seam_registry_drift_over_rendered_site(
+    root: &Path,
+    site: &gmeow_docs::render::Site,
+) -> gmeow_errors::Result<Vec<Finding>> {
+    let seams = gmeow_validate::authoring_integrity::seam_registry_of_slices(&root.join("slices"))
+        .map_err(|e| error::source(format!("cannot read the gmeow:Seam registry: {e}")))?;
+    if seams.is_empty() {
+        return Err(error::source(format!(
+            "no gmeow:Seam individuals discovered under {} — the seam-registry drift \
+             comparison would be vacuous, refusing to pass",
+            root.join("slices").display(),
+        )));
+    }
+    let Some(bytes) = site.files.get(SEAM_REGISTRY_SITE_PAGE) else {
+        return Err(error::source(format!(
+            "the rendered site carries no {SEAM_REGISTRY_SITE_PAGE}, but {n} gmeow:Seam \
+             individual(s) are declared in the grounding manifests",
+            n = seams.len(),
+        )));
+    };
+    let page = std::str::from_utf8(bytes).map_err(|e| {
+        error::encoding(format!(
+            "the rendered {SEAM_REGISTRY_SITE_PAGE} is not UTF-8: {e}"
+        ))
+    })?;
+    Ok(gmeow_validate::authoring_integrity::detect_seam_registry_drift(&seams, page))
+}
+
 /// `gmeow-dev doc-lint` — lint the rust-rendered ontology-docs site.
 pub fn doc_lint() -> i32 {
     let root = project_root();
-    let model = match gmeow_docs::model::DocsModel::discover(&root) {
+    // The model and the English site come from the content-addressed
+    // `.cache/docs-fixture` store, NOT a fresh ~12 s `DocsModel::discover` + render.
+    // This is the identical artifact by construction: `fixture::load` is
+    // byte-identical to `discover()` (its envelope carries the three `#[serde(skip)]`
+    // i18n fields explicitly) and `fixture::load_site` is byte-identical to
+    // `render_site(&load(root))` (`render_site` IS `render_site_lang(_, ENGLISH)`).
+    // The cache key folds every input `discover()` reads plus the whole transitive
+    // path-dependency closure of `gmeow-docs`, so no edit that could change what this
+    // gate lints can leave the key unmoved; a present-but-corrupt entry panics rather
+    // than silently rebuilding. Nothing about what doc-lint ASSERTS changes here —
+    // only how many times the same model gets built in one `make check`.
+    let model = match gmeow_docs::fixture::try_load(&root) {
         Ok(m) => m,
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };
-    let site = gmeow_docs::render::render_site(&model);
+    let site = gmeow_docs::fixture::load_site(&root);
+
+    // R7 seam-registry drift, over the page just rendered — the leg that makes the
+    // per-seam comparison unconditional on-gate (see the helper's doc comment).
+    let seam_drift = match seam_registry_drift_over_rendered_site(&root, &site) {
+        Ok(findings) => findings,
+        Err(e) => return fail(format!("doc-lint: seam-registry drift gate: {e}")),
+    };
+    for finding in &seam_drift {
+        note(
+            "gmeow-dev.doc-lint.seam-registry-drift",
+            format!("{:?} {}", finding.severity, finding.message),
+        );
+    }
+    let seam_errors = seam_drift
+        .iter()
+        .filter(|f| f.severity == Severity::Error)
+        .count();
+
     let report = gmeow_docs::lint(&model, &site);
     let text = render::to_text_summarized(&report.normalized());
     if !text.trim().is_empty() {
         println!("{text}");
     }
-    if report.error_count() > 0 {
+    if report.error_count() > 0 || seam_errors > 0 {
         return fail(format!(
-            "doc-lint: {} error(s), {} warning(s)",
+            "doc-lint: {} error(s), {} warning(s), {seam_errors} seam-registry drift error(s)",
             report.error_count(),
             report.warning_count()
         ));
     }
-    println!("doc-lint OK ({} warning(s))", report.warning_count());
+    println!(
+        "doc-lint OK ({} warning(s)); seam-registry drift OK (per-seam comparison ran)",
+        report.warning_count()
+    );
     0
 }
 
@@ -722,19 +825,18 @@ pub fn quality(foops_url: &str, strict: bool) -> i32 {
 mod vendored_corpus_license_tests {
     use super::vendored_corpus_license_findings;
 
-    /// A unique temp directory under the system temp dir; the caller removes it.
-    fn tempdir(slug: &str) -> std::path::PathBuf {
-        let mut path = std::env::temp_dir();
-        path.push(format!(
-            "gmeow-dev-cli-vendored-license-{slug}-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_nanos())
-                .unwrap_or(0)
-        ));
-        std::fs::create_dir_all(&path).expect("create temp dir");
-        path
+    /// A fresh temp directory owned by the returned [`tempfile::TempDir`].
+    ///
+    /// Bind the guard to a live local (`let (_tmp, root) = tempdir("slug");`): when it
+    /// drops the directory and everything written under it is removed, on success, on
+    /// early return, and on panic alike.
+    fn tempdir(slug: &str) -> (tempfile::TempDir, std::path::PathBuf) {
+        let tmp = tempfile::Builder::new()
+            .prefix(&format!("gmeow-dev-cli-vendored-license-{slug}-"))
+            .tempdir()
+            .expect("create temp dir");
+        let path = tmp.path().to_path_buf();
+        (tmp, path)
     }
 
     fn write_descriptor(root: &std::path::Path, crate_name: &str, corpus_name: &str, json: &str) {
@@ -779,7 +881,7 @@ mod vendored_corpus_license_tests {
     /// unit tests.
     #[test]
     fn unfenced_cc_by_sa_descriptor_yields_one_error_finding() {
-        let root = tempdir("unfenced");
+        let (_tmp, root) = tempdir("unfenced");
         write_descriptor(
             &root,
             "some-crate",
@@ -803,14 +905,13 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the unfenced CC-BY-SA descriptor: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-violation");
-        std::fs::remove_dir_all(&root).ok();
     }
 
     /// Negative: a CC-BY-SA-4.0 descriptor with empty attribution likewise fails the exception
     /// and is folded as an Error finding.
     #[test]
     fn unattributed_cc_by_sa_descriptor_yields_one_error_finding() {
-        let root = tempdir("unattributed");
+        let (_tmp, root) = tempdir("unattributed");
         write_descriptor(
             &root,
             "some-crate",
@@ -834,14 +935,13 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the unattributed CC-BY-SA descriptor: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-violation");
-        std::fs::remove_dir_all(&root).ok();
     }
 
     /// A descriptor missing a required field (`ring_fenced`) is itself a HARD FAIL — no
     /// optionality, no silent skip.
     #[test]
     fn descriptor_missing_required_field_is_hard_fail() {
-        let root = tempdir("missing-field");
+        let (_tmp, root) = tempdir("missing-field");
         write_descriptor(
             &root,
             "some-crate",
@@ -860,6 +960,5 @@ mod vendored_corpus_license_tests {
             "expected exactly one finding for the descriptor missing ring_fenced: {findings:?}"
         );
         assert_eq!(findings[0].code, "vendored-corpus-license-invalid");
-        std::fs::remove_dir_all(&root).ok();
     }
 }

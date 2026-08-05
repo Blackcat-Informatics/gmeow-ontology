@@ -31,10 +31,13 @@ use crate::exec::ExecutableDocsData;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::source_map::{
+    DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
+};
 use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 // Full predicate IRIs used to resolve translated label / definition / title
 // values (the `.po` msgctxt predicate, CURIE-expanded). Mirror `model.rs`.
@@ -65,6 +68,23 @@ const CSS_PATH: &str = "assets/gmeow.css";
 /// is emitted to. Language-neutral: the RDF is language-independent.
 const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 
+/// The site-relative path of the **conjecture demo library** — the curated
+/// `logic:Conjecture` corpus as Turtle ([`ExecutableDocsData::conjectures_ttl`]). The W4
+/// conjecture playground fetches + byte-verifies it (via [`BUNDLE_MANIFEST_PATH`]) and
+/// presents its curated conjectures alongside the live wasm symmetric engine.
+const CONJECTURES_PATH: &str = "assets/conjectures.ttl";
+
+/// The site-relative path of the FULL `gmeow.gts` bundle
+/// ([`ExecutableDocsData::full_bundle_gts`]) — the in-browser Tier-1 validate surface
+/// reads its `shapes-archive`. An EXTERNAL site asset (never re-embedded in the bundle).
+const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
+
+/// The site-relative path of the browser-bundle integrity manifest: a JSON map from
+/// each bundle asset path to its `blake3:<hex>` content address and byte length, so
+/// the client loader can record/verify which exact bytes it fetched. A deterministic
+/// function of the emitted asset bytes.
+const BUNDLE_MANIFEST_PATH: &str = "assets/bundle-manifest.json";
+
 /// The site-relative path of the docs controller module (SPARQL playground query
 /// execution + result transcoding). A self-contained ES module.
 const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
@@ -73,19 +93,12 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
-/// The vendored purrdf wasm engine (the offline SPARQL runtime), emitted under
-/// `assets/purrdf/` when the playground is present. Pinned build inputs — see
-/// `crates/docs/assets/purrdf/PROVENANCE.md`.
-const PURRDF_ASSETS: &[(&str, &[u8])] = &[
-    (
-        "gmeow_rdf_wasm.js",
-        include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
-    ),
-    (
-        "gmeow_rdf_wasm_bg.wasm",
-        include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
-    ),
-];
+/// The wasm engines emitted under `assets/<name>/` when the playground is present: the
+/// offline SPARQL/bundle-explorer runtime, the repo-free Tier-1 validator, the
+/// structured-DL reasoner and the GMN codec. Every one is built in this repository; one
+/// descriptor per asset lives in [`crate::vendored_asset`], and this is an alias for that
+/// module's single registry rather than a second copy of the list.
+use crate::vendored_asset::ALL_ASSETS as VENDORED_WASM_ASSETS;
 
 // ── Pages ──────────────────────────────────────────────────────────────────
 
@@ -112,6 +125,18 @@ pub enum Page {
     SliceIndex,
     /// A single slice page (`slices/<slug>/index`).
     Slice(String),
+    /// A slice child-document page (`slices/<slug>/documents/<stem>/index`) — one
+    /// non-slice-page `text/markdown` source (a `design/*.md`, or any markdown
+    /// other than the top-level `docs.md`) rendered as its own page. `slice` is
+    /// the owning slice IRI and `path` is the document's normalized slice-relative
+    /// source path (e.g. `design/ARCHITECTURE.md`); the page path is minted through
+    /// the single [`crate::source_map::page_for`] authority.
+    SliceDocument {
+        /// The owning slice IRI.
+        slice: String,
+        /// The document's normalized slice-relative source path.
+        path: String,
+    },
     /// The linkages (term equivalences) index (`linkages/index`).
     LinkageIndex,
     /// The worked-examples index (`examples/index`).
@@ -184,9 +209,25 @@ pub enum Page {
     /// / OWL / SHACL vocabulary to the everyday software concepts they correspond
     /// to, a bridge for readers who do not know RDF.
     Glossary,
+    /// The grounding seam registry (`seams/index`) — every sanctioned
+    /// cross-grounding `gmeow:Seam` (direction, carrying terms, owning design
+    /// doc), projected from the canonical data authored in the grounding
+    /// slices' manifests (never a hand-authored table). See
+    /// [`crate::model::DocSeam`].
+    SeamRegistry,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
     /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
+    /// The bundle explorer (`explorer/index`) — browser `gmeow info`/`describe` over
+    /// the object-level core bundle. Emitted only when the bundle assets ship
+    /// (`has_bundle()`).
+    BundleExplorer,
+    /// The conjecture playground (`conjectures/index`, the WASM-interactive docs W4 deliverable) — the browser
+    /// symmetric conjecture / anti-conjecture engine over the curated demo library, run
+    /// client-side by the SAME native `logic:` reasoner via the vendored wasm
+    /// `conjecture` export. Emitted only when the conjecture demo asset + bundle ship
+    /// (`has_conjectures()`).
+    ConjecturePlayground,
 }
 
 impl Page {
@@ -203,6 +244,14 @@ impl Page {
             Page::Term(slug) => format!("terms/{slug}"),
             Page::SliceIndex => "slices".to_string(),
             Page::Slice(slug) => format!("slices/{slug}"),
+            Page::SliceDocument { slice, path } => {
+                // The child page path is minted by the single `source_map` authority
+                // (`slices/{slug}/documents/{stem}/`); `dir()` is that path without its
+                // trailing slash, so the site's `join(dir, "index.{md,html}")` matches
+                // the `Page::Slice` convention.
+                let page = crate::source_map::page_for(&slice_slug_of_iri(slice), path);
+                page.strip_suffix('/').unwrap_or(&page).to_string()
+            }
             Page::LinkageIndex => "linkages".to_string(),
             Page::ExampleIndex => "examples".to_string(),
             Page::FixtureIndex => "fixtures".to_string(),
@@ -226,7 +275,10 @@ impl Page {
             Page::FourBoxes => "four-boxes".to_string(),
             Page::PipelineDag => "pipeline".to_string(),
             Page::Glossary => "glossary".to_string(),
+            Page::SeamRegistry => "seams".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
+            Page::BundleExplorer => "explorer".to_string(),
+            Page::ConjecturePlayground => "conjectures".to_string(),
         }
     }
 
@@ -262,6 +314,13 @@ impl Page {
                 .find(|s| slice_slug(s) == *slug)
                 .map(slice_display)
                 .unwrap_or_else(|| slug.clone()),
+            Page::SliceDocument { slice, path } => model
+                .slices
+                .iter()
+                .find(|s| &s.iri == slice)
+                .and_then(|s| s.documents.iter().find(|d| &d.source_path == path))
+                .map(|d| d.title.clone())
+                .unwrap_or_else(|| path.clone()),
             Page::LinkageIndex => "Linkages".to_string(),
             Page::ExampleIndex => "Examples".to_string(),
             Page::FixtureIndex => "Conformance fixtures".to_string(),
@@ -305,7 +364,10 @@ impl Page {
             Page::FourBoxes => "What is this?".to_string(),
             Page::PipelineDag => "Build pipeline".to_string(),
             Page::Glossary => "Glossary".to_string(),
+            Page::SeamRegistry => "Grounding seams".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
+            Page::BundleExplorer => "Bundle explorer".to_string(),
+            Page::ConjecturePlayground => "Conjecture playground".to_string(),
         }
     }
 }
@@ -426,42 +488,75 @@ pub fn render_site_lang_exec_with_diagrams(
         &localized
     };
 
+    // The single link-rewrite authority, built ONCE for this whole site render and threaded
+    // through every page/index renderer below (a pure function of the — possibly localized —
+    // model). Previously each of md_slice / md_slice_document / search_index_json / llms_txt /
+    // llms_full_txt rebuilt it, re-deriving the same document anchors N+M+3 times per render.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     for page in pages(model) {
         files.insert(
             page.md_path(),
-            to_markdown_exec(model, &page, exec).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
         );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
-    // The offline SPARQL playground: its bundled RDF asset (documentation graph + the
-    // reasoned ontology closure, TriG), the vendored purrdf wasm engine, the controller
-    // module, and the page itself. All language-independent, emitted only in the
-    // English tree (see the gate above). Term/slice export runs through this same
+    // The interactive asset set (the controller module, the vendored wasm engines, and
+    // the SPARQL-playground / browser-bundle data) — the ONE authority both the site
+    // here and the packed mdbook ([`crate::mdbook`]) draw from, so the book ships the
+    // byte-identical engines the site's witness lanes prove. Language-independent,
+    // emitted only in the English tree (see the gate above).
+    files.extend(interactive_asset_files(exec));
+
+    // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
     if exec.has_playground() {
-        files.insert(
-            PLAYGROUND_TRIG_PATH.to_string(),
-            exec.playground_trig.clone(),
-        );
-        files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
-        for (name, bytes) in PURRDF_ASSETS {
-            files.insert(format!("assets/purrdf/{name}"), bytes.to_vec());
-        }
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
-            to_markdown_exec(model, &page, exec).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+        );
+    }
+
+    // The bundle explorer page (browser gmeow info/describe + live reasoning + GMN
+    // transcode over the core bundle). Its assets are shipped by
+    // `interactive_asset_files` above.
+    if exec.has_bundle() {
+        let page = Page::BundleExplorer;
+        files.insert(
+            page.md_path(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+        );
+        files.insert(
+            page.html_path(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+        );
+    }
+
+    // The conjecture playground page (browser symmetric proof / counterproof over the
+    // curated demo library + the live wasm conjecture engine). Its assets (the demo
+    // library + the vendored reason engine) are shipped by `interactive_asset_files`.
+    if exec.has_conjectures() {
+        let page = Page::ConjecturePlayground;
+        files.insert(
+            page.md_path(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+        );
+        files.insert(
+            page.html_path(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
         );
     }
 
@@ -505,14 +600,17 @@ pub fn render_site_lang_exec_with_diagrams(
     // Static indexes (deterministic, pure functions of the model).
     files.insert(
         "search-index.json".to_string(),
-        search_index_json(model).into_bytes(),
+        search_index_json_with_map(model, &page_map).into_bytes(),
     );
     // Standard llmstxt.org surfaces: a links-only index and a complete
     // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
-    files.insert("llms.txt".to_string(), llms_txt(model).into_bytes());
+    files.insert(
+        "llms.txt".to_string(),
+        llms_txt_with_map(model, &page_map).into_bytes(),
+    );
     files.insert(
         "llms-full.txt".to_string(),
-        llms_full_txt(model).into_bytes(),
+        llms_full_txt_with_map(model, &page_map).into_bytes(),
     );
 
     // Prompt-ready per-term cards: a compact, link-free Markdown card per
@@ -592,6 +690,78 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
     pages(model)
 }
 
+/// The browser-bundle integrity manifest JSON — a stable, sorted, byte-deterministic
+/// map from each bundle asset path to its `blake3:<hex>` content address and length.
+/// A pure function of the emitted bundle bytes; the client loader records/verifies it.
+fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
+    // One entry per shipped bundle asset, in a fixed deterministic order (full bundle,
+    // then the playground corpus, then the optional conjecture demo library). EVERY
+    // client-fetched RDF asset gets an entry: the browser loader verifies each fetch
+    // against its recorded content address, and an asset with no entry could only be
+    // accepted unverified — the bypass the manifest exists to make impossible.
+    let entry = |path: &str, bytes: &[u8]| {
+        format!(
+            "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
+            d = blake3::hash(bytes).to_hex(),
+            n = bytes.len(),
+        )
+    };
+    let mut entries = vec![entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts)];
+    if !exec.playground_trig.is_empty() {
+        entries.push(entry(PLAYGROUND_TRIG_PATH, &exec.playground_trig));
+    }
+    // The conjecture demo library ships iff the W4 playground surface is rendered.
+    if exec.has_conjectures() {
+        entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));
+    }
+    format!("{{\n{}\n}}\n", entries.join(",\n"))
+}
+
+/// The interactive asset FILES (no pages) an exec-backed render ships, keyed by their
+/// site-relative path (`assets/…`): the shared controller module, the vendored wasm
+/// engines, and — when present — the SPARQL playground data and the browser bundle +
+/// its integrity manifest.
+///
+/// This is the SINGLE authority for "which interactive assets exist": the static site
+/// emits them at the site root and the mdbook packer ([`crate::mdbook`]) copies the
+/// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
+/// the ones the native↔wasm witness lanes prove. Empty when the render is neither
+/// playground- nor bundle-backed.
+pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
+    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
+        return files;
+    }
+    files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+    for asset in VENDORED_WASM_ASSETS {
+        asset.emit_into(&mut files);
+    }
+    if exec.has_playground() {
+        files.insert(
+            PLAYGROUND_TRIG_PATH.to_string(),
+            exec.playground_trig.clone(),
+        );
+    }
+    if exec.has_bundle() {
+        files.insert(
+            FULL_BUNDLE_GTS_PATH.to_string(),
+            exec.full_bundle_gts.clone(),
+        );
+        files.insert(
+            BUNDLE_MANIFEST_PATH.to_string(),
+            bundle_manifest_json(exec).into_bytes(),
+        );
+    }
+    // The conjecture demo library: an UNCONDITIONAL site sub-asset whenever the W4
+    // playground surface renders (the release path hard-fails on an empty declared
+    // sub-asset, so it must always be present when interactive). Its integrity entry
+    // rides in the bundle manifest emitted just above (`has_conjectures()` ⟹ `has_bundle()`).
+    if exec.has_conjectures() {
+        files.insert(CONJECTURES_PATH.to_string(), exec.conjectures_ttl.clone());
+    }
+    files
+}
+
 /// The full, deterministically ordered page set for the model.
 fn pages(model: &DocsModel) -> Vec<Page> {
     let mut pages = vec![
@@ -618,6 +788,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::RecipeIndex,
         Page::LearningPathIndex,
         Page::Glossary,
+        Page::SeamRegistry,
     ];
     // The curated "four boxes" doctrine page only when its prose is present.
     if model.four_boxes.is_some() {
@@ -659,6 +830,19 @@ fn pages(model: &DocsModel) -> Vec<Page> {
     }
     for slice in &model.slices {
         pages.push(Page::Slice(slice_slug(slice)));
+        // Each of the slice's NON-slice-page markdown sources gets its own child
+        // page, right after the slice page. `slice.documents` is path-sorted, so
+        // the child pages are emitted in logical-path order (matching
+        // `SourceToPageMap::slice_children`). The top-level `docs.md` IS the slice
+        // page (grafted into it), so it is not a child.
+        for doc in &slice.documents {
+            if doc.source_path != SLICE_PAGE_SOURCE {
+                pages.push(Page::SliceDocument {
+                    slice: slice.iri.clone(),
+                    path: doc.source_path.clone(),
+                });
+            }
+        }
     }
     for concern in &model.concerns {
         pages.push(Page::Concern(concern_slug(concern)));
@@ -678,6 +862,24 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
 /// an empty `exec` this is byte-identical to the base render (the executable surfaces
 /// simply do not appear), so the model-only goldens are unaffected.
 pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsData) -> String {
+    // The single link-rewrite authority is a pure function of the model; a standalone
+    // page render builds it here. A full site/book render instead builds it ONCE and
+    // calls [`to_markdown_exec_with_map`] per page, so the map is not rebuilt for every
+    // slice/child page (the anchors were otherwise re-derived N+M times per render).
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    to_markdown_exec_with_map(model, page, exec, &page_map)
+}
+
+/// [`to_markdown_exec`] with the shared [`SourceToPageMap`] threaded in, so a full
+/// site/book render builds it once. Byte-identical to `to_markdown_exec` (the map is a
+/// deterministic function of the model).
+pub(crate) fn to_markdown_exec_with_map(
+    model: &DocsModel,
+    page: &Page,
+    exec: &ExecutableDocsData,
+    page_map: &SourceToPageMap,
+) -> String {
     let mut md = match page {
         Page::Term(slug) => {
             let mut md = md_term(model, slug, exec);
@@ -685,12 +887,14 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
             md
         }
         Page::Slice(slug) => {
-            let mut md = md_slice(model, slug);
+            let mut md = md_slice(model, slug, page_map);
             append_slice_executable_sections(&mut md, model, slug, exec);
             md
         }
         Page::SparqlPlayground => md_playground(model, exec),
-        _ => to_markdown_base(model, page),
+        Page::BundleExplorer => md_bundle_explorer(model, exec),
+        Page::ConjecturePlayground => md_conjecture_playground(model, exec),
+        _ => to_markdown_base(model, page, page_map),
     };
     // The generalized page-level cite-this-surface on every durable NON-term page
     // (the term page carries its own richer content-addressed Citation section).
@@ -705,7 +909,7 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
     md
 }
 
-fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
+fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) -> String {
     match page {
         Page::Landing => md_landing(model),
         Page::GettingStarted => md_getting_started(model),
@@ -715,7 +919,8 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Category(category) => md_category(model, *category),
         Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default()),
         Page::SliceIndex => md_slice_index(model),
-        Page::Slice(slug) => md_slice(model, slug),
+        Page::Slice(slug) => md_slice(model, slug, page_map),
+        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path, page_map),
         Page::LinkageIndex => md_linkage_index(model),
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
@@ -739,8 +944,13 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::FourBoxes => md_four_boxes(model),
         Page::PipelineDag => md_pipeline_dag(model),
         Page::Glossary => md_glossary(model),
+        Page::SeamRegistry => md_seam_registry(model),
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
+        Page::BundleExplorer => md_bundle_explorer(model, &ExecutableDocsData::default()),
+        Page::ConjecturePlayground => {
+            md_conjecture_playground(model, &ExecutableDocsData::default())
+        }
     }
 }
 
@@ -884,6 +1094,151 @@ fn append_term_export_section(
 }
 
 /// The offline SPARQL playground page.
+/// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
+/// core bundle. The controller (`gmeow-docs.js`) loads the FULL `gmeow.gts` bundle
+/// via the shared loader (`Dataset.fromGts`, byte-verified against the manifest),
+/// shows the bundle's `info` summary on boot, and runs a client-side `DESCRIBE` for
+/// the entered term IRI — the same describe the native `gmeow describe` produces,
+/// proven byte-identical by the F2 witness lane.
+fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Bundle explorer");
+    line(
+        &mut out,
+        "Explore the shipped ontology **entirely in your browser** — no server, no \
+         network. This loads the full `gmeow.gts` bundle — every named graph and the \
+         RDF 1.2 statement layer — and answers `info` (a summary of the loaded \
+         dataset) and `describe <iri>` (every triple mentioning a term) via the \
+         repository's own query engine compiled to WebAssembly — the same answers \
+         the `gmeow` CLI gives.",
+    );
+    // Raw HTML passes through the Markdown → HTML step; the controller script is
+    // injected per page by the HTML shell (gated on `has_bundle()`).
+    out.push_str(
+        "<div id=\"gmeow-explorer\" class=\"gmeow-explorer\">\n\
+         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Loading the bundle…</p>\n\
+         <form id=\"gmeow-explorer-form\">\n\
+         <label for=\"gmeow-explorer-iri\">Describe a term (IRI or CURIE)</label>\n\
+         <input id=\"gmeow-explorer-iri\" type=\"text\" spellcheck=\"false\" \
+         placeholder=\"https://blackcatinformatics.ca/gmeow/Cat\">\n\
+         <button type=\"submit\">Describe</button>\n\
+         </form>\n\
+         <div id=\"gmeow-explorer-results\" class=\"gmeow-explorer-results\"></div>\n\
+         </div>\n",
+    );
+    // ── Live entailment panel (W4b) ─────────────────────────────────────────
+    heading(&mut out, 2, "Live entailment");
+    line(
+        &mut out,
+        "Paste RDF (Turtle) and run the **native GMEOW structured-DL reasoner** over \
+         it in your browser — the SAME chase the on-gate authority runs (serial on \
+         wasm, byte-identical to the parallel native path). The panel shows the \
+         inference diff: the entailed triples the reasoner derived.",
+    );
+    out.push_str(
+        "<div id=\"gmeow-reason\" class=\"gmeow-reason\">\n\
+         <form id=\"gmeow-reason-form\">\n\
+         <label for=\"gmeow-reason-input\">RDF (Turtle)</label>\n\
+         <textarea id=\"gmeow-reason-input\" rows=\"6\" spellcheck=\"false\">\
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .\n\
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .\n\
+@prefix ex: &lt;https://example.org/&gt; .\n\
+ex:Cat rdfs:subClassOf ex:Animal .\n\
+ex:felix rdf:type ex:Cat .</textarea>\n\
+         <button type=\"submit\">Reason</button>\n\
+         </form>\n\
+         <div id=\"gmeow-reason-results\" class=\"gmeow-reason-results\"></div>\n\
+         </div>\n",
+    );
+    // ── GMN transcode widget (W4c) ──────────────────────────────────────────
+    heading(&mut out, 2, "GMN transcode");
+    line(
+        &mut out,
+        "Transcode authored RDF into the token-compact **GMN-1** surface — and back — \
+         in your browser, using the SAME codec + glyph symbology the on-gate authority \
+         ships. GMN-1 is a source code over the LLM token channel: reference-position \
+         terms resolve through the shipped `lang:` codebook, so a codebook-covered \
+         surface reads back to the identical RDF. The panel shows the round-trip: your \
+         RDF → GMN-1 → the canonical N-Quads it reads back to. Hover a glyph in the \
+         legend to see its real token cost.",
+    );
+    out.push_str(
+        "<div id=\"gmeow-gmn\" class=\"gmeow-gmn\">\n\
+         <form id=\"gmeow-gmn-form\">\n\
+         <label for=\"gmeow-gmn-input\">RDF (Turtle)</label>\n\
+         <textarea id=\"gmeow-gmn-input\" rows=\"6\" spellcheck=\"false\">\
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .\n\
+gmeow:gate1 gmeow:hasState gmeow:doorGate1 .\n\
+gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
+         <button type=\"submit\">Transcode</button>\n\
+         </form>\n\
+         <div id=\"gmeow-gmn-legend\" class=\"gmeow-gmn-legend\"></div>\n\
+         <div id=\"gmeow-gmn-results\" class=\"gmeow-gmn-results\"></div>\n\
+         </div>\n",
+    );
+    let _ = model;
+    out
+}
+
+/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser SYMMETRIC conjecture /
+/// anti-conjecture engine. The controller (`gmeow-docs.js`) fetches + byte-verifies the
+/// curated demo library, loads the core bundle as the KB, and — on submit — runs the
+/// vendored wasm `conjecture` export (the SAME native `logic:` reasoner, proven
+/// byte-identical by the W4 conjecture witness lane), then renders BOTH legs of the test:
+/// the proof leg (`KB ⊨ φ`), the counterproof leg (`KB ∪ {φ} ⊨ ⊥`) with its contradiction
+/// witness, and the Belnap classification.
+fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Conjecture playground");
+    line(
+        &mut out,
+        "Test a candidate `logic:` formula against a knowledge base with the **native \
+         GMEOW symmetric conjecture engine** — entirely in your browser, no server, no \
+         network. The engine runs TWO independent legs: a **proof** leg (does the KB \
+         *entail* the formula? `KB ⊨ φ`) and a **counterproof** leg (does asserting the \
+         formula make the KB *inconsistent*? `KB ∪ {φ} ⊨ ⊥`, yielding a concrete \
+         contradiction witness). The Belnap classification of the two legs decides the \
+         conjecture's epistemic lifecycle: corroborated, refuted-in-standpoint, or open. \
+         This is the SAME chase the on-gate authority runs (serial on wasm, byte-identical \
+         to native — proven by the conjecture witness lane).",
+    );
+    // The interactive form (raw HTML passes through the Markdown → HTML step). The
+    // controller script is injected per page by the HTML shell (gated on
+    // `has_conjectures()`); it populates the selector from the curated demo library and
+    // renders the symmetric verdict.
+    out.push_str(
+        "<div id=\"gmeow-conjecture\" class=\"gmeow-conjecture\">\n\
+         <p id=\"gmeow-conjecture-status\" class=\"gmeow-conjecture-status\">Loading the \
+         conjecture engine…</p>\n\
+         <form id=\"gmeow-conjecture-form\">\n\
+         <label for=\"gmeow-conjecture-select\">Curated conjecture demo</label>\n\
+         <select id=\"gmeow-conjecture-select\"></select>\n\
+         <button type=\"submit\">Test</button>\n\
+         </form>\n\
+         <div id=\"gmeow-conjecture-results\" class=\"gmeow-conjecture-results\"></div>\n\
+         </div>\n",
+    );
+    // The curated conjecture demo library, shipped verbatim as a site sub-asset and
+    // rendered here for reference: six `logic:Conjecture`s exercising every branch of the
+    // Belnap-to-lifecycle projection (open, corroborated, refuted-in-standpoint with a
+    // contradiction witness + symmetric anti-conjecture leg, a Lakatos refinement
+    // successor, and a phi-entails-psi propagation pair). The controller fetches this exact
+    // asset (`assets/conjectures.ttl`) and byte-verifies it against the bundle manifest.
+    heading(&mut out, 2, "The curated conjecture library");
+    line(
+        &mut out,
+        "The playground ships this curated `logic:Conjecture` corpus as an integrity-pinned \
+         site asset. Each conjecture carries its formula, its reified standpoint, its \
+         engine-produced verdict lifecycle, and — for a refutation — a concrete \
+         `logic:ContradictionWitness` and the symmetric anti-conjecture \
+         `logic:NonEntailmentObligation` it proposes.",
+    );
+    let library = String::from_utf8_lossy(&exec.conjectures_ttl);
+    fenced(&mut out, "turtle", library.trim_end());
+    let _ = model;
+    out
+}
+
 fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "SPARQL playground");
@@ -1852,6 +2207,36 @@ fn synthesize_composed_quickstart(model: &DocsModel, term_curies: &[String]) -> 
     out
 }
 
+/// Standard Base64 (RFC 4648, `+`/`/`, `=` padding) — used to carry a fixture's
+/// Turtle verbatim inside a `data-` attribute for the in-browser "run validation"
+/// control, so newlines/quotes/`<` in the RDF never break the HTML. Small, dep-free,
+/// and deterministic.
+fn base64_encode(bytes: &[u8]) -> String {
+    const A: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let b = [
+            chunk[0],
+            *chunk.get(1).unwrap_or(&0),
+            *chunk.get(2).unwrap_or(&0),
+        ];
+        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
+        out.push(A[((n >> 18) & 63) as usize] as char);
+        out.push(A[((n >> 12) & 63) as usize] as char);
+        out.push(if chunk.len() > 1 {
+            A[((n >> 6) & 63) as usize] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            A[(n & 63) as usize] as char
+        } else {
+            '='
+        });
+    }
+    out
+}
+
 fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
         let mut out = String::new();
@@ -2074,6 +2459,33 @@ fn term_developer_surface(
                 &format!("- **{label}:** `{}`", code_escape(&fixture.logical_path)),
             );
             push_fixture_binding_bullets(&mut out, model, &from, fixture);
+            // Live "run validation" control (W1): a counter-example is meant to
+            // VIOLATE, so the reader can run the REAL Tier-1 validator in-browser
+            // over it and see the actual unified-diagnostics findings (each linking
+            // through its helpUri into the constraint catalog). Only when the browser
+            // validate asset + bundle ship (`has_bundle()`); the fixture Turtle rides
+            // base64 in a data-attribute so its RDF never breaks the HTML.
+            if exec.has_bundle()
+                && matches!(fixture.kind, crate::model::DocFixtureKind::CounterExample)
+            {
+                blank(&mut out);
+                push_line(
+                    &mut out,
+                    &format!(
+                        "<div class=\"gmeow-validation\"><button class=\"gmeow-run-validation\" \
+                         data-turtle=\"{}\" data-origin=\"{}\" data-catalog-href=\"{}index.html\">{}</button>\
+                         <div class=\"gmeow-validation-results\"></div></div>",
+                        base64_encode(fixture.text.as_bytes()),
+                        fixture
+                            .logical_path
+                            .replace('&', "&amp;")
+                            .replace('"', "&quot;"),
+                        rel(&from, &Page::ConstraintCatalog.dir()),
+                        model.ui("body_run_validation"),
+                    ),
+                );
+                blank(&mut out);
+            }
         }
         let fixture_index_href = rel(&from, &Page::FixtureIndex.dir());
         push_line(
@@ -3247,6 +3659,104 @@ fn md_glossary(model: &DocsModel) -> String {
     out
 }
 
+/// A link from a grounding-slice IRI (a `gmeow:seamFromSlice`/`seamToSlice`
+/// object) to its slice page, falling back to the IRI's local name in a code
+/// span when the slice is unresolvable (never happens for a well-formed
+/// registry, but this is a documentation READ, not a re-validation).
+fn seam_slice_link(model: &DocsModel, from: &str, slice_iri: &str) -> String {
+    if let Some(slice) = model.slices.iter().find(|s| s.iri == slice_iri) {
+        let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
+        return format!("[{}]({}index.md)", md_escape(&slice_display(slice)), href);
+    }
+    md_escape(local_name(slice_iri))
+}
+
+/// The grounding seam registry: every sanctioned cross-grounding `gmeow:Seam`
+/// — the closed channel set that authorizes a term reference to cross a
+/// peered grounding-slice pair (Principle 19). Rendered directly from
+/// [`crate::model::DocsModel::seams`] — the canonical governance data authored
+/// in the grounding slices' `manifest.ttl` files — so this page is always a
+/// faithful projection of that data, never a hand-maintained duplicate (see
+/// `gmeow_validate`'s seam-registry drift gate). Deterministic: `model.seams`
+/// is already IRI-sorted, and every per-seam collection is sorted/deduped.
+fn md_seam_registry(model: &DocsModel) -> String {
+    let from = Page::SeamRegistry.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Grounding seams");
+    line(
+        &mut out,
+        &format!(
+            "The closed set of **{}** sanctioned cross-grounding reference channels among the \
+             `logic:`, `lang:`, and `math:` grounding slices (Principle 19). Every peered \
+             cross-slice term reference must land on one of these seams rather than riding free \
+             on the `gmeow:sliceCoFoundationalWith` peerage grant. Each row is a `gmeow:Seam` \
+             individual authored as canonical data in a grounding slice's `manifest.ttl`.",
+            model.seams.len(),
+        ),
+    );
+
+    if model.seams.is_empty() {
+        line(&mut out, "No grounding seams are declared in this model.");
+        return out;
+    }
+
+    push_line(
+        &mut out,
+        "| Seam | Direction | Carrying terms | Owning doc |",
+    );
+    push_line(&mut out, "| --- | --- | --- | --- |");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        let directions = seam
+            .directions
+            .iter()
+            .map(|d| {
+                format!(
+                    "{} → {}",
+                    seam_slice_link(model, &from, &d.from),
+                    seam_slice_link(model, &from, &d.to)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("; ");
+        let carrying = seam
+            .carrying_terms
+            .iter()
+            .map(|iri| curie_link(model, &from, &to_curie(iri)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let owning = seam
+            .owning_docs
+            .iter()
+            .map(|d| format!("`{}`", code_escape(d)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        push_line(
+            &mut out,
+            &format!(
+                "| **{}** | {} | {} | {} |",
+                md_escape(&name),
+                directions,
+                carrying,
+                owning,
+            ),
+        );
+    }
+    blank(&mut out);
+
+    // A definitions section: the full prose each seam's `skos:definition`
+    // carries, keyed to the same seam name the table above uses.
+    heading(&mut out, 2, "Definitions");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        heading(&mut out, 3, &name);
+        if let Some(definition) = &seam.definition {
+            line(&mut out, &md_escape(definition));
+        }
+    }
+    out
+}
+
 /// The short four-boxes label for a `gmeow:box*` role CURIE (`gmeow:boxTBox` →
 /// `TBox`); the CURIE unchanged when it does not match the expected shape.
 fn box_role_label(role: &str) -> String {
@@ -3311,6 +3821,19 @@ fn md_logic_index(model: &DocsModel) -> String {
         &format!(
             "- [Compiler diagnostics]({diag_href}index.md) — parse findings plus \
              lossy-drop notes, surfaced as SARIF."
+        ),
+    );
+    blank(&mut out);
+
+    // Cross-link to the grounding seam registry — the closed set of sanctioned
+    // cross-grounding reference channels among `logic:`/`lang:`/`math:`.
+    let seams_href = rel(&from, &Page::SeamRegistry.dir());
+    push_line(
+        &mut out,
+        &format!(
+            "See also the [grounding seam registry]({seams_href}index.md) — the sanctioned \
+             cross-grounding reference channels among the `logic:`/`lang:`/`math:` grounding \
+             slices."
         ),
     );
     blank(&mut out);
@@ -3615,7 +4138,7 @@ fn md_slice_index(model: &DocsModel) -> String {
     out
 }
 
-fn md_slice(model: &DocsModel, slug: &str) -> String {
+fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String {
     let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
@@ -3651,6 +4174,57 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
         );
     }
     blank(&mut out);
+
+    // `page_map` is the single link-rewrite authority (a pure function of the model's
+    // already-validated document set), built ONCE per render pass and threaded in — it
+    // drives the grafted `docs.md` prose, the child-document index, and every internal
+    // link those surfaces rewrite.
+
+    // Graft the slice's top-level `docs.md` narrative directly onto the slice page,
+    // between the manifest metadata and the generated artifact/term/linkage sections.
+    // Every heading is demoted one level (H1→H2 … H5→H6) so the generated slice H1
+    // stays the unique page H1, and every internal link is rewritten through the
+    // page map. The thesis / realized-state FACTS are still read separately from
+    // `docs.md` (see `DocSlice::from_record`); this additionally RENDERS its prose.
+    if let Some(docs_md) = slice
+        .documents
+        .iter()
+        .find(|d| d.source_path == SLICE_PAGE_SOURCE)
+    {
+        let grafted = rewrite_doc_body(
+            &docs_md.source_text,
+            page_map,
+            &slice.iri,
+            SLICE_PAGE_SOURCE,
+            &from,
+            HeadingDemotion::GraftOne,
+            true,
+        );
+        out.push_str(&grafted);
+        blank(&mut out);
+    }
+
+    // The slice's child documents (every non-`docs.md` markdown), by title, sorted
+    // by logical path, each linking to its own generated page and retaining its
+    // source path + raw digest as visible provenance.
+    let children = page_map.slice_children(&slice.iri);
+    if !children.is_empty() {
+        heading(&mut out, 2, "Documents");
+        for entry in &children {
+            let target_dir = entry.page.strip_suffix('/').unwrap_or(&entry.page);
+            let href = rel(&from, target_dir);
+            push_line(
+                &mut out,
+                &format!(
+                    "- [{}]({href}index.md) — `{}` (`{}`)",
+                    md_escape(&entry.title),
+                    code_escape(&entry.source_path),
+                    code_escape(&short_digest(&entry.raw_digest)),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
 
     // Artifact inventory grouped by role (by reference: path + media type + digest).
     if !slice.artifacts.is_empty() {
@@ -3762,6 +4336,372 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     }
 
     out
+}
+
+/// Render a slice child document (`Page::SliceDocument`) as its own page: the
+/// document's `source_text` Markdown IS the page body — its authored H1 stays the
+/// page H1 (NO heading demotion) — with every internal markdown→markdown link and
+/// fragment rewritten through the single [`SourceToPageMap`] authority. A dangling
+/// WITHIN-slice link hard-fails (never renders silently); off-corpus references
+/// (another slice, a repo `docs/` file, a non-markdown asset) are absolutized to
+/// the published site. List provenance (source path + digest) lives on the SLICE
+/// page's document index, not on the child body itself.
+fn md_slice_document(
+    model: &DocsModel,
+    slice_iri: &str,
+    path: &str,
+    page_map: &SourceToPageMap,
+) -> String {
+    let page_dir = Page::SliceDocument {
+        slice: slice_iri.to_string(),
+        path: path.to_string(),
+    }
+    .dir();
+    let doc = model
+        .slices
+        .iter()
+        .find(|s| s.iri == slice_iri)
+        .and_then(|s| s.documents.iter().find(|d| d.source_path == path));
+    let Some(doc) = doc else {
+        let mut out = String::new();
+        heading(&mut out, 1, path);
+        line(&mut out, model.ui("body_slice_not_found"));
+        return out;
+    };
+    rewrite_doc_body(
+        &doc.source_text,
+        page_map,
+        slice_iri,
+        path,
+        &page_dir,
+        HeadingDemotion::Keep,
+        true,
+    )
+}
+
+// ── First-class Markdown document rewrite (graft + child page + llms corpus) ──
+
+/// Re-emit an authored slice Markdown document (`docs.md` or a child `*.md`) with
+/// every internal link resolved through the single [`SourceToPageMap`] authority
+/// and, when `demote` is set, every ATX heading demoted one level.
+///
+/// The body is processed line by line so every Markdown construct is preserved
+/// verbatim except the two deliberate rewrites. Fenced code blocks (```` ``` ````
+/// / `~~~`) and inline code spans are passed through untouched, so a `#` or a
+/// `](…)` inside a code sample is never mistaken for a heading or a link.
+///
+/// * `from_slice` / `from_path` locate the document in source space (the resolver
+///   joins relative links against `from_path`).
+/// * `page_dir` is the site directory of the page the body is rendered ONTO (the
+///   slice page for a graft, the child page for a child render, `""` for the
+///   root-level llms corpus) — relative hrefs are computed from it.
+/// * `demote` selects the heading transform (see [`HeadingDemotion`]).
+/// * `inject_anchors` — when set, emit an explicit `<a id="{slug}"></a>` before
+///   each heading using the map's page-scoped, text-derived slugs (matched in
+///   source order). pulldown-cmark emits no heading `id`, so these anchors are what
+///   the rewritten `#slug` / `…index.md#slug` cross-links resolve to on the HTML
+///   page. Off for the plain-text `llms-full` corpus (no HTML anchors there).
+fn rewrite_doc_body(
+    source: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+    demote: HeadingDemotion,
+    inject_anchors: bool,
+) -> String {
+    // The page-scoped heading anchors, in source order, for the id injection. Empty
+    // when not injecting or when the document has no known page.
+    let anchors: &[crate::source_map::HeadingAnchor] = if inject_anchors {
+        map.page_of(from_slice, from_path)
+            .map(|page| map.heading_anchors(page))
+            .unwrap_or(&[])
+    } else {
+        &[]
+    };
+    let mut anchor_idx = 0usize;
+
+    let mut out = String::with_capacity(source.len() + 64);
+    let mut in_fence = false;
+    let mut fence_marker = "";
+    for line in source.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        // Toggle fenced-code state; fenced lines pass through verbatim.
+        if let Some(marker) = fence_open(trimmed) {
+            if in_fence {
+                if trimmed.starts_with(fence_marker) {
+                    in_fence = false;
+                    fence_marker = "";
+                }
+            } else {
+                in_fence = true;
+                fence_marker = marker;
+            }
+            out.push_str(line);
+            continue;
+        }
+        if in_fence {
+            // Fenced code is emitted verbatim and its links are NOT rewritten (a
+            // `](x.md)` in a code sample is not a document link). The one exception
+            // is the `CorpusFloor` flatten, which additionally demotes any leading
+            // `#`-run so an inlined Turtle/shell comment (`# note`) never surfaces
+            // as a spurious H1/section in the flat `llms-full` corpus — harmless,
+            // since `#`-to-end-of-line comment syntaxes stay comments at any depth.
+            if demote == HeadingDemotion::CorpusFloor {
+                out.push_str(&demote_heading_line(line, demote, from_slice, from_path));
+            } else {
+                out.push_str(line);
+            }
+            continue;
+        }
+        // Before an ATX heading (in source order), emit its explicit HTML anchor so
+        // the resolved `#slug` cross-links have a matching `id` on the page.
+        if inject_anchors && atx_level(line).is_some() {
+            if let Some(anchor) = anchors.get(anchor_idx) {
+                out.push_str(&format!("<a id=\"{}\"></a>\n\n", anchor.slug));
+            }
+            anchor_idx += 1;
+        }
+        // Heading demotion is applied to the raw line before link rewriting; the
+        // added `#`s never affect link scanning.
+        let demoted = demote_heading_line(line, demote, from_slice, from_path);
+        rewrite_doc_line(&demoted, map, from_slice, from_path, page_dir, &mut out);
+    }
+    out
+}
+
+/// The heading transform [`rewrite_doc_body`] applies to a re-emitted document.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HeadingDemotion {
+    /// Keep every heading level (a child page: its authored H1 is the page H1).
+    Keep,
+    /// Demote one level (H1→H2 … H5→H6) so a grafted `docs.md` sits under the
+    /// generated slice H1. A source H6 is the H6-overflow guard: H6→H7 is illegal,
+    /// so it is a hard failure naming the document.
+    GraftOne,
+    /// Floor headings two levels down, clamped at H6, so the inlined `llms-full`
+    /// document corpus sits below both the single `# ` document H1 and the
+    /// `## Documents` section header (every heading becomes H3+, never a bare `## `
+    /// that the flat llmstxt structure would read as a new section). Clamps rather
+    /// than overflowing — the corpus is a lossy flattened surface, not the graft.
+    CorpusFloor,
+}
+
+/// Apply the [`HeadingDemotion`] transform to one line, preserving leading
+/// whitespace and the trailing newline. Non-heading lines are returned unchanged.
+fn demote_heading_line(
+    line: &str,
+    demote: HeadingDemotion,
+    from_slice: &str,
+    from_path: &str,
+) -> String {
+    if demote == HeadingDemotion::Keep {
+        return line.to_string();
+    }
+    let indent_len = line.len() - line.trim_start().len();
+    let (indent, rest) = line.split_at(indent_len);
+    let hashes = rest.chars().take_while(|&c| c == '#').count();
+    if hashes == 0 || hashes > 6 {
+        return line.to_string();
+    }
+    let after = &rest[hashes..];
+    // A heading needs whitespace (or end of line) after the hash run; otherwise
+    // it is not an ATX heading (e.g. `#hashtag`) and must not be demoted.
+    if !after.is_empty() && !after.starts_with([' ', '\t', '\n']) {
+        return line.to_string();
+    }
+    let extra = match demote {
+        HeadingDemotion::Keep => unreachable!("handled above"),
+        HeadingDemotion::GraftOne => {
+            if hashes == 6 {
+                panic!(
+                    "markdown source `{from_path}` in slice {from_slice} carries a level-6 heading \
+                     that cannot be demoted (H6→H7 is illegal): {:?}",
+                    line.trim_end()
+                );
+            }
+            1
+        }
+        // Floor at H6: every heading lands at level+2 but never past 6.
+        HeadingDemotion::CorpusFloor => (6 - hashes).min(2),
+    };
+    let prefix = "#".repeat(hashes + extra);
+    format!("{indent}{prefix}{after}")
+}
+
+/// Rewrite the link targets on a single (non-fenced) source line, appending the
+/// result to `out`. Scans for inline-link / image destinations `](target)`,
+/// skipping inline code spans so a `](…)` inside backticks is left verbatim.
+fn rewrite_doc_line(
+    line: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+    out: &mut String,
+) {
+    let bytes = line.as_bytes();
+    let mut i = 0usize;
+    let mut span_start = 0usize;
+    while i < bytes.len() {
+        // Skip an inline code span: a backtick run of length N is closed by the
+        // next run of exactly N backticks (CommonMark). Everything between is
+        // literal and never rewritten.
+        if bytes[i] == b'`' {
+            let run = bytes[i..].iter().take_while(|&&b| b == b'`').count();
+            let close_from = i + run;
+            if let Some(rel_close) = find_backtick_run(&bytes[close_from..], run) {
+                i = close_from + rel_close + run;
+                continue;
+            }
+            // No closing run on this line: the rest is not a code span, keep scanning.
+            i += run;
+            continue;
+        }
+        // An inline link/image destination opens at `](`.
+        if bytes[i] == b']' && i + 1 < bytes.len() && bytes[i + 1] == b'(' {
+            let open = i + 2;
+            // Destinations in authored slice markdown never contain a raw `)`.
+            if let Some(rel_close) = line[open..].find(')') {
+                let close = open + rel_close;
+                out.push_str(&line[span_start..open]);
+                out.push_str(&rewrite_doc_target(
+                    &line[open..close],
+                    map,
+                    from_slice,
+                    from_path,
+                    page_dir,
+                ));
+                span_start = close;
+                i = close;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    out.push_str(&line[span_start..]);
+}
+
+/// The ATX heading level (1–6) of a non-fenced line, or `None` when it is not an
+/// ATX heading. Mirrors the `source_map` heading detector so this walk's heading
+/// order aligns with the map's page-scoped anchor order.
+fn atx_level(line: &str) -> Option<u8> {
+    let rest = line.trim_start();
+    let hashes = rest.chars().take_while(|&c| c == '#').count();
+    if hashes == 0 || hashes > 6 {
+        return None;
+    }
+    let after = &rest[hashes..];
+    if after.is_empty() || after.starts_with([' ', '\t', '\n']) {
+        Some(hashes as u8)
+    } else {
+        None
+    }
+}
+
+/// The fence marker (` ``` ` or `~~~`) a trimmed line opens/closes a fenced code
+/// block with (three or more of one marker char), else `None`.
+/// Find the byte offset of the next run of EXACTLY `run` backticks in `bytes`,
+/// else `None`. Used to skip inline code spans in [`rewrite_doc_line`].
+fn find_backtick_run(bytes: &[u8], run: usize) -> Option<usize> {
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'`' {
+            let here = bytes[i..].iter().take_while(|&&b| b == b'`').count();
+            if here == run {
+                return Some(i);
+            }
+            i += here;
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+/// Rewrite a single authored link/image destination (the text between `](` and
+/// `)`), routing every internal reference through the single [`SourceToPageMap`]
+/// authority.
+///
+/// * Absolute / scheme-qualified / `mailto:` / site-absolute targets are external
+///   and pass through verbatim.
+/// * A pure `#fragment` addresses a heading in THIS document; a missing anchor is
+///   a hard failure (a broken same-document link must not render silently).
+/// * A relative `*.md` reference that stays WITHIN the slice is resolved to its
+///   generated page (relative href, with any `#anchor`); a dangling within-slice
+///   reference is a hard failure the slice's markdown must fix.
+/// * A reference that escapes the slice root (another slice, a repo `docs/` file)
+///   or targets a non-markdown asset is off-corpus and is absolutized to the
+///   published site, so the rendered page never dangles.
+fn rewrite_doc_target(
+    target: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+) -> String {
+    if target.is_empty() {
+        return target.to_string();
+    }
+    // The path portion (before any `#fragment`) classifies the target; the resolver
+    // re-splits and validates the fragment itself.
+    let path_part = target.split_once('#').map_or(target, |(p, _)| p);
+
+    // A pure fragment: a heading in this same document.
+    if path_part.is_empty() {
+        return match map.resolve_link(from_slice, from_path, target) {
+            LinkResolution::Resolved(loc) => match loc.anchor {
+                Some(anchor) => format!("#{anchor}"),
+                // A bare `#` with no anchor — leave as authored.
+                None => target.to_string(),
+            },
+            LinkResolution::Dangling { .. } => panic!(
+                "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
+                 anchor link `{target}` (no such heading)"
+            ),
+        };
+    }
+
+    // Everything with a path portion is CLASSIFIED by the single authority
+    // (`SourceToPageMap::classify_doc_link`) — the site renderer never re-derives
+    // "internal vs. off-corpus vs. external"; it only formats the classification for
+    // its own (site-relative) output.
+    match map.classify_doc_link(from_slice, from_path, target) {
+        DocLinkResolution::External => target.to_string(),
+        DocLinkResolution::OffCorpus => absolutize_offsite(target),
+        DocLinkResolution::Corpus(loc) => {
+            let target_dir = loc.page.strip_suffix('/').unwrap_or(&loc.page);
+            let href = rel(page_dir, target_dir);
+            match loc.anchor {
+                Some(anchor) => format!("{href}index.md#{anchor}"),
+                None => format!("{href}index.md"),
+            }
+        }
+        DocLinkResolution::Dangling { .. } => panic!(
+            "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
+             link `{target}` — fix the link in the slice's markdown (it names no document in the \
+             slice)"
+        ),
+    }
+}
+
+/// Absolutize an off-corpus relative reference to the published documentation site,
+/// so a rendered page never carries a dangling relative link into a document this
+/// render does not emit. Leading `./` / `../` segments are dropped and the
+/// remainder is appended to [`crate::mdbook::PUBLISHED_SITE_BASE`] — the SAME
+/// published-site base the mdbook renderer externalizes dropped surfaces to.
+fn absolutize_offsite(target: &str) -> String {
+    let mut rest = target;
+    loop {
+        if let Some(r) = rest.strip_prefix("../") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("./") {
+            rest = r;
+        } else {
+            break;
+        }
+    }
+    format!("{}{rest}", crate::mdbook::PUBLISHED_SITE_BASE)
 }
 
 // ── Linkage / example / concern / external / integrity pages ──────────────────
@@ -4952,8 +5892,11 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
             "The **{}** validation rules the GMEOW toolchain enforces, grouped by finding \
              category. Each rule is a `gmeow:ValidationRule` individual from the constraint \
              catalog; a finding's `helpUri` deep-links to its entry here. **Binding** rules fail \
-             the gate; **advisory** rules report without failing.",
-            model.constraint_rules.len()
+             the gate; **advisory** rules report without failing. The distinct **{}** section \
+             below documents the non-gating *recommendations* (`avoidWhen` / `useWhen` / \
+             `howToUse`) that advisory `advice.*` findings resolve to.",
+            model.constraint_rules.len(),
+            model.ui("body_usage_advice"),
         ),
     );
 
@@ -4963,10 +5906,15 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
     }
 
     // Group by category IRI (rules are already sorted by code); the category map
-    // is a BTreeMap so category headings emit in sorted IRI order.
+    // is a BTreeMap so category headings emit in sorted IRI order. The `advice.`
+    // family rule is EXCLUDED here — it heads the distinct Advice section below and
+    // carries the single `#advice-` anchor, which must appear exactly once.
     let mut by_category: std::collections::BTreeMap<&str, Vec<&crate::model::ConstraintRule>> =
         std::collections::BTreeMap::new();
     for rule in &model.constraint_rules {
+        if rule.code == gmeow_validate::codes::ADVICE_FAMILY {
+            continue;
+        }
         by_category
             .entry(rule.category.as_str())
             .or_default()
@@ -5051,7 +5999,72 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
             }
         }
     }
+
+    // ── The Advice section: the recommendation tier, a distinct top-level
+    // section headed by the `advice.` family rule's `#advice-` anchor. ────────────
+    md_advice_section(&mut out, model, &from);
     out
+}
+
+/// Render the distinct "Advice" section: the non-gating recommendation tier. Headed
+/// by the `advice.` family rule's `#advice-` anchor (the single static target every
+/// advisory `advice.*` finding code resolves to), then one sub-entry per
+/// [`crate::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
+fn md_advice_section(out: &mut String, model: &DocsModel, from: &str) {
+    // The `#advice-` anchor is the advice family rule's own slug — the guaranteed
+    // resolution target of every advice.* helpUri fragment.
+    let anchor = model
+        .constraint_rules
+        .iter()
+        .find(|r| r.code == gmeow_validate::codes::ADVICE_FAMILY)
+        .map(|r| r.slug.clone())
+        .unwrap_or_else(|| {
+            gmeow_validate::rule_catalog::slugify(gmeow_validate::codes::ADVICE_FAMILY)
+        });
+    heading(out, 2, model.ui("body_usage_advice"));
+    push_line(out, &format!("<a id=\"{anchor}\"></a>"));
+    blank(out);
+    line(
+        out,
+        "Non-gating **recommendations** harvested verbatim from each term's usage prose \
+         (`gmeow:avoidWhen` / `gmeow:useWhen` / `gmeow:howToUse`) and made machine-active as \
+         realized advice carriers. Unlike the compliance rules above, advice NEVER fails the \
+         gate — an advisory `advice.*` finding resolves to this section.",
+    );
+
+    if model.advice_entries.is_empty() {
+        // Honest empty state: no realized advice carrier exists yet.
+        line(out, model.ui("body_no_enforced_constraints"));
+        return;
+    }
+
+    for entry in &model.advice_entries {
+        // Per-term navigation sub-anchor (advice-<term-slug>); the guaranteed static
+        // resolution target remains the section-head `#advice-` above.
+        push_line(out, &format!("<a id=\"{}\"></a>", entry.slug));
+        blank(out);
+        let title = entry.label.clone().unwrap_or_else(|| to_curie(&entry.term));
+        heading(out, 3, &md_escape(&title));
+        push_line(
+            out,
+            &format!("- {}", curie_link(model, from, &to_curie(&entry.term))),
+        );
+        blank(out);
+        if let Some(definition) = &entry.definition {
+            line(out, &md_escape(definition));
+        }
+        // The three deontic-modality legs; each rendered only when present.
+        for (label, values) in [
+            (model.ui("body_advice_avoid_when"), &entry.avoid_when),
+            (model.ui("body_advice_use_when"), &entry.use_when),
+            (model.ui("body_advice_how_to_use"), &entry.how_to_use),
+        ] {
+            for value in values {
+                push_line(out, &format!("- **{label}:** {}", md_escape(value)));
+            }
+        }
+        blank(out);
+    }
 }
 
 /// A human-readable display name for a `logic:FindingCategory` IRI (e.g.
@@ -5374,7 +6387,25 @@ pub fn to_html_lang_exec(
     lang: &str,
     exec: &ExecutableDocsData,
 ) -> String {
-    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec(model, page, exec)));
+    // Standalone render builds the map here; a full site render threads one shared map
+    // through [`to_html_lang_exec_with_map`] (see [`to_markdown_exec`]).
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    to_html_lang_exec_with_map(model, page, lang, exec, &page_map)
+}
+
+/// [`to_html_lang_exec`] with the shared [`SourceToPageMap`] threaded in. Byte-identical
+/// to `to_html_lang_exec` (the map is a deterministic function of the model).
+pub(crate) fn to_html_lang_exec_with_map(
+    model: &DocsModel,
+    page: &Page,
+    lang: &str,
+    exec: &ExecutableDocsData,
+    page_map: &SourceToPageMap,
+) -> String {
+    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(
+        model, page, exec, page_map,
+    )));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;
@@ -5474,7 +6505,10 @@ pub fn to_html_lang_exec(
     // The playground page loads the controller module (query execution + result
     // transcoding). Empty for every other page and every model-only render, so the
     // shell's `body_scripts` slot is byte-neutral there.
-    let body_scripts = if matches!(page, Page::SparqlPlayground) && exec.has_playground() {
+    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
+        || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
+        || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
+    {
         format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
     } else {
         String::new()
@@ -5516,7 +6550,11 @@ fn markdown_to_html(markdown: &str) -> String {
 /// `href="…"` attribute; external links are absolute `http(s)://` URLs that
 /// never contain `index.md`, so this targeted swap touches only internal links.
 fn rewrite_internal_links(html: &str) -> String {
+    // `index.md"` closes a fragment-less internal link; `index.md#` precedes a
+    // heading fragment (the grafted `docs.md` / child-document cross-links carry
+    // `…index.md#anchor`). Both forms map to the `.html` page.
     html.replace("index.md\"", "index.html\"")
+        .replace("index.md#", "index.html#")
 }
 
 /// A nav menu entry (label + resolved href), used as a pre-sorted minijinja
@@ -5769,7 +6807,15 @@ pub fn resolve_term_slugs(terms: &[DocTerm]) -> BTreeMap<String, String> {
 
 /// A filesystem-safe slug from a slice IRI's last path segment.
 pub fn slice_slug(slice: &DocSlice) -> String {
-    slugify(local_name(&slice.iri))
+    slice_slug_of_iri(&slice.iri)
+}
+
+/// The slice slug derived directly from a slice IRI — the same slug
+/// [`slice_slug`] yields, without needing a materialized [`DocSlice`]. Used by
+/// [`crate::model::DocMarkdownDocument`] collection during model build, before the
+/// owning `DocSlice` is fully assembled.
+pub fn slice_slug_of_iri(iri: &str) -> String {
+    slugify(local_name(iri))
 }
 
 /// A filesystem-safe slug from a concern IRI's last path segment.
@@ -6329,6 +7375,14 @@ struct SearchRecord {
 /// Build the deterministic `search-index.json`: one record per term, slice,
 /// concern, and mapping set, sorted by URL. A pure function of the model.
 pub fn search_index_json(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    search_index_json_with_map(model, &page_map)
+}
+
+/// [`search_index_json`] with the shared [`SourceToPageMap`] threaded in (built once per
+/// site render). Byte-identical to `search_index_json`.
+pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
     let ctx = crate::coverage::CoverageContext::new(model);
@@ -6383,6 +7437,29 @@ pub fn search_index_json(model: &DocsModel) -> String {
             alignments: Vec::new(),
             missing_coverage: Vec::new(),
         });
+    }
+    // One record per slice CHILD document (every non-`docs.md` markdown), indexed by
+    // its title (label) and its full prose (definition), so search matches document
+    // bodies. The top-level `docs.md` prose is grafted onto — and searched as — its
+    // slice page, so it is not a separate record. `slice_children` is path-sorted.
+    for slice in &model.slices {
+        for entry in doc_map.slice_children(&slice.iri) {
+            let full_prose = slice
+                .documents
+                .iter()
+                .find(|d| d.source_path == entry.source_path)
+                .map(|d| d.source_text.clone());
+            records.push(SearchRecord {
+                kind: "document",
+                id: entry.source_path.clone(),
+                label: entry.title.clone(),
+                definition: full_prose,
+                url: format!("{}index.html", entry.page),
+                advice: Vec::new(),
+                alignments: Vec::new(),
+                missing_coverage: Vec::new(),
+            });
+        }
     }
 
     records.sort_by(|a, b| {
@@ -6454,6 +7531,14 @@ fn term_note(term: &DocTerm) -> String {
 /// from `gmeow:docUrl`, so the two never disagree. Notes are capped
 /// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
 pub fn llms_txt(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    llms_txt_with_map(model, &page_map)
+}
+
+/// [`llms_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
+/// render). Byte-identical to `llms_txt`.
+pub(crate) fn llms_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let prose = vec![format!(
         "Vocabulary {}. Namespace: {GMEOW_NS}. The RDF 1.2 grounding slices are canonical; this index links into the published documentation.",
         model.version
@@ -6521,6 +7606,31 @@ pub fn llms_txt(model: &DocsModel) -> String {
         sections.push(LlmsSection {
             heading: "Slices".to_string(),
             bullets: slice_bullets,
+        });
+    }
+
+    // ── Documents: every slice CHILD document page (non-`docs.md` markdown),
+    // grouped by slice via the single page-map authority; the top-level `docs.md`
+    // is grafted onto its slice page and covered by the Slices section above. ──
+    let mut document_bullets: Vec<LlmsBullet> = Vec::new();
+    for slice in &model.slices {
+        for entry in doc_map.slice_children(&slice.iri) {
+            document_bullets.push(LlmsBullet {
+                text: entry.title.clone(),
+                url: Some(format!("{}index.html", entry.page)),
+                signature: String::new(),
+                note: llms::cap_note(&format!(
+                    "{} — `{}`",
+                    slice_display(slice),
+                    entry.source_path
+                )),
+            });
+        }
+    }
+    if !document_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Documents".to_string(),
+            bullets: document_bullets,
         });
     }
 
@@ -6658,6 +7768,14 @@ fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
 /// truncation), followed by the concern definitions and the slice inventory. This
 /// is the single-file, link-free surface an agent can ingest whole.
 pub fn llms_full_txt(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    llms_full_txt_with_map(model, &page_map)
+}
+
+/// [`llms_full_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
+/// render). Byte-identical to `llms_full_txt`.
+pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let prose = vec![format!(
         "Vocabulary {}. Namespace: {GMEOW_NS}. Complete inlined form — every term, its definition, and its usage advice in full.",
         model.version
@@ -6692,6 +7810,35 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
             out.push_str(&format!("- {}{tier}\n", slice_display(slice)));
         }
         out.push('\n');
+    }
+
+    // ── Documents: the COMPLETE first-class Markdown corpus inlined in full —
+    // every slice document (the top-level `docs.md` AND every child `*.md`), full
+    // prose, with intra-corpus links resolved through the SAME `SourceToPageMap`
+    // authority (this self-contained corpus is a T3 link domain rooted at the site
+    // root). `model.slices` is IRI-sorted and each `documents` is path-sorted. ──
+    let has_documents = model.slices.iter().any(|s| !s.documents.is_empty());
+    if has_documents {
+        out.push_str("## Documents\n\n");
+        for slice in &model.slices {
+            for doc in &slice.documents {
+                out.push_str(&format!("### {} — {}\n\n", slice_display(slice), doc.title));
+                let body = rewrite_doc_body(
+                    &doc.source_text,
+                    doc_map,
+                    &slice.iri,
+                    &doc.source_path,
+                    "",
+                    HeadingDemotion::CorpusFloor,
+                    false,
+                );
+                out.push_str(&body);
+                if !body.ends_with('\n') {
+                    out.push('\n');
+                }
+                out.push('\n');
+            }
+        }
     }
 
     // ── Reference: the standing index pages an agent should know exist, plus the
@@ -7272,9 +8419,11 @@ mod tests {
             worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            seams: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,
@@ -7287,6 +8436,294 @@ mod tests {
             schema_fragments: None,
             lang: String::new(),
         }
+    }
+
+    // ── seam-registry render ↔ drift-gate parser contract ────────────────────
+    //
+    // `gmeow_validate::authoring_integrity::detect_seam_registry_drift` reads this
+    // page BACK, per seam, to prove it never drifts from the authored `gmeow:Seam`
+    // registry. That gate parses the exact table shape `md_seam_registry` writes —
+    // bolded name cell, `;`-joined `from → to` legs whose slice identity is the slug
+    // in the rendered link's href, backticked (and possibly linked) carrying-term
+    // CURIEs, backticked owning-doc filenames. These tests pin that contract from
+    // the RENDERER's side, so a change to this function's markup that the gate
+    // cannot read fails here rather than turning the gate into a false positive (or,
+    // worse, a false negative) in production.
+
+    /// A two-slice, two-seam model whose seam registry exercises both rendered
+    /// forms: a resolvable slice (link) and a term with its own term page (link).
+    fn seam_model() -> DocsModel {
+        use crate::model::{DocSeam, DocSeamDirection, DocSlice};
+        fn slice(local: &str, title: &str) -> DocSlice {
+            DocSlice {
+                iri: format!("{GMEOW_NS}slices/{local}"),
+                label: Some(local.to_string()),
+                title: Some(title.to_string()),
+                tier: None,
+                identifier: None,
+                creators: Vec::new(),
+                consumers: Vec::new(),
+                profiles: Vec::new(),
+                depends_on: Vec::new(),
+                artifacts: Vec::new(),
+                documents: Vec::new(),
+                has_thesis_sentence: false,
+                realized_state_complete: false,
+            }
+        }
+        let mut model = tiny_model();
+        model.slices = vec![
+            slice("lang", "Language grounding"),
+            slice("logic", "Logic grounding"),
+            slice("math", "Mathematics grounding"),
+        ];
+        model.seams = vec![
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/compilation"),
+                label: Some("Compilation seam".to_string()),
+                definition: Some("The math → logic lowering seam.".to_string()),
+                directions: vec![DocSeamDirection {
+                    from: format!("{GMEOW_NS}slices/math"),
+                    to: format!("{GMEOW_NS}slices/logic"),
+                }],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/math/compilesToLogicTerm".to_string(),
+                ],
+                owning_docs: vec!["MATHEMATICS-EXPRESSIONS.md".to_string()],
+            },
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/denotation"),
+                label: Some("Denotation seam".to_string()),
+                definition: Some("The lang → logic meaning seam.".to_string()),
+                directions: vec![
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/lang"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/math"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                ],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/lang/denotationKind".to_string(),
+                    "https://blackcatinformatics.ca/lang/denotationTarget".to_string(),
+                ],
+                owning_docs: vec!["LANG-MEANING.md".to_string()],
+            },
+        ];
+        model
+    }
+
+    /// The `gmeow_validate` seam records the [`seam_model`] seams project to — the
+    /// authored side of the comparison, built by hand so this test needs no
+    /// repository (and no `generated/`) at all.
+    fn seam_model_records() -> Vec<gmeow_validate::slice_peerage::SeamRecord> {
+        use gmeow_validate::slice_peerage::SeamRecord;
+        seam_model()
+            .seams
+            .iter()
+            .map(|seam| SeamRecord {
+                iri: seam.iri.clone(),
+                name: seam.label.clone().expect("the fixture labels every seam"),
+                labels: vec![(
+                    seam.label.clone().expect("the fixture labels every seam"),
+                    Some("x-gmeow-english".to_string()),
+                )],
+                carrying_terms: seam.carrying_terms.iter().map(|t| to_curie(t)).collect(),
+                carrying_term_iris: seam.carrying_terms.iter().cloned().collect(),
+                directions: seam
+                    .directions
+                    .iter()
+                    .map(|d| (d.from.clone(), d.to.clone()))
+                    .collect(),
+                owning_docs: seam.owning_docs.iter().cloned().collect(),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn seam_registry_render_is_readable_by_the_drift_gate() {
+        let page = md_seam_registry(&seam_model());
+        // Non-vacuity: the render really produced the table and both seams.
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        assert!(page.contains("**Denotation seam**"), "{page}");
+        assert!(page.contains("**Compilation seam**"), "{page}");
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &page,
+        );
+        assert!(
+            findings.is_empty(),
+            "the drift gate must read this render back with zero drift; markup and \
+             parser have diverged:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+
+    #[test]
+    fn seam_registry_render_parity_fails_when_a_seam_loses_a_direction_leg() {
+        // Teeth for the parity test above: the gate is genuinely reading the
+        // rendered legs, not passing whatever it is handed.
+        let mut model = seam_model();
+        model.seams[1].directions.remove(1);
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &md_seam_registry(&model),
+        );
+        assert!(
+            findings.iter().any(
+                |f| f.message.contains("Denotation seam") && f.message.contains("math → logic")
+            ),
+            "a leg dropped from the render must be caught: {findings:?}"
+        );
+    }
+
+    /// NON-VACUITY, over the REAL repository: the seams actually authored in the
+    /// grounding manifests render into a page the drift gate reads back with zero
+    /// drift. The two tests above prove the markup/parser contract on a hand-built
+    /// two-seam fixture; this one proves it over the live registry, so a newly
+    /// registered seam whose carrying terms or direction legs the renderer cannot
+    /// project (or the gate cannot parse) fails HERE, at authoring time, rather than
+    /// in a `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` run nobody has done yet. It needs the
+    /// `slices/` tree but no `generated/` tree.
+    #[test]
+    fn the_real_seam_registry_renders_into_a_drift_free_page() {
+        use crate::model::{DocSeam, DocSeamDirection};
+
+        let slices_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../slices")
+            .canonicalize()
+            .expect("the real slices/ tree");
+        let records = gmeow_validate::authoring_integrity::seam_registry_of_slices(&slices_dir)
+            .expect("read the authored gmeow:Seam registry");
+        assert!(
+            records.len() >= 6,
+            "the authored registry must be non-vacuous; got {}",
+            records.len()
+        );
+
+        let mut model = seam_model();
+        model.seams = records
+            .iter()
+            .map(|r| {
+                let mut directions: Vec<DocSeamDirection> = r
+                    .directions
+                    .iter()
+                    .map(|(from, to)| DocSeamDirection {
+                        from: from.clone(),
+                        to: to.clone(),
+                    })
+                    .collect();
+                directions.sort_by(|a, b| (&a.from, &a.to).cmp(&(&b.from, &b.to)));
+                directions.dedup();
+                DocSeam {
+                    iri: r.iri.clone(),
+                    label: Some(r.name.clone()),
+                    definition: None,
+                    directions,
+                    carrying_terms: r.carrying_term_iris.iter().cloned().collect(),
+                    owning_docs: r.owning_docs.iter().cloned().collect(),
+                }
+            })
+            .collect();
+
+        let page = md_seam_registry(&model);
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        let findings =
+            gmeow_validate::authoring_integrity::detect_seam_registry_drift(&records, &page);
+        assert!(
+            findings.is_empty(),
+            "the authored seam registry must render into a page the drift gate reads back \
+             cleanly:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+
+    /// The "What GMEOW enforces" page renders the advice
+    /// recommendation tier as a DISTINCT section from the compliance rules, headed by
+    /// the single `#advice-` anchor and carrying each realized term's verbatim
+    /// avoid/use/how-to prose. Self-contained (a hand-built model), so it proves the
+    /// production render function independently of a regenerated catalog `.nq`.
+    #[test]
+    fn constraint_catalog_renders_distinct_advice_section() {
+        use crate::model::{AdviceEntry, ConstraintRule};
+        let mut model = tiny_model();
+        // The advice family rule — its slug is the `#advice-` section anchor.
+        model.constraint_rules = vec![ConstraintRule {
+            code: gmeow_validate::codes::ADVICE_FAMILY.to_string(),
+            slug: gmeow_validate::rule_catalog::slugify(gmeow_validate::codes::ADVICE_FAMILY),
+            category: "https://blackcatinformatics.ca/logic/FindingPolicyWarning".to_string(),
+            severity: "advisory".to_string(),
+            help_uri: gmeow_validate::rule_catalog::help_uri_for(
+                gmeow_validate::codes::ADVICE_FAMILY,
+            ),
+            label: None,
+            definition: None,
+            applies_to_terms: Vec::new(),
+            formalizes: None,
+        }];
+        model.advice_entries = vec![
+            AdviceEntry {
+                term: format!("{GMEOW_NS}Entity"),
+                slug: "advice-Entity".to_string(),
+                label: Some("Entity".to_string()),
+                definition: Some("The universal endurant".to_string()),
+                avoid_when: vec!["Avoid bare Entity when a sortal applies".to_string()],
+                use_when: vec!["Use for category-neutral resources".to_string()],
+                how_to_use: vec!["Reserve the unqualified type".to_string()],
+                documented_by_rule: Some(format!("{GMEOW_NS}rule/family/advice")),
+            },
+            AdviceEntry {
+                term: format!("{GMEOW_NS}Event"),
+                slug: "advice-Event".to_string(),
+                label: Some("Event".to_string()),
+                definition: None,
+                avoid_when: vec!["Avoid typing an endurant as an Event".to_string()],
+                use_when: vec!["Use for occurrences with participants".to_string()],
+                how_to_use: Vec::new(),
+                documented_by_rule: Some(format!("{GMEOW_NS}rule/family/advice")),
+            },
+        ];
+
+        let md = md_constraint_catalog(&model);
+
+        // A distinct Advice section heading and the single `#advice-` anchor (once).
+        assert!(
+            md.contains("## Usage Advice"),
+            "missing the distinct Advice section heading:\n{md}"
+        );
+        assert_eq!(
+            md.matches("id=\"advice-\"").count(),
+            1,
+            "the #advice- section anchor must appear exactly once:\n{md}"
+        );
+        // Both realized terms' per-term sub-anchors and all three deontic legs.
+        assert!(md.contains("id=\"advice-Entity\""));
+        assert!(md.contains("id=\"advice-Event\""));
+        assert!(md.contains("**Avoid when:**"));
+        assert!(md.contains("**Use when:**"));
+        assert!(md.contains("**How to use:**"));
+        // Verbatim prose (period-free substrings; md_escape escapes the trailing dot).
+        // (md_escape backslash-escapes `-`/`.`, so assert on separator-free spans.)
+        assert!(md.contains("Avoid bare Entity when a sortal applies"));
+        assert!(md.contains("neutral resources"));
+        assert!(md.contains("Reserve the unqualified type"));
+        assert!(md.contains("Avoid typing an endurant as an Event"));
     }
 
     #[test]
@@ -7505,6 +8942,127 @@ mod tests {
     }
 
     #[test]
+    fn bundle_assets_emitted_only_with_bundle_data() {
+        let model = tiny_model();
+
+        // Model-only render ships none of the browser-bundle assets.
+        let base = render_site_lang(&model, "english");
+        for path in [FULL_BUNDLE_GTS_PATH, BUNDLE_MANIFEST_PATH] {
+            assert!(
+                !base.files.contains_key(path),
+                "the model-only render must not emit {path}"
+            );
+        }
+
+        // With the bundle bytes supplied, the full gts + integrity manifest are
+        // emitted verbatim, with the manifest carrying the asset's blake3 content
+        // address and byte length.
+        let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            full_bundle_gts: full.clone(),
+            ..Default::default()
+        };
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert_eq!(
+            live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
+            Some(full.as_slice()),
+            "the full gts bundle must be emitted verbatim"
+        );
+        let manifest = String::from_utf8(
+            live.files
+                .get(BUNDLE_MANIFEST_PATH)
+                .expect("integrity manifest emitted")
+                .clone(),
+        )
+        .expect("manifest is utf-8");
+        assert!(
+            manifest.contains(&format!("blake3:{}", blake3::hash(&full).to_hex())),
+            "manifest carries the full bundle's blake3 content address:\n{manifest}"
+        );
+        assert!(
+            manifest.contains(&format!("\"bytes\": {}", full.len())),
+            "manifest carries the full bundle's byte length:\n{manifest}"
+        );
+    }
+
+    #[test]
+    fn conjecture_playground_ships_page_asset_and_manifest_entry() {
+        let model = tiny_model();
+        let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
+        let conjectures = b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:demo a logic:Conjecture .\n"
+            .to_vec();
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            full_bundle_gts: full,
+            conjectures_ttl: conjectures.clone(),
+            ..Default::default()
+        };
+        assert!(exec.has_conjectures(), "the exec must be conjecture-backed");
+        let live = render_site_lang_exec(&model, "english", &exec);
+
+        // The demo library asset is emitted verbatim.
+        assert_eq!(
+            live.files.get(CONJECTURES_PATH).map(Vec::as_slice),
+            Some(conjectures.as_slice()),
+            "the conjecture demo library must be emitted verbatim"
+        );
+        // Its integrity entry rides the bundle manifest.
+        let manifest = String::from_utf8(
+            live.files
+                .get(BUNDLE_MANIFEST_PATH)
+                .expect("integrity manifest emitted")
+                .clone(),
+        )
+        .expect("manifest is utf-8");
+        assert!(
+            manifest.contains(CONJECTURES_PATH)
+                && manifest.contains(&format!("blake3:{}", blake3::hash(&conjectures).to_hex())),
+            "manifest carries the conjecture library's content address:\n{manifest}"
+        );
+        // The playground page is emitted with the interactive form + both symmetric legs.
+        let page_md = String::from_utf8(
+            live.files
+                .get(&Page::ConjecturePlayground.md_path())
+                .expect("conjecture playground page emitted")
+                .clone(),
+        )
+        .expect("page is utf-8");
+        assert!(
+            page_md.contains("gmeow-conjecture-form")
+                && page_md.contains("proof")
+                && page_md.contains("counterproof"),
+            "the page presents the interactive form and both symmetric legs:\n{page_md}"
+        );
+    }
+
+    #[test]
+    fn conjecture_assets_absent_without_conjecture_data() {
+        let model = tiny_model();
+        // A bundle-only exec (no conjecture library) must NOT emit the demo asset, the
+        // playground page, or a conjectures entry in the manifest.
+        let exec = ExecutableDocsData {
+            full_bundle_gts: b"\0opaque".to_vec(),
+            ..Default::default()
+        };
+        assert!(!exec.has_conjectures());
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert!(!live.files.contains_key(CONJECTURES_PATH));
+        assert!(
+            !live
+                .files
+                .contains_key(&Page::ConjecturePlayground.md_path())
+        );
+        let manifest =
+            String::from_utf8(live.files.get(BUNDLE_MANIFEST_PATH).unwrap().clone()).unwrap();
+        assert!(
+            !manifest.contains(CONJECTURES_PATH),
+            "a bundle-only manifest must not carry the conjectures entry:\n{manifest}"
+        );
+    }
+
+    #[test]
     fn playground_explains_a_chase_invented_witness() {
         let model = tiny_model();
         let exec = ExecutableDocsData {
@@ -7554,6 +9112,7 @@ mod tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             has_thesis_sentence: false,
             realized_state_complete: false,
         });
@@ -7583,13 +9142,19 @@ mod tests {
 
         let site = render_site_lang_exec(&model, "english", &exec);
 
-        // Playground page + its assets (incl. the vendored purrdf engine) are present.
+        // Playground page + its assets (incl. the query engine) are present.
         assert!(site.files.contains_key("sparql/index.html"));
         assert!(site.files.contains_key(DOCS_JS_PATH));
         assert!(
             site.files
-                .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+                .contains_key("assets/query/gmeow_query_wasm_bg.wasm"),
             "the vendored wasm engine is emitted so the playground loads offline"
+        );
+        assert!(
+            site.files
+                .contains_key("assets/validate/gmeow_validate_wasm_bg.wasm"),
+            "the vendored validator wasm engine is emitted alongside purrdf so the site \
+             validates authored RDF client-side"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(

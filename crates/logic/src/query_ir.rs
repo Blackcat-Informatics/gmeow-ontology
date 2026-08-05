@@ -23,9 +23,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::physical::id::NodeId;
-use crate::physical::term_dag::ArenaId;
 use crate::seam::BudgetStatus;
+use gmeow_term_arena::engine::StructNodeParts;
 
 /// Wrap a query-program parse condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -66,7 +65,8 @@ pub enum QTerm {
     /// A compound (function-symbol) term interned in the structured-term DAG — the
     /// full-FOL surface a `Const`/`Var`/`Num` cannot express (e.g. `s(X)`,
     /// `cons(H, T)`).  The payload is an OPAQUE [`StructNode`] wrapping the term's
-    /// [`NodeId`] in the resolver's [`crate::physical::term_dag::TermDag`]; because a
+    /// [`NodeId`](gmeow_term_arena::engine::NodeId) in the resolver's
+    /// [`TermDag`](gmeow_term_arena::engine::TermDag); because a
     /// `NodeId` is a crate-internal runtime handle meaningful ONLY within the DAG that
     /// minted it, it is wrapped so it never crosses the public API (the wrapper's inner
     /// handle is private to the crate). A `Struct` term always travels with that DAG (the
@@ -77,46 +77,45 @@ pub enum QTerm {
     /// produces only flat terms — the `Struct` arm is constructed solely inside the crate
     /// against a live DAG.
     Struct(StructNode),
+    /// A **ground** RDF 1.2 quoted-triple term used as an atom argument, written on the
+    /// query surface as `<<( s p o )>>` (mirroring the [`crate::provenance::term_display`]
+    /// render form). Its components are themselves ground `QTerm`s (an IRI/prefixed name,
+    /// a literal, or a nested triple); the predicate must be an IRI (RDF 1.2). Unlike
+    /// [`QTerm::Struct`] it is NOT a full-FOL compound term — it lowers to a flat constant
+    /// [`crate::rule_ir::EvalTerm::ConstLit`] carrying a `purrdf::TermValue::Triple`, so a
+    /// triple-bearing goal stays on the flat/generic path (never routed to the full-FOL
+    /// resolver) and reaches an external-relation provider as a bound query term. Embedded
+    /// variables (a triple *pattern*) are a distinct, unsupported semantics: the parser
+    /// hard-fails on one rather than silently degrade.
+    Triple {
+        /// The subject term (ground).
+        s: Box<QTerm>,
+        /// The predicate term (ground; must be an IRI).
+        p: Box<QTerm>,
+        /// The object term (ground).
+        o: Box<QTerm>,
+    },
 }
 
 /// An opaque handle to a compound-term node in the structured-term DAG, carried by
 /// [`QTerm::Struct`].
 ///
-/// It wraps a [`crate::physical::term_dag::TermDag`] [`NodeId`] — a crate-internal runtime
-/// handle — behind a PRIVATE field, so the handle stays out of the public API surface even
-/// though [`QTerm`] (and hence [`QProgram`]) is `pub`. Only the crate can mint one (from a
-/// live DAG) or read the wrapped node, matching the doctrine that a `NodeId` is never a
-/// serialized/public identity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StructNode(NodeId, ArenaId);
-
-impl StructNode {
-    /// Wrap a DAG node handle as a structured-term payload (crate-internal — only a live DAG
-    /// mints a `NodeId`), branded with the arena that minted it.
-    ///
-    /// The `arena` brand ([`crate::physical::term_dag::TermDag::arena`]) travels WITH the node
-    /// so a later membership test ([`crate::physical::term_dag::TermDag::contains_node`]) is an
-    /// arena-identity check, not a numeric index-range coincidence — a node from a foreign DAG
-    /// is rejected even when its index happens to fall in the target arena's range.
-    ///
-    /// The parser produces only flat terms, so a `Struct` is constructed exclusively by
-    /// crate-internal callers holding a live DAG — currently the resolver's own tests and the
-    /// shipped structured demonstrators; the flat production surface never reaches it.
-    #[allow(dead_code)]
-    pub(crate) fn new(node: NodeId, arena: ArenaId) -> Self {
-        Self(node, arena)
-    }
-
-    /// The wrapped DAG node handle.
-    pub(crate) fn node(self) -> NodeId {
-        self.0
-    }
-
-    /// The brand of the arena that minted [`Self::node`].
-    pub(crate) fn arena(self) -> ArenaId {
-        self.1
-    }
-}
+/// It is the shared arena's own façade handle ([`gmeow_term_arena::StructNode`]): private
+/// fields wrapping a `NodeId` plus the brand of the arena that minted it, so the dense
+/// integer stays out of the public API surface even though [`QTerm`] (and hence
+/// [`QProgram`]) is `pub`. Minting one or reading the wrapped handle requires the sealed
+/// engine-tier [`StructNodeParts`] trait,
+/// matching the doctrine that a `NodeId` is never a serialized/public identity.
+///
+/// The brand travels WITH the node, so a later membership test
+/// ([`TermDag::contains_node`](gmeow_term_arena::engine::TermDag::contains_node)) is an
+/// arena-identity check, not a numeric index-range coincidence — a node from a foreign DAG
+/// is rejected even when its index happens to fall in the target arena's range.
+///
+/// The parser produces only flat terms, so a `Struct` is constructed exclusively by
+/// crate-internal callers holding a live DAG — currently the resolver's own tests and the
+/// shipped structured demonstrators; the flat production surface never reaches it.
+pub use gmeow_term_arena::StructNode;
 
 /// A predicate atom over RDF (or an n-ary IDB predicate).
 ///
@@ -184,9 +183,65 @@ pub enum QBuiltin {
         /// Right comparison operand.
         rhs: QTerm,
     },
+    /// `target is bilinearSqDist(gram, x, y)` — the exact bilinear-form squared
+    /// distance `(x − y)ᵀ G (x − y)` over exact ℚ (no √; √ stays a seam).
+    ///
+    /// A named 3-ary math builtin. `gram` is an IRI to an authored `math:GramMatrix`,
+    /// and `x`/`y` are IRIs to authored `math:` vectors (each operand is a `Const` IRI,
+    /// or a `Var` bound to an IRI). The moded evaluator loads the exact-rational Gram
+    /// cells and coordinate vectors from the graph and binds `target` to the exact
+    /// `Value::Rat` squared distance (or filters when `target` is already bound). This
+    /// is the first entry of a table-driven family of `math:` moded builtins.
+    BilinearSqDist {
+        /// The variable (or operand) that receives the exact squared distance.
+        target: QTerm,
+        /// The `math:GramMatrix` IRI operand (the symmetric bilinear form).
+        gram: QTerm,
+        /// The first `math:` vector IRI operand.
+        x: QTerm,
+        /// The second `math:` vector IRI operand.
+        y: QTerm,
+    },
+    /// `dimEqual(d1, d2)` — the `math:dimensionEqualityRel` builtin-bound consequent of
+    /// `math:dimensionalHomogeneityLaw`: exact ℚ⁷ commensurability of the two dimension
+    /// IRI operands (each a `Const` IRI, or a `Var` bound to one). The moded evaluator
+    /// resolves each operand's exact-rational exponent vector on demand via the
+    /// [`crate::physical::CellResolver`]'s dimension probe — never a transport-literal
+    /// parse — so a plain dimension IRI (never asserted as a scalar) is the operand
+    /// shape. A LOWERING-ONLY builtin: never authored on the query surface, emitted
+    /// solely by the `logic:Constraint` → violation-rule lowering
+    /// ([`crate::relational_core::lower_constraint_violation_rules`]).
+    DimEqual {
+        /// The first dimension IRI operand.
+        d1: QTerm,
+        /// The second dimension IRI operand.
+        d2: QTerm,
+    },
+    /// `dimProduct(dF, dM, dR)` — the `math:dimensionProductRel` builtin-bound
+    /// consequent of `math:integralDimensionCompositionLaw`: `dR`'s exact ℚ⁷ exponent
+    /// vector must equal `dF`'s composed (⊕, vector addition) with `dM`'s. Each operand
+    /// is a dimension IRI (a `Const`, or a `Var` bound to one), resolved on demand via
+    /// the [`crate::physical::CellResolver`]'s dimension probe. A LOWERING-ONLY
+    /// builtin, exactly like [`Self::DimEqual`] — never authored, only emitted by the
+    /// constraint lowering.
+    DimProduct {
+        /// The integrand's dimension IRI operand.
+        d_f: QTerm,
+        /// The measure's dimension IRI operand.
+        d_m: QTerm,
+        /// The declared result dimension IRI operand.
+        d_r: QTerm,
+    },
 }
 
 /// Arithmetic operators recognized in `X is Expr` builtins.
+///
+/// Operator identity is stable across the exact-numeric value tower: `+ - *` are
+/// shared across ℤ and ℚ, [`ArithOp::Div`] (`//`) is truncating-integer division
+/// (the ℤ operator), and [`ArithOp::ExactDiv`] (`/`) is exact rational division (the
+/// ℚ operator). `//` and `/` are DISTINCT operators — `//` truncates toward zero on
+/// integers, `/` yields the exact rational quotient — resolving the historical
+/// ℤ/ℚ division overload.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArithOp {
     /// Addition (`+`).
@@ -195,8 +250,10 @@ pub enum ArithOp {
     Sub,
     /// Multiplication (`*`).
     Mul,
-    /// Integer division (`//`).
+    /// Truncating integer division (`//`, toward zero) — the ℤ division operator.
     Div,
+    /// Exact rational division (`/`) — the ℚ division operator, distinct from `//`.
+    ExactDiv,
 }
 
 impl ArithOp {
@@ -207,6 +264,7 @@ impl ArithOp {
             ArithOp::Sub => "-",
             ArithOp::Mul => "*",
             ArithOp::Div => "//",
+            ArithOp::ExactDiv => "/",
         }
     }
 }
@@ -1100,6 +1158,16 @@ fn try_parse_builtin(
         let target_str = tok[..is_pos].trim();
         let rhs_str = tok[is_pos + 4..].trim();
         let target = parse_term(target_str, prefixes)?;
+        // A named n-ary math function on the RHS (e.g. `bilinearSqDist(G, X, Y)`) is a
+        // moded math builtin, detected BEFORE the arithmetic split so its parenthesized
+        // argument list (which may contain `/` inside `<iri>`s) is never mistaken for a
+        // binary arithmetic operator. The table is greenfield-extensible: more math
+        // builtins register a name here.
+        if let Some((name, args)) = parse_named_function(rhs_str)
+            && let Some(builtin) = try_parse_math_function(name, &args, &target, prefixes)?
+        {
+            return Ok(Some(builtin));
+        }
         // Split a binary RHS on its arithmetic operator (multi-char `//` checked
         // first). A single operand is the arithmetic-expression base case; lower it
         // canonically to `operand + 0` so parsing, hashing, mode analysis, and execution
@@ -1128,6 +1196,61 @@ fn try_parse_builtin(
     }
 
     Ok(None)
+}
+
+/// Detect an RHS shaped as a named n-ary function call `name(arg0, arg1, ...)`.
+///
+/// Returns `(name, arg_tokens)` when `s` is `name(...)` with a bare alphanumeric
+/// name and a `)`-terminated argument list, splitting the arguments at top-level
+/// commas (parens/quotes respected, exactly like [`split_comma_top`]). Returns
+/// `None` for any non-function shape (a bare operand, an arithmetic expression), so
+/// the caller falls through to the arithmetic split.
+fn parse_named_function(s: &str) -> Option<(&str, Vec<&str>)> {
+    let s = s.trim();
+    if !s.ends_with(')') {
+        return None;
+    }
+    let open = s.find('(')?;
+    let name = s[..open].trim();
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return None;
+    }
+    let inner = &s[open + 1..s.len() - 1];
+    Some((name, split_comma_top(inner)))
+}
+
+/// Table-driven parse of a named math builtin from its `name(args)` surface.
+///
+/// `Ok(Some(_))` for a recognized math function (currently only `bilinearSqDist/3`),
+/// `Ok(None)` for an unrecognized name (the caller falls through to arithmetic), or
+/// `Err` for a recognized name with the wrong arity — a malformed builtin, never a
+/// silent fallthrough.
+fn try_parse_math_function(
+    name: &str,
+    args: &[&str],
+    target: &QTerm,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Option<QBuiltin>> {
+    match name {
+        "bilinearSqDist" => {
+            if args.len() != 3 {
+                return Err(query_err(format!(
+                    "bilinearSqDist(...) takes exactly 3 arguments (gram, x, y); got {}",
+                    args.len()
+                )));
+            }
+            let gram = parse_term(args[0].trim(), prefixes)?;
+            let x = parse_term(args[1].trim(), prefixes)?;
+            let y = parse_term(args[2].trim(), prefixes)?;
+            Ok(Some(QBuiltin::BilinearSqDist {
+                target: target.clone(),
+                gram,
+                x,
+                y,
+            }))
+        }
+        _ => Ok(None),
+    }
 }
 
 /// Find a top-level (not inside parens/quotes) occurrence of `needle` in `s`.
@@ -1175,21 +1298,27 @@ fn is_atom_shaped(tok: &str) -> bool {
 }
 
 /// Split an arithmetic RHS `lhs op rhs` on the first top-level arithmetic operator.
-/// `//` is checked before `/`-family single chars; returns `(lhs, op, rhs)`.
+///
+/// The multi-char `//` (truncating integer division, [`ArithOp::Div`]) is checked
+/// FIRST so it always wins over the single-char `/` (exact rational division,
+/// [`ArithOp::ExactDiv`]) when both could match. The single-char pass then adds `/`
+/// alongside `+ * -`, each skipping a leading-sign occurrence at position 0.
+/// Returns `(lhs, op, rhs)`.
 fn split_arith(s: &str) -> Option<(&str, ArithOp, &str)> {
-    // Multi-char first.
+    // Multi-char first: `//` must bind before the lone `/`.
     if let Some(pos) = find_infix_top(s, "//") {
         return Some((&s[..pos], ArithOp::Div, &s[pos + 2..]));
     }
-    // Single-char operators. `-` is searched as ` - ` (spaces) to avoid colliding
-    // with a leading sign; `+ * ` likewise require surrounding context only loosely.
+    // Single-char operators. A leading `-`/`+`/`/` at position 0 is a sign or a
+    // dangling operator (no LHS), not a binary split, so it is skipped.
     for (tok, op) in [
         ("+", ArithOp::Add),
         ("*", ArithOp::Mul),
         ("-", ArithOp::Sub),
+        ("/", ArithOp::ExactDiv),
     ] {
         if let Some(pos) = find_infix_top(s, tok) {
-            // Skip a leading-sign `-`/`+` (operator at position 0 with no LHS).
+            // Skip a leading-sign `-`/`+`/`/` (operator at position 0 with no LHS).
             if pos == 0 {
                 continue;
             }
@@ -1270,6 +1399,105 @@ fn split_comma_top(s: &str) -> Vec<&str> {
     parts
 }
 
+/// Split on top-level ASCII whitespace, respecting bracket depth (`<`/`(` open,
+/// `>`/`)` close) and `'`/`"` quotes so a nested quoted-triple `<<( … )>>`, an
+/// angle-bracketed `<iri>`, or a spaced literal stays one component. Used to split the
+/// three components of a `<<( s p o )>>` term.
+fn split_ws_top(s: &str) -> Vec<&str> {
+    let bytes = s.as_bytes();
+    let mut parts = Vec::new();
+    let mut depth = 0i32;
+    let mut in_token = false;
+    let mut start = 0;
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            quote @ (b'\'' | b'"') => {
+                if !in_token {
+                    start = i;
+                    in_token = true;
+                }
+                i += 1;
+                while i < bytes.len() && bytes[i] != quote {
+                    if bytes[i] == b'\\' {
+                        i += 1;
+                    }
+                    i += 1;
+                }
+                i += 1;
+            }
+            b'<' | b'(' => {
+                if !in_token {
+                    start = i;
+                    in_token = true;
+                }
+                depth += 1;
+                i += 1;
+            }
+            b'>' | b')' => {
+                depth -= 1;
+                i += 1;
+            }
+            b if b.is_ascii_whitespace() && depth == 0 => {
+                if in_token {
+                    parts.push(&s[start..i]);
+                    in_token = false;
+                }
+                i += 1;
+            }
+            _ => {
+                if !in_token {
+                    start = i;
+                    in_token = true;
+                }
+                i += 1;
+            }
+        }
+    }
+    if in_token {
+        parts.push(&s[start..]);
+    }
+    parts
+}
+
+/// Whether a parsed term is ground — carries no [`QTerm::Var`] at any depth. A quoted
+/// triple with an embedded variable is a triple *pattern* (unsupported as a goal
+/// argument), rejected at parse time.
+fn qterm_is_ground(t: &QTerm) -> bool {
+    match t {
+        QTerm::Var(_) => false,
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => true,
+        QTerm::Triple { s, p, o } => qterm_is_ground(s) && qterm_is_ground(p) && qterm_is_ground(o),
+    }
+}
+
+/// Whether a parsed term denotes an IRI — a canonical `<iri>` constant (from a prefixed
+/// name or single-quoted/angle-bracketed form). A double-quoted literal `Const` (`"…"`)
+/// and every non-`Const` shape are not IRIs.
+fn qterm_is_iri(t: &QTerm) -> bool {
+    matches!(t, QTerm::Const(c) if c.starts_with('<') && c.ends_with('>'))
+}
+
+/// Canonical surface string of a parsed term: a `Const` verbatim, a `Num` as its decimal
+/// text, a `Var` as its name, a `Struct` as its `#struct<idx>` handle, and a ground
+/// quoted-triple as `<<( s p o )>>` (recursively). Used where a term must be rendered to a
+/// comparison/memo surface outside the physical evaluator (the declarative reference oracle
+/// and the probabilistic path).
+pub(crate) fn qterm_display(t: &QTerm) -> String {
+    match t {
+        QTerm::Const(c) => c.clone(),
+        QTerm::Var(v) => v.clone(),
+        QTerm::Num(n) => n.to_string(),
+        QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
+        QTerm::Triple { s, p, o } => format!(
+            "<<( {} {} {} )>>",
+            qterm_display(s),
+            qterm_display(p),
+            qterm_display(o)
+        ),
+    }
+}
+
 // ── Atom parser ───────────────────────────────────────────────────────────────
 
 /// Parse a single atom `pred(Arg0, Arg1, ...)`.
@@ -1337,6 +1565,52 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> gmeow_errors::Res
     // the prefixed-name branch so `0`/`1`/`-1` are numbers, not failed IRIs.
     if let Ok(n) = s.parse::<i64>() {
         return Ok(QTerm::Num(n));
+    }
+
+    // RDF 1.2 quoted-triple term: `<<( s p o )>>` (the render form in
+    // `provenance::term_display`). Checked BEFORE `resolve_iri`: `<<( … )>>` starts with
+    // `<` and ends with `>`, so `resolve_iri` would otherwise mis-capture the whole span
+    // as an opaque IRI. Components are parsed recursively; the term must be ground (a
+    // triple *pattern* with variables is a distinct, unsupported semantics) and its
+    // predicate must be an IRI.
+    if let Some(inner) = s
+        .strip_prefix("<<(")
+        .and_then(|rest| rest.strip_suffix(")>>"))
+    {
+        let components = split_ws_top(inner.trim());
+        if components.len() != 3 {
+            return Err(query_err(format!(
+                "quoted-triple term must have exactly 3 components (subject predicate object), \
+                 got {}: {s:?}",
+                components.len()
+            )));
+        }
+        let subject = parse_term(components[0], prefixes)?;
+        let predicate = parse_term(components[1], prefixes)?;
+        let object = parse_term(components[2], prefixes)?;
+        for (role, term) in [
+            ("subject", &subject),
+            ("predicate", &predicate),
+            ("object", &object),
+        ] {
+            if !qterm_is_ground(term) {
+                return Err(query_err(format!(
+                    "quoted-triple {role} must be ground (a variable makes it a triple \
+                     pattern, which is not supported as a goal argument): {s:?}"
+                )));
+            }
+        }
+        // RDF 1.2: a triple-term predicate is always an IRI.
+        if !qterm_is_iri(&predicate) {
+            return Err(query_err(format!(
+                "quoted-triple predicate must be an IRI (RDF 1.2): {s:?}"
+            )));
+        }
+        return Ok(QTerm::Triple {
+            s: Box::new(subject),
+            p: Box::new(predicate),
+            o: Box::new(object),
+        });
     }
 
     // Single-quoted full IRI: `'https://...'`
@@ -1443,6 +1717,78 @@ mod tests {
         assert_eq!(
             fact.head.args[1],
             QTerm::Const("<https://example.org/a>".to_owned())
+        );
+    }
+
+    // ── RDF 1.2 quoted-triple goal argument ───────────────────────────────────
+
+    #[test]
+    fn quoted_triple_goal_argument_parses_ground_components() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:vector(<<( ex:s0 ex:p ex:o0 )>>, C).\n",
+        )
+        .unwrap();
+        let arg = &prog.goal.atoms[0].args[0];
+        let QTerm::Triple { s, p, o } = arg else {
+            panic!("expected a quoted-triple term, got {arg:?}");
+        };
+        assert_eq!(**s, QTerm::Const("<https://example.org/s0>".to_owned()));
+        assert_eq!(**p, QTerm::Const("<https://example.org/p>".to_owned()));
+        assert_eq!(**o, QTerm::Const("<https://example.org/o0>".to_owned()));
+        // The unbound candidate stays a variable.
+        assert_eq!(prog.goal.atoms[0].args[1], QTerm::Var("C".to_owned()));
+    }
+
+    #[test]
+    fn quoted_triple_nested_object_parses() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:vector(<<( ex:s0 ex:p <<( ex:a ex:q ex:b )>> )>>, C).\n",
+        )
+        .unwrap();
+        let QTerm::Triple { o, .. } = &prog.goal.atoms[0].args[0] else {
+            panic!("expected a quoted-triple term");
+        };
+        assert!(matches!(**o, QTerm::Triple { .. }), "nested object triple");
+    }
+
+    #[test]
+    fn quoted_triple_with_embedded_variable_is_rejected() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:vector(<<( X ex:p ex:o0 )>>, C).\n",
+        )
+        .unwrap_err();
+        assert!(
+            format!("{err:?}").contains("ground"),
+            "embedded variable must be rejected as non-ground: {err:?}"
+        );
+    }
+
+    #[test]
+    fn quoted_triple_with_non_iri_predicate_is_rejected() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:vector(<<( ex:s0 \"lit\" ex:o0 )>>, C).\n",
+        )
+        .unwrap_err();
+        assert!(
+            format!("{err:?}").contains("predicate must be an IRI"),
+            "non-IRI predicate must be rejected: {err:?}"
+        );
+    }
+
+    #[test]
+    fn quoted_triple_wrong_arity_is_rejected() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:vector(<<( ex:s0 ex:p )>>, C).\n",
+        )
+        .unwrap_err();
+        assert!(
+            format!("{err:?}").contains("exactly 3 components"),
+            "a 2-component quoted triple must be rejected: {err:?}"
         );
     }
 
@@ -1665,6 +2011,40 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             }
             other => panic!("expected Is builtin, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn parse_distinguishes_truncating_and_exact_division_operators() {
+        // `//` parses to the truncating-integer operator; a lone `/` to exact ℚ
+        // division. `//` (multi-char, checked first) always wins over `/`.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(A, B) :- A is 6 // 4, B is 6 / 4.\n\
+             ?- ex:p(A, B).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 2);
+        assert_eq!(
+            body[0],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("A".to_owned()),
+                lhs: QTerm::Num(6),
+                op: ArithOp::Div,
+                rhs: QTerm::Num(4),
+            })
+        );
+        assert_eq!(
+            body[1],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("B".to_owned()),
+                lhs: QTerm::Num(6),
+                op: ArithOp::ExactDiv,
+                rhs: QTerm::Num(4),
+            })
+        );
+        assert_eq!(ArithOp::Div.token(), "//");
+        assert_eq!(ArithOp::ExactDiv.token(), "/");
     }
 
     #[test]

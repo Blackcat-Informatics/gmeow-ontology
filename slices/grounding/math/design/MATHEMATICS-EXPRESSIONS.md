@@ -56,8 +56,8 @@ individuals is needed (e.g. `math:Distribution` is a class; `π` is an individua
 This keeps the TBox small and the ABox expressive, matching the project's frame-relative modeling.
 
 **Alignment is a mapping record, not a bespoke predicate.** External authority links follow the
-established repository pattern: `gmeow:TermEquivalence` reification records in the slice's
-`mappings/equivalences.ttl` (with `gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`,
+established repository pattern: native RDF-1.2 alignment cells — reified `S skos:*Match O {| … |}`
+statements — in the slice's `mappings/equivalences.ttl` (carrying `gmeow:sssomFile`,
 a `semapv:` justification, and a confidence), lowered as a `logic:Correspondence` — the ninth
 `logic:` IR node kind (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). The mathematics slice
 introduces **no** free-standing `authorityLink` predicate; a Wikidata QID for a named concept is a
@@ -433,3 +433,24 @@ constructs and its preservation polarity in the loss ledger; the projection cont
 [`MATHEMATICS-PROJECTIONS.md`](MATHEMATICS-PROJECTIONS.md). Canonical computable content is always
 the GMEOW expression AST; a MathML tree is canonical identity only when a formula was ingested at
 that fidelity and marked as such.
+
+### The GMN glyph plane is a rendering, never a rival identity
+
+The GMEOW Model Notation gives a mathematical operator or symbol a token-compact glyph — `∈` for
+`math:hasElement`, `⊆` for `math:subsetOf`, `∘` for `math:functionComposition`, `→` for
+`math:Morphism`, the `ℕ ℤ ℚ ℝ ℂ` number-space signs, the structured `L¹M¹T⁻²` dimension vector.
+A GMN glyph is a **`lang:Rendering`/`lang:Denotation` of the canonical AST or term** — the exact
+sibling of `math:ExpressionRendering`, which is itself grafted onto the general `lang:Rendering`
+theory — never a second identity. The canonical computable object is the expression AST (or the
+`math:` term the glyph denotes); the glyph is one of its surfaces, so two glyphs that denote the
+same term are the same object, and a glyph carries no meaning the term does not already own. The
+notation-to-AST relationship is a declared grounding lens (get = parse, put = render) shipped as a
+`logic:GroundingCorrespondence` in the `lang:` grounding slice.
+
+Because the glyph is a rendering, the GMN operator form's **fixity, precedence, and arity are a
+checked signature projection of the term's structure, not free-floating numbers**. A binary
+relational operator that denotes an `owl:ObjectProperty` (`∈`, `⊆`, `∘`) is inherently binary, so
+its form must declare `gmeow:gmnArity 2`; and any form that declares a fixity must also declare its
+precedence and arity, so a parser reads a complete operator signature. Both invariants are enforced
+by whole-graph coherence gates (the GMN signature-coherence verify queries in the `lang:` slice),
+so the signature can never drift from the term it renders.

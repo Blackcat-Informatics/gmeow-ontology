@@ -3,6 +3,20 @@
   "findings": [
     {
       "severity": "warning",
+      "code": "slice-quality.advice-coverage.no-repo-root",
+      "message": "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisAdviceCoverage: Author a central advice carrier in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names. For an avoidWhen cell: a logic:Constraint + logic:Formula whose data-matching guard detects the anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term, logic:adviceSourceField logic:ProseFieldAvoidWhen, and logic:message set to the term's verbatim avoidWhen prose — so it fires a deonticRecommendation Note when an individual matches. For a useWhen cell: a logic:AdviceGuidance that logic:formalizes the term, with logic:adviceSourceField logic:ProseFieldUseWhen and logic:message the verbatim useWhen prose. The native verify gate holds each message to the term's current prose. The domain slice keeps only its prose; the carrier lives centrally and formalizes the term.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.axis-advice",
       "message": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.",
       "tool": "slice-quality",
@@ -32,7 +46,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
-      "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
+      "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -53,7 +67,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.doc-maturity.model-unavailable",
-      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).",
+      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured, so it is scored 0.0 (the bottom of the axis). An unmeasurable axis is never a passing one; fix the condition and re-score.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -95,21 +109,235 @@
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "message": "fr covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.",
       "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/fr.po"
+        }
+      ],
       "standpoint": "advisory"
     },
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "message": "cmn covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/zh.po"
+        }
+      ],
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "2 localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "(https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "(https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisAdviceCoverage: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
     {
       "severity": "info",
       "code": "slice-quality.grade",
-      "message": "axisDocMaturity: Maximal (score 1.00)",
+      "message": "axisDocMaturity: Maximal (score 0.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -221,6 +449,11 @@
   ],
   "rules": [
     {
+      "id": "slice-quality.advice-coverage.no-repo-root",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-advice-coverage-no-repo-root",
+      "default_severity": "warning"
+    },
+    {
       "id": "slice-quality.axis-advice",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-axis-advice",
       "default_severity": "warning"
@@ -268,6 +501,16 @@
     {
       "id": "slice-quality.translation.incomplete",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.translation.notation-excluded",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-notation-excluded",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.translation.uncovered-literal",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-uncovered-literal",
       "default_severity": "warning"
     }
   ]

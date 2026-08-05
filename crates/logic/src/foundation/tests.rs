@@ -1694,6 +1694,42 @@ fn characteristic_transitive_closure_via_logic_record() {
 }
 
 #[test]
+fn functional_marker_derives_functional_property_edge_via_owl_marker() {
+    // The deprecated OWL type marker still lifts `functionalProperty(?P, ?P)` into the
+    // chase — the derivation source raw external/conformance graphs and the OWL grounding
+    // VIEW continue to supply after the slice source declarations are removed.
+    let b = "https://example.org/char/functional-marker";
+    let p = format!("{b}/spouse");
+    let nq = format!("<{p}> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{b}/g> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &p, &format!("{LOGIC}functionalProperty"), &p),
+        "owl:FunctionalProperty must derive functionalProperty(spouse, spouse)"
+    );
+}
+
+#[test]
+fn functional_carrier_derives_functional_property_edge_via_logic_record() {
+    // The canonical carrier: a central `logic:PropertyCharacteristicAssertion` record naming
+    // the property functional must drive the SAME `functionalProperty(?P, ?P)` marker the OWL
+    // type marker does — the derivation source that survives the `owl:FunctionalProperty`
+    // slice-source removal, keeping the relator-mediation entity-count identical.
+    let b = "https://example.org/char/functional-record";
+    let p = format!("{b}/spouse");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}functionalProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &p, &format!("{LOGIC}functionalProperty"), &p),
+        "a logic:characterizes/characteristicSort functionalProperty record must derive \
+         functionalProperty(spouse, spouse) like the owl: marker"
+    );
+}
+
+#[test]
 fn characteristic_symmetric_mirror() {
     let b = "https://example.org/char/symmetric";
     let p = format!("{b}/counter");
@@ -1988,5 +2024,66 @@ fn characteristic_carrier_agreement_ignores_logic_only_sorts() {
     assert!(
         !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
         "a logic:-only irreflexive record must not fire a carrier disagreement"
+    );
+}
+
+#[test]
+fn functional_carrier_materializes_marker_and_clears_disagreement() {
+    // A functional property carried ONLY by the canonical central record — NO
+    // owl:FunctionalProperty / logic:functionalProperty rdf:type marker in the input, exactly
+    // as the slices now author it after the owl:FunctionalProperty source declarations were
+    // removed. The closure materializes the marker (?P rdf:type logic:functionalProperty) from
+    // the carrier, so the carrier-agreement cross-check sees the canonical record and its
+    // derived projection AGREE and raises NO disagreement.
+    let b = "https://example.org/char/functional-carrier-only";
+    let p = format!("{b}/hasLead");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}functionalProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(
+            &quads,
+            &p,
+            RDF_TYPE_P,
+            &format!("{LOGIC}functionalProperty")
+        ),
+        "the closure must materialize the logic:functionalProperty type marker from the carrier"
+    );
+    assert!(
+        !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a carrier-only functional property must not fire a disagreement once the marker is \
+         materialized"
+    );
+}
+
+#[test]
+fn transitive_carrier_without_marker_still_fires_disagreement() {
+    // The functional marker is materialized from its carrier, but transitive/symmetric stay
+    // DUAL-authored: the closure never materializes a transitive marker, so a transitive record
+    // WITHOUT its hand-authored owl:TransitiveProperty marker must STILL fire a disagreement.
+    // This guards against the functional materialization accidentally clearing the other sorts.
+    let b = "https://example.org/char/transitive-carrier-only";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_edge(
+            &quads,
+            &p,
+            RDF_TYPE_P,
+            &format!("{LOGIC}transitiveProperty")
+        ),
+        "the closure must NOT materialize a transitive marker (transitive stays dual-authored)"
+    );
+    assert!(
+        has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a transitive carrier without its owl: marker must still fire a disagreement"
     );
 }

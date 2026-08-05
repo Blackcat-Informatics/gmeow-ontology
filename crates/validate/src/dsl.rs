@@ -150,29 +150,35 @@ pub fn merge_to_ntriples(paths: &[PathBuf]) -> gmeow_errors::Result<String> {
 mod tests {
     use super::*;
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the provenance map is keyed
+    /// by file path and the assertions match on the file name.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     #[test]
     fn provenance_maps_each_named_subject_to_first_file() {
-        let a = write_tmp(
+        let (_tmp_a, a) = write_tmp(
             "gmeow_validate_dsl_prov_a.ttl",
             "@prefix ex: <https://example.org/> .\n\
              ex:alice ex:p ex:b .\n\
              ex:shared ex:p ex:x .\n",
         );
-        let b = write_tmp(
+        let (_tmp_b, b) = write_tmp(
             "gmeow_validate_dsl_prov_b.ttl",
             "@prefix ex: <https://example.org/> .\n\
              ex:bob ex:p ex:c .\n\
              ex:shared ex:p ex:y .\n",
         );
         let merge = merge_with_provenance(&[a.clone(), b.clone()]).expect("merge must succeed");
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
 
         let map: std::collections::HashMap<String, String> =
             merge.focus_to_file.iter().cloned().collect();
@@ -186,17 +192,15 @@ mod tests {
 
     #[test]
     fn merge_to_ntriples_unions_all_triples() {
-        let a = write_tmp(
+        let (_tmp_a, a) = write_tmp(
             "gmeow_validate_dsl_merge_a.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let b = write_tmp(
+        let (_tmp_b, b) = write_tmp(
             "gmeow_validate_dsl_merge_b.ttl",
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
         let nt = merge_to_ntriples(&[a.clone(), b.clone()]).expect("merge must succeed");
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
         let ds = crate::store::dataset_from_nt(&nt).unwrap();
         assert_eq!(ds.quad_count(), 2);
         for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
@@ -208,9 +212,8 @@ mod tests {
 
     #[test]
     fn merge_propagates_parse_error_with_path() {
-        let bad = write_tmp("gmeow_validate_dsl_bad.ttl", "this is not turtle @@@ <<<");
+        let (_tmp, bad) = write_tmp("gmeow_validate_dsl_bad.ttl", "this is not turtle @@@ <<<");
         let err = merge_to_ntriples(std::slice::from_ref(&bad)).unwrap_err();
-        std::fs::remove_file(&bad).ok();
         assert!(err.message().contains("gmeow_validate_dsl_bad.ttl"));
     }
 }

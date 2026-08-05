@@ -20,8 +20,8 @@ use std::sync::Arc;
 use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
-    TermValue,
+    DatasetMut, MutableDataset, QuadValues, RdfDataset, RdfQuad, RdfTerm, SparqlEngine,
+    SparqlRequest, SparqlResult, TermValue,
 };
 
 use crate::reason::dl::gaps_from_unsupported;
@@ -86,10 +86,17 @@ fn query_stem(name: &str) -> &str {
 /// Never panics on a violation; the caller inspects [`Report::ok`]. The returned
 /// report is NOT yet normalized (the PyO3 layer normalizes before serializing).
 ///
+/// One class of defect is NOT reported as a finding but as a hard `Err`: a reasoned
+/// closure that derives an enactment-kernel effect record. A violation there means the
+/// engine crossed the commitment layer's observed-not-derived boundary, which invalidates
+/// the run rather than describing a fact about the data, so it aborts before any gate or
+/// query runs (see [`crate::reason::enactment::reject_banned_heads`]).
+///
 /// # Errors
 ///
 /// Returns `Err` if a query fails to parse/evaluate, if a query is not a
-/// SELECT, or if a derived edge cannot be built as a quad.
+/// SELECT, if a derived edge cannot be built as a quad, or if the reasoned closure
+/// derives a `logic:EffectAttempt` / `logic:ExternalEffectReceipt`.
 pub fn verify_with_reasoning_result(
     edb: &RdfDataset,
     result: &ReasoningResult,
@@ -171,6 +178,19 @@ pub fn verify_with_reasoning_result(
     // *derived* (not merely asserted) is a violation.
     let mut derived_predicates: std::collections::BTreeSet<String> =
         std::collections::BTreeSet::new();
+    // The DL-derived (non-EDB) edges, retained as quads so the reasoner-derived math
+    // dimension gate below chases the SAME reasoned closure the verify queries do — not
+    // merely the raw asserted EDB. A dimension-relevant triple (`math:hasDimension`,
+    // `math:homogeneousOperand`, `math:integrand`, `math:withRespectTo`, or an `rdf:type`
+    // classifying a dimension node) that is *derived* rather than asserted must still
+    // reach the hard-fail gate; the native closure only materializes all-IRI edges, so
+    // these carry no literal terms.
+    let mut derived_edges: Vec<RdfQuad> = Vec::new();
+    // The same derived edges as `(subject, predicate, object)` rows, for the enactment
+    // kernel's observed-not-derived guard immediately below. Built here rather than
+    // decoded back out of `derived_edges` because the bare IRI strings are already in
+    // hand at this point.
+    let mut derived_rows: Vec<(String, String, String)> = Vec::new();
     for ax in result.inferred() {
         if ax.is_edb {
             continue;
@@ -183,6 +203,115 @@ pub fn verify_with_reasoning_result(
             s: TermValue::iri(subject),
             p: TermValue::iri(predicate),
             o: TermValue::iri(object),
+            g: None,
+        });
+        derived_edges.push(RdfQuad::new(
+            RdfTerm::iri(subject),
+            predicate,
+            RdfTerm::iri(object),
+        ));
+        derived_rows.push((subject.to_owned(), predicate.to_owned(), object.to_owned()));
+    }
+
+    // The enactment kernel's observed-not-derived guard, over the REASONED CLOSURE — the
+    // derived (non-EDB) edges just materialized, i.e. what the shipped reasoner actually
+    // concluded from the bundle's own rules. Run unconditionally and FIRST, before any
+    // gate-marker work, because it is the one check whose failure means the engine crossed
+    // the commitment layer's hardest boundary: effect attempts and receipts are records of
+    // what happened in the world, and a reasoner that could conclude an attempt happened
+    // could conclude the world changed. If that inference is in the closure, there is
+    // nothing worth gating afterwards.
+    //
+    // The authored `logic:EffectRecordsAreObservedNotDerivedConstraint` says the same
+    // thing, but a constraint only binds if it is actually run, so the rule is carried here
+    // as a Rust-side guard too — and it HARD-FAILS rather than filtering the offending row
+    // away, since dropping it would preserve the invariant in the output while hiding the
+    // defect that produced it.
+    //
+    // ASSERTED effect records never reach this call: `derived_edges` skips every `is_edb`
+    // axiom, so an attempt the dispatching organ wrote down stays a legitimate observation
+    // the verify queries reason about like any other data.
+    crate::reason::enactment::reject_banned_heads(&derived_rows)?;
+
+    // The reasoner-derived `math:` dimensional-homogeneity gate: compiles the two
+    // builtin-bound-consequent `logic:Constraint`s authored in `slices/grounding/math/
+    // module.ttl` into VIOLATION-EMITTING forward rules and materializes
+    // `math:DimensionalInhomogeneity` markers from the authored laws over the SAME
+    // reasoned closure the verify queries below evaluate — the asserted EDB UNIONED with
+    // the DL-derived edges layered into `store` just above (`derived_edges`), never the
+    // raw pre-inference graph — so a dimension edge that is *derived* rather than
+    // asserted is gated too. The gate runs its own literal-preserving forward chase (the
+    // typed EDB fact stream drops the default-graph literal exponent cells the ℚ⁷
+    // dimension builtins read on demand), but over this reasoned input. Always-on (no
+    // flag); the marker is an ordinary `rdf:type` triple spliced into `store` before the
+    // freeze below, so the `dimensional-inhomogeneity.rq` verify query (and every
+    // obligation check below) renders it like any other row — never a Rust side-channel
+    // finding.
+    for (subject, failure_class) in
+        crate::reason::math_gate::dimension_gate_markers(edb, &derived_edges)?
+    {
+        store.insert(QuadValues {
+            s: TermValue::iri(subject),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(failure_class),
+            g: None,
+        });
+    }
+
+    // The reasoner-derived enactment-kernel gate: compiles the enactment `logic:Constraint`s
+    // authored in `slices/grounding/logic/module.ttl` into VIOLATION-EMITTING forward rules
+    // (each law's antecedent plus its NEGATED consequent) and materializes
+    // `logic:EnactmentIntegrityViolation` markers from those laws over the SAME reasoned
+    // closure the verify queries below evaluate — the asserted EDB UNIONED with the
+    // DL-derived edges layered into `store` just above — so a kernel record whose type or
+    // binding is *derived* rather than asserted is gated too. The marker is an ordinary
+    // `rdf:type` triple spliced into `store` before the freeze below, so the
+    // `enactment-integrity-violation.rq` verify query renders it like any other row — never
+    // a Rust side-channel finding.
+    //
+    // Its marker output is put through the observed-not-derived guard a second time on the
+    // way out: a gate that materializes markers from authored laws is itself a derivation,
+    // so it is held to the boundary exactly like the closure above. The boundary is enforced
+    // on the broadest surface by the unconditional pass over `derived_rows` above; this pass
+    // binds the gate's own output specifically.
+    //
+    // Each finding is spliced in as TWO quads, not one: the `rdf:type` marker naming the
+    // condemned record, and a `logic:violatedLaw` edge naming the authored
+    // `logic:Constraint` that condemned it. The kernel shares one failure class across all
+    // forty of its laws deliberately, so the marker alone tells an operator that a record
+    // breached enactment integrity and not WHICH obligation it broke.
+    //
+    // The law edge is the one the CHASE derived — every violation rule heads on
+    // `logic:violatedLaw` precisely so that two laws condemning one record stay two
+    // distinct derived tuples instead of collapsing into a single shared marker with one
+    // surviving provenance. The `rdf:type` marker is minted here from the law's authored
+    // `gmeow:enforcesFailureClass`: which class a law's findings carry is a property of
+    // the law, so writing it down is a projection of what the author declared and not a
+    // second decision about the record.
+    let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
+    crate::reason::enactment::reject_banned_heads(
+        &kernel_markers
+            .iter()
+            .map(|violation| {
+                (
+                    violation.subject.clone(),
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
+                    violation.failure_class.clone(),
+                )
+            })
+            .collect::<Vec<_>>(),
+    )?;
+    for violation in kernel_markers {
+        store.insert(QuadValues {
+            s: TermValue::iri(violation.subject.clone()),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(violation.failure_class),
+            g: None,
+        });
+        store.insert(QuadValues {
+            s: TermValue::iri(violation.subject),
+            p: TermValue::iri("https://blackcatinformatics.ca/logic/violatedLaw"),
+            o: TermValue::iri(violation.law),
             g: None,
         });
     }
@@ -301,6 +430,25 @@ pub fn verify_with_reasoning_result(
     // edit surfaces as drift" governance claim executable teeth the presence-only SHACL
     // shape cannot express — a stale hash on a harvested candidate is a hard error.
     for finding in crate::obligations::check_candidate_source_hash_drift(&reasoned)? {
+        report.add_finding(finding);
+    }
+    // The soft-advice peer: an advisory logic:Constraint whose logic:message must mirror its
+    // logic:formalizes term's gmeow:avoidWhen prose (declared via logic:adviceSourceField) is
+    // held to that prose by a direct string binding — a diverged advice message is a hard error,
+    // so the surfaced advice can never silently drift from the prose it formalizes.
+    for finding in crate::obligations::check_advice_message_prose_binding(&reasoned)? {
+        report.add_finding(finding);
+    }
+    // 5. The math: measure-and-dimension reasoned gate — dimensional homogeneity,
+    //    integral dimensional composition, math:dimensionVector string drift, and the
+    //    positive-definiteness of every authored math:GramMatrix used as a metric form.
+    //    Each is computed THROUGH the one exact-rational (ℚ⁷) gmeow_math source over
+    //    this same frozen reasoned graph, never asserted data; a violation is a
+    //    Severity::Error Finding naming its typed math: failure class. It is the
+    //    executable lowering of the math: dimensional-homogeneity laws and the Gram
+    //    positive-definiteness constraint (the sole positive-definiteness enforcement
+    //    point the runtime distance builtin trusts).
+    for finding in crate::math_dimension::check_math_dimension_findings(&reasoned) {
         report.add_finding(finding);
     }
 

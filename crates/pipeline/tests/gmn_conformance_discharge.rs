@@ -56,7 +56,7 @@ use support::flagship_discharge::{
 // Slice identity + fixture paths.
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 fn lang_spec() -> SliceSpec {
     SliceSpec {
@@ -301,6 +301,17 @@ fn shacl_rows() -> Vec<ShaclRow> {
         },
         ShaclRow {
             counter: "gmn-confusable-glyph.ttl",
+            class: "GmnConfusableGlyph",
+            trips: &["GmnConfusableGlyph"],
+            worked: "gmn-script-glyph-canonical.ttl",
+        },
+        ShaclRow {
+            // The μ confusable pair (U+00B5 MICRO SIGN vs U+03BC GREEK SMALL LETTER MU): two
+            // distinct, individually well-formed graphemes linked by gmeow:gmnConfusableWith,
+            // so ONLY lang:GmnConfusableGlyph fires (distinct codepoints keep GmnGlyphCollision
+            // quiet). Distinct from the record-initial @μ sigil ruling, which resolves the
+            // sigil-vs-in-record-symbol reading structurally, never as a glyph collision.
+            counter: "gmn-micro-mu-confusable.ttl",
             class: "GmnConfusableGlyph",
             trips: &["GmnConfusableGlyph"],
             worked: "gmn-script-glyph-canonical.ttl",

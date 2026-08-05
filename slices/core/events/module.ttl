@@ -288,8 +288,7 @@ gmeow:contains
     gmeow:useWhen "Use when one event's extent strictly contains another's — the Allen CONTAINS link, the inverse view of gmeow:during, asserting TEMPORAL nesting only."@x-gmeow-english .
 
 gmeow:durationValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Duration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "duration value"@x-gmeow-english ;
@@ -411,8 +410,7 @@ gmeow:eventSpacetime
     gmeow:useWhen "Use when an event needs full 4D placement — a location-plus-time slice carrying pose and optional velocity relative to an explicit reference frame — typically several slices tracing a moving occurrence."@x-gmeow-english .
 
 gmeow:eventTemporalFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "event temporal frame"@x-gmeow-english ;
@@ -1186,8 +1184,7 @@ gmeow:overlaps
     gmeow:useWhen "Use when one event begins before and ends during another so their extents partially overlap — the Allen OVERLAPS link."@x-gmeow-english .
 
 gmeow:participationEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Participation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "participation event"@x-gmeow-english ;
@@ -1274,8 +1271,7 @@ gmeow:precisionYear
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:recurrenceRuleText
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RecurrenceRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "recurrence rule text"@x-gmeow-english ;
@@ -1642,3 +1638,90 @@ gmeow:EventHasTypeOrTimeConstraint
     logic:onClass gmeow:Event ;
     logic:anyOf gmeow:eventType , gmeow:eventTime , gmeow:eventInterval , gmeow:earliestStart , gmeow:latestEnd , gmeow:atTime , gmeow:ingestedAt ;
     logic:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:subEventOfTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "subEventOf is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:subEventOf ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:subEventOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:subEventOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:subEventOf, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:subEventOf and nothing else. It is not a definition of gmeow:subEventOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:subEventOfTransitivity logic:characterizes gmeow:subEventOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:durationValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "durationValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:durationValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:durationValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:durationValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:durationValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:durationValue and nothing else. It is not a definition of gmeow:durationValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:durationValueFunctionality logic:characterizes gmeow:durationValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:eventTemporalFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "eventTemporalFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:eventTemporalFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:eventTemporalFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:eventTemporalFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:eventTemporalFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:eventTemporalFrame and nothing else. It is not a definition of gmeow:eventTemporalFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:eventTemporalFrameFunctionality logic:characterizes gmeow:eventTemporalFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participationEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "participationEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participationEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participationEvent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationEvent and nothing else. It is not a definition of gmeow:participationEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participationEventFunctionality logic:characterizes gmeow:participationEvent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:recurrenceRuleTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "recurrenceRuleText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:recurrenceRuleText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:recurrenceRuleText ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:recurrenceRuleText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:recurrenceRuleText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:recurrenceRuleText and nothing else. It is not a definition of gmeow:recurrenceRuleText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:recurrenceRuleTextFunctionality logic:characterizes gmeow:recurrenceRuleText ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -47,83 +47,67 @@ gmeow:mapsetInhabitation a gmeow:MappingSet ;
 
 # --- W3C VC: the durable subject IS the subject a signed credential is about;
 #     its DID is the deployed form of 'a subject of its own digital existence'.
-gmeow:eqInhabitation001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DigitalSubject ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject vc:credentialSubject ;
+gmeow:DigitalSubject skos:relatedMatch vc:credentialSubject {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "the durable digital 'who' is the vc:credentialSubject a signed credential is about, identified by a DID; a role-mixin status vs a credential subject — a loose lateral link, never exact" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "the durable digital 'who' is the vc:credentialSubject a signed credential is about, identified by a DID; a role-mixin status vs a credential subject — a loose lateral link, never exact"
+|} .
 
 # --- W3C VC: the supported-by-self-assertion tenure IS a signed, issuer-attributed
 #     credential (issuer = vantage, credentialSubject = the agent, proof = signature).
-gmeow:eqInhabitation002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DigitalSubjectTenure ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject vc:VerifiableCredential ;
+gmeow:DigitalSubjectTenure skos:relatedMatch vc:VerifiableCredential {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "a DigitalSubjectTenure is a Verifiable Credential: issuer = tenureVantage, credentialSubject = the agent, claim = bears-digital-subject-status, proof = signature; a Situation-tenure vs a signed claim — relatedMatch only" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "a DigitalSubjectTenure is a Verifiable Credential: issuer = tenureVantage, credentialSubject = the agent, claim = bears-digital-subject-status, proof = signature; a Situation-tenure vs a signed claim — relatedMatch only"
+|} .
 
 # --- W3C VC: the holding vantage IS the credential issuer.
-gmeow:eqInhabitation003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:tenureVantage ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject vc:issuer ;
+gmeow:tenureVantage skos:relatedMatch vc:issuer {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the frame according to which the tenure holds is the VC issuer — who asserts the status" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "the frame according to which the tenure holds is the VC issuer — who asserts the status"
+|} .
 
 # --- CIDOC-CRM: a contested inhabitation is a reified, attributed E13 assignment —
 #     a near-perfect fit for documenting a possession/incarnation as a claim.
-gmeow:eqInhabitation004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InhabitationClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:E13_Attribute_Assignment ;
+gmeow:InhabitationClaim skos:relatedMatch crm:E13_Attribute_Assignment {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "an InhabitationClaim is a reified, attributed claim — the cultural-heritage world's E13 Attribute Assignment; lets a possession/incarnation be documented AS a claim, asserting no metaphysics" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "an InhabitationClaim is a reified, attributed claim — the cultural-heritage world's E13 Attribute Assignment; lets a possession/incarnation be documented AS a claim, asserting no metaphysics"
+|} .
 
 # --- CIDOC-CRM: the descriptive continuity assessment is likewise an E13.
-gmeow:eqInhabitation005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:IdentityContinuityAssessment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:E13_Attribute_Assignment ;
+gmeow:IdentityContinuityAssessment skos:relatedMatch crm:E13_Attribute_Assignment {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "a same/different/indeterminate continuity verdict is a reified, attributed assignment (E13); also a VC asserting same-subject across two DIDs, vantage-indexed, NEVER a global owl:sameAs" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "a same/different/indeterminate continuity verdict is a reified, attributed assignment (E13); also a VC asserting same-subject across two DIDs, vantage-indexed, NEVER a global owl:sameAs"
+|} .
 
 # --- CIDOC-CRM: the control assessment is a reified, attributed E13 as well.
-gmeow:eqInhabitation006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ControlAssessment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:E13_Attribute_Assignment ;
+gmeow:ControlAssessment skos:relatedMatch crm:E13_Attribute_Assignment {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "who-was-driving is a reified, attributed assignment (E13); attributed agency, not deception — a documented similarity, no axiom coupling" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "who-was-driving is a reified, attributed assignment (E13); attributed agency, not deception — a documented similarity, no axiom coupling"
+|} .
 
 # --- ActivityStreams 2.0 (actor model only): the surface a subject acts through.
-gmeow:eqInhabitation007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EmbodimentCarrierRole ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject as:Actor ;
+gmeow:EmbodimentCarrierRole skos:relatedMatch as:Actor {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "the carrier surface (device/avatar/account/terminal/voice/channel) ↔ as:Actor / its icon — the closest deployed analog; the actor model only, not AS2's activity/content vocabulary; an account-typed carrier reaches foaf:OnlineAccount/SIOC via the accounts slice" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "the carrier surface (device/avatar/account/terminal/voice/channel) ↔ as:Actor / its icon — the closest deployed analog; the actor model only, not AS2's activity/content vocabulary; an account-typed carrier reaches foaf:OnlineAccount/SIOC via the accounts slice"
+|} .
 
 # --- PROV-O: the transition-content record is a prov:Entity.
-gmeow:eqInhabitation008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TransferManifest ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:TransferManifest skos:relatedMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the coarse-grained record of what crossed a migration boundary is a prov:Entity, referenced by the transition Activity; the per-item wasDerivedFrom edges are already PROV-aligned" ;
-    gmeow:sssomFile "gmeow-inhabitation.sssom.tsv" .
+    gmeow:comment "the coarse-grained record of what crossed a migration boundary is a prov:Entity, referenced by the transition Activity; the per-item wasDerivedFrom edges are already PROV-aligned"
+|} .

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (G3 cell-scoping — the cross-cell legality proof): this is gmeow:VantageScoped-
+# StrictOrderConstraint's exact bad-pattern — a reversed reified gmeow:PreferenceEdge pair
+# (winner a / loser b AND winner b / loser a) JOINED to a single cell's order through
+# ?cell gmeow:projectionOrder ?order gmeow:orderEdge. Over the multi-context cross-cell-legal-
+# conflict scene (cell 1 prefers A≻B, cell 2 prefers B≻A, each edge under its OWN order) it
+# returns EXACTLY ZERO rows: the reversed edges live under DIFFERENT orders, so they never meet
+# within one cell. That is the executable proof that a cross-vantage reversal across two cells is
+# the LEGAL Principle-9 conflict (FLAG-1), never a G3 violation — the same query returns a row on
+# the within-cell-order-cycle scene, so a zero count here is probative, not vacuous.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?cell ?a ?b WHERE {
+    ?cell a gmeow:PreferenceProjection ;
+        gmeow:projectionOrder ?order .
+    ?order gmeow:orderEdge ?e1 , ?e2 .
+    ?e1 gmeow:edgeWinner ?a ; gmeow:edgeLoser ?b .
+    ?e2 gmeow:edgeWinner ?b ; gmeow:edgeLoser ?a .
+}
+ORDER BY ?cell

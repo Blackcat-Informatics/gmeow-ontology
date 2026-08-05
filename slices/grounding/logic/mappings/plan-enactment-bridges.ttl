@@ -1,0 +1,650 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:    <https://blackcatinformatics.ca/logic/> .
+@prefix pplan:    <http://purl.org/net/p-plan#> .
+@prefix prov:     <http://www.w3.org/ns/prov#> .
+@prefix schema:   <https://schema.org/> .
+@prefix opmw:     <https://www.opmw.org/ontology/> .
+@prefix bpmn:     <http://www.omg.org/spec/BPMN/20100524/MODEL#> .
+@prefix ro_crate: <https://w3id.org/ro/crate/#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:   <https://w3id.org/semapv/vocab/> .
+
+# The prescription / enactment / action-schema spine's bridges onto the external
+# process-model surfaces: P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN,
+# the RO-Crate Workflow-Run profile, the workflow engines (Airflow, CWL, WDL,
+# Temporal, Nextflow), and openEHR Task Planning.
+#
+# They are authored HERE, on the logic: owner surface, for the same reason the OBI
+# planned-process pair in mappings/foundation-bridges.ttl is: an external formalism
+# has exactly one authoring home, and for upper-ontology, logical, rule and process
+# surfaces that home is the logic: grounding slice (docs/GROUNDING.md, "External
+# grounding ownership"). A downstream slice consumes the logic: term and these
+# correspondences; it never mints a second alignment onto the same external term.
+#
+# Every cell is a commitment-shifting logic:BridgeView with an explicit
+# preservation judgment (logic:ValidationOnly): the external target is linked by
+# reference and never becomes a canonical grounding source. Where the bridge drops
+# canonical structure the drop is stated as a STRUCTURED gmeow:lossyDrop — not only
+# as prose — which the mappings stage folds into the per-correspondence residue
+# ledger in generated/logic/projection-report.
+
+gmeow:mapsetLogicPplan a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-pplan" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views from the prescription/enactment spine onto P-Plan, the closest published peer model for the plan / step / input / output / precedence quintet. P-Plan splits plan from activity the way logic: splits logic:Plan from logic:Enactment, which is what makes it the highest-fidelity class-level target here; it carries neither the transaction-program combinator layer nor the version-pin / input-closure bindings, so every row is a BridgeView." ;
+    gmeow:setTrailer "# P-Plan is linked by reference. BridgeView + CommitmentShiftingBridge forbids any identity-strength axiom." .
+
+gmeow:mapsetLogicProv a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-prov.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-prov" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views from the prescription/enactment spine onto PROV-O's plan / activity / used / wasGeneratedBy core. PROV-O is RETROSPECTIVE — it records what an occurrence did — while logic:precondition and logic:effect are PROSPECTIVE declarations on a reusable logic:ActionSchema, so each property row carries that polarity shift as a structured drop rather than hiding it behind a close match." ;
+    gmeow:setTrailer "# PROV-O is linked by reference; no PROV axiom is imported and no equivalence is emitted." .
+
+gmeow:mapsetLogicSchemaOrgHowTo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-schema-org-howto" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views from the prescription spine onto schema.org's HowTo family (HowTo, Recipe, HowToStep, supply, tool, result, step) — the publication surface a plan is syndicated on. schema.org models a plan as a flat ordered step list, so the program-tree structure logic:planBody roots is unrolled or dropped on every class row." ;
+    gmeow:setTrailer "# schema.org is a generated ValidationOnly publication surface, never a canonical process model." .
+
+gmeow:mapsetLogicOpmw a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-opmw.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-opmw" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views onto OPMW's workflow template / workflow execution pair — the same plan ⟂ execution de-conflation logic:Plan and logic:Enactment carry, scoped by OPMW to scientific workflow systems." ;
+    gmeow:setTrailer "# OPMW is linked by reference; its execution-model scoping is not imported." .
+
+gmeow:mapsetLogicBpmn a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-bpmn.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-bpmn" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "By-reference bridge views onto BPMN 2.0's sequence flow, data association and gateway. BPMN publishes no canonical RDF ontology with stable term IRIs, so each row is a skos:relatedMatch onto the spec's MODEL namespace rather than an equivalence, and will be re-pointed if a stable vocabulary emerges." ;
+    gmeow:setTrailer "# BPMN terms are named by reference into the OMG MODEL namespace; nothing is imported." .
+
+gmeow:mapsetLogicRoCrate a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-ro-crate.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-ro-crate" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "By-reference bridge view onto the RO-Crate Workflow-Run profile's run record. The profile is a JSON-LD packaging convention over schema.org rather than a term ontology with class semantics, so the row is a skos:relatedMatch." ;
+    gmeow:setTrailer "# The RO-Crate profile is a packaging convention linked by reference." .
+
+gmeow:mapsetLogicWorkflowEngines a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-workflow-engines" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "By-reference bridge views onto the workflow engines — Apache Airflow, CWL, WDL, Temporal and Nextflow. None publishes a canonical RDF ontology with stable term IRIs, so each alignment names an informal concept IRI (a full IRI, never a registered CURIE) and is a skos:relatedMatch, never an equivalence. As lowerings of the canonical logic:Plan program model they are commitment-shifting and lossy: a logic:Iteration loop is unrolled or rejected (most DAG engines forbid cycles), a logic:ConcurrentComposition is serialized where the engine has no parallel gateway, and a per-outcome logic:compensation is omitted where the engine has no compensation primitive. Each such drop is a structured gmeow:lossyDrop on the cell." ;
+    gmeow:setTrailer "# Engine concept IRIs are informal by-reference anchors and will be re-pointed when stable vocabularies emerge." .
+
+gmeow:mapsetLogicOpenehrTaskPlanning a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-openehr-task-planning.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-openehr-task-planning" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "By-reference bridge views onto openEHR Task Planning (PROC). openEHR PROC publishes no canonical RDF ontology with stable term IRIs, so each row is a skos:relatedMatch onto a spec-anchored concept IRI. Unlike the acyclic workflow engines, TP-VML/DLM natively expresses BOTH loops and guarded branching on real conditions, so a logic:Plan carrying a logic:Iteration or a logic:Choice projects faithfully here where a DAG engine must unroll or reject; the bridge under-approximates only where TP-VML lacks logic:'s concurrency-serializability guarantee and its per-outcome logic:compensation. The distinctive DLM constructs are SUBSUMED natively rather than merely bridged: `currency` (maximum datum age) is logic:FreshnessGuard's logic:freshnessHorizon axis and `time_window` (an explicit named valid-time interval) its orthogonal logic:freshnessWindow axis; manual-notification / callback-driven completion is logic:NotificationWaitSchema; the Instruction-State-Machine plan→execution linkage is the logic:instantiatesSchema + logic:instantiatesPlan in-band witness." ;
+    gmeow:setTrailer "# openEHR PROC concept IRIs are spec-anchored by-reference targets; nothing is imported." .
+
+# ── P-Plan — the closest peer plan / step / input / output / precedence model ──
+
+logic:Plan skos:closeMatch pplan:Plan {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "P-Plan Plan is a specification of the process a scientific workflow is meant to follow. A logic:Plan is that prescription made executable — a transaction program whose primitive operations invoke logic:ActionSchema and whose success criterion is a goal expression — so the bridge is close on the prescriptive reading but not exact: P-Plan's plan is a step graph, with no program-combinator layer and no quantification over an action's nondeterministic outcomes." ;
+    gmeow:lossyDrop "the transaction-program combinator layer reached through logic:planBody (logic:SerialConjunction, logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback) has no P-Plan counterpart — a P-Plan plan is a step graph, not a program tree" ;
+    gmeow:lossyDrop "logic:planSuccessMode (weak / strong / strong-cyclic quantification over the nondeterministic outcomes of the invoked action schemas) is not carried by pplan:Plan" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint pplan:Plan ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:closeMatch pplan:Step {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "P-Plan Step is a planned unit of work positioned inside one P-Plan plan. A logic:ActionSchema is the REUSABLE precondition / effect / invariant template a program body invokes, so the two agree on 'the unit of work a plan declares' and diverge on ownership: a step belongs to its plan, while an action schema is plan-independent and may be invoked from many program bodies." ;
+    gmeow:lossyDrop "the eight action-theory facets means–end reasoning reads (logic:precondition, logic:effect, logic:invariant, logic:capability, logic:nondeterministicOutcome, logic:observation, logic:compensation, logic:actionResource) have no pplan:Step counterpart" ;
+    gmeow:lossyDrop "logic:ActionSchema's plan-independent reusability is dropped: a pplan:Step is a member of exactly one pplan:Plan" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint pplan:Step ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Enactment skos:closeMatch pplan:Activity {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "P-Plan Activity is the execution of a Step, tied back to it by pplan:correspondsToStep — P-Plan draws the plan ⟂ execution line in the same place logic: does. A logic:Enactment is one immutable occurrence of a PINNED logic:PrescriptionVersion against a CLOSED logic:InputSnapshot, so the occurrence reading matches while P-Plan commits to neither binding." ;
+    gmeow:lossyDrop "the version pin (logic:enactsPrescriptionVersion) and the input closure (logic:enactmentInputSnapshot) — the two bindings that make one occurrence replayable and comparable to its siblings — are not carried by pplan:Activity" ;
+    gmeow:lossyDrop "logic:TransitionJournal, the durable commit chain that makes a logic:Enactment resumable, has no P-Plan counterpart" ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint pplan:Activity ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:precondition skos:closeMatch pplan:Input {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "P-Plan Input is a variable a step consumes. logic:precondition relates a logic:ActionSchema to the SITUATION that must hold for the action to apply — the gate on the elementary state transition the schema grounds. Both say 'this must obtain before the unit of work runs', which is why the match is close; they differ in what is named, an entity versus a state of affairs." ;
+    gmeow:lossyDrop "the identity of the consumed datum: pplan:Input names a VARIABLE, while logic:precondition names a situation — the flowing entity itself is carried by logic:dataflowConsumes / logic:DataFlowEdge, not by this cell" ;
+    logic:sourceEndpoint logic:precondition ;
+    logic:targetEndpoint pplan:Input ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:effect skos:closeMatch pplan:Output {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "P-Plan Output is a variable a step produces. logic:effect relates a logic:ActionSchema to the change it introduces, expressed as the transaction layer's supersession primitives (ins/del) and never as physical erasure, so the production reading matches while the target flattens a state change into a produced variable." ;
+    gmeow:lossyDrop "the del half of logic:effect: pplan:Output names only what a step yields, so an effect that RETRACTS is not representable" ;
+    logic:sourceEndpoint logic:effect ;
+    logic:targetEndpoint pplan:Output ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ControlFlowEdge skos:relatedMatch pplan:precededBy {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-pplan.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "P-Plan precededBy is a bare binary property between two steps. logic:ControlFlowEdge is the REIFIED flow-graph edge — a logic:Relator mediating logic:flowFrom and logic:flowTo — that the DAG-workflow acyclicity certifier runs Tarjan SCC over. Only relatedMatch is warranted: a reified edge can carry its own guard and attributes, and a property cannot." ;
+    gmeow:lossyDrop "the edge's own attributes (its guard, its order, and every per-edge annotation the relator mediates) are dropped by the bare pplan:precededBy property form" ;
+    logic:sourceEndpoint logic:ControlFlowEdge ;
+    logic:targetEndpoint pplan:precededBy ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── PROV-O — prov:Plan / prov:Activity and the two provenance properties ──────
+
+logic:Plan skos:closeMatch prov:Plan {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-prov.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "PROV-O Plan is a set of actions or steps an agent intended to achieve a goal — deliberately structure-free, existing so an activity can be associated with the plan it followed. logic:Plan is that intention made executable, a transaction program with a goal-expression success criterion, so the bridge is close and the loss is entirely on the structural side." ;
+    gmeow:lossyDrop "PROV-O leaves plan STRUCTURE opaque by design: the program body reached through logic:planBody — combinator nodes and their logic:ActionSchema leaves — has no prov: counterpart" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint prov:Plan ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Enactment skos:closeMatch prov:Activity {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-prov.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "PROV-O Activity is something that occurs over a period and acts upon entities. A logic:Enactment IS such an occurrence — it is what prov:wasAssociatedWith would relate to the plan it ran — so this is the tightest class row in the set; the commitment shift is that PROV puts no version-pin or input-closure obligation on an activity." ;
+    gmeow:lossyDrop "prov:Activity carries no prescription-version pin and no closed input snapshot, so the two bindings that make a logic:Enactment reproducible are dropped in the projection" ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint prov:Activity ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:precondition skos:closeMatch prov:used {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-prov.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "PROV-O used records that an activity consumed an entity — a RETROSPECTIVE fact about one completed occurrence. logic:precondition declares, on the reusable logic:ActionSchema, the situation that must hold for the action to apply. The cell bridges the same consumption relation across the prescription / enactment divide, which is exactly why it is close rather than exact." ;
+    gmeow:lossyDrop "prospective/retrospective polarity: prov:used is asserted of a completed occurrence, while logic:precondition is declared on the reusable schema before any occurrence exists" ;
+    logic:sourceEndpoint logic:precondition ;
+    logic:targetEndpoint prov:used ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:effect skos:closeMatch prov:wasGeneratedBy {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-prov.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "PROV-O wasGeneratedBy records that an entity was produced by an activity — retrospective and per-occurrence. logic:effect declares, on the schema, the change the action introduces as transaction-layer ins/del, so the two meet on production and part company on both polarity and retraction." ;
+    gmeow:lossyDrop "prospective/retrospective polarity: prov:wasGeneratedBy is asserted of a completed occurrence, while logic:effect is declared on the reusable schema" ;
+    gmeow:lossyDrop "the del half of logic:effect: prov:wasGeneratedBy records generation only, never the retraction an effect may carry" ;
+    logic:sourceEndpoint logic:effect ;
+    logic:targetEndpoint prov:wasGeneratedBy ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── schema.org — HowTo / Recipe / HowToStep / supply / tool / result / step ───
+
+logic:Plan skos:closeMatch schema:HowTo {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema.org HowTo is a set of instructions for achieving an objective, published for syndication. logic:Plan is the same prescription read as an executable transaction program; the bridge is close on that reading, and logic:Plan is broader — a protocol, a curriculum, a control recipe and a CI pipeline are all logic:Plan, distinguished by logic:prescriptionKind rather than by class." ;
+    gmeow:lossyDrop "schema:HowTo carries a FLAT ordered step list: the branching, iteration, concurrency and fallback combinators reached through logic:planBody are unrolled into a sequence or dropped" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint schema:HowTo ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:closeMatch schema:Recipe {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "schema.org Recipe is the cooking specialization of HowTo. It is a logic:Plan whose logic:prescriptionKind is the recipe genre: the target draws the distinction as a subclass, logic: draws it as a facet on a domain-neutral plan, and the referent is the same prescription." ;
+    gmeow:lossyDrop "class/facet asymmetry: the recipe reading is schema:Recipe's own class identity, while logic: carries it as a logic:prescriptionKind value on logic:Plan — a plan holding several kinds (a recipe that is also an ingestion) has no single schema.org class" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint schema:Recipe ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:closeMatch schema:HowToStep {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema.org HowToStep is one positioned step of a HowTo. logic:ActionSchema is the reusable precondition / effect template such a step invokes, so the 'declared unit of work' reading matches; the schema's plan-independence and its action-theory facets are the commitment schema.org does not share." ;
+    gmeow:lossyDrop "the eight action-theory facets and logic:ActionSchema's plan-independent reusability are not representable on schema:HowToStep, which is a positioned member of exactly one HowTo" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint schema:HowToStep ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:precondition skos:closeMatch schema:supply {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema.org supply names a consumable a HowToStep needs before it can run. That is one concrete way of satisfying the situation logic:precondition gates an action schema on, so the cell bridges the availability requirement rather than the gate itself." ;
+    gmeow:lossyDrop "schema:supply names a consumable ENTITY; the situation logic:precondition gates on is not reducible to the presence of a supply, so a precondition over a state of affairs has no schema.org form" ;
+    logic:sourceEndpoint logic:precondition ;
+    logic:targetEndpoint schema:supply ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:precondition skos:closeMatch schema:tool {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema.org tool names an implement a HowToStep uses without consuming. Its availability satisfies the same logic:precondition gate a supply does; logic: keeps the two readings apart on other facets (logic:actionResource for what a run occupies, logic:capability for what it must be able to do), so this cell is close, not exact." ;
+    gmeow:lossyDrop "the consumable / non-consumable distinction schema.org draws between supply and tool is carried in logic: by logic:actionResource and logic:capability, not by logic:precondition, so the distinction is dropped by this cell" ;
+    logic:sourceEndpoint logic:precondition ;
+    logic:targetEndpoint schema:tool ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:effect skos:closeMatch schema:result {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema.org result is what following a HowTo yields. logic:effect declares the change an action schema introduces as transaction-layer ins/del, so the produced-outcome reading matches and the retraction half does not." ;
+    gmeow:lossyDrop "the del half of logic:effect: schema:result names only what is produced, never what an effect retracts" ;
+    logic:sourceEndpoint logic:effect ;
+    logic:targetEndpoint schema:result ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:planBody skos:closeMatch schema:step {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-schema-org-howto.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema.org step relates a HowTo to its steps. logic:planBody relates a logic:Plan to the ROOT of its program TREE, from which the whole body is reachable through logic:leftOperand / logic:rightOperand / logic:iterationBody / logic:iterationCondition. Both answer 'where does this plan's body live', which is why the match is close; their arity and shape are what differ." ;
+    gmeow:lossyDrop "arity and shape: logic:planBody is single-valued onto one program root, while schema:step is a many-valued flat list — the tree below the root is flattened into that list" ;
+    logic:sourceEndpoint logic:planBody ;
+    logic:targetEndpoint schema:step ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── OPMW — WorkflowTemplate ⟂ WorkflowExecution ───────────────────────────────
+
+logic:Plan skos:closeMatch opmw:WorkflowTemplate {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-opmw.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OPMW WorkflowTemplate is the abstract, reusable side of OPMW's template ⟂ execution split. logic:Plan is the prescription side of the same de-conflation, so the pair line up; OPMW scopes a template to a workflow system's execution model, while logic:Plan is domain-neutral." ;
+    gmeow:lossyDrop "OPMW scopes a template to a workflow system's execution model; logic:Plan is deliberately domain-neutral and also carries protocols, curricula and control recipes, so that scoping does not round-trip" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint opmw:WorkflowTemplate ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Enactment skos:closeMatch opmw:WorkflowExecution {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-opmw.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OPMW WorkflowExecution is the concrete run of a template — the execution side of the same de-conflation logic:Enactment occupies. Close rather than exact: OPMW links a run to the template it ran but commits to no version pin and no closed input snapshot." ;
+    gmeow:lossyDrop "opmw:WorkflowExecution carries no prescription-version pin and no closed input snapshot, so two OPMW executions of one template are not comparable the way two logic:Enactments of one logic:PrescriptionVersion are" ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint opmw:WorkflowExecution ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:closeMatch opmw:WorkflowTemplateProcess {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-opmw.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "OPMW WorkflowTemplateProcess is a node of a workflow template — the abstract counterpart of an executed process. logic:ActionSchema is the reusable action template a program body invokes, so the 'declared unit of work in the abstract plan' reading matches; the OPMW node is positioned inside one template while the schema is plan-independent." ;
+    gmeow:lossyDrop "the eight action-theory facets and plan-independent reusability are not carried by opmw:WorkflowTemplateProcess, which is a positioned node of exactly one template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint opmw:WorkflowTemplateProcess ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── BPMN 2.0 — by reference (no canonical RDF ontology with stable term IRIs) ──
+
+logic:ControlFlowEdge skos:relatedMatch bpmn:sequenceFlow {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-bpmn.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "BPMN sequence flow" ;
+    gmeow:comment "BPMN sequenceFlow is the directed connector between two flow nodes, optionally carrying a condition expression. logic:ControlFlowEdge is the reified flow-graph edge — a logic:Relator mediating logic:flowFrom and logic:flowTo — that the DAG-workflow acyclicity certifier runs Tarjan SCC over. relatedMatch only, and by reference: BPMN publishes no canonical RDF ontology with stable term IRIs." ;
+    gmeow:lossyDrop "a BPMN conditional sequence flow carries its guard as a BPMN expression-language body; logic: carries the guard as a logic:guardSituation on the combinator, so the expression body does not round-trip" ;
+    logic:sourceEndpoint logic:ControlFlowEdge ;
+    logic:targetEndpoint bpmn:sequenceFlow ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:DataFlowEdge skos:relatedMatch bpmn:dataAssociation {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-bpmn.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "BPMN data association" ;
+    gmeow:comment "BPMN dataAssociation connects a data object to an activity's input or output set. logic:DataFlowEdge is the reified dataflow relator that carries the flowing entity, a guard and an order as its own attributes. relatedMatch only, and by reference for the same absence of a canonical BPMN RDF surface." ;
+    gmeow:lossyDrop "BPMN groups data associations into an activity's ioSpecification input/output SETS; logic:DataFlowEdge is a bare producer/consumer relator, so the set structure is dropped" ;
+    logic:sourceEndpoint logic:DataFlowEdge ;
+    logic:targetEndpoint bpmn:dataAssociation ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Choice skos:relatedMatch bpmn:gateway {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-bpmn.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "BPMN gateway" ;
+    gmeow:comment "BPMN gateway is the flow node that splits or merges control. logic:Choice is the canonical guarded-choice program combinator: it executes logic:leftOperand when the logic:guardSituation holds and logic:rightOperand when it does not, so an exclusive data-based gateway is exactly a logic:Choice node. relatedMatch only, and by reference: BPMN publishes no canonical RDF ontology with stable term IRIs." ;
+    gmeow:lossyDrop "only the exclusive data-based gateway reading is preserved: a BPMN parallel gateway is logic:ConcurrentComposition, and the inclusive, complex and event-based gateways have no single canonical logic: combinator" ;
+    gmeow:lossyDrop "gateway MERGE semantics (a converging gateway joining branches) is carried in logic: by the combinator's operand structure rather than by a node, so the join node itself does not round-trip" ;
+    logic:sourceEndpoint logic:Choice ;
+    logic:targetEndpoint bpmn:gateway ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── RO-Crate Workflow-Run profile — by reference ──────────────────────────────
+
+logic:Enactment skos:relatedMatch ro_crate:CreateAction {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-ro-crate.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "RO-Crate Workflow-Run CreateAction" ;
+    gmeow:comment "The RO-Crate Workflow-Run profile records one execution of a workflow as a schema.org CreateAction with its objects and results. A logic:Enactment is one immutable occurrence of a pinned prescription version against a closed input snapshot, so the run reading matches; relatedMatch only, because the profile is a JSON-LD packaging convention over schema.org rather than a term ontology with its own class semantics." ;
+    gmeow:lossyDrop "the profile records a run's inputs and outputs but pins no prescription VERSION, so replayability against exactly what was executed is not preserved" ;
+    logic:sourceEndpoint logic:Enactment ;
+    logic:targetEndpoint ro_crate:CreateAction ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── Workflow engines — Airflow / CWL / WDL / Temporal / Nextflow, by reference ─
+
+logic:Plan skos:relatedMatch <https://airflow.apache.org/concept/DAG> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Apache Airflow DAG" ;
+    gmeow:comment "An Apache Airflow DAG is a task graph an executor schedules (by reference — Airflow publishes no canonical RDF). A logic:Plan lowers onto it by projecting the program tree under logic:planBody into task nodes and dependency edges. Lossy: an Airflow DAG forbids cycles, so a logic:Iteration must unroll or the lowering errors, and Airflow has no compensation primitive." ;
+    gmeow:lossyDrop "logic:Iteration loop: unrolls or errors (an Airflow DAG forbids cycles)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted (Airflow has no compensation primitive)" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://airflow.apache.org/concept/DAG> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://airflow.apache.org/concept/Task> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Apache Airflow Task" ;
+    gmeow:comment "An Airflow Task is a node of a DAG bound to an operator (by reference). A logic:ActionSchema lowers onto it: the schema's invocation becomes the task node, while the schema itself remains the reusable template the plan invoked." ;
+    gmeow:lossyDrop "the eight action-theory facets are dropped: an Airflow task carries an operator implementation, not a declared precondition / effect / invariant template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://airflow.apache.org/concept/Task> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:relatedMatch <https://w3id.org/cwl/cwl#Workflow> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Common Workflow Language Workflow" ;
+    gmeow:comment "A CWL Workflow is an acyclic dataflow composition of steps (by reference — CWL publishes no stable RDF term IRIs). A logic:Plan lowers onto it through the same program-tree projection. Lossy: CWL dataflow is acyclic, so a logic:Iteration must unroll, and CWL carries no compensation." ;
+    gmeow:lossyDrop "logic:Iteration loop: unrolls (CWL is acyclic dataflow)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted (CWL has no compensation primitive)" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://w3id.org/cwl/cwl#Workflow> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://w3id.org/cwl/cwl#WorkflowStep> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Common Workflow Language WorkflowStep" ;
+    gmeow:comment "A CWL WorkflowStep binds a tool or sub-workflow into a parent workflow with its input/output bindings (by reference). A logic:ActionSchema lowers onto it: the invocation of the schema becomes the step." ;
+    gmeow:lossyDrop "the eight action-theory facets are dropped: a CWL step carries a `run` binding and port wiring, not a declared precondition / effect / invariant template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://w3id.org/cwl/cwl#WorkflowStep> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:relatedMatch <https://openwdl.org/concept/Workflow> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "WDL workflow" ;
+    gmeow:comment "A WDL workflow is an acyclic graph of task calls (by reference — WDL publishes no canonical RDF). A logic:Plan lowers onto it through the program-tree projection, with the same acyclicity and compensation costs the other DAG engines impose." ;
+    gmeow:lossyDrop "logic:Iteration loop: unrolls (a WDL call graph is acyclic)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted (WDL has no compensation primitive)" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://openwdl.org/concept/Workflow> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://openwdl.org/concept/Task> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "WDL task" ;
+    gmeow:comment "A WDL task is a reusable, separately-declared unit a workflow calls — the closest engine analogue of a plan-independent template, which is why it is the WDL target for logic:ActionSchema rather than the call site." ;
+    gmeow:lossyDrop "the eight action-theory facets are dropped: a WDL task declares a command and typed inputs/outputs, not a precondition / effect / invariant template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://openwdl.org/concept/Task> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:relatedMatch <https://temporal.io/concept/Workflow> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:objectLabel "Temporal Workflow" ;
+    gmeow:comment "A Temporal workflow definition is durable imperative code (by reference — Temporal publishes no canonical RDF). Temporal DOES express loops and saga compensation, so it is closer than the acyclic engines on control flow; the confidence is nevertheless the lowest in the set because the target is a CODE surface, not a declarative specification, so a logic:Plan projected onto it stops being inspectable as a program tree." ;
+    gmeow:lossyDrop "logic:Iteration loop and per-outcome logic:compensation: expressible only as imperative Temporal/saga code, not as a declarative spec — carried by reference, so the canonical declarative structure is not preserved" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://temporal.io/concept/Workflow> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://temporal.io/concept/Activity> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:objectLabel "Temporal Activity" ;
+    gmeow:comment "A Temporal activity is the separately-declared, retryable unit a workflow invokes (by reference). A logic:ActionSchema lowers onto it; as with the workflow row, the target is code rather than a declarative template." ;
+    gmeow:lossyDrop "the eight action-theory facets are dropped: a Temporal activity is an implementation with a retry policy, not a declared precondition / effect / invariant template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://temporal.io/concept/Activity> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:relatedMatch <https://www.nextflow.io/concept/Workflow> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Nextflow workflow" ;
+    gmeow:comment "A Nextflow workflow composes processes over channels (by reference — Nextflow publishes no canonical RDF). A logic:Plan lowers onto it through the program-tree projection; concurrency is channel-implicit in Nextflow, so the explicit concurrent-composition operator has no surface to land on." ;
+    gmeow:lossyDrop "logic:ConcurrentComposition: serializes (Nextflow concurrency is channel-implicit, with no explicit parallel gateway)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted (Nextflow has no compensation primitive)" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://www.nextflow.io/concept/Workflow> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://www.nextflow.io/concept/Process> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-workflow-engines.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Nextflow process" ;
+    gmeow:comment "A Nextflow process is the separately-declared unit that consumes and emits channels (by reference). A logic:ActionSchema lowers onto it; the schema's declared inputs become channel bindings." ;
+    gmeow:lossyDrop "the eight action-theory facets are dropped: a Nextflow process declares a script and channel bindings, not a precondition / effect / invariant template" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://www.nextflow.io/concept/Process> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# ── openEHR Task Planning (PROC) — the higher-fidelity by-reference bridge ────
+
+logic:Plan skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#WORK_PLAN> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-openehr-task-planning.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "openEHR Task Planning WORK_PLAN" ;
+    gmeow:comment "An openEHR WORK_PLAN is the top-level plan a care team executes (by reference — openEHR PROC publishes no canonical RDF). A top-level logic:Plan lowers onto it with HIGHER fidelity than onto any acyclic engine: TP-VML/DLM carries loops and guarded branching on real conditions, so a logic:Iteration or a logic:Choice in the program body projects faithfully rather than unrolling. The residue is confined to concurrency and compensation." ;
+    gmeow:lossyDrop "logic:ConcurrentComposition: under-approximated where TP-VML has no explicit concurrency-serializability guarantee (logic:ConcurrentHistory / logic:serializabilityCriterion are derived natively, not carried)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#WORK_PLAN> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:Plan skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK_PLAN> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-openehr-task-planning.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.65 ;
+    gmeow:objectLabel "openEHR Task Planning TASK_PLAN / SUB_PLAN" ;
+    gmeow:comment "An openEHR TASK_PLAN (and its SUB_PLAN nesting) is a constituent plan hanging under a work plan (by reference). The logic: counterpart is a sub-plan: a logic:Plan reached as an operand of its parent's program tree through logic:leftOperand / logic:rightOperand / logic:iterationBody from the parent's logic:planBody root. The nesting round-trips; the confidence is below the WORK_PLAN row because the sub-plan boundary is a positional fact in openEHR and a structural one in logic:." ;
+    gmeow:lossyDrop "the sub-plan boundary: openEHR marks it with a distinct TASK_PLAN/SUB_PLAN container, while logic: reads it off the parent's program-tree operand structure, so the container identity is not preserved" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ;
+    logic:sourceEndpoint logic:Plan ;
+    logic:targetEndpoint <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK_PLAN> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:ActionSchema skos:relatedMatch <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-openehr-task-planning.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "openEHR Task Planning TASK / TASK_ACTION" ;
+    gmeow:comment "An openEHR TASK / TASK_ACTION is the executable unit of a task plan (by reference). A logic:ActionSchema lowers onto it, and three DLM constructs are SUBSUMED natively rather than merely bridged: a DLM-gated task is a guarded logic:Choice (preserved, not unrolled); a manual-notification task is a logic:NotificationWaitSchema; and a currency-guarded task input is a logic:FreshnessGuard on BOTH its axes — `currency` (maximum datum age) onto logic:freshnessHorizon and `time_window` (an explicit valid-time interval) onto logic:freshnessWindow / logic:freshnessWindowStart / logic:freshnessWindowEnd." ;
+    gmeow:lossyDrop "TP-VML task scheduling annotations (planned time, wait windows) are not carried by a bare logic:ActionSchema; scheduling is a solver-layer concern (Principle 12)" ;
+    logic:sourceEndpoint logic:ActionSchema ;
+    logic:targetEndpoint <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK> ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .

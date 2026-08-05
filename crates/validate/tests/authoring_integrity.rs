@@ -60,7 +60,7 @@ fn core_rights_module_has_no_norms_extension_leak() {
     let findings = authoring_integrity::graft_isolation_findings(&root).expect("graft isolation");
     assert!(
         findings.is_empty(),
-        "core rights module references norms-extension IRIs:\n{}",
+        "core rights module references norms-slice IRIs:\n{}",
         findings
             .iter()
             .map(|f| f.message.clone())
@@ -188,6 +188,51 @@ fn slice_examples_use_only_declared_terms() {
     assert!(
         findings.is_empty(),
         "slice examples reference undeclared terms:\n{}",
+        joined(&findings)
+    );
+}
+
+/// R9 over the real corpus: every slice mints its vocabulary inside one of the
+/// registered term namespaces, so purrdf's ownership analyzer can see every term
+/// GMEOW owns. A slice minting elsewhere is invisible to the analyzer — it gets no
+/// owner and no dependency edge into it is computable — which is precisely how the
+/// `math` slice's entire vocabulary went unseen.
+///
+/// Guarded for non-vacuity two ways: the vocabulary of the corpus must be visible
+/// through the shared vocab, and the `math:` namespace specifically must be owned
+/// by it (the namespace whose absence caused the defect).
+#[test]
+fn every_slice_mints_into_a_registered_term_namespace() {
+    let root = repo_root();
+    let slices = root.join("slices");
+
+    // Non-vacuity 1: the shared vocab really declares all four namespaces, so a
+    // green result below is a real check and not a check against an empty set.
+    let vocab = gmeow_ns::gmeow_slice_vocab();
+    for ns in gmeow_ns::TERM_NAMESPACES {
+        assert!(
+            vocab.term_namespaces().contains(ns),
+            "{ns} must be an owned term namespace"
+        );
+    }
+    assert!(vocab.owns_term("https://blackcatinformatics.ca/math/Quantity"));
+
+    // Non-vacuity 2: the walk finds real authored files.
+    let catalog = purrdf::slice::SliceCatalog::discover(&slices, gmeow_ns::gmeow_slice_vocab())
+        .expect("discover the real slice catalog");
+    assert!(
+        catalog.records().len() > 50,
+        "implausibly few slices discovered ({}) — the walk is vacuous",
+        catalog.records().len()
+    );
+
+    let findings = authoring_integrity::registered_minting_namespace_findings(&slices)
+        .expect("registered minting namespaces");
+    assert!(
+        findings.is_empty(),
+        "slices mint vocabulary terms outside the registered term namespaces \
+         ({:?}) — such terms are invisible to the ownership analyzer:\n{}",
+        gmeow_ns::TERM_NAMESPACES,
         joined(&findings)
     );
 }
@@ -419,7 +464,13 @@ fn run_empty_shapes_ttl() -> String {
 /// Write one minimal, well-formed source Turtle file so `ValidationRun::run`'s
 /// syntax/sameAs pre-gates pass and the run reaches Phase 5b/5c. Its content is
 /// irrelevant to the fold under test.
-fn write_run_probe_source(name: &str) -> PathBuf {
+///
+/// The returned [`tempfile::TempDir`] owns the directory holding the probe: it
+/// is removed on drop, including on panic and early return. Bind it to a named
+/// `_tmp` (never a bare `_`, which would drop it immediately) so it outlives the
+/// returned path. The `.ttl` file *name* is preserved because the run dispatches
+/// on the extension.
+fn write_run_probe_source(name: &str) -> (tempfile::TempDir, PathBuf) {
     let ttl = format!(
         "@prefix gmeow: <{RUN_NS}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -430,12 +481,12 @@ fn write_run_probe_source(name: &str) -> PathBuf {
            skos:definition \"A probe class for the run-level authoring-integrity test.\"@en ;\n\
            rdfs:isDefinedBy <{RUN_NS}> .\n"
     );
-    let path = std::env::temp_dir().join(format!(
-        "gmeow_authoring_integrity_{name}_{}.ttl",
-        std::process::id()
-    ));
+    let dir = tempfile::tempdir().expect("probe tempdir");
+    let path = dir
+        .path()
+        .join(format!("gmeow_authoring_integrity_{name}.ttl"));
     std::fs::write(&path, &ttl).expect("write probe source");
-    path
+    (dir, path)
 }
 
 /// `ValidationRun::run`-level proof that Phase 5b (`validate.authoring_integrity`)
@@ -449,7 +500,7 @@ fn write_run_probe_source(name: &str) -> PathBuf {
 #[test]
 fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
     let farm = build_planted_defect_farm();
-    let probe = write_run_probe_source("planted");
+    let (_probe_tmp, probe) = write_run_probe_source("planted");
 
     let options = ValidateOptions {
         project_root: Some(farm.path().to_path_buf()),
@@ -465,8 +516,6 @@ fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
         &options,
     )
     .expect("orchestration must complete over the planted-defect farm");
-
-    std::fs::remove_file(&probe).ok();
 
     let missing_tier_errors: Vec<&gmeow_errors::Finding> = run
         .report
@@ -512,7 +561,7 @@ fn run_level_authoring_integrity_fold_fires_on_a_planted_defect() {
 #[test]
 fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
     let root = repo_root();
-    let probe = write_run_probe_source("clean");
+    let (_probe_tmp, probe) = write_run_probe_source("clean");
 
     let options = ValidateOptions {
         project_root: Some(root),
@@ -529,8 +578,6 @@ fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
         &options,
     )
     .expect("orchestration must complete over the real repository root");
-
-    std::fs::remove_file(&probe).ok();
 
     // NOTE on why this is NOT a blanket "zero Severity::Error over the whole
     // report" assertion: it was tried and observed NOT robust. `probe` (the

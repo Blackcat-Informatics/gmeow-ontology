@@ -22,13 +22,10 @@ ASK {
     gmeow:Corpus               a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
     gmeow:Community            a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
     gmeow:ExtractedEntity      a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:Embedding            a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:VectorIndex          a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:RetrievalEvent       a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "The graph-RAG retrieval artifacts MUST be logic:Kind gmeow:InformationObjects (Corpus, Community, ExtractedEntity, Embedding, VectorIndex), and gmeow:RetrievalEvent MUST be a logic:Event subClassOf gmeow:Activity — the occurrent retrieval episode." .
+    gmeow:saRationale "The graph-RAG retrieval artifacts MUST be logic:Kind gmeow:InformationObjects (Corpus, Community, ExtractedEntity) — the core ai slice's gmeow:Embedding, gmeow:VectorIndex, and gmeow:RetrievalEvent are asserted in ai/tests/structural.ttl alongside the classes they now belong to." .
 
-# --- 2. Distance/index value vocabularies + seeds (MUST hold) -----------------
+# --- 2. Index value vocabulary + seeds (MUST hold) ----------------------------
 ex:saGraphRagValueVocabs a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -37,16 +34,13 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:DistanceMetric a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
     gmeow:IndexAlgorithm a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
-    gmeow:distanceMetricCosine a gmeow:DistanceMetric . gmeow:distanceMetricDotProduct a gmeow:DistanceMetric .
-    gmeow:distanceMetricEuclidean a gmeow:DistanceMetric .
     gmeow:indexAlgorithmFlat a gmeow:IndexAlgorithm . gmeow:indexAlgorithmHnsw a gmeow:IndexAlgorithm .
     gmeow:indexAlgorithmIvf a gmeow:IndexAlgorithm .
 }""" ;
-    gmeow:saRationale "gmeow:DistanceMetric and gmeow:IndexAlgorithm MUST be QualityValue vocabularies with their seeds present: distance metrics {cosine, dot-product, euclidean} and ANN index algorithms {flat, HNSW, IVF}." .
+    gmeow:saRationale "gmeow:IndexAlgorithm MUST be a QualityValue vocabulary with its seeds present: ANN index algorithms {flat, HNSW, IVF}. The core ai slice's gmeow:DistanceMetric seeds are asserted in ai/tests/structural.ttl." .
 
-# --- 3. The functional retrieval edges (MUST hold) ---------------------------
+# --- 3. The single-valued retrieval edges' declared shapes (MUST hold) -------
 ex:saGraphRagFunctionalEdges a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -54,16 +48,14 @@ ex:saGraphRagFunctionalEdges a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:embeddingOf a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:InformationObject .
-    gmeow:embeddingModel a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .
-    gmeow:relationshipSource a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
-    gmeow:relationshipTarget a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
-    gmeow:summarizesCommunity a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:CommunitySummary ; rdfs:range gmeow:Community .
-    gmeow:indexAlgorithm a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:VectorIndex ; rdfs:range gmeow:IndexAlgorithm .
+    gmeow:relationshipSource a owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:relationshipTarget a owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:summarizesCommunity a owl:ObjectProperty ; rdfs:domain gmeow:CommunitySummary ; rdfs:range gmeow:Community .
+    gmeow:indexAlgorithm a owl:ObjectProperty ; rdfs:domain gmeow:VectorIndex ; rdfs:range gmeow:IndexAlgorithm .
 }""" ;
-    gmeow:saRationale "The single-valued retrieval edges MUST be functional with their declared domains/ranges: an embedding embeds one object and one model; an extracted relationship has one source and one target; a summary summarizes one community; a vector index uses one algorithm." .
+    gmeow:saRationale "The single-valued retrieval edges MUST carry their declared domains/ranges: an extracted relationship has one source and one target; a summary summarizes one community; a vector index uses one algorithm. Their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module. The core ai slice's gmeow:embeddingOf/gmeow:embeddingModel domain/range are asserted in ai/tests/structural.ttl." .
 
-# --- 4. Value vocabularies are individuals, never subclasses (MUST-NOT hold) --
+# --- 4. Value vocabulary is individuals, never subclasses (MUST-NOT hold) -----
 ex:saGraphRagVocabsNotSubclassed a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
@@ -71,25 +63,12 @@ ex:saGraphRagVocabsNotSubclassed a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     ?c rdfs:subClassOf ?vocab .
-    VALUES ?vocab { gmeow:DistanceMetric gmeow:IndexAlgorithm }
+    VALUES ?vocab { gmeow:IndexAlgorithm }
     FILTER (?c != ?vocab)
 }""" ;
-    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric and gmeow:IndexAlgorithm are vocabularies of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of either. New metrics/algorithms extend the vocabulary as individuals. VALUES ranges over the two closed value-vocabulary classes the slice declares." .
+    gmeow:saRationale "The QualityValue idiom: gmeow:IndexAlgorithm is a vocabulary of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of it. New algorithms extend the vocabulary as individuals. The core ai slice's gmeow:DistanceMetric equivalent is asserted in ai/tests/structural.ttl." .
 
 # --- Migrated from tests/test_ai_claims.py --------------------------------
-
-# test_invocation_and_retrieval_are_activities (RetrievalEvent half; ModelInvocation half lives in ai)
-ex:saRetrievalEventIsActivity a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:RetrievalEvent a owl:Class ;
-        rdfs:subClassOf gmeow:Activity .
-}""" ;
-    gmeow:saRationale "gmeow:RetrievalEvent MUST be an owl:Class subclass of gmeow:Activity — a retrieval episode is an occurrent activity in the GraphRAG provenance chain." .
 
 # test_vectors_stay_outside_the_graph
 ex:saVectorRefIsDatatypePropertyNoVectorValue a gmeow:StructuralAssertion ;

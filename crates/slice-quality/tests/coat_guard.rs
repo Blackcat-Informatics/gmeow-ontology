@@ -11,19 +11,17 @@ use gmeow_slice_quality::coat_guard::slice_coat_collisions;
 const SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/coattest";
 const NS: &str = "https://blackcatinformatics.ca/gmeow/coattest/";
 
-/// Write a throwaway slice dir with the given `module.ttl` body and return its path.
-/// The body is prefixed with the common namespaces and a `manifest.ttl` declaring the
-/// slice is written alongside (so `slice_iri_of_dir` resolves the IRI).
-fn fixture(name: &str, module_body: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    dir.push(format!(
-        "gmeow-coatguard-{name}-{}-{nanos}",
-        std::process::id()
-    ));
+/// Write a throwaway slice dir with the given `module.ttl` body and return the
+/// owning [`tempfile::TempDir`] alongside the slice path. The body is prefixed
+/// with the common namespaces and a `manifest.ttl` declaring the slice is written
+/// alongside (so `slice_iri_of_dir` resolves the IRI).
+///
+/// The guard removes the slice dir when it drops — on success, on panic, and on
+/// early return — so the caller must bind it (`let (_tmp, dir) = fixture(…);`);
+/// a bare `_` binding would delete the dir before the guard under test reads it.
+fn fixture(name: &str, module_body: &str) -> (tempfile::TempDir, PathBuf) {
+    let guard = tempfile::tempdir().expect("create temp dir");
+    let dir = guard.path().join(format!("gmeow-coatguard-{name}"));
     std::fs::create_dir_all(&dir).unwrap();
 
     std::fs::write(
@@ -41,18 +39,14 @@ fn fixture(name: &str, module_body: &str) -> PathBuf {
          @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
          @prefix ct: <https://blackcatinformatics.ca/gmeow/coattest/> .\n";
     std::fs::write(dir.join("module.ttl"), format!("{prefixes}\n{module_body}")).unwrap();
-    dir
-}
-
-fn cleanup(dir: &PathBuf) {
-    let _ = std::fs::remove_dir_all(dir);
+    (guard, dir)
 }
 
 #[test]
 fn shared_usewhen_skeleton_reds() {
     // Two distinct TBox classes carrying a byte-identical (modulo case/whitespace) useWhen
     // — term-agnostic boilerplate that distinguishes neither — collide.
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "usewhen-collide",
         &format!(
             "ct:Alpha a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -62,7 +56,6 @@ fn shared_usewhen_skeleton_reds() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert_eq!(hits.len(), 1, "one usewhen collision: {hits:#?}");
     assert!(
         hits[0].contains("useWhen")
@@ -76,7 +69,7 @@ fn shared_usewhen_skeleton_reds() {
 fn usewhen_differing_only_by_a_load_bearing_curie_passes() {
     // Two terms whose useWhen shares a frame but names its OWN distinct range/domain CURIE
     // are genuinely distinct documentation — CURIEs are kept, so they do NOT collide.
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "usewhen-curie-distinct",
         &format!(
             "ct:Alpha a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -86,7 +79,6 @@ fn usewhen_differing_only_by_a_load_bearing_curie_passes() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert!(
         hits.is_empty(),
         "distinct load-bearing CURIEs must pass: {hits:#?}"
@@ -96,7 +88,7 @@ fn usewhen_differing_only_by_a_load_bearing_curie_passes() {
 #[test]
 fn distinct_usewhen_passes() {
     // The same two terms with genuinely term-specific useWhen do not collide.
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "usewhen-distinct",
         &format!(
             "ct:Alpha a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -106,7 +98,6 @@ fn distinct_usewhen_passes() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert!(hits.is_empty(), "distinct usewhen must pass: {hits:#?}");
 }
 
@@ -115,7 +106,7 @@ fn shared_definition_reds_even_with_load_bearing_curies_kept() {
     // A byte-identical (modulo case/space) definition across two distinct TBox terms —
     // e.g. a class and its property twin — is a near-duplicate. Definitions use the
     // no-strip exact-match, so a CURIE-free duplicate is still caught.
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "def-collide",
         &format!(
             "ct:HonorificPosition a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -125,7 +116,6 @@ fn shared_definition_reds_even_with_load_bearing_curies_kept() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert_eq!(hits.len(), 1, "one definition collision: {hits:#?}");
     assert!(
         hits[0].contains("skos:definition"),
@@ -137,7 +127,7 @@ fn shared_definition_reds_even_with_load_bearing_curies_kept() {
 fn distinct_definition_curies_pass() {
     // Two constraint definitions whose ONLY difference is a load-bearing CURIE stay
     // distinct — the no-strip skeleton keeps the CURIE, so they do not collide.
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "def-curie-distinct",
         &format!(
             "ct:Aye a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -147,7 +137,6 @@ fn distinct_definition_curies_pass() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert!(
         hits.is_empty(),
         "distinct CURIEs keep definitions distinct: {hits:#?}"
@@ -159,7 +148,7 @@ fn abox_individuals_sharing_a_definition_are_not_checked() {
     // Two A-Box individuals (not owl:Class / owl:*Property) sharing a definition are NOT
     // a distinguishing-coat collision — the guard is TBox-scoped (this is why real A-Box
     // fixtures sharing a fixture definition do not trip it).
-    let dir = fixture(
+    let (_tmp, dir) = fixture(
         "abox-shared-def",
         &format!(
             "ct:seg1 a ct:MusicalSegment ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
@@ -169,7 +158,6 @@ fn abox_individuals_sharing_a_definition_are_not_checked() {
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
-    cleanup(&dir);
     assert!(
         hits.is_empty(),
         "A-Box individuals are TBox-scoped out: {hits:#?}"

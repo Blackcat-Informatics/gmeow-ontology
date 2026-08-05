@@ -939,7 +939,7 @@ fn req<T>(v: Option<T>, what: &str) -> gmeow_errors::Result<T> {
     v.ok_or_else(|| result_err(format!("graph/reasoning: missing required field {what}")))
 }
 
-// ── A minimal N-Triples reader (IRI / blank / typed-literal objects) ─────────────
+// ── graph/reasoning N-Triples → ParsedTriple (parsed by purrdf) ─────────────
 
 /// A parsed triple with resolved term shapes for the projection's closed vocabulary.
 struct ParsedTriple {
@@ -975,123 +975,45 @@ impl ParsedTriple {
     }
 }
 
-/// Parse the projection's own N-Triples body (the closed subset this module emits:
-/// `<iri>`/`_:b` subjects, `<iri>` predicates, `<iri>`/`_:b`/`"lex"^^<dt>` objects).
+/// Parse the projection's own `graph/reasoning` N-Triples body (the closed subset
+/// this module emits: `<iri>`/`_:b` subjects, `<iri>` predicates, and
+/// `<iri>`/`_:b`/`"lex"^^<dt>` objects) by delegating to purrdf's N-Triples parser
+/// and mapping onto this module's closed `ParsedTriple` vocabulary.
+///
+/// The projection records term SHAPES, not full fidelity: a literal object keeps
+/// only its lexical form (its datatype/language tag are intentionally dropped — the
+/// full-fidelity closure with exact datatypes rides the reason stage's dataset).
+/// Blank-node labels are carried bare (no `_:`), exactly as `purrdf::RdfTerm::BlankNode`
+/// yields them, so a subject blank compares equal to the object blank that links to it.
 fn parse_nt(body: &str) -> gmeow_errors::Result<Vec<ParsedTriple>> {
+    let dataset = purrdf::parse_dataset(body.as_bytes(), "application/n-triples", None)
+        .map_err(|e| result_err(format!("graph/reasoning: N-Triples parse: {e}")))?;
     let mut out = Vec::new();
-    for (lineno, raw) in body.lines().enumerate() {
-        let line = raw.trim();
-        if line.is_empty() {
-            continue;
-        }
-        let line = line.strip_suffix(" .").ok_or_else(|| {
-            result_err(format!("graph/reasoning: line {} missing ' .'", lineno + 1))
-        })?;
-        let (subject, rest) = take_term(line).ok_or_else(|| {
-            result_err(format!("graph/reasoning: line {} bad subject", lineno + 1))
-        })?;
-        let (predicate, rest) = take_term(rest.trim_start()).ok_or_else(|| {
-            result_err(format!(
-                "graph/reasoning: line {} bad predicate",
-                lineno + 1
-            ))
-        })?;
-        let (object, _rest) = take_term(rest.trim_start()).ok_or_else(|| {
-            result_err(format!("graph/reasoning: line {} bad object", lineno + 1))
-        })?;
-        let subject = node_name(&subject).ok_or_else(|| {
-            result_err(format!(
-                "graph/reasoning: line {} non-node subject",
-                lineno + 1
-            ))
-        })?;
-        let predicate = match predicate {
-            TermLex::Iri(i) => i,
-            _ => {
-                return Err(result_err(format!(
-                    "graph/reasoning: line {} non-IRI predicate",
-                    lineno + 1
-                )));
+    for quad in dataset.owned_quads() {
+        let subject = match quad.subject {
+            purrdf::RdfTerm::Iri(iri) => iri,
+            purrdf::RdfTerm::BlankNode(label) => label,
+            purrdf::RdfTerm::Literal(_) | purrdf::RdfTerm::Triple(_) => {
+                return Err(result_err("graph/reasoning: non-node subject".to_owned()));
             }
         };
-        let object = match object {
-            TermLex::Iri(i) => ParsedObject::Iri(i),
-            TermLex::Blank(b) => ParsedObject::Blank(b),
-            TermLex::Lit(l) => ParsedObject::Lit(l),
+        let object = match quad.object {
+            purrdf::RdfTerm::Iri(iri) => ParsedObject::Iri(iri),
+            purrdf::RdfTerm::BlankNode(label) => ParsedObject::Blank(label),
+            purrdf::RdfTerm::Literal(lit) => ParsedObject::Lit(lit.lexical_form),
+            purrdf::RdfTerm::Triple(_) => {
+                return Err(result_err(
+                    "graph/reasoning: unexpected quoted-triple object".to_owned(),
+                ));
+            }
         };
         out.push(ParsedTriple {
             subject,
-            predicate,
+            predicate: quad.predicate,
             object,
         });
     }
     Ok(out)
-}
-
-/// A lexed term: an IRI, a blank node, or the *unescaped lexical form* of a literal.
-enum TermLex {
-    Iri(String),
-    Blank(String),
-    Lit(String),
-}
-
-/// The string form of a subject node (IRI value or bare blank id — bare so it
-/// compares equal to an object blank, which is also stored bare).
-fn node_name(t: &TermLex) -> Option<String> {
-    match t {
-        TermLex::Iri(i) => Some(i.clone()),
-        TermLex::Blank(b) => Some(b.clone()),
-        TermLex::Lit(_) => None,
-    }
-}
-
-/// Take one N-Triples term off the front of `s`, returning `(term, rest)`.
-///
-/// Handles the closed term subset this module emits: `<iri>`, `_:id`, and
-/// `"lex"^^<dt>` typed literals. The literal walk is char-based (UTF-8 safe).
-fn take_term(s: &str) -> Option<(TermLex, &str)> {
-    let s = s.trim_start();
-    if let Some(rest) = s.strip_prefix('<') {
-        let end = rest.find('>')?;
-        return Some((TermLex::Iri(rest[..end].to_owned()), &rest[end + 1..]));
-    }
-    if let Some(rest) = s.strip_prefix("_:") {
-        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
-        return Some((TermLex::Blank(rest[..end].to_owned()), &rest[end..]));
-    }
-    if let Some(rest) = s.strip_prefix('"') {
-        // Walk to the unescaped closing quote, char by char (UTF-8 safe).
-        let mut lex = String::new();
-        let mut chars = rest.char_indices();
-        while let Some((idx, ch)) = chars.next() {
-            match ch {
-                '\\' => match chars.next() {
-                    Some((_, '\\')) => lex.push('\\'),
-                    Some((_, '"')) => lex.push('"'),
-                    Some((_, 'n')) => lex.push('\n'),
-                    Some((_, 'r')) => lex.push('\r'),
-                    Some((_, 't')) => lex.push('\t'),
-                    Some((_, c)) => lex.push(c),
-                    None => return None,
-                },
-                '"' => {
-                    // Past the closing quote: skip the `^^<dt>` typed-literal suffix.
-                    let after = &rest[idx + 1..];
-                    let after = after.strip_prefix("^^").unwrap_or(after);
-                    let after = if let Some(r) = after.strip_prefix('<') {
-                        let end = r.find('>')?;
-                        &r[end + 1..]
-                    } else {
-                        after
-                    };
-                    return Some((TermLex::Lit(lex), after));
-                }
-                _ => lex.push(ch),
-            }
-        }
-        return None;
-    }
-    None
 }
 
 // ── The conjecture verdict → attributed RDF projection ──────────────────────────

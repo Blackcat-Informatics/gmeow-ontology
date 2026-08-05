@@ -1,0 +1,26 @@
+# Competency question: "What does each glossary interop lowering drop, per target?"
+# The two shipped glossary lowerings (OntoLex vartrans, TBX/ISO-30042) are LOSSY
+# sound-under-approximations: they carry the term↔term crossing faithfully but drop
+# structure the canonical gmeow:Glossary holds. That loss is NOT hidden in generator
+# prose — each lowering records a lang:ProjectionEmission carrying its
+# lang:projectionTargetName, its non-Exact logic:preservationKind, and every dropped
+# construct as a lang:unsupportedConstruct. This query reads that per-target loss ledger
+# straight off the corpus: it selects every emission whose preservation kind is NOT
+# logic:ExactPreservation and enumerates each construct it declares dropped.
+#
+# Worked instance: over the glossary-projection-loss fixture the answer is exactly the
+# two glossary emissions' drops — the four OntoLex-vartrans drops and the six TBX drops —
+# each row carrying its target name, its logic:SoundUnderApproximation judgment, and the
+# one construct that target cannot carry. An Exact lowering (no drops) would not answer.
+PREFIX lang:  <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?target ?preservation ?dropped WHERE {
+    ?emission a lang:ProjectionEmission ;
+        lang:projectionTargetName ?target ;
+        logic:preservationKind ?preservation ;
+        lang:unsupportedConstruct ?dropped .
+    FILTER(?preservation != logic:ExactPreservation)
+    FILTER(STRSTARTS(STR(?emission), "http://example.org/lang/"))
+}
+ORDER BY ?target ?dropped

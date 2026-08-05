@@ -236,7 +236,12 @@ ex:winWfs
 # never re-authored as subclass edges in this cell.
 # =========================================================================== #
 
-ex:one a math:Integer .
+# The number system is mandatory on any math:Number, ex:one included: a numeral
+# with no system is not yet a number, only a glyph. It went unstated while no
+# gate read this file against the math: TBox, which is exactly the kind of
+# omission the example sweep now catches.
+ex:one a math:Integer ;
+    math:inNumberSystem math:integers .
 
 ex:mathSubsort
     a logic:ReasoningProgram ;

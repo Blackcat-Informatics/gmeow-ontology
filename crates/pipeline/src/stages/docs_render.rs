@@ -278,7 +278,7 @@ const PROPERTY_PATH_LABEL_PREFIX: &str = "property-path:";
 /// The `logic:` namespace the compiler's projection ledger mints its vocabulary
 /// under (`crate::ir::LOGIC_NAMESPACE`, duplicated here as a literal so this reader
 /// needs no dependency on `gmeow-logic-compile`'s internal IR module).
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const LOGIC_PROJECTION_TARGET_TYPE: &str = "https://blackcatinformatics.ca/logic/ProjectionTarget";
 const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
@@ -480,7 +480,7 @@ pub(crate) fn term_loss_digest_from_upstream(
 
 /// Fold the per-term JSON Schema / OpenAPI fragment digest off the COMMITTED
 /// `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json` under `root` — the
-/// disk-sourced reader for the standalone `make sync SYNC_OUTPUTS=docs` fanout
+/// disk-sourced reader for the standalone `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout
 /// (`gmeow-dev sync --mode update --outputs docs`), which builds the docs model via
 /// [`gmeow_docs::model::DocsModel::discover`] WITHOUT a live pipeline product. The
 /// two committed files are projections of the `stage-export-json-schema` emitter
@@ -580,7 +580,7 @@ pub(crate) fn schema_fragments_from_json(
         .pointer("/components/schemas")
         .and_then(|v| v.as_object());
 
-    let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
+    let ns = gmeow_ns::gmeow_json_schema_namespaces();
     // The emitter's synthetic def keys (a whole-schema discriminator + the RDF-1.2
     // reifier-metadata fragment) are NOT per-term schemas — never join them.
     const SYNTHETIC_KEYS: &[&str] = &["Node", "Annotation"];
@@ -629,7 +629,7 @@ pub(crate) fn schema_fragments_from_json(
 /// committed `generated/schemas/*.json` (the stale-disk-fold class). The per-term
 /// content-address provenance is likewise read from THIS run's `stage-term-manifest`
 /// product (hard-fails on a missing artifact) via
-/// `gmeow_docs::model::DocsModel::discover_with_manifest`, never the committed
+/// `gmeow_docs::model::DocsModel::discover_with_manifest_and_catalog`, never the committed
 /// `generated/catalog/term-content-manifest.nq`, which lags one regenerate behind
 /// whenever a term's definition digest changes (the same stale-disk-fold class).
 pub fn render_docs_graph(
@@ -660,12 +660,24 @@ pub fn render_docs_graph(
                 ),
             })
         })?;
-    let mut model = DocsModel::discover_with_manifest(root, manifest_bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-docs-render".to_string(),
-            message: format!("docs model discovery failed: {e}"),
-        })
-    })?;
+    // The constraint catalog, rendered FRESH from THIS run's authored sources (root
+    // ontology + slice modules) — never the committed
+    // generated/catalog/constraint-catalog.nq, which is absent on a cold tree and the
+    // previous run's bytes on a warm one (the stale-disk-fold / cold-absence class).
+    // render_constraint_catalog is a pure function of the authored sources this stage's
+    // input_files already declare, and the catalog content does not feed the documentation
+    // named graph (to_gmeow_rdf ignores constraint_rules), so this render is byte-neutral
+    // to the output and needs no new DAG edge — it only keeps the model build from
+    // hard-failing on the not-yet-materialized file.
+    let catalog_bytes = crate::stages::constraint_catalog::render_constraint_catalog(root)?;
+    let mut model =
+        DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-docs-render".to_string(),
+                    message: format!("docs model discovery failed: {e}"),
+                })
+            })?;
     model.attach_reasoning(verdict);
     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
     let diagnostics =
@@ -676,7 +688,7 @@ pub fn render_docs_graph(
     // The per-term JSON Schema / OpenAPI fragment join, read off THIS run's
     // stage-export-json-schema product (hard-fails on a missing artifact) — never the
     // committed generated/schemas/*.json, which are the previous run's bytes until
-    // the fanout flushes (the stale-disk-fold class). The standalone `make sync SYNC_OUTPUTS=docs`
+    // the fanout flushes (the stale-disk-fold class). The standalone `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`
     // sibling reader (`schema_fragments_from_generated`) stays disk-sourced because
     // it runs post-pipeline against the fanout-refreshed committed files.
     let schema_fragments = schema_fragments_from_upstream(upstream, &model.terms)?;
@@ -708,8 +720,30 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow
     Ok(())
 }
 
+/// Recursively collect every `*.md` Markdown source under `dir` into `out` — the
+/// cache-key mirror of the docs model's recursive `text/markdown` document
+/// discovery (fail-fast on a `read_dir` entry error; a missing directory yields
+/// nothing).
+fn walk_markdown(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow_errors::Diag> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            walk_markdown(&path, out)?;
+        } else if path.extension().is_some_and(|x| x == "md") {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
 /// Every raw source file `gmeow_docs::DocsModel::discover` reads: slice modules,
-/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`,
+/// every recursively-discovered per-slice Markdown source (the `docs.md` guide AND
+/// every nested `design/*.md` / other `*.md` — the same `text/markdown` set the
+/// model projects as first-class `DocMarkdownDocument`s), the vendored documentation
+/// site assets (`crates/docs/assets/**`), slice `examples/*.ttl`, `docs/four-boxes.md`,
 /// per-slice `i18n/<lang>.po` gettext translation catalogs, per-slice
 /// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
 /// competency-question overlays, per-slice `tests/conformance-fixtures/*.ttl` /
@@ -733,10 +767,15 @@ pub(crate) fn docs_source_files(
     for module in crate::stages::source_load::module_files(root)? {
         let dir = module.parent().unwrap_or(root);
         files.push(module.clone());
-        let docs = dir.join("docs.md");
-        if docs.is_file() {
-            files.push(docs);
-        }
+        // Every recursively-discovered Markdown source under the slice directory —
+        // the SAME set `gmeow_docs::DocsModel::discover` selects as first-class
+        // `DocMarkdownDocument`s (the top-level `docs.md` guide AND every nested
+        // `design/*.md` / other `*.md`). Declaring only the top-level `docs.md`
+        // silently dropped design-doc edits from the docs cache key, so a rendered
+        // page could go stale against its authored source. Over-inclusion of an
+        // incidental `.md` is cache-safe (a redundant key input); UNDER-inclusion is
+        // the soundness bug this closes.
+        walk_markdown(dir, &mut files)?;
         let shapes = dir.join("shapes.ttl");
         if shapes.is_file() {
             files.push(shapes);
@@ -812,6 +851,17 @@ pub(crate) fn docs_source_files(
     // …) — many `gmeow:cqQueryFile` values resolve here rather than into a slice's
     // own directory (both forms are repo-root-relative; see the doc comment above).
     walk_files(&root.join("queries"), &mut files)?;
+    // The vendored documentation site assets (`crates/docs/assets/**` — the CSS/JS
+    // theme, the offline SPARQL playground's `include_bytes!`'d purrdf wasm engine,
+    // and every other vendored wasm surface + its `DIGESTS.blake3` pin). The
+    // `SnapshotStage` embeds the rendered site, which carries these bytes verbatim,
+    // so refreshing a vendored asset (via its `maint-refresh-*-asset` target) MUST
+    // invalidate the docs render cache — otherwise the cache would serve HTML that
+    // references a freshly-swapped engine it was not rendered against. `.rs` source
+    // (the only thing `GMEOW_BUILD_FINGERPRINT` folds) does not change on an
+    // asset-only refresh, so the asset bytes are declared here as first-class cache
+    // inputs. New vendored surfaces land under this tree and fold in automatically.
+    walk_files(&root.join("crates").join("docs").join("assets"), &mut files)?;
     files.sort();
     files.dedup();
     Ok(files)
@@ -883,7 +933,7 @@ impl Stage for DocsRenderStage {
     fn impl_version(&self) -> &str {
         // v9: the per-term content-address manifest (definition digest + first-seen
         // version + computed changelog) is read from THIS run's consumed
-        // stage-term-manifest product (DocsModel::discover_with_manifest) instead of
+        // stage-term-manifest product (DocsModel::discover_with_manifest_and_catalog) instead of
         // lagging one regenerate behind on the committed
         // generated/catalog/term-content-manifest.nq disk read; the manifest is
         // dropped from input_files since it is now a product edge, not a raw source
@@ -1003,6 +1053,49 @@ mod tests {
             has_grammar,
             "docs_source_files must include the lang slice's grammars/*.ebnf files"
         );
+        // A recursively-discovered per-slice `design/*.md` — the canonical-Markdown soundness
+        // fix: editing a design doc must bust the docs cache, exactly as editing the
+        // top-level `docs.md` does. Before this, only the top-level `docs.md` was
+        // declared, so a `design/*.md` edit silently missed the key.
+        let has_design_md = files.iter().any(|p| {
+            p.extension().and_then(|s| s.to_str()) == Some("md")
+                && p.parent()
+                    .and_then(|parent| parent.file_name())
+                    .and_then(|n| n.to_str())
+                    == Some("design")
+        });
+        assert!(
+            has_design_md,
+            "docs_source_files must include recursively-discovered per-slice design/*.md sources"
+        );
+        // The vendored documentation site assets (`crates/docs/assets/**`) — the
+        // `SnapshotStage` embeds them into the rendered site, so a
+        // `maint-refresh-*-asset` swap must bust the docs cache (it does not change
+        // any `.rs`, the only thing `GMEOW_BUILD_FINGERPRINT` folds).
+        let has_vendored_asset = files
+            .iter()
+            .any(|p| p.ends_with("crates/docs/assets/query/gmeow_query_wasm_bg.wasm"));
+        assert!(
+            has_vendored_asset,
+            "docs_source_files must include the vendored crates/docs/assets/** site assets"
+        );
+        // F4/F5: each interactive engine's native↔wasm witness-ATTESTATION is itself a
+        // declared consumed input of this render leaf (it lives under crates/docs/assets/**
+        // and is walked here), so re-blessing an attestation busts the docs cache and the
+        // interactive preservation-kind is causally downstream of the proven parity — not
+        // a decorative gate.
+        for witness in [
+            "crates/docs/assets/query/WITNESS.describe.nt",
+            "crates/docs/assets/validate/WITNESS.validate.json",
+            "crates/docs/assets/reason/WITNESS.reason.nq",
+            "crates/docs/assets/gmn/WITNESS.gmn1.txt",
+        ] {
+            assert!(
+                files.iter().any(|p| p.ends_with(witness)),
+                "docs_source_files must consume the interactive witness-attestation {witness} \
+                 (the F4/F5 attestation→capability dataflow edge)"
+            );
+        }
     }
 
     /// A `stage-validate` + `stage-compile-logic` + `stage-mappings` upstream
@@ -1691,6 +1784,14 @@ mod tests {
             "stage-export-result-shapes".to_string(),
             result_shapes.product,
         );
+        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure.
+        // This harness drives the docs diagnostics-to-term join, not abductive entailment, so
+        // it supplies an empty-EDB reason product (empty closure ⇒ the reasoned union is the
+        // authored source graph alone) rather than paying for a full reasoner run.
+        with_source.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
 
         let validate = crate::stages::validate::ValidateStage::new()
             .run(StageInput {
@@ -1893,7 +1994,7 @@ mod tests {
         }
     }
 
-    /// The EXACT production `make sync SYNC_OUTPUTS=docs` fanout path: build the docs model via
+    /// The EXACT production `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout path: build the docs model via
     /// `DocsModel::discover` (no live pipeline product — the standalone render),
     /// source the schema-fragment digest off the committed `generated/schemas/*.json`
     /// via [`schema_fragments_from_generated`] (the production sibling reader), attach

@@ -33,45 +33,14 @@
     rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by the registered mappings generator."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Cell types — the two authoring units
+# Cell types — the authoring units
 # --------------------------------------------------------------------------- #
-
-gmeow:TermEquivalence a owl:Class ;
-    rdfs:label "term equivalence"@x-gmeow-english ;
-    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It compiles both to a single SSSOM row and to a first-class logic:Correspondence in the shipped graph/correspondence-laws carrier, with logic:sourceEndpoint and logic:targetEndpoint retained; it has no executable projection branch. Ordinary cells may derive their law-spine defaults from the SSSOM predicate. A cell additionally typed logic:GroundingCorrespondence is a co-foundational commitment rather than an ordinary consumer alignment and must explicitly author logic:morphismClass, logic:morphismKind, and logic:preservationKind."@x-gmeow-english ;
-    logic:subClassOf [
-        a logic:Restriction ;
-        logic:onProperty logic:morphismClass ;
-        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
-    ] ,
-    [
-        a logic:Restriction ;
-        logic:onProperty logic:morphismClass ;
-        logic:allValuesFrom [ logic:oneOf ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
-            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ] ;
-    ] ,
-    [
-        a logic:Restriction ;
-        logic:onProperty logic:morphismKind ;
-        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
-    ] ,
-    [
-        a logic:Restriction ;
-        logic:onProperty logic:morphismKind ;
-        logic:allValuesFrom [ logic:oneOf ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ] ;
-    ] ,
-    [
-        a logic:Restriction ;
-        logic:onProperty logic:preservationKind ;
-        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
-    ] ,
-    [
-        a logic:Restriction ;
-        logic:onProperty logic:preservationKind ;
-        logic:allValuesFrom [ logic:oneOf ( logic:ExactPreservation logic:SoundUnderApproximation
-            logic:CompleteOverApproximation logic:InconsistencyPreserving
-            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ] ;
-    ] .
+#
+# A cross-ontology term alignment is authored as a native RDF-1.2 asserting
+# annotation on the match triple itself — `S <match-predicate> O {| gmeow:sssomFile
+# "…" ; … |}` (skos:*Match / owl:equivalent* / owl:sameAs / rdfs:sub*Of) — with the
+# `gmeow:sssomFile` discriminator marking the reifier as an alignment cell. It has
+# no reified class of its own; the annotation fields below are its surface.
 
 gmeow:ProjectionMapping a owl:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;
@@ -90,21 +59,13 @@ gmeow:ProfileBinding a owl:Class ;
     skos:definition "The per-target-profile face of a projection mapping: the target term it emits for one profile, the EDOAL relation, the transform, the confidence, the SSSOM predicate, and the profile-specific lossy drops. One mapping fans out to several bindings (one source -> different target terms across schema.org / vCard / FOAF)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Alignment fields (both cell types)
+# Alignment fields (the annotation surface of a native alignment cell)
 # --------------------------------------------------------------------------- #
+#
+# The subject, predicate, and object of an alignment are the reified match triple
+# itself (`S <match-predicate> O`), not authored properties. The fields below are the
+# `{| … |}` annotation coat carried on the reifier.
 
-gmeow:alignSubject a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
-    rdfs:label "alignment subject"@x-gmeow-english ;
-    skos:definition "The term on the subject side of a term equivalence (either a GMEOW or an external term — mappings are authored in whichever direction is honest, e.g. geo:Feature skos:closeMatch gmeow:Place)."@x-gmeow-english .
-gmeow:alignPredicate a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
-    rdfs:label "alignment predicate"@x-gmeow-english ;
-    skos:definition "The mapping predicate of a term equivalence (owl:equivalentClass, owl:equivalentProperty, skos:exactMatch, skos:closeMatch, rdfs:subClassOf, …)."@x-gmeow-english .
-gmeow:alignObject a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
-    rdfs:label "alignment object"@x-gmeow-english ;
-    skos:definition "The term on the object side of a term equivalence (either a GMEOW or an external term — see gmeow:alignSubject)."@x-gmeow-english .
 gmeow:confidence a owl:DatatypeProperty ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@x-gmeow-english .
@@ -156,7 +117,7 @@ gmeow:sssomPredicate a owl:ObjectProperty ,
 
 gmeow:DeclinedCorrespondence a owl:Class ;
     rdfs:label "declined correspondence"@x-gmeow-english ;
-    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from gmeow:TermEquivalence (a live, resolvable link): a decline has no gmeow:alignObject, precisely because no resolvable object exists."@x-gmeow-english ;
+    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from a live native alignment cell (a resolvable link with a `gmeow:sssomFile`-annotated match triple): a decline has no resolvable alignment target at all, precisely because no resolvable object exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     logic:subClassOf [
         a logic:Restriction ;
@@ -202,6 +163,124 @@ gmeow:probeVerdict a owl:DatatypeProperty ,
 gmeow:contentCarriedBy a owl:ObjectProperty ;
     rdfs:label "content carried by"@x-gmeow-english ;
     skos:definition "Links a declined correspondence to the in-slice GMEOW terms that already carry the external vocabulary's distinctions — the positive witness that the declined content is not lost but modelled up, in-slice, making the safety of the decline checkable rather than asserted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Catalog family — the registered external target catalogs a grounding
+# correspondence may point at.
+# --------------------------------------------------------------------------- #
+#
+# Every `logic:GroundingCorrespondence` names an external `logic:targetEndpoint`.
+# The set of external catalogs those endpoints may belong to is CLOSED and
+# registered: a target outside every registered family is a HARD FAIL at
+# `compile_mappings`, so a new external surface enters the corpus by minting a
+# family row rather than by quietly appearing in a bridge cell. The registry also
+# carries each family's raise-only correspondence-count ratchet, so an existing
+# catalog cannot silently lose rows.
+#
+# This is DISTINCT from `gmeow:ProjectionVocabulary` (slices/core/slice-quality-rubric),
+# which registers the guarded surfaces whose HAND-AUTHORED constructs the
+# ungrounded-residue counter caps: that registry looks INWARD at authoring debt in
+# `slices/`, this one looks OUTWARD at the alignment targets of the correspondence
+# catalog. Their extensions differ (owl:, Wikidata, DLMF, OEIS, the test manifests
+# and the schema.org HowTo family are correspondence targets but are deliberately
+# NOT guarded residue surfaces), and so do their namespace stems (a family stem
+# matches a TARGET IRI, a guarded namespace matches an AUTHORED construct), so
+# neither is derivable from the other and neither restates it.
+
+gmeow:CatalogFamily a owl:Class ;
+    rdfs:label "external catalog family"@x-gmeow-english ;
+    skos:definition "One registered external target catalog a grounding correspondence may point at — a named external formalism (gUFO, BFO, Wikidata, QUDT, OntoLex, BPMN, …) identified by the IRI stem(s) its terms are minted under, together with the grounding slice(s) that author its bridge cells and the raise-only minimum number of correspondences the shipped catalog must carry. It is NOT a gmeow:MappingSet (that is the per-file SSSOM publication header, several of which may target one family, and one of which may span several) and NOT a gmeow:ProjectionVocabulary (that is the inward-looking guarded surface whose hand-authored constructs the residue counter caps): a catalog family classifies the OUTWARD alignment targets, and the registry of families is the closed set a target endpoint must fall in exactly once."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogFamilyName a owl:DatatypeProperty ;
+    rdfs:label "catalog family name"@x-gmeow-english ;
+    skos:definition "The stable, human-readable identity of a catalog family (\"gUFO\", \"RDF Data Cube\", \"openEHR Task Planning\"), used as the family's key in the gate's ratchet report. Exactly one per family and unique across the registry: two families sharing a name would collapse in the name-keyed count map and hide one catalog's shrinkage behind the other's growth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogNamespace a owl:DatatypeProperty ;
+    rdfs:label "catalog namespace stem"@x-gmeow-english ;
+    skos:definition "One IRI stem a member term of this catalog family is minted under; a target endpoint belongs to the family when it starts with any asserted stem. Multi-valued, because a catalog may publish under several bases (OpenMath serves both its http: and https: content-dictionary roots) and because an OBO family is identified by its per-prefix stem (obo/BFO_, obo/STATO_) rather than by the shared obo/ root. At least one is mandatory: a family with no stem could never recognize a target and would be a dead registry row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogOwner a owl:ObjectProperty ;
+    rdfs:label "catalog authoring owner"@x-gmeow-english ;
+    skos:definition "A grounding slice (logic:, math:, or lang:) at whose mappings/ boundary this family's bridge cells are authored — the home a domain slice must reference rather than re-align. Multi-valued, and honestly so: a cross-cutting authority such as Wikidata is authored at all three grounding boundaries, and RDFS and OBI at two, so declaring a single owner would be a fiction. At least one is mandatory; an unowned family names no authoring home at all."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogTargetMinimum a owl:DatatypeProperty ;
+    rdfs:label "catalog target-count minimum"@x-gmeow-english ;
+    skos:definition "The RAISE-ONLY floor on how many shipped grounding correspondences must target this family — the ratchet that turns a silently deleted bridge cell into a red gate. The value may rise as the catalog grows and may never fall while the family is registered; retiring a catalog means removing its family row (and, with it, every correspondence onto it), never lowering the floor to fit a loss. It is NOT a measured count (the gate computes that live from the shipped bundle) and NOT a ceiling (gmeow:ceilingCount is the opposite, lower-only polarity on a residue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Residue-ratchet carve-out — the registered, countable exemptions.
+# --------------------------------------------------------------------------- #
+#
+# The projection-vocabulary residue ratchet (docs/PROJECTION-VOCABULARY-RATCHET.md)
+# guards a vocabulary only when it has ONE grounding slice as its authoring owner.
+# Two registered catalog families the grounding kernel bridges onto — PROV-O and
+# schema.org — are general publication vocabularies that ~60 domain slices align to
+# as ordinary by-reference correspondences, with no single owner, so they carry no
+# `gmeow:ProjectionVocabulary` and their rows enter no residue count, no ceiling,
+# and no monotonicity ratchet.
+#
+# That carve-out used to be a paragraph of prose: nothing counted it, nothing
+# bounded it, and rows could be added to it silently and indefinitely. These terms
+# make it a REGISTRY ROW like every other governance commitment in this file — a
+# typed individual naming the exempted family, stating why it has no owner, and
+# pinning how many shipped grounding correspondences currently ride the exemption.
+# Growing the carve-out is then an ontology edit that shows up in review, and a row
+# added without one reds the mappings stage.
+
+gmeow:ResidueRatchetExemption a owl:Class ;
+    rdfs:label "residue-ratchet exemption"@x-gmeow-english ;
+    skos:definition "One registered exemption of an external catalog family from the projection-vocabulary residue ratchet — a family whose terms domain slices may align to without an owner boundary, because the family is a general publication vocabulary with no single grounding-slice authoring home. It pairs the exempted gmeow:CatalogFamily with the reason it has no owner and the lower-only ceiling on how many shipped grounding correspondences may ride the exemption. It is NOT a gmeow:ProjectionVocabulary (that is the guarded case, this is the recorded absence of guarding) and NOT a gmeow:ProjectionCeilingCommitment (that caps a measured per-slice residue; this caps the size of the carve-out itself). An exempted family that later gains a single owner must be GUARDED and its exemption removed, never both."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptCatalogFamily a owl:ObjectProperty ;
+    rdfs:label "exempted catalog family"@x-gmeow-english ;
+    skos:definition "The gmeow:CatalogFamily this exemption covers. Exactly one per exemption, and unique across the registry: two exemptions for one family would each carry half the carve-out's size and hide growth between them. The family must be REGISTERED — an exemption naming no registered family exempts nothing and is a dead row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRationale a owl:DatatypeProperty ;
+    rdfs:label "exemption rationale"@x-gmeow-english ;
+    skos:definition "Why this family has no single grounding-slice owner and therefore cannot be guarded — the substantive argument, not a restatement of the fact. Mandatory: an exemption whose reason is not written down cannot be re-examined by a later reader, which is exactly how an undocumented carve-out becomes permanent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRowCeiling a owl:DatatypeProperty ;
+    rdfs:label "exemption row ceiling"@x-gmeow-english ;
+    skos:definition "The LOWER-ONLY ceiling on how many shipped grounding correspondences may target the exempted family — the ratchet that stops the carve-out growing silently. The value may fall as rows are grounded through a guarded owner and may never rise without a deliberate, reviewed ontology edit stating why the carve-out must widen. It has the OPPOSITE polarity to the same family's gmeow:catalogTargetMinimum (which may only rise): together they pin the exempt row count from both sides, so neither a silent addition nor a silent deletion passes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Projection profile inventory — the declared consumer down-projection surfaces.
+# --------------------------------------------------------------------------- #
+#
+# A projection profile file under `dsl/mappings/projections/` is a SHIPPED
+# CONSUMER SURFACE: its `gmeow:ProjectionMapping` cells are what `gmeow project`
+# executes to lower GMEOW data to schema.org, FOAF, DCAT, PROV, … Nothing about a
+# generated artifact records that a profile EXISTS — several profiles bind the
+# same `gmeow:profile` name and so share one generated `.rq` / `.edoal.ttl` — so
+# deleting a profile file, or emptying one of its cells, changed no inventory and
+# reddened no gate. This registry closes that: the authored inventory is a second,
+# independent source from the directory listing, in the same shape the pipeline's
+# `gmeow:expectsGeneratedOutput` inventory is a second source from the carrier's
+# emitted set.
+
+gmeow:ProjectionProfile a owl:Class ;
+    rdfs:label "projection profile source"@x-gmeow-english ;
+    skos:definition "One declared consumer down-projection source file — an authored `dsl/mappings/projections/*.ttl` document of `gmeow:ProjectionMapping` cells, registered with the raise-only floor on how many cells it must declare. It is NOT a gmeow:ProjectionMapping (that is a single cell, many to a profile) and NOT the `gmeow:profile` binding NAME (several profile files may bind the same name and share its generated query): it is the authored FILE, so that removing the file, or hollowing it out, is a countable loss rather than an invisible one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:profileSource a owl:DatatypeProperty ;
+    rdfs:label "projection profile source path"@x-gmeow-english ;
+    skos:definition "The repo-relative path of the authored profile document (\"dsl/mappings/projections/schema-org.ttl\"). Exactly one per profile and unique across the inventory; the gate requires the declared path set to EQUAL the on-disk `dsl/mappings/projections/**/*.ttl` set in both directions, so a deleted profile and an unregistered new one are equally hard failures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:profileCellMinimum a owl:DatatypeProperty ;
+    rdfs:label "projection profile cell minimum"@x-gmeow-english ;
+    skos:definition "The RAISE-ONLY floor on how many `gmeow:ProjectionMapping` cells the profile document must declare — the ratchet that catches a profile which still parses but has stopped projecting. It may rise as cells are added and may never fall while the profile is registered; retiring a projection surface removes its whole row, never trims the floor to fit a deletion. It is NOT a measured count (the gate counts the authored cells live)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 # --------------------------------------------------------------------------- #
@@ -862,17 +941,9 @@ gmeow:ProjectionMapping rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/m
 
 gmeow:SeqPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:TermEquivalence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
 gmeow:ZeroOrMorePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:ZeroOrOnePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignPredicate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignSubject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:anchor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
@@ -1076,8 +1147,8 @@ gmeow:whenValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-d
 # shapes/mapping-dsl-shapes.ttl, re-expressed as canonical logic: records
 # (Principle 17). The authored shapes stay (additive); the sweep verifies.
 #
-# Two authoring regimes: the TOP-LEVEL typed cells (gmeow:TermEquivalence,
-# gmeow:DeclinedCorrespondence, gmeow:ProjectionMapping, gmeow:MappingSet,
+# Two authoring regimes: the TOP-LEVEL typed cells
+# (gmeow:DeclinedCorrespondence, gmeow:ProjectionMapping, gmeow:MappingSet,
 # gmeow:ProjectionFunction, gmeow:OptionalGroup, the 7 property-path classes)
 # are explicitly `a`-typed, so their requiredness is authored with
 # logic:DisjunctiveRequirednessConstraint's logic:onClass. The STRUCTURAL
@@ -1088,65 +1159,6 @@ gmeow:whenValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-d
 # their constraints are raw logic:Constraint records guarded by the anchoring
 # property itself — the kernel gmeow:UseForConsumerTargetConstraint idiom.
 # =============================================================================
-
-# --- TermEquivalence ---------------------------------------------------------- #
-
-gmeow:TermEquivalenceSubjectRequiredConstraint
-    a logic:DisjunctiveRequirednessConstraint ;
-    rdfs:label "TermEquivalence subject requiredness constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: a gmeow:TermEquivalence must carry exactly one gmeow:alignSubject."@x-gmeow-english ;
-    logic:onClass gmeow:TermEquivalence ;
-    logic:anyOf gmeow:alignSubject ;
-    logic:formalizes gmeow:TermEquivalence ;
-    logic:message "TermEquivalence must have exactly one gmeow:alignSubject (IRI)"@x-gmeow-english .
-
-gmeow:TermEquivalencePredicateRequiredConstraint
-    a logic:DisjunctiveRequirednessConstraint ;
-    rdfs:label "TermEquivalence predicate requiredness constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: a gmeow:TermEquivalence must carry exactly one gmeow:alignPredicate."@x-gmeow-english ;
-    logic:onClass gmeow:TermEquivalence ;
-    logic:anyOf gmeow:alignPredicate ;
-    logic:formalizes gmeow:TermEquivalence ;
-    logic:message "TermEquivalence must have exactly one gmeow:alignPredicate (IRI)"@x-gmeow-english .
-
-gmeow:TermEquivalenceObjectRequiredConstraint
-    a logic:DisjunctiveRequirednessConstraint ;
-    rdfs:label "TermEquivalence object requiredness constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: a gmeow:TermEquivalence must carry exactly one gmeow:alignObject."@x-gmeow-english ;
-    logic:onClass gmeow:TermEquivalence ;
-    logic:anyOf gmeow:alignObject ;
-    logic:formalizes gmeow:TermEquivalence ;
-    logic:message "TermEquivalence must have exactly one gmeow:alignObject (IRI)"@x-gmeow-english .
-
-gmeow:TermEquivalenceSssomFileRequiredConstraint
-    a logic:DisjunctiveRequirednessConstraint ;
-    rdfs:label "TermEquivalence sssomFile requiredness constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: a gmeow:TermEquivalence must carry exactly one gmeow:sssomFile."@x-gmeow-english ;
-    logic:onClass gmeow:TermEquivalence ;
-    logic:anyOf gmeow:sssomFile ;
-    logic:formalizes gmeow:TermEquivalence ;
-    logic:message "TermEquivalence must have exactly one gmeow:sssomFile (string)"@x-gmeow-english .
-
-gmeow:TermEquivalenceConfidenceRangeConstraint
-    a logic:ValueRangeConstraint ;
-    rdfs:label "TermEquivalence confidence range constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:TermEquivalence's gmeow:confidence lies in the closed interval [0,1]."@x-gmeow-english ;
-    logic:onClass gmeow:TermEquivalence ;
-    logic:valuePath gmeow:confidence ;
-    logic:minInclusiveBound 0 ;
-    logic:maxInclusiveBound 1 ;
-    logic:formalizes gmeow:TermEquivalence ;
-    logic:message "confidence must be a single numeric value in [0,1]"@x-gmeow-english .
 
 # --- DeclinedCorrespondence ---------------------------------------------------- #
 
@@ -1752,6 +1764,7 @@ logic:mdvDefBy a logic:Formula ; logic:relation rdfs:isDefinedBy ;
 # --------------------------------------------------------------------------- #
 
 gmeow:AltPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:CatalogFamily gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:DeclinedCorrespondence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ExpressionOperator gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:InversePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
@@ -1764,20 +1777,27 @@ gmeow:PatternAtom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProfileBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionMapping gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ResidueRatchetExemption gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:SeqPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:TermEquivalence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrMorePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrOnePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:alignObject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignPredicate gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignSubject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:anchor gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:atom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bind gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindExpr gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:candidateNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogFamilyName gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogOwner gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogTargetMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:comment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptCatalogFamily gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRowCeiling gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileCellMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileSource gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:contentCarriedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:declineRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

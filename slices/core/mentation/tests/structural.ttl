@@ -42,7 +42,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Experience rdfs:subClassOf gmeow:MentalProcess . }""" ;
     gmeow:saRationale "Experience is the phenomenally-conscious, qualia-bearing subset of MentalProcess: it MUST be declared a subClassOf gmeow:MentalProcess (the only genuine subclass in this slice)." .
 
-# --- 3. experiencer is a functional ObjectProperty (MUST hold) ----------------
+# --- 3. experiencer is an ObjectProperty with domain/range (MUST hold) --------
 ex:saExperiencerFunctionalObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -50,11 +50,11 @@ ex:saExperiencerFunctionalObjectProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:experiencer a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:experiencer a owl:ObjectProperty ;
         rdfs:domain gmeow:MentalProcess ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:experiencer MUST be an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:MentalProcess and range gmeow:Agent (one process, one experiencer — a mental occurrent inheres in exactly one agent)." .
+    gmeow:saRationale "gmeow:experiencer MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:Agent (one process, one experiencer — a mental occurrent inheres in exactly one agent). Its single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module." .
 
 # --- 4a. mentalProcessType is a non-functional ObjectProperty (MUST hold) -----
 ex:saMentalProcessTypeProperty a gmeow:StructuralAssertion ;
@@ -75,8 +75,8 @@ ex:saMentalProcessTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:mentalProcessType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:mentalProcessType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:mentalProcessType MUST NOT be functional — a single occurrence may carry several type values (a reverie that is both imagining and mind-wandering)." .
 
 # --- 5. MentalProcessType is a value-vocab class (MUST hold) ------------------
@@ -132,8 +132,8 @@ ex:saRealizesMentalMomentNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:realizesMentalMoment a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:realizesMentalMoment ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:realizesMentalMoment MUST NOT be functional — one process may manifest several moments." .
 
 # --- 8. producesMentalMoment is a non-functional ObjectProperty (MUST/-NOT) ---
@@ -154,8 +154,8 @@ ex:saProducesMentalMomentNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:producesMentalMoment a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:producesMentalMoment ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:producesMentalMoment MUST NOT be functional — one process may produce several moments." .
 
 # --- 9. updatesMentalTenure is a non-functional ObjectProperty (MUST/-NOT) ----
@@ -176,8 +176,8 @@ ex:saUpdatesMentalTenureNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:updatesMentalTenure a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:updatesMentalTenure ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:updatesMentalTenure MUST NOT be functional — one process may update several tenures." .
 
 # --- 10. gmeow:realizes collision guard (MUST-NOT hold + MUST declarations) ---

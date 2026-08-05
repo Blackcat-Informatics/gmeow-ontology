@@ -47,12 +47,12 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 4. **Equivalence before deletion.** Each re-point proved value-equivalence
    against the old implementation before the old path was deleted —
    no compatibility shims survive.
-5. **Committed without rebase pain.** `generated/dist/gmeow.gts` stays
-   committed for reviewability and drift-gate visibility, but `.gitattributes`
-   marks it `merge=ours -diff`. Running `make install` bootstraps the local
-   Git merge driver (`merge.ours.driver=true`); after a merge or rebase,
-   update/check the bundle from canonical sources rather than resolving the
-   binary file by hand.
+5. **Reproducible without rebase pain.** `generated/dist/gmeow.gts` is a
+   git-ignored local/release product, never committed: there is no
+   `.gitattributes` merge driver and no binary file to resolve during a merge
+   or rebase. `make install`/`make check` materialize it from canonical
+   sources; after a merge or rebase, re-run `make check` to bring the bundle
+   back in step rather than resolving anything by hand.
 6. **One mandatory frame profile.** Every payload-bearing frame authored by
    GMEOW production code uses exactly one transform: `zstd-rsyncable`, at zstd
    compression level **12**. This applies to small and large blob frames, the
@@ -86,8 +86,7 @@ Exporters that each re-read and re-interpret the sources drift from one
 another; exporters that consume one verified fold cannot. The remaining
 export tiers shipped this way: N-Quads/TriG, the statements JSONL
 bundle, SKOS, OBO Graphs, and ShEx are emitters inside the sealed `exports`
-generator, and Parquet is its own sealed `parquet` generator over the
-`gts_db` relational schema — `GTS → *` shims over `gts_views`: no parser, no
+generator — `GTS → *` shims: no parser, no
 drift surface, the same fold the published `gts`/`gmeow` packages read.
 (OFN/OWX/OMN are release-tier ROBOT conversions in `gmeow build`; HDT was
 refused — no maintained writer to pin.)

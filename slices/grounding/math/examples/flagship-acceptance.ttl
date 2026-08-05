@@ -9,7 +9,9 @@
 # counter-example that raises a named failure class. This manifest reifies the acceptance
 # bar ITSELF: five gmeow:FlagshipScenario individuals, each binding one scenario to the
 # artifacts that realize and enforce it —
-#   gmeow:demonstratedByExample     → the worked examples/*.ttl
+#   gmeow:demonstratedByExample     → the worked fixture under tests/ (a conformance fixture,
+#                                     or — for rBridge — the committed byte-exact output of
+#                                     the executable lift its producer runs)
 #   gmeow:demonstratedByCompetency  → the gmeow:CompetencyQuestion that pins it
 #   gmeow:demonstratedByProducer    → the native producer entrypoint
 #   gmeow:guardedByCounterExample   → the minimal violation that proves the gate bites
@@ -65,12 +67,17 @@ exa:proofAsProcess a gmeow:FlagshipScenario ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 4 — the universal R → math: bridge --------------------------- #
+# The worked example is tests/fixtures/lifted-r.ttl: the byte-exact output of the EXECUTABLE
+# R front-end (math::producers::r_lift runs gmeow_math_lift::r::lift, the same entrypoint the
+# gmeow CLI calls) over the committed crates/math-lift/fixtures/mtcars.R script. The scenario
+# therefore discharges on a graph a real parser derived, not on a hand-written imitation of
+# one — the reason the in-code r_bridge_lift emitter it replaced was retired outright.
 exa:rBridge a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: R → math:, for any R script"@x-gmeow-english ;
     skos:definition "A universal lift where an R script's mathematical/statistical content lifts into math: as the put leg of a logic:Correspondence, hard-failing with a typed diagnostic on anything it cannot lift rather than dropping it silently."@x-gmeow-english ;
-    gmeow:demonstratedByExample "tests/conformance-fixtures/ingest-run-lifted.ttl" ;
+    gmeow:demonstratedByExample "tests/fixtures/lifted-r.ttl" ;
     gmeow:demonstratedByCompetency cq:cqBridgeRFidelity ;
-    gmeow:demonstratedByProducer "math::producers::r_bridge_lift" ;
+    gmeow:demonstratedByProducer "math::producers::r_lift" ;
     gmeow:guardedByCounterExample "tests/counter-examples/ingest-run-unliftable.ttl" ;
     gmeow:enforcesFailureClass math:UnliftableIngest ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .

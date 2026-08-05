@@ -96,8 +96,7 @@ gmeow:credentialFor
     gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english .
 
 gmeow:credentialIssuer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Credential ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "credential issuer"@x-gmeow-english ;
@@ -209,8 +208,7 @@ gmeow:scaleDreyfus
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:skillProficiencyAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency agent"@x-gmeow-english ;
@@ -236,8 +234,7 @@ gmeow:skillProficiencyInterval
     gmeow:useWhen "Use to bound a gmeow:SkillProficiency in time when the span over which a level held is itself a first-class gmeow:TimeInterval — a proficiency that rose and then lapsed over a career."@x-gmeow-english .
 
 gmeow:skillProficiencyLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency level"@x-gmeow-english ;
@@ -250,8 +247,7 @@ gmeow:skillProficiencyLevel
     gmeow:useWhen "Use to record the attained level of a gmeow:SkillProficiency — a gmeow:ProficiencyLevel value such as dreyfusExpert or assessedCompetent — read against the scale named by gmeow:skillProficiencyScale."@x-gmeow-english .
 
 gmeow:skillProficiencyOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency of"@x-gmeow-english ;
@@ -264,8 +260,7 @@ gmeow:skillProficiencyOf
     gmeow:useWhen "Use to name the single gmeow:Skill a gmeow:SkillProficiency relator rates — the competency the level is attained in."@x-gmeow-english .
 
 gmeow:skillProficiencyScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency scale"@x-gmeow-english ;
@@ -397,3 +392,90 @@ logic:spsmLevelScale a logic:Formula ; logic:relation gmeow:levelScale ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
 logic:spsmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:credentialIssuerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "credentialIssuer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:credentialIssuer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:credentialIssuer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:credentialIssuer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:credentialIssuer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:credentialIssuer and nothing else. It is not a definition of gmeow:credentialIssuer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:credentialIssuerFunctionality logic:characterizes gmeow:credentialIssuer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:skillProficiencyAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyAgent and nothing else. It is not a definition of gmeow:skillProficiencyAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyAgentFunctionality logic:characterizes gmeow:skillProficiencyAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:skillProficiencyLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyLevel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyLevel and nothing else. It is not a definition of gmeow:skillProficiencyLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyLevelFunctionality logic:characterizes gmeow:skillProficiencyLevel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:skillProficiencyOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyOf and nothing else. It is not a definition of gmeow:skillProficiencyOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyOfFunctionality logic:characterizes gmeow:skillProficiencyOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:skillProficiencyScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyScale ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyScale and nothing else. It is not a definition of gmeow:skillProficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyScaleFunctionality logic:characterizes gmeow:skillProficiencyScale ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

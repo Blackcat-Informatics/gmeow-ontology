@@ -4,7 +4,7 @@
 //! The `lpg` export leaf (P4): RDF → Labeled Property Graph.
 //!
 //! Renders the generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0
-//! packages via purrdf 0.7.0's native LPG projections
+//! packages via purrdf's native LPG projections
 //! (`purrdf::project_lpg_csv` / `project_neo4j_csv` / `project_lpg_cypher` /
 //! `project_lpg_graphml`), retiring gmeow's hand-rolled node/edge model and
 //! CSV/Cypher/GraphML writers (the former genuine port of
@@ -40,7 +40,7 @@
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 
-use purrdf::{LpgConfig, ProjectionLimits, RdfDataset};
+use purrdf::{LpgConfig, LpgExecutionLimits, LpgScope, ProjectionLimits, RdfDataset};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -75,7 +75,19 @@ fn lpg_config() -> Result<LpgConfig, gmeow_errors::Diag> {
         16,          // max_term_depth: the hard safety ceiling
     )
     .map_err(|e| err(format!("build ProjectionLimits: {e}")))?;
-    LpgConfig::new(RDF_TYPE, limits, 100_000 /* max_records */)
+    // The dataset handed to purrdf is ALREADY scoped to exactly `STATEMENTS_GRAPH`
+    // (see `render_from_dataset`), so the config projects the complete passed view.
+    // Generous uniform execution ceilings: the scoped statements graph is hundreds
+    // of records/nodes/edges, so ~1000x headroom — never a real cap (no-optionality:
+    // a too-small limit is a HARD FAIL, so this errs generous).
+    let execution_limits = LpgExecutionLimits::new(
+        100_000, // max_input_records
+        100_000, // max_model_records
+        100_000, // max_nodes
+        100_000, // max_edges
+    )
+    .map_err(|e| err(format!("build LpgExecutionLimits: {e}")))?;
+    LpgConfig::new(RDF_TYPE, LpgScope::all(), limits, execution_limits)
         .map_err(|e| err(format!("build LpgConfig: {e}")))
 }
 

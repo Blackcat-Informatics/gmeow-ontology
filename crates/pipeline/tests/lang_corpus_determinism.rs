@@ -20,7 +20,7 @@
 //!    process and every serialized byte payload (corpus graphs AND the committed `.conllu`
 //!    projection artifacts) must be byte-identical across the two runs.
 //!
-//! 2. **The drift lane — `run_full(RunMode::Check)` (`make sync SYNC_MODE=check SYNC_OUTPUTS=generated`).** Fresh
+//! 2. **The drift lane — `run_full(RunMode::Check)` (`make check-sync SYNC_MODE=check`).** Fresh
 //!    process, re-derives every committed artifact and reconciles it: the per-reading
 //!    `.conllu` files by EXACT BYTES (`crates/pipeline/src/run.rs:737-755`, the non-RDF
 //!    committed-artifact compare), and the corpus graphs through the `gmeow.gts`
@@ -46,7 +46,7 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::gmeow_slice_vocab;
+use gmeow_ns::gmeow_slice_vocab;
 use gmeow_pipeline::stages::{lang_form, lang_lowering, lang_projection};
 use purrdf::slice::SliceCatalog;
 

@@ -10,6 +10,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 >
 > **Status:** design / EPIC source-of-truth. This document is the canonical plan the purrdf EPIC points
 > to. No implementation begins until the EPIC's child issues are approved and scheduled.
+>
+> **Historical record — read paths here as of the time of writing.** The plan below was carried out:
+> the RDF-1.2 kernel it designs was extracted out of this workspace into the sibling **`purrdf`**
+> package and is now consumed here as a single exact-pinned dependency. Every in-repo crate path and
+> crate name this document mentions — `crates/rdf/`, `crates/rdf-core`, `crates/rdf-capi`,
+> `crates/rdf-wasm`, `gmeow-rdf`, `gmeow-rdf-core`, `gmeow-rdf-wasm`, and the `make rdf-core-hygiene`
+> target — **no longer exists in this repository**; the corresponding code lives in the purrdf
+> repository. The text is preserved unedited as the design record it is. For the current layout see
+> [`crates/README.md`](../../crates/README.md).
 
 ## Context
 
@@ -76,7 +85,7 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
   PHP/Lua/Swift/Ruby/R/Julia wrappers, full RDF-1.2 losslessness, and formats
-  N-Quads / TriG / JSON-LD-star / YAML-LD-star + relational exports (SQLite/DuckDB/Parquet). It is
+  N-Quads / TriG / JSON-LD-star / YAML-LD-star + relational exports (SQLite/DuckDB). It is
   **not** a query engine/reasoner/store by charter.
 
 ## Architecture
@@ -468,9 +477,18 @@ from the RDF/JS surface). The shipped surface:
   (the Node real-execution lane: the actual wasm round-trips the RDF-1.2 wedge through N-Quads). A
   **dormant** `npm-publish-purrdf` workflow mirrors `pypi-publish-gmeow`.
 
-**Deferred (out of P10):** the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS), SPARQL over
-wasm (oxigraph-backed, native-only by charter), `wasm-opt -Oz` size optimization, and the actual npm
-publish — deferred to the post-v1 spin-up.
+**SPARQL over wasm — DELIVERED (oxigraph-free).** The earlier "native-only by charter" framing was
+tied to the oxigraph backend; `gmeow-rdf` since shipped an **oxigraph-free SPARQL evaluator** that
+compiles to `wasm32`, so SPARQL now runs entirely in the browser. The documentation site's offline
+SPARQL playground is exactly this: `gmeow-query-wasm` (`crates/query-wasm`, shipped as
+`crates/docs/assets/query/`) carries `query`, evaluated client-side over the shipped bundle with no
+server and no network. It is **built in this repository** from the workspace `purrdf` pin rather than
+vendored from the sibling repo, so the browser engine cannot drift from the pin.
+`wasm-opt -Oz` size optimization is likewise **delivered** — it is now a REQUIRED build step for every
+wasm asset (a missing `wasm-opt` is a hard build failure, never a note).
+
+**Deferred (out of P10):** only the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS) and the
+actual npm publish — deferred to the post-v1 spin-up.
 
 ### P9 spec — the rdflib compat shim (`gmeow_rdf.compat.rdflib`), LSP-critical
 

@@ -15,7 +15,7 @@ gmeow:Commitment
     logic:mediates gmeow:committedAgent ,
         gmeow:commitmentBeneficiary ,
         gmeow:intentionGoal ;
-    skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (the logic:commitmentBeneficiaryDistinctness axiom, projected to SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
+    skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (the gmeow:commitmentBeneficiaryDistinctness axiom, projected to SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
     skos:example "ex:slaPromise a gmeow:Commitment ; gmeow:committedAgent ex:vendor ; gmeow:commitmentBeneficiary ex:client ; gmeow:intentionGoal ex:ninetyNinePercentUptime ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for intrinsic modes that hold no one accountable (use gmeow:Desire or gmeow:Intention) and for the document or legal wrapper (those live in the agreements and contracts modules); the beneficiary must be distinct from the committed agent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -44,7 +44,7 @@ gmeow:Goal
     rdfs:subClassOf gmeow:SocialObject ;
     skos:definition "A described state of affairs that an agent may want, intend, or commit to bring about — the propositional content of the intentional modes, existing by social convention like every description (a gmeow:SocialObject). A goal asserts nothing and prescribes nothing by itself: it is satisfied by situations (gmeow:satisfiedBy), held by agents (gmeow:hasGoal or the reified modes), and partly defined by its named shadow (gmeow:counterGoal). Whether a given situation satisfies the goal is a vantage-indexed claim (Principle 9)."@x-gmeow-english ;
     skos:example "ex:reachOrbit a gmeow:Goal ; gmeow:counterGoal ex:scrubLaunch ; gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the agent's holding of the goal (that is gmeow:hasGoal or a Desire/Intention/Commitment) and for prescriptive force — a Goal prescribes nothing; obligatory conduct arrives via the norms extension, never on the Goal itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent's holding of the goal (that is gmeow:hasGoal or a Desire/Intention/Commitment) and for prescriptive force — a Goal prescribes nothing; obligatory conduct arrives via the norms slice, never on the Goal itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one Goal individual and share it across every agent and mode aiming at it; attach gmeow:counterGoal for constitutive opposition and gmeow:satisfiedBy for achieving situations, recording disputed satisfaction as coexisting gmeow:accordingTo claims rather than a global verdict."@x-gmeow-english ;
     gmeow:useWhen "Use to name the propositional content an agent may want, intend, or commit to — the shared target that the intentional modes and the flat gmeow:hasGoal point at, and the thing a situation can satisfy."@x-gmeow-english .
@@ -112,16 +112,15 @@ gmeow:commitmentBeneficiary
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "commitment beneficiary"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "An agent toward whom the commitment is made. NOT functional: a commitment may be made toward several beneficiaries at once. Must be distinct from the committed agent (the logic:commitmentBeneficiaryDistinctness axiom, projected to SHACL); a resolution one makes purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
+    skos:definition "An agent toward whom the commitment is made. NOT functional: a commitment may be made toward several beneficiaries at once. Must be distinct from the committed agent (the gmeow:commitmentBeneficiaryDistinctness axiom, projected to SHACL); a resolution one makes purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
     skos:example "ex:slaPromise gmeow:commitmentBeneficiary ex:client ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the committing agent (use gmeow:committedAgent) and avoid naming the committed agent here — beneficiary and committed agent must be distinct (the logic:commitmentBeneficiaryDistinctness axiom, projected to SHACL); a resolution made purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the committing agent (use gmeow:committedAgent) and avoid naming the committed agent here — beneficiary and committed agent must be distinct (the gmeow:commitmentBeneficiaryDistinctness axiom, projected to SHACL); a resolution made purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:Agent beneficiaries to the Commitment; keep them disjoint from gmeow:committedAgent and let the period ride the relator."@x-gmeow-english ;
     gmeow:useWhen "Use to name an agent toward whom a Commitment is made — the recipient side of the social bond, repeated when several beneficiaries share one commitment."@x-gmeow-english .
 
 gmeow:committedAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "committed agent"@x-gmeow-english ;
@@ -162,8 +161,7 @@ gmeow:hasGoal
     gmeow:useWhen "Use for the 80% case (Principle 4): an agent holds a goal and neither the commitment grade nor its tenure over time needs to be first-class — the flat half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair."@x-gmeow-english .
 
 gmeow:intentBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intent bearer"@x-gmeow-english ;
@@ -176,8 +174,7 @@ gmeow:intentBearer
     gmeow:useWhen "Use to name the single agent in whom a Desire or Intention inheres — the bearer side of the intrinsic branch."@x-gmeow-english .
 
 gmeow:intentionGoal
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMoment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intention goal"@x-gmeow-english ;
@@ -221,8 +218,7 @@ gmeow:satisfiedBy
     gmeow:useWhen "Use to record that a particular situation counts as achieving a goal — the achievement link a renderer or planner reads to ask whether a goal has been met."@x-gmeow-english .
 
 gmeow:tenureAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure agent"@x-gmeow-english ;
@@ -235,8 +231,7 @@ gmeow:tenureAgent
     gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single agent whose holding-over-time it records."@x-gmeow-english .
 
 gmeow:tenureIntention
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure intention"@x-gmeow-english ;
@@ -260,7 +255,7 @@ DOCTRINE.
   * Whether a situation satisfies a goal is a vantage-indexed claim through the statement layer, never a global verdict (Principle 9). Whose goal it is, is indexed the same way: goals attributed to an agent by an observer and goals avowed by the agent are coexisting claims.
   * Flat-first, reify on demand (Principle 4): gmeow:hasGoal covers the 80% case; promote to Desire / Intention / Commitment when commitment grade, tenure, or standpoint matters; promote to gmeow:IntentionTenure (the StandpointTenure idiom) when adoption / revision of the intention is itself the fact of interest. Goals are revised by suppression, never deleted (Principle 10).
   * Goal decomposition, plan search, and means-end reasoning are solver-layer computations (Principle 12); the ontology records goals, their counter-goals, and who holds them.
-  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the norms extension, which ranges gmeow:prescribedConduct over Goal — the dependency points extension → core, never back."""@x-gmeow-english ;
+  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the core norms slice, which ranges gmeow:prescribedConduct over Goal — the dependency points norms → teleology, never back."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "GMEOW Teleology Module"@x-gmeow-english ;
     skos:definition "The GMEOW Teleology Module — goals, desires, intentions, and commitments."@x-gmeow-english ;
@@ -344,3 +339,136 @@ gmeow:IntentionTenureAgentConstraint
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/commitmentBeneficiary" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/committedAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/intentionGoal" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
+
+gmeow:counterGoalSymmetry
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "counterGoal is symmetric"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:counterGoal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:counterGoal holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when the relation is genuinely one-way — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:symmetricProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:counterGoal and nothing else. It is not a definition of gmeow:counterGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:counterGoalSymmetry logic:characterizes gmeow:counterGoal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:counterGoalIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "counterGoal is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is irreflexive: a goal is never its own shadow, as its skos:definition states. The native coherence gate reads this to raise a violation for a goal asserted to counter itself."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:counterGoal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:counterGoal never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:counterGoal and nothing else. It is not a definition of gmeow:counterGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:counterGoalIrreflexivity logic:characterizes gmeow:counterGoal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:committedAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "committedAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:committedAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:committedAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:committedAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:committedAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:committedAgent and nothing else. It is not a definition of gmeow:committedAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:committedAgentFunctionality logic:characterizes gmeow:committedAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentBearerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "intentBearer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:intentBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:intentBearer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:intentBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:intentBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:intentBearer and nothing else. It is not a definition of gmeow:intentBearer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:intentBearerFunctionality logic:characterizes gmeow:intentBearer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentionGoalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "intentionGoal is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:intentionGoal is functional: an intentional moment aims at exactly one goal, so an agent pursuing five goals bears five modes and sharing occurs at the Goal individual rather than the mode."@x-gmeow-english ;
+    logic:characterizes gmeow:intentionGoal ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:intentionGoal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:intentionGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:intentionGoal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:intentionGoal and nothing else. It is not a definition of gmeow:intentionGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:intentionGoalFunctionality logic:characterizes gmeow:intentionGoal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tenureAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "tenureAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tenureAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureAgent and nothing else. It is not a definition of gmeow:tenureAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tenureAgentFunctionality logic:characterizes gmeow:tenureAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tenureIntentionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "tenureIntention is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureIntention ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureIntention ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tenureIntention names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureIntention, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureIntention and nothing else. It is not a definition of gmeow:tenureIntention (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tenureIntentionFunctionality logic:characterizes gmeow:tenureIntention ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:commitmentBeneficiaryDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+    rdfs:label "a commitment's beneficiary is distinct from its committed agent"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Commitment's gmeow:committedAgent and gmeow:commitmentBeneficiary must be distinct: a resolution made purely to oneself is an Intention, not a Commitment. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Commitment ;
+    logic:distinctnessRole gmeow:committedAgent , gmeow:commitmentBeneficiary ;
+    logic:formalizes gmeow:commitmentBeneficiary ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Commitment; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Commitment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Commitment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Commitment and nothing else. It is not a definition of gmeow:Commitment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:commitmentBeneficiaryDistinctness logic:characterizes gmeow:Commitment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

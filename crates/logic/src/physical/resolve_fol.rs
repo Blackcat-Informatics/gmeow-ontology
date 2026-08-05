@@ -65,10 +65,11 @@ use purrdf::TermValue;
 use crate::physical::id::{MetaId, NodeId, TermId};
 use crate::physical::proof::{GroundClause, RuleCtx, proof_assert, proof_by_rule};
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind};
-use crate::physical::term_dag::{NodeData, TermDag};
 use crate::physical::unify::{SortContext, Subst, Unified, apply, unify_sorted};
 use crate::query_ir::{AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QProgram, QTerm};
 use crate::seam::BudgetStatus;
+use gmeow_term_arena::engine::StructNodeParts;
+use gmeow_term_arena::engine::{NodeData, TermDag};
 
 // ── Program model ─────────────────────────────────────────────────────────────────
 
@@ -1314,7 +1315,9 @@ fn lower_qprogram(
                     body.push(FolLit::Neg(lower_atom(dag, a, &mut vars)?));
                 }
                 crate::query_ir::QBodyLit::Cut => return Err(UnsupportedKind::Cut),
-                crate::query_ir::QBodyLit::Builtin(_) => return Err(UnsupportedKind::Arithmetic),
+                crate::query_ir::QBodyLit::Builtin(_) => {
+                    return Err(UnsupportedKind::Arithmetic(Vec::new()));
+                }
             }
         }
         let rule_iri = dag.intern_atom(&TermValue::iri(format!(
@@ -1380,6 +1383,9 @@ fn lower_term(
                 .unwrap_or(c);
             Ok(dag.intern_leaf(TermValue::iri(iri.to_owned())))
         }
+        // A ground quoted-triple lowers to a single interned leaf carrying the
+        // reconstructed `TermValue::Triple` (it is a value, not a compound function term).
+        QTerm::Triple { .. } => Ok(dag.intern_leaf(super::magic::qterm_to_value(term)?)),
         QTerm::Num(n) => Ok(dag.intern_leaf(TermValue::typed_literal(
             n.to_string(),
             crate::physical::XSD_INTEGER,

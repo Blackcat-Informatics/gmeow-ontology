@@ -72,8 +72,8 @@ ex:saInstanceOfConceptNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:instanceOfConcept a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:instanceOfConcept ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:instanceOfConcept MUST NOT be functional — an entity may instantiate many concepts, and competing categorizations coexist (Principle 9)." .
 
 # --- 4a. typicality is a decimal DatatypeProperty on ConceptCategorization (MUST)
@@ -96,8 +96,8 @@ ex:saTypicalityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:typicality a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:typicality ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:typicality MUST NOT be functional — multiple sources may report typicality, and those reports coexist (Principle 9)." .
 
 # --- 5a. subsumes / composedOf are Concept→Concept ObjectProperties (MUST) -----
@@ -123,15 +123,16 @@ ex:saConceptStructurePropertiesNotFunctionalNotTransitive a gmeow:StructuralAsse
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:subsumes gmeow:composedOf }
-    { ?p a owl:FunctionalProperty . }
+    { ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { ?p a owl:TransitiveProperty . }
 }""" ;
     gmeow:saRationale "Neither gmeow:subsumes nor gmeow:composedOf MUST be functional, and neither MUST be declared owl:TransitiveProperty — transitive closure is solver work, not a core axiom (Principle 12)." .
 
-# --- 6. ConceptTenure is time-scoped; conceptHoldsFor is functional (MUST) -----
+# --- 6. ConceptTenure is time-scoped; conceptHoldsFor is an ObjectProperty (MUST)
 ex:saConceptTenureIsTimeScoped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -142,8 +143,8 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:ConceptTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
-    gmeow:conceptHoldsFor a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:conceptHoldsFor a owl:ObjectProperty ;
         rdfs:domain gmeow:ConceptTenure ;
         rdfs:range gmeow:Concept .
 }""" ;
-    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a logic:Situation, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be a FUNCTIONAL owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept." .
+    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a logic:Situation, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be an owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept." .

@@ -13,13 +13,14 @@
 //! structurally-valid, deterministic, non-empty output faithful to the Python
 //! generator's format. Everything is sorted (BTreeMap/BTreeSet) for determinism.
 //!
-//! The lossless N-Quads / TriG forms delegate to the gmeow-gts Rust serializers
-//! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
-//! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
-//! exactly as the Python `write_nquads` / `write_trig` do.
+//! The lossless N-Quads / TriG forms delegate to purrdf's native serializer
+//! (`purrdf::serialize_dataset`, via [`serialize_public`]) over ONE
+//! public-BCP-47-retagged copy of the carrier ([`dataset_with_public_tags`]) shared by
+//! both media types — the internal `x-gmeow-*` language tags are remapped at the
+//! projection boundary, and the remap is paid once, not once per surface.
 //!
 //! SKOS ([`render_skos`]), OBO Graphs ([`render_obographs`]), and CSVW
-//! ([`render_csvw`]) are purrdf 0.7.0 native projections
+//! ([`render_csvw`]) are purrdf native projections
 //! (`purrdf::project_skos` / `purrdf::project_obo_graphs` /
 //! `purrdf::project_csvw_exact`), retiring the former hand-rolled SKOS Turtle / OBO
 //! Graphs JSON writers and the curated class/property/individual CSV + CSVW
@@ -41,7 +42,7 @@ use gmeow_validate::language_tags::{
 };
 use purrdf::{RdfDataset, TermId, TermRef};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 include!("lpg_prefixes.rs");
 
@@ -65,7 +66,7 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it become the term's logic stereotypes. Mirrors
 /// `gmeow_docs::model::LOGIC_NS`.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// The carrier variety class: the internal `x-gmeow-*` tag rides `lang:carrierTag`
 /// on a `lang:LanguageVariety` since the lang: graft, and the generated
@@ -999,14 +1000,14 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// Whether `iri` names a `$defs` entry in `modeled_defs` (the JSON Schema
 /// `$defs` key set — [`crate::bundle_blobs::Bundle::modeled_def_keys`]), keyed
 /// through the SAME namespace table the SHACL→JSON-Schema compiler used
-/// ([`crate::gmeow_ns::gmeow_json_schema_namespaces`]) — the "this class has a
+/// ([`gmeow_ns::gmeow_json_schema_namespaces`]) — the "this class has a
 /// generated Pydantic model" existence signal `term_to_card`'s `python_model`
 /// gate reads. Shared with `gmeow_docs::render::doc_term_card` and
 /// `gmeow_docs::describe::build_card` in spirit (never in code — the crate
 /// boundary is one-directional), so all three builders agree (issue: Pydantic
 /// model surface, finding F3).
 fn class_is_modeled(iri: &str, modeled_defs: &BTreeSet<String>) -> bool {
-    modeled_defs.contains(&crate::gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
+    modeled_defs.contains(&gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
 }
 
 pub(crate) fn term_to_card(t: &Term, modeled_defs: &BTreeSet<String>) -> gmeow_docs::card::Card {
@@ -1592,13 +1593,21 @@ fn llms_prose(version: &str, suffix: &str) -> Vec<String> {
     )]
 }
 
-fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
+fn write_llms_txt(
+    terms: &[Term],
+    title: &str,
+    version: &str,
+    primer: &gmeow_docs::gmn1_primer::Gmn1Primer,
+) -> Vec<u8> {
     let prose = llms_prose(
         version,
         "The RDF 1.2 grounding slices are canonical; this is a self-contained vocabulary index.",
     );
     let mut sections = llms_sections(terms, None);
     sections.push(gmeow_docs::llms::standing_reference_section());
+    // The GMN-1 teachability primer (graph-derived) rides the SAME shared section path so this
+    // dist surface and the MCP/consumer surfaces cannot silently diverge on it.
+    sections.push(primer.section());
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
@@ -1615,6 +1624,7 @@ pub(crate) fn consumer_llms_full(
     title: &str,
     version: &str,
     modeled_defs: &BTreeSet<String>,
+    primer: &gmeow_docs::gmn1_primer::Gmn1Primer,
 ) -> String {
     let prose = llms_prose(
         version,
@@ -1668,6 +1678,10 @@ pub(crate) fn consumer_llms_full(
     out.push_str(&gmeow_docs::llms::render_section(
         &gmeow_docs::llms::standing_reference_section(),
     ));
+    // The GMN-1 teachability primer (graph-derived), rendered through the SAME shared bullet
+    // path — so the complete form teaches GMN emission + the repair loop, not just the vocab.
+    out.push('\n');
+    out.push_str(&gmeow_docs::llms::render_section(&primer.section()));
     out
 }
 
@@ -2053,35 +2067,21 @@ fn dataset_with_public_tags(
     })
 }
 
-fn write_nquads(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(
-        &public,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| {
+/// Serialize an ALREADY public-tag-remapped dataset through purrdf's native
+/// serializer — the whole lossless-RDF half of this leaf, one purrdf call per media
+/// type.
+///
+/// It takes the remapped dataset rather than remapping internally so the caller
+/// builds it ONCE and serializes it twice (N-Quads + TriG). The remap is a full
+/// materialization of the terminal carrier (`owned_quads` + a rebuilt frozen
+/// dataset); doing it per media type made this leaf pay for two whole extra copies of
+/// the corpus at its allocation peak, for two byte-identical inputs.
+fn serialize_public(public: &RdfDataset, media_type: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    purrdf::serialize_dataset(public, media_type, purrdf::SerializeGraph::Dataset).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("n-quads serialize: {e}"),
+            message: format!("{media_type} serialize: {e}"),
         })
     })
-}
-
-fn write_trig(
-    dataset: &RdfDataset,
-    tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset).map_err(
-        |e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("trig serialize: {e}"),
-            })
-        },
-    )
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2765,6 +2765,12 @@ pub(crate) fn render_all_with_languages(
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
 
+    // The GMN-1 teachability primer, built ONCE from the folded carrier and shared by both
+    // llms surfaces. A carrier that fails to yield the primer's GMN-1 codebook sources is a
+    // HARD FAIL here (no-optionality), never a silently-omitted primer.
+    let primer = gmeow_docs::gmn1_primer::build_primer(dataset)
+        .map_err(|e| err(format!("build GMN-1 teachability primer: {e}")))?;
+
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     out.extend(render_csvw(dataset)?);
     out.insert(format!("{DIST_DIR}/gmeow-terms.jsonl"), write_jsonl(&terms));
@@ -2774,20 +2780,26 @@ pub(crate) fn render_all_with_languages(
     );
     out.insert(
         format!("{DIST_DIR}/llms.txt"),
-        write_llms_txt(&terms, &title, &version),
+        write_llms_txt(&terms, &title, &version, &primer),
     );
     out.insert(
         format!("{DIST_DIR}/llms-full.txt"),
-        consumer_llms_full(&terms, &title, &version, modeled_defs).into_bytes(),
+        consumer_llms_full(&terms, &title, &version, modeled_defs, &primer).into_bytes(),
     );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.nq"),
-        write_nquads(dataset, view.tag_map())?,
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow.trig"),
-        write_trig(dataset, view.tag_map())?,
-    );
+    // The two lossless RDF surfaces are the SAME public-tag-remapped dataset under two
+    // media types, so it is materialized once and serialized twice, then dropped before
+    // the remaining (small) surfaces are rendered.
+    {
+        let public = dataset_with_public_tags(dataset, view.tag_map())?;
+        out.insert(
+            format!("{DIST_DIR}/gmeow.nq"),
+            serialize_public(&public, "application/n-quads")?,
+        );
+        out.insert(
+            format!("{DIST_DIR}/gmeow.trig"),
+            serialize_public(&public, "application/trig")?,
+        );
+    }
     out.insert(
         format!("{DIST_DIR}/gmeow-statements.jsonl"),
         write_statements_jsonl(&view),
@@ -2829,7 +2841,7 @@ pub(crate) fn read_fold(
 }
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
-/// export leaf (export / parquet / okf) uses: the `stage-snapshot` product carries the
+/// export leaf (export / okf) uses: the `stage-snapshot` product carries the
 /// terminal carrier `RdfDataset` directly, so the leaves read ONE shared dataset off
 /// the bundle instead of re-parsing the `gmeow.gts` bytes (GTS is exit-only).
 pub(crate) fn read_fold_upstream(
@@ -2875,6 +2887,7 @@ pub(crate) fn modeled_defs_from_upstream(
 /// The `stage-export-export` export-leaf stage.
 pub struct ExportStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl ExportStage {
@@ -2883,12 +2896,21 @@ impl ExportStage {
     /// `llms-full.txt` cards' `python_model` gate (see [`class_is_modeled`]) —
     /// without this edge the stage would only ever see the PREVIOUS run's
     /// committed schema (or none on a first run).
+    ///
+    /// It requires [`SERIALIZATION_BUFFER_RESOURCE`]: `render_all_with_languages`
+    /// materializes the whole terminal carrier as N-Quads AND as TriG (1.3 GB + 1.2 GB
+    /// of text on the shipped corpus) and holds both, so its measured peak allocation
+    /// is 9.06 GiB — the heaviest stage in the DAG. Mirrored by
+    /// `gmeow:stage-export-export gmeow:requiresResource
+    /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
+    /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-export-json-schema".to_string(),
                 "stage-snapshot".to_string(),
             ],
+            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
@@ -2905,6 +2927,9 @@ impl Stage for ExportStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         "export.v1"
@@ -3025,7 +3050,7 @@ mod tests {
         let nq = arts[&format!("{DIST_DIR}/gmeow.nq")].clone();
         assert!(!nq.is_empty());
 
-        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf 0.7.0
+        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf
         // projections — see the module doc). purrdf's native Turtle serializer emits
         // full IRIs for the SKOS namespace (no `skos:` CURIE prefix declared), so
         // assert on the expanded predicate/class IRIs, not a CURIE form.
@@ -3084,6 +3109,14 @@ mod tests {
         let view = FoldView::new(&graph);
         let (title, version) = fold_meta(&view).expect("fold_meta");
         (collect_terms(&view), title, version)
+    }
+
+    /// The GMN-1 teachability primer over the real folded carrier — the input the
+    /// `write_llms_txt` / `consumer_llms_full` surfaces now require.
+    fn english_primer() -> gmeow_docs::gmn1_primer::Gmn1Primer {
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        gmeow_docs::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer")
     }
 
     /// The consumer/MCP term surface resolves grounding-namespace terms (the twin of
@@ -3310,7 +3343,13 @@ mod tests {
     #[test]
     fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
+        let full = consumer_llms_full(
+            &terms,
+            &title,
+            &version,
+            &repo_modeled_defs(),
+            &english_primer(),
+        );
         assert!(full.starts_with(&format!(
             "# {title}\n\n> {}\n\n",
             gmeow_docs::llms::GMEOW_SUMMARY
@@ -3365,9 +3404,10 @@ mod tests {
         let root = repo_root();
         let graph = read_fold(&root).expect("read fold");
         let doc_urls = doc_url_map(&FoldView::new(&graph));
+        let primer = gmeow_docs::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer");
 
         let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
 
         assert!(
             txt.contains("## Reference\n"),
@@ -3401,7 +3441,8 @@ mod tests {
 
         // The write_llms_txt (dist/llms.txt tarball) surface shares the same
         // section-append path — it must not silently regress either.
-        let dist_txt = String::from_utf8(write_llms_txt(&terms, &title, &version)).unwrap();
+        let dist_txt =
+            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
         assert!(dist_txt.contains("## Reference\n"));
         for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
             assert!(
@@ -3410,6 +3451,39 @@ mod tests {
             );
         }
         assert!(dist_txt.contains(note));
+    }
+
+    /// Both flat llms surfaces (`dist/llms.txt` and the shared `llms-full.txt`) carry the
+    /// GMN-1 teachability primer — appended through the SAME `gmeow_docs::gmn1_primer::section`
+    /// path so a fresh model reads GMN emission guidance inline, not just the vocabulary. The
+    /// primer heading and its graph-derived rows (a record sigil, the repair card, an operator
+    /// glyph) must survive into both surfaces.
+    #[test]
+    fn llms_surfaces_carry_the_gmn1_teachability_primer() {
+        let (terms, title, version) = english_terms();
+        let primer = english_primer();
+        let heading = format!("## {}", gmeow_docs::gmn1_primer::PRIMER_HEADING);
+
+        let dist_txt =
+            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
+
+        for surface in [&dist_txt, &full] {
+            assert!(
+                surface.contains(&heading),
+                "an llms surface must carry the GMN-1 primer heading {heading:?}"
+            );
+            // A repair-loop card (the NL→GMN→gmn_validate→@err/@patch workflow's vocabulary).
+            assert!(
+                surface.contains("gmeow:GmnErr"),
+                "the primer must teach the @err repair record"
+            );
+            // The primer body is the SAME rendered section on both surfaces.
+            assert!(
+                surface.contains(primer.rendered().trim()),
+                "the primer section must appear verbatim in the surface"
+            );
+        }
     }
 
     /// The twin-contract lock (§19 one-path): the MCP card and the

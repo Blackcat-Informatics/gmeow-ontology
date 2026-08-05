@@ -1,0 +1,21 @@
+# Competency question: "Which kernel classes are open VALUE vocabularies rather
+# than sortals to specialize?"
+#
+# A value vocabulary is typed logic:AbstractIndividualType: its members are
+# individuals a consumer attaches, never subclasses a modeller mints. Getting
+# this wrong is the classic modelling error the kernel exists to prevent, so
+# GMEOW must be able to answer it from the graph rather than from prose.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?vocabulary WHERE {
+    VALUES ?vocabulary {
+        gmeow:AboutnessMode
+        gmeow:Determinacy
+        gmeow:DisclosurePolicy
+        gmeow:GranularityLevel
+    }
+    ?vocabulary a logic:AbstractIndividualType .
+}
+ORDER BY ?vocabulary

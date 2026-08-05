@@ -99,6 +99,12 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
+    check_no_unmanaged_temp_dir(root, &mut report);
+    check_rdf_stack_is_purrdf_only(root, &mut report);
+    check_purrdf_and_zstd_pins(root, &mut report);
+    check_slice_ttl_trailing_newline(root, &mut report);
+    check_wasm_bindgen_pin_parity(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report);
     report
 }
 
@@ -578,6 +584,7 @@ fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
 /// deliberate choice — a retirement PR that deletes a `shapes.ttl` but forgets to trim its entry
 /// here must still pass (shrinkage never reds the gate); only an unlisted ADDITION reds.
 const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
+    "slices/core/agentic/shapes.ttl",
     "slices/core/ai/shapes.ttl",
     "slices/core/concepts/shapes.ttl",
     "slices/core/diagnostics/shapes.ttl",
@@ -593,7 +600,6 @@ const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
     "slices/core/rights/shapes.ttl",
     "slices/core/standpoint/shapes.ttl",
     "slices/core/temporal/shapes.ttl",
-    "slices/extensions/agentic/shapes.ttl",
     "slices/extensions/graphrag/shapes.ttl",
     "slices/extensions/model-serving/shapes.ttl",
     "slices/extensions/music/shapes.ttl",
@@ -714,6 +720,71 @@ fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport
                  a forbidden second source of validation truth. Ground its obligations in \
                  logic: and retire it — see docs/MIGRATING-SHAPES-TO-LOGIC.md — rather than \
                  adding it to the pin"
+            ));
+        }
+    }
+}
+
+/// Every authored Turtle surface under `slices/` ends with exactly one newline.
+///
+/// A bulk authoring pass once appended records to 67 slice `module.ttl` files
+/// without a terminating newline, and the state survived across several commits
+/// because the ONLY thing that noticed was the pre-commit `end-of-file-fixer`
+/// hook — which the offending commits bypassed, and which *rewrites* files
+/// rather than failing a lane. Every branch that subsequently ran the lint
+/// inherited 67 modified files it had not touched.
+///
+/// The renderer is not the culprit and needs no fix: `turtle_render::render`
+/// emits every statement with `writeln!`, so `gmeow-dev normalize` always
+/// terminates its output. The gap was purely the absence of an authority.
+///
+/// So: the pre-commit hook is the FIXER, this gate is the AUTHORITY. The scope
+/// here is deliberately a SUPERSET of the hook's selection over `slices/` — it
+/// covers every `.ttl` (not merely `module.ttl`), because the same bulk-edit
+/// failure mode reaches `shapes.ttl`, `examples/`, `tests/`, and `mappings/`,
+/// and a gate narrower than its fixer just relocates the recurrence into the
+/// uncovered set. "Exactly one" matches what the fixer normalizes to, so the two
+/// cannot disagree about what correct looks like.
+fn check_slice_ttl_trailing_newline(root: &Path, report: &mut RepoStaticReport) {
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut files);
+    files.sort();
+    for path in files {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .display()
+            .to_string();
+        let bytes = match fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if bytes.is_empty() {
+            report.error(format!(
+                "{rel}: is empty — an authored Turtle surface must carry content"
+            ));
+            continue;
+        }
+        if !bytes.ends_with(b"\n") {
+            report.error(format!(
+                "{rel}: has no trailing newline — authored Turtle surfaces end with exactly one, \
+                 which is what the renderer emits and what the end-of-file hook normalizes to; a \
+                 file without one makes every later branch that runs the lint inherit a \
+                 modification it did not author"
+            ));
+            continue;
+        }
+        if bytes.ends_with(b"\n\n") {
+            report.error(format!(
+                "{rel}: ends with a blank line — authored Turtle surfaces end with EXACTLY one \
+                 trailing newline, so the gate and the end-of-file hook agree on what correct is"
             ));
         }
     }
@@ -1208,19 +1279,26 @@ fn generated_read_ok_marked(orig_lines: &[&str], idx: usize) -> bool {
     false
 }
 
-/// Return `text` blanked two ways in parallel, both with (a) all comments and (b) every
-/// `#[cfg(test)]`-attributed item body replaced by spaces, preserving newlines (so line numbers
-/// and column offsets are unchanged): `.0` KEEPS string-literal contents (so
-/// `.join("generated"…)` stays visible to the generated/-read-ban scanner) and `.1` also blanks
-/// string/char literal contents (CODE ONLY, for the `Result<_, String>` scan — a mention inside
-/// a string literal is prose, not a type occurrence). A Rust-aware char scanner — handling
+/// Return `text` blanked three ways in parallel, all replacing regions with spaces and
+/// preserving newlines (so line numbers and column offsets are unchanged):
+///
+/// * `.0` — comments and `#[cfg(test)]` bodies blanked, string-literal contents KEPT (so
+///   `.join("generated"…)` stays visible to the generated/-read-ban scanner).
+/// * `.1` — comments, string/char literals, AND `#[cfg(test)]` bodies all blanked (CODE
+///   ONLY, for the `Result<_, String>` scan — a mention inside a string literal is prose,
+///   not a type occurrence).
+/// * `.2` — comments and string/char literals blanked but `#[cfg(test)]` bodies KEPT (CODE
+///   ONLY, tests included, for the unmanaged-temp-dir ban — the leaked scratch paths that
+///   filled a developer host's `/tmp` lived almost entirely inside test modules).
+///
+/// A Rust-aware char scanner — handling
 /// line/block comments, string / raw-string / byte-string literals, char literals
 /// **distinguished from lifetimes** (`'a`, `'static`), and byte prefixes — builds `.1` (a
 /// `skeleton`, strings + comments blanked) so the `#[cfg(test)]` item body can be brace-matched
 /// without being fooled by braces inside strings/comments, and reuses the same brace-matched
 /// span to blank both variants identically. Works entirely in CHAR indices (never byte
 /// offsets), so multi-byte chars (→, ∪, ×) never misalign it.
-fn blank_regions(text: &str) -> (String, String) {
+fn blank_regions(text: &str) -> (String, String, String) {
     let src: Vec<char> = text.chars().collect();
     let n = src.len();
     let mut out: Vec<char> = src.clone();
@@ -1355,6 +1433,12 @@ fn blank_regions(text: &str) -> (String, String) {
         i += 1;
     }
 
+    // Snapshot the code-only skeleton BEFORE `#[cfg(test)]` bodies are blanked. The
+    // unmanaged-temp-dir ban scans test bodies too — a leaked temp directory in a
+    // `#[cfg(test)]` module is exactly the litter that filled the developer host's
+    // `/tmp`, so exempting test code would exempt the entire defect.
+    let skeleton_with_tests: Vec<char> = skeleton.clone();
+
     // On the skeleton, blank every `#[cfg(test)]`-attributed item body. After the attribute,
     // the item's brace-delimited body is the region from the next `{` to its matching `}`
     // (fn / mod / impl); items with no body before a `;` (a `use`/`const`) carry no read.
@@ -1397,13 +1481,26 @@ fn blank_regions(text: &str) -> (String, String) {
         }
         m = k;
     }
-    (out.iter().collect(), skeleton.iter().collect())
+    (
+        out.iter().collect(),
+        skeleton.iter().collect(),
+        skeleton_with_tests.iter().collect(),
+    )
 }
 
 /// Comments and `#[cfg(test)]` bodies blanked, string/char literal CONTENTS kept — the
 /// generated/-read ban's view (it must still see `.join("generated"…)` string literals).
 fn blank_comments_and_cfg_test_modules(text: &str) -> String {
     blank_regions(text).0
+}
+
+/// Comments and string/char literals blanked, `#[cfg(test)]` bodies KEPT — CODE ONLY,
+/// tests included. Used by the unmanaged-temp-dir ban: the hand-rolled
+/// `env::temp_dir()` scratch paths that filled a developer host's `/tmp` with hundreds
+/// of gigabytes lived almost entirely inside `#[cfg(test)]` modules, so a scanner that
+/// blanks test bodies would see none of them.
+fn blank_comments_and_strings_keeping_tests(text: &str) -> String {
+    blank_regions(text).2
 }
 
 /// Comments, string/char literals, AND `#[cfg(test)]` bodies all blanked — CODE ONLY. Used by
@@ -1642,6 +1739,714 @@ fn scan_result_string_error_type(
     }
 }
 
+/// Manifest-dependency ban list for competing RDF / SHACL / OWL / Turtle / SPARQL stacks. purrdf
+/// is gmeow's SOLE RDF-1.2 + SHACL + SPARQL + GTS engine (SUBSUME / EXTEND / ENHANCE): a
+/// first-party crate that declares one of these as a Cargo dependency would be pulling in a
+/// second, competing, weaker engine alongside purrdf. A transitive occurrence pulled in BY
+/// purrdf is fine; a first-party manifest entry is not. (`oxiri`/`oxigraph`-family and
+/// `spargebra`/`sparesults` are the crates purrdf's S-series natively replaced.) This list, and
+/// the gate below that walks it, govern Cargo.toml dependency declarations ONLY — they read no
+/// source code and therefore cannot see, and make no claim to catch, a hand-rolled
+/// reimplementation of RDF/Turtle/SHACL parsing written directly in first-party source instead
+/// of calling purrdf.
+const BANNED_RDF_STACK_CRATES: &[&str] = &[
+    "oxrdf",
+    "oxttl",
+    "oxrdfio",
+    "oxrdfxml",
+    "oxigraph",
+    "oxsdatatypes",
+    "oxiri",
+    "spargebra",
+    "sparesults",
+    "sophia",
+    "sophia_api",
+    "rio_api",
+    "rio_turtle",
+    "rio_xml",
+    "rdftk_core",
+    "rdftk_iri",
+    "horned-owl",
+    "hornedowl",
+    "shacl",
+    "shacl_ast",
+    "shacl_validation",
+];
+
+/// Delegation-purity invariant (manifest-only): no `crates/*/Cargo.toml` may declare a competing
+/// RDF / SHACL stack as a dependency (see [`BANNED_RDF_STACK_CRATES`]). purrdf is the single
+/// RDF-1.2 / SHACL / SPARQL engine gmeow ships, so a first-party crate that imports one of the
+/// banned crates would be pulling in a second, rival engine. Uses the same toml key-lookup as
+/// the error-crate ban, so `oxrdf.workspace = true`, `oxrdf = "0.2"`, and `oxrdf = { … }` are
+/// all caught identically — a dependency-table key lookup, not a source or comment scan.
+///
+/// Mechanism, precisely: this gate ONLY inspects the `[dependencies]` / `[dev-dependencies]` /
+/// `[build-dependencies]` tables of each first-party `Cargo.toml`. It does not read crate
+/// source, so it cannot detect — and makes no claim to prevent — a hand-rolled reimplementation
+/// of RDF/Turtle/SHACL parse, validate, serialize, or subclass-closure logic written directly in
+/// first-party Rust instead of calling purrdf. Catching that class of violation is a code-review
+/// responsibility, not this gate's.
+fn check_rdf_stack_is_purrdf_only(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let manifest_path = crate_dir.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
+        }
+        let rel = slash_path(manifest_path.strip_prefix(root).unwrap_or(&manifest_path));
+        let text = match fs::read_to_string(&manifest_path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let manifest = match text.parse::<toml::Value>() {
+            Ok(manifest) => manifest,
+            Err(err) => {
+                report.error(format!("{rel}: cannot parse Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let crate_name = manifest
+            .get("package")
+            .and_then(toml::Value::as_table)
+            .and_then(|package| package.get("name"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unnamed>")
+            .to_owned();
+        for table in dependency_tables_static(&manifest) {
+            for banned in BANNED_RDF_STACK_CRATES {
+                if table.contains_key(*banned) {
+                    report.error(format!(
+                        "{rel}: first-party crate {crate_name:?} declares a `{banned}` \
+                         dependency — purrdf is gmeow's sole RDF-1.2 / SHACL / SPARQL engine; \
+                         delegate to it instead of importing a competing RDF stack"
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// The purrdf-source and structured-zstd-floor invariants:
+///
+/// 1. The standalone `fuzz/` workspace MUST pin the SAME purrdf source (git + tag / rev /
+///    version) as the root `[workspace.dependencies]`. `fuzz/Cargo.lock` is git-ignored
+///    (cargo-fuzz convention), so a manifest drift here would silently fuzz a DIFFERENT parser
+///    than production — the tracked manifests are the enforceable surface.
+/// 2. `structured-zstd` MUST resolve to >= 0.0.49 in `Cargo.lock`. Earlier releases' huff0
+///    encoder panics compressing the gmeow.gts bundle (the reason a since-removed vendor patch
+///    once existed), so a downgrade would reintroduce a hard bundle-write crash.
+///
+/// Absent inputs (minimal fixtures) are skipped: the invariant binds only where the files
+/// exist, which on the live repo is always.
+fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    let fuzz_manifest = root.join("fuzz").join("Cargo.toml");
+    if root_manifest.is_file() && fuzz_manifest.is_file() {
+        let root_dep = purrdf_source_key(&root_manifest, true, report);
+        let fuzz_dep = purrdf_source_key(&fuzz_manifest, false, report);
+        if let (Some(root_key), Some(fuzz_key)) = (root_dep, fuzz_dep)
+            && root_key != fuzz_key
+        {
+            report.error(format!(
+                "fuzz/Cargo.toml pins purrdf as [{fuzz_key}] but the root \
+                 [workspace.dependencies] pins [{root_key}] — the standalone fuzz workspace \
+                 must exercise the SAME purrdf source as production (fuzz/Cargo.lock is \
+                 git-ignored, so the tracked manifests are the enforceable surface)"
+            ));
+        }
+    }
+
+    let lock_path = root.join("Cargo.lock");
+
+    // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
+    // above only proves the two MANIFESTS match each other; it cannot see the lock, so
+    // "the manifest pins one version, the lock resolves another" was undetectable.
+    //
+    // The pin must be EXACT (`=x.y.z`). A default caret requirement admits any compatible
+    // release, so `cargo update` can relink native — and any rebuilt wasm — against a
+    // different purrdf while every version string in the tree still reads the same. The
+    // substrate record keys off the LOCK for that reason; requiring an exact pin here keeps
+    // the manifest from silently disagreeing with it in the first place.
+    if lock_path.is_file()
+        && let Some(declared) = purrdf_declared_version(&root_manifest)
+    {
+        match declared.strip_prefix('=') {
+            None => report.error(format!(
+                "Cargo.toml pins purrdf {declared:?}, a range — it must be an EXACT pin \
+                 (=x.y.z). A caret requirement lets `cargo update` relink the RDF core \
+                 under a manifest that still reads the same"
+            )),
+            Some(exact) => {
+                if let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+                    && exact != locked
+                {
+                    report.error(format!(
+                        "Cargo.toml pins purrdf {exact} but Cargo.lock resolves {locked} — the \
+                         manifest and the lock must name the same version"
+                    ));
+                }
+            }
+        }
+    }
+
+    if lock_path.is_file()
+        && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
+    {
+        const FLOOR: (u64, u64, u64) = (0, 0, 49);
+        match parse_version_triple(&version) {
+            Some(triple) if triple >= FLOOR => {}
+            Some(_) => report.error(format!(
+                "Cargo.lock resolves structured-zstd {version}, below the 0.0.49 floor — \
+                 earlier huff0 encoders panic compressing the gmeow.gts bundle; do not downgrade"
+            )),
+            None => report.error(format!(
+                "Cargo.lock structured-zstd version {version:?} is unparsable"
+            )),
+        }
+    }
+}
+
+/// The plain crates.io version `Cargo.toml` pins purrdf at, if it is a registry pin.
+///
+/// Returns `None` for a git/path source (which carries no comparable version) or when the
+/// manifest cannot be read — the lock comparison then simply does not bind.
+fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
+    let text = fs::read_to_string(manifest_path).ok()?;
+    let manifest = text.parse::<toml::Value>().ok()?;
+    let dep = manifest
+        .get("workspace")?
+        .as_table()?
+        .get("dependencies")?
+        .as_table()?
+        .get("purrdf")?;
+    match dep {
+        toml::Value::String(version) => Some(version.clone()),
+        toml::Value::Table(table) if !table.contains_key("git") && !table.contains_key("path") => {
+            table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        }
+        _ => None,
+    }
+}
+
+/// The CI-installed `wasm-bindgen-cli` and the binaryen pin CI provisions.
+///
+/// Split out and called on EVERY path of [`check_wasm_bindgen_pin_parity`], including the
+/// ones that could not read the workspace pin. When it was inline, an unreadable or absent
+/// root manifest returned early and took this with it — so a genuinely wrong CI version went
+/// unreported because a DIFFERENT file was missing. `expected` is `None` exactly when the
+/// library pin could not be established; the CI surface is still checked for its own sake.
+fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut RepoStaticReport) {
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let ci = match fs::read_to_string(&workflow) {
+        Ok(ci) => ci,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen CLI version cannot be checked \
+                 against the workspace pin, which is a failure, not agreement",
+                workflow.display()
+            ));
+            return;
+        }
+    };
+    // EVERY occurrence, not the first: a second install step pinned to another version is
+    // exactly the drift this exists to catch, and `nth(1)` would never have seen it.
+    let installs: Vec<String> = ci
+        .split("wasm-bindgen-cli@")
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+        })
+        .collect();
+    if installs.is_empty() {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+    }
+    for installed in &installs {
+        if expected.is_some() && Some(installed.as_str()) != expected {
+            report.error(format!(
+                "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+                 wasm-bindgen {} — the CLI refuses any library version it does not match \
+                 byte-for-byte, so the wasm build fails naming a version mismatch rather than \
+                 this drift",
+                workflow.display(),
+                expected.unwrap_or("<unreadable>")
+            ));
+        }
+    }
+
+    // The binaryen pin has ONE home (the Makefile's `BINARYEN_VER`), and CI must keep
+    // READING it rather than repeating the literal. Those two constants drifted once
+    // already: CI provisioned a release predating `--enable-bulk-memory-opt`, and every
+    // wasm-opt rule died on an unknown option. Nothing stopped the literal coming back.
+    if !ci.contains("print-binaryen-ver") {
+        report.error(format!(
+            "{}: does not read the binaryen pin from `make print-binaryen-ver` — the Makefile \
+             is its single source of truth, and a literal `version_NNN` here is the two-constant \
+             drift that broke the wasm lanes",
+            workflow.display()
+        ));
+    }
+    // ANY binaryen release literal is the drift, whatever idiom carries it. The first
+    // version of this detector matched only the YAML-mapping form (`BINARYEN_VER:`) —
+    // which this repository no longer contains, because the fix that introduced the
+    // detector also replaced that mapping with a shell read of `print-binaryen-ver`. A
+    // detector keyed to a retired idiom matches nothing; the literal itself is the
+    // invariant.
+    match Regex::new(r"version_[0-9]+") {
+        Ok(literal) => {
+            if let Some(m) = literal.find(&ci) {
+                report.error(format!(
+                    "{}: carries the binaryen release literal {:?} — read the pin from \
+                     `make print-binaryen-ver` instead; two copies of this version drifted \
+                     once and took every wasm parity lane with them",
+                    workflow.display(),
+                    m.as_str()
+                ));
+            }
+        }
+        Err(err) => report.error(format!("binaryen literal pattern failed to compile: {err}")),
+    }
+}
+
+/// `purrdf::gts_compose::emit_gts` may be called from exactly ONE place: the mandated
+/// authorship profile in `crates/gts-profile`.
+///
+/// That crate exists because the claim "`emit_gmeow_gts` is the only production entry to the
+/// GTS writer" was false — three crates called the writer directly, so bundles shipped
+/// without the mandated transform chain and compression level. Extracting the profile fixed
+/// the instances; nothing stopped the next one. A chokepoint nothing enforces is a
+/// convention, and this file already scans for three sibling structural invariants.
+///
+/// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
+/// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
+/// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
+/// the writer deliberately, the same exemption test crates get.
+fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    for file in files {
+        // The profile crate IS the permitted entry.
+        if file.starts_with(crates_dir.join("gts-profile")) {
+            continue;
+        }
+        // Integration-test crates and benches are test code: their files carry no
+        // `#[cfg(test)]` module for the scrubber to blank, but a test may legitimately
+        // build a deliberately non-conforming bundle to prove the audit rejects it.
+        if file
+            .components()
+            .any(|c| matches!(c.as_os_str().to_str(), Some("tests" | "benches")))
+        {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&file) else {
+            report.error(format!("{}: cannot read", file.display()));
+            continue;
+        };
+        let scrubbed = blank_comments_strings_and_cfg_test_modules(&text);
+        let lines: Vec<&str> = scrubbed.lines().collect();
+        for (idx, line) in lines.iter().enumerate() {
+            // `#[cfg(test)] use ...::emit_gts;` attaches the attribute to the item, not to a
+            // module, so the module scrubber cannot see it.
+            let test_gated = idx
+                .checked_sub(1)
+                .and_then(|prev| lines.get(prev))
+                .is_some_and(|prev| prev.trim() == "#[cfg(test)]");
+            if test_gated {
+                continue;
+            }
+            if line.contains("gts_compose::emit_gts") || line.contains("emit_gts(") {
+                let rel = file.strip_prefix(root).unwrap_or(&file);
+                report.error(format!(
+                    "{}:{}: calls the GTS writer directly — every production bundle must be \
+                     emitted through `gmeow_gts_profile::emit_gmeow_gts`, the single entry \
+                     that applies the mandated transform chain and compression level",
+                    rel.display(),
+                    idx + 1
+                ));
+            }
+        }
+    }
+}
+
+/// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
+/// all name ONE version.
+///
+/// The CLI that generates the JS bindings refuses to run against a library version it does
+/// not match byte-for-byte, and one CLI is on PATH for the whole build. The pin therefore
+/// lives in `[workspace.dependencies]` and every `crates/*-wasm` manifest must consume it
+/// with `wasm-bindgen.workspace = true`; a crate that redeclares its own version reopens
+/// the disagreement the single declaration exists to make unrepresentable.
+///
+/// The remaining live drift is the CLI: CI installs `wasm-bindgen-cli@<version>` by literal,
+/// and a bump to the library pin that forgets that line produces a build failure naming a
+/// version mismatch rather than the drift that caused it. Both halves are checked here.
+fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    // The root manifest is a REQUIRED repository input: absent or unreadable, the guard
+    // could not run, and reporting agreement it never established is the silent
+    // degradation this file exists to prevent. The CI half is still checked on every
+    // path, so a missing manifest can never swallow a real CLI drift.
+    let text = match fs::read_to_string(&root_manifest) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen pin cannot be checked, which is a \
+                 failure, not agreement",
+                root_manifest.display()
+            ));
+            check_wasm_bindgen_ci_pin(root, None, report);
+            return;
+        }
+    };
+    let Ok(manifest) = text.parse::<toml::Value>() else {
+        report.error(format!("{}: cannot parse", root_manifest.display()));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let declared = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|ws| ws.get("dependencies"))
+        .and_then(toml::Value::as_table)
+        .and_then(|deps| deps.get("wasm-bindgen"))
+        .and_then(|dep| match dep {
+            toml::Value::String(version) => Some(version.clone()),
+            toml::Value::Table(table) => table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned),
+            _ => None,
+        });
+    let Some(declared) = declared else {
+        report.error(
+            "the root [workspace.dependencies] declares no wasm-bindgen — every `crates/*-wasm` \
+             crate must consume ONE pin from there, so the wasm-bindgen CLI on PATH can match \
+             all of them"
+                .to_owned(),
+        );
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let Some(exact) = declared.strip_prefix('=') else {
+        report.error(format!(
+            "[workspace.dependencies] pins wasm-bindgen {declared:?}, a range — it must be an \
+             EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
+             byte-for-byte"
+        ));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+
+    // No `crates/*-wasm` crate may redeclare the version.
+    // An ABSENT crates/ directory means no members to check (minimal fixtures); a
+    // directory that exists but cannot be read is a failed check.
+    let crates_dir = root.join("crates");
+    let entries = if crates_dir.exists() {
+        match fs::read_dir(&crates_dir) {
+            Ok(entries) => Some(entries),
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read: {err} — the `*-wasm` members cannot be checked against \
+                     the workspace pin",
+                    crates_dir.display()
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    if let Some(entries) = entries {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !name.ends_with("-wasm") {
+                continue;
+            }
+            let manifest_path = entry.path().join("Cargo.toml");
+            if !manifest_path.is_file() {
+                continue;
+            }
+            let member = match fs::read_to_string(&manifest_path) {
+                Ok(member) => member,
+                Err(err) => {
+                    report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let parsed = match member.parse::<toml::Value>() {
+                Ok(parsed) => parsed,
+                Err(err) => {
+                    report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let dep = parsed
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+                .and_then(|deps| deps.get("wasm-bindgen"));
+            let uses_workspace = matches!(
+                dep,
+                Some(toml::Value::Table(table))
+                    if table.get("workspace").and_then(toml::Value::as_bool) == Some(true)
+            );
+            match dep {
+                None => report.error(format!(
+                    "{}: a `*-wasm` crate that declares no wasm-bindgen dependency",
+                    manifest_path.display()
+                )),
+                Some(_) if uses_workspace => {}
+                Some(other) => report.error(format!(
+                    "{}: redeclares wasm-bindgen as {other} — it must read the single \
+                     workspace pin with `wasm-bindgen.workspace = true`, so the version cannot \
+                     disagree with its sibling crates or with the CLI CI installs",
+                    manifest_path.display()
+                )),
+            }
+        }
+    }
+
+    check_wasm_bindgen_ci_pin(root, Some(exact), report);
+}
+
+/// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
+/// manifests compare equal iff they name the same source. Returns `None` (with a parse error
+/// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
+/// yields a distinct `absent` key so a drift to "no purrdf" is still caught.
+fn purrdf_source_key(
+    manifest_path: &Path,
+    workspace: bool,
+    report: &mut RepoStaticReport,
+) -> Option<String> {
+    match purrdf_source_key_of(manifest_path, workspace) {
+        Ok(key) => Some(key),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
+        }
+    }
+}
+
+/// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
+/// recorded finding.
+///
+/// This is the ONE parser for the declared purrdf pin — a real TOML parse, never a line
+/// scanner, so a dotted key, a table-form `[workspace.dependencies.purrdf]`, or a commented
+/// header cannot silently read as "no pin". The docs-asset substrate gate keys off the LOCK
+/// via [`workspace_substrate_key`] rather than any manifest reader, so this stays private:
+/// visibility it earns only when a consumer outside this report actually exists.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
+/// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
+/// "no purrdf at all" still compares unequal instead of vanishing.
+fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(manifest_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", manifest_path.display()),
+        })
+    })?;
+    let manifest = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
+        })
+    })?;
+    let deps = if workspace {
+        manifest
+            .get("workspace")
+            .and_then(toml::Value::as_table)
+            .and_then(|ws| ws.get("dependencies"))
+    } else {
+        manifest.get("dependencies")
+    };
+    let dep = deps
+        .and_then(toml::Value::as_table)
+        .and_then(|t| t.get("purrdf"));
+    Ok(match dep {
+        None => "absent".to_owned(),
+        Some(toml::Value::String(version)) => format!("registry;version={version}"),
+        Some(toml::Value::Table(table)) => {
+            let field = |key: &str| {
+                table
+                    .get(key)
+                    .and_then(toml::Value::as_str)
+                    .unwrap_or("")
+                    .to_owned()
+            };
+            format!(
+                "git={};tag={};rev={};branch={};version={}",
+                field("git"),
+                field("tag"),
+                field("rev"),
+                field("branch"),
+                field("version"),
+            )
+        }
+        Some(other) => format!("other={other}"),
+    })
+}
+
+/// The resolved version of `name` in a parsed `Cargo.lock`, if present.
+fn locked_package_version(
+    lock_path: &Path,
+    name: &str,
+    report: &mut RepoStaticReport,
+) -> Option<String> {
+    match locked_package_version_of(lock_path, name) {
+        Ok(version) => Some(version),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
+        }
+    }
+}
+
+/// The RESOLVED version of `name` in `Cargo.lock`, as a hard failure rather than a recorded
+/// finding, for callers outside this report.
+///
+/// The lock is the only place the version that actually got COMPILED is written down. A
+/// manifest requirement is a range: `purrdf = "0.12.0"` admits `0.12.1`, so a key derived from
+/// the manifest compares equal across a substrate change the lock can see.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or when it resolves no package
+/// named `name` — an absent package is a hard failure here, not a silent skip, because the
+/// caller asked for an identity it cannot substitute.
+pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(lock_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", lock_path.display()),
+        })
+    })?;
+    let lock = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", lock_path.display()),
+        })
+    })?;
+    lock.get("package")
+        .and_then(toml::Value::as_array)
+        .and_then(|packages| {
+            packages
+                .iter()
+                .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        })
+        .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
+        .map(str::to_owned)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: resolves no package named {name:?}",
+                    lock_path.display()
+                ),
+            })
+        })
+}
+
+/// The identity of the substrate a wasm engine built from this workspace statically links.
+///
+/// Both components are read from `Cargo.lock`, never from a manifest requirement: the lock
+/// records what was RESOLVED and therefore what was compiled into the `.wasm`, while a
+/// manifest requirement is a range that compares equal across the very bump this key exists
+/// to catch.
+///
+/// - `purrdf` is the RDF/SHACL/SPARQL core the browser and native engines must share.
+/// - `wasm-bindgen` fixes the JS glue ABI; a glue/library skew produces bindings that load
+///   but misbehave, which the digest manifest cannot see either.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or resolves neither package.
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    let lock_path = root.join("Cargo.lock");
+    let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
+    let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
+    let binaryen = declared_binaryen_version(root)?;
+    Ok(format!(
+        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+    ))
+}
+
+/// The binaryen release the Makefile pins, as `BINARYEN_VER`.
+///
+/// Read from the Makefile because that is where the pin lives — CI provisions exactly this
+/// via `make print-binaryen-ver`, and every `wasm-opt` rule refuses a binary reporting a
+/// different version.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the Makefile cannot be read or declares no `BINARYEN_VER`.
+fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
+    let makefile = root.join("Makefile");
+    let text = fs::read_to_string(&makefile).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", makefile.display()),
+        })
+    })?;
+    text.lines()
+        .find_map(|line| {
+            let rest = line.strip_prefix("BINARYEN_VER")?;
+            let rest = rest.trim_start().strip_prefix(":=")?;
+            Some(rest.trim().to_owned())
+        })
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+                     depend on the binaryen that optimized them, so the substrate they were \
+                     built against cannot be stated without it",
+                    makefile.display()
+                ),
+            })
+        })
+}
+
+/// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
+/// comparable tuple.
+fn parse_version_triple(version: &str) -> Option<(u64, u64, u64)> {
+    let core = version.split(['-', '+']).next().unwrap_or(version);
+    let mut parts = core.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next()?.parse().ok()?;
+    let patch = parts.next()?.parse().ok()?;
+    Some((major, minor, patch))
+}
+
 /// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
 /// two-argument `Result<T, String>` / `std::result::Result<T, String>` where `String` is the
 /// error type — in return-type position (`-> Result<_, String>`) or anywhere else the
@@ -1673,6 +2478,130 @@ fn check_no_string_result_error_type(root: &Path, report: &mut RepoStaticReport)
         };
         let detect = blank_comments_strings_and_cfg_test_modules(&text);
         scan_result_string_error_type(&rel, &text, &detect, report);
+    }
+}
+
+// ── temp-directory hygiene: every temporary path is RAII-managed ─────────
+
+/// The banned spellings of the system temp-directory accessor, as they appear in CODE
+/// (comments and string literals are blanked before the scan, so a mention in prose — such
+/// as the doc comment you are reading — never trips the gate). Both the fully-qualified
+/// `std::env::temp_dir` and the `use std::env;`-shortened `env::temp_dir` are matched;
+/// matching on the `temp_dir` call itself would also catch a bare `use std::env::temp_dir;`
+/// import, which is why the import form is listed too.
+const TEMP_DIR_ACCESSORS: &[&str] = &["std::env::temp_dir", "env::temp_dir"];
+
+/// The `TempDir`/`NamedTempFile` escape hatches that convert an RAII guard back into a bare
+/// path and thereby re-introduce the leak. `into_path` is the historical name and `keep` the
+/// current one; both consume the guard and disarm its `Drop`.
+const TEMP_GUARD_DISARMERS: &[&str] = &["into_path", "keep"];
+
+/// Temp-directory hygiene invariant: no first-party Rust source may build a scratch path out
+/// of the system temp directory by hand, and no source may disarm an RAII temp guard.
+///
+/// The defect this encodes is concrete and was paid for in disk: the repository used to
+/// hand-roll `std::env::temp_dir().join(format!("gmeow-…-{}", std::process::id()))` in 72
+/// places across 12 crates. Every one created the directory, wrote into it, and never removed
+/// it; keying on the pid guaranteed a *fresh* directory on every invocation, so a full gate
+/// run left hundreds of gigabytes of `gmeow-*` directories behind and the host's `/tmp` had to
+/// be cleared by hand. A manual `remove_dir_all` at the end of the function is not a fix — it
+/// does not run when an assertion fails, an `expect` fires, or the process is killed, which is
+/// precisely when a test leaves the most litter.
+///
+/// The gate therefore bans the *pattern*, not the symptom, and scans `#[cfg(test)]` bodies
+/// along with production code (via [`blank_comments_and_strings_keeping_tests`]) because the
+/// leaks were overwhelmingly in test modules. `tempfile::TempDir` / `tempfile::NamedTempFile`
+/// remove their path on `Drop` — on success, on early return, and while unwinding from a
+/// panic — so they are the only sanctioned way to obtain a temporary path.
+///
+/// A path that must genuinely outlive the process (a durable lock, a cache) does not belong in
+/// the system temp directory at all and is spelled as an explicit absolute path elsewhere; the
+/// host gate lock at `/var/tmp/gmeow-task/host-runner.lock` is the live example, and it never
+/// reaches for `temp_dir()`.
+fn check_no_unmanaged_temp_dir(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    files.sort();
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        let detect = blank_comments_and_strings_keeping_tests(&text);
+        scan_unmanaged_temp_dir(&rel, &text, &detect, report);
+    }
+}
+
+/// Scan one file's `detect` text (comments and string/char literals blanked, `#[cfg(test)]`
+/// bodies KEPT, exactly char-aligned with `orig_text`) for a hand-rolled system-temp path or a
+/// disarmed RAII temp guard.
+fn scan_unmanaged_temp_dir(
+    rel: &str,
+    orig_text: &str,
+    detect: &str,
+    report: &mut RepoStaticReport,
+) {
+    let orig_lines: Vec<&str> = orig_text.lines().collect();
+    let line_of = |byte_idx: usize| detect[..byte_idx].matches('\n').count();
+    let snippet_at = |line_no: usize| {
+        orig_lines
+            .get(line_no)
+            .map(|l| l.trim())
+            .unwrap_or("")
+            .to_owned()
+    };
+
+    for accessor in TEMP_DIR_ACCESSORS {
+        for (idx, _) in detect.match_indices(accessor) {
+            // `std::env::temp_dir` also contains the substring `env::temp_dir`; count the
+            // longest match once by skipping a short match that is part of the long one.
+            if *accessor == "env::temp_dir"
+                && idx >= 5
+                && detect.is_char_boundary(idx - 5)
+                && &detect[idx - 5..idx] == "std::"
+            {
+                continue;
+            }
+            let line_no = line_of(idx);
+            report.error(format!(
+                "{rel}:{}: builds a scratch path from the system temp directory by hand — \
+                 nothing removes it, so every run leaks a directory (this pattern left \
+                 hundreds of GB of gmeow-* litter in the host's temp dir). Use \
+                 `tempfile::TempDir` (via `tempfile::tempdir()`) or `tempfile::NamedTempFile`, \
+                 which delete on Drop including while unwinding from a panic. Bind the guard \
+                 to a NAMED variable (`let _tmp = tempfile::tempdir()?;`) — a bare `let _ =` \
+                 drops it immediately and the directory is gone before you use it — and join \
+                 any meaningful subdirectory or filename under `_tmp.path()`. A path that must \
+                 outlive the process belongs at an explicit durable location, not in the \
+                 system temp dir: {}",
+                line_no + 1,
+                snippet_at(line_no)
+            ));
+        }
+    }
+
+    for disarmer in TEMP_GUARD_DISARMERS {
+        let needle = format!(".{disarmer}()");
+        for (idx, _) in detect.match_indices(&needle) {
+            let line_no = line_of(idx);
+            let snippet = snippet_at(line_no);
+            report.error(format!(
+                "{rel}:{}: `.{disarmer}()` consumes an RAII temp guard and disarms its Drop, \
+                 turning a self-cleaning temporary back into a permanent leak — the exact \
+                 defect the unmanaged-temp-dir ban exists to prevent. Keep the `TempDir` / \
+                 `NamedTempFile` alive in a named binding for as long as the path is needed \
+                 instead: {snippet}",
+                line_no + 1
+            ));
+        }
     }
 }
 
@@ -1709,6 +2638,256 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 mod tests {
     use super::*;
 
+    /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
+    /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
+    fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\nwasm-bindgen = {workspace_pin}\n"),
+        );
+        write(
+            &root.join("crates/query-wasm/Cargo.toml"),
+            &format!("[dependencies]\n{member}\n"),
+        );
+        write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
+        write(
+            &root.join(".github/workflows/ci.yml"),
+            &format!(
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n      - run: make print-binaryen-ver\n"
+            ),
+        );
+    }
+
+    fn wasm_bindgen_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_wasm_bindgen_pin_parity(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        assert!(
+            wasm_bindgen_errors(tmp.path()).is_empty(),
+            "the agreeing arrangement must pass"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen = \"=0.2.100\"",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("redeclares wasm-bindgen")),
+            "a member redeclaring the pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.100",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
+            "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_an_absent_ci_workflow() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        fs::remove_file(tmp.path().join(".github/workflows/ci.yml")).unwrap();
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("cannot read")),
+            "an absent CI workflow must red — the CLI version cannot be checked, which is a \
+             failure, not agreement: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest() {
+        // The sharp case the old shape got wrong: `let Ok(text) = … else { return; }` made an
+        // unreadable manifest a SILENT pass, so a tree with a real CLI drift reported nothing
+        // at all. The comparison against the library pin genuinely cannot be performed
+        // without the manifest — but the run must red saying so, never go quiet.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.99",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "this is not valid toml = = =\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            !errors.is_empty(),
+            "an unparsable root manifest must not be a silent pass"
+        );
+        assert!(
+            errors.iter().any(|e| e.contains("cannot parse")),
+            "the failure must name the manifest it could not read: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_binaryen_literal() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - env:\n          BINARYEN_VER: version_119\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("binaryen release literal")),
+            "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
+             the wasm lanes: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal() {
+        // The idiom the repository actually uses is a shell assignment; a detector keyed
+        // to the YAML-mapping form alone matches nothing here.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n      - run: BINARYEN_VER=\"version_119\" ./install.sh\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("version_119")),
+            "a shell-form binaryen literal must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
+        let tmp = tempfile::tempdir().unwrap();
+        write(
+            &tmp.path().join("crates/rogue/src/lib.rs"),
+            "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("calls the GTS writer directly")),
+            "a production emit_gts call outside the profile crate must red: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
+        let tmp = tempfile::tempdir().unwrap();
+        // The permitted entry itself.
+        write(
+            &tmp.path().join("crates/gts-profile/src/lib.rs"),
+            "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        // An integration-test crate driving the writer deliberately.
+        write(
+            &tmp.path().join("crates/consumer/tests/audit.rs"),
+            "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
+        );
+        // A `#[cfg(test)]`-gated import inside production source.
+        write(
+            &tmp.path().join("crates/consumer/src/lib.rs"),
+            "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report.errors.is_empty(),
+            "the profile crate and test code are the permitted callers: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_workspace_without_the_declaration() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "[workspace.dependencies]\nserde = \"1\"\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("declares no wasm-bindgen")),
+            "a workspace without the declaration must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("a range")),
+            "a caret pin must red — the CLI matches one version only: {errors:?}"
+        );
+    }
+
     fn write(path: &Path, text: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
@@ -1721,9 +2900,15 @@ mod tests {
         // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
         // uses the purrdf.compat.rdflib facade instead).
         write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
+        // The wasm-bindgen parity guard treats the root manifest and the CI pin lines as
+        // REQUIRED inputs, so the minimal repo carries an agreeing set of all three.
+        write(
+            &root.join("Cargo.toml"),
+            "[workspace.dependencies]\nwasm-bindgen = \"=0.2.125\"\n",
+        );
         write(
             &root.join(".github/workflows/ci.yml"),
-            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
         // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images
@@ -1909,6 +3094,104 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    /// Write one slice-owned Turtle surface with exactly the given bytes.
+    fn write_slice_ttl(root: &Path, rel: &str, body: &str) {
+        write(&root.join("slices").join(rel), body);
+    }
+
+    #[test]
+    fn a_slice_ttl_without_a_trailing_newline_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("no trailing newline")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn the_gate_covers_every_slice_ttl_not_only_module_ttl() {
+        // The bulk-edit failure mode reaches shapes.ttl, examples/, tests/ and
+        // mappings/ too; a gate narrower than its fixer only moves the recurrence.
+        for rel in [
+            "core/demo/shapes.ttl",
+            "core/demo/examples/sample.ttl",
+            "core/demo/tests/structural.ttl",
+            "core/demo/mappings/align.ttl",
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            write_minimal_repo(temp.path());
+            write_slice_ttl(temp.path(), rel, "ex:A a ex:B .");
+            let report = check_repo_static(temp.path());
+            assert!(
+                report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains(rel) && e.contains("no trailing newline")),
+                "{rel} must be covered; got {:?}",
+                report.errors
+            );
+        }
+    }
+
+    #[test]
+    fn a_slice_ttl_ending_in_a_blank_line_is_rejected() {
+        // "Exactly one" is what the end-of-file hook normalizes to; accepting two
+        // would let the gate and the fixer disagree about what correct looks like.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n\n");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("blank line")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn an_empty_slice_ttl_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("is empty")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn a_correctly_terminated_slice_ttl_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n");
+        let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn the_real_repository_holds_the_trailing_newline_invariant() {
+        // The production surface, not a fixture. This is the assertion whose
+        // absence let the 67-file state persist across several commits.
+        let mut report = RepoStaticReport::default();
+        check_slice_ttl_trailing_newline(live_repo_root(), &mut report);
         assert!(report.ok(), "{:?}", report.errors);
     }
 
@@ -2784,6 +4067,154 @@ mod tests {
         );
     }
 
+    // ── delegation-purity: purrdf is the sole RDF/SHACL stack ────────────
+
+    #[test]
+    fn rdf_stack_ban_flags_a_competing_rdf_dep() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(root, "gmeow-foo", "[dependencies]\noxrdf = \"0.2\"\n");
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-foo") && e.contains("oxrdf")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rdf_stack_ban_flags_a_workspace_form_shacl_dep() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-bar",
+            "[dev-dependencies]\nsophia = { workspace = true }\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-bar") && e.contains("sophia")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rdf_stack_ban_allows_the_purrdf_umbrella() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-foo",
+            "[dependencies]\npurrdf = { workspace = true }\nserde = \"1\"\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    // ── purrdf-source parity + structured-zstd floor ─────────────────────
+
+    fn pin_gate_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_purrdf_and_zstd_pins(root, &mut report);
+        report.errors
+    }
+
+    const PURRDF_GIT_TAG_8: &str =
+        "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.8.0\" }";
+
+    fn write_root_and_fuzz_purrdf(root: &Path, root_dep: &str, fuzz_dep: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\n{root_dep}\n"),
+        );
+        write(
+            &root.join("fuzz/Cargo.toml"),
+            &format!(
+                "[package]\nname = \"gmeow-fuzz\"\nversion = \"0.0.0\"\nedition = \"2021\"\n\n[dependencies]\n{fuzz_dep}\n"
+            ),
+        );
+    }
+
+    fn write_lock_with_structured_zstd(root: &Path, version: &str) {
+        write(
+            &root.join("Cargo.lock"),
+            &format!(
+                "version = 4\n\n[[package]]\nname = \"structured-zstd\"\nversion = \"{version}\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n"
+            ),
+        );
+    }
+
+    #[test]
+    fn pin_gate_passes_matching_source_and_zstd_floor() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, PURRDF_GIT_TAG_8);
+        write_lock_with_structured_zstd(root, "0.0.49");
+        assert!(
+            pin_gate_errors(root).is_empty(),
+            "{:?}",
+            pin_gate_errors(root)
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_fuzz_purrdf_source_drift() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        // fuzz drifts to the crates.io string form while root stays git+tag.
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, "purrdf = \"0.7\"");
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter()
+                .any(|e| e.contains("fuzz/Cargo.toml") && e.contains("purrdf")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_fuzz_purrdf_tag_drift() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let fuzz_old =
+            "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.7.0\" }";
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, fuzz_old);
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter().any(|e| e.contains("fuzz/Cargo.toml")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_structured_zstd_below_floor() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, PURRDF_GIT_TAG_8);
+        write_lock_with_structured_zstd(root, "0.0.40");
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter()
+                .any(|e| e.contains("structured-zstd") && e.contains("0.0.49")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_skips_absent_inputs() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(pin_gate_errors(temp.path()).is_empty());
+    }
+
     // ── honest-invariant #2: String is never a Result error type ─────────
 
     fn crate_src(root: &Path, crate_name: &str, file: &str, body: &str) {
@@ -2879,5 +4310,164 @@ mod tests {
         let (args, end) = parse_top_level_generic_args(&text, 0).expect("balanced");
         assert_eq!(args, vec!["BTreeMap<String, String>", "Diag"]);
         assert_eq!(end, text.len());
+    }
+
+    // ── temp-directory hygiene: every temporary path is RAII-managed ──────
+
+    fn temp_dir_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_no_unmanaged_temp_dir(root, &mut report);
+        report.errors
+    }
+
+    /// The regression this whole gate exists for: the LIVE repository must contain zero
+    /// hand-rolled system-temp scratch paths. This is the check that actually stops the
+    /// leak from growing back — the synthetic cases below only prove the scanner has teeth.
+    #[test]
+    fn live_tree_has_no_unmanaged_temp_dir() {
+        let errs = temp_dir_errors(live_repo_root());
+        assert!(
+            errs.is_empty(),
+            "the live tree must build every temporary path through tempfile's RAII guards; \
+             {} site(s) hand-roll one instead: {errs:#?}",
+            errs.len()
+        );
+    }
+
+    #[test]
+    fn hand_rolled_temp_dir_in_production_code_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn scratch() -> PathBuf {\n    \
+                 std::env::temp_dir().join(format!(\"gmeow-x-{}\", std::process::id()))\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("tempfile::TempDir"), "{errs:?}");
+        assert!(
+            errs[0].contains("crates/gmeow-foo/src/lib.rs:2"),
+            "{errs:?}"
+        );
+    }
+
+    /// The leaks that filled the host's `/tmp` were almost all inside `#[cfg(test)]`
+    /// modules, so — unlike the `Result<_, String>` scan — this gate must NOT exempt test
+    /// bodies. A gate that ignored them would have caught none of the original 72 sites.
+    #[test]
+    fn hand_rolled_temp_dir_inside_cfg_test_module_still_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn real() {}\n\
+             #[cfg(test)]\nmod tests {\n    \
+                 fn fixture() -> PathBuf { std::env::temp_dir().join(\"gmeow-y\") }\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    /// The `use std::env;`-shortened spelling is the same defect and must not be a bypass.
+    /// It is reported ONCE, not twice, even though `std::env::temp_dir` contains
+    /// `env::temp_dir` as a substring.
+    #[test]
+    fn shortened_env_temp_dir_spelling_fails_once() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "use std::env;\nfn s() -> PathBuf { env::temp_dir().join(\"gmeow-z\") }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(
+            errs.len(),
+            1,
+            "the shortened spelling must fail exactly once: {errs:?}"
+        );
+
+        let temp2 = tempfile::tempdir().unwrap();
+        crate_src(
+            temp2.path(),
+            "gmeow-foo",
+            "lib.rs",
+            "fn s() -> PathBuf { std::env::temp_dir().join(\"gmeow-z\") }\n",
+        );
+        let errs2 = temp_dir_errors(temp2.path());
+        assert_eq!(
+            errs2.len(),
+            1,
+            "the qualified spelling must not double-report via its own substring: {errs2:?}"
+        );
+    }
+
+    /// Disarming an RAII guard re-creates the leak, so `.into_path()` / `.keep()` are banned
+    /// too — otherwise the gate would be trivially bypassable by one method call.
+    #[test]
+    fn disarming_an_raii_temp_guard_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn a() -> PathBuf { tempfile::tempdir().unwrap().into_path() }\n\
+             fn b() -> PathBuf { tempfile::tempdir().unwrap().keep() }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert_eq!(errs.len(), 2, "{errs:?}");
+        assert!(
+            errs.iter().all(|e| e.contains("disarms its Drop")),
+            "{errs:?}"
+        );
+    }
+
+    /// Prose must never trip the gate: a comment or a string literal that NAMES the banned
+    /// accessor (this gate's own doc comments and error text do exactly that) is not a use.
+    #[test]
+    fn temp_dir_named_in_comment_or_string_literal_is_ignored() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "// Never call std::env::temp_dir() by hand; use tempfile::TempDir.\n\
+             /// Doc: `std::env::temp_dir()` is banned.\n\
+             const MSG: &str = \"do not use std::env::temp_dir()\";\n\
+             fn ok() { let _tmp = tempfile::tempdir().unwrap(); }\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn raii_tempdir_usage_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn fixture() {\n    \
+                 let tmp = tempfile::tempdir().expect(\"tempdir\");\n    \
+                 let case = tmp.path().join(\"foundation\").join(\"free-role\");\n    \
+                 std::fs::create_dir_all(&case).unwrap();\n}\n",
+        );
+        let errs = temp_dir_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn temp_dir_gate_skips_a_repo_without_crates() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(temp_dir_errors(temp.path()).is_empty());
     }
 }

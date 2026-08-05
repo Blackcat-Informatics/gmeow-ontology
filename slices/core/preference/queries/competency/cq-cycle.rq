@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: enumerate the reified, vantage-indexed strict-preference judgments that form a
+# cross-vantage Condorcet cycle. Over the condorcet-cycle pass scene this returns exactly the
+# three gmeow:observationPrefers edges (A≻B, B≻C, C≻A), proving the cycle lives in coexisting
+# vantage-indexed observations (the legal H1 obstruction), never as bare pooled edges.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?observation ?winner WHERE {
+    ?observation a gmeow:PreferenceObservation ;
+        gmeow:comparisonContext ?ctx ;
+        gmeow:observationPrefers ?winner .
+}
+ORDER BY ?observation

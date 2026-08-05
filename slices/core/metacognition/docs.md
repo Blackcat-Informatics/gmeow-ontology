@@ -143,7 +143,7 @@ with `gmeow:displayable false`.
 The slice's alignments are **deliberately prose-only**: its grounding literatures —
 **Nelson & Narens'** metamemory model, **Flavell's** metacognition, and the **Brier-score**
 calibration tradition — have no stable external IRI vocabulary to map to, so the mapping set carries
-the scholarly grounding in its comment and seeds **no** `gmeow:TermEquivalence` rows (the same
+the scholarly grounding in its comment and seeds **no** native alignment cell rows (the same
 intentional non-mapping the inquiry slice applies to its question-type vocabulary). The reused
 first-order quantities and the cross-slice bridges carry their alignments in their home slices.
 

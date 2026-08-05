@@ -92,43 +92,108 @@ pub fn codebook_digest(codebook: &CurrentCodebook, dict: &GmnDictionary) -> Stri
     )
 }
 
+/// The content-addressed Merkle leaves of the GMN **ecosystem** surfaces the conformance pack
+/// certifies BEYOND the codec core (the codebook, grammar template, and sigil table). Each is
+/// `blake3(view-artifact-bytes)` as lowercase hex, UNPREFIXED — the SAME content-addressing
+/// [`view_leaf`]/[`grammar_leaf`] use — so perturbing ANY ecosystem surface's emitted bytes
+/// changes the pack root and, via `gmeow gmn verify`, reds the bundle. Folded into
+/// [`pack_root`] as parts 4–7 in this field order (gbnf, lark, token-metrics, verbalizations).
+///
+/// An ABSENT view (no artifact emitted — a blocking-construct grammar, or an empty corpus)
+/// contributes `view_leaf(&[])`, a stable leaf, so the fold is total and deterministic and a
+/// later deletion of a once-present view flips the leaf and reds the pack (tamper-evidence).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EcosystemLeaves {
+    /// `blake3` of the emitted GBNF artifact bytes (`gmn1/v<major>/gbnf/gmn.gbnf`).
+    pub gbnf: String,
+    /// `blake3` of the emitted Lark artifact bytes (`gmn1/v<major>/lark/gmn.lark`).
+    pub lark: String,
+    /// `blake3` of the emitted token-metrics artifact bytes (`gmn1/v<major>/token-metrics.ttl`).
+    pub token_metrics: String,
+    /// `blake3` of the emitted verbalizations artifact bytes (`gmn1/v<major>/verbalizations.ttl`).
+    pub verbalizations: String,
+}
+
+impl EcosystemLeaves {
+    /// The four ecosystem leaves as `view_leaf(view-bytes)` over each surface's EMITTED artifact
+    /// bytes — the SAME primitive the grammar leaf uses, so a bundle consumer recomputes each from
+    /// the pinned digest. Empty view bytes yield the stable empty leaf.
+    #[must_use]
+    pub fn from_view_bytes(
+        gbnf: &[u8],
+        lark: &[u8],
+        token_metrics: &[u8],
+        verbalizations: &[u8],
+    ) -> Self {
+        Self {
+            gbnf: view_leaf(gbnf),
+            lark: view_leaf(lark),
+            token_metrics: view_leaf(token_metrics),
+            verbalizations: view_leaf(verbalizations),
+        }
+    }
+}
+
 /// The content-addressed **conformance-pack Merkle root** (`gmeow:gmnPackRoot`): the GMN-1
-/// version identity an independent decoder pins against. A blake3 root over exactly three
+/// version identity an independent decoder pins against. A blake3 root over exactly SEVEN
 /// ordered part leaves, folded with the SAME wire format as [`codebook_digest`] — each part
 /// contributes `label␟leaf\n` (`␟` = [`FIELD_SEP`]) to the root pre-image IN THIS ORDER,
 /// `root = blake3(pre-image)`, returned as `"blake3:<64-hex>"`:
 ///
-/// | # | label             | leaf |
-/// |---|-------------------|------|
-/// | 1 | `codebook-digest` | the codebook digest string VERBATIM (algorithm-tagged `blake3:<hex>`) — the pack pins the codebook by its PUBLISHED identity, so a consumer recomputes the root directly from the value the codebook already carries |
-/// | 2 | `gmn-grammar`     | `blake3(authored gmn.ebnf bytes)`, lowercase hex — the authored grammar template byte-exact (the `glyphToken` seam is realized from leaf 3, so the template and the glyph table are pinned independently) |
-/// | 3 | `sigil-table`     | the [`leaf_hex`] of the executable sigil→glyph binding rows (the glyph table then the fallback table), each row `sigil␟surface␟fixity␟arity␟term`, NFC-normalized + sorted — the SAME per-part canonicalization the codebook's glyph leaves use |
+/// | # | label                | leaf |
+/// |---|----------------------|------|
+/// | 1 | `codebook-digest`    | the codebook digest string VERBATIM (algorithm-tagged `blake3:<hex>`) — the pack pins the codebook by its PUBLISHED identity, so a consumer recomputes the root directly from the value the codebook already carries |
+/// | 2 | `gmn-grammar`        | `blake3(authored gmn.ebnf bytes)`, lowercase hex — the authored grammar template byte-exact (the `glyphToken` seam is realized from leaf 3, so the template and the glyph table are pinned independently) |
+/// | 3 | `sigil-table`        | the [`leaf_hex`] of the executable sigil→glyph binding rows (the glyph table then the fallback table), each row `sigil␟surface␟fixity␟arity␟term`, NFC-normalized + sorted — the SAME per-part canonicalization the codebook's glyph leaves use |
+/// | 4 | `gmn-gbnf`           | [`EcosystemLeaves::gbnf`] — `blake3` of the emitted GBNF constrained-decode grammar artifact |
+/// | 5 | `gmn-lark`           | [`EcosystemLeaves::lark`] — `blake3` of the emitted Lark constrained-parse grammar artifact |
+/// | 6 | `gmn-token-metrics`  | [`EcosystemLeaves::token_metrics`] — `blake3` of the emitted token-metric measurement artifact |
+/// | 7 | `gmn-verbalizations` | [`EcosystemLeaves::verbalizations`] — `blake3` of the emitted GMN⇄controlled-NL verbalization artifact |
 ///
 /// Deterministic and input-only (no clock, rng, or environment). The pack is self-certifying:
-/// a consumer recomputes this root from the three parts the pack `gmeow:references` and
-/// refuses a pack whose declared root disagrees.
+/// a consumer recomputes this root from the seven parts the pack `gmeow:references` (each pinned
+/// into the bundle as a Merkle leaf) and refuses a pack whose declared root disagrees — so the
+/// pack certifies the WHOLE GMN ecosystem, tamper-evident, from the bundle alone.
 #[must_use]
-pub fn pack_root(codebook_digest: &str, dict: &GmnDictionary, grammar_bytes: &[u8]) -> String {
-    pack_root_from_grammar_leaf(codebook_digest, dict, &grammar_leaf(grammar_bytes))
+pub fn pack_root(
+    codebook_digest: &str,
+    dict: &GmnDictionary,
+    grammar_bytes: &[u8],
+    ecosystem: &EcosystemLeaves,
+) -> String {
+    pack_root_from_grammar_leaf(
+        codebook_digest,
+        dict,
+        &grammar_leaf(grammar_bytes),
+        ecosystem,
+    )
 }
 
-/// The `gmn-grammar` Merkle leaf (pack-root part 2): `blake3(authored gmn.ebnf bytes)` as
-/// lowercase hex, UNPREFIXED. Pinned into the bundle as `gmeow:gmnGrammarDigest` so a
-/// checkout-free consumer (the shipped `gmeow gmn verify`) recomputes the pack root from the
-/// bundle alone, never needing the raw authored grammar file from a source checkout.
+/// The content-addressed Merkle leaf of ONE view artifact: `blake3(view-bytes)` as lowercase hex,
+/// UNPREFIXED. The single primitive every pack leaf beyond the codebook/sigil tables uses, so a
+/// checkout-free consumer (the shipped `gmeow gmn verify`) recomputes each leaf from the digest
+/// the bundle pins, never needing the raw artifact from a source checkout.
+#[must_use]
+pub fn view_leaf(view_bytes: &[u8]) -> String {
+    blake3::hash(view_bytes).to_hex().to_string()
+}
+
+/// The `gmn-grammar` Merkle leaf (pack-root part 2): [`view_leaf`] over the authored `gmn.ebnf`
+/// bytes, pinned into the bundle as `gmeow:gmnGrammarDigest`.
 #[must_use]
 pub fn grammar_leaf(grammar_bytes: &[u8]) -> String {
-    blake3::hash(grammar_bytes).to_hex().to_string()
+    view_leaf(grammar_bytes)
 }
 
 /// [`pack_root`] over a PRECOMPUTED [`grammar_leaf`] rather than the raw grammar bytes — the leg a
-/// bundle-only consumer takes, reading the leaf from `gmeow:gmnGrammarDigest`. Folds the SAME three
+/// bundle-only consumer takes, reading the leaf from `gmeow:gmnGrammarDigest`. Folds the SAME seven
 /// ordered parts as [`pack_root`], so both legs agree byte-for-byte.
 #[must_use]
 pub fn pack_root_from_grammar_leaf(
     codebook_digest: &str,
     dict: &GmnDictionary,
     grammar_leaf: &str,
+    ecosystem: &EcosystemLeaves,
 ) -> String {
     let glyphs = dict.glyph_registry();
     let five = |(a, b, c, d, e): (String, String, String, String, String)| {
@@ -136,10 +201,14 @@ pub fn pack_root_from_grammar_leaf(
     };
     let mut sigil_rows: Vec<String> = glyphs.glyph_binding_rows().into_iter().map(five).collect();
     sigil_rows.extend(glyphs.fallback_binding_rows().into_iter().map(five));
-    let parts: [(&'static str, String); 3] = [
+    let parts: [(&'static str, String); 7] = [
         ("codebook-digest", codebook_digest.to_owned()),
         ("gmn-grammar", grammar_leaf.to_owned()),
         ("sigil-table", leaf_hex(sigil_rows)),
+        ("gmn-gbnf", ecosystem.gbnf.clone()),
+        ("gmn-lark", ecosystem.lark.clone()),
+        ("gmn-token-metrics", ecosystem.token_metrics.clone()),
+        ("gmn-verbalizations", ecosystem.verbalizations.clone()),
     ];
     let mut preimage = String::new();
     for (label, leaf) in &parts {
@@ -239,7 +308,7 @@ mod tests {
     use super::*;
     use crate::gmn1_codec::{Gmn1Error, gmn1_read, gmn1_write, gmn1_write_tabular};
 
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
 
     /// A minimal-but-valid current codebook: one dictionary entry (`term → alias`) and one
     /// script grapheme, at the codec's pinned versions (dictionary `3`, glyph-table `2`).
@@ -343,6 +412,115 @@ ex:script a lang:Script ; lang:hasGrapheme ex:{grapheme_local} .
             differing,
             vec!["dictionary-aliases"],
             "only the dictionary-aliases leaf diverges when just the alias changes"
+        );
+    }
+
+    /// Task 15: the conformance-pack Merkle root is a PURE FUNCTION of every ecosystem surface —
+    /// the gbnf + lark grammar artifacts, the token-metrics measurement, and the verbalizations —
+    /// beside the existing codebook / grammar / sigil coverage. Falsifiable PER SURFACE: perturbing
+    /// exactly one view's bytes changes the root, so a view that was NOT folded would leave the root
+    /// unchanged and RED this test. Also pins determinism (two computations agree).
+    #[test]
+    fn pack_root_covers_every_ecosystem_surface() {
+        let ds = codebook_fixture("add", "g1");
+        let (codebook, dict) = load(&ds);
+        let digest = codebook_digest(&codebook, &dict);
+
+        let grammar = b"root ::= glyphToken ;\n".as_slice();
+        let gbnf = b"root ::= glyph-token\n".as_slice();
+        let lark = b"start: glyph_token\n".as_slice();
+        let metrics = b"<s> <p> \"7\" .\n".as_slice();
+        let verbal = b"<u> <a> <b> .\n".as_slice();
+
+        let base_leaves = EcosystemLeaves::from_view_bytes(gbnf, lark, metrics, verbal);
+        let base = pack_root(&digest, &dict, grammar, &base_leaves);
+
+        // Determinism: the root is input-only, so two computations agree byte-for-byte.
+        assert_eq!(
+            base,
+            pack_root(&digest, &dict, grammar, &base_leaves),
+            "pack_root must be a deterministic function of its inputs"
+        );
+        // Well-formed algorithm tag + 64 lowercase hex.
+        let hex = base.strip_prefix("blake3:").expect("blake3: tag");
+        assert_eq!(hex.len(), 64, "pack root is 32 bytes = 64 hex: {base}");
+        assert!(
+            hex.chars()
+                .all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c)),
+            "pack root hex is lowercase: {base}"
+        );
+
+        // ── existing coverage still holds: codebook + grammar are folded ──
+        let (other_cb, other_dict) = load(&codebook_fixture("plus", "g1"));
+        let other_digest = codebook_digest(&other_cb, &other_dict);
+        assert_ne!(
+            base,
+            pack_root(&other_digest, &dict, grammar, &base_leaves),
+            "a changed codebook digest must change the pack root"
+        );
+        assert_ne!(
+            base,
+            pack_root(&digest, &dict, b"root ::= other ;\n", &base_leaves),
+            "a changed grammar template must change the pack root"
+        );
+
+        // ── new ecosystem coverage: EACH view is folded, falsifiable per surface ──
+        let perturbations: [(&str, EcosystemLeaves); 4] = [
+            (
+                "gbnf",
+                EcosystemLeaves::from_view_bytes(b"root ::= X\n", lark, metrics, verbal),
+            ),
+            (
+                "lark",
+                EcosystemLeaves::from_view_bytes(gbnf, b"start: X\n", metrics, verbal),
+            ),
+            (
+                "token-metrics",
+                EcosystemLeaves::from_view_bytes(gbnf, lark, b"<s> <p> \"8\" .\n", verbal),
+            ),
+            (
+                "verbalizations",
+                EcosystemLeaves::from_view_bytes(gbnf, lark, metrics, b"<u> <a> <c> .\n"),
+            ),
+        ];
+        for (surface, perturbed) in &perturbations {
+            assert_ne!(
+                base,
+                pack_root(&digest, &dict, grammar, perturbed),
+                "perturbing the {surface} view bytes must change the pack root \
+                 (if it does not, that surface is NOT folded into the root)"
+            );
+            // Exactly the perturbed surface's leaf differs — the divergence is nameable.
+            let differing: Vec<&str> = [
+                ("gbnf", &base_leaves.gbnf, &perturbed.gbnf),
+                ("lark", &base_leaves.lark, &perturbed.lark),
+                (
+                    "token-metrics",
+                    &base_leaves.token_metrics,
+                    &perturbed.token_metrics,
+                ),
+                (
+                    "verbalizations",
+                    &base_leaves.verbalizations,
+                    &perturbed.verbalizations,
+                ),
+            ]
+            .into_iter()
+            .filter(|(_, a, b)| a != b)
+            .map(|(label, _, _)| label)
+            .collect();
+            assert_eq!(
+                &differing,
+                &[*surface],
+                "only the {surface} leaf diverges when just that view changes"
+            );
+        }
+
+        // The two legs (raw grammar bytes vs. precomputed grammar leaf) agree byte-for-byte.
+        assert_eq!(
+            base,
+            pack_root_from_grammar_leaf(&digest, &dict, &grammar_leaf(grammar), &base_leaves),
+            "the raw-bytes and grammar-leaf legs must fold to the same root"
         );
     }
 

@@ -37,8 +37,8 @@ use purrdf::{
     SparqlResult, TermValue, dataset_from_bytes,
 };
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::GMEOW_NS;
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 const DIAGNOSTIC_META_RULE: &str = "https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule";

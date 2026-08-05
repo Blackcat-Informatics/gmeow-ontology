@@ -143,24 +143,21 @@ fn music_foundation_tbox_assertions_are_rust_covered() {
         );
     }
 
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (issue 1579 deprecated the source `owl:FunctionalProperty` marker to a
+    // generated-view-only projection), so query the carrier over the merged ontology.
+    let g = GraphStore::ontology();
+    let gmeow = |local: &str| format!("https://blackcatinformatics.ca/gmeow/{local}");
     for property in ["derivationSource", "derivationProduct", "realizationMode"] {
         assert!(
-            nt.contains(&nt_triple(
-                property,
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-                "http://www.w3.org/2002/07/owl#FunctionalProperty"
-            )),
-            "{property} must be functional"
+            g.is_functional_carrier(&gmeow(property)),
+            "{property} must carry a logic: functionalProperty characteristic"
         );
     }
     for property in ["derivationType", "hasGenre"] {
         assert!(
-            !nt.contains(&nt_triple(
-                property,
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-                "http://www.w3.org/2002/07/owl#FunctionalProperty"
-            )),
-            "{property} must not be functional"
+            !g.is_functional_carrier(&gmeow(property)),
+            "{property} must NOT carry a logic: functionalProperty characteristic"
         );
     }
 }

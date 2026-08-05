@@ -188,7 +188,7 @@ general**:
   is pending, carrying a `logic:awaitingSignal` witness); and the Instruction-State-Machine
   plan→execution linkage is the `logic:instantiatesSchema` + `logic:instantiatesPlan` in-band
   witness. The lowering `logic:Plan → openEHR Task Planning` is wired as a by-reference projection in
-  `slices/extensions/procedures/mappings/` with its preservation judgment in the loss ledger.
+  `slices/core/work-orchestration/mappings/` with its preservation judgment in the loss ledger.
 - **The two axes together** complete the openEHR subsumption picture (`take1.md` §13 table): the
   **data axis** reaches the section/retraction rung (perfect replacement of the RM data, with the
   in-band complement); the **process axis** reaches the lossy-lens rung for execution and a faithful

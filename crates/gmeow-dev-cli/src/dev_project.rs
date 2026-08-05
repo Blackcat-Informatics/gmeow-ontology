@@ -93,8 +93,21 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
         .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
         .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
+    // The W4 conjecture-playground demo library: the committed curated
+    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
+    // a missing example is a HARD FAIL (never a silently empty playground); the release
+    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
+    let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
+    let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed conjecture demo library {}: {e}",
+            conjectures_path.display()
+        ))
+    })?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
+        full_bundle_gts: bytes,
+        conjectures_ttl,
         ..Default::default()
     })
 }
@@ -111,7 +124,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     };
     // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
     // Python (Pydantic) + Rust example tabs actually render on this — the sole —
-    // production docs surface (`make sync SYNC_OUTPUTS=docs` fanout). The standalone render has no
+    // production docs surface (`make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout). The standalone render has no
     // live pipeline product, so the digest is sourced off the committed
     // `generated/schemas/*.json`, the projection of the same
     // `stage-export-json-schema` emitter output the in-pipeline reader consumes.
@@ -144,6 +157,139 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
         .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
 
+    // The OKF serialization distribution (AC2 payload segmentation): rendered off the
+    // SAME committed-bundle carrier dataset the site's reasoned playground reads,
+    // through the single production serializer authority
+    // (`gmeow_pipeline::docs_distribution`) — never re-implemented here.
+    let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
+    let gts_bytes = std::fs::read(&gts_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed bundle {}: {e}",
+            gts_path.display()
+        ))
+    })?;
+    let carrier_graph = purrdf::gts::read_all_segments(&gts_bytes)
+        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
+    let carrier_dataset = purrdf::gts::dataset_from_gts_graph(&carrier_graph)
+        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
+    let okf =
+        gmeow_pipeline::docs_distribution::render_serialization_distributions(&carrier_dataset)
+            .map_err(|e| {
+                fail(format!(
+                    "cannot render the OKF serialization distribution: {e}"
+                ))
+            })?;
+
+    // JSON-LD-star / YAML-LD-star are NOT re-rendered here — `make build` already wrote
+    // `dist/gmeow.jsonld` / `dist/gmeow.yamlld` off the identical committed-bundle
+    // authority (`gmeow_pipeline::stages::yaml_ld`). The docs distribution REFERENCES
+    // that single build output rather than re-serializing it a second time.
+    // No-optionality: an absent build output is a hard fail naming the missing file and
+    // pointing at `make build`, never a silent skip or a fallback re-render.
+    let jsonld = gmeow_pipeline::docs_distribution::read_build_serialization_tree(
+        &root.join(gmeow_pipeline::stages::yaml_ld::JSON_LD_PATH),
+        "gmeow.jsonld",
+    )
+    .map_err(|e| {
+        fail(format!(
+            "cannot reference the JSON-LD-star build output: {e}"
+        ))
+    })?;
+    let yamlld = gmeow_pipeline::docs_distribution::read_build_serialization_tree(
+        &root.join(gmeow_pipeline::stages::yaml_ld::YAML_LD_PATH),
+        "gmeow.yamlld",
+    )
+    .map_err(|e| {
+        fail(format!(
+            "cannot reference the YAML-LD-star build output: {e}"
+        ))
+    })?;
+
+    // Content-address every one of the eight external documentation/serialization
+    // distributions and build the release-time DCAT manifest linking each to its
+    // distribution-catalog subject. Rendered in memory unconditionally (even in
+    // check mode) — no-optionality forbids a silent skip of the manifest.
+    type DistTree<'a> = (&'a str, &'a str, &'a BTreeMap<String, Vec<u8>>);
+    let format_trees: [DistTree<'_>; 8] = [
+        ("site", "dist/gmeow-docs/site", &site),
+        ("mdbook", "dist/gmeow-docs/mdbook", &mdbook),
+        ("pdf", "dist/gmeow-docs/pdf", &pdf),
+        ("snippets", "dist/gmeow-docs/snippets", &snippets),
+        ("pydantic", "dist/gmeow-docs/pydantic", &pydantic),
+        ("okf", "dist/gmeow-docs/okf", &okf),
+        ("jsonld", "dist/gmeow-docs/jsonld", &jsonld),
+        ("yamlld", "dist/gmeow-docs/yamlld", &yamlld),
+    ];
+    let mut entries = Vec::with_capacity(format_trees.len());
+    for (slug, rel_path, tree) in format_trees {
+        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree).map_err(|e| {
+            fail(format!(
+                "cannot content-address the {slug} distribution: {e}"
+            ))
+        })?;
+        let media_type = gmeow_pipeline::stages::distribution_catalog::media_type_for_slug(slug)
+            .ok_or_else(|| {
+                fail(format!(
+                    "no declared media type for distribution catalog slug {slug:?}"
+                ))
+            })?;
+        entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: rel_path.to_string(),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    // Price the `site` sub-assets (the vendored interactive engines + the conjecture
+    // demo library) into the release-instance manifest: content-address each from the
+    // rendered site tree and hang its digest off the SAME site_sub_asset subject the
+    // carrier catalog prices digest-free. This release render is unconditionally
+    // interactive — `exec` (the playground data) is hard-required above, so the
+    // vendored engines + the demo library are ALWAYS emitted here.
+    // `site_sub_asset_pricing()` DECLARES every one; no-optionality makes each a
+    // mandatory output of this selected profile. A
+    // declared sub-asset that produced zero files is therefore a HARD FAIL (an incomplete
+    // interactive site with a missing release digest), never a silent skip — a silent
+    // skip would make a shipped engine and a dropped engine indistinguishable on the
+    // release path.
+    let mut sub_asset_entries = Vec::new();
+    for (slug, prefix, media_type) in
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+    {
+        let subtree: BTreeMap<String, Vec<u8>> = site
+            .iter()
+            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
+            .map(|(p, b)| (p.clone(), b.clone()))
+            .collect();
+        if subtree.is_empty() {
+            return Err(fail(format!(
+                "declared site sub-asset {slug:?} produced no files under {prefix:?}: the \
+                 release site render is interactive, so this engine/bundle is a mandatory \
+                 output — its absence is a degraded site with a missing release digest, not \
+                 a silent skip"
+            )));
+        }
+        let blake3 =
+            gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
+                fail(format!(
+                    "cannot content-address the {slug} site sub-asset: {e}"
+                ))
+            })?;
+        sub_asset_entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: format!("dist/gmeow-docs/site/{prefix}"),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    let manifest_nt = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &sub_asset_entries,
+        &gts_bytes,
+    )
+    .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
+    let manifest = BTreeMap::from([("docs-manifest.ttl".to_string(), manifest_nt.into_bytes())]);
+
     let destinations = [
         ("ontology-docs", &site),
         ("dist/gmeow-docs/site", &site),
@@ -151,6 +297,13 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         ("dist/gmeow-docs/pdf", &pdf),
         ("dist/gmeow-docs/snippets", &snippets),
         ("dist/gmeow-docs/pydantic", &pydantic),
+        ("dist/gmeow-docs/okf", &okf),
+        ("dist/gmeow-docs/jsonld", &jsonld),
+        ("dist/gmeow-docs/yamlld", &yamlld),
+        // The manifest gets its OWN subdir base — never the shared `dist/gmeow-docs`
+        // parent, which `reconcile_docs_projection_tree` would otherwise prune of
+        // every sibling format's files not present in THIS tree.
+        ("dist/gmeow-docs/manifest", &manifest),
     ];
     let mut outputs = Vec::new();
     let mut reconciliation = DocsProjectionReport::default();

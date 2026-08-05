@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT10-robustness counter-example (Don't): one OTHERWISE-VALID projection with BOTH a
+# container and a manifest profile surface, where the manifest surface OMITS
+# gmeow:recordsTargetTableDigest. This is the previously-dodged case: the container/
+# manifest target-table agreement constraint (gmeow:ProfileTargetTableAgreementConstraint)
+# only fires when BOTH surfaces carry the compared digest, so by omitting it the manifest
+# silently DODGES the HARD-FAIL agreement check. Every gmeow:ProfileSurface must now record
+# all three shared-referent digests INDIVIDUALLY, so the omitting surface is itself invalid:
+# it violates the sh:minCount 1 derived from the gmeow:recordsTargetTableDigest allValuesFrom
+# carrier + its class-scoped ClosureEntry (→ shacl.MinCountConstraintComponent), and triggers
+# surface-digest-omitted.rq (→ ce:omitManifest).
+#
+# The projection, its source pack, its family, and its effective space are authored COMPLETE
+# and CONSISTENT (matching source digest for C1; equal source/projection sensitivity so the
+# C3 monotonicity guard is not tripped; no source gtsHeadId so C6 does not fire), and the two
+# surfaces AGREE on the two digests they share — so the ONLY deficiency in the whole scene is
+# the manifest's omitted target-table digest. No other requiredness and no agreement
+# constraint fires.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+# Self-contained value individuals (the fixture is unioned with the MODULE only, so kernel/
+# ai value individuals like gmeow:sensitivityInternal / gmeow:distanceMetricCosine are
+# untyped here — they are minted locally, typed, so the sh:class carriers are satisfied and
+# the fixture's ONLY deficiency is the manifest's omitted digest).
+ce:omitSensitivity a gmeow:SensitivityLevel ;
+    rdfs:label "sensitivity level (DON'T scene)"@en .
+ce:omitMetric a gmeow:DistanceMetric ;
+    rdfs:label "distance metric (DON'T scene)"@en .
+ce:omitNorm a gmeow:NormalizationKind ;
+    rdfs:label "normalization (DON'T scene)"@en .
+
+# The exact source pack the projection is generated over (C1 anchor). No gtsHeadId, so the
+# certified-source propagation guard (C6) does not fire. Its sensitivity EQUALS the
+# projection's, so the C3 monotonicity guard is not tripped.
+ce:omitPack a gmeow:InformationObject ;
+    rdfs:label "source pack (DON'T scene)"@en ;
+    gmeow:contentDigest  "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasSensitivity ce:omitSensitivity .
+
+# A COMPLETE generation contract — its irreducible model artifact and digest identity.
+ce:omitModel a gmeow:SoftwareAgent ;
+    rdfs:label "embedding model (DON'T scene)"@en .
+
+ce:omitFamily a gmeow:EmbeddingFamily ;
+    gmeow:embeddingModel ce:omitModel ;
+    gmeow:contentDigest  "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
+
+# A COMPLETE effective space — all four comparability-core axes plus digest identity.
+ce:omitVsc a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:omitFamily ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      ce:omitMetric ;
+    gmeow:normalizationKind   ce:omitNorm ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
+    gmeow:contentDigest       "blake3:vsc000011112222333344445555666677778888999900001111222233334444" .
+
+# A COMPLETE, source-consistent projection: its recorded source digest equals the pack's
+# content digest (C1 passes), and its sensitivity equals the source's (C3 guard idle).
+ce:omitProj a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:omitVsc ;
+    gmeow:projectionSource       ce:omitPack ;
+    gmeow:projectionSourceDigest "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasSensitivity         ce:omitSensitivity ;
+    gmeow:reproducibilityLevel   gmeow:regenerableOnly .
+
+# The container surface records all three digests.
+ce:omitContainer a gmeow:ProfileSurface ;
+    gmeow:profileSurfaceOf           ce:omitProj ;
+    gmeow:profileSurfaceKind         gmeow:surfaceContainer ;
+    gmeow:recordsSourceDigest        "blake3:rsc000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsModelContractDigest "blake3:rmc000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsTargetTableDigest   "blake3:rtt000011112222333344445555666677778888999900001111222233334444" .
+
+# The manifest surface OMITS gmeow:recordsTargetTableDigest — the previously-dodged hole. It
+# AGREES with the container on the two digests it does record, so no agreement constraint
+# fires; only its omission is caught.
+ce:omitManifest a gmeow:ProfileSurface ;
+    gmeow:profileSurfaceOf           ce:omitProj ;
+    gmeow:profileSurfaceKind         gmeow:surfaceManifest ;
+    gmeow:recordsSourceDigest        "blake3:rsc000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsModelContractDigest "blake3:rmc000011112222333344445555666677778888999900001111222233334444" .

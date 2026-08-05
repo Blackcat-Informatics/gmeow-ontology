@@ -1,11 +1,10 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 358
 expression: head
 ---
 # What GMEOW enforces
 
-The **63** validation rules the GMEOW toolchain enforces, grouped by finding category. Each rule is a `gmeow:ValidationRule` individual from the constraint catalog; a finding's `helpUri` deep-links to its entry here. **Binding** rules fail the gate; **advisory** rules report without failing.
+The **71** validation rules the GMEOW toolchain enforces, grouped by finding category. Each rule is a `gmeow:ValidationRule` individual from the constraint catalog; a finding's `helpUri` deep-links to its entry here. **Binding** rules fail the gate; **advisory** rules report without failing. The distinct **Usage Advice** section below documents the non-gating *recommendations* (`avoidWhen` / `useWhen` / `howToUse`) that advisory `advice.*` findings resolve to.
 
 ## Finding: Contradiction Witness
 

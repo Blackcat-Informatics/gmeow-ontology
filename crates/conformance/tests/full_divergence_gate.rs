@@ -3,23 +3,30 @@
 
 //! The W3C OWL 2 Full soundness-divergence SCALING gate.
 //!
-//! `w3c-owl2-full-divergence` vendors 154 cases where OWL DL and OWL Full
-//! diverge: the native DL reasoner honestly cannot decide them (a non-empty
-//! `DlVerdict::gaps`, frozen as `native_verdict = "incomplete"` in each case's
-//! `profile.json`), while W3C published a decided `consistent` / `inconsistent`
-//! verdict under OWL Full semantics the native path does not implement. The
-//! corpus's frozen `expected/verdicts.json` goldens record that honest gap —
-//! but a frozen golden alone does not protect against a *future* reasoner
-//! change that silently turns one of these honest gaps into a WRONG decided
-//! verdict (e.g. deciding `consistent` for a case W3C published as
-//! `inconsistent`). Nothing else re-executes the live reasoner over all 154
-//! cases on every run, so that regression would slip through unnoticed.
+//! `w3c-owl2-full-divergence` vendors the 122 cases where OWL DL and OWL Full
+//! diverge AND the native refutation kernel still honestly cannot decide them (a
+//! non-empty `DlVerdict::gaps`, frozen as `native_verdict = "incomplete"` in each
+//! case's `profile.json`), while W3C published a decided `consistent` /
+//! `inconsistent` verdict under OWL Full semantics the native path does not
+//! implement. (The 32 cases the kernel now DECIDES soundly were relocated to the
+//! sibling `w3c-owl2-full-decided` corpus, guarded by `full_decided_gate`; the two
+//! corpora together partition the original 154-case W3C-full set.) The corpus's
+//! frozen `expected/verdicts.json` goldens record that honest gap — but a frozen
+//! golden alone does not protect against a *future* reasoner change that silently
+//! turns one of these honest gaps into a WRONG decided verdict (e.g. deciding
+//! `consistent` for a case W3C published as `inconsistent`). Nothing else
+//! re-executes the live reasoner over all 122 cases on every run, so that
+//! regression would slip through unnoticed.
 //!
 //! This is that gate. It walks the corpus directory (no hardcoded per-slug
 //! list — the case set SCALES), and for every discovered case re-runs the
 //! committed `input.nq` through the exact same `dl_consistency` path the
-//! grader/runner uses. It is offline, deterministic, and sub-second per case
-//! (154 tiny consistency checks).
+//! grader/runner uses. It is offline, deterministic, and sub-second per case for
+//! all but a few memory/compute-heavy chase cases (122 consistency checks). Each
+//! per-case run is wrapped in a bounded-join worker thread ([`native_token`]) so a
+//! known-heavy case that hangs/OOMs the existential chase (e.g.
+//! `webont-description-logic-907`, `webont-i5-1-010`) is treated as `incomplete`
+//! (always sound, and the expected honest gap) rather than wedging the gate.
 //!
 //! Two invariants are enforced:
 //!
@@ -38,70 +45,18 @@
 //! verdicts must be represented, so the soundness test actually exercises
 //! both contradiction directions).
 
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use gmeow_conformance::paths::cases_root;
-use purrdf::{NativeRdfFormat, dataset_from_bytes};
+mod common;
+
+use common::{case_slugs, divergence_root, native_token};
 
 /// The minimum number of vendored cases the corpus must retain. A floor, not
 /// an exact pin: legitimate future additions still pass; deletion/emptying
-/// fails.
-const MIN_CASE_COUNT: usize = 154;
-
-/// The native verdict token for one case (`consistent` / `inconsistent` /
-/// `incomplete`), computed exactly as the grader/runner does: a non-empty
-/// `gaps` is `incomplete` (an honest "cannot decide"); otherwise the
-/// consistency boolean.
-fn native_token(input_nq: &Path) -> String {
-    let bytes =
-        std::fs::read(input_nq).unwrap_or_else(|e| panic!("read {}: {e}", input_nq.display()));
-    let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-        .unwrap_or_else(|e| panic!("parse {}: {e}", input_nq.display()));
-    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-        .unwrap_or_else(|e| panic!("dl_consistency on {}: {e}", input_nq.display()));
-    if !verdict.gaps.is_empty() {
-        "incomplete".to_owned()
-    } else if verdict.consistent {
-        "consistent".to_owned()
-    } else {
-        "inconsistent".to_owned()
-    }
-}
-
-fn corpus_root() -> PathBuf {
-    cases_root()
-        .join("external")
-        .join("w3c-owl2-full-divergence")
-}
-
-/// Discover every case directory under the corpus root, sorted by slug for
-/// deterministic iteration and failure-report ordering.
-fn discover_case_slugs() -> BTreeMap<String, PathBuf> {
-    let root = corpus_root();
-    assert!(
-        root.is_dir(),
-        "w3c-owl2-full-divergence corpus missing: {}",
-        root.display()
-    );
-    let mut cases = BTreeMap::new();
-    for entry in std::fs::read_dir(&root).unwrap_or_else(|e| panic!("read {}: {e}", root.display()))
-    {
-        let path = entry
-            .unwrap_or_else(|e| panic!("dir entry in {}: {e}", root.display()))
-            .path();
-        if !path.is_dir() {
-            continue;
-        }
-        let slug = path
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or_else(|| panic!("non-UTF8 case dir name: {}", path.display()))
-            .to_owned();
-        cases.insert(slug, path);
-    }
-    cases
-}
+/// fails. Lowered from 154 to 122 when the 32 now-decided cases were relocated
+/// to the sibling `w3c-owl2-full-decided` corpus; the disjoint-union partition
+/// (122 + 32 == 154) is pinned by `full_decided_gate`.
+const MIN_CASE_COUNT: usize = 122;
 
 /// Read and parse a case's `profile.json`.
 fn read_profile(case: &Path) -> serde_json::Value {
@@ -127,7 +82,8 @@ fn read_expected_status(case: &Path, slug: &str) -> String {
         .to_owned()
 }
 
-/// THE non-negotiable soundness invariant: for every one of the 154 cases,
+/// THE non-negotiable soundness invariant: for every one of the 122 remaining
+/// divergence cases,
 /// the live native reasoner's verdict on the committed `input.nq` must NEVER
 /// contradict the W3C published verdict recorded in `profile.json`. An
 /// `incomplete` native token is always sound — an honest "cannot decide". A
@@ -137,13 +93,13 @@ fn read_expected_status(case: &Path, slug: &str) -> String {
 /// answer. All violations are collected and reported together, not just the
 /// first.
 ///
-/// Off-gate (`_heavy_offgate`): re-runs the live reasoner over all 154 cases, so
+/// Off-gate (`_heavy_offgate`): re-runs the live reasoner over all 122 cases, so
 /// in a debug build it exceeds the default nextest slow-timeout backstop. It runs
 /// in the exhaustive `maint-heavy` lane, alongside the other whole-corpus W3C
 /// conformance proofs; the fast coverage-floor test below stays on the default gate.
 #[test]
 fn never_a_wrong_decided_verdict_heavy_offgate() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
         let profile = read_profile(case);
@@ -168,7 +124,8 @@ fn never_a_wrong_decided_verdict_heavy_offgate() {
     );
 }
 
-/// Drift pin (scaling): for every one of the 154 cases, the live native
+/// Drift pin (scaling): for every one of the 122 remaining divergence cases, the
+/// live native
 /// reasoner reproduces the frozen honest gap EXACTLY — `native_token ==
 /// "incomplete"`, matching both the committed `expected/verdicts.json` world
 /// status and the `profile.json` `native_verdict`. This catches a reasoner
@@ -180,10 +137,10 @@ fn never_a_wrong_decided_verdict_heavy_offgate() {
 /// each case's OWN committed files — nothing is hardcoded here.
 ///
 /// Off-gate (`_heavy_offgate`): like the soundness test above, it re-runs the
-/// reasoner over all 154 cases and runs in the `maint-heavy` lane.
+/// reasoner over all 122 cases and runs in the `maint-heavy` lane.
 #[test]
 fn native_reproduces_the_frozen_gap_heavy_offgate() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
         let native = native_token(&case.join("input.nq"));
@@ -231,7 +188,7 @@ fn native_reproduces_the_frozen_gap_heavy_offgate() {
 /// contradiction directions.
 #[test]
 fn full_divergence_corpus_meets_its_coverage_floor() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     assert!(
         cases.len() >= MIN_CASE_COUNT,
         "w3c-owl2-full-divergence corpus has only {} cases, below the coverage floor of {}",
@@ -239,7 +196,7 @@ fn full_divergence_corpus_meets_its_coverage_floor() {
         MIN_CASE_COUNT
     );
 
-    let corpus_json_path = corpus_root().join("corpus.json");
+    let corpus_json_path = divergence_root().join("corpus.json");
     let corpus_json: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(&corpus_json_path)
             .unwrap_or_else(|e| panic!("read {}: {e}", corpus_json_path.display())),

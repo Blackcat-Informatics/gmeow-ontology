@@ -1976,7 +1976,7 @@ msgstr "将霍奇分解关联到其恰当分量——位于适用边缘算子或
 
 msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
 msgid "coexact component"
-msgstr "上恰当分量"
+msgstr "余恰当分量"
 
 msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
 msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
@@ -2104,7 +2104,7 @@ msgstr "将 Mapper 构造关联到其滤波函数陪域的 math:Cover——一�
 
 msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
 msgid "clustering rule"
-msgstr "聚类规则关系"
+msgstr "聚类规则"
 
 msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
 msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
@@ -2503,7 +2503,7 @@ msgid "Relates a quadratic space or Clifford algebra to the quadratic form gover
 msgstr "将二次空间或 Clifford 代数关联到支配其度量关系的二次形式。"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
-msgid "scalar field"
+msgid "field of scalars"
 msgstr "标量域"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
@@ -2864,7 +2864,7 @@ msgstr "将向量符号运算关联到 math:VectorSymbolicCapacity 描述符，�
 
 msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
 msgid "recovery-loss contract"
-msgstr "恢复损失契约关系"
+msgstr "恢复损失契约"
 
 msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
 msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
@@ -2885,3 +2885,155 @@ msgstr "损失界"
 msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
 msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
 msgstr "将 math:RecoveryLossContract 关联到其恢复损失界的精确 math:RationalValue——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数——以精确的分子/分母对携带，绝非小数。定义域 math:RecoveryLossContract，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShape|rdfs:label"
+msgid "Tensor Shape"
+msgstr "张量形状"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShape|skos:definition"
+msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."
+msgstr "张量所声明的形状：其 math:tensorRank 连同每个轴一个 math:TensorAxis，每个轴携带一个从零开始的 math:axisIndex 及其长度。它是 math:MathematicalObject 的子类，由一切\"具有\"该形状的事物共享——为张量槽位定型的 math:ExpressionType 与占据该槽位的 math:WeightTensor 命名同一个形状对象，因此\"这两个张量形状相同\"是图中的同一性，而非两个渲染标签之间的字符串相等。它是形状，绝非载荷：长度只说明某个轴有多长，绝不说明张量装的是什么。没有形状是一个真实且比秩 0 更弱的主张，其写法是完全不命名 math:tensorShape，而绝不是给出一个不带任何轴的形状对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxis|rdfs:label"
+msgid "Tensor Axis"
+msgstr "张量轴"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxis|skos:definition"
+msgid "One indexed axis of a math:TensorShape: it carries exactly one zero-based integer math:axisIndex and at most one extent — a concrete math:axisExtent, or a math:symbolicExtent naming the math:FreeVariableDeclaration a named, unresolved extent stands for. Axis order is carried by these indexes, not by RDF list ordering, so [4,3] and [3,4] are different shapes and a transposed tensor is a different shape object rather than a coincidentally equal one. Indexes under one shape are unique, non-negative, zero-based, and contiguous, exactly as math:ArgumentSlot's are within one application. An axis carrying NEITHER extent is well-formed and informative: it says the rank counts this axis while the source declares nothing about how long it is."
+msgstr "math:TensorShape 的一个带索引的轴：它恰好携带一个从零开始的整数 math:axisIndex，并至多携带一个长度——具体的 math:axisExtent，或指明某个已命名但尚未解析的长度所代表的 math:FreeVariableDeclaration 的 math:symbolicExtent。轴序由这些索引承载，而非由 RDF 列表顺序承载，因此 [4,3] 与 [3,4] 是不同的形状，转置后的张量是另一个形状对象，而不是碰巧相等的同一个。同一形状下的索引唯一、非负、从零开始且连续，正如 math:ArgumentSlot 的索引在一次应用之内那样。一个两种长度都不携带的轴是良构且有信息量的：它表明秩把该轴计入其中，而来源对其长度未作任何声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorElementType|rdfs:label"
+msgid "Tensor Element Type"
+msgstr "张量元素类型"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorElementType|skos:definition"
+msgid "The datatype of a tensor's elements AS A TERM — a 32-bit float, a bfloat16, an int8, a bool, a complex or string element — rather than as a fragment of a rendered type label. A subclass of math:MathematicalObject, named through math:tensorElementType and bearing its format's spelling as its rdfs:label. It is a term so that 'every float16 tensor in this model' is a graph query over one shared node instead of a substring match, and so that an element format with no RDF datatype image (bfloat16, an 8-bit float, a 4-bit integer) has exactly the standing of one that has (xsd:float). Distinct from math:numericDatatype, which names the RDF datatype an approximate value's LITERAL is carried in: no literal is carried here, because a tensor element type describes a tensor whose values never cross."
+msgstr "张量元素的数据类型，作为一个\"术语\"——32 位浮点、bfloat16、int8、布尔、复数或字符串元素——而不是作为渲染后类型标签中的一个片段。它是 math:MathematicalObject 的子类，通过 math:tensorElementType 命名，并以其格式的写法作为 rdfs:label。之所以做成术语，是为了让\"该模型中所有 float16 张量\"成为对一个共享节点的图查询，而不是子串匹配；也是为了让没有 RDF 数据类型对应物的元素格式（bfloat16、8 位浮点、4 位整数）与有对应物的格式（xsd:float）享有完全相同的地位。它不同于 math:numericDatatype——后者命名近似值的\"字面量\"所承载的 RDF 数据类型：这里不承载任何字面量，因为张量元素类型描述的是其取值从不跨越边界的张量。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorShape|rdfs:label"
+msgid "tensor shape"
+msgstr "张量形状"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorShape|skos:definition"
+msgid "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorShape it declares. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorShape (stated in prose). Naming no shape is the positive claim that the source declared none — an unknown rank, which is strictly weaker than rank 0 and must never be conflated with a shape carrying no axis."
+msgstr "把为张量槽位定型的 math:ExpressionType，或某个 math:WeightTensor，关联到它所声明的 math:TensorShape。定义域为 math:ExpressionType 或 math:WeightTensor，值域为 math:TensorShape（以散文陈述）。不命名任何形状，是\"来源未声明形状\"这一肯定性主张——即秩未知，它严格弱于秩 0，绝不可与携带零个轴的形状混为一谈。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorRank|rdfs:label"
+msgid "tensor rank"
+msgstr "张量秩"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorRank|skos:definition"
+msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."
+msgstr "某个 math:TensorShape 所声明的轴的数量。定义域 math:TensorShape，值域 xsd:nonNegativeInteger（以散文陈述）。之所以显式携带而非留待清点，有两个理由：秩 0（标量——没有任何轴的形状）必须可被肯定地断言，而不能与轴被丢失的形状节点无从分辨；且计数聚合超出原生约束所使用的可判定片段，因此约束要拿来与 math:shapeAxis 家族比较的秩，必须以取值形式在场。"
+
+msgctxt "https://blackcatinformatics.ca/math/shapeAxis|rdfs:label"
+msgid "shape axis"
+msgstr "形状轴"
+
+msgctxt "https://blackcatinformatics.ca/math/shapeAxis|skos:definition"
+msgid "Relates a math:TensorShape to one math:TensorAxis — one indexed axis of the shape. Domain math:TensorShape, range math:TensorAxis (stated in prose). Axis order is carried by each axis's math:axisIndex, never by RDF list ordering: the same discipline math:argumentSlot applies to operand order, applied here to axis order, because a tensor's axes are as order-sensitive as a non-commutative operator's operands."
+msgstr "把一个 math:TensorShape 关联到一个 math:TensorAxis——该形状的一个带索引的轴。定义域 math:TensorShape，值域 math:TensorAxis（以散文陈述）。轴序由每个轴的 math:axisIndex 承载，绝不由 RDF 列表顺序承载：这正是 math:argumentSlot 施加于操作数顺序的同一纪律，在此施加于轴序，因为张量的轴与非交换算子的操作数一样对顺序敏感。"
+
+msgctxt "https://blackcatinformatics.ca/math/axisIndex|rdfs:label"
+msgid "axis index"
+msgstr "轴索引"
+
+msgctxt "https://blackcatinformatics.ca/math/axisIndex|skos:definition"
+msgid "The zero-based integer position of a math:TensorAxis within its math:TensorShape. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). Indexes under one shape are unique, non-negative, zero-based, and contiguous. Deliberately distinct from math:slotIndex, whose domain is a math:ArgumentSlot: a slot additionally owes exactly one math:slotExpression, an axis extent is not a math:MathematicalExpression, and an axis reusing that class would be a math:MalformedArgumentSlot by construction."
+msgstr "某个 math:TensorAxis 在其 math:TensorShape 中从零开始的整数位置。定义域 math:TensorAxis，值域 xsd:nonNegativeInteger（以散文陈述）。同一形状下的索引唯一、非负、从零开始且连续。它有意区别于 math:slotIndex——后者的定义域是 math:ArgumentSlot：槽位还额外欠恰好一个 math:slotExpression，而轴的长度并不是 math:MathematicalExpression，复用该类的轴按构造即为 math:MalformedArgumentSlot。"
+
+msgctxt "https://blackcatinformatics.ca/math/axisExtent|rdfs:label"
+msgid "axis extent"
+msgstr "轴长度"
+
+msgctxt "https://blackcatinformatics.ca/math/axisExtent|skos:definition"
+msgid "The concrete non-negative integer length of one math:TensorAxis. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). A shape fact — how many positions the axis has — never a value read out of the tensor, so carrying it is compatible with holding the tensor itself by reference. An axis carries this, OR a math:symbolicExtent, OR neither (the source states the axis exists but not its length); never both, because an extent that is at once 4 and 'batch' is two incompatible claims about one axis."
+msgstr "某个 math:TensorAxis 具体的非负整数长度。定义域 math:TensorAxis，值域 xsd:nonNegativeInteger（以散文陈述）。这是形状事实——该轴有多少个位置——绝非从张量中读出的取值，因此携带它与按引用持有张量本身完全相容。一个轴携带此项，\"或\"携带一个 math:symbolicExtent，\"或\"两者皆无（来源声明该轴存在但未声明其长度）；绝不可两者兼有，因为同时既是 4 又是\"batch\"的长度，是关于同一个轴的两个互不相容的主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/symbolicExtent|rdfs:label"
+msgid "symbolic extent"
+msgstr "符号长度"
+
+msgctxt "https://blackcatinformatics.ca/math/symbolicExtent|skos:definition"
+msgid "Relates a math:TensorAxis whose length the source leaves open to the math:FreeVariableDeclaration naming it — the 'batch' or 'sequence' axis of a model that is not fixed until the tensor is supplied. Domain math:TensorAxis, range math:FreeVariableDeclaration (stated in prose). A declaration rather than a bare string, so that two axes sharing a symbolic extent share ONE declaration and therefore genuinely denote the same unknown length; equality of two label strings would leave that co-identity to be re-derived by every consumer, which is the flattening this property exists to avoid."
+msgstr "把来源未确定其长度的 math:TensorAxis，关联到为该长度命名的 math:FreeVariableDeclaration——即模型中直到张量被给出才确定的\"batch\"或\"sequence\"轴。定义域 math:TensorAxis，值域 math:FreeVariableDeclaration（以散文陈述）。用声明而非裸字符串，是为了让共享同一符号长度的两个轴共享\"同一份\"声明，从而真正指称同一个未知长度；两个标签字符串的相等会把这一共指关系留给每个消费者各自重新推导，而这正是本属性所要避免的扁平化。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorElementType|rdfs:label"
+msgid "tensor element type"
+msgstr "张量元素类型"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorElementType|skos:definition"
+msgid "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorElementType of its elements. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorElementType (stated in prose). The element format is stated by every interchange format that carries a computation graph, so leaving it inside a rendered type label would discard a fact the source makes explicit."
+msgstr "把为张量槽位定型的 math:ExpressionType，或某个 math:WeightTensor，关联到其元素的 math:TensorElementType。定义域为 math:ExpressionType 或 math:WeightTensor，值域为 math:TensorElementType（以散文陈述）。凡承载计算图的交换格式都会陈述元素格式，因此把它留在渲染后的类型标签内部，等于丢弃来源已明确给出的事实。"
+
+msgctxt "https://blackcatinformatics.ca/math/retainedSource|rdfs:label"
+msgid "retained source"
+msgstr "保留的源"
+
+msgctxt "https://blackcatinformatics.ca/math/retainedSource|skos:definition"
+msgid "The source artifact a math:parseSource witness retains, verbatim. Domain the retained source witness, range a literal (stated in prose): the source text for a textual artifact, or xsd:base64Binary for a binary one. This is what makes the witness mnemomorphic rather than amnesic — math:parseSource requires a witness 'carrying enough of the source to recover what the lift did not map', and a witness bearing only a type and logic:loadBearing carries strictly less than the opaque blob that definition already rejects. It is the retained half of the put leg: with it, get is a projection along a witness; without it, get is a reconstruction."
+msgstr "math:parseSource 见证逐字保留的源工件。定义域为该保留源见证，值域为字面量（以散文陈述）：文本工件为源文本，二进制工件为 xsd:base64Binary。这正是使见证具备记忆形态而非失忆的东西——math:parseSource 要求见证\"携带足够的源，以便恢复提升未曾映射的部分\"，而仅携带一个类型和 logic:loadBearing 的见证，携带的严格少于该定义已经拒斥的不透明二进制块。它是 put 支路中被保留的那一半：有了它，get 是沿见证的投影；没有它，get 就是重建。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceDigest|rdfs:label"
+msgid "source digest"
+msgstr "源摘要"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceDigest|skos:definition"
+msgid "A content digest identifying the source artifact a math:parseSource witness refers to, for a source whose bytes are NOT retained. Domain the retained source witness, range a literal digest (stated in prose). It is the blob-by-reference complement of math:retainedSource: a binary artifact — an ONNX model's weight payload, a data matrix, an MCMC sample — is held by reference and never inlined, so the witness names the artifact instead of embedding it. A digest identifies; it does not retain, so a witness carrying only this one does NOT support a logic:mnemomorphic claim and cannot climb to a section/retraction rung."
+msgstr "用以标识 math:parseSource 见证所指向的源工件的内容摘要，适用于字节\"未\"被保留的源。定义域为该保留源见证，值域为摘要字面量（以散文陈述）。它是 math:retainedSource 的按引用补充：二进制工件——ONNX 模型的权重载荷、数据矩阵、MCMC 采样——按引用持有而绝不内联，因此见证是命名该工件而非嵌入它。摘要只标识，并不保留，因此仅携带摘要的见证\"不\"支持 logic:mnemomorphic 主张，也无法攀上截面／收缩的层级。"
+
+msgctxt "https://blackcatinformatics.ca/math/unmappedConstruct|rdfs:label"
+msgid "unmapped construct"
+msgstr "未映射构造"
+
+msgctxt "https://blackcatinformatics.ca/math/unmappedConstruct|skos:definition"
+msgid "Names a construct present in the retained source that the lift did NOT carry into the math: codomain — MULTI-valued. Domain the math:parseSource witness, range a literal naming the construct (stated in prose). The second half of what math:parseSource demands: the witness must let a consumer recover WHAT THE LIFT DID NOT MAP, which the source alone answers only by re-parsing it. Enumerating the residue makes a lossy lens's loss queryable rather than merely declared by its logic:preservationKind rung."
+msgstr "命名保留的源中存在、而提升\"未\"带入 math: 陪域的构造——多值。定义域为 math:parseSource 见证，值域为命名该构造的字面量（以散文陈述）。这是 math:parseSource 所要求内容的另一半：见证必须让消费者能够恢复\"提升未曾映射的部分\"，而仅凭来源本身回答这一问题只能靠重新解析。把残余逐项列出，使有损透镜的损失变得可查询，而不只是由其 logic:preservationKind 层级加以声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/SourceAnnotation|rdfs:label"
+msgid "Source Annotation"
+msgstr "源注解"
+
+msgctxt "https://blackcatinformatics.ca/math/SourceAnnotation|skos:definition"
+msgid "A reified free-form annotation an ingested source carried on ITSELF: a machine key (math:annotationKey), its value (math:annotationValue), and a human rendering (rdfs:label). It rides on the math:parseSource witness through math:sourceAnnotation, so a producer's own metadata — an exporter's declared IR version, a licence, an author, a 'converted from' note — survives the lift as a queryable pair rather than as prose a consumer must re-split. Reification is what keeps several annotations from being cross-paired: flat key and value properties on one bearer produce a cross product the moment a second annotation appears. It is deliberately NOT a gmeow:Identifier — an Identifier is a reified EXTERNAL-identifier record whose value resolves an entity within a named scheme (an ORCID, an LEI, a ROR ID), and typing a producer's free-form note as one would assert an external-identity claim the source never made."
+msgstr "被摄入的源对\"其自身\"所携带的一条具体化的自由格式注解：一个机器键（math:annotationKey）、其取值（math:annotationValue）以及一个面向人的呈现（rdfs:label）。它通过 math:sourceAnnotation 附着于 math:parseSource 见证之上，使生产方自身的元数据——导出器声明的 IR 版本、许可证、作者、一条\"转换自\"备注——能以可查询的键值对形式挺过提升，而不是变成消费者必须重新切分的散文。具体化正是防止多条注解被交叉配对的关键：同一承载者上扁平的键属性与值属性，一旦出现第二条注解就会产生笛卡尔积。它有意\"不是\" gmeow:Identifier——Identifier 是具体化的\"外部\"标识记录，其取值在一个具名方案内解析某个实体（ORCID、LEI、ROR 标识），把生产方的自由格式备注定型为它，等于断言来源从未作出的外部身份主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceAnnotation|rdfs:label"
+msgid "source annotation"
+msgstr "源注解"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceAnnotation|skos:definition"
+msgid "Relates a math:parseSource witness to one math:SourceAnnotation the ingested source carried — MULTI-valued. Domain the math:parseSource witness, range math:SourceAnnotation (stated in prose). The witness already retains the source verbatim (math:retainedSource) and enumerates what the lift did not carry (math:unmappedConstruct); this is the third leg, the metadata the source declared about itself that the lift DID read. An annotation reaching here is carried, so it is never also residue."
+msgstr "把 math:parseSource 见证关联到被摄入的源所携带的一条 math:SourceAnnotation——多值。定义域为 math:parseSource 见证，值域为 math:SourceAnnotation（以散文陈述）。该见证已逐字保留了源（math:retainedSource），并列举了提升未曾带入的部分（math:unmappedConstruct）；本属性是第三条支路：来源关于自身所声明、且提升\"确已\"读取的元数据。抵达此处的注解是被带入的，因此绝不会同时是残余。"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationKey|rdfs:label"
+msgid "annotation key"
+msgstr "注解键"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationKey|skos:definition"
+msgid "The machine key of a math:SourceAnnotation — the name under which the source filed the annotation. Domain math:SourceAnnotation, range a literal (stated in prose). It is the source's own spelling, unnormalized: rewriting a producer's key would make the retained annotation disagree with the retained source it is drawn from."
+msgstr "一条 math:SourceAnnotation 的机器键——即来源归档该注解时所用的名称。定义域 math:SourceAnnotation，值域为字面量（以散文陈述）。它是来源自身的写法，未经规范化：改写生产方的键会使保留下来的注解与其所出自的保留源相互矛盾。"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationValue|rdfs:label"
+msgid "annotation value"
+msgstr "注解值"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationValue|skos:definition"
+msgid "The value of a math:SourceAnnotation — what the source filed under its math:annotationKey. Domain math:SourceAnnotation, range a literal (stated in prose). Carried verbatim, including the empty string where the source declared an empty value, because an annotation's presence with an empty value is a different fact from its absence."
+msgstr "一条 math:SourceAnnotation 的取值——即来源归在其 math:annotationKey 之下的内容。定义域 math:SourceAnnotation，值域为字面量（以散文陈述）。逐字承载，包括来源声明了空值时的空字符串，因为\"注解在场且取值为空\"与\"注解不在场\"是两个不同的事实。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraphOf|rdfs:label"
+msgid "dependency graph of"
+msgstr "依赖图所属"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraphOf|skos:definition"
+msgid "Relates a math:ProofDependencyGraph to the math:Proof it underlies. Domain math:ProofDependencyGraph, range math:Proof (stated in prose). math:ProofDependencyGraph's own definition names the proof it underlies, so without this property that naming is prose only and the DAG floats unattached in the lifted graph — a consumer asking which proof a DAG belongs to would have to infer it from co-generation by the same math:ProofIngestRun, which is a run-scoped coincidence rather than the structural fact."
+msgstr "把一个 math:ProofDependencyGraph 关联到它所支撑的 math:Proof。定义域 math:ProofDependencyGraph，值域 math:Proof（以散文陈述）。math:ProofDependencyGraph 自身的定义已点明它所支撑的证明，因此若无本属性，那一点明便只是散文，而该 DAG 在提升后的图中悬空无依——询问某个 DAG 属于哪个证明的消费者，将不得不从\"由同一次 math:ProofIngestRun 共同生成\"去推断，而那是与运行相关的巧合，并非结构性事实。"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|rdfs:label"
+msgid "uses inference rule"
+msgstr "使用推理规则"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
+msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
+msgstr "把一个 math:ProofStep 关联到许可该步骤的推理规则。定义域 math:ProofStep，值域在散文中保持\"开放\"：该规则可以是 logic: 规则或证明轨迹标识、某个证明器具名的演算规则，或按内容寻址的触发标识；与 logic: 的耦合是按引用进行，而非向其断言三元组。它是 math:usesProofMethod 在步骤层面的对应物，后者命名的是一个 math:Proof 的整体策略；一个归结步骤的许可并不是该证明的策略，因此二者是处于不同层次的两个属性。"

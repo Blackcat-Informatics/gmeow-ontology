@@ -16,86 +16,18 @@
 # =============================================================================
 
 # --------------------------------------------------------------------------- #
-# TermEquivalence
+# Native alignment cell — well-formedness gate moved SHACL -> Rust.
+#
+# A term alignment is now a native RDF-1.2 asserting annotation on the match
+# triple itself (`S <match-predicate> O {| gmeow:sssomFile "…" ; … |}`), not a
+# reified typed subject. The former hand-authored node shape (which validated an
+# authored subject/predicate/object triple + fields) has no typed subject to
+# target, so its well-formedness gate now lives in the fail-closed native reader
+# `gmeow_logic_compile::projections::sssom` (`extract_native_equivalences`): a
+# reifier carrying `gmeow:sssomFile` whose match triple is malformed — a non-IRI
+# object or a non-alignment predicate — is a HARD FAIL there, and the grounding
+# invariants are enforced by the correspondence frontend transpiler.
 # --------------------------------------------------------------------------- #
-
-gmeow:TermEquivalenceShape
-    a sh:NodeShape ;
-    rdfs:label "TermEquivalence shape"@en ;
-    logic:formalizes gmeow:TermEquivalenceSubjectRequiredConstraint, gmeow:TermEquivalencePredicateRequiredConstraint,
-        gmeow:TermEquivalenceObjectRequiredConstraint, gmeow:TermEquivalenceSssomFileRequiredConstraint,
-        gmeow:TermEquivalenceConfidenceRangeConstraint ;
-    sh:targetClass gmeow:TermEquivalence ;
-    sh:property [
-        sh:path gmeow:alignSubject ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "TermEquivalence must have exactly one gmeow:alignSubject (IRI)"
-    ] ;
-    sh:property [
-        sh:path gmeow:alignPredicate ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "TermEquivalence must have exactly one gmeow:alignPredicate (IRI)"
-    ] ;
-    sh:property [
-        sh:path gmeow:alignObject ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "TermEquivalence must have exactly one gmeow:alignObject (IRI)"
-    ] ;
-    sh:property [
-        sh:path gmeow:sssomFile ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "TermEquivalence must have exactly one gmeow:sssomFile (string)"
-    ] ;
-    sh:property [
-        sh:path gmeow:confidence ;
-        sh:maxCount 1 ;
-        sh:minInclusive 0 ;
-        sh:maxInclusive 1 ;
-        sh:severity sh:Violation ;
-        sh:message "confidence must be a single numeric value in [0,1]"
-    ] ;
-    sh:property [
-        sh:path gmeow:justification ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "justification must be a single IRI"
-    ] ;
-    sh:property [
-        sh:path logic:morphismClass ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:in ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
-            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ;
-        sh:severity sh:Violation ;
-        sh:message "morphismClass must be one declared logic:MorphismClass rung"
-    ] ;
-    sh:property [
-        sh:path logic:morphismKind ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:in ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ;
-        sh:severity sh:Violation ;
-        sh:message "morphismKind must be logic:InstitutionMorphism or logic:CommitmentShiftingBridge"
-    ] ;
-    sh:property [
-        sh:path logic:preservationKind ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:in ( logic:ExactPreservation logic:SoundUnderApproximation
-            logic:CompleteOverApproximation logic:InconsistencyPreserving
-            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ;
-        sh:severity sh:Violation ;
-        sh:message "preservationKind must be one declared logic:PreservationKind value"
-    ] .
 
 # A grounding correspondence is deliberately stronger authoring data than an ordinary
 # mapping row: both accepted frontends lower to the same shipped IR, and their endpoints,
@@ -116,16 +48,16 @@ logic:GroundingCorrespondenceShape
         gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint,
         gmeow:GroundingCorrespondencePreservationKindRequiredConstraint ;
     sh:targetClass logic:GroundingCorrespondence ;
-    sh:xone (
-        [ sh:class gmeow:TermEquivalence ]
-        [ sh:and (
-            [ sh:class gmeow:ProjectionMapping ]
-            [ sh:property [
-                sh:path gmeow:hasBinding ;
-                sh:minCount 1 ; sh:maxCount 1
-            ] ]
-        ) ]
-    ) ;
+    # Only the executable (gmeow:ProjectionMapping) grounding frontend is a typed
+    # subject targetable here; the native term-form grounding cell is an RDF-1.2
+    # annotation validated by the fail-closed Rust reader, not by this shape.
+    sh:class gmeow:ProjectionMapping ;
+    sh:property [
+        sh:path gmeow:hasBinding ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "an executable grounding correspondence must carry exactly one gmeow:hasBinding"
+    ] ;
     sh:property [
         sh:path gmeow:justification ;
         sh:minCount 1 ; sh:maxCount 1 ;
@@ -189,26 +121,14 @@ logic:GroundingCorrespondenceShape
         sh:message "GroundingCorrespondence endpoints must agree with the selected frontend's authored source and target" ;
         sh:select """
             SELECT $this WHERE {
-                {
-                    $this a gmeow:TermEquivalence ;
-                        logic:sourceEndpoint ?source ;
-                        logic:targetEndpoint ?target .
-                    FILTER(
-                        NOT EXISTS { $this gmeow:alignSubject ?source } ||
-                        NOT EXISTS { $this gmeow:alignObject ?target }
-                    )
-                }
-                UNION
-                {
-                    $this a gmeow:ProjectionMapping ;
-                        logic:targetEndpoint ?target ;
-                        gmeow:hasBinding ?binding .
-                    FILTER NOT EXISTS {
-                        ?binding ?targetProperty ?target .
-                        FILTER(?targetProperty IN (
-                            gmeow:toPredicate, gmeow:toClass, gmeow:edoalTarget
-                        ))
-                    }
+                $this a gmeow:ProjectionMapping ;
+                    logic:targetEndpoint ?target ;
+                    gmeow:hasBinding ?binding .
+                FILTER NOT EXISTS {
+                    ?binding ?targetProperty ?target .
+                    FILTER(?targetProperty IN (
+                        gmeow:toPredicate, gmeow:toClass, gmeow:edoalTarget
+                    ))
                 }
             }
         """
@@ -218,19 +138,9 @@ logic:GroundingCorrespondenceShape
         sh:message "A commitment-shifting BridgeView cannot claim an equivalence relation" ;
         sh:select """
             SELECT $this WHERE {
-                $this logic:morphismKind logic:CommitmentShiftingBridge .
-                {
-                    $this gmeow:alignPredicate ?predicate .
-                    FILTER(?predicate IN (
-                        skos:exactMatch, owl:equivalentClass,
-                        owl:equivalentProperty, owl:sameAs
-                    ))
-                }
-                UNION
-                {
-                    $this gmeow:hasBinding ?binding .
-                    ?binding gmeow:relation "=" .
-                }
+                $this logic:morphismKind logic:CommitmentShiftingBridge ;
+                    gmeow:hasBinding ?binding .
+                ?binding gmeow:relation "=" .
             }
         """
     ] ;

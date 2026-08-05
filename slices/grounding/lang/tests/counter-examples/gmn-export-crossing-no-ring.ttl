@@ -42,5 +42,5 @@ ex:envelopeExportUnbound a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
     gmeow:contentDigest "blake3:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0" ;
-    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
+    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

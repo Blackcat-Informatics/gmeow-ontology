@@ -8,11 +8,16 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Ephemeral build products (published on release, never committed).
-# Committed generated artifacts live under generated/ (#287) — one root,
-# every path owned by a registered generator.
-# ontology-docs/ is on-demand `gmeow-dev sync --outputs docs` output
-# rendered from canonical repository sources; it is never committed.
+# Ephemeral / generated products — reproducible from canonical sources, never committed.
+# generated/ is a git-ignored local/release projection of generated/dist/gmeow.gts:
+# `make check` (through its single producer, `check-sync`) materializes the whole
+# tree from canonical sources and reconstructs it
+# from the bundle. It is a product, not a committed input. (The retained products that
+# ride outside this projection — catalog-v001.xml and packages/python/gmeow_models/ —
+# live outside generated/ and stay tracked.)
+# ontology-docs/ is on-demand `gmeow-dev sync --outputs docs` output rendered from
+# canonical repository sources; it is never committed.
+/generated/
 /dist/
 /dist/i18n/
 /dist/ontology-docs/
@@ -22,16 +27,6 @@ htmlcov/
 
 # Stamp files (compilation freshness tracking)
 .stamps/
-
-# Release-as-evidence conformance verdicts (#673, §18): an ephemeral roll-up
-# produced fresh by `make conformance-report` and folded into the signed release
-# bundle. Engine-dependent and regenerated per release — never committed.
-generated/conformance/
-
-# Local content-addressed build cache written by `gmeow-dev sync` — a per-machine
-# incremental-rebuild store (multi-hundred-MB blobs), rebuilt on demand and never
-# a committed projection deliverable.
-generated/.pipeline-cache/
 
 # Editor/OS noise
 .DS_Store
@@ -43,6 +38,10 @@ generated/.pipeline-cache/
 
 # Toolchain temp directories (hard-kill leftovers)
 .gmeow-tmp-*/
+
+# Maint-lane scratch: fetched-at-maint-time external assets (e.g. the restricted-license
+# Llama/Gemma tokenizer.json the token-cost-matrix lane curls in) — never committed.
+/.tmp/
 
 # Rust build artifacts
 /target/

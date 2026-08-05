@@ -15,9 +15,9 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
-        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "Describing and dogfooding GTS transport artifacts: packages, segments, profiles, chain heads, opaque frames, codecs, and compaction lineage (GTS transport design, docs/GTS-SPEC.md)."@x-gmeow-english.

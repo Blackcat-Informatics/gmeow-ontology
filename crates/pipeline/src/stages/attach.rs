@@ -88,6 +88,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         "stage-source-load",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
+            "https://blackcatinformatics.ca/gmeow/graph/grounding-seams",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
             "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
             "https://blackcatinformatics.ca/gmeow/graph/metadata",
@@ -120,8 +121,9 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[],
     );
 
-    // stage-math-producers — the five flagship producer graphs plus the probability-model
-    // seam, p-value tri-slice, and exact Clifford producer graphs.
+    // stage-math-producers — the five flagship producer graphs (the rBridge one being the
+    // executable r-lift) plus the probability-model seam, p-value tri-slice, and exact
+    // Clifford producer graphs, and the ONNX / proof lift producer graphs.
     entry(
         &mut t,
         "stage-math-producers",
@@ -129,12 +131,23 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/onnx-lift",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
-            "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift",
         ],
+        &[],
+    );
+
+    // stage-gmn-training-corpus — the enumerated + certified GMN training corpus (and the typed
+    // rejections), one bundle-internal named graph.
+    entry(
+        &mut t,
+        "stage-gmn-training-corpus",
+        &["https://blackcatinformatics.ca/gmeow/graph/gmn-training-corpus"],
         &[],
     );
 
@@ -156,6 +169,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws",
             "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus",
+            "https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus",
@@ -175,11 +189,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
-    // stage-validate — the SHACL diagnostics graph + diagnostics nodes.
+    // stage-validate — the SHACL diagnostics graph, the advisory dual-projection's
+    // materialised ComplianceAssessment claim graph (D4), + diagnostics nodes.
     entry(
         &mut t,
         "stage-validate",
-        &["https://blackcatinformatics.ca/gmeow/graph/diagnostics"],
+        &[
+            "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
+            "https://blackcatinformatics.ca/gmeow/graph/norm-claims",
+        ],
         &["diagnostics:nodes"],
     );
 
@@ -230,8 +248,10 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/memory.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/music.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/narrative.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/purremb.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/functions.fno.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/glossary.vartrans.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/list-functions.fno.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/lillith.dcat.ttl",
@@ -241,6 +261,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-pipeline.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/scores.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/skos/gmeow-skos.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/projections/activitystreams.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/bibframe.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/bibo.edoal",

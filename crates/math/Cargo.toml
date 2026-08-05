@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-math"
 description = "GMEOW reusable exact-rational geometry: an inner-product-space over a metric Gram matrix plus the pure math: graph loaders, computed OUTSIDE the reasoned core"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -21,3 +21,16 @@ purrdf.workspace = true
 # typed `Diag` under the `math.*` code namespace, not a bare string. Non-optional —
 # the substrate is the standard error surface for this grounding crate.
 gmeow-errors = { path = "../errors" }
+# The mandatory GTS authorship profile. `index_turtle` normalizes Turtle through
+# the GTS snapshot codec, so it authors a bundle and must use the one permitted
+# frame profile rather than calling the writer directly.
+gmeow-gts-profile = { path = "../gts-profile" }
+# gmeow-math-lift: the executable R / ONNX / proof ingestion front-ends. The three
+# lift producers in `src/producers.rs` call the SAME `r::lift` / `onnx::lift` /
+# `proof::lift` entrypoints the shipped CLI calls, over the crate's real committed
+# fixtures embedded at COMPILE TIME (`include_str!` / `include_bytes!`), so the
+# in-bundle producer stays pure (no disk read, no arguments, no clock) while the
+# bundle carries the output of the ACTUAL parsers rather than a hand-typed
+# imitation of them. One implementation, two byte sources. Acyclic: math-lift
+# depends on purrdf + gmeow-errors + gmeow-term-arena and never on gmeow-math.
+gmeow-math-lift = { path = "../math-lift" }

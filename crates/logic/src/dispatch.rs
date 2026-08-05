@@ -453,7 +453,7 @@ pub fn dispatch_query(
     // A parsed production program is flat (the parser never mints a `Struct` term), so the
     // structured routing inside `resolve_native_under` is not taken and this fresh arena is
     // unused; it is present so the structured entry has a valid owning arena to thread.
-    let mut dag = crate::physical::term_dag::TermDag::new();
+    let mut dag = gmeow_term_arena::engine::TermDag::new();
     match crate::physical::resolve_native_under(
         &contract_hash,
         foreign,
@@ -463,15 +463,50 @@ pub fn dispatch_query(
         &mut dag,
     )? {
         crate::physical::NativeOutcome::Decided(answer) => Ok(answer),
-        crate::physical::NativeOutcome::Unsupported(kind) => {
-            Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
-                detail: format!(
-                    "native backward engine does not support {kind:?}; query refused because \
-                     no fallback engine remains"
-                ),
-            }))
-        }
+        crate::physical::NativeOutcome::Unsupported(kind) => Err(refuse_native_gap(&kind)),
     }
+}
+
+/// Build the typed refusal diagnostic for a native declared gap.
+///
+/// A moded-builtin gap ([`UnsupportedKind::Arithmetic`] carrying captured
+/// [`BuiltinGap`](crate::physical::BuiltinGap)s) is NOT an anonymous "does not support
+/// Arithmetic": it is minted into a [`gmeow_errors::DiagLedger`] of ledgered per-kind
+/// findings (distinct `finding_iri`/`anchor_iri` per `math:` failure class) via the
+/// single shared [`crate::reason::builtin_gap`] helper, and the returned diagnostic
+/// NAMES each gap's `math:` class + operation, with the ledgered findings' identity
+/// hung off it as antecedent quad IRIs. A structural refusal (empty gaps) or any other
+/// kind keeps the plain typed-refusal message.
+fn refuse_native_gap(kind: &crate::physical::UnsupportedKind) -> gmeow_errors::Diag {
+    if let crate::physical::UnsupportedKind::Arithmetic(gaps) = kind
+        && !gaps.is_empty()
+    {
+        let ledger = crate::reason::builtin_gap::builtin_gap_ledger(gaps);
+        // The ledgered per-kind finding IRIs, carried as explain-skeleton citations so the
+        // refusal is joinable to the distinct findings the ledger projected.
+        let finding_iris: Vec<String> = ledger
+            .findings("reason")
+            .into_iter()
+            .filter_map(|f| f.finding_iri)
+            .collect();
+        return gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: crate::reason::builtin_gap::builtin_gap_refusal_detail(gaps),
+        })
+        .with_derived_from_quads(finding_iris);
+    }
+    // A structural refusal (an empty-gap `Arithmetic`, or any other declared kind) keeps
+    // the plain typed-refusal message. `Arithmetic` renders WITHOUT its (empty) gap
+    // payload so the label stays the stable `Arithmetic`, never `Arithmetic([])`.
+    let label = match kind {
+        crate::physical::UnsupportedKind::Arithmetic(_) => "Arithmetic".to_owned(),
+        other => format!("{other:?}"),
+    };
+    gmeow_errors::Diag::of_kind(crate::error::Reason {
+        detail: format!(
+            "native backward engine does not support {label}; query refused because \
+             no fallback engine remains"
+        ),
+    })
 }
 
 /// Resolve directly over an infallible resident or validated succinct-pack RDF view.
@@ -1539,6 +1574,76 @@ mod tests {
         };
         assert_eq!(answer.bindings.len(), 1);
         assert_eq!(answer.bindings[0]["N"], format!("\"3\"^^<{XSD_INT}>"));
+    }
+
+    #[test]
+    fn exact_rational_answer_flows_through_dispatch() {
+        // The scalar-ℚ family is demonstrable end-to-end on the PRODUCTION query
+        // surface: a rule computing an exact rational (`H is 6 / 4` → 3/2) with the
+        // distinct `/` operator resolves through `dispatch_query` and returns the
+        // normalized rational transport binding.
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("kind"), &p("item"));
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            dispatch_query(&foreign, W, &prog, PROCEDURAL_PROFILE, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one exact-rational answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(
+            ans.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
+    #[test]
+    fn dimension_composition_flows_through_dispatch() {
+        // The dimension algebra is demonstrable end-to-end on the PRODUCTION query
+        // surface: a rule composing two SI dimensions (`D is A * B`, length ⊗ time)
+        // fed from EDB dimension-transport facts resolves through `dispatch_query` and
+        // returns the composed dimension transport binding.
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        let length = purrdf::TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = purrdf::TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                purrdf::TermValue::iri(p("a")),
+                purrdf::TermValue::iri(p("dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                purrdf::TermValue::iri(p("a")),
+                purrdf::TermValue::iri(p("dimTime")),
+                time,
+            )
+            .unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            dispatch_query(&foreign, W, &prog, PROCEDURAL_PROFILE, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one composed dimension: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(
+            ans.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
     }
 
     #[test]

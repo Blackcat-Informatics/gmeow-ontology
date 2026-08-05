@@ -1,13 +1,12 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 277
 expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **16**.
+Version **17**.
 
-This site documents **5462** vocabulary terms across **83** slices.
+This site documents **6878** vocabulary terms across **85** slices.
 
 ## I want to…
 
@@ -28,20 +27,20 @@ This site documents **5462** vocabulary terms across **83** slices.
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 1734 |
-| [Properties](properties/index.md) | 2921 |
-| [Individuals](individuals/index.md) | 806 |
+| [Classes](classes/index.md) | 1882 |
+| [Properties](properties/index.md) | 3297 |
+| [Individuals](individuals/index.md) | 1698 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse
 
-- [All slices](slices/index.md) — the 83 compilation units.
+- [All slices](slices/index.md) — the 85 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
-- [Linkages](linkages/index.md) — 2114 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 176 worked examples.
-- [External ontologies](external-ontologies/index.md) — 1800 external terms referenced.
+- [Linkages](linkages/index.md) — 2119 term equivalences to external vocabularies.
+- [Examples](examples/index.md) — 203 worked examples.
+- [External ontologies](external-ontologies/index.md) — 1803 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
-- [What GMEOW enforces](enforced-constraints/index.md) — 63 validation rules the toolchain enforces.
+- [What GMEOW enforces](enforced-constraints/index.md) — 71 validation rules the toolchain enforces.
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
 - [Learning paths](learning-paths/index.md) — 5 curated adoption journeys.
 - [What is this?](four-boxes/index.md) — the ABox/TBox/RBox/CBox/ConfigBox doctrine.

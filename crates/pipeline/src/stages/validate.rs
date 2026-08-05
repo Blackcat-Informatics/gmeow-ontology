@@ -14,11 +14,24 @@ use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_errors::{DiagLedger, Finding, Report, Severity, StageId};
+use gmeow_logic::result_rdf::GRAPH_REASONING;
 use purrdf::provenance::DatasetProvenance;
 use serde_json::json;
 
+use crate::bundle::PipelineHandle;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::BASE_GRAPH_PATH;
+
+/// Strip a leading `<` / trailing `>` off a reasoned-axiom term string. The EL closure's
+/// [`InferredAxiom`](gmeow_logic::reason::el::InferredAxiom) subject/predicate/object are
+/// stored as bare or angle-wrapped IRIs; the reason stage's own closure serializer treats
+/// them uniformly as IRIs, so this mirrors that when re-projecting the derived rows.
+fn bare_iri(value: &str) -> &str {
+    value
+        .strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .unwrap_or(value)
+}
 
 /// Committed JSON projection of the DAG SHACL diagnostics report.
 pub const SHACL_JSON_PATH: &str = "generated/diagnostics/shacl.json";
@@ -28,6 +41,148 @@ pub const SHACL_SARIF_PATH: &str = "generated/diagnostics/shacl.sarif";
 pub const SHACL_HTML_PATH: &str = "generated/diagnostics/shacl.html";
 /// Committed `gmeow:Finding` N-Quads projection of the DAG SHACL diagnostics report.
 pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
+
+/// The `shacl.json` metadata key carrying [`shacl_input_digest`] — the exact input
+/// set this stage validated.
+///
+/// A consumer that reads the RECORDED merged-SHACL verdict instead of re-running the
+/// pass MUST recompute this digest over the working tree and hard-fail on absence or
+/// mismatch. Absence means the record predates the digest contract and its vintage is
+/// unknowable; mismatch means the record describes different bytes than are on disk.
+/// Neither is ever a skip and neither is ever a silent pass.
+pub const SHACL_INPUT_DIGEST_KEY: &str = "shaclInputDigest";
+
+/// The `shacl.json` metadata key carrying the verdict's fold over ITS OWN recorded
+/// content ([`crate::stages::diag_render::record_digest`]).
+///
+/// [`SHACL_INPUT_DIGEST_KEY`] and this answer two different questions, and neither
+/// substitutes for the other: the input digest says WHICH BYTES were validated, this says
+/// WHAT VERDICT WAS RECORDED. Hand-deleting a violation from `shacl.json` touches no
+/// validated input, so the input digest still matches the working tree exactly — which is
+/// precisely why a consumer that gates on the recorded findings must also verify that the
+/// findings are the ones the pass produced.
+///
+/// The stamp is applied by the RENDERER that writes `shacl.json`
+/// ([`crate::stages::diag_render::render_diagnostics_artifacts`]'s `seal` argument), not
+/// by this stage, so it necessarily attests the bytes that are written rather than an
+/// intermediate value; a consumer recomputes it with
+/// [`crate::stages::diag_render::verify_record_digest`].
+pub const SHACL_RECORD_DIGEST_KEY: &str = "shaclRecordDigest";
+
+/// The canonical digest of everything the merged-SHACL pass consumed: the authored
+/// source corpus and the shape union.
+///
+/// `members` is a sequence of `(repo-relative path, `[`ShaclInputMember`]`)` pairs; the
+/// digest sorts them, so a caller may assemble the two halves in any order. Each entry
+/// folds its path, its byte length, and its bytes, so a rename, a truncation, and a
+/// content edit are all distinguishable. Bytes are supplied BY REFERENCE — a resident
+/// member borrows this run's carrier bytes and an on-disk member is read at its turn and
+/// released immediately — so the fold's peak residency is ONE member, not the whole
+/// validated corpus.
+///
+/// The SHAPE half is what makes this the drift detector `generated/shapes/*.ttl` needs.
+/// `stage-validate` structurally never reads that directory — it validates against THIS
+/// run's freshly-produced shape bytes (the deliberate anti-stale-fold law in
+/// [`crate::stages::shape_union_fresh`]) — so a consumer comparing its own DISK-read
+/// union against this digest is precisely testing whether the committed shape files
+/// still equal what the pipeline produced and validated with. That is the one thing the
+/// old duplicate whole-corpus SHACL run caught and nothing else did; it is preserved
+/// here rather than lost.
+///
+/// # Errors
+/// A member whose bytes must be read from disk and cannot be. A missing input makes the
+/// digest meaningless, so it is a hard failure rather than a shorter fold.
+pub fn shacl_input_digest(
+    mut members: Vec<(String, ShaclInputMember<'_>)>,
+) -> Result<String, gmeow_errors::Diag> {
+    // Stable sort by path: a caller may assemble the two halves in any order, and two
+    // members sharing a path (an authored shape file listed by both halves) keep their
+    // assembly order, so the fold is exactly the one the whole-corpus `Vec` produced.
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-shacl-input-v1\x1e");
+    for (path, member) in &members {
+        // ONE member's bytes are resident at a time: an on-disk member is read, folded,
+        // and dropped before the next is opened. Materializing the whole corpus first
+        // (authored sources + the shape union) peaked at the full byte size of every
+        // validated input simultaneously, on top of the already-resident source graph.
+        let bytes: std::borrow::Cow<'_, [u8]> = match member {
+            ShaclInputMember::Resident(bytes) => std::borrow::Cow::Borrowed(bytes),
+            ShaclInputMember::OnDisk(path) => {
+                std::borrow::Cow::Owned(std::fs::read(path).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("digesting SHACL input {}: {e}", path.display()),
+                    })
+                })?)
+            }
+        };
+        hasher.update(path.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
+        hasher.update(&bytes);
+        hasher.update(b"\x1e");
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+/// One member of the [`shacl_input_digest`] fold, carried BY REFERENCE so the fold never
+/// materializes the whole validated corpus at once.
+#[derive(Debug, Clone)]
+pub enum ShaclInputMember<'a> {
+    /// Bytes already resident in this run's carrier — a shape surface THIS run produced
+    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]). Folding
+    /// borrows them; nothing is copied.
+    Resident(&'a [u8]),
+    /// A file whose bytes the fold reads at its turn and releases immediately after.
+    OnDisk(std::path::PathBuf),
+}
+
+/// The repo-relative, forward-slashed logical path of `path` under `root` — the key each
+/// [`shacl_input_digest`] member folds under.
+pub(crate) fn digest_member_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+/// `paths` as on-disk [`shacl_input_digest`] members, keyed repo-relative.
+fn on_disk_members(
+    root: &Path,
+    paths: Vec<std::path::PathBuf>,
+) -> Vec<(String, ShaclInputMember<'static>)> {
+    paths
+        .into_iter()
+        .map(|path| {
+            let rel = digest_member_path(root, &path);
+            (rel, ShaclInputMember::OnDisk(path))
+        })
+        .collect()
+}
+
+/// The digest of the merged-SHACL input set as it stands ON DISK under `root`: every
+/// authored source file plus every member of the committed shape union
+/// (`purrdf::shapes::shape_union::shape_files`, `generated/shapes/*.ttl` included).
+///
+/// This is the value a consumer of the recorded verdict recomputes and compares
+/// against the `shaclInputDigest` in `shacl.json`. It reads `generated/shapes/*.ttl`
+/// off disk DELIBERATELY — that read is the whole point, since the recorded digest
+/// covers the bytes the pipeline actually validated with.
+///
+/// # Errors
+/// If the authored source list or the shape-union file list cannot be built, or any
+/// member cannot be read. A missing input makes the digest meaningless, so it is a
+/// hard failure rather than a shorter fold.
+pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::Diag> {
+    let mut members = on_disk_members(root, crate::stages::source_load::authored_files(root)?);
+    let shape_files = purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("listing the committed shape union: {e}"),
+        })
+    })?;
+    members.extend(on_disk_members(root, shape_files));
+    shacl_input_digest(members)
+}
 
 /// Convert the native SHACL engine report into the canonical diagnostics report.
 ///
@@ -111,6 +266,9 @@ fn render_artifacts(
         },
         gate,
         meta,
+        // The SHACL verdict is the one diagnostics record a gate reads back instead of
+        // re-running (`gmeow-dev validate`'s recorded-merged-SHACL path), so it is sealed.
+        Some(SHACL_RECORD_DIGEST_KEY),
     )
 }
 
@@ -125,7 +283,7 @@ pub fn validate_source_graph(
     root: &Path,
     source_nquads: &[u8],
     fresh: &BTreeMap<String, Vec<u8>>,
-) -> Result<Report, gmeow_errors::Diag> {
+) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
     // Parse the source graph into the native IR and validate it directly through the
     // native SHACL engine (`validate_dataset`), oxigraph-free.
     let dataset =
@@ -134,10 +292,17 @@ pub fn validate_source_graph(
                 message: format!("source graph parse: {e}"),
             })
         })?;
-    let (_shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
+    let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
     let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
-    Ok(diagnostics_report(&report))
+    // Split the advisory tier out of the raw results: an Info-severity result comes from a
+    // `logic:severity "Info"` advisory constraint, so its raw shacl.* finding is suppressed
+    // and it is re-projected as a Note + deonticRecommendation advisory (fires from a DATA
+    // MATCH). The shape store carries each advisory shape's `logic:formalizes` provenance; the
+    // source `dataset` carries the formalized terms' howToUse/useWhen prose the advisory surfaces.
+    let (retained, advisories) =
+        gmeow_validate::advisory::split_advisory_results(report, &shape_store, &dataset);
+    Ok((diagnostics_report(&retained), advisories))
 }
 
 /// The `stage-validate` pipeline stage.
@@ -164,6 +329,17 @@ impl ValidateStage {
     /// carries a graph of the same name); byte-level cache soundness for the
     /// OPT-lifted shape surface is restored by declaring the compiler's non-authored
     /// raw sources in [`Stage::input_files`].
+    ///
+    /// It also consumes `stage-reason`, narrowed to the single `graph/reasoning`
+    /// named graph (the typed Reasoning handle's backing graph, mirroring
+    /// [`crate::stages::goal_directed::GoalDirectedStage`]): the D5 abductive tier
+    /// reads the REASONED graph, so the stage feeds the producer the union of the
+    /// authored source graph and the derived closure read off that handle. The
+    /// narrowing is faithful for cache soundness — `graph/reasoning` reifies EVERY
+    /// derived axiom, so its digest changes exactly when the closure this stage reads
+    /// changes — and it keeps this stage's `graph/diagnostics` attachment a genuine
+    /// DELTA (the reason product also carries a `graph/diagnostics`, which the whole
+    /// product would fold into this stage's input set and mask the attach).
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -171,12 +347,19 @@ impl ValidateStage {
                 "stage-export-constraint-shapes".to_string(),
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
+                "stage-reason".to_string(),
                 "stage-source-load".to_string(),
             ],
-            entities: vec![(
-                "stage-compile-logic".to_string(),
-                crate::stages::compile_logic::carrier_entity_list(),
-            )],
+            entities: vec![
+                (
+                    "stage-compile-logic".to_string(),
+                    crate::stages::compile_logic::carrier_entity_list(),
+                ),
+                (
+                    "stage-reason".to_string(),
+                    vec![GRAPH_REASONING.to_string()],
+                ),
+            ],
         }
     }
 }
@@ -212,6 +395,15 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v6: the advisory tier is HARVESTED — the fixed demonstrator is gone;
+        // every ACCEPTED logic:CategoryRecommendation FormalizationCandidate in the
+        // source graph projects into a Note finding (→ `graph/diagnostics`) + a
+        // `gmeow:ComplianceAssessment` claim (→ `graph/norm-claims`), so the emitted
+        // advisory content now depends on the authored candidates (a version bump).
+        // v5: emit BOTH wings of the advisory dual-projection unconditionally — the
+        // flat Note finding folded into `report` (→ `graph/diagnostics`) AND the
+        // materialised `gmeow:ComplianceAssessment` claim in the new `graph/norm-claims`
+        // carrier named graph (D4), unioned into this stage's product dataset.
         // v4: the shape union's generated/shapes/*.ttl members are product-sourced
         // from the consumed producer stages (shape_union_fresh) instead of read off
         // disk, so a shape-source edit is ENFORCED (and its diagnostics rendered) in
@@ -223,7 +415,7 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v4-fresh-shape-union"
+        "validate.v6-advice-harvest"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -260,7 +452,28 @@ impl Stage for ValidateStage {
             self.id(),
             input.upstream,
         )?;
-        let mut report = validate_source_graph(input.root, source_graph, &fresh)?;
+        let (mut report, advisories) = validate_source_graph(input.root, source_graph, &fresh)?;
+        // Record EXACTLY what this pass validated: the authored source corpus, read
+        // from disk, plus the effective shape union — authored members from disk and
+        // generated members from THIS run's product bytes (never `generated/shapes` off
+        // disk, which is the previous run's projection). A consumer that reads this
+        // verdict instead of re-running the whole-corpus pass recomputes the same digest
+        // over its own DISK view and hard-fails on any difference; that comparison is
+        // what carries forward the `generated/shapes` drift detection the duplicate run
+        // used to provide.
+        {
+            let mut members = on_disk_members(
+                input.root,
+                crate::stages::source_load::authored_files(input.root)?,
+            );
+            members.extend(crate::stages::shape_union_fresh::effective_union_members(
+                input.root, &fresh,
+            )?);
+            report.metadata.insert(
+                SHACL_INPUT_DIGEST_KEY.to_owned(),
+                json!(shacl_input_digest(members)?),
+            );
+        }
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare
         // IRI in the finding's logical location) matches a span-index entry — the path +
         // 1-based line/column travel onto the SHIPPED finding locations (and, via the
@@ -311,13 +524,136 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             source_dataset.as_ref(),
         );
+        // Advisory tier: `validate_source_graph` already split the DATA-MATCHED advisory
+        // constraints (logic:severity "Info") out of the raw SHACL results — each is an
+        // instance whose data matched an anti-pattern guard, re-projected here through BOTH
+        // wings of the advisory dual-projection (the raw shacl.* finding was suppressed).
+        // This path is UNCONDITIONAL (no early-return between the report build above and
+        // here), so advice rides even a non-conforming corpus. A source in which no advisory
+        // guard matched yields nothing (honest empty advisory tier + empty norm-claims).
+        // Flat wing: fold each graded Note finding into `report` (→ rendered into
+        // `graph/diagnostics` below), routed through a `DiagLedger` exactly as
+        // `gmeow_validate::advisory`'s own test helper does, so each finding carries
+        // genuine ledger identity (finding_iri/anchor), not a hand-built stand-in.
+        let mut advisory_ledger = DiagLedger::new();
+        let mut advisory_claims = Vec::with_capacity(advisories.len());
+        for advisory in &advisories {
+            let projection = advisory.project();
+            advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+            advisory_claims.push(projection.claim);
+            report.add_rule(advisory.rule());
+        }
+        // D5 abductive tier: the constructive "what to ADD" wing. Each corroborated candidate
+        // is a WARRANT-as-Finding (attached first so it earns a real fingerprint_iri, its
+        // DiagRef captured) plus an advisory whose diag carries a genuine finding→finding
+        // `findingAntecedent` to that warrant — so the root-cause meta-fold resolves the warrant
+        // join non-DARK (ledger identity), not a bare string. The producer runs the native
+        // conjecture engine over an ISOLATED scenario world per candidate; `source_dataset` is
+        // only READ, never mutated (nothing is auto-asserted). Both wings ride the SAME
+        // advisory dual-projection loop below: flat Note advisory + warrant findings →
+        // `graph/diagnostics`, `deonticRecommendation` claim → `graph/norm-claims`.
+        // The D5 abductive tier reads the REASONED graph ("asserted OR entailed"), so it is
+        // fed the UNION of the authored source graph (its A-Box/TBox individuals + asserted
+        // types/relata — without which the schema guards match ZERO subjects) AND the derived
+        // closure read off the consumed `stage-reason` product's typed Reasoning handle (the
+        // entailed-only types/relata that let the producer catch a subject/relatum only an
+        // inference makes true). HARD-fail if the reason product or its Reasoning handle is
+        // missing — never a silent fall back to the authored-only graph (the
+        // silent-capability-degradation violation): a validate run without its reasoned
+        // upstream is an incomplete build, not licence for a weaker abductive pass.
+        let reason_product = input.upstream.get("stage-reason").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: "missing stage-reason product — the D5 abductive tier requires the \
+                          reasoned closure (asserted OR entailed), never the authored graph alone"
+                    .to_owned(),
+            })
+        })?;
+        let reasoning_entry = reason_product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "stage-reason product carries no typed Reasoning handle at \
+                         <{GRAPH_REASONING}>"
+                    ),
+                })
+            })?;
+        let PipelineHandle::Reasoning(reasoning) = &reasoning_entry.payload else {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("the handle at <{GRAPH_REASONING}> is not the Reasoning arm"),
+            }));
+        };
+        // Reconstruct the derived (non-EDB) closure triples off the live handle — the same
+        // rows `build_inferred_closure_ttl` serializes, minus the reifier provenance the
+        // abductive readers never match. Every EL-closure term is an IRI (the reason stage's
+        // `axiom_triple` uses `iri_term` for subject/predicate/object), so a bare N-Triples
+        // projection is faithful; the abductive readers query with `GraphMatch::Any`, so the
+        // default-graph landing is visible.
+        let mut closure_nt = String::new();
+        for axiom in reasoning.inferred().iter().filter(|axiom| !axiom.is_edb) {
+            use std::fmt::Write as _;
+            let _ = writeln!(
+                closure_nt,
+                "<{}> <{}> <{}> .",
+                bare_iri(&axiom.subject),
+                bare_iri(&axiom.predicate),
+                bare_iri(&axiom.object),
+            );
+        }
+        let closure_dataset =
+            purrdf::parse_dataset(closure_nt.as_bytes(), "application/n-triples", None).map_err(
+                |e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("reasoned closure parse (abductive union): {e}"),
+                    })
+                },
+            )?;
+        let reasoned_dataset = Arc::new(purrdf::RdfDataset::union(&[
+            source_dataset.as_ref(),
+            closure_dataset.as_ref(),
+        ]));
+        let abductive_suggestions =
+            gmeow_validate::abductive::abductive_advisories(reasoned_dataset.as_ref());
+        for suggestion in abductive_suggestions {
+            let warrant_ref =
+                advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+            let projection = suggestion.advisory.project();
+            advisory_ledger.attach(
+                projection.diag.with_antecedents([warrant_ref]),
+                StageId::new("validate.advisory"),
+            );
+            advisory_claims.push(projection.claim);
+            report.add_rule(suggestion.advisory.rule());
+        }
+        // The flat findings are added after the ledger is fully attached (findings("validate")
+        // reads the whole batch), keeping their genuine ledger identity.
+        for advisory_finding in advisory_ledger.findings("validate") {
+            report.add_finding(advisory_finding);
+        }
+        // Claim wing: materialise the ComplianceAssessment claims as N-Quads into THEIR
+        // OWN carrier named graph (`graph/norm-claims`), parsed the same way the SHACL
+        // diagnostics RDF is parsed into `graph/diagnostics` below.
+        let claim_nq = gmeow_validate::advisory::project_compliance_assessment(
+            &advisory_claims,
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        );
+        let claim_dataset = crate::stages::carrier::parse_into_graph(
+            claim_nq.as_bytes(),
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        )?;
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
         // These SHACL findings are the ones that can join the gate-fatal up-set, so their
         // diagnostics graph must carry the DERIVED verdict or gmeow:GateFatalUpsetShape
-        // fires under validate-gts. A source without the authored rule yields None and the
-        // projection stays byte-unchanged (never a faked verdict).
+        // fires under the authored-source `make validate` / stage-validate SHACL pass.
+        // A source without the authored rule yields None and the projection stays
+        // byte-unchanged (never a faked verdict).
         let gate = crate::stages::gate_verdict::GateProgram::from_source(source_graph);
         // Build the reasoner-derived diagnostic meta-fold from the SAME authored source
         // graph (the base-graph carries the gmeow:DiagnosticMetaRule rules + the
@@ -331,6 +667,15 @@ impl Stage for ValidateStage {
                 })
             },
         )?;
+        // The verdict is SEALED inside `render_artifacts` (the `seal` argument below):
+        // the digest of the record's own content is stamped there, after the meta-fold
+        // enrichment and as the last mutation before the renderers run, so it attests
+        // exactly the findings and metadata the committed `shacl.json` carries. Stamping
+        // it HERE instead would digest a value no consumer ever sees — `to_json` writes
+        // `Report::normalized()`, which reorders findings and deduplicates rules. A
+        // consumer that reads those findings instead of re-running the pass recomputes
+        // the digest and refuses a record whose content has been edited since — deleting
+        // a violation by hand is a corrupt record, never a clean run.
         let artifacts = render_artifacts(&report, gate.as_ref(), meta.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
@@ -342,11 +687,19 @@ impl Stage for ValidateStage {
                 message: format!("render_artifacts omitted {SHACL_RDF_PATH}"),
             })
         })?;
-        let dataset = crate::stages::carrier::parse_into_graph(
+        let diagnostics_dataset = crate::stages::carrier::parse_into_graph(
             shacl_rdf,
             "application/n-quads",
             crate::stages::carrier::GRAPH_DIAGNOSTICS,
         )?;
+        // UNION the two named-graph datasets so this stage's product bundle carries
+        // BOTH `graph/diagnostics` (the flat advisory Note + SHACL findings) AND
+        // `graph/norm-claims` (the materialised ComplianceAssessment claim, D4) —
+        // one stage product, two carrier destinations from the same advisory event.
+        let dataset = Arc::new(purrdf::RdfDataset::union(&[
+            diagnostics_dataset.as_ref(),
+            claim_dataset.as_ref(),
+        ]));
         // FORWARD diagnostics fold: the producer's report findings are the SINGLE source
         // of both the shipped `graph/diagnostics` RDF (above) AND the run-level
         // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on
@@ -405,6 +758,172 @@ mod tests {
         )])
     }
 
+    use crate::stages::diag_render::{record_digest, verify_record_digest};
+
+    /// A recorded verdict with a violation DELETED by hand is refused, even though every
+    /// validated input is byte-identical and the input digest therefore still matches.
+    ///
+    /// This is the exact hand-edit the input-only guard could not see: `shacl.json` is a
+    /// product, nothing else on disk moves when it is edited, and the gate reads its
+    /// findings. The record's own content digest is what makes the edit visible.
+    #[test]
+    fn a_verdict_with_a_deleted_violation_is_refused() {
+        let mut report = Report::new("shacl");
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Thing violates ex:Shape",
+        ));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.violation",
+            "ex:Other violates ex:Shape",
+        ));
+        report
+            .metadata
+            .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+        let digest = record_digest(&report, SHACL_RECORD_DIGEST_KEY).expect("digest");
+        report
+            .metadata
+            .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+
+        // Control: the sealed record is admitted.
+        verify_record_digest(&report, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect("a sealed verdict is admitted");
+
+        // The hand-edit: drop one violation, leave the declared digest (and every input,
+        // hence the input digest) untouched — the whole point is that nothing else moves.
+        let mut tampered = report.clone();
+        tampered.findings.remove(0);
+        assert_eq!(
+            tampered.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            report.metadata.get(SHACL_INPUT_DIGEST_KEY),
+            "the input digest is untouched by the edit — that is why it cannot catch it"
+        );
+        let err = verify_record_digest(&tampered, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a verdict with a violation deleted must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the violated witness: {err}"
+        );
+
+        // Rewriting a finding's MESSAGE (same count) is caught too — the fold is over
+        // content, not cardinality.
+        let mut reworded = report.clone();
+        reworded.findings[0].message = "ex:Thing is fine, actually".to_owned();
+        verify_record_digest(&reworded, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a reworded finding must be REFUSED");
+
+        // An absent witness is unattestable content, not a pass.
+        let mut unwitnessed = report.clone();
+        unwitnessed.metadata.remove(SHACL_RECORD_DIGEST_KEY);
+        let err = verify_record_digest(&unwitnessed, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
+            .expect_err("a verdict carrying no record digest must be REFUSED");
+        assert!(
+            err.to_string().contains(SHACL_RECORD_DIGEST_KEY),
+            "the refusal names the missing witness: {err}"
+        );
+    }
+
+    /// PRODUCER → CONSUMER, in one process, through the REAL renderer: the bytes
+    /// [`render_artifacts`] writes to `shacl.json` are parsed back exactly as
+    /// `gmeow-dev validate` parses the committed file, and must verify.
+    ///
+    /// This is the round trip the class of bug lives in, and it is deliberately driven
+    /// with a report the producer would build but the renderer would NOT write verbatim:
+    /// the findings are appended out of `sort_key` order and one rule is pushed twice.
+    /// `to_json` writes `Report::normalized()`, so the written record has its findings
+    /// REORDERED and its duplicate rule DROPPED. A digest folded over the pre-render
+    /// report therefore attests a value nobody can recompute — the exact disagreement
+    /// this test would have caught, and now cannot recur.
+    #[test]
+    fn the_rendered_record_verifies_against_the_digest_the_renderer_stamped() {
+        let mut report = Report::new("shacl");
+        // Out of sort_key order (Error sorts before Warning; within a severity, by code).
+        report.add_finding(Finding::new(Severity::Warning, "shacl.zzz", "a warning"));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.aaa",
+            "ex:Thing violates ex:Shape",
+        ));
+        report.add_finding(Finding::new(Severity::Warning, "shacl.aaa", "another"));
+        // The advisory wing pushes one rule PER FIRING, so a rule genuinely repeats;
+        // `normalize` deduplicates by id, shortening the rendered rule list.
+        report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
+        report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
+        report.add_rule(gmeow_errors::Rule::new("shacl.zzz", Severity::Warning));
+        report
+            .metadata
+            .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+        report
+            .metadata
+            .insert("shaclResultCount".to_owned(), json!(3));
+
+        let artifacts = render_artifacts(&report, None, None).expect("render");
+        let json = artifacts.get(SHACL_JSON_PATH).expect("rendered shacl.json");
+        let recorded: Report = serde_json::from_slice(json).expect("parse the committed record");
+
+        // The renderer really did rewrite the content the naive fold would have digested.
+        assert_ne!(
+            recorded.findings.len(),
+            0,
+            "the rendered record carries the findings"
+        );
+        assert_eq!(
+            recorded.rules.len(),
+            2,
+            "the renderer deduplicated the repeated rule — a pre-render fold would have \
+             digested three"
+        );
+        assert_eq!(
+            recorded.findings[0].code, "shacl.aaa",
+            "the renderer reordered the findings — a pre-render fold would have digested \
+             the append order"
+        );
+
+        // The consumer's check: the SAME call `gmeow-dev validate` makes over the parsed
+        // committed record.
+        verify_record_digest(&recorded, SHACL_RECORD_DIGEST_KEY, "<round-trip>").expect(
+            "the record the renderer WROTE must verify against the digest the renderer \
+             STAMPED — writer and reader are one fold over the rendered form",
+        );
+
+        // And the seal is over the rendered content, so an edit to it is still refused.
+        let mut tampered = recorded.clone();
+        tampered.findings.remove(0);
+        verify_record_digest(&tampered, SHACL_RECORD_DIGEST_KEY, "<round-trip>")
+            .expect_err("an edit to the rendered record is still refused");
+    }
+
+    /// A producer that passes no `seal` writes NO record digest — the seal is opt-in per
+    /// producer, and `stage-compile-logic`'s record (which nobody reads back) stays
+    /// byte-unchanged.
+    #[test]
+    fn an_unsealed_render_carries_no_record_digest() {
+        let mut report = Report::new("logic-compile");
+        report.add_finding(Finding::new(Severity::Note, "logic.loss", "a lossy drop"));
+        let artifacts = crate::stages::diag_render::render_diagnostics_artifacts(
+            "stage-compile-logic",
+            &report,
+            &crate::stages::diag_render::DiagnosticsPaths {
+                json: SHACL_JSON_PATH,
+                sarif: SHACL_SARIF_PATH,
+                html: SHACL_HTML_PATH,
+                rdf: SHACL_RDF_PATH,
+            },
+            None,
+            None,
+            None,
+        )
+        .expect("render");
+        let recorded: Report =
+            serde_json::from_slice(artifacts.get(SHACL_JSON_PATH).expect("json")).expect("parse");
+        assert!(
+            !recorded.metadata.contains_key(SHACL_RECORD_DIGEST_KEY),
+            "an unsealed render stamps nothing"
+        );
+    }
+
     #[test]
     fn validate_stage_emits_sarif_for_shacl_violation() {
         let repo = mock_repo(
@@ -421,7 +940,8 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) =
+            validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.error_count(), 1);
         assert_eq!(
             report.metadata["shaclGatePassed"],
@@ -462,7 +982,8 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) =
+            validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.findings.len(), 1);
         let finding = &report.findings[0];
         assert!(
@@ -569,6 +1090,12 @@ ex:RequiredShape a sh:NodeShape ;
                 StageProduct::from_artifacts(producer, artifacts),
             );
         }
+        // The D5 abductive tier consumes stage-reason's reasoned closure; an empty-EDB
+        // fixture yields an empty closure (the reasoned union is the authored graph alone).
+        upstream.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
         let input = StageInput {
             root: repo.path(),
             upstream: &upstream,
@@ -596,6 +1123,395 @@ ex:RequiredShape a sh:NodeShape ;
             !finding.remediation.is_empty(),
             "the pipeline validate-stage report must carry a remediation, matching the CLI \
              path: {finding:?}"
+        );
+    }
+
+    /// Build the full `ValidateStage::run` harness — a `stage-source-load` product
+    /// with an empty base graph + `REP_SPAN_TABLE` blob, plus header-only members for
+    /// the four shape producers — parameterized on the authored `shapes/gmeow-shapes.ttl`
+    /// body, and run the stage. Factored out of
+    /// `stage_validate_run_is_enriched_matching_the_cli_path` so Task 4's two new tests
+    /// reuse the EXACT same harness shape rather than a hand-rolled twin.
+    /// The base-graph fixture (N-Quads, default graph): an individual whose data MATCHES
+    /// the advisory constraint in `ADVICE_SHAPE` (`ex:badThing a gmeow:Foo`). The
+    /// data-matching guard fires exactly one Info result, which the bridge lifts into a
+    /// Note advisory + one ComplianceAssessment through the full stage.
+    const ADVICE_BASE_NQ: &str = "<https://ex.test/badThing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Foo> .\n";
+
+    /// An advisory `logic:Constraint` in its projected SHACL form: a `sh:SPARQLConstraint`
+    /// at `sh:severity sh:Info` (the advisory tier) carrying `logic:formalizes` (its
+    /// provenance), whose guard returns every `gmeow:Foo` instance. It fires against
+    /// `ADVICE_BASE_NQ`'s individual, and the bridge re-projects that Info match as a
+    /// Note + deonticRecommendation advisory.
+    const ADVICE_SHAPE: &str = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+<https://ex.test/FooAdviceShape> a sh:NodeShape ;
+    logic:formalizes gmeow:Foo ;
+    sh:targetClass gmeow:Foo ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Info ;
+        sh:message "prefer a more specific sortal than bare gmeow:Foo" ;
+        sh:select "SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Foo> }" ;
+    ] .
+"#;
+
+    fn run_full_stage(base_nq: &str, shapes: &str) -> StageOutput {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo(shapes);
+
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), base_nq.as_bytes().to_vec());
+        let span_index = crate::ingest::SpanIndex::new();
+        let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_string(), product);
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        // The D5 abductive tier consumes stage-reason's reasoned closure. A fixture with an
+        // empty EDB yields an empty closure, so the reasoned union is exactly the authored
+        // source graph — this harness exercises the advisory wiring, not entailment.
+        upstream.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
+        let input = StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        };
+        ValidateStage::new().run(input).expect("validate stage run")
+    }
+
+    /// The GMEOW namespace prefix. `crates/validate/src/advisory.rs`'s `GMEOW`
+    /// constant is crate-private, so this trivial namespace string is redeclared
+    /// here — the same per-module local-const idiom used across the workspace
+    /// (`crates/docs`, `crates/conformance`, …) rather than a shared export.
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    /// Assert the `graph/norm-claims` graph carries the D4 `gmeow:ComplianceAssessment`
+    /// claim shape: exactly one subject typed `gmeow:ComplianceAssessment`, with exactly
+    /// one `gmeow:complianceVerdict` and a `gmeow:vantage` of `gmeowBestPractice`, whose
+    /// `gmeow:assessedNorm` object carries `gmeow:deonticModality` = `deonticRecommendation`
+    /// AND a `gmeow:normIssuer`. Falsifiable: an empty or malformed norm-claims graph
+    /// fails every assertion below (not a vacuous existence check).
+    fn assert_compliance_assessment_present(ds: &purrdf::RdfDataset) {
+        use purrdf::RdfTerm;
+
+        let quads: Vec<_> = ds.owned_quads().collect();
+
+        let assessment_class = format!("{GMEOW}ComplianceAssessment");
+        let assessment_subjects: Vec<RdfTerm> = quads
+            .iter()
+            .filter(|q| {
+                q.predicate.as_str() == RDF_TYPE_IRI
+                    && matches!(&q.object, RdfTerm::Iri(o) if o == &assessment_class)
+            })
+            .map(|q| q.subject.clone())
+            .collect();
+        assert_eq!(
+            assessment_subjects.len(),
+            1,
+            "expected exactly one gmeow:ComplianceAssessment subject in graph/norm-claims, \
+             got {assessment_subjects:?}"
+        );
+        let assessment = &assessment_subjects[0];
+
+        let verdict_pred = format!("{GMEOW}complianceVerdict");
+        let verdicts: Vec<_> = quads
+            .iter()
+            .filter(|q| &q.subject == assessment && q.predicate.as_str() == verdict_pred)
+            .collect();
+        assert_eq!(
+            verdicts.len(),
+            1,
+            "expected exactly one gmeow:complianceVerdict on the assessment, got {verdicts:?}"
+        );
+
+        let vantage_pred = format!("{GMEOW}vantage");
+        let best_practice_standpoint =
+            RdfTerm::Iri(gmeow_validate::advisory::BEST_PRACTICE_STANDPOINT_IRI.to_owned());
+        let vantages: Vec<_> = quads
+            .iter()
+            .filter(|q| {
+                &q.subject == assessment
+                    && q.predicate.as_str() == vantage_pred
+                    && q.object == best_practice_standpoint
+            })
+            .collect();
+        assert_eq!(
+            vantages.len(),
+            1,
+            "expected exactly one gmeow:vantage = gmeowBestPractice on the assessment, \
+             got {vantages:?}"
+        );
+
+        let assessed_norm_pred = format!("{GMEOW}assessedNorm");
+        let norms: Vec<RdfTerm> = quads
+            .iter()
+            .filter(|q| &q.subject == assessment && q.predicate.as_str() == assessed_norm_pred)
+            .map(|q| q.object.clone())
+            .collect();
+        assert_eq!(
+            norms.len(),
+            1,
+            "expected exactly one gmeow:assessedNorm on the assessment, got {norms:?}"
+        );
+        let norm = &norms[0];
+
+        let modality_pred = format!("{GMEOW}deonticModality");
+        let deontic_recommendation =
+            RdfTerm::Iri(gmeow_validate::advisory::DEONTIC_RECOMMENDATION_IRI.to_owned());
+        let modalities: Vec<_> = quads
+            .iter()
+            .filter(|q| {
+                &q.subject == norm
+                    && q.predicate.as_str() == modality_pred
+                    && q.object == deontic_recommendation
+            })
+            .collect();
+        assert_eq!(
+            modalities.len(),
+            1,
+            "expected the assessedNorm to carry gmeow:deonticModality = deonticRecommendation, \
+             got {modalities:?}"
+        );
+
+        let issuer_pred = format!("{GMEOW}normIssuer");
+        let issuers: Vec<_> = quads
+            .iter()
+            .filter(|q| &q.subject == norm && q.predicate.as_str() == issuer_pred)
+            .collect();
+        assert!(
+            !issuers.is_empty(),
+            "expected the assessedNorm to carry a gmeow:normIssuer, found none"
+        );
+    }
+
+    /// BOTH advisory wings must ride a CONFORMING run over a base graph
+    /// carrying one accepted recommendation candidate. Reuses the full
+    /// `ValidateStage::run` harness with a shape module that cannot fire against the
+    /// base graph (no `sh:targetNode`/property shape), so the run is genuinely
+    /// conforming (`shacl.clean`), and asserts:
+    ///  - the report carries a HARVESTED flat advisory finding (`advice.*`, tagged
+    ///    `advisory-harvested`) at the Advisory standpoint (routed into
+    ///    `graph/diagnostics`), NOT the raw `shacl.*` Info finding (suppressed);
+    ///  - the stage product's `graph/norm-claims` carries the materialised
+    ///    `gmeow:ComplianceAssessment` claim, in full documented shape.
+    ///
+    /// Falsifiable: this asserts the actual emitted content, not mere presence.
+    #[test]
+    fn stage_validate_emits_both_advice_projections() {
+        let output = run_full_stage(ADVICE_BASE_NQ, ADVICE_SHAPE);
+
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+        assert_eq!(
+            report.error_count(),
+            0,
+            "the advisory Info match must NOT gate — a conforming run: {report:?}"
+        );
+
+        let advisory_finding = report
+            .findings
+            .iter()
+            .find(|f| {
+                f.code.starts_with("advice.") && f.tags.iter().any(|t| t == "advisory-harvested")
+            })
+            .expect("a harvested advice.* finding must be present when the guard matched");
+        assert_eq!(
+            advisory_finding.severity,
+            gmeow_errors::Severity::Note,
+            "the harvested advisory is a Note: {advisory_finding:?}"
+        );
+        assert_eq!(
+            advisory_finding.standpoint,
+            Some(gmeow_errors::Standpoint::Advisory),
+            "the advisory finding must carry the Advisory standpoint: {advisory_finding:?}"
+        );
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.severity == gmeow_errors::Severity::Info
+                    && f.code.starts_with("shacl.")
+                    && f.code != "shacl.clean"),
+            "the raw shacl.* Info constraint finding must be SUPPRESSED (re-projected as the \
+             Note; only the informational shacl.clean record may remain): {report:?}"
+        );
+
+        let norm_claims = output
+            .product
+            .dataset()
+            .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS);
+        assert_compliance_assessment_present(&norm_claims);
+    }
+
+    /// Task 4 (Completion-Adversary F5): the `gmeow:ComplianceAssessment` claim must be
+    /// emitted UNCONDITIONALLY — even on a NON-conforming run — because it rides the
+    /// same unconditional completion path as the flat advisory Note (never gated behind
+    /// `report.conforms`). Reuses the SHACL-violation shape from
+    /// `validate_stage_emits_sarif_for_shacl_violation` inside the full `run` harness so
+    /// the report genuinely carries a SHACL error. Falsifiable: guarding the emit behind
+    /// `if report.conforms` (or any early return before the emit) makes this test fail.
+    #[test]
+    fn stage_validate_emits_advice_claim_even_when_nonconforming() {
+        // Both the advisory Info shape (which the base graph's gmeow:Foo individual matches)
+        // AND a hard minCount violation shape, so the run is genuinely non-conforming yet the
+        // advisory claim still rides the unconditional completion path.
+        let shapes = format!(
+            "{ADVICE_SHAPE}\n\
+@prefix ex: <https://example.test/> .\n\
+ex:RequiredShape a sh:NodeShape ;\n\
+    sh:targetNode ex:thing ;\n\
+    sh:property [\n\
+        sh:path ex:required ;\n\
+        sh:minCount 1 ;\n\
+        sh:message \"required value is missing\" ;\n\
+    ] .\n"
+        );
+        let output = run_full_stage(ADVICE_BASE_NQ, &shapes);
+
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+        assert!(
+            report.error_count() >= 1,
+            "the minCount-violation corpus must be genuinely non-conforming: {report:?}"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "shacl.MinCountConstraintComponent"),
+            "expected the SHACL minCount violation finding: {report:?}"
+        );
+
+        let norm_claims = output
+            .product
+            .dataset()
+            .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS);
+        assert_compliance_assessment_present(&norm_claims);
+    }
+
+    /// The D5 abductive tier reads the REASONED graph, so `ValidateStage::run` HARD-FAILS
+    /// when its `stage-reason` upstream is absent — it never silently falls back to the
+    /// authored-only source graph (the silent-capability-degradation violation this fix
+    /// forbids). Falsifiable: restoring an authored-graph fallback in place of the
+    /// stage-reason `ok_or_else` makes this expect-err assertion fail.
+    #[test]
+    fn stage_validate_hard_fails_without_the_reasoned_upstream() {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo("# no shapes\n");
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        let span_blob =
+            serde_json::to_vec(&crate::ingest::SpanIndex::new()).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-source-load".to_string(),
+            StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+        );
+        // Every generated-shape producer is present, so the stage reaches the abductive
+        // tier — but stage-reason is deliberately OMITTED.
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        let err = match ValidateStage::new().run(StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        }) {
+            Ok(_) => panic!("validate must hard-fail without stage-reason, never authored-only"),
+            Err(e) => e,
+        };
+        assert!(
+            format!("{err:?}").contains("stage-reason"),
+            "the hard-fail must name the missing stage-reason upstream: {err:?}"
         );
     }
 }

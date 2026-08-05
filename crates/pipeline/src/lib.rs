@@ -20,6 +20,8 @@
 //! * [`scheduler`] — level-parallel execution + per-resource serialization (P2).
 //! * [`provenance`] — per-stage `OriginKind` / `UnitId` stamping (P2).
 //! * [`stages`] — the concrete production stages (P3–P5).
+//! * [`docs_measure`] — measured, deterministic per-format documentation byte
+//!   sizes and the three external-distribution design totals.
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
@@ -30,25 +32,23 @@
 pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
+pub mod catalog_families;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod diagnostics_reader;
+pub mod docs_distribution;
 pub mod docs_loss_lattice;
+pub mod docs_measure;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
-pub(crate) mod gmeow_ns;
-/// Test-support only: the flagship discharge harness discovers the real slice catalog
-/// with the same vocab the mappings stage uses. Re-exported doc-hidden so it is reachable
-/// from the integration test without publishing the `gmeow_ns` module as stable API.
-#[doc(hidden)]
-pub use gmeow_ns::gmeow_slice_vocab;
 pub mod graph;
 pub(crate) mod gts_profile;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
+pub mod projection_profiles;
 pub mod projections;
 pub mod provenance;
 pub mod put_executor;
@@ -69,21 +69,22 @@ pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
 pub use fanout::{FanoutReport, fanout};
 pub use generator_registry::{
-    GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, committed_generated_paths,
-    generator_by_name, generator_metadata, generator_names, generator_order,
+    GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, generator_by_name,
+    generator_metadata, generator_names, generator_order, retained_product_paths,
 };
 pub use graph::StageGraph;
+pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
 pub use node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct,
+    CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    Stage, StageInput, StageOutput, StageProduct,
 };
 pub use registry::{StageRegistry, default_registry};
 pub use run::{
     RunMode, RunOutputScope, RunReport, full_spec, run_full, run_full_scoped,
     run_full_scoped_with_progress,
 };
-pub use scheduler::{RunContext, RunResult, run};
+pub use scheduler::{CarrierRetention, RunContext, RunResult, run};
 
 #[cfg(test)]
 mod tests;

@@ -139,10 +139,19 @@ pub const GRANDFATHERED_DC: &[&str] = &["dc:rights"];
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
+/// The grounding namespace, checked alongside `gmeow:`.
+///
+/// When a domain term is superseded by a grounding term, its alignment cells are
+/// RE-KEYED onto the grounding spine rather than dropped. Scoping the direction check to
+/// `gmeow:` subjects would silently stop checking those cells at exactly the moment they
+/// moved — the alignment would still ship, and nothing would verify its direction again.
+/// The `is_property` guard below still applies, so this admits only cells whose subject is
+/// a declared property.
+const LOGIC_PREFIX: &str = "logic:";
+
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
@@ -177,9 +186,25 @@ const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjoin
 const OWL_ALL_DISJOINT_PROPERTIES: &str = "http://www.w3.org/2002/07/owl#AllDisjointProperties";
 const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+// ── logic: property-characteristic carrier ────────────────────────────────────
+// GMEOW (authoring-namespace) properties no longer carry `rdf:type
+// owl:FunctionalProperty` in source: functionality lives on the canonical
+// `logic:PropertyCharacteristicAssertion` carrier (`logic:characterizes ?P` joined with
+// `logic:characteristicSort logic:functionalProperty`). The GMEOW-side character read
+// below joins this carrier so a functional GMEOW property is still recognized; the
+// TARGET/external side continues to read `rdf:type owl:FunctionalProperty` directly, as
+// those vocabularies legitimately declare the OWL characteristic.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
+const LOGIC_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "https://blackcatinformatics.ca/logic/inverseFunctionalProperty";
 
 const SCHEMA_INVERSE_OF: &str = "https://schema.org/inverseOf";
 const SCHEMA_DOMAIN_INCLUDES: &str = "https://schema.org/domainIncludes";
@@ -662,7 +687,7 @@ pub fn lint_alignment_directions(inputs: &SoundnessInputs<'_>) -> Vec<Projection
     let mut gmeow_props: BTreeMap<String, Vec<Mapping>> = BTreeMap::new();
     let mut referenced: BTreeSet<String> = BTreeSet::new();
     for m in mappings {
-        if !m.subject_id.starts_with(GMEOW_PREFIX) {
+        if !m.subject_id.starts_with(GMEOW_PREFIX) && !m.subject_id.starts_with(LOGIC_PREFIX) {
             continue;
         }
         let Some(prefix) = prefix_of(&m.object_id) else {
@@ -1020,9 +1045,15 @@ fn check_property_character(
     for (prop, prop_mappings) in gmeow_props {
         let g_is_object = has_type(onto, prop, OWL_OBJECT_PROPERTY);
         let g_is_data = has_type(onto, prop, OWL_DATATYPE_PROPERTY);
+        // The functional / inverse-functional characteristics of a GMEOW property now live
+        // on the canonical `logic:PropertyCharacteristicAssertion` carrier, not on an
+        // `rdf:type owl:FunctionalProperty` triple; the remaining characteristics
+        // (Transitive/Symmetric) are still authored as OWL types. Read owl-typed
+        // characteristics via `rdf:type` AND the functional pair from the carrier.
+        let carrier_chars = gmeow_carrier_characteristics(onto, prop);
         let mut g_chars: Vec<String> = Vec::new();
         for char_iri in CHARACTER_TYPES {
-            if has_type(onto, prop, char_iri) {
+            if has_type(onto, prop, char_iri) || carrier_chars.contains(*char_iri) {
                 g_chars.push((*char_iri).to_owned());
             }
         }
@@ -1094,6 +1125,31 @@ fn check_property_character(
         }
     }
     findings
+}
+
+/// The OWL property-character IRIs a GMEOW property bears via its canonical
+/// `logic:PropertyCharacteristicAssertion` carrier(s). Each carrier record joins
+/// `logic:characterizes <prop>` with a `logic:characteristicSort` marker; the functional
+/// markers map back to their OWL projections so a functional GMEOW property compares
+/// equal to a target that declares `owl:FunctionalProperty`. Only the functional
+/// characteristics migrated to the carrier; Transitive/Symmetric stay OWL-typed and are
+/// read via `rdf:type` at the call site.
+fn gmeow_carrier_characteristics(onto: &DslView<'_>, prop: &str) -> BTreeSet<&'static str> {
+    let mut out: BTreeSet<&'static str> = BTreeSet::new();
+    for record in onto.subjects_with_object_iri(LOGIC_CHARACTERIZES, prop) {
+        for sort in onto.object_iris(&record, LOGIC_CHARACTERISTIC_SORT) {
+            match sort.as_str() {
+                LOGIC_FUNCTIONAL_PROPERTY => {
+                    out.insert(OWL_FUNCTIONAL_PROPERTY);
+                }
+                LOGIC_INVERSE_FUNCTIONAL_PROPERTY => {
+                    out.insert(OWL_INVERSE_FUNCTIONAL_PROPERTY);
+                }
+                _ => {}
+            }
+        }
+    }
+    out
 }
 
 fn character_finding(
@@ -1319,11 +1375,20 @@ fn build_class_bridge(
         }
     }
 
+    // `onto` is the merged AUTHORED ontology view (ontology/gmeow.ttl ⊕ every
+    // slice module.ttl — see the file-reading edge in
+    // crates/pipeline/src/stages/correspondence_soundness.rs), so it must scan
+    // both the canonical `logic:subClassOf` edge and its `rdfs:` projection
+    // (gmeow_ns::SUB_CLASS_OF doctrine; crates/ns/src/lib.rs:106-166); the vendored
+    // `target_graphs` are external vocabularies that only ever speak `rdfs:`, so the
+    // extra canonical-predicate scan there is a harmless no-op.
     let mut graphs: Vec<&DslView<'_>> = vec![onto];
     graphs.extend(target_graphs.values());
     for graph in graphs {
-        for (sub, sup) in subject_objects_iri(graph, RDFS_SUB_CLASS_OF) {
-            link(sub, sup);
+        for predicate in gmeow_ns::SUB_CLASS_OF {
+            for (sub, sup) in subject_objects_iri(graph, predicate) {
+                link(sub, sup);
+            }
         }
         for (a, b) in subject_objects_iri(graph, OWL_EQUIVALENT_CLASS) {
             link(a.clone(), b.clone());

@@ -5,13 +5,22 @@
 //! transforms — the native port of the Python `gmeow_tools.bundle` consumer.
 //!
 //! The `gmeow` deliverable ships ONE artifact — `generated/dist/gmeow.gts` — that
-//! folds the complete useful ontology surface AND its transforms: the SSSOM lift
-//! maps, the compiled projection queries, the equivalence/projection cells, the
-//! test-DSL specs, the reasoning reports, the OKF export, the ontology-docs site,
-//! the SHACL shape surface, the compiled logic/DL axioms, the JSON/OpenAPI
-//! schemas, and the JSON-LD-star / YAML-LD-star serializations. Each rides as a
-//! deterministic tar blob keyed by a representation label (the fold `rep`); the
-//! `transform:denied` blob is a raw JSON payload rather than a tar.
+//! folds the complete useful ontology surface AND its functional transforms: the
+//! SSSOM lift maps, the compiled projection queries, the equivalence/projection
+//! cells, the test-DSL specs, the reasoning reports, the SHACL shape surface, the
+//! compiled logic/DL axioms, the JSON/OpenAPI schemas, and the Pydantic model
+//! package. Each rides as a deterministic tar blob keyed by a representation label
+//! (the fold `rep`); the `transform:denied` blob is a raw JSON payload rather than
+//! a tar.
+//!
+//! Derived DOCUMENTATION projections — the ontology-docs site, the mdbook, the
+//! print PDF, the prompt snippets, the OKF export, and the JSON-LD-star /
+//! YAML-LD-star serializations — are deliberately NOT folded here: they are
+//! external, content-addressed distributions rendered by
+//! `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` and published as release assets (re-embedding them
+//! in `gmeow.gts` is forbidden; see
+//! `docs/design/external-docs-distribution.md`). Their absence from the
+//! committed bundle is gated by the `documentation_projections_are_absent` test.
 //!
 //! This module reads those blobs back **from the snapshot bytes alone, with no
 //! repo checkout** — the CLI razor: `gmeow` does not need a repo, `gmeow-dev`
@@ -31,7 +40,7 @@ use std::sync::Arc;
 use purrdf::gts::reader::read;
 use purrdf::gts_view::GtsFoldView;
 
-use crate::gmeow_ns::GMEOW_NS;
+use gmeow_ns::GMEOW_NS;
 
 /// tar of `generated/mappings/*.sssom.tsv` (the SSSOM lift maps).
 pub const REP_MAPPINGS: &str = "mappings-archive";
@@ -891,7 +900,7 @@ mod tests {
     // nothing.)
 
     /// Presentation projections are a hard negative contract for the committed
-    /// logical bundle: they are regenerated externally by `make sync SYNC_OUTPUTS=docs`.
+    /// logical bundle: they are regenerated externally by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
     #[test]
     fn documentation_projections_are_absent() {
         let snapshot = committed_snapshot();
@@ -940,7 +949,7 @@ mod tests {
         // property's own definitional triples, where it is a subject, survive, so
         // a bare substring check would be wrong).
         let text = String::from_utf8(base.clone()).expect("merged graph is UTF-8");
-        let guide_predicate = format!(" <{}guideBlob> ", crate::gmeow_ns::GMEOW_NS);
+        let guide_predicate = format!(" <{}guideBlob> ", gmeow_ns::GMEOW_NS);
         assert!(
             !text.lines().any(|line| line.contains(&guide_predicate)),
             "guideBlob reference triples are filtered from the merged graph"
@@ -1069,6 +1078,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit synthetic snapshot with no stored blobs");
 
@@ -1097,26 +1107,36 @@ mod tests {
     /// supplied VERBATIM (bypassing [`purrdf::gts_compose::BlobRow`]) plus a plain
     /// `snapshot` frame from `builder`. This is the shared low-level construction
     /// both [`integrity_report_flags_an_orphan_blob`] and
-    /// [`integrity_report_flags_a_hash_mismatch`] need: `BlobRow`/`emit_gts` (see
-    /// `purrdf-rdf-0.4.0/src/gts_compose.rs::emit_gts`, ~line 549-556) ALWAYS
-    /// computes `pub.digest` as `digest_string(&blob.data)` and ALWAYS stamps a
-    /// non-empty `pub.rep`, so neither an orphan (rep-less) nor a hash-mismatched
-    /// (wrong-digest) blob is constructible through it — every `BlobRow`-authored
-    /// blob is, by construction, correctly keyed and rep-labeled. The lower-level
-    /// [`purrdf::gts::writer::Writer::add_frame_with_options`] (re-exported from
-    /// `purrdf-gts`, the same call `emit_gts` itself makes) takes an arbitrary
+    /// [`integrity_report_flags_a_hash_mismatch`] need.
+    ///
+    /// The argument rests on two upstream INVARIANTS, stated as invariants rather
+    /// than pinned to a version and a line number — a line pin in a moving
+    /// dependency is a comment that will silently lie:
+    ///
+    /// 1. `purrdf::gts_compose::emit_gts` derives every blob frame's `pub.digest`
+    ///    from the blob's OWN bytes (`digest_string(&blob.data)`) and stamps
+    ///    `pub.rep` from `BlobRow::rep`. So neither an orphan (rep-less) nor a
+    ///    hash-mismatched (wrong-digest) blob is constructible through `BlobRow` —
+    ///    every `BlobRow`-authored blob is, by construction, correctly keyed and
+    ///    rep-labeled.
+    /// 2. The reader takes a `pub.digest`-bearing frame's DECLARED digest as the
+    ///    blob's store key verbatim (normalizing only the `blake3:` prefix form);
+    ///    it never recomputes the hash from the frame's `d` bytes.
+    ///
+    /// The lower-level
+    /// [`purrdf::gts::writer::Writer::add_frame_with_options`] (the same call
+    /// `emit_gts` itself makes) takes an arbitrary
     /// `pub_meta` CBOR value, so it is the genuine producer-side seam: a producer
     /// that (a) forgets to stamp a `rep` on a blob it stores, or (b) declares a
     /// `pub.digest` that does not match its own bytes, is a real bug class this
     /// module's integrity law exists to catch — not a bytes-corruption hack.
     ///
-    /// Per `purrdf-gts-0.4.0/src/reader.rs::h_blob_frame` (~line 670), the reader
-    /// takes a `pub.digest`-bearing frame's declared digest as the blob's STORE
-    /// KEY verbatim (`pub_digest`, ~line 66-76, only checks the text is
-    /// `blake3:`-shaped or 32 raw bytes — it never recomputes the hash from `d`),
-    /// while `process_frame` (~line 1199-1265) separately recomputes each frame's
-    /// OWN self-hash (`"id"`) over the frame's actual bytes (INCLUDING this same
-    /// `pub_meta` + `"d"`). So a hand-authored frame with a deliberately-wrong
+    /// Invariant 2 above is what makes this construction reach the law under test:
+    /// the reader's `pub_digest` accepts the declared text (or 32 raw bytes) as the
+    /// store key without recomputing it from `d`, while frame processing separately
+    /// recomputes each frame's OWN self-hash (`"id"`) over the frame's actual bytes
+    /// (INCLUDING this same `pub_meta` + `"d"`). So a hand-authored frame with a
+    /// deliberately-wrong
     /// declared digest is still a fully self-consistent, chain-valid frame — the
     /// frame self-hash law and this crate's blob-keying law check two different
     /// things (frame authenticity vs. declared-key-vs-bytes agreement) — which is

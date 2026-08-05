@@ -189,7 +189,7 @@ Before declaring an issue "ready to implement" or opening a pull request, verify
 - [ ] Projections planned in `mapping-dsl/` (not hand-edited in `mappings/` or `projections/`)
 - [ ] Logic checked: OWL 2 DL, gUFO grounding, labels + definitions present
 - [ ] Statement metadata planned in `statement-dsl/` if applicable (not hand-edited in `statements/`)
-- [ ] Checked-in generated artifacts refreshed with `make regenerate` if any canonical source was changed
+- [ ] Generated artifacts re-materialized by `make check` (its single producer does this) if any canonical source was changed
 - [ ] Branch rebased onto latest `main` with no merge commits
 - [ ] `make check` passes (full gate: lint, validate, compile-check, reason, verify, tests)
 - [ ] Commit messages follow Conventional Commits and cite principles where relevant

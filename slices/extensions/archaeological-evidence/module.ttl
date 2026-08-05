@@ -167,8 +167,7 @@ gmeow:attributedScript
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributionTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attribution target"@x-gmeow-english ;
@@ -324,8 +323,7 @@ gmeow:findContextStratigraphy
         gmeow:boxRBox .
 
 gmeow:findContextTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context target"@x-gmeow-english ;
@@ -336,8 +334,7 @@ gmeow:findContextTarget
         gmeow:boxRBox .
 
 gmeow:inscriptionCarrier
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Inscription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "inscription carrier"@x-gmeow-english ;
@@ -346,8 +343,7 @@ gmeow:inscriptionCarrier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:readingOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "reading of"@x-gmeow-english ;
@@ -367,8 +363,7 @@ gmeow:readingResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:translationOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "translation of"@x-gmeow-english ;
@@ -388,8 +383,7 @@ gmeow:translationResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transliterationOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "transliteration of"@x-gmeow-english ;
@@ -418,3 +412,105 @@ gmeow:transliterationResult
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:attributionTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "attributionTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attributionTarget is functional: a script/language attribution classifies exactly one target inscription, the single sign-bearing feature the relator is about (competing attributions of that inscription are separate relators, not extra targets)."@x-gmeow-english ;
+    logic:characterizes gmeow:attributionTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attributionTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attributionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attributionTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attributionTarget and nothing else. It is not a definition of gmeow:attributionTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attributionTargetFunctionality logic:characterizes gmeow:attributionTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findContextTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "findContextTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:findContextTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:findContextTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:findContextTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findContextTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:findContextTarget and nothing else. It is not a definition of gmeow:findContextTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:findContextTargetFunctionality logic:characterizes gmeow:findContextTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:inscriptionCarrierFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "inscriptionCarrier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inscriptionCarrier is functional: an inscription is borne by exactly one physical carrier, and a copy of the same text on a second carrier is a distinct Inscription instance rather than one inscription borne by two objects."@x-gmeow-english ;
+    logic:characterizes gmeow:inscriptionCarrier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inscriptionCarrier ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:inscriptionCarrier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inscriptionCarrier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:inscriptionCarrier and nothing else. It is not a definition of gmeow:inscriptionCarrier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:inscriptionCarrierFunctionality logic:characterizes gmeow:inscriptionCarrier ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:readingOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "readingOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:readingOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:readingOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:readingOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:readingOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:readingOf and nothing else. It is not a definition of gmeow:readingOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:readingOfFunctionality logic:characterizes gmeow:readingOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:translationOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "translationOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:translationOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:translationOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:translationOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:translationOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:translationOf and nothing else. It is not a definition of gmeow:translationOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:translationOfFunctionality logic:characterizes gmeow:translationOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transliterationOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
+    rdfs:label "transliterationOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:transliterationOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transliterationOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transliterationOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transliterationOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transliterationOf and nothing else. It is not a definition of gmeow:transliterationOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transliterationOfFunctionality logic:characterizes gmeow:transliterationOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

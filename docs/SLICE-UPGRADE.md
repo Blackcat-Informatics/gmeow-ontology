@@ -224,6 +224,16 @@ canonical fixture and invokes the real transform. This closes the gap between
 
 ### 7. Translate meaning, not identifiers
 
+A coat and its fr/zh translations are **one indivisible term-batch**: never land a
+term's annotation coat in one pass and defer its translations to a later one. A new
+or expanded coat grows the slice's localizable-literal denominator, so landing it
+untranslated *dilutes* measured translation coverage; pairing the coat with its
+translations keeps the measure honest. This is not a convention to remember — it is
+**mechanically enforced**: a coat landed without its translation drops the slice's
+measured `axisTranslationCoverage` below its committed raise-only floor, and
+`make slice-quality-gate` reds. Author each term's coat, its fr and zh renderings,
+and any earned floor ratchet as one packet.
+
 For every changed localizable literal:
 
 - write a complete, idiomatic definition in French and Mandarin;
@@ -242,8 +252,7 @@ filled cell in a coverage table.
 
 ```bash
 make fmt
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make check          # materializes generated/ through the single producer, then gates
 make validate
 make slicetest
 ```
@@ -272,9 +281,11 @@ Compare the profile with the recorded baseline:
 - Is the roll-up still capped by another member of the minimum-rank antichain?
 - Does the generated evidence match the acceptance claim?
 
-If an axis genuinely rises, raise its ontology-resident floor in the same change.
-If the measured score falls, repair the regression; never lower its floor. A score
-increase caused by deleting useful content is not an uplift.
+If an axis genuinely rises, **ratchet its ontology-resident floor to the measured
+value in the same change** — the raise-only floor is set at the freshly measured
+score on each landing, so the gain is held and can never silently regress. If the
+measured score falls, repair the regression; never lower its floor. A score increase
+caused by deleting useful content is not an uplift.
 
 ### 10. Land one held slice
 
@@ -355,10 +366,16 @@ Before calling a slice pass complete, verify:
 - [ ] Production transforms are invoked through production APIs.
 - [ ] No expected producer output was substituted for executing the producer.
 - [ ] Translation conveys meaning naturally in each target language.
+- [ ] Each landed coat and its fr/zh translations travelled together in this batch
+      (no coat left untranslated to dilute coverage — `make slice-quality-gate` holds
+      the translation floor).
+- [ ] `make i18n-lint` is green, including cross-batch glossary consistency (one term
+      never reads back as two divergent translations, absent a declared homograph).
 - [ ] Only canonical sources and intentional Rust tests were hand-edited.
 - [ ] Generated diffs were regenerated and inspected.
 - [ ] Measured gains are explained by the semantic change.
-- [ ] Floors were raised only when earned and were never lowered.
+- [ ] Floors were raised only when earned, ratcheted to the measured value, and were
+      never lowered.
 - [ ] Focused gates and `make check` pass.
 - [ ] Remaining advice, if any, is explicit evidence for the next pass rather than
       a hidden quality claim.

@@ -12,53 +12,82 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai/> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The source and its retrieval segment (the spine's left half).
 ex:handbook a gmeow:Document ;
-    rdfs:label "facilities handbook, 2026 edition"@en ;
+    rdfs:label "facilities handbook, 2026 edition"@x-gmeow-english ;
     gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026" ;
     gmeow:contentDigest "sha256:45441a53c39d0908231f626f36c99661e78108aca3cb8271e9085d732cb1f3f6" ;
-    gmeow:contentDigest "md5:7b14f3681bed923ac3ddf9af885a5086" .
+    gmeow:contentDigest "md5:7b14f3681bed923ac3ddf9af885a5086" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The facilities handbook (2026 edition), the source document ex:assistant is invoked over and ex:span-close-2200 evidences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:chunk-042 a gmeow:Chunk ;
     gmeow:chunkOf ex:handbook ;
     gmeow:spanStart "18200"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "18950"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" .
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    rdfs:label "handbook chunk 042 (bytes 18200-18950)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The retrieval-sized chunk of ex:handbook that ex:span-close-2200's evidence span lives within."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- The model, its card, and the invocation (the provenance anchor).
 ex:assistant a gmeow:SoftwareAgent ;
-    rdfs:label "facilities assistant model"@en ;
+    rdfs:label "facilities assistant model"@x-gmeow-english ;
     # Teleology: the agent's goal, asserted like any attributed claim.
-    gmeow:hasGoal ex:goal-answer-faithfully .
+    gmeow:hasGoal ex:goal-answer-faithfully ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The facilities assistant model: the software agent invoked as ex:invocation-19, whose vantage grounds ex:claim-close-2200 and ex:claim-close-2300."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:goal-answer-faithfully a gmeow:Goal ;
-    rdfs:label "answer facilities questions faithfully to the handbook"@en .
+    rdfs:label "answer facilities questions faithfully to the handbook"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "ex:assistant's stated teleological goal: answer facilities questions faithfully to ex:handbook, asserted like any other attributed claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:card-assistant a gmeow:ModelCard ;
     gmeow:describesModel ex:assistant ;
     gmeow:modelProvider "Example Labs" ;
     gmeow:modelVersionTag "assistant-2026-05-01" ;
     gmeow:modelContextWindow "200000"^^xsd:positiveInteger ;
-    gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date .
+    gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date ;
+    rdfs:label "facilities assistant model card"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The model card describing ex:assistant: its provider, version tag, context window, and training cutoff."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:prompt-extract a gmeow:Prompt ;
     gmeow:promptRole gmeow:promptRoleSystem ;
     gmeow:filledFrom ex:template-extract-v1 ;
-    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" .
+    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" ;
+    rdfs:label "claim-extraction prompt (system, filled from template v1)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The system prompt, filled from ex:template-extract-v1, that ex:invocation-19 used to extract the closing-time claims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:template-extract-v1 a gmeow:PromptTemplate ;
-    rdfs:label "claim-extraction template v1"@en ;
-    gmeow:promptRole gmeow:promptRoleSystem .
+    rdfs:label "claim-extraction template v1"@x-gmeow-english ;
+    gmeow:promptRole gmeow:promptRoleSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The claim-extraction prompt template (v1) that ex:prompt-extract is filled from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:invocation-19 a gmeow:ModelInvocation ;
     gmeow:usedModel ex:assistant ;
     gmeow:hasPrompt ex:prompt-extract ;
     gmeow:samplingTemperature 0.0 ;
     gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:label "facilities assistant invocation, 2026-05-15"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The zero-temperature invocation of ex:assistant that generated ex:claim-close-2200 and ex:claim-close-2300 — the provenance anchor of the worked example."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- The claims: reified statements observed from the MODEL's vantage.
 # (The RDF 1.2 source authors these as statement annotations; the owl:Axiom
@@ -68,12 +97,20 @@ ex:east-wing gmeow:validUntil "2026-12-31T22:00:00Z"^^xsd:dateTime .
 ex:stmt-2200 a owl:Axiom ;
     owl:annotatedSource   ex:east-wing ;
     owl:annotatedProperty gmeow:validUntil ;
-    owl:annotatedTarget   "2026-12-31T22:00:00Z"^^xsd:dateTime .
+    owl:annotatedTarget   "2026-12-31T22:00:00Z"^^xsd:dateTime ;
+    rdfs:label "reified statement: east wing closes 22:00"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The owl:Axiom downcast reifying ex:east-wing gmeow:validUntil 22:00 — the observed feature ex:claim-close-2200 grounds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:stmt-2300 a owl:Axiom ;
     owl:annotatedSource   ex:east-wing ;
     owl:annotatedProperty gmeow:validUntil ;
-    owl:annotatedTarget   "2026-12-31T23:00:00Z"^^xsd:dateTime .
+    owl:annotatedTarget   "2026-12-31T23:00:00Z"^^xsd:dateTime ;
+    rdfs:label "reified statement: east wing closes 23:00"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The owl:Axiom downcast reifying ex:east-wing gmeow:validUntil 23:00 — the observed feature ex:claim-close-2300 (the ungrounded, flagged hallucination) makes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The GROUNDED claim: generated by the invocation, attributed to the model,
 # pinned to the exact evidentiary bytes. ALSO remembered (MemoryItem role).
@@ -86,13 +123,21 @@ ex:claim-close-2200 a gmeow:StandpointClaim, gmeow:MemoryItem ;
     gmeow:wasAttributedTo ex:assistant ;
     gmeow:groundedIn ex:span-close-2200 ;
     gmeow:memoryOf ex:assistant ;
-    gmeow:memoryKind gmeow:memoryKindSemantic .
+    gmeow:memoryKind gmeow:memoryKindSemantic ;
+    rdfs:label "claim: east wing closes 22:00 (grounded)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The GROUNDED claim that the east wing closes at 22:00: generated by ex:invocation-19, attributed to ex:assistant, pinned to ex:span-close-2200's exact evidentiary bytes, and retained as a semantic MemoryItem."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:span-close-2200 a gmeow:EvidenceSpan ;
     gmeow:spanOfChunk ex:chunk-042 ;
     gmeow:spanStart "310"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "366"^^xsd:nonNegativeInteger ;
-    gmeow:supportPolarity gmeow:polaritySupports .
+    gmeow:supportPolarity gmeow:polaritySupports ;
+    rdfs:label "evidence span supporting the 22:00 closing claim"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The exact byte span within ex:chunk-042 that supports ex:claim-close-2200, the evidentiary grounding the claim is pinned to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The UNGROUNDED claim: no groundedIn span — the flagged hallucination,
 # retained, never deleted (P10).
@@ -102,27 +147,46 @@ ex:claim-close-2300 a gmeow:StandpointClaim ;
     gmeow:observationMethod gmeow:methodLlmExtraction ;
     gmeow:claimModality gmeow:probable ;
     gmeow:wasGeneratedBy ex:invocation-19 ;
-    gmeow:wasAttributedTo ex:assistant .
+    gmeow:wasAttributedTo ex:assistant ;
+    rdfs:label "claim: east wing closes 23:00 (ungrounded)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The UNGROUNDED claim that the east wing closes at 23:00: no gmeow:groundedIn span — the flagged hallucination, retained rather than deleted (P10), later flagged bullshit by ex:verdict-2300."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- The conflict, SURFACED and attributed — never resolved by rank (P9).
 ex:contradiction-close a gmeow:Contradiction ;
     gmeow:contradictsClaim ex:claim-close-2200, ex:claim-close-2300 ;
     gmeow:contradictionKind gmeow:contradictionKindNumeric ;
-    gmeow:detectedBy ex:auditor .
+    gmeow:detectedBy ex:auditor ;
+    rdfs:label "contradiction: east-wing closing time (22:00 vs 23:00)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The numeric contradiction between ex:claim-close-2200 and ex:claim-close-2300, surfaced and attributed to ex:auditor — never silently resolved by rank (P9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- The auditor's VERDICT about the hallucination: itself a claim from a
 # vantage, using the standpoint slice's bullshit modality (Frankfurt:
 # asserted without regard to truth) and the deception slice's veridicality.
-ex:auditor a gmeow:SoftwareAgent ; rdfs:label "grounding auditor"@en .
+ex:auditor a gmeow:SoftwareAgent ; rdfs:label "grounding auditor"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The auditor software agent whose vantage detects ex:contradiction-close and issues ex:verdict-2300 about the ungrounded claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:stmt-2300-is-claimed a owl:Axiom ;
     owl:annotatedSource   ex:claim-close-2300 ;
     owl:annotatedProperty gmeow:claimModality ;
-    owl:annotatedTarget   gmeow:probable .
+    owl:annotatedTarget   gmeow:probable ;
+    rdfs:label "reified statement: claim-close-2300 has modality probable"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The owl:Axiom downcast reifying ex:claim-close-2300's asserted gmeow:claimModality — the observed feature ex:verdict-2300 makes its bullshit-modality finding about."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:verdict-2300 a gmeow:StandpointClaim ;
     gmeow:vantage ex:auditor ;
     gmeow:observedFeature ex:stmt-2300-is-claimed ;
     gmeow:observationMethod gmeow:methodNliDerivation ;
     gmeow:claimModality gmeow:bullshit ;
-    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+    gmeow:claimVeridicality gmeow:veridicalityUntrue ;
+    rdfs:label "auditor verdict: claim-close-2300 is bullshit"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The auditor's StandpointClaim verdict about ex:claim-close-2300: bullshit modality (Frankfurt: asserted without regard to truth) and untrue veridicality, itself a claim from ex:auditor's vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

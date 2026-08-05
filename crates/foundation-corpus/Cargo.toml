@@ -3,8 +3,8 @@
 
 [package]
 name = "gmeow-foundation-corpus"
-description = "Foundation-corpus importer (#364): reads a narrative JSONL corpus into a GMEOW RDF graph and emits foundation.ttl, a flat-vs-reified budget report, and six lossy projections (DraCor/Syuzhet/schema.org/TEI/Web-Annotation/training-manifest)."
-version = "0.1.0"
+description = "Foundation-corpus importer: reads a narrative JSONL corpus into a GMEOW RDF graph and emits foundation.ttl, a flat-vs-reified budget report, and six lossy projections (DraCor/Syuzhet/schema.org/TEI/Web-Annotation/training-manifest)."
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -28,8 +28,8 @@ unicode-normalization = "0.1"
 
 [dev-dependencies]
 tempfile = "3"
-# Acceptance-spine parity test (#944): whole-ontology native SHACL + native SPARQL
-# over the imported foundation.ttl — OXIGRAPH-FREE (EPIC #906). The fixture parses
+# Acceptance-spine parity test: whole-ontology native SHACL + native SPARQL
+# over the imported foundation.ttl — OXIGRAPH-FREE. The fixture parses
 # through the canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen
 # `RdfDataset` (`gmeow-rdf-core`), validated IR-natively via `validate_dataset_graphs`
 # and queried through the native `NativeSparqlEngine` (`gmeow-sparql-eval`).

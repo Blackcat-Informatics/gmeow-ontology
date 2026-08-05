@@ -45,7 +45,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::physical::id::{MetaId, NodeId};
-use crate::physical::term_dag::{NodeData, TermDag};
+use gmeow_term_arena::engine::{NodeData, TermDag};
 
 /// A union-find substitution over unification metavariables.
 ///

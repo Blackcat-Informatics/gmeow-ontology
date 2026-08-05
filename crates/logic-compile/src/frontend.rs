@@ -44,12 +44,14 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
-    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
-    Correspondence, EvaluationMode, Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr,
-    ReasoningContract, ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity,
-    ShapeTarget, ShapeValue, Term, ValidationShapeIr, VariableSortScope,
+    ANNOTATION_LIFT_PREDS, AggregateBalance, AggregateComparator, AggregateComparison,
+    AggregateRhs, AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr,
+    ConstraintProvenance, ContextualScope, Correspondence, EvaluationMode, Formula, JoinAggregate,
+    JoinLeg, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, NodeKind,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
+    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr, VariableSortScope, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
+    subject_is_gmeow_authored,
 };
 use super::restriction;
 
@@ -268,7 +270,7 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
     matches!(
         prop_local,
         // Core logic:Constraint annotations.
-        "integrity" | "severity" | "message" | "formalizes"
+        "integrity" | "severity" | "message" | "formalizes" | "adviceSourceField"
             // Shared sugar target.
             | "onClass"
             // P1 choice-group.
@@ -338,6 +340,20 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ValueSetMembershipConstraint"
             | "StringPatternConstraint"
             | "UniqueLangConstraint"
+    )
+}
+
+/// The reserved `logic:` predicate-local names that carry a `logic:AbductiveSchema`'s repair
+/// mechanism — the discipline back-link, the repair-strategy selector, and the completeness
+/// formula root. Like the constraint annotations, these are consumed by the abductive advice
+/// producer (which queries the reasoned RDF dataset directly) and must NOT leak into
+/// `prog.axioms`; in particular `completenessFormula` reaches a `logic:Formula` root that is
+/// excluded from the top-level formula set in [`extract_formulas`], so authoring a completeness
+/// condition never changes what the reasoner entails about the live model.
+fn is_abductive_schema_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "repairsDiscipline" | "repairStrategy" | "completenessFormula"
     )
 }
 
@@ -429,6 +445,79 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
         .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
         .map(|quad| term_str(&quad.object))
         .collect()
+}
+
+/// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
+/// [`NodeKind::Annotation`] axioms — the inbound half of `logic: isSupersetOf SKOS/RDFS`.
+/// Each `<term> <annotation-pred> "literal"@x-gmeow-english` triple becomes one annotation
+/// axiom carrying the surface predicate verbatim, so the SKOS/RDFS annotation surface
+/// round-trips through the canonical IR and the generated SKOS surface is a projection of
+/// these axioms rather than an authored second source.
+///
+/// The `@x-gmeow-english` carrier discipline is honored: ONLY carrier-tagged literals are
+/// lifted — an annotation literal carrying a *different* language tag (an `@en` example
+/// label, a foreign literal) or an untagged/typed literal is skipped, never silently
+/// retagged. The authoritative fail-closed carrier guard is the structural lint (the
+/// validate `x-gmeow-` language-tag check), scoped to the shipped core-term graphs, which
+/// flags a genuine core violation; internal terms are always carrier-tagged.
+fn extract_annotation_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LogicAxiom> {
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
+            continue;
+        }
+        // Annotations belong on named terms; a blank-node subject is a structural
+        // interior (a restriction / formula node), never a term carrying a display label.
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        // Only GMEOW-authored subjects are lifted: a foreign alignment-target / example
+        // subject carries its own external-vocabulary label (@en, …), which is that
+        // vocabulary's metadata, not GMEOW's SKOS/RDFS surface, and must not be lifted or
+        // carrier-checked (mirrors the structural-lint scoping).
+        if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
+            continue;
+        }
+        let Node::Lit { lexical, lang, .. } = &quad.object else {
+            // A non-literal object on an annotation predicate is malformed authoring
+            // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
+            continue;
+        };
+        // Only the internal carrier surface is lifted. Any other language tag (an `@en`
+        // example/demonstration label, a foreign literal) or an untagged/typed literal is
+        // NOT part of GMEOW's carrier SKOS/RDFS surface, so it is skipped — never lifted and
+        // never treated as a hard error here. The authoritative fail-closed carrier-discipline
+        // guard is the structural lint (validate-gts), which is scoped to the shipped
+        // core-term graphs and flags a genuine core violation (R2/AC2); the compile-logic
+        // corpus also carries example/test subjects the lint deliberately does not police, so
+        // rejecting their @en annotations here would be stricter than the guard itself.
+        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+            continue;
+        }
+        match LogicAxiom::new(
+            subject_str(&quad.subject),
+            p_str,
+            lexical.clone(),
+            true,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(
+                ax.with_node_kind(NodeKind::Annotation)
+                    .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
+            ),
+            Err(exc) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_ANNOTATION",
+                exc.message().to_owned(),
+                Some(subject_str(&quad.subject)),
+            )),
+        }
+    }
+    axioms
 }
 
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
@@ -529,6 +618,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // Reasoning-program structural triples are consumed by extract_reasoning_programs;
         // they are never domain facts.
         if is_reasoning_program_structural_predicate(p_local) {
+            continue;
+        }
+        // Abductive-schema structural triples are consumed by the abductive advice producer;
+        // they are never domain facts (and completenessFormula's root is excluded from the
+        // top-level formula set in extract_formulas).
+        if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -1603,6 +1698,37 @@ pub fn derive_validation_shapes(
         }
     };
 
+    // Whether `p` is a DECLARED `owl:DatatypeProperty` (and not also an object property — a
+    // corpus that declares both is contradictory OWL and gets the conservative object reading,
+    // never a silently narrowed one).
+    let owl_datatype_property = Node::iri(format!("{owl}DatatypeProperty"));
+    let owl_object_property = Node::iri(format!("{owl}ObjectProperty"));
+    let is_datatype_property = |p: &str| -> bool {
+        let types = objects(store, &Subject::Iri(p.to_owned()), &nn(RDF_TYPE));
+        types.contains(&owl_datatype_property) && !types.contains(&owl_object_property)
+    };
+
+    // `classify`, resolved against the property the filler is a filler FOR.
+    //
+    // The two bounded universal tops are NOT interchangeable across the object/data divide:
+    // `owl:Thing` is the top of the INDIVIDUAL domain, `rdfs:Literal` the top of the DATA
+    // domain. A declared `owl:DatatypeProperty` takes literal values only, so an authored
+    // `owl:someValuesFrom owl:Thing` / `owl:allValuesFrom owl:Thing` / `rdfs:range owl:Thing`
+    // on such a property means "any value" in the only domain that property has — the data
+    // domain — and its faithful projection is `sh:nodeKind sh:Literal`. Projecting the
+    // individual-domain reading (`sh:nodeKind sh:BlankNodeOrIRI`) there is not a lossy
+    // approximation but an INVERTED constraint: it rejects every correct literal value the
+    // property is declared to carry (the `gmeow:spanStart` / `gmeow:spanEnd` integer offsets on
+    // `gmeow:Chunk` are the corpus witness). The redirect is keyed on the property's own
+    // declaration, so it can never narrow an object-valued or undeclared path.
+    let classify_on = |on: &str, iri: &str| -> Option<ConstraintComponent> {
+        if iri == owl_thing && is_datatype_property(on) {
+            classify(&rdfs_literal)
+        } else {
+            classify(iri)
+        }
+    };
+
     // The closed-world reading of a faceted datatype filler
     // (`[ a rdfs:Datatype ; owl:onDatatype xsd:string ; owl:withRestrictions ( [ xsd:pattern "…" ]
     // [ xsd:minLength "…" ] … ) ]`): the base datatype plus each XSD length / pattern facet, as
@@ -1905,7 +2031,7 @@ pub fn derive_validation_shapes(
             // witnesses into the shipped closure.
             match restriction_value(&restr_subj, &p_some, &p_logic_some) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
@@ -1940,7 +2066,7 @@ pub fn derive_validation_shapes(
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
             match restriction_value(&restr_subj, &p_all, &p_logic_all) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let min = closed_requirements
                             .contains(&(class_iri.clone(), on.clone()))
                             .then_some(1);
@@ -2245,15 +2371,13 @@ pub fn derive_validation_shapes(
     }
 
     // ── FAMILY 3 — property-level axioms (SubjectsOf(P) / ObjectsOf(P) targets) ────────────
-    // Collect every GMEOW-NS property: the four OWL property-type declarations plus any subject
-    // of rdfs:domain / rdfs:range.
+    // Collect every GMEOW-NS property: the OWL object/datatype property-type declarations plus any
+    // subject of rdfs:domain / rdfs:range. The functional / inverse-functional characteristics are
+    // NOT seeded here — they are read from the canonical `logic:` carrier below (a functional-only
+    // property, e.g. gmeow:unit, is discovered straight from its characteristic-assertion record,
+    // not from a property-type marker).
     let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for ty in [
-        "ObjectProperty",
-        "DatatypeProperty",
-        "FunctionalProperty",
-        "InverseFunctionalProperty",
-    ] {
+    for ty in ["ObjectProperty", "DatatypeProperty"] {
         for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
             if let Subject::Iri(iri) = &s
                 && is_authoring_ns(iri)
@@ -2273,8 +2397,6 @@ pub fn derive_validation_shapes(
         }
     }
 
-    let functional = Node::iri(format!("{owl}FunctionalProperty"));
-    let inverse_functional = Node::iri(format!("{owl}InverseFunctionalProperty"));
     for p in &props {
         if optouts.contains(p) {
             continue;
@@ -2322,7 +2444,7 @@ pub fn derive_validation_shapes(
                 let mut comps: Vec<ConstraintComponent> = Vec::new();
                 for vp in [&p_some, &p_all] {
                     if let Some(Node::Iri(cv)) = value(store, &domain_subj, vp)
-                        && let Some(cc) = classify(&cv)
+                        && let Some(cc) = classify_on(&on_q, &cv)
                     {
                         comps.push(cc);
                     }
@@ -2349,7 +2471,7 @@ pub fn derive_validation_shapes(
             // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
             for c in objects(store, &p_subj, &p_range) {
                 if let Node::Iri(c) = c
-                    && let Some(cc) = classify(&c)
+                    && let Some(cc) = classify_on(p, &c)
                 {
                     entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
                         .1
@@ -2357,63 +2479,123 @@ pub fn derive_validation_shapes(
                 }
             }
         }
-        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P). A
-        // functional/inverse-functional axiom is a genuine closed-world cardinality bound (it
-        // constrains, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure
-        // opt-out), independent of the domain/range opt-in above.
-        if contains(store, &p_subj, &nn(RDF_TYPE), &functional) {
+    }
+
+    // ── Functional / inverse-functional characteristics — read from the canonical logic: carrier ──
+    // The `owl:FunctionalProperty` / `owl:InverseFunctionalProperty` property-type markers are a
+    // DEPRECATED projection source; the single authority is the `logic:PropertyCharacteristicAssertion`
+    // record that joins `logic:characterizes` (the characterized property P) with
+    // `logic:characteristicSort` (the marker) — the same carrier the native coherence gate reads.
+    // A functional/inverse-functional characteristic is a genuine closed-world cardinality bound (it
+    // CONSTRAINS, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure opt-out),
+    // independent of the domain/range opt-in above. The functional cap lands on BOTH the
+    // property-scoped SubjectsOf(P) domain shape AND — so the declarative class-node reader
+    // (Pydantic / ShEx) narrows the field to scalar — every rdfs:domain class node shape of P. A
+    // property with NO rdfs:domain (e.g. gmeow:unit) keeps ONLY the property-scoped cap; no class
+    // node shape is fabricated. The merge (`merge_same_path_properties`) folds the class-scoped cap
+    // cleanly into any restriction the class already authored on P.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes) else {
+            continue;
+        };
+        if optouts.contains(&prop) {
+            continue;
+        }
+        let sorts = objects(store, &rec, &p_characteristic_sort);
+        let prop_subj = Subject::Iri(prop.clone());
+        if sorts.contains(&functional_sort) {
+            // Property-scoped cap: each subject of P has ≤1 value (sh:maxCount 1 on P).
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?;
-            entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::SubjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            // Class-scoped cap: the same maxCount-1 on each rdfs:domain class node shape, so the
+            // class-node reader narrows the Python field to scalar.
+            for c in objects(store, &prop_subj, &p_domain) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
-        // owl:InverseFunctionalProperty → each object of P has ≤1 subject (inverse sh:maxCount 1).
-        if contains(store, &p_subj, &nn(RDF_TYPE), &inverse_functional) {
+        if sorts.contains(&inverse_functional_sort) {
+            // Inverse-functional: each object of P has ≤1 subject via P (inverse sh:maxCount 1), on
+            // both the property-scoped ObjectsOf(P) shape and each rdfs:range class node shape.
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?
             .inverted();
-            entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::ObjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            for c in objects(store, &prop_subj, &p_range) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?
+                    .inverted();
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
     }
 
-    // ── FAMILY 4 — owl:hasKey (single-property keys → inverse-functional reading) ──────────
-    // `K owl:hasKey ( P )` says the value of P uniquely identifies the K instance — the DL 2
-    // way to state a datatype/single-property key (an `owl:InverseFunctionalProperty` on a
-    // datatype property would be OWL 2 Full). Its closed-world reading is the same inverse
-    // `sh:maxCount 1` (each P-value has ≤1 subject via P) the InverseFunctionalProperty arm
-    // emits. A COMPOSITE key (`owl:hasKey ( P1 P2 … )`) asserts the TUPLE is unique, not each
-    // part — it has no single-path SHACL form, so it is carried in the canon and no shape is
-    // derived (never a wrong per-part uniqueness claim).
-    let haskey_iri = format!("{owl}hasKey");
-    let p_haskey = nn(&haskey_iri);
-    let mut haskey_classes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for q in default_graph_quads(store) {
-        if q.predicate.as_str() == haskey_iri
-            && let Subject::Iri(iri) = &q.subject
-            && is_authoring_ns(iri)
-        {
-            haskey_classes.insert(iri.clone());
-        }
-    }
-    for class_iri in &haskey_classes {
-        let k = Subject::Iri(class_iri.clone());
-        let Some(list_head) = value(store, &k, &p_haskey) else {
+    // ── FAMILY 4 — logic:KeyAssertion (single-property keys → inverse-functional reading) ──────
+    // A `logic:KeyAssertion` record (`logic:keyClass C`, `logic:keyProperty P`) says the value of P
+    // uniquely identifies the C instance — the canonical logic: carrier of a datatype/single-property
+    // key (the DEPRECATED `owl:hasKey ( P )` OWL-DL axiom is its lossy view, no longer a projection
+    // source; an `owl:InverseFunctionalProperty` on a datatype property would be OWL 2 Full). Its
+    // closed-world reading is the same inverse `sh:maxCount 1` (each P-value has ≤1 subject via P) the
+    // InverseFunctionalProperty arm emits. A COMPOSITE key (a record naming several `logic:keyProperty`
+    // values) asserts the TUPLE is unique, not each part — it has no single-path SHACL form, so it is
+    // carried in the canon and no shape is derived (never a wrong per-part uniqueness claim).
+    let key_assertion_ty = Node::iri(logic_iri("KeyAssertion"));
+    let p_key_class = nn(&logic_iri("keyClass"));
+    let p_key_property = nn(&logic_iri("keyProperty"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &key_assertion_ty) {
+        // The keyed class must be GMEOW-owned (the dogfooding guard every family applies).
+        let Some(Node::Iri(class_iri)) = value(store, &rec, &p_key_class) else {
             continue;
         };
-        let keys = read_iri_list(store, &list_head);
+        if !is_authoring_ns(&class_iri) {
+            continue;
+        }
+        let keys: Vec<String> = objects(store, &rec, &p_key_property)
+            .into_iter()
+            .filter_map(|o| match o {
+                Node::Iri(i) => Some(i),
+                _ => None,
+            })
+            .collect();
         // Single-property key only; a composite key has no single-path uniqueness shape.
         if let [key_prop] = keys.as_slice() {
             if optouts.contains(key_prop) {
@@ -2514,7 +2696,7 @@ pub fn derive_validation_shapes(
         let mut components: Vec<ConstraintComponent> = Vec::new();
         for vp in [&p_some, &p_all] {
             if let Some(Node::Iri(cv)) = value(store, &super_subj, vp)
-                && let Some(cc) = classify(&cv)
+                && let Some(cc) = classify_on(&on, &cv)
             {
                 components.push(cc);
             }
@@ -2717,6 +2899,262 @@ pub fn derive_validation_shapes(
         shapes.push(shape);
     }
     Ok(shapes)
+}
+
+/// The authoring-completeness invariant for the functional-characteristic carrier migration.
+///
+/// Every `gmeow:` property still declared `owl:FunctionalProperty` MUST also carry a
+/// `logic:PropertyCharacteristicAssertion` record whose `logic:characteristicSort` is
+/// `logic:functionalProperty` and whose `logic:characterizes` names it — the canonical carrier the
+/// SHACL/Pydantic projection now reads (the `owl:FunctionalProperty` marker is a deprecated,
+/// no-longer-projected source). A property in the returned set is an AUTHORING GAP: its
+/// functionality would silently vanish from the derived projection because no carrier record
+/// grounds it. Returned sorted (BTreeSet) for a deterministic diagnostic; a non-empty result is a
+/// HARD FAIL on the sync path, never a soft warning — the caller must stop, not degrade.
+///
+/// The live sync-path caller is the `stage-compile-logic` shape-derivation stage
+/// (`crates/pipeline/src/stages/compile_logic.rs`), which runs this over the merged authored
+/// corpus and returns `Err` if the set is non-empty. Post-removal of the `owl:FunctionalProperty`
+/// slice sources it is vacuously satisfied (nothing is `declared`), so it guards RE-introduction.
+pub fn functional_properties_missing_logic_carrier(
+    store: &RdfDataset,
+) -> std::collections::BTreeSet<String> {
+    use gmeow_ns::GMEOW_NS;
+    let owl_functional = Node::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
+    // Every gmeow:-owned property carrying the deprecated OWL functional marker.
+    let mut declared: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for s in subjects_with(store, &nn(RDF_TYPE), &owl_functional) {
+        if let Subject::Iri(iri) = &s
+            && iri.starts_with(GMEOW_NS)
+        {
+            declared.insert(iri.clone());
+        }
+    }
+    // Every property named by a functional-sort characteristic-assertion carrier record.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut carried: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            carried.insert(prop);
+        }
+    }
+    declared.difference(&carried).cloned().collect()
+}
+
+// --------------------------------------------------------------------------- //
+// Functional-carrier integrity (migration-surviving, non-vacuous)
+// --------------------------------------------------------------------------- //
+
+/// The frozen completeness ledger of every property that MUST bear a functional
+/// `logic:PropertyCharacteristicAssertion` carrier — one canonical IRI per line, sorted, with `#`
+/// comment lines and blank lines ignored.
+///
+/// This is a DELIBERATE, human-blessed committed artifact, exactly like the `dl_oracle_gold`
+/// frozen verdicts and the `reasoning_session_semver` drift-pins: it is NEVER auto-updated. Any
+/// property that gains or loses a functional carrier moves this file in the SAME commit that moves
+/// the carrier, a conscious re-bless the author performs by hand. The
+/// [`functional_carrier_integrity`] gate asserts current-set == ledger and hard-fails on any drift
+/// (a silently-dropped or unexpectedly-added carrier), so a drift can never land unnoticed.
+///
+/// # Re-blessing (a deliberate human act)
+///
+/// When a functional carrier is intentionally added or removed, regenerate this file from the
+/// current corpus and commit it alongside the carrier change. The set is exactly the
+/// `logic:characterizes` targets of the `logic:functionalProperty`-sort
+/// `logic:PropertyCharacteristicAssertion` records over the merged authored corpus (see
+/// [`functional_carrier_property_iris`]); the pinning test `functional_carrier_ledger_matches_corpus`
+/// (in `crates/pipeline/tests`) prints the exact expected body on a mismatch.
+const FUNCTIONAL_CARRIER_LEDGER: &str = include_str!("frontend/functional_carrier_ledger.txt");
+
+/// Parse [`FUNCTIONAL_CARRIER_LEDGER`] into its sorted IRI set (ignoring `#` comments / blanks).
+fn functional_carrier_ledger() -> std::collections::BTreeSet<String> {
+    FUNCTIONAL_CARRIER_LEDGER
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// The RDF/OWL types whose subject "exists as a declared property" for the orphan check: an
+/// `rdf:Property` or any of its OWL sub-kinds. This is the property-declaration reading the
+/// validation-shape derivation uses (`owl:ObjectProperty` / `owl:DatatypeProperty`), widened to
+/// the full property-declaration vocabulary so a carrier target declared with ANY property type is
+/// recognised, and a merely misspelled / never-declared target is not.
+const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/2002/07/owl#FunctionalProperty",
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+    "http://www.w3.org/2002/07/owl#TransitiveProperty",
+    "http://www.w3.org/2002/07/owl#SymmetricProperty",
+    "http://www.w3.org/2002/07/owl#AsymmetricProperty",
+    "http://www.w3.org/2002/07/owl#ReflexiveProperty",
+    "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
+];
+
+/// Every functional carrier record's `logic:characterizes` target, as a property → carrier-count
+/// multiset over the store. A property named functional by two distinct
+/// `logic:PropertyCharacteristicAssertion` records appears with count 2 (the duplicate signal).
+fn functional_carrier_multiset(store: &RdfDataset) -> std::collections::BTreeMap<String, usize> {
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut counts: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            *counts.entry(prop).or_insert(0) += 1;
+        }
+    }
+    counts
+}
+
+/// The set of properties bearing at least one functional carrier record — the exact set the
+/// completeness ledger pins. Sorted and deterministic; this is the generator a re-bless copies
+/// into `frontend/functional_carrier_ledger.txt`.
+pub fn functional_carrier_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    functional_carrier_multiset(store).into_keys().collect()
+}
+
+/// Every subject typed as an RDF/OWL property (see [`PROPERTY_DECLARATION_TYPES`]).
+fn declared_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for ty in PROPERTY_DECLARATION_TYPES {
+        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(ty)) {
+            if let Subject::Iri(iri) = s {
+                props.insert(iri);
+            }
+        }
+    }
+    props
+}
+
+/// A single functional-carrier integrity violation, each a HARD FAIL on the sync path.
+///
+/// The variants make the migration-surviving completeness invariant NON-VACUOUS: unlike the bare
+/// [`functional_properties_missing_logic_carrier`] RE-introduction guard (vacuous once the
+/// `owl:FunctionalProperty` markers were removed), these bite against the LIVE carrier corpus.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FunctionalCarrierViolation {
+    /// A property still typed `owl:FunctionalProperty` with no functional carrier record — the
+    /// original RE-introduction regression guard, retained.
+    ReintroducedOwlMarker { property: String },
+    /// A functional carrier's `logic:characterizes` names an IRI that is not a declared property
+    /// anywhere in the store (a misspelled / never-declared target).
+    OrphanCarrier { property: String },
+    /// A property is named functional by more than one carrier record.
+    DuplicateCarrier { property: String, count: usize },
+    /// A property is in the frozen ledger but bears NO functional carrier now — a silently-dropped
+    /// carrier.
+    LedgerMissing { property: String },
+    /// A property bears a functional carrier but is ABSENT from the frozen ledger — an unexpected
+    /// new carrier that was never blessed.
+    LedgerUnexpected { property: String },
+}
+
+impl fmt::Display for FunctionalCarrierViolation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FunctionalCarrierViolation::ReintroducedOwlMarker { property } => write!(
+                f,
+                "re-introduced owl:FunctionalProperty on {property} without a \
+                 logic:PropertyCharacteristicAssertion functionalProperty carrier record"
+            ),
+            FunctionalCarrierViolation::OrphanCarrier { property } => write!(
+                f,
+                "orphan functional carrier: logic:characterizes names {property}, which is not a \
+                 declared rdf:Property / owl:ObjectProperty / owl:DatatypeProperty in the corpus"
+            ),
+            FunctionalCarrierViolation::DuplicateCarrier { property, count } => write!(
+                f,
+                "duplicate functional carrier: {property} is named functional by {count} \
+                 PropertyCharacteristicAssertion records (exactly one is required)"
+            ),
+            FunctionalCarrierViolation::LedgerMissing { property } => write!(
+                f,
+                "completeness drift: {property} is in the frozen functional-carrier ledger but \
+                 bears no functional carrier now (a silently-dropped carrier); re-bless the \
+                 ledger only if this drop is intended"
+            ),
+            FunctionalCarrierViolation::LedgerUnexpected { property } => write!(
+                f,
+                "completeness drift: {property} bears a functional carrier but is absent from the \
+                 frozen functional-carrier ledger (an unexpected new carrier); re-bless the \
+                 ledger only if this addition is intended"
+            ),
+        }
+    }
+}
+
+/// The migration-surviving functional-carrier integrity gate — the NON-VACUOUS successor to
+/// [`functional_properties_missing_logic_carrier`].
+///
+/// It runs four checks over the merged authored corpus and returns every violation, sorted
+/// deterministically (each kind is drawn from a `BTree*`, so the diagnostic bytes are stable):
+///
+/// 1. **RE-introduction guard** (retained) — any property still typed `owl:FunctionalProperty`
+///    with no functional carrier ([`FunctionalCarrierViolation::ReintroducedOwlMarker`]).
+/// 2. **Orphan carrier** — a carrier `logic:characterizes` target that is not a declared property
+///    ([`FunctionalCarrierViolation::OrphanCarrier`]).
+/// 3. **Duplicate carrier** — a property named functional by more than one record
+///    ([`FunctionalCarrierViolation::DuplicateCarrier`]).
+/// 4. **Positive completeness ledger** — the set of carrier-bearing properties must equal the
+///    committed frozen ledger; any drift yields
+///    [`FunctionalCarrierViolation::LedgerMissing`] / [`FunctionalCarrierViolation::LedgerUnexpected`].
+///
+/// A non-empty result is a HARD FAIL on the sync path (see
+/// `crates/pipeline/src/stages/compile_logic.rs`), never a soft warning — the caller must stop.
+pub fn functional_carrier_integrity(store: &RdfDataset) -> Vec<FunctionalCarrierViolation> {
+    let mut violations: Vec<FunctionalCarrierViolation> = Vec::new();
+
+    // (1) RE-introduction guard — kept verbatim from the pre-migration completeness gate.
+    for property in functional_properties_missing_logic_carrier(store) {
+        violations.push(FunctionalCarrierViolation::ReintroducedOwlMarker { property });
+    }
+
+    let multiset = functional_carrier_multiset(store);
+    let declared = declared_property_iris(store);
+
+    // (2) Orphan carrier + (3) duplicate carrier — both keyed off the sorted carrier multiset.
+    for (property, count) in &multiset {
+        if !declared.contains(property) {
+            violations.push(FunctionalCarrierViolation::OrphanCarrier {
+                property: property.clone(),
+            });
+        }
+        if *count > 1 {
+            violations.push(FunctionalCarrierViolation::DuplicateCarrier {
+                property: property.clone(),
+                count: *count,
+            });
+        }
+    }
+
+    // (4) Positive completeness ledger — the exact carrier-bearing set must equal the frozen ledger.
+    let carried: std::collections::BTreeSet<String> = multiset.into_keys().collect();
+    let ledger = functional_carrier_ledger();
+    for property in ledger.difference(&carried) {
+        violations.push(FunctionalCarrierViolation::LedgerMissing {
+            property: property.clone(),
+        });
+    }
+    for property in carried.difference(&ledger) {
+        violations.push(FunctionalCarrierViolation::LedgerUnexpected {
+            property: property.clone(),
+        });
+    }
+
+    violations
 }
 
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
@@ -2949,6 +3387,22 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             }
         }
     }
+    // A formula reached as a `logic:AbductiveSchema`'s `logic:completenessFormula` is the
+    // discipline-satisfied condition the abductive producer instantiates at a gap subject —
+    // NOT a free-standing top-level assertion. Excluding every completeness root here is what
+    // keeps authoring a completeness condition from asserting it as an always-true axiom (which
+    // would both corrupt the reasoned core and auto-assert the very structure the advice only
+    // RECOMMENDS adding).
+    let completeness_pred = nn(&logic_iri("completenessFormula"));
+    for schema in subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("AbductiveSchema")),
+    ) {
+        for obj in objects(store, &schema, &completeness_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -3044,6 +3498,18 @@ fn one_child_subject(
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
+}
+
+/// Reconstruct the [`Formula`] rooted at the `logic:Formula` node named `root_iri` from `store`.
+///
+/// The public entry for consumers that hold a formula-root IRI resolved from the reasoned RDF
+/// dataset and need its first-order [`Formula`] IR without compiling the whole document — notably
+/// the abductive advice producer, which reads a `logic:AbductiveSchema`'s
+/// `logic:completenessFormula` root. That root is deliberately kept out of the top-level formula
+/// set (see [`extract_formulas`]), so it is unreachable through `parse_logic_*`; this reconstructs
+/// exactly the one subtree, applying the same strict well-formedness checks as every other formula.
+pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::Result<Formula> {
+    parse_formula(store, &Subject::Iri(root_iri.to_owned()))
 }
 
 fn parse_formula_inner(
@@ -5278,6 +5744,9 @@ pub fn parse_logic_dataset(
 
     let plain_axioms = extract_axioms(store, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
+    // Lift the RDFS/SKOS annotation surface into first-class NodeKind::Annotation axioms
+    // (logic: isSupersetOf SKOS/RDFS); fail-closed on a non-carrier language tag.
+    let annotation_axioms = extract_annotation_axioms(store, &mut diagnostics);
 
     // Read the top-level `logic:Formula` trees, then ROUTE a trivially-Horn leaf (a reified
     // ordinary triple: an IRI relation over two non-sequence-marker arguments) to its axiom
@@ -5320,6 +5789,7 @@ pub fn parse_logic_dataset(
         .into_iter()
         .chain(scoped_axioms)
         .chain(horn_axioms)
+        .chain(annotation_axioms)
     {
         if seen.insert(content_dedup_key(&ax)) {
             all_axioms.push(ax);

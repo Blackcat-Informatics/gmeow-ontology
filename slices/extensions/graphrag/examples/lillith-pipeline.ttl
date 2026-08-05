@@ -7,33 +7,50 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- Corpus and chunking (the core ai slice's Chunk).
 ex:mail-archive a gmeow:Document ;
-    rdfs:label "list archive, 2025"@en ;
+    rdfs:label "list archive, 2025"@x-gmeow-english ;
     gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" ;
     gmeow:contentDigest "sha256:9a1db2371ff810323b9187139fe012a30fc6b2cc879cabccfaefe30f727a9c62" ;
-    gmeow:contentDigest "md5:cec9e36b1db871d2575ef8d6a4b23015" .
+    gmeow:contentDigest "md5:cec9e36b1db871d2575ef8d6a4b23015" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The mailing-list archive document (2025) that seeds the Lillith working corpus — the source document the worked example chunks, embeds, and extracts entities from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:corpus-lillith a gmeow:Corpus ;
-    rdfs:label "Lillith working corpus"@en ;
+    rdfs:label "Lillith working corpus"@x-gmeow-english ;
     gmeow:corpusMember ex:mail-archive ;
-    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" .
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The Lillith working corpus: the content-addressed collection of documents (ex:mail-archive) the benchmark pipeline chunks, embeds, and indexes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:chunk-7 a gmeow:Chunk ;
     gmeow:chunkOf ex:mail-archive ;
     gmeow:spanStart "5200"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" .
+    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
+    rdfs:label "mail-archive chunk 7 (bytes 5200-6100)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "A retrieval-sized chunk of ex:mail-archive (byte span 5200-6100), the unit the embedding, retrieval, and extraction steps operate over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Embedding + index: attributed, metric-explicit, vector OUTSIDE (P12).
-ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@en .
+ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The embedding-model software agent (embedder-v3) that produced ex:embedding-7 over ex:chunk-7."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
-ex:embed-run a gmeow:Activity ; rdfs:label "embedding pass 2026-06-01"@en ;
+ex:embed-run a gmeow:Activity ; rdfs:label "embedding pass 2026-06-01"@x-gmeow-english ;
     gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 2026-06-01 embedding pass activity that generated ex:embedding-7 from ex:chunk-7 via ex:embedder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:embedding-7 a gmeow:Embedding ;
     gmeow:embeddingOf ex:chunk-7 ;
@@ -43,11 +60,18 @@ ex:embedding-7 a gmeow:Embedding ;
     gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
     gmeow:wasGeneratedBy ex:embed-run ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
-    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
+    rdfs:label "embedding of mail-archive chunk 7"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 1024-dimension cosine embedding of ex:chunk-7, produced by ex:embedder and indexed into ex:index-lillith. Its vector payload rides outside the graph by reference (P12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
-ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en ;
+ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@x-gmeow-english ;
     gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 2026-06-01 activity that built ex:index-lillith, the HNSW vector index over the Lillith working corpus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:index-lillith a gmeow:VectorIndex ;
     gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
@@ -55,7 +79,11 @@ ex:index-lillith a gmeow:VectorIndex ;
     gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
     gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
-    gmeow:wasGeneratedBy ex:index-build .
+    gmeow:wasGeneratedBy ex:index-build ;
+    rdfs:label "Lillith HNSW vector index"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The HNSW vector index over ex:corpus-lillith's embeddings, queried by ex:retrieval-3 to retrieve ex:chunk-7."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Retrieval: why did the model see this passage?
 ex:retrieval-3 a gmeow:RetrievalEvent ;
@@ -63,51 +91,80 @@ ex:retrieval-3 a gmeow:RetrievalEvent ;
     gmeow:againstIndex ex:index-lillith ;
     gmeow:retrievedChunk ex:chunk-7 ;
     gmeow:atTime "2026-06-02T10:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:label "retrieval: who maintained the build system?"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The retrieval event that queried ex:index-lillith for 'who maintained the build system?' and retrieved ex:chunk-7 — the auditable why-did-the-model-see-this-passage record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Extraction (core ModelInvocation) → derived DESCRIPTIONS.
-ex:extractor a gmeow:SoftwareAgent ; rdfs:label "extraction model"@en .
+ex:extractor a gmeow:SoftwareAgent ; rdfs:label "extraction model"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The extraction-model software agent invoked as ex:invocation-44 to derive entity and relationship descriptions from ex:chunk-7."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 ex:invocation-44 a gmeow:ModelInvocation ;
     gmeow:usedModel ex:extractor ;
     gmeow:samplingTemperature 0.0 ;
     gmeow:atTime "2026-06-01T12:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:label "extraction invocation, 2026-06-01"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The zero-temperature model invocation of ex:extractor that generated ex:desc-mara, ex:desc-buildsys, ex:rel-maintains, and ex:summary-infra from ex:chunk-7."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:desc-mara a gmeow:ExtractedEntity ;
-    rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    rdfs:label "extracted: 'Mara' (maintainer?)"@x-gmeow-english ;
     gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
-    gmeow:wasGeneratedBy ex:invocation-44 .
+    gmeow:wasGeneratedBy ex:invocation-44 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The model-extracted entity 'Mara', derived from ex:chunk-7 by ex:invocation-44, later a member of ex:community-infra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:desc-buildsys a gmeow:ExtractedEntity ;
-    rdfs:label "extracted: 'the build system'"@en ;
+    rdfs:label "extracted: 'the build system'"@x-gmeow-english ;
     gmeow:contentDigest "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
-    gmeow:wasGeneratedBy ex:invocation-44 .
+    gmeow:wasGeneratedBy ex:invocation-44 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The model-extracted entity 'the build system', derived from ex:chunk-7 by ex:invocation-44, later a member of ex:community-infra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:rel-maintains a gmeow:ExtractedRelationship ;
-    rdfs:label "extracted: Mara maintains the build system"@en ;
+    rdfs:label "extracted: Mara maintains the build system"@x-gmeow-english ;
     gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
     gmeow:relationshipSource ex:desc-mara ;
     gmeow:relationshipTarget ex:desc-buildsys ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
-    gmeow:wasGeneratedBy ex:invocation-44 .
+    gmeow:wasGeneratedBy ex:invocation-44 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The model-extracted relationship 'Mara maintains the build system', linking ex:desc-mara to ex:desc-buildsys, derived from ex:chunk-7 by ex:invocation-44."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Community + summary: the global-question substrate, revisable.
-ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@en ;
+ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@x-gmeow-english ;
     gmeow:eventTime "2026-06-02T00:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 2026-06-02 Leiden clustering activity that grouped ex:desc-mara and ex:desc-buildsys into ex:community-infra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:community-infra a gmeow:Community ;
-    rdfs:label "infrastructure community"@en ;
+    rdfs:label "infrastructure community"@x-gmeow-english ;
     gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
     gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
     gmeow:communityMember ex:desc-mara, ex:desc-buildsys ;
-    gmeow:wasGeneratedBy ex:cluster-run .
+    gmeow:wasGeneratedBy ex:cluster-run ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 'infrastructure community' — a level-0 Leiden cluster over ex:desc-mara and ex:desc-buildsys, produced by ex:cluster-run and summarized by ex:summary-infra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:summary-infra a gmeow:CommunitySummary ;
-    rdfs:label "summary: the infrastructure crew"@en ;
+    rdfs:label "summary: the infrastructure crew"@x-gmeow-english ;
     gmeow:contentDigest "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
     gmeow:summarizesCommunity ex:community-infra ;
     gmeow:wasDerivedFrom ex:desc-mara, ex:desc-buildsys, ex:chunk-7 ;
-    gmeow:wasGeneratedBy ex:invocation-44 .
+    gmeow:wasGeneratedBy ex:invocation-44 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The global-question summary 'the infrastructure crew' generated over ex:community-infra by ex:invocation-44 — the revisable community-level digest GraphRAG's global questions read from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

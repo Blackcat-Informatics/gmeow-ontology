@@ -66,6 +66,19 @@ fn struct_unsupported(role: &str) -> gmeow_errors::Diag {
     ))
 }
 
+/// Lower a ground quoted-triple `QTerm` to its native `TermValue::Triple` for use as an
+/// EDB pattern filter in the declarative oracle. A well-formed parser-produced triple
+/// always lowers; a malformed one (only reachable by constructing a `QTerm` directly) is a
+/// typed oracle error, never a silent wildcard.
+fn triple_edb_term(term: &QTerm, role: &str) -> gmeow_errors::Result<TermValue> {
+    crate::physical::qterm_to_value(term).map_err(|_| {
+        reference_err(format!(
+            "a malformed quoted-triple term is not supported as {role} by the declarative \
+             reference oracle"
+        ))
+    })
+}
+
 // ── Public entry point ────────────────────────────────────────────────────────
 
 /// Resolve `program` against `world` using the declarative SLD oracle.
@@ -134,6 +147,54 @@ pub fn resolve(
     Ok(answer_set)
 }
 
+// ── Metric-form cell resolver ─────────────────────────────────────────────────
+
+/// A [`crate::physical::CellResolver`] reading the exact-rational `math:` Gram/vector
+/// cells directly out of the materialized world via [`WorldFactSource::in_world`] — the
+/// declarative oracle's substrate for the same cell walk the columnar engine performs
+/// over its store. IRIs are bare (no angle brackets); the shared loaders build the form
+/// identically to the forward/backward legs.
+struct WorldFactCellResolver<'a> {
+    foreign: &'a dyn WorldFactSource,
+    world: &'a str,
+}
+
+impl crate::physical::MathTriples for WorldFactCellResolver<'_> {
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|dq| match dq.object {
+                TermValue::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .ok()?
+            .into_iter()
+            .find_map(|dq| match dq.object {
+                TermValue::Literal { lexical_form, .. } => lexical_form.trim().parse().ok(),
+                _ => None,
+            })
+    }
+}
+
+impl crate::physical::CellResolver for WorldFactCellResolver<'_> {
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, gmeow_math::Rational)>> {
+        crate::physical::load_gram_cells(self, iri)
+    }
+    fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
+        crate::physical::load_vector_dense(self, iri)
+    }
+}
+
 // ── Internal state ────────────────────────────────────────────────────────────
 
 struct ResolveState<'a> {
@@ -196,6 +257,11 @@ impl<'a> ResolveState<'a> {
                     // to a `Const` and surfaces here like any other constant.
                     match chase_var(v.as_str(), subst, 0) {
                         QTerm::Const(c) => Some((v, c)),
+                        // A goal variable bound to a ground quoted-triple surfaces as its
+                        // canonical `<<( s p o )>>` value.
+                        triple @ QTerm::Triple { .. } => {
+                            Some((v, crate::query_ir::qterm_display(&triple)))
+                        }
                         // An unbound goal variable produces no binding row.
                         QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
                     }
@@ -257,9 +323,19 @@ impl<'a> ResolveState<'a> {
     ) -> gmeow_errors::Result<()> {
         let lookup = |name: &str| match chase_var(name, subst, 0) {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
+            triple @ QTerm::Triple { .. } => Some(std::borrow::Cow::Owned(
+                crate::query_ir::qterm_display(&triple),
+            )),
             QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
-        match crate::physical::eval_builtin(builtin, &lookup) {
+        // A metric-form builtin reads its exact-rational Gram/vector cells directly out
+        // of the materialized world via `WorldFactSource::in_world`; scalar builtins
+        // ignore the resolver.
+        let resolver = WorldFactCellResolver {
+            foreign: self.foreign,
+            world: self.world,
+        };
+        match crate::physical::eval_builtin(builtin, &lookup, &resolver) {
             crate::physical::BuiltinOutcome::Filter(true) => {
                 self.resolve_conjunct(rest, subst, seen)
             }
@@ -271,17 +347,31 @@ impl<'a> ResolveState<'a> {
                 // the caller reads.  A free (unaliased) target chases to itself.
                 let root = match chase_var(&var, subst, 0) {
                     QTerm::Var(root) => root,
-                    QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => var,
+                    QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => {
+                        var
+                    }
                 };
-                new_subst.insert(root, crate::physical::emit_integer_surface(value));
+                new_subst.insert(root, crate::physical::emit_surface(&value));
                 self.resolve_conjunct(rest, &new_subst, seen)
             }
-            crate::physical::BuiltinOutcome::Unbound
-            | crate::physical::BuiltinOutcome::Error(_) => Err(reference_err(
-                "arithmetic/comparison builtin has an unbound operand or domain error in \
+            // A pure mode gap (an operand still unbound) stays the plain reference-oracle
+            // refusal — the top-down SLD oracle declines rather than guess.
+            crate::physical::BuiltinOutcome::Unbound => Err(reference_err(
+                "arithmetic/comparison builtin has an unbound operand in \
                  the declarative reference oracle"
                     .to_owned(),
             )),
+            // A typed domain fault (÷0, overflow, incommensurable dimensions) is minted
+            // into a ledgered builtin-gap finding naming its `math:` conformance class,
+            // the operation, and the antecedent operands — never an anonymous "domain
+            // error" — through the single shared helper.
+            outcome @ crate::physical::BuiltinOutcome::Error(_) => {
+                let bindings: Vec<(String, String)> =
+                    subst.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+                let gap = crate::physical::BuiltinGap::from_outcome(builtin, &outcome, bindings)
+                    .expect("an Error outcome always yields a ledgerable gap");
+                Err(crate::reason::builtin_gap::builtin_gap_diag(&gap))
+            }
         }
     }
 
@@ -386,6 +476,8 @@ impl<'a> ResolveState<'a> {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             // A bare number is never an EDB subject in oracle-resolved programs.
             QTerm::Var(_) | QTerm::Num(_) => None,
+            // A ground quoted-triple is a native `TermValue::Triple` pattern filter.
+            QTerm::Triple { .. } => Some(triple_edb_term(&atom.args[0], "an EDB subject")?),
             // G14: a structured (compound) term is NEVER a silent wildcard here. Structured
             // programs route to `resolve_fol` upstream, so this is a hard-fail guard against
             // a routing bug matching arbitrary EDB, not a documented reachable path.
@@ -394,6 +486,7 @@ impl<'a> ResolveState<'a> {
         let obj_term: Option<TermValue> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Triple { .. } => Some(triple_edb_term(&atom.args[1], "an EDB object")?),
             QTerm::Struct(_) => return Err(struct_unsupported("an EDB object")),
         };
 
@@ -479,6 +572,9 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
         // variable.  After this, only Const/Var remain.
         let norm = |t: QTerm| match t {
             QTerm::Num(n) => QTerm::Const(crate::physical::emit_integer_surface(n)),
+            // A ground quoted-triple normalizes to its canonical constant surface so the
+            // ground-vs-ground unification below compares it like any other constant.
+            triple @ QTerm::Triple { .. } => QTerm::Const(crate::query_ir::qterm_display(&triple)),
             other => other,
         };
         let h_val = norm(resolve_term(h, &new_subst));
@@ -497,6 +593,9 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
             }
             (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
                 unreachable!("Num normalized to Const above")
+            }
+            (QTerm::Triple { .. }, _) | (_, QTerm::Triple { .. }) => {
+                unreachable!("Triple normalized to Const above")
             }
             // A structured (compound) term is never produced on the flat SLD oracle path
             // (structured programs route to the full-FOL resolver); it unifies with nothing
@@ -525,7 +624,7 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 /// unbound variable.
 fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
     match t {
-        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => t.clone(),
         QTerm::Var(v) => chase_var(v, subst, 0),
     }
 }
@@ -567,7 +666,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_term(t: &QTerm, suffix: &str) -> QTerm {
         match t {
             QTerm::Var(v) => QTerm::Var(format!("{}{}", v, suffix)),
-            QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
+            QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => t.clone(),
         }
     }
 
@@ -596,6 +695,24 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 lhs: rename_term(lhs, suffix),
                 op: *op,
                 rhs: rename_term(rhs, suffix),
+            },
+            QBuiltin::BilinearSqDist { target, gram, x, y } => QBuiltin::BilinearSqDist {
+                target: rename_term(target, suffix),
+                gram: rename_term(gram, suffix),
+                x: rename_term(x, suffix),
+                y: rename_term(y, suffix),
+            },
+            // LOWERING-ONLY (`crate::relational_core::lower_constraint_violation_rules`),
+            // never authored on the `.logic` query surface this SLD reference oracle
+            // reads — carried for exhaustiveness with the same renaming treatment.
+            QBuiltin::DimEqual { d1, d2 } => QBuiltin::DimEqual {
+                d1: rename_term(d1, suffix),
+                d2: rename_term(d2, suffix),
+            },
+            QBuiltin::DimProduct { d_f, d_m, d_r } => QBuiltin::DimProduct {
+                d_f: rename_term(d_f, suffix),
+                d_m: rename_term(d_m, suffix),
+                d_r: rename_term(d_r, suffix),
             },
         }
     }
@@ -632,6 +749,8 @@ fn term_canonical_or_wildcard(t: &QTerm) -> gmeow_errors::Result<String> {
         QTerm::Var(_) => Ok(String::new()),
         // A bare number canonicalizes to its decimal text for memo-keying purposes.
         QTerm::Num(n) => Ok(n.to_string()),
+        // A ground quoted-triple canonicalizes to its `<<( s p o )>>` surface memo key.
+        QTerm::Triple { .. } => Ok(crate::query_ir::qterm_display(t)),
         QTerm::Struct(_) => Err(struct_unsupported("an IDB call argument")),
     }
 }
@@ -672,6 +791,7 @@ mod tests {
     use crate::query_ir::parse_query_program;
     use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
+    use gmeow_term_arena::engine::StructNodeParts;
 
     const W: &str = "http://logic.test/world/resolver";
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -986,6 +1106,80 @@ mod tests {
         assert_eq!(fail.bindings.len(), 0, "2 > 5 prunes the branch: {fail:?}");
     }
 
+    #[test]
+    fn exact_rational_builtin_resolves_in_body_order() {
+        // The reference oracle evaluates the exact-`/` generator in body order: the
+        // scalar-ℚ family flows through the ONE shared evaluator on the demand path,
+        // committing the normalized rational transport surface (6/4 → 3/2).
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}kind"),
+            &format!("{base}item"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one exact-rational answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
+    #[test]
+    fn dimension_composition_resolves_in_body_order() {
+        // A dimension-composition generator (`D is A * B` over two SI dimension
+        // vectors fed from EDB facts) evaluates in body order through the ONE shared
+        // evaluator: length (L) ⊗ time (T) = the L·T exponent vector, committed on the
+        // dimension transport surface.
+        let base = "https://example.org/";
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        // length = L¹ (index 0), time = T¹ (index 2), fixed SI order.
+        let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimTime")),
+                time,
+            )
+            .unwrap();
+        let world_nn = W.to_owned();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one composed dimension: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
+    }
+
     // ── G14: a Struct argument to the reference oracle hard-fails ────────────
 
     /// Build a `QTerm::Struct` wrapping some arbitrary node in a fresh, disposable
@@ -993,9 +1187,9 @@ mod tests {
     /// supposed to reject the term BEFORE any lookup), so the arena's contents are
     /// irrelevant; only the term's variant matters for this guard.
     fn struct_term() -> QTerm {
-        let mut dag = crate::physical::term_dag::TermDag::new();
+        let mut dag = gmeow_term_arena::engine::TermDag::new();
         let node = dag.intern_leaf(TermValue::iri("https://example.org/opaque"));
-        QTerm::Struct(crate::query_ir::StructNode::new(node, dag.arena()))
+        QTerm::Struct(crate::query_ir::StructNode::wrap(node, dag.arena()))
     }
 
     #[test]

@@ -1,0 +1,182 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inhabitation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationEmbodiment is functional"
+msgstr "configurationEmbodiment est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:configurationEmbodiment est fonctionnelle : une gmeow:InhabitationConfiguration possède exactement une incarnation centrale active, l'unique gmeow:EmbodimentAssignment qui demeure constante sur le sous-intervalle de la configuration. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationOfTenure is functional"
+msgstr "configurationOfTenure est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:configurationOfTenure est fonctionnelle : chaque gmeow:InhabitationConfiguration est un sous-intervalle à configuration constante d'exactement une gmeow:InhabitationTenure qu'elle partitionne. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an inhabitation tenure's interval carries its temporal frame"
+msgstr "l'intervalle d'une occupation d'habitation porte son cadre temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme que chaque gmeow:TimeInterval qu'une gmeow:InhabitationTenure délimite via gmeow:duringInterval doit déclarer au moins un gmeow:hasTemporalFrame — un intervalle affirmé sans son cadre est mal formé (Principe 11 : l'intervalle porte son cadre). La porte de cohérence native lève une violation lorsqu'un intervalle délimitant manque d'un cadre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationLocusKind is functional"
+msgstr "inhabitationLocusKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationLocusKind is functional: a gmeow:InhabitationTenure has exactly one locus kind, either gmeow:locusSelf or gmeow:locusVessel, while tenancy cardinality is derived from overlapping tenures rather than set here."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitationLocusKind est fonctionnelle : un gmeow:InhabitationTenure possède exactement un type de lieu, soit gmeow:locusSelf, soit gmeow:locusVessel, tandis que la cardinalité de l'occupation est dérivée des tenures qui se chevauchent plutôt que fixée ici."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationSubject is functional"
+msgstr "inhabitationSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationSubject is functional: a gmeow:InhabitationTenure has exactly one inhabiting subject, and because that single slot has a gmeow:Agent range a contested inhabitation must use gmeow:InhabitationClaim rather than assert a rival subject here."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitationSubject est fonctionnelle : un gmeow:InhabitationTenure possède exactement un sujet occupant, et comme cet emplacement unique a pour portée gmeow:Agent, une occupation contestée doit passer par gmeow:InhabitationClaim plutôt que d'affirmer ici un sujet rival."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitedHost is functional"
+msgstr "inhabitedHost est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitedHost est fonctionnelle : un gmeow:InhabitationTenure possède exactement un hôte occupé, de sorte que le même sujet occupant un second hôte constitue une tenure distincte. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationEmbodiment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:configurationEmbodiment nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+msgstr "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationOfTenure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:configurationOfTenure nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+msgstr "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationLocusKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:inhabitationLocusKind nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+msgstr "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:inhabitationSubject nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+msgstr "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitedHost names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:inhabitedHost nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+msgstr "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InhabitationTenure; the record is the canonical carrier the gate joins."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir la condition d'intégrité de cet enregistrement sur gmeow:InhabitationTenure ; l'enregistrement est le porteur canonique que le portail joint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:InhabitationTenure no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque gmeow:InhabitationTenure ne porte plus la condition — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:InhabitationTenure and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "Lisez ensemble les champs logic: de l'enregistrement : ils nomment gmeow:InhabitationTenure et la condition affirmée à son sujet, et la vue de fondement OWL en projette l'axiome correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."
+msgstr "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:configurationEmbodiment and nothing else. It is not a definition of gmeow:configurationEmbodiment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:configurationEmbodiment, et rien d'autre. Ce n'est pas une définition de gmeow:configurationEmbodiment (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:configurationOfTenure and nothing else. It is not a definition of gmeow:configurationOfTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:configurationOfTenure, et rien d'autre. Ce n'est pas une définition de gmeow:configurationOfTenure (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitationLocusKind and nothing else. It is not a definition of gmeow:inhabitationLocusKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:inhabitationLocusKind, et rien d'autre. Ce n'est pas une définition de gmeow:inhabitationLocusKind (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitationSubject and nothing else. It is not a definition of gmeow:inhabitationSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:inhabitationSubject, et rien d'autre. Ce n'est pas une définition de gmeow:inhabitationSubject (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitedHost and nothing else. It is not a definition of gmeow:inhabitedHost (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:inhabitedHost, et rien d'autre. Ce n'est pas une définition de gmeow:inhabitedHost (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:InhabitationTenure, et rien d'autre. Ce n'est pas une définition de gmeow:InhabitationTenure (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

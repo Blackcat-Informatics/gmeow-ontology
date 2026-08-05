@@ -24,7 +24,7 @@ use gmeow_errors::{
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::gts::model::Graph;
 use purrdf::{
-    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
+    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, RdfTriple,
     pair_loss_ledger,
 };
 use rayon::prelude::*;
@@ -34,14 +34,12 @@ use purrdf::slice::catalog::SliceCatalog;
 use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
 use purrdf::slice::{Phase, ToolchainContext, product_unit_key};
 
-use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
 use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
-use crate::slice_ownership;
 use crate::store;
 
 /// One per-phase timing record.
@@ -70,9 +68,31 @@ pub struct SignatureConfig {
     pub trusted_key: Option<String>,
 }
 
+/// Where the whole-corpus merged-SHACL verdict (Phase 8) comes from.
+///
+/// This is an explicit source selection, never a switch that can turn the phase off:
+/// both variants put a complete merged-SHACL verdict into the run, and there is no
+/// third "skip" state.
+#[derive(Debug, Clone, Default)]
+pub enum MergedShacl {
+    /// Run the pass here, over the shared store and the parsed shape union.
+    #[default]
+    Live,
+    /// Consume a verdict already produced over the SAME inputs by the pipeline's
+    /// `stage-validate`, rather than validating the whole corpus a second time.
+    ///
+    /// The caller MUST have proven the record current before constructing this — by
+    /// recomputing `stage-validate`'s recorded input digest over the working tree and
+    /// hard-failing on absence or mismatch. This type carries findings, not a
+    /// promise: an unverified record must never reach it.
+    Recorded(Vec<Finding>),
+}
+
 /// Optional/extended inputs for the validation orchestration.
 #[derive(Debug, Clone, Default)]
 pub struct ValidateOptions {
+    /// The source of the Phase 8 merged-SHACL verdict — see [`MergedShacl`].
+    pub merged_shacl: MergedShacl,
     /// Record per-phase timings.
     pub timings: bool,
     /// `(subject_display, object)` pairs allowed to use `owl:sameAs` with an
@@ -94,6 +114,23 @@ pub struct ValidateOptions {
     /// Turtle text of the test DSL SHACL shapes. When provided, test DSL SHACL
     /// validation is run in Rust.
     pub test_dsl_shapes_ttl: Option<String>,
+    /// Repository root whose SHAPE UNION supplies the normal SHACL shapes, loaded
+    /// through `purrdf::shapes::shape_union::load_shapes`.
+    ///
+    /// This is an explicit choice of shape SOURCE, not an optional extra: when it is
+    /// set, `shapes_ttl` is not the shape source and must be empty. The two sources
+    /// are the repository union (every in-repo caller — the `make validate` gate and
+    /// the `--gts` bundle path) and a literal Turtle document (`shapes_ttl`, for
+    /// fixtures and benches that have no repository around them).
+    ///
+    /// The union loader is what makes this run's shape assembly identical to the
+    /// pipeline's BY CONSTRUCTION rather than by accident. A caller that instead
+    /// concatenated the union members' raw TEXT would parse one document where the
+    /// loader parses N and unions them: labelled blank nodes would fuse across files,
+    /// a second `@base` would silently re-resolve relative IRIs, and a prefix bound
+    /// twice would take the first binding rather than the last. Today's corpus happens
+    /// to have none of those, and nothing gated that it stays that way.
+    pub shape_union_root: Option<PathBuf>,
     /// Project root for the content-addressed `.cache/validate` cache. When
     /// `None`, caching is disabled; `gmeow-dev validate` passes `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
@@ -313,6 +350,40 @@ fn finding_identity_key(finding: &Finding) -> String {
     parts.join("\u{1f}")
 }
 
+/// The content key of the repository shape union at `root`: each member's
+/// repo-relative path, byte length, and bytes, in the loader's own file order.
+///
+/// Keyed on the same member set and order `purrdf::shapes::shape_union::load_shapes`
+/// parses, so the cache entry is invalidated by exactly the edits that change the
+/// shapes the engine ran with — including a `generated/shapes/*.ttl` rewrite.
+///
+/// # Errors
+/// If the union file list cannot be built (it fails closed on an empty
+/// `generated/shapes/`) or a member cannot be read.
+fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
+    let files = purrdf::shapes::shape_union::shape_files(root)
+        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))?;
+    let mut out: Vec<u8> = Vec::new();
+    for file in &files {
+        let rel = file
+            .strip_prefix(root)
+            .unwrap_or(file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let bytes = std::fs::read(file).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("reading shape file {}: {e}", file.display()),
+            })
+        })?;
+        out.extend_from_slice(rel.as_bytes());
+        out.push(0x1f);
+        out.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+        out.extend_from_slice(&bytes);
+        out.push(0x1e);
+    }
+    Ok(out)
+}
+
 /// A complete validation run: shared store, parsed shapes, timings, diagnostics,
 /// and the auxiliary data downstream Rust phases consume (declared terms for
 /// the authoring-integrity undeclared-term gate; advisory claims for the D4
@@ -426,11 +497,31 @@ impl ValidationRun {
             }
         })?;
 
-        // Parse the normal SHACL shapes once.
-        let shapes = timed(&mut timings, "parse-shapes", options, None, || {
-            purrdf::shapes::engine::parse_shapes(shapes_ttl)
-                .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))
-        })?;
+        // Parse the normal SHACL shapes once, from whichever of the two shape SOURCES
+        // the caller selected (see `ValidateOptions::shape_union_root`). Supplying both
+        // is a caller bug, not a precedence question — reject it rather than pick one.
+        if options.shape_union_root.is_some() && !shapes_ttl.is_empty() {
+            return Err(Diag::of_kind(crate::error::Argument {
+                detail: "ValidationRun::run: shape_union_root and a non-empty shapes_ttl are two \
+                         different shape sources; supply exactly one"
+                    .to_owned(),
+            }));
+        }
+        let (shape_store, shapes) =
+            timed(
+                &mut timings,
+                "parse-shapes",
+                options,
+                None,
+                || match &options.shape_union_root {
+                    Some(root) => purrdf::shapes::shape_union::load_shapes(root)
+                        .map(|(store, shapes)| (Some(store), shapes))
+                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                    None => purrdf::shapes::engine::parse_shapes(shapes_ttl)
+                        .map(|shapes| (None, shapes))
+                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                },
+            )?;
 
         // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
@@ -564,10 +655,11 @@ impl ValidationRun {
         } else {
             None
         };
-        if let Some((_, ownership)) = &slice_analysis {
-            for finding in slice_ownership::ownership_findings(ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+        if let Some((catalog, ownership)) = &slice_analysis {
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(ownership, catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
@@ -608,14 +700,24 @@ impl ValidationRun {
                 project_root,
                 &slices_path,
             )?;
-            for finding in authoring
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
-            {
+            // EVERY authoring finding is folded, not just the Errors. An Error is
+            // Binding (it hard-fails the run); a non-Error is Advisory (it is
+            // reported and never gates). Dropping the non-Errors would silently
+            // discard the R7 seam-registry gate's "NOT COMPARED against a
+            // materialized page" record — the one thing that must never vanish, since
+            // its whole purpose is to keep an uncompared projection from reading as a
+            // clean one. Advisory findings do not affect `ValidationRun::ok`, so the
+            // gate's hard-fail surface is unchanged.
+            for finding in authoring {
+                let standpoint = if finding.severity == Severity::Error {
+                    Standpoint::Binding
+                } else {
+                    Standpoint::Advisory
+                };
                 intern_finding(
                     &mut run_ledger,
                     StageId::new("validate.authoring_integrity"),
-                    Standpoint::Binding,
+                    standpoint,
                     &finding,
                 );
             }
@@ -640,13 +742,14 @@ impl ValidationRun {
                 |d| std::path::Path::new(d).to_path_buf(),
             );
             let slices_path_str = slices_path.to_string_lossy().into_owned();
-            let (_, ownership) =
+            let (catalog, ownership) =
                 timed(&mut timings, "slice-ownership-live", options, None, || {
                     slice_catalog_and_ownership(&slices_path_str)
                 })?;
-            for finding in slice_ownership::ownership_findings(&ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(&ownership, &catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
@@ -689,7 +792,17 @@ impl ValidationRun {
                     source_paths.iter().map(PathBuf::from).collect();
                 cache.files_cache_key(&source_paths_buf)?
             };
-            let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
+            // The shape leg of the key: the literal document when that is the source,
+            // else the union members' own bytes in union order. Both are exact content
+            // keys over the shapes actually parsed — a shape edit busts the key either
+            // way.
+            let union_key_bytes = match &options.shape_union_root {
+                Some(root) => Some(shape_union_key_bytes(root)?),
+                None => None,
+            };
+            let shapes_key = ValidationCache::cache_key(&[union_key_bytes
+                .as_deref()
+                .unwrap_or(shapes_ttl.as_bytes())]);
             let salt = ValidationCache::toolchain_salt();
             ValidationCache::cache_key(&[
                 source_key.as_bytes(),
@@ -697,17 +810,36 @@ impl ValidationRun {
                 salt.as_bytes(),
             ])
         } else {
-            ValidationCache::cache_key(&[shapes_ttl.as_bytes()])
+            match &options.shape_union_root {
+                Some(root) => ValidationCache::cache_key(&[&shape_union_key_bytes(root)?]),
+                None => ValidationCache::cache_key(&[shapes_ttl.as_bytes()]),
+            }
         };
+        // `merged_shacl_key` is computed above in BOTH source modes: Phase 10
+        // (`check_examples`) consumes it as its own per-example cache salt, so it is
+        // load-bearing beyond this phase and must not be made conditional.
         let start = Instant::now();
-        let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            // Same class-membership materialization as the example phase: purrdf's
-            // spec-conformant `sh:class` needs the subClassOf→rdf:type closure made
-            // explicit (see [`materialize_subclass_type_closure`]).
-            let materialized = materialize_subclass_type_closure(&dataset)?;
-            let report = store::shacl_validate_dataset(&materialized, &shapes);
-            Ok(shacl_findings_from_report(&report, None))
-        })?;
+        let (result, meta) = match &options.merged_shacl {
+            MergedShacl::Live => {
+                run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
+                    // No `rdf:type` pre-materialization: the engine closes `sh:class`/`sh:targetClass`
+                    // over the asserted `rdfs:subClassOf` chain, and every projected `sh:sparql` /
+                    // `sh:SPARQLTarget` body now reads class membership through the `a/<subClassOf>*`
+                    // property path (constraint projector + the legacy shape bodies), so the raw dataset
+                    // is validated directly.
+                    let report = store::shacl_validate_dataset(&dataset, &shapes);
+                    Ok(shacl_findings_from_report(&report, None))
+                })?
+            }
+            // The verdict the pipeline already recorded over the same inputs, proven
+            // current by the caller. Folded through the SAME `intern_shacl_findings`
+            // path a live pass takes, so a recorded violation reaches the report and
+            // the exit code exactly as a live one does.
+            MergedShacl::Recorded(findings) => (
+                findings.clone(),
+                Some("stage-validate recorded verdict".to_owned()),
+            ),
+        };
         if options.timings {
             timings.push(Timing {
                 phase: "merged-shacl".to_owned(),
@@ -832,29 +964,70 @@ impl ValidationRun {
             }
         }
 
-        // Advisory tier (D1): emit one fixed demonstrator advisory on every
-        // normal-completion run, so gmeow validate surfaces a Note finding distinct
-        // from compliance errors. The dual-projection-always contract: ONE
-        // Advisory::project() call yields BOTH the graded diagnostic AND the
-        // in-memory claim hook D4 materialises. NOT emitted on the two early-return
-        // (hard-fail) paths above. D3 replaces this demonstrator with harvested
-        // advisory rules (find via the "advisory-demonstrator" tag).
-        let advisory = Advisory::note(
-            crate::codes::ADVICE_TIER_ACTIVE,
-            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
-        )
-        .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
-        .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
-        .with_tag("advisory-demonstrator");
-        let projection = advisory.project();
-        let advisory_claims = vec![projection.claim];
-        // Intern the advisory's graded (Standpoint::Advisory) diagnostic onto the
-        // run ledger — it never gates, whatever its severity.
-        run_ledger.attach(projection.diag, StageId::new("validate.advisory"));
-
         // The single carrier is complete: project it to the one canonical report.
         let mut report = run_ledger.project_report("validate");
-        report.add_rule(advisory.rule());
+
+        // Advisory tier (data-matched): the merged-SHACL phase already interned every
+        // result — including the Info-severity advisory-constraint matches — as `shacl.*`
+        // findings. Split those out of the projected report: each Info `shacl.*` finding
+        // whose source shape carries a `logic:formalizes` is an instance whose data matched
+        // an advisory anti-pattern guard. Its raw finding is SUPPRESSED and re-projected as
+        // a Note + deonticRecommendation advisory. Advice fires from a DATA MATCH, never
+        // merely because a rule exists. Find harvested findings via the "advisory-harvested"
+        // tag. (CLI twin of the pipeline's result-based split; both build advisories through
+        // `advisory::build_advisory`, so the two surfaces cannot drift.)
+        // The shape STORE the advisory split scans is the one the shapes were parsed
+        // from: the union loader already returns it (so a second parse of a
+        // re-concatenated text — with different blank-node scoping than the union the
+        // engine actually ran — is impossible), and the literal-document source parses
+        // its own text.
+        let advisory_shapes = match &shape_store {
+            Some(store) => Some(Arc::clone(store)),
+            None => purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok(),
+        };
+        let advisories = advisory_shapes
+            .as_deref()
+            .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes, &dataset))
+            .unwrap_or_default();
+        let mut advisory_ledger = DiagLedger::new();
+        let mut advisory_claims = Vec::with_capacity(advisories.len());
+        for advisory in &advisories {
+            let projection = advisory.project();
+            advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+            advisory_claims.push(projection.claim);
+            report.add_rule(advisory.rule());
+        }
+        // D5 abductive tier (CLI twin of the pipeline wiring): the constructive "what to ADD"
+        // wing. Each warranted candidate is a warrant-as-Finding (attached first, its DiagRef
+        // captured) plus an advisory whose diag carries a genuine finding→finding antecedent to
+        // that warrant, so the warrant join resolves non-DARK. The producer is ENGINE-FREE — the
+        // relatum path warrants by construction, the sortal path by a sound class-disjointness
+        // lookup — and `dataset` is only READ, never mutated. Both wings ride the same
+        // dual-projection loop → the `gmeow` CLI surfaces D5 with closed warrant edges.
+        //
+        // `dataset` IS the reasoned surface the producer's `reasoned` parameter names: when a
+        // `gmeow.gts` bundle is validated it is `dataset_from_gts`, which already carries the
+        // reason stage's folded closure (entailed types/relata), so the abductive tier sees
+        // entailment. A raw-source run has no reasoner, so `dataset` is the merged
+        // asserted graph only — an HONEST asserted-only surface (no fabricated reasoning), the
+        // exact contract the producer doc records. There is no authored-only surface masquerading
+        // as reasoned: the pipeline path unions the real closure, this path passes the real bundle.
+        let abductive_suggestions = crate::abductive::abductive_advisories(&dataset);
+        for suggestion in abductive_suggestions {
+            let warrant_ref =
+                advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+            let projection = suggestion.advisory.project();
+            advisory_ledger.attach(
+                projection.diag.with_antecedents([warrant_ref]),
+                StageId::new("validate.advisory"),
+            );
+            advisory_claims.push(projection.claim);
+            report.add_rule(suggestion.advisory.rule());
+        }
+        // Flat findings after the ledger is fully attached (findings("validate") reads the batch).
+        for note in advisory_ledger.findings("validate") {
+            report.add_finding(note);
+        }
 
         // Semantic (`--deep`) pass (ME2): reason over the bundle and read the
         // shared logic:ReasoningResult, folding its semantic verdict into the same
@@ -1410,15 +1583,12 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> gmeow_errors::Result<String> {
 fn slice_catalog_and_ownership(
     slices_dir: &str,
 ) -> gmeow_errors::Result<(SliceCatalog, OwnershipReport)> {
-    let catalog = SliceCatalog::discover(
-        Path::new(slices_dir),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .map_err(|e| {
-        Diag::of_kind(crate::error::Catalog {
-            detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
-        })
-    })?;
+    let catalog = SliceCatalog::discover(Path::new(slices_dir), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Catalog {
+                detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
+            })
+        })?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
     let ownership = OwnershipAnalyzer::new(&catalog).analyze().map_err(|e| {
@@ -1683,139 +1853,6 @@ fn example_shacl_key(
     ]))
 }
 
-/// Materialize the `rdfs:subClassOf` → `rdf:type` transitive closure into a
-/// validation dataset so SHACL `sh:class` constraints resolve without relying on
-/// any RDF-engine's (non-)inference behavior.
-///
-/// # Why this exists — READ BEFORE TOUCHING THE SHACL PHASES (this WILL resurface)
-///
-/// SHACL's `sh:class C` is satisfied when the value node is a *SHACL instance* of
-/// `C`: it carries `rdf:type C`, or `rdf:type D` for some `D` that reaches `C`
-/// through `rdfs:subClassOf` (SHACL spec §2.1.4, the definition of "SHACL
-/// instance"). A **spec-conformant** SHACL processor performs NO other entailment
-/// — it does not run RDFS/OWL reasoning, and it does NOT synthesize `rdf:type`
-/// triples from `rdfs:subClassOf`. It only follows `subClassOf` edges that are
-/// *literally present in the data graph* when resolving `sh:class`.
-///
-/// A lenient SHACL engine that instead performs `rdfs:subClassOf` entailment while
-/// evaluating `sh:class` accepts an instance typed only as a deep subclass (e.g.
-/// `ex:x a gmeow:Proposition`, where `gmeow:Proposition ⊑* gmeow:Entity`) against
-/// `sh:class gmeow:Entity` even though `ex:x` never carries `rdf:type gmeow:Entity`.
-/// A conformant engine does NOT, so relying on that leniency is fragile.
-///
-/// A conformant engine walks `subClassOf` TRANSITIVELY, but only over the edges in
-/// the data graph, and never infers `rdf:type`. It therefore accepts the deep
-/// subclass case IFF the whole `subClassOf` chain up to the target class is in the
-/// validated graph; otherwise it (correctly) reports a `ClassConstraintComponent`
-/// violation. gmeow's example ABox files assert only the most specific type
-/// (`gmeow:Proposition`), and the class chain crosses namespaces
-/// (`gmeow:Proposition → logic:Object → logic:Endurant → gmeow:SocialObject →
-/// gmeow:Entity`), so depending on the validator to bridge that is fragile and
-/// engine-sensitive.
-///
-/// So gmeow makes the class membership EXPLICIT here instead of depending on the
-/// validator: it precomputes the transitive `subClassOf` closure of every class in
-/// the graph and materializes, for each asserted `s rdf:type C`, the derived
-/// `s rdf:type Super` for every transitive `Super` of `C`. After this pass a value
-/// typed `gmeow:Proposition` literally carries `rdf:type gmeow:Entity`, so
-/// `sh:class gmeow:Entity` is satisfied by a direct type check — independent of how
-/// any SHACL engine chooses to follow `subClassOf`. This keeps gmeow's closed-world
-/// SHACL semantics stable across RDF-engine versions and stays deterministic (no
-/// reasoner in the validate path).
-///
-/// Scope: this materializes ONLY the `subClassOf → rdf:type` closure (RDFS rule
-/// rdfs9 plus the transitivity of `subClassOf`). It is deliberately NOT a general
-/// reasoner — it does not touch `owl:*`, `rdfs:domain`/`range`, or property
-/// hierarchies. SHACL `sh:class` needs none of those, and adding them would
-/// over-approximate the validated graph and mask real closed-world violations.
-///
-/// Cost: one pass over the quads to build the direct-super map, a memoized DFS for
-/// the transitive closure (cycle-guarded — a malformed `A ⊑ A` loop yields no
-/// derived types rather than diverging), and one pass to emit the derived
-/// `rdf:type` quads. All derived quads are `(IRI, rdf:type, IRI)`; blank-node and
-/// literal subjects/types are ignored (they cannot participate in a `sh:class`
-/// class check).
-fn materialize_subclass_type_closure(data: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    use std::collections::{BTreeMap, BTreeSet};
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-    // Materialize the quad stream once — it is walked twice (build the super map,
-    // then emit derived types).
-    let quads: Vec<RdfQuad> = data.owned_quads().collect();
-
-    // 1. Direct super-class map: class IRI → the classes it is *directly* declared a
-    //    subclass of. Only IRI→IRI `subClassOf` edges participate (a blank-node
-    //    superclass is an anonymous OWL class expression, not a `sh:class` target).
-    let mut direct_supers: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
-    for q in &quads {
-        if q.predicate.as_str() == RDFS_SUBCLASSOF
-            && let (RdfTerm::Iri(sub), RdfTerm::Iri(sup)) = (&q.subject, &q.object)
-        {
-            direct_supers
-                .entry(sub.as_str())
-                .or_default()
-                .insert(sup.as_str());
-        }
-    }
-
-    // 2. Transitive closure per class, memoized. `in_progress` guards subclass
-    //    cycles (`A ⊑ B ⊑ A`): a class already on the DFS stack contributes nothing
-    //    further, so the pass terminates on any (malformed) cyclic hierarchy.
-    fn supers_of<'a>(
-        cls: &'a str,
-        direct: &BTreeMap<&'a str, BTreeSet<&'a str>>,
-        cache: &mut BTreeMap<&'a str, BTreeSet<&'a str>>,
-        in_progress: &mut BTreeSet<&'a str>,
-    ) -> BTreeSet<&'a str> {
-        if let Some(hit) = cache.get(cls) {
-            return hit.clone();
-        }
-        if !in_progress.insert(cls) {
-            return BTreeSet::new();
-        }
-        let mut out = BTreeSet::new();
-        if let Some(directs) = direct.get(cls) {
-            for &sup in directs {
-                out.insert(sup);
-                out.extend(supers_of(sup, direct, cache, in_progress));
-            }
-        }
-        in_progress.remove(cls);
-        cache.insert(cls, out.clone());
-        out
-    }
-
-    let mut cache: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
-    let mut in_progress: BTreeSet<&str> = BTreeSet::new();
-
-    // 3. Emit `s rdf:type Super` for every transitive superclass of each asserted
-    //    `s rdf:type C`. The builder keeps the original graph verbatim first, so
-    //    the pass is purely additive (deterministic: BTree iteration order).
-    let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(data);
-    for q in &quads {
-        if q.predicate.as_str() == RDF_TYPE
-            && let RdfTerm::Iri(cls) = &q.object
-        {
-            for sup in supers_of(cls.as_str(), &direct_supers, &mut cache, &mut in_progress) {
-                builder.push_owned_quad(&RdfQuad::new(
-                    q.subject.clone(),
-                    RDF_TYPE,
-                    RdfTerm::iri(sup),
-                ));
-            }
-        }
-    }
-
-    builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: e.to_string(),
-        })
-    })
-}
-
 /// The example file is parsed under its own blank scope, projected into the SHACL
 /// flattened view, merged with the already-projected base graph, then validated
 /// with the native SHACL engine.
@@ -1851,21 +1888,14 @@ fn run_example_shacl(
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(base_projected);
     builder.push_dataset(&example_projected);
+    // The base graph carries the class hierarchy (`rdfs:subClassOf` edges) and the example
+    // asserts only the most-specific type; class membership is resolved by the engine
+    // (`sh:class`/`sh:targetClass`) and by the `a/<subClassOf>*` property path the projected
+    // `sh:sparql` / `sh:SPARQLTarget` bodies carry, so no `rdf:type` pre-materialization is
+    // needed over the merged projected dataset.
     let merged = builder.freeze().map_err(|e| {
         Diag::of_kind(crate::error::Serialize {
             detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
-        })
-    })?;
-    // Materialize the subClassOf→rdf:type closure so `sh:class` resolves against
-    // the example instances' full type set (the base graph carries the class
-    // hierarchy; the example asserts only the most-specific type). See
-    // [`materialize_subclass_type_closure`] for the full rationale.
-    let merged = materialize_subclass_type_closure(&merged).map_err(|e| {
-        Diag::of_kind(crate::error::Engine {
-            detail: format!(
-                "example {name}: class-membership materialization failed: {}",
-                e.message()
-            ),
         })
     })?;
     let report = if example_allows_focus_pruning(example_ds.as_ref()) {
@@ -1895,8 +1925,13 @@ const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
 
 fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
     for quad in example.owned_quads() {
-        if quad.predicate == rdfs::SUB_CLASS_OF
-            || quad.predicate == rdfs::SUB_PROPERTY_OF
+        // Scan both the canonical `logic:subClassOf`/`logic:subPropertyOf` edges and
+        // their `rdfs:` projection (gmeow_ns::subsumption_predicates doctrine;
+        // crates/ns/src/lib.rs:106-166) — an example whose only structural content
+        // is a re-authored canonical subsumption edge must be treated the same as
+        // one authored in `rdfs:`, or focus pruning silently drops it.
+        if gmeow_ns::SUB_CLASS_OF.contains(&quad.predicate.as_str())
+            || gmeow_ns::SUB_PROPERTY_OF.contains(&quad.predicate.as_str())
             || quad.predicate.starts_with(SHACL_NS)
         {
             return false;
@@ -2171,10 +2206,18 @@ mod tests {
 
     use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the validation run dispatches
+    /// on the `.ttl` extension.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     /// The per-example `base ∪ example` merge dedups shared base quads and adds the
@@ -2191,12 +2234,11 @@ mod tests {
         let base_quads: Vec<purrdf::RdfQuad> = base.owned_quads().collect();
 
         // An example carrying one duplicate of the base quad plus one new quad.
-        let example_path = write_tmp(
+        let (_tmp, example_path) = write_tmp(
             "gmeow_validate_example_merge.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
         );
         let example = store::parse_file_dataset(&example_path).unwrap();
-        std::fs::remove_file(&example_path).ok();
 
         let mut builder = RdfDatasetBuilder::new();
         for q in &base_quads {
@@ -2213,6 +2255,44 @@ mod tests {
                 .quads_for_pattern(None, None, None, GraphMatch::Default)
                 .count(),
             2
+        );
+    }
+
+    /// G9 canonical-subsumption sweep: an example whose only structural content is a
+    /// canonical `logic:subClassOf` edge must disable focus pruning exactly like an
+    /// `rdfs:subClassOf` example does — otherwise the node under validation could be
+    /// silently pruned away (crates/ns/src/lib.rs:106-166).
+    #[test]
+    fn example_with_canonical_logic_subclass_of_disallows_focus_pruning() {
+        let example = parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              gmeow:Cyborg logic:subClassOf gmeow:Animal .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        assert!(
+            !example_allows_focus_pruning(example.as_ref()),
+            "a canonical logic:subClassOf edge must disable focus pruning"
+        );
+    }
+
+    /// The `rdfs:subPropertyOf` projected spelling must also disable pruning (the
+    /// existing arm this migration preserves).
+    #[test]
+    fn example_with_rdfs_subproperty_of_disallows_focus_pruning() {
+        let example = parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+              gmeow:mediatesRole rdfs:subPropertyOf gmeow:mediates .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        assert!(
+            !example_allows_focus_pruning(example.as_ref()),
+            "a projected rdfs:subPropertyOf edge must disable focus pruning"
         );
     }
 
@@ -2697,12 +2777,16 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
     }
 
-    /// The demonstrator advisory appears on every normal-completion run as a Note
-    /// (not an error or warning), proving it is distinct from the compliance surfaces.
-    /// Both the flat finding and the in-memory claim hook are emitted together
-    /// (dual-projection-always contract D1).
+    /// With the fixed demonstrator removed (greenfield), a normal-completion run
+    /// over a bundle carrying NO accepted recommendation candidates emits an EMPTY
+    /// advisory tier — honest absence, not a synthetic always-on Note. This proves the
+    /// unconditional demonstrator is gone. Harvested advisories surfacing on a real
+    /// candidate-bearing dataset is covered by the advisory-bridge unit tests
+    /// (`harvest_yields_note_with_subject_and_howtouse_suggestion` et al.) and the
+    /// pipeline stage test; the full `make check` over gmeow.gts (which ships the advisory
+    /// candidates) exercises the whole path end to end.
     #[test]
-    fn clean_run_emits_one_demonstrator_advisory() {
+    fn clean_run_over_candidate_free_bundle_emits_no_advisory() {
         let bytes = minimal_gts_bytes();
         let options = ValidateOptions {
             gts_bytes: Some(bytes),
@@ -2712,53 +2796,34 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
             .expect("ValidationRun::run must succeed");
 
-        // The advisory is a Note — it must NOT contaminate the error/warning surfaces.
+        // No advisory contaminates the error/warning surfaces, and a clean run is ok.
         assert!(
             run.errors().is_empty(),
-            "advisory Note must not appear in errors: {:?}",
+            "no errors on a clean run: {:?}",
             run.errors()
         );
         assert!(
             run.warnings().is_empty(),
-            "advisory Note must not appear in warnings: {:?}",
+            "no warnings on a clean run: {:?}",
             run.warnings()
         );
-
-        // A Note never fails the gate.
         assert!(
             run.report.normalized().ok(),
-            "report with only a Note must still be ok"
+            "a clean report must still be ok"
         );
 
-        // Exactly one finding with code "advice.tier.active" and severity Note.
-        let advisory_findings: Vec<_> = run
-            .report
-            .findings
-            .iter()
-            .filter(|f| f.code == "advice.tier.active")
-            .collect();
-        assert_eq!(
-            advisory_findings.len(),
-            1,
-            "expected exactly one advice.tier.active finding; got: {:?}",
-            advisory_findings
+        // A candidate-free bundle harvests NOTHING — no claim hook, no advice.* finding.
+        assert!(
+            run.advisory_claims.is_empty(),
+            "a candidate-free bundle must harvest no advisory claims; got: {:?}",
+            run.advisory_claims
         );
-        assert_eq!(
-            advisory_findings[0].severity,
-            gmeow_errors::Severity::Note,
-            "demonstrator advisory must be a Note"
-        );
-
-        // The in-memory claim hook is present with correct code and modality.
-        assert_eq!(
-            run.advisory_claims.len(),
-            1,
-            "expected exactly one advisory claim on normal-completion run"
-        );
-        assert_eq!(run.advisory_claims[0].code, "advice.tier.active");
-        assert_eq!(
-            run.advisory_claims[0].modality_iri,
-            crate::advisory::DEONTIC_RECOMMENDATION_IRI
+        assert!(
+            !run.report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
+            "a candidate-free bundle must emit no advice.* finding"
         );
     }
 
@@ -2770,7 +2835,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// Ok early-return path, not the vacuous build-store-failure path.
     #[test]
     fn early_return_path_emits_no_advisory() {
-        let banned_ttl_path = write_tmp(
+        let (_tmp, banned_ttl_path) = write_tmp(
             "gmeow_validate_advisory_early_return_sameas.ttl",
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
@@ -2781,8 +2846,6 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         let options = ValidateOptions::default();
         let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
             .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
-
-        std::fs::remove_file(&banned_ttl_path).ok();
 
         // The run hard-failed (the sameAs ban is an error), proving we hit the
         // short-circuit early-return path.
@@ -2799,8 +2862,8 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             !run.report
                 .findings
                 .iter()
-                .any(|f| f.code == "advice.tier.active"),
-            "early-return path must emit no advice.tier.active finding"
+                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
+            "early-return path must emit no advice.* finding"
         );
     }
 

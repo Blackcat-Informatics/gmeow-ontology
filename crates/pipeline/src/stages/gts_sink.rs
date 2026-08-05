@@ -53,13 +53,16 @@ impl GtsSinkStage {
                 "stage-statements".to_string(),
                 "stage-validate".to_string(),
                 // The opaque fanout members ride in from their producing export leaves
-                // (each rendered once, in the leaf); `build_fanout_opaque_blob` reads them
+                // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
                 "stage-export-agreement".to_string(),
                 "stage-export-apache".to_string(),
                 "stage-export-bench".to_string(),
                 "stage-export-cost-ledger".to_string(),
                 "stage-export-evals".to_string(),
+                // The human-readable terminology glossary table (byte-decorated Markdown),
+                // folded into REP_GENERATED from this run's fresh export-leaf product.
+                "stage-export-glossary".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
                 // The Pydantic model package, folded into REP_MODELS_PYTHON by
@@ -118,7 +121,7 @@ impl Stage for GtsSinkStage {
     fn impl_version(&self) -> &str {
         // v4: the opaque fanout members (references / bench / apache / matrix / eval +
         // research-object sidecars / metadata) ride in from their producing export leaves;
-        // `build_fanout_opaque_blob` reads them off those products instead of re-rendering
+        // `collect_fanout_opaque_members` reads them off those products instead of re-rendering
         // from disk, and statements / dsl-stats / context ride off the already-consumed
         // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
         // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
@@ -356,6 +359,7 @@ mod tests {
             "stage-export-cost-ledger",
             "stage-export-apache",
             "stage-export-matrix",
+            "stage-export-glossary",
             "stage-export-evals",
             "stage-export-research-objects",
             "stage-export-metadata",

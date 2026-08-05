@@ -52,6 +52,58 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+// ── Chase materialization backstop (sound withhold under a resource bound) ─────
+//
+// The DL existential chase runs a weakly/jointly-acyclic CERTIFIED program, so it is
+// guaranteed to TERMINATE — but not in tractable space. A certified program can still
+// mint a super-polynomial (up to double-exponential) witness model: a large exact
+// cardinality (e.g. an `owl:cardinality 127` restriction feeding an inverse/equivalent-
+// class cycle, W3C `WebOnt-I5.1-010`) fans out witnesses whose full materialization
+// exhausts memory long before the fixpoint closes. Running such a program unbudgeted
+// OOMs the process rather than deciding it.
+//
+// These two bounds are HARD memory ceilings on that terminating path. Exceeding EITHER
+// stops the chase and records an honest INCOMPLETE withhold (a `DlGap`) — never a wrong
+// `consistent`/`inconsistent` decision (the incomplete-never-wrong contract). Both are
+// set FAR above the largest materialization any decided W3C OWL 2 (EL + Full) corpus
+// case needs (measured max total facts is in the low hundreds; measured max chase steps
+// likewise), so no currently-decided case can reach them — they only ever trip on a
+// genuinely explosive input, exactly where the reasoner must withhold instead of grow.
+//
+// `CHASE_STEP_BACKSTOP` caps committed derivations within ONE `route_chase` invocation
+// (the `StepGovernor` unit); `MAX_CHASE_FACTS` caps the cumulative fact set the outer
+// alternating fixed-point accumulates across invocations. Together they bound both the
+// single-call blow-up and the multi-round accumulation.
+const CHASE_STEP_BACKSTOP: u64 = 20_000;
+const MAX_CHASE_FACTS: usize = 500_000;
+
+/// The largest `≥n` existential obligation the native restricted chase will lower into a
+/// concrete witness-inventing rule.
+///
+/// A cardinality minimum `≥n` (`owl:cardinality`/`owl:minCardinality`/the qualified
+/// forms) lowers to a rule that invents `n` distinct witnesses AND asserts their
+/// `n·(n−1)/2` pairwise `owl:differentFrom` — a QUADRATIC head. A very large `n` (the
+/// W3C `WebOnt-description-logic-907` case declares `owl:cardinality 60000`, i.e. ~1.8
+/// billion difference atoms) exhausts memory just BUILDING that rule, before any chase
+/// step runs. Beyond this bound the obligation is not lowered; the run withholds an
+/// honest INCOMPLETE instead (the native chase cannot materialize a witness set that
+/// large), never a wrong decision and never an out-of-memory abort. It is set far above
+/// the largest `≥n` any decided W3C OWL 2 (EL + Full) case needs (their measured chase
+/// step counts are in the low single digits), so no currently-decided case regresses.
+const MAX_EXISTENTIAL_WITNESSES: usize = 512;
+
+/// Reserved internal marker predicate recorded in the closure when the existential
+/// chase stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before reaching its
+/// fixpoint. It is NOT an RDF entailment; [`verdict_from_inferred`] reads its presence
+/// and folds it into [`DlVerdict::gaps`] as a sound withhold, and it appears in the
+/// closure ONLY on an input that actually hit the bound (never on a decided case).
+const CHASE_INCOMPLETE_MARKER_PRED: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseMaterializationIncomplete";
+
+/// The reserved subject the [`CHASE_INCOMPLETE_MARKER_PRED`] marker fact carries.
+const CHASE_INCOMPLETE_MARKER_SUBJECT: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseBackstop";
+
 // ── Out-of-fragment DL/Full constructs the native path CANNOT soundly decide ───
 //
 // These are inventoried in `CONSTRUCT_COVERAGE` so `scan_coverage` marks them
@@ -106,6 +158,25 @@ const OWL_BOTTOM_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomOb
 const OWL_BOTTOM_DATA_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomDataProperty";
 const OWL_HAS_KEY: &str = "http://www.w3.org/2002/07/owl#hasKey";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+// The canonical `logic:` functional-characteristic carrier: a central
+// `logic:PropertyCharacteristicAssertion` record joins `logic:characterizes ?P` +
+// `logic:characteristicSort logic:functionalProperty`. It is the greenfield source of the
+// functional characteristic (the `owl:FunctionalProperty` type marker above is its lossy
+// projection), so the functional-cardinality clash reads BOTH carriers — the marker keeps
+// deciding raw external/conformance OWL inputs, the record keeps deciding the object-level
+// reasoning EDB after the `owl:FunctionalProperty` slice source declarations are removed.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
+// The canonical `logic:` key carrier: a central `logic:KeyAssertion` record joins
+// `logic:keyClass ?C` (the identified class) + `logic:keyProperty ?P` (its single key property).
+// It is the greenfield source of a datatype/single-property key (the `owl:hasKey` axiom is its lossy
+// OWL-DL view), so the key-agreement clash reads BOTH carriers — the `owl:hasKey` list keeps
+// deciding raw external/conformance OWL inputs, the record keeps deciding the object-level reasoning
+// EDB after the `owl:hasKey` slice source declaration is migrated to the carrier.
+const LOGIC_KEY_ASSERTION: &str = "https://blackcatinformatics.ca/logic/KeyAssertion";
+const LOGIC_KEY_CLASS: &str = "https://blackcatinformatics.ca/logic/keyClass";
+const LOGIC_KEY_PROPERTY: &str = "https://blackcatinformatics.ca/logic/keyProperty";
 const OWL_NEGATIVE_PROPERTY_ASSERTION: &str =
     "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
 const OWL_SOURCE_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#sourceIndividual";
@@ -130,10 +201,12 @@ const RDF_XML_LITERAL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLit
 // DL construct IRIs scanned for the native coverage inventory.
 const OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
 // `owl:InverseFunctionalProperty` needs an inverse-functional identity-merge clash
-// the native post-pass does not perform; it is out of the OWL 2 EL profile and
-// absent from the committed bundle + vendored on-gate corpus (measured), so
-// inventorying it and NEVER promoting it to `decided` surfaces any bundle asserting
-// it as an honest cannot-decide gap rather than a wrong `consistent`.
+// the native forward post-pass does not perform; it is out of the OWL 2 EL profile
+// and absent from the committed bundle + vendored on-gate corpus (measured). The
+// Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+// decides its pure assertional/identity fragment (the `1 = 2` collapse); outside
+// that fragment its presence stays an honest cannot-decide gap, never a wrong
+// `consistent`.
 //
 // `owl:hasSelf` is NOT inventoried here: it is IN the OWL 2 EL profile and the
 // vendored EL grade decides a benign `hasSelf` self-restriction typed onto an
@@ -238,6 +311,11 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "bottomDataProperty",
     ),
     (OWL_HAS_KEY, "owl:hasKey", "hasKey"),
+    // The greenfield `logic:KeyAssertion` carrier is the canonical source of a key (the `owl:hasKey`
+    // marker above is its lossy OWL-DL view). It maps to the same `hasKey` family suffix, so a key
+    // authored only on the carrier — as the object-level reasoning EDB carries it after the
+    // `owl:hasKey` slice declaration is migrated — still counts the `hasKey` family present.
+    (LOGIC_KEY_ASSERTION, "logic:KeyAssertion", "hasKey"),
     (
         OWL_NEGATIVE_PROPERTY_ASSERTION,
         "owl:NegativePropertyAssertion",
@@ -278,9 +356,13 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "allDisjointClasses",
     ),
     (OWL_ALL_DIFFERENT, "owl:AllDifferent", "allDifferent"),
-    // No native inverse-functional identity-merge clash exists — never promoted to
-    // `decided` (out of EL, absent from the committed bundle + vendored on-gate
-    // corpus, so its presence is always an honest gap, never a silently-ignored axiom).
+    // No native inverse-functional identity-merge clash exists in the forward chase
+    // (out of EL, absent from the committed bundle + vendored on-gate corpus). The
+    // Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+    // wires the real inverse-functional `sameAs` propagation and its `differentFrom`
+    // clash, so `classify_coverage` promotes this family to `decided` exactly when
+    // that sub-decider completely decides the (pure assertional/identity) case —
+    // otherwise its presence stays an honest gap, never a silently-ignored axiom.
     (
         OWL_INVERSE_FUNCTIONAL_PROPERTY,
         "owl:InverseFunctionalProperty",
@@ -474,6 +556,15 @@ impl DlGap {
 /// families present and decided by the native path. `gaps` mirrors
 /// `coverage.unsupported` for existing consumers and must be empty for the
 /// committed bundle.
+///
+/// `boundary_findings` carries the fragment-certified refutation kernel's
+/// FAMILY-SCOPED withholds (see [`crate::reason::refute::production_boundary_findings`]):
+/// a family shape was present but its completeness bound did not close, so the kernel
+/// surfaces an honest, ledger-identified "outside the certified fragment" finding
+/// stamped with [`crate::reason::refute::REFUTATION_KERNEL_CATEGORY`]. It is a
+/// Coherent `UnsupportedSemanticFeature` that can NEVER gate, and it is EMPTY on the
+/// committed bundle and every gated corpus input (the kernel's steady state there is
+/// `NoDeciderEngaged`, which emits nothing), so it changes no reasoning verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DlVerdict {
     pub consistent: bool,
@@ -481,6 +572,7 @@ pub struct DlVerdict {
     pub inconsistencies: Vec<InconsistencyWitness>,
     pub coverage: DlCoverage,
     pub gaps: Vec<DlGap>,
+    pub boundary_findings: Vec<gmeow_errors::Finding>,
 }
 
 /// Strip a decoded object display form (`<iri>`) back to the bare IRI.
@@ -613,6 +705,54 @@ fn add_inferred_fact(
         premises,
     });
     true
+}
+
+/// Materialize a fragment-certified refutation kernel verdict into the closure.
+///
+/// The unified beyond-Horn kernel ([`crate::reason::refute`]) decides a
+/// precisely-characterized COMPLETE fragment of the constructs this forward chase
+/// withholds. An `InFragment{Inconsistent}` decision carries one
+/// [`crate::reason::refute::NothingClash`] per forced-empty individual; each is
+/// added as the `type(?i, owl:Nothing, ?w)` witness [`verdict_from_inferred`]
+/// reads off, with the deciding rule name and clash premises preserved. An
+/// `InFragment{Consistent}` decision materializes NO clash (its family is promoted
+/// to `decided` by [`classify_coverage`], per family, in the later kernel tasks),
+/// and an `OutOfFragment` withhold materializes nothing (the family stays an
+/// honest gap).
+///
+/// Returns whether any witness fact was added, so the caller can fold the kernel
+/// into its fixpoint if it ever decides on materialized facts. Task 2 registers no
+/// family sub-decider, so on every real closure the kernel returns `OutOfFragment`
+/// and this is a strict no-op — no current verdict changes — while still being
+/// CALLED on the production path (no dark code).
+fn materialize_refutation(
+    certificate: &crate::reason::refute::RefutationCertificate,
+    inferred: &mut Vec<InferredAxiom>,
+    facts: &mut BTreeSet<Fact>,
+) -> bool {
+    use crate::reason::refute::{Decision, RefutationCertificate};
+    let RefutationCertificate::InFragment { decision, witness } = certificate else {
+        return false;
+    };
+    if *decision != Decision::Inconsistent {
+        return false;
+    }
+    let mut added = false;
+    for clash in &witness.clashes {
+        added |= add_inferred_fact(
+            inferred,
+            facts,
+            Fact::new(
+                clash.individual.clone(),
+                RDF_TYPE.to_owned(),
+                OWL_NOTHING.to_owned(),
+                clash.world.clone(),
+            ),
+            &clash.rule_name,
+            clash.premises.clone(),
+        );
+    }
+    added
 }
 
 fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> {
@@ -1096,11 +1236,208 @@ fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str
     obligations
 }
 
+/// Namespace for authored general existential rules (the surface that lets a slice
+/// express an arbitrary `∀x. φ(x) → ∃y. ψ(x, y)` rule — not just an OWL restriction —
+/// and have its per-world termination class certified into `gmeow.gts`).
+const LOGIC_EXISTENTIAL_NS: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+
+/// The Skolem-analysis view of an authored-rule term: an IRI is a constant, a string
+/// literal starting `?` is a variable.  Anything else is malformed and skipped.
+fn authored_rule_term(term: &RdfTerm) -> Option<crate::rule_ir::EvalTerm> {
+    use crate::rule_ir::EvalTerm;
+    match term {
+        RdfTerm::Iri(iri) => Some(EvalTerm::named(iri)),
+        RdfTerm::Literal(lit) if lit.lexical_form.starts_with('?') => {
+            Some(EvalTerm::var(&lit.lexical_form))
+        }
+        _ => None,
+    }
+}
+
+/// Read authored general existential rules from `edb`, grouped by the reasoning world
+/// (named graph) they are authored in.  Each `logicx:ExistentialRule` carries
+/// `logicx:body`/`logicx:head` atom nodes, each with `logicx:s`/`logicx:p`/`logicx:o`
+/// (subject/predicate/object).  Existential head variables (head vars the body does not
+/// bind) are derived automatically by [`crate::physical::ExistentialRule::existentials`],
+/// so no explicit `∃` marker is needed.  The produced rules are merged into the same
+/// per-world map the OWL-restriction lowering feeds, so they flow through the identical
+/// per-world `ChaseAdmission::certify` → shipped-certificate path.
+///
+/// A **declared-but-malformed** authored rule is a HARD FAIL, never a silent drop: an atom
+/// node referenced by `logicx:body`/`logicx:head` whose `logicx:s`/`logicx:p`/`logicx:o` is
+/// missing or malformed, or a rule that assembles to an empty body or head, returns an error
+/// (no-optionality: silently dropping a body conjunct would *broaden* the rule and derive
+/// facts never authored).
+pub(crate) fn authored_existential_rules(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<BTreeMap<String, Vec<crate::physical::ExistentialRule>>> {
+    use crate::rule_ir::EvalAtom;
+    let ns = |local: &str| format!("{LOGIC_EXISTENTIAL_NS}{local}");
+    let (rule_type, body_p, head_p, s_p, p_p, o_p) = (
+        ns("ExistentialRule"),
+        ns("body"),
+        ns("head"),
+        ns("s"),
+        ns("p"),
+        ns("o"),
+    );
+
+    let mut is_rule: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut body_nodes: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut head_nodes: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut atom_s: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+    let mut atom_p: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+    let mut atom_o: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+
+    // Collection-time hard-fails: a `logicx:body`/`head` that does not name a resource, or a
+    // duplicate `logicx:s`/`p`/`o` on one atom node, silently alter the authored rule and are
+    // rejected the moment they are seen (no-optionality — never a silent broaden/overwrite).
+    let non_resource_ref = |slot: &str, world: &str, rule: &str, value: &RdfTerm| {
+        reason_err(format!(
+            "authored existential-rule <{rule}> in world <{world}> has a logicx:{slot} value \
+             that is not a resource ({value:?}); logicx:{slot} must reference an atom-node IRI"
+        ))
+    };
+    let duplicate_slot = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> has more than one \
+             logicx:{slot}; each atom slot must be authored exactly once"
+        ))
+    };
+
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        let key = (world.clone(), subject.clone());
+        match predicate.as_str() {
+            RDF_TYPE if matches!(&object, RdfTerm::Iri(iri) if *iri == rule_type) => {
+                is_rule.insert(key);
+            }
+            p if p == body_p => match term_resource_key(&object) {
+                Some(node) => {
+                    body_nodes.entry(key).or_default().insert(node);
+                }
+                // A non-resource `logicx:body` (a literal or quoted triple) cannot name an
+                // atom node. Silently dropping it would leave the rule with FEWER body
+                // conjuncts than authored — a broadening (no-optionality). HARD FAIL.
+                None => return Err(non_resource_ref("body", &world, &subject, &object)),
+            },
+            p if p == head_p => match term_resource_key(&object) {
+                Some(node) => {
+                    head_nodes.entry(key).or_default().insert(node);
+                }
+                // A non-resource `logicx:head` would silently drop a head atom — a
+                // weakening of the authored rule. HARD FAIL.
+                None => return Err(non_resource_ref("head", &world, &subject, &object)),
+            },
+            // A second `logicx:s`/`p`/`o` on one atom node would silently OVERWRITE the
+            // first, reinterpreting the authored atom. A duplicate slot is malformed
+            // authoring — HARD FAIL rather than pick a winner (no-optionality).
+            p if p == s_p => {
+                let duplicate = atom_s.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("s", &world, &subject));
+                }
+            }
+            p if p == p_p => {
+                let duplicate = atom_p.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("p", &world, &subject));
+                }
+            }
+            p if p == o_p => {
+                let duplicate = atom_o.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("o", &world, &subject));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Assemble one atom (deterministic across authoring order) from its node key. A
+    // declared atom node that cannot assemble a well-formed atom is a HARD FAIL, never a
+    // silent drop (dropping a body conjunct would broaden the rule; dropping a head atom
+    // would weaken it — either way silently degrades the authored semantics).
+    let malformed_term = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> has a malformed \
+             logicx:{slot} (expected an IRI constant or a \"?variable\" literal)"
+        ))
+    };
+    let missing_slot = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> is missing its \
+             logicx:{slot}"
+        ))
+    };
+    let atom_of = |world: &str, node: &str| -> gmeow_errors::Result<EvalAtom> {
+        let key = (world.to_owned(), node.to_owned());
+        let subject = authored_rule_term(
+            atom_s
+                .get(&key)
+                .ok_or_else(|| missing_slot("s", world, node))?,
+        )
+        .ok_or_else(|| malformed_term("s", world, node))?;
+        let predicate = match atom_p
+            .get(&key)
+            .ok_or_else(|| missing_slot("p", world, node))?
+        {
+            RdfTerm::Iri(iri) => iri.clone(),
+            _ => return Err(malformed_term("p", world, node)),
+        };
+        let object = authored_rule_term(
+            atom_o
+                .get(&key)
+                .ok_or_else(|| missing_slot("o", world, node))?,
+        )
+        .ok_or_else(|| malformed_term("o", world, node))?;
+        Ok(EvalAtom::positive(subject, &predicate, object))
+    };
+
+    let mut by_world: BTreeMap<String, Vec<crate::physical::ExistentialRule>> = BTreeMap::new();
+    for (world, rule) in is_rule {
+        let key = (world.clone(), rule.clone());
+        let mut body = Vec::new();
+        for node in body_nodes.get(&key).into_iter().flatten() {
+            body.push(atom_of(&world, node)?);
+        }
+        let mut head = Vec::new();
+        for node in head_nodes.get(&key).into_iter().flatten() {
+            head.push(atom_of(&world, node)?);
+        }
+        if body.is_empty() || head.is_empty() {
+            return Err(reason_err(format!(
+                "authored existential rule <{rule}> in world <{world}> is malformed: assembled \
+                 {} body atom(s) and {} head atom(s) (both must be non-empty)",
+                body.len(),
+                head.len()
+            )));
+        }
+        by_world
+            .entry(world)
+            .or_default()
+            .push(crate::physical::ExistentialRule {
+                rule_iri: rule,
+                body,
+                head,
+                distinct: vec![],
+                witness_frontier: None,
+                witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
+            });
+    }
+    Ok(by_world)
+}
+
 fn structured_existential_rules(
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
-) -> BTreeMap<String, Vec<crate::physical::ExistentialRule>> {
+) -> (
+    BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    bool,
+) {
     use crate::rule_ir::{EvalAtom, EvalTerm};
+    // Whether any `≥n` obligation exceeded `MAX_EXISTENTIAL_WITNESSES` and was NOT
+    // lowered — the caller records an honest INCOMPLETE withhold for it.
+    let mut oversized_withheld = false;
 
     const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_properties = quads_by_subject(edb)
@@ -1122,6 +1459,13 @@ fn structured_existential_rules(
             continue;
         }
         for (needed, on_class) in existential_obligations(restriction) {
+            // A `≥n` beyond the materialization bound is not lowered: building its
+            // n·(n−1)/2-atom quadratic head would exhaust memory before the chase runs.
+            // Withhold an honest INCOMPLETE instead of constructing an unbounded rule.
+            if needed > MAX_EXISTENTIAL_WITNESSES {
+                oversized_withheld = true;
+                continue;
+            }
             let witnesses = (0..needed)
                 .map(|ordinal| format!("?witness{ordinal}"))
                 .collect::<Vec<_>>();
@@ -1178,16 +1522,47 @@ fn structured_existential_rules(
                 });
         }
     }
-    by_world
+    (by_world, oversized_withheld)
 }
 
+/// Record the sound INCOMPLETE withhold marker on the closure: the existential chase
+/// stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before its fixpoint closed,
+/// so the run cannot certify a `consistent`/`inconsistent` decision.
+///
+/// The marker is idempotent (recorded once) and lives ONLY in `inferred` — it is never
+/// inserted into `facts`, so it cannot perturb any downstream rule firing;
+/// [`verdict_from_inferred`] reads its presence and folds it into [`DlVerdict::gaps`].
+fn record_chase_materialization_withhold(inferred: &mut Vec<InferredAxiom>) {
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        return;
+    }
+    inferred.push(InferredAxiom {
+        subject: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        predicate: CHASE_INCOMPLETE_MARKER_PRED.to_owned(),
+        object: format!("<{CHASE_INCOMPLETE_MARKER_SUBJECT}>"),
+        world: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        is_edb: false,
+        rule_name: Some("dl:chase-materialization-backstop".to_owned()),
+        premises: Vec::new(),
+    });
+}
+
+/// Run the structured existential chase over each world's rules.
+///
+/// Returns the per-world chase certificates and whether the chase was cut short by the
+/// materialization backstop ([`CHASE_STEP_BACKSTOP`]) in ANY world — an exhausted world
+/// yields a sound partial prefix, and the caller records the withhold and stops.
 fn run_structured_existential_chase(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
     rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
     witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
-) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+) -> gmeow_errors::Result<(Vec<crate::reason::ChaseCertificate>, bool)> {
     let mut certificates = Vec::new();
+    let mut incomplete = false;
     for (world, rules) in rules_by_world {
         if rules.is_empty() {
             continue;
@@ -1202,8 +1577,13 @@ fn run_structured_existential_chase(
             })
             .collect::<Vec<_>>();
         let registry = witness_registries.entry(world.clone()).or_default();
-        let (admission, outcome) =
-            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
+        let (admission, outcome) = crate::physical::route_chase_with_registry_backstopped(
+            world,
+            &edb,
+            rules,
+            CHASE_STEP_BACKSTOP,
+            registry,
+        )?;
         let budgeted = match outcome {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -1215,6 +1595,11 @@ fn run_structured_existential_chase(
                 }));
             }
         };
+        // A certified program that hit the step backstop terminated INCOMPLETE: its rows
+        // are a sound prefix, but the fixpoint is not closed, so the run must withhold.
+        if budgeted.status == crate::seam::BudgetStatus::Exhausted {
+            incomplete = true;
+        }
         certificates.push(crate::reason::ChaseCertificate {
             world: world.clone(),
             admission,
@@ -1269,7 +1654,7 @@ fn run_structured_existential_chase(
             );
         }
     }
-    Ok(certificates)
+    Ok((certificates, incomplete))
 }
 
 /// Add DL-only finite consistency consequences to the closure.
@@ -1302,7 +1687,19 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     Vec<crate::physical::WitnessDerivation>,
 )> {
     let restrictions = read_restrictions(edb);
-    let existential_rules = structured_existential_rules(&restrictions, edb);
+    let (mut existential_rules, oversized_existential) =
+        structured_existential_rules(&restrictions, edb);
+    // An over-large `≥n` obligation was not lowered (its quadratic head would exhaust
+    // memory to even build): record the honest INCOMPLETE withhold up front.
+    if oversized_existential {
+        record_chase_materialization_withhold(inferred);
+    }
+    // Merge authored general existential rules (arbitrary body/head) into the same
+    // per-world map, so they are certified per-world and shipped alongside the
+    // OWL-restriction certificates.
+    for (world, rules) in authored_existential_rules(edb)? {
+        existential_rules.entry(world).or_default().extend(rules);
+    }
     let lists = read_lists(edb);
 
     let mut facts: BTreeSet<Fact> = raw_resource_facts(edb).into_iter().collect();
@@ -2118,12 +2515,22 @@ pub(crate) fn augment_inferred_with_dl_certificates(
             }
         }
 
-        certificates.extend(run_structured_existential_chase(
+        let (chase_certificates, chase_incomplete) = run_structured_existential_chase(
             inferred,
             &mut facts,
             &existential_rules,
             &mut witness_registries,
-        )?);
+        )?;
+        certificates.extend(chase_certificates);
+
+        // Sound withhold under the resource bound: a single-invocation blow-up trips the
+        // step backstop (`chase_incomplete`); a slow multi-round accumulation trips the
+        // cumulative fact ceiling. Either way the fixpoint is not closed, so record the
+        // INCOMPLETE marker and stop rather than growing the closure toward OOM.
+        if chase_incomplete || facts.len() > MAX_CHASE_FACTS {
+            record_chase_materialization_withhold(inferred);
+            break;
+        }
 
         if facts.len() == before {
             break;
@@ -2138,6 +2545,19 @@ pub(crate) fn augment_inferred_with_dl_certificates(
         &mut certificates,
         &mut witness_registries,
     )?;
+
+    // ── Fragment-certified refutation kernel (unified beyond-Horn decider) ──────
+    // Decide the precisely-characterized COMPLETE fragment of the beyond-Horn
+    // constructs the forward chase above withholds (datatype value-space,
+    // counting, case-split/complement), and honestly withhold outside it. The
+    // kernel is CALLED on every production closure — so its wiring is exercised,
+    // not dark — but Task 2 registers no family sub-decider yet, so it returns
+    // `OutOfFragment` and `materialize_refutation` adds nothing: a strict no-op on
+    // real inputs (no current verdict changes; the drift-pinned withholds stay
+    // `incomplete`). Tasks 3/4/5 register the per-family sub-deciders whose
+    // `InFragment{Inconsistent}` clashes are materialized here as
+    // `type(?i, owl:Nothing)` witnesses `verdict_from_inferred` reads off.
+    materialize_refutation(&crate::reason::refute::refute(edb), inferred, &mut facts);
 
     certificates.sort_by(|left, right| {
         let left_finding = left.admission.to_finding();
@@ -2252,12 +2672,12 @@ fn augment_with_extra_dl_clashes(
             .collect();
         thing_rules.insert(world, rules);
     }
-    certificates.extend(run_structured_existential_chase(
-        inferred,
-        facts,
-        &thing_rules,
-        witness_registries,
-    )?);
+    let (thing_certificates, thing_incomplete) =
+        run_structured_existential_chase(inferred, facts, &thing_rules, witness_registries)?;
+    certificates.extend(thing_certificates);
+    if thing_incomplete {
+        record_chase_materialization_withhold(inferred);
+    }
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
     // An individual typed a restriction on owl:bottomObjectProperty /
@@ -2338,15 +2758,14 @@ fn augment_with_extra_dl_clashes(
     }
 
     // ── 4. Functional property with two provably-distinct values ──────────────
-    // For every owl:FunctionalProperty p and subject x, if x has two values on p
-    // that are provably distinct (distinct literals, or distinct named
-    // individuals under the identity stance), x is forced into owl:Nothing.
-    let functional_props: BTreeSet<(String, String)> = facts
-        .iter()
-        .filter(|f| f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY)
-        .map(|f| (f.world.clone(), f.subject.clone()))
-        .collect();
-    for (world, property) in &functional_props {
+    // For every functional property p and subject x, if x has two values on p that
+    // are provably distinct (distinct literals, or distinct named individuals under
+    // the identity stance), x is forced into owl:Nothing. Functionality is read from
+    // BOTH carriers (the `owl:FunctionalProperty` marker AND the canonical
+    // `logic:PropertyCharacteristicAssertion` record), keyed per-world with the
+    // provenance premise that declares it — see `functional_property_sources`.
+    let functional_sources = functional_property_sources(facts);
+    for ((world, property), premises) in &functional_sources {
         // Group this property's (subject -> distinct value-keys) in this world.
         let mut by_subject: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
         for (key, terms) in &value_index {
@@ -2374,11 +2793,7 @@ fn augment_with_extra_dl_clashes(
                         world.clone(),
                     ),
                     "dl:functional-property-clash",
-                    vec![(
-                        property.clone(),
-                        RDF_TYPE.to_owned(),
-                        OWL_FUNCTIONAL_PROPERTY.to_owned(),
-                    )],
+                    premises.clone(),
                 );
             }
         }
@@ -2810,6 +3225,80 @@ fn build_value_index(
 /// resources related by an explicit `owl:differentFrom`. Named resources spelled
 /// differently are NOT assumed distinct (no unique-name assumption), so a
 /// functional property with two merely-named fillers is consistent.
+/// Every property that is functional in a world, keyed `(world, property)`, mapped to the
+/// provenance premise triples that declare it so — the UNION of both carriers:
+///
+/// * the deprecated `owl:FunctionalProperty` type marker (`?P rdf:type owl:FunctionalProperty`),
+///   still authored on raw external/conformance OWL inputs and re-emitted by the OWL grounding
+///   VIEW; and
+/// * the canonical central `logic:PropertyCharacteristicAssertion` record
+///   (`?rec logic:characterizes ?P`, `?rec logic:characteristicSort logic:functionalProperty`),
+///   the greenfield source that survives removal of the `owl:FunctionalProperty` slice
+///   declarations from the object-level reasoning EDB.
+///
+/// Unioning the two carriers here mirrors the foundation `collect_characteristics` pass, so
+/// functional-cardinality enforcement does not regress after the source removal. Both carriers
+/// are joined per-world (a marker/record and the clashing values must share a world, exactly as
+/// the OWL-only reader required). When BOTH declare a property functional in a world the OWL
+/// marker premise is preferred, so provenance is byte-identical to the pre-migration derivation.
+///
+/// `(world, property)` → the provenance premise triples that declare it functional.
+type FunctionalSources = BTreeMap<(String, String), Vec<(String, String, String)>>;
+
+fn functional_property_sources(facts: &BTreeSet<Fact>) -> FunctionalSources {
+    let mut out: FunctionalSources = BTreeMap::new();
+
+    // Carrier records: join `characterizes` + `characteristicSort=logic:functionalProperty` on
+    // the record IRI within one world. Recorded first so a later OWL marker overwrites the
+    // premise (marker preferred, keeping legacy provenance stable).
+    let mut rec_prop: BTreeMap<(String, String), String> = BTreeMap::new();
+    let mut functional_recs: BTreeSet<(String, String)> = BTreeSet::new();
+    for f in facts {
+        if f.predicate == LOGIC_CHARACTERIZES {
+            rec_prop.insert((f.world.clone(), f.subject.clone()), f.object.clone());
+        } else if f.predicate == LOGIC_CHARACTERISTIC_SORT && f.object == LOGIC_FUNCTIONAL_PROPERTY
+        {
+            functional_recs.insert((f.world.clone(), f.subject.clone()));
+        }
+    }
+    for (world, rec) in &functional_recs {
+        let Some(property) = rec_prop.get(&(world.clone(), rec.clone())) else {
+            continue;
+        };
+        out.entry((world.clone(), property.clone()))
+            .or_insert_with(|| {
+                vec![
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERIZES.to_owned(),
+                        property.clone(),
+                    ),
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERISTIC_SORT.to_owned(),
+                        LOGIC_FUNCTIONAL_PROPERTY.to_owned(),
+                    ),
+                ]
+            });
+    }
+
+    // OWL type markers (preferred provenance): overwrite any carrier premise for the same key.
+    for f in facts {
+        if f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY {
+            out.insert(
+                (f.world.clone(), f.subject.clone()),
+                vec![(
+                    f.subject.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_FUNCTIONAL_PROPERTY.to_owned(),
+                )],
+            );
+        }
+    }
+
+    out
+}
+
 fn functional_values_clash(
     facts: &BTreeSet<Fact>,
     world: &str,
@@ -2845,8 +3334,17 @@ fn functional_values_clash(
     false
 }
 
-/// Reify every `owl:hasKey(C, list)` axiom into `(world, class, key_props)`,
-/// resolving the key-property RDF list. A dangling/empty list yields no axiom.
+/// Reify every key axiom into `(world, class, key_props)` — the UNION of both carriers:
+///
+/// * the deprecated `owl:hasKey(C, list)` axiom, resolving the key-property RDF list (a
+///   dangling/empty list yields no axiom); still authored on raw external/conformance OWL
+///   inputs and re-projected onto the OWL grounding view; and
+/// * the canonical central `logic:KeyAssertion` record (`?rec logic:keyClass ?C`,
+///   `?rec logic:keyProperty ?P`), the greenfield source that survives removal of the
+///   `owl:hasKey` slice declaration from the object-level reasoning EDB.
+///
+/// Unioning the two here mirrors [`functional_property_sources`] for the functional
+/// characteristic, so key-agreement enforcement does not regress after the source migration.
 fn read_key_axioms(
     edb: &RdfDataset,
     lists: &HashMap<(String, String), Vec<String>>,
@@ -2867,7 +3365,86 @@ fn read_key_axioms(
         }
         out.push((world, subject, members.clone()));
     }
+    for ((world, _rec), resolved) in key_assertion_records(edb) {
+        if let Some((class, key_props)) = resolved {
+            out.push((world, class, key_props));
+        }
+    }
     out
+}
+
+/// Every `logic:KeyAssertion` record keyed `(world, record)` → the resolved `(class, key_props)`
+/// when well-formed, or `None` when the record is present but malformed.
+type KeyAssertionRecords = BTreeMap<(String, String), Option<(String, Vec<String>)>>;
+
+/// Every `logic:KeyAssertion` record in `edb`, keyed `(world, record)`, mapped to the resolved
+/// `Some((class, key_props))` when well-formed — a `logic:keyClass` naming the identified class
+/// and at least one `logic:keyProperty` — or `None` when a record is present but malformed
+/// (no class, or no key property). Recording malformed records as `None` (rather than dropping
+/// them) lets the coverage guard withhold `hasKey` honestly instead of silently deciding it.
+fn key_assertion_records(edb: &RdfDataset) -> KeyAssertionRecords {
+    let mut records: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut class_of: BTreeMap<(String, String), String> = BTreeMap::new();
+    let mut props_of: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        let key = (world, subject);
+        if predicate == RDF_TYPE
+            && term_resource_key(&object).as_deref() == Some(LOGIC_KEY_ASSERTION)
+        {
+            records.insert(key);
+        } else if predicate == LOGIC_KEY_CLASS
+            && let Some(class) = term_resource_key(&object)
+        {
+            class_of.insert(key, class);
+        } else if predicate == LOGIC_KEY_PROPERTY
+            && let Some(prop) = term_resource_key(&object)
+        {
+            props_of.entry(key).or_default().push(prop);
+        }
+    }
+    let mut out: KeyAssertionRecords = BTreeMap::new();
+    for rec in records {
+        let resolved = match (class_of.get(&rec), props_of.get(&rec)) {
+            (Some(class), Some(props)) if !props.is_empty() => Some((class.clone(), props.clone())),
+            _ => None,
+        };
+        out.insert(rec, resolved);
+    }
+    out
+}
+
+/// True iff at least one key axiom is present — an `owl:hasKey` list OR a `logic:KeyAssertion`
+/// carrier record — and every one resolves (a non-empty `owl:hasKey` list; a `logic:KeyAssertion`
+/// naming a class and ≥1 key property). Unioning both carriers mirrors
+/// [`functional_property_sources`], so `hasKey` stays decided over the object-level reasoning EDB
+/// after the `owl:hasKey` slice declaration is migrated to the carrier. A present-but-malformed
+/// axiom of either carrier withholds the family (returns `false`), exactly as
+/// [`all_list_instances_resolve`] does for the `owl:hasKey` list alone.
+fn key_axioms_all_resolve(
+    edb: &RdfDataset,
+    lists: &HashMap<(String, String), Vec<String>>,
+) -> bool {
+    let mut saw_instance = false;
+    for (_subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != OWL_HAS_KEY {
+            continue;
+        }
+        let Some(root) = term_resource_key(&object) else {
+            return false;
+        };
+        saw_instance = true;
+        match lists.get(&(world, root)) {
+            Some(members) if !members.is_empty() => {}
+            _ => return false,
+        }
+    }
+    for (_rec, resolved) in key_assertion_records(edb) {
+        saw_instance = true;
+        if resolved.is_none() {
+            return false;
+        }
+    }
+    saw_instance
 }
 
 /// Collect the candidate key subjects for a key on `class` in `world`: the
@@ -2988,7 +3565,30 @@ pub(crate) fn verdict_from_inferred(
     let consistent = inconsistencies.is_empty();
 
     let coverage = scan_coverage(edb)?;
-    let gaps = gaps_from_unsupported(&coverage.unsupported);
+    let mut gaps = gaps_from_unsupported(&coverage.unsupported);
+    // Fold the existential-chase materialization backstop into the verdict as a sound
+    // INCOMPLETE withhold: the chase stopped before its fixpoint closed (a certified-but-
+    // super-polynomial materialization), so the run cannot certify consistency. The
+    // marker rides `inferred` (never `edb`), so this is the only place a runtime resource
+    // bound can reach the verdict — it forces `gaps` non-empty (incomplete-never-wrong),
+    // never a wrong decided answer.
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        gaps.push(DlGap::new(
+            "reason.dl-gap.chase-materialization-bound",
+            "the DL existential chase reached its materialization backstop before closing \
+             its fixpoint; the consistency verdict is withheld as incomplete rather than \
+             decided under an unbounded materialization",
+        ));
+    }
+    // Fold the fragment-certified refutation kernel's FAMILY-SCOPED withhold (a
+    // present family shape whose completeness bound did not close) into the verdict as
+    // an honest, ledger-identified boundary finding. Empty on the committed bundle and
+    // every gated input (the kernel's steady state there is `NoDeciderEngaged`, which
+    // emits nothing), so this changes no reasoning verdict.
+    let boundary_findings = crate::reason::refute::production_boundary_findings(edb);
 
     Ok(DlVerdict {
         consistent,
@@ -2996,6 +3596,7 @@ pub(crate) fn verdict_from_inferred(
         inconsistencies,
         coverage,
         gaps,
+        boundary_findings,
     })
 }
 
@@ -3148,6 +3749,20 @@ pub fn scan_coverage(edb: &RdfDataset) -> gmeow_errors::Result<DlCoverage> {
 fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     let mut withholds: BTreeSet<String> = BTreeSet::new();
 
+    // Family 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
+    // union-disjoint / malformed-list sub-decider ([`crate::reason::refute::casesplit`])
+    // now COMPLETELY decides a precisely-characterized propositional-plus-nominal
+    // fragment of exactly the beyond-Horn refutation shapes withheld below. When it
+    // decides the whole case (an `Inconsistent` decision materializes `owl:Nothing`;
+    // a `Consistent` decision is certified in-fragment), the complement / union /
+    // oneOf / malformed-list families it accounts for stay `decided` rather than
+    // being demoted to an honest gap — so each shape-specific withhold below is
+    // narrowed by `&& !casesplit_decides`. A case outside its fragment (an
+    // existential/cardinality/property-characteristic construct it refuses, or a
+    // budget-exceeded search) keeps `casesplit_decides` FALSE, so the withhold
+    // still fires. Computed once (the bounded case-split is re-run only here).
+    let casesplit_decides = crate::reason::refute::casesplit::decides(edb);
+
     // H1 — complement used in a positive class-constraint position. Native decides
     // the complement *clash* (`x:A ∧ x:¬A ⇒ Nothing`, via `dl:complement-disjoint`)
     // but NOT complement *refutation* (a class defined/constrained by a negated
@@ -3157,8 +3772,9 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // superclass, or a `someValuesFrom`/`allValuesFrom` filler). The committed
     // bundle's complement is referenced ONLY by `rdfs:domain` (a property-scoping
     // position, never reached here), so this never fires on production.
-    if complement_in_class_constraint_position(edb)
-        || complement_typed_individual_needs_derivation(edb)
+    if (complement_in_class_constraint_position(edb)
+        || complement_typed_individual_needs_derivation(edb))
+        && !casesplit_decides
     {
         withholds.insert("complementOf".to_owned());
     }
@@ -3172,22 +3788,46 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
     // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
     // sits in a class-definition position — never when it is `rdf:type`d onto an
-    // individual (the Wave-A decided case). The committed bundle uses only exact
-    // `cardinality 1` and qualified cardinalities, none in the withheld shape.
-    let restrictions = read_restrictions(edb);
-    let constraint_nodes = nodes_in_class_constraint_position(edb);
-    for ((world, node), r) in &restrictions {
-        if !constraint_nodes.contains(&(world.clone(), node.clone())) {
-            continue;
-        }
-        if r.min_cardinality.is_some() {
-            withholds.insert("minCardinality".to_owned());
-        }
-        if r.max_cardinality.is_some() {
-            withholds.insert("maxCardinality".to_owned());
-        }
-        if matches!(r.cardinality, Some(n) if n >= 2) {
-            withholds.insert("cardinality".to_owned());
+    // individual (the Wave-A decided case). What keeps this quiet on production is that
+    // REACH condition, not a corpus census of cardinality assertions: every
+    // class-definition restriction in the committed bundle is a value restriction
+    // (`some`/`all`/`hasValue`) or a QUALIFIED cardinality, and each plain cardinality
+    // restriction the bundle does carry misses `nodes_in_class_constraint_position`
+    // structurally. The two it carries today show the two ways to miss:
+    // `math:compilesToLogicFormula`'s two `owl:minCardinality "1"` companions hang off
+    // `rdfs:domain`, a property-scoping position that helper deliberately never
+    // collects; the `logic:` grounding-surface demonstrators
+    // (`ex:minMemberRestriction` / `ex:maxLeadRestriction` in
+    // `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) are NAMED
+    // declarations that no `rdfs:subClassOf`/`owl:equivalentClass`/`someValuesFrom`/
+    // `allValuesFrom` object — nor any `intersectionOf`/`unionOf` list reachable from
+    // one — ever references, so nothing puts them in a constraint position. A plain
+    // cardinality restriction that IS referenced from a definition position is
+    // withheld the moment it appears; that is the intended trigger, not a regression.
+    // Family 2 — the counting sub-decider ([`crate::reason::refute::counting`]) now
+    // COMPLETELY decides the pure class-definition cardinality fragment (a collapsed
+    // `min > max` bound on a populated class materializes `owl:Nothing`; an
+    // uncollapsed one is certified consistent). When it decides the case, the
+    // cardinality families it accounts for stay `decided` rather than being demoted
+    // to an honest gap; the withhold is narrowed to exactly the residual (a case
+    // mixing cardinality with an existential/nominal/identity construct the
+    // sub-decider refuses) it cannot decide.
+    if !crate::reason::refute::counting::decides_cardinality(edb) {
+        let restrictions = read_restrictions(edb);
+        let constraint_nodes = nodes_in_class_constraint_position(edb);
+        for ((world, node), r) in &restrictions {
+            if !constraint_nodes.contains(&(world.clone(), node.clone())) {
+                continue;
+            }
+            if r.min_cardinality.is_some() {
+                withholds.insert("minCardinality".to_owned());
+            }
+            if r.max_cardinality.is_some() {
+                withholds.insert("maxCardinality".to_owned());
+            }
+            if matches!(r.cardinality, Some(n) if n >= 2) {
+                withholds.insert("cardinality".to_owned());
+            }
         }
     }
 
@@ -3196,7 +3836,14 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // value-space (e.g. `cardinality 257` distinct `xsd:byte` values). The chase
     // carries no datatype value-space reasoning, so it cannot refute the count. No
     // cardinality restriction in the committed bundle targets a datatype property.
-    if cardinality_on_datatype_property(edb) {
+    //
+    // Family 5 — the datatype value-space refutation sub-decider — now COMPLETELY
+    // decides this counting fragment (deriving the finite value-space cardinality
+    // from the `math:`-grounded facts). The withhold is narrowed to exactly the
+    // residual it cannot decide: when the subsolver decides the case, the family
+    // stays `decided` (an inconsistency materializes `owl:Nothing`; a consistent
+    // count is certified) rather than being demoted to an honest gap.
+    if cardinality_on_datatype_property(edb) && !crate::reason::refute::datatype::decided(edb) {
         withholds.insert("cardinality".to_owned());
     }
 
@@ -3214,7 +3861,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // `owl:differentFrom` every member — is still decided by the augment handler and
     // is NOT withheld here.) The committed bundle has no individual typed to ≥2
     // enumerations.
-    if individual_in_multiple_enumerations(edb) {
+    if individual_in_multiple_enumerations(edb) && !casesplit_decides {
         withholds.insert("oneOf".to_owned());
     }
 
@@ -3223,7 +3870,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // propositional-SAT shape whose refutation needs joint case-splitting. The
     // committed bundle has at most ONE union superclass on any class, so this never
     // fires on production; a single disjunctive superclass stays decided.
-    if class_with_multiple_union_superclasses(edb) {
+    if class_with_multiple_union_superclasses(edb) && !casesplit_decides {
         withholds.insert("unionOf".to_owned());
     }
 
@@ -3233,7 +3880,16 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // class-constraint position needs the self-membership inference (`x p x ⇒ x ∈ ∃p.Self`)
     // the chase does not perform to see the clash. Withheld only in that refutation
     // position; the committed bundle asserts no `owl:hasSelf`.
-    if has_self_restriction_in_refutation_position(edb) {
+    // Family 7 — the counting sub-decider now decides the `owl:hasSelf` membership
+    // refutation: a self-edge (`x p x`) inhabiting a `∃p.Self` restriction that is
+    // `owl:disjointWith` a class `x` also holds materializes `owl:Nothing`. When the
+    // sub-decider decides the case (a clash, or a certified-consistent benign
+    // position), the withhold is dropped; it stays for the residual the sub-decider
+    // refuses (a self-restriction entangled with an existential/property-chain
+    // construct it does not fold in).
+    if has_self_restriction_in_refutation_position(edb)
+        && !crate::reason::refute::counting::decides_has_self(edb)
+    {
         withholds.insert("hasSelf".to_owned());
     }
 
@@ -3241,7 +3897,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // structurally-broken list makes the enclosing axiom's meaning turn on
     // list-well-formedness the chase does not adjudicate. `rdf:nil` never bears a
     // list edge in the committed bundle.
-    if nil_bears_list_edge(edb) {
+    if nil_bears_list_edge(edb) && !casesplit_decides {
         withholds.insert("malformedRdfList".to_owned());
     }
 
@@ -3355,10 +4011,17 @@ fn nodes_in_class_constraint_position(edb: &RdfDataset) -> BTreeSet<(String, Str
 /// `owl:min`/`maxCardinality` — is `owl:onProperty` a property typed
 /// `owl:DatatypeProperty`. That is the datatype value-space counting shape (G8):
 /// `cardinality 257` distinct `xsd:byte` values is unsatisfiable, but the chase
-/// carries no datatype value-space reasoning to refute it. Qualified cardinalities
-/// and the exact `cardinality 1` (functional) case — the only plain cardinality the
-/// committed bundle asserts — are deliberately NOT withheld, so this never fires on
-/// production.
+/// carries no datatype value-space reasoning to refute it. Qualified cardinalities and
+/// the exact `cardinality 1` (functional) case are deliberately NOT withheld. What keeps
+/// this quiet on production is the `owl:DatatypeProperty` conjunct, not a census of the
+/// corpus's cardinality assertions: every plain cardinality restriction the committed
+/// bundle carries is `owl:onProperty` a property that is never typed
+/// `owl:DatatypeProperty` — `math:compilesToLogicFormula`'s two `owl:minCardinality "1"`
+/// `rdfs:domain` companions target declared `owl:ObjectProperty`s, and the `logic:`
+/// grounding-surface demonstrators (`ex:minMemberRestriction` / `ex:maxLeadRestriction`)
+/// target `ex:member` / `ex:lead`, which carry no property typing at all. Typing a
+/// counted property `owl:DatatypeProperty` arms this withhold; that is the intended
+/// trigger.
 fn cardinality_on_datatype_property(edb: &RdfDataset) -> bool {
     const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_props: BTreeSet<(String, String)> = quads_by_subject(edb)
@@ -3622,9 +4285,10 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         }
     }
 
-    // owl:hasKey: two key-agreeing instances asserted owl:differentFrom clash.
-    // Decided iff every key axiom resolves to a non-empty key-property list.
-    if present_set.contains("hasKey") && all_list_instances_resolve(edb, OWL_HAS_KEY, &lists) {
+    // owl:hasKey / logic:KeyAssertion: two key-agreeing instances asserted owl:differentFrom clash.
+    // Decided iff every key axiom (an owl:hasKey list OR a logic:KeyAssertion carrier record)
+    // resolves to a non-empty key-property set — see `key_axioms_all_resolve`.
+    if present_set.contains("hasKey") && key_axioms_all_resolve(edb, &lists) {
         decided.insert("hasKey".to_owned());
     }
 
@@ -3677,12 +4341,45 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     // facet-restricted datatype (a value the native chase cannot validate) is the
     // family left UNDECIDED (→ honest gap). See
     // `datatype_facet_has_live_obligation`.
-    if !datatype_facet_has_live_obligation(edb) {
+    // The datatype value-space refutation sub-decider (Family 5) COMPLETELY decides
+    // a precise fragment of these live obligations (facet emptiness / membership,
+    // `owl:datatypeComplementOf` value-space membership). When it does, the facet
+    // families it accounts for are promoted to `decided` — coverage agreeing with
+    // the decider exactly. The `!live` disjunct keeps this inert on a bundle with no
+    // live obligation (the subsolver result cannot widen coverage there).
+    if !datatype_facet_has_live_obligation(edb) || crate::reason::refute::datatype::decided(edb) {
         for family in DATATYPE_FACET_FAMILIES {
             if present_set.contains(family) {
                 decided.insert((*family).to_owned());
             }
         }
+    }
+
+    // A LITERAL `owl:oneOf` datatype enumeration is a value-space the native list
+    // reader skips (it drops literal members), so it is left undecided above. The
+    // datatype value-space subsolver counts its distinct values exactly; promote the
+    // `oneOf` family to `decided` precisely when the subsolver decides the case AND
+    // every enumeration in the EDB is a literal datatype enumeration (never an
+    // object enumeration, which the native path already decides).
+    if present_set.contains("oneOf")
+        && crate::reason::refute::datatype::decided(edb)
+        && crate::reason::refute::datatype::all_oneof_are_literal_enumerations(edb)
+    {
+        decided.insert("oneOf".to_owned());
+    }
+
+    // owl:InverseFunctionalProperty carries NO native identity-merge rule, so it was
+    // never promoted above (the chase cannot see the `1 = 2` collapse). The Family-6a
+    // counting sub-decider ([`crate::reason::refute::counting`]) now wires the real
+    // inverse-functional `sameAs` propagation: it merges the subjects that share a
+    // value and clashes a merged pair asserted `owl:differentFrom`. It certifies the
+    // family only for the PURE assertional/identity fragment (no class-construction
+    // vocabulary present); a case mixing IFP with a class definition it does not
+    // fold in is refused, so `inverseFunctionalProperty` stays an honest gap there.
+    if present_set.contains("inverseFunctionalProperty")
+        && crate::reason::refute::counting::decides_identity(edb)
+    {
+        decided.insert("inverseFunctionalProperty".to_owned());
     }
 
     // The universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`)
@@ -4071,6 +4768,138 @@ mod tests {
     }
 
     #[test]
+    fn authored_existential_rules_are_read_and_certified_per_world() {
+        // An authored general existential rule (arbitrary body/head atoms — NOT an OWL
+        // restriction) is read per-world and certified by the termination-class ladder.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        // A `?var` term is encoded as a string literal; a constant as an IRI.
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        // MSA swap-diagonal program: `p(x,x) → ∃y. p(x,y)` and `p(x,y) → p(y,x)`.
+        let store = dataset(vec![
+            quad("http://ex/demo/invent", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/invent", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/invent", &lx("head"), "http://ex/demo/h1"),
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/b1", &lx("o"), "?x"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+            quad("http://ex/demo/swap", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/swap", &lx("body"), "http://ex/demo/b2"),
+            quad("http://ex/demo/swap", &lx("head"), "http://ex/demo/h2"),
+            var("http://ex/demo/b2", &lx("s"), "?x"),
+            quad("http://ex/demo/b2", &lx("p"), EX_P),
+            var("http://ex/demo/b2", &lx("o"), "?y"),
+            var("http://ex/demo/h2", &lx("s"), "?y"),
+            quad("http://ex/demo/h2", &lx("p"), EX_P),
+            var("http://ex/demo/h2", &lx("o"), "?x"),
+        ]);
+        let by_world =
+            authored_existential_rules(store.as_ref()).expect("well-formed authored rules");
+        let rules = by_world
+            .get(W)
+            .expect("authored rules land in their graph's world");
+        assert_eq!(rules.len(), 2, "both authored rules parsed");
+        match crate::physical::ChaseAdmission::certify(rules) {
+            crate::physical::ChaseAdmission::ModelSummarizingAcyclic { .. } => {}
+            other => panic!("swap-diagonal must certify as ModelSummarizingAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn authored_rule_with_malformed_atom_hard_fails_not_silently_dropped() {
+        // A declared body atom missing its `logicx:o` must HARD FAIL — never a silent drop.
+        // Silently dropping the conjunct would leave the rule with a smaller body, firing
+        // more often and deriving facts the author never wrote (no-optionality violation).
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/r", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            // b1 declares its subject and predicate but is MISSING its logicx:o (object).
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a declared atom missing logicx:o must hard-fail, not be dropped");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:o") && msg.contains("b1"),
+            "error must name the missing slot and the offending atom: {msg}"
+        );
+    }
+
+    #[test]
+    fn authored_rule_with_non_resource_body_ref_hard_fails() {
+        // A `logicx:body` whose value is a literal (not a resource) cannot name an atom node.
+        // Silently dropping it would leave the rule with fewer body conjuncts than authored —
+        // a broadening. It must HARD FAIL at collection time, not be skipped.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            // logicx:body points at a LITERAL — not a resource, so it names no atom node.
+            literal_quad("http://ex/demo/r", &lx("body"), "not-a-node", XSD_STRING),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a non-resource logicx:body must hard-fail, not be silently dropped");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:body") && msg.contains("not a resource"),
+            "error must name the slot and the non-resource cause: {msg}"
+        );
+    }
+
+    #[test]
+    fn authored_rule_with_duplicate_slot_hard_fails() {
+        // Two `logicx:s` triples on one atom node would silently OVERWRITE the first,
+        // reinterpreting the authored atom. A duplicate slot must HARD FAIL, not pick a winner.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/r", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            // b1 declares its subject TWICE — a duplicate slot.
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            var("http://ex/demo/b1", &lx("s"), "?z"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/b1", &lx("o"), "?y"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a duplicate logicx:s must hard-fail, not silently overwrite");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:s") && msg.contains("more than one"),
+            "error must name the duplicated slot: {msg}"
+        );
+    }
+
+    #[test]
     fn disjoint_superclasses_make_a_unsat_and_x_inconsistent() {
         // A ⊑ B, A ⊑ C, B disjointWith C, x : A
         // ⇒ A is unsatisfiable, and x is forced into owl:Nothing (inconsistent).
@@ -4173,16 +5002,33 @@ mod tests {
     }
 
     #[test]
-    fn complement_in_class_definition_is_withheld() {
+    fn complement_in_class_definition_is_decided_consistent() {
         // A ⊑ ¬D — the complement node is a `rdfs:subClassOf` superclass (a class
-        // definition), NOT typed onto an individual. Deciding this needs complement
-        // refutation the chase does not perform ⇒ honest gap.
+        // definition), with NO individual forced into it. The Family-1 case-split
+        // refutation sub-decider ([`crate::reason::refute::casesplit`]) now COMPLETELY
+        // decides this propositional-fragment case: an individual-free complement TBox
+        // is trivially satisfiable (the empty interpretation is a model), so it is
+        // decided CONSISTENT with no honest gap — no longer the pre-sub-decider
+        // conservative withhold.
         let store = dataset(vec![
             quad(A, SUBCLASS, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free complement TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4200,44 +5046,145 @@ mod tests {
     }
 
     #[test]
-    fn complement_typed_individual_without_asserted_membership_is_withheld() {
-        // x : ¬D, but x is NOT asserted x : D. The clash needs `x : D` to be DERIVED
-        // (beyond the chase) ⇒ honest gap. Contrast the decided clash test where BOTH
-        // memberships are asserted.
+    fn complement_typed_individual_without_asserted_membership_is_decided_consistent() {
+        // x : ¬D, but x is NOT asserted x : D. The Family-1 case-split sub-decider now
+        // decides this: `x ∈ ¬D` with no forced `x ∈ D` saturates clash-free inside
+        // the certified-complete fragment, so it is decided CONSISTENT (a model has
+        // `x ∉ D`) — no longer the pre-sub-decider withhold. Contrast the decided
+        // clash test where BOTH memberships are asserted (decided INCONSISTENT).
         let store = dataset(vec![
             quad(X, TYPE, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "x ∈ ¬D with no forced x ∈ D is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
-    fn min_cardinality_on_a_class_definition_is_withheld() {
-        // C ≡ (≥2 p): a TBox cardinality counting definition, not an ABox restriction
-        // typed onto an individual. Native decides the ABox counting clash (Wave A)
-        // but NOT the TBox-satisfiability counting ⇒ honest gap.
+    fn min_cardinality_on_a_class_definition_is_decided_consistent() {
+        // C ≡ (≥2 p): a pure TBox cardinality counting definition. The Family-2
+        // counting refutation sub-decider now COMPLETELY decides the pure
+        // class-definition cardinality fragment: an uncollapsed bound (no `min > max`
+        // conflict) on a class is satisfiable, so this is decided CONSISTENT with no
+        // honest gap — no longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, EQUIV_CLASS, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "minCardinality");
+        assert!(
+            verdict.consistent,
+            "an uncollapsed ≥2 definition is satisfiable"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "minCardinality"),
+            "the minCardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
-    fn exact_cardinality_on_datatype_property_is_withheld() {
-        // x : (=257 p) with p a DatatypeProperty — datatype value-space counting the
-        // chase cannot refute (e.g. 257 distinct xsd:byte) ⇒ honest gap.
+    fn collapsed_cardinality_on_a_populated_class_is_decided_inconsistent() {
+        // C ⊑ (≥2 p) ⊓ (≤1 p), i : C — the collapsed bound makes the populated class
+        // unsatisfiable, so the Family-2 sub-decider materializes `owl:Nothing` on the
+        // instance: decided INCONSISTENT with no honest gap.
+        let r2 = "http://gmeow.example/r2";
         let store = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, C),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "a collapsed min>max bound on a populated class is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn exact_cardinality_over_finite_datatype_range_is_decided_by_family5() {
+        // Family 5 (the datatype value-space refutation sub-decider) now DECIDES the
+        // datatype value-space counting the forward chase cannot refute. With p an
+        // `owl:DatatypeProperty` whose `rdfs:range` is `xsd:byte` (value-space size
+        // 256, derived from the `math:`-grounded facts):
+        //   * `x : (=257 p)` forces 257 distinct byte values into a 256-element
+        //     space ⇒ pigeonhole INCONSISTENT (an `owl:Nothing` clash, empty gaps);
+        //   * `x : (=256 p)` fits exactly ⇒ CONSISTENT (empty gaps).
+        const BYTE: &str = "http://www.w3.org/2001/XMLSchema#byte";
+        const RANGE: &str = super::RDFS_RANGE;
+
+        let inconsistent = dataset(vec![
             quad(X, TYPE, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, CARDINALITY, "257", XSD_NON_NEGATIVE_INTEGER),
             quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "cardinality");
+        let verdict = dl_consistency(inconsistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "257 distinct xsd:byte values overflow the 256-element value space ⇒ inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 decides this — no honest gap remains: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict.coverage.decided.iter().any(|d| d == "cardinality"),
+            "the cardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+
+        let consistent = dataset(vec![
+            quad(X, TYPE, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, CARDINALITY, "256", XSD_NON_NEGATIVE_INTEGER),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
+        ]);
+        let verdict = dl_consistency(consistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.consistent,
+            "256 distinct xsd:byte values fit the value space exactly ⇒ consistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 certifies the consistent count — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4261,9 +5208,13 @@ mod tests {
     }
 
     #[test]
-    fn class_with_two_union_superclasses_is_withheld() {
-        // C ⊑ (A∪B) AND C ⊑ (X∪Y): multi-disjunction propositional SAT ⇒ gap. A
-        // single union superclass stays decided (see the union decided test).
+    fn class_with_two_union_superclasses_is_decided_consistent() {
+        // C ⊑ (A∪B) AND C ⊑ (X∪Y): the multi-disjunction propositional shape. With NO
+        // individual forced into C, the Family-3 case-split sub-decider decides it
+        // CONSISTENT (the empty model satisfies every disjunctive superclass) — no
+        // longer the pre-sub-decider conservative withhold. The propositional
+        // refutation (every branch closing) is exercised end-to-end on the committed
+        // `webont-description-logic-503`/`504` SAT pair.
         let u1 = "http://gmeow.example/u1";
         let u2 = "http://gmeow.example/u2";
         let store = dataset(vec![
@@ -4277,13 +5228,24 @@ mod tests {
             quad("http://gmeow.example/lu2", REST, NIL),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "unionOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free union TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("unionOf"))
+                && !verdict.coverage.unsupported.iter().any(|u| u == "unionOf"),
+            "the case-split sub-decider certifies this — no unionOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
-    fn hasself_disjoint_refutation_is_withheld() {
-        // C disjointWith [∃p.Self], x : C, x p x. The clash needs `x ∈ ∃p.Self`
-        // inferred from `x p x` ⇒ honest gap.
+    fn hasself_disjoint_refutation_is_decided_inconsistent() {
+        // C disjointWith [∃p.Self], x : C, x p x. The Family-7 counting sub-decider
+        // now infers `x ∈ ∃p.Self` from the self-edge and clashes it against the
+        // disjoint class x also holds: decided INCONSISTENT with no honest gap — no
+        // longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, DISJOINT, R),
             quad(R, TYPE, "http://www.w3.org/2002/07/owl#Restriction"),
@@ -4298,7 +5260,15 @@ mod tests {
             quad(X, P, X),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "hasSelf");
+        assert!(
+            !verdict.consistent,
+            "a self-edge inhabiting a disjoint self-restriction is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the hasSelf sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4326,11 +5296,27 @@ mod tests {
     }
 
     #[test]
-    fn malformed_nil_list_is_withheld() {
-        // rdf:nil bearing an rdf:first edge — a malformed rdf:List ⇒ honest gap.
+    fn malformed_nil_list_is_decided_inconsistent() {
+        // rdf:nil bearing an rdf:first edge — a malformed rdf:List. The Family-6b
+        // case-split sub-decider now decides this: a structurally-broken list makes
+        // the world inconsistent, materializing `owl:Nothing` (on `rdf:nil`) — decided
+        // INCONSISTENT with no honest gap, no longer the pre-sub-decider withhold.
         let store = dataset(vec![quad(NIL, FIRST, A)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "malformedRdfList");
+        assert!(!verdict.consistent, "a malformed rdf:List is inconsistent");
+        assert!(
+            !verdict
+                .gaps
+                .iter()
+                .any(|g| g.code.contains("malformedRdfList"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "malformedRdfList"),
+            "the case-split sub-decider decides this — no malformedRdfList gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4343,12 +5329,54 @@ mod tests {
     }
 
     #[test]
-    fn inverse_functional_property_is_withheld() {
-        // owl:InverseFunctionalProperty has no native identity-merge clash rule ⇒
-        // its presence is an honest gap.
+    fn inverse_functional_property_is_decided_consistent() {
+        // owl:InverseFunctionalProperty has no native identity-merge clash rule, but
+        // the Family-6a counting sub-decider now wires the real inverse-functional
+        // `sameAs` propagation. A single assertion with no distinctness merges
+        // nothing to clash — decided CONSISTENT with no honest gap (the pure
+        // assertional/identity fragment).
         let store = dataset(vec![quad(P, TYPE, INVERSE_FUNCTIONAL), quad(X, P, Y)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "inverseFunctionalProperty");
+        assert!(verdict.consistent, "a lone IFP assertion is consistent");
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "inverseFunctionalProperty"),
+            "the inverseFunctionalProperty family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    #[test]
+    fn inverse_functional_collapse_with_differentfrom_is_decided_inconsistent() {
+        // s1 p o, s2 p o, p IFP, s1 differentFrom s2 — the `1 = 2` collapse: the IFP
+        // merges s1 and s2, contradicting their asserted distinctness. Decided
+        // INCONSISTENT with no honest gap.
+        let s1 = "http://gmeow.example/s1";
+        let s2 = "http://gmeow.example/s2";
+        let store = dataset(vec![
+            quad(P, TYPE, INVERSE_FUNCTIONAL),
+            quad(s1, P, Y),
+            quad(s2, P, Y),
+            quad(s1, DIFFERENT_FROM, s2),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "an IFP-merged pair asserted differentFrom is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -5260,6 +6288,42 @@ mod tests {
         assert!(verdict_ok.consistent, "a single value is consistent");
     }
 
+    /// Functionality declared ONLY by the canonical `logic:PropertyCharacteristicAssertion`
+    /// carrier record (no `owl:FunctionalProperty` marker) still forces owl:Nothing on a subject
+    /// with two distinct literal values — the derivation source the object-level reasoning EDB
+    /// relies on once the `owl:FunctionalProperty` slice source declarations are removed. Coverage
+    /// stays honest: with no OWL functional construct in the EDB, `functionalProperty` is not
+    /// reported present, yet the clash is still decided from the carrier.
+    #[test]
+    fn functional_data_property_carrier_record_two_literals_clash() {
+        let peter = "http://gmeow.example/Peter";
+        let has_name = "http://gmeow.example/hasName";
+        let rec = "http://gmeow.example/hasName-functional-record";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let store = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+            literal_quad(peter, has_name, "Kichwa-Tembo", str_ty),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two distinct literal values on a carrier-declared functional property clash"
+        );
+
+        let store_ok = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+        ]);
+        let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict_ok.consistent,
+            "a single value under the carrier record is consistent"
+        );
+    }
+
     // ── owl:hasKey ────────────────────────────────────────────────────────────
 
     /// hasKey(owl:Thing, [hasSSN]); two differentFrom individuals sharing the key
@@ -5318,6 +6382,74 @@ mod tests {
         assert!(
             verdict.consistent,
             "without differentFrom, key agreement just merges the two (sameAs) — consistent"
+        );
+    }
+
+    /// The gtsHeadId / GTSSegment key expressed ONLY through the greenfield `logic:KeyAssertion`
+    /// carrier (no `owl:hasKey`) still DECIDES the DL verdict: two GTSSegment individuals asserted
+    /// `owl:differentFrom` yet sharing one gtsHeadId content-id are forced into owl:Nothing, and the
+    /// `hasKey` family is reported present + decided from the carrier. This is the falsifiable
+    /// no-regression guard after the `owl:hasKey ( gmeow:gtsHeadId )` slice declaration is migrated
+    /// to `logic:gtsSegmentHeadKey` — the object-level reasoning EDB carries the key on the carrier,
+    /// not on an `owl:hasKey` triple, exactly as the shipped gts slice now authors it.
+    #[test]
+    fn gts_segment_head_key_carrier_decides_and_clashes() {
+        let seg_a = "https://blackcatinformatics.ca/gmeow/segA";
+        let seg_b = "https://blackcatinformatics.ca/gmeow/segB";
+        let gts_segment = "https://blackcatinformatics.ca/gmeow/GTSSegment";
+        let gts_head_id = "https://blackcatinformatics.ca/gmeow/gtsHeadId";
+        let key_rec = "https://blackcatinformatics.ca/logic/gtsSegmentHeadKey";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let head = "blake3:9f2c";
+        let store = dataset(vec![
+            // logic:KeyAssertion carrier: a GTSSegment is keyed by its gtsHeadId.
+            quad(key_rec, TYPE, LOGIC_KEY_ASSERTION),
+            quad(key_rec, LOGIC_KEY_CLASS, gts_segment),
+            quad(key_rec, LOGIC_KEY_PROPERTY, gts_head_id),
+            // Two distinct segments sharing one content-id head — a full-history BLAKE3 collision.
+            quad(seg_a, TYPE, gts_segment),
+            quad(seg_b, TYPE, gts_segment),
+            literal_quad(seg_a, gts_head_id, head, str_ty),
+            literal_quad(seg_b, gts_head_id, head, str_ty),
+            quad(seg_a, OWL_DIFFERENT_FROM, seg_b),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two differentFrom segments sharing a gtsHeadId key clash under the carrier"
+        );
+        assert!(
+            verdict.coverage.present.contains(&"hasKey".to_owned()),
+            "the logic:KeyAssertion carrier makes the hasKey family present"
+        );
+        assert!(
+            verdict.coverage.decided.contains(&"hasKey".to_owned()),
+            "the carrier keeps hasKey decided after the owl:hasKey source is migrated"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "hasKey is decided from the carrier, not a gap"
+        );
+
+        // Consistency guard: WITHOUT the owl:differentFrom, the shared key merely merges the two
+        // (owl:sameAs, no unique-name assumption) — consistent, yet still decided from the carrier.
+        let store_ok = dataset(vec![
+            quad(key_rec, TYPE, LOGIC_KEY_ASSERTION),
+            quad(key_rec, LOGIC_KEY_CLASS, gts_segment),
+            quad(key_rec, LOGIC_KEY_PROPERTY, gts_head_id),
+            quad(seg_a, TYPE, gts_segment),
+            quad(seg_b, TYPE, gts_segment),
+            literal_quad(seg_a, gts_head_id, head, str_ty),
+            literal_quad(seg_b, gts_head_id, head, str_ty),
+        ]);
+        let ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            ok.consistent,
+            "without owl:differentFrom the shared gtsHeadId key merges the segments — consistent"
+        );
+        assert!(
+            ok.coverage.decided.contains(&"hasKey".to_owned()),
+            "hasKey stays decided from the carrier even with no clash"
         );
     }
 
@@ -6024,5 +7156,76 @@ mod tests {
             "the withheld XMLLiteral shape surfaces as a gap: {:?}",
             v.gaps
         );
+    }
+
+    // The refutation-kernel materialization seam: an `InFragment{Inconsistent}`
+    // certificate materializes its `type(?i, owl:Nothing)` clash witness into the
+    // closure, which `verdict_from_inferred` then reads off as an inconsistency —
+    // while an `OutOfFragment` withhold (the Task-2 production steady state) and an
+    // `InFragment{Consistent}` decision materialize nothing. This exercises the
+    // decide-path seam the per-family deciders (Tasks 3/4/5) plug into.
+    #[test]
+    fn materialize_refutation_seam_forces_owl_nothing_only_on_inconsistent() {
+        use crate::reason::refute::{
+            Decision, FragmentBoundary, FragmentFamily, NothingClash, RefutationCertificate,
+            Witness, WitnessEvidence,
+        };
+
+        let inconsistent = RefutationCertificate::InFragment {
+            decision: Decision::Inconsistent,
+            witness: Witness {
+                family: FragmentFamily::Counting,
+                clashes: [NothingClash {
+                    individual: "http://ex/i".to_owned(),
+                    world: String::new(),
+                    rule_name: "refute:counting".to_owned(),
+                    premises: vec![(
+                        "http://ex/i".to_owned(),
+                        RDF_TYPE.to_owned(),
+                        "http://ex/A".to_owned(),
+                    )],
+                }]
+                .into_iter()
+                .collect(),
+                evidence: WitnessEvidence::default(),
+            },
+        };
+        let mut inferred: Vec<InferredAxiom> = Vec::new();
+        let mut facts: BTreeSet<Fact> = BTreeSet::new();
+        assert!(
+            materialize_refutation(&inconsistent, &mut inferred, &mut facts),
+            "an inconsistent certificate materializes its clash"
+        );
+        let store = dataset(Vec::new());
+        let verdict = verdict_from_inferred(&inferred, store.as_ref()).expect("verdict");
+        assert!(
+            !verdict.consistent,
+            "the materialized owl:Nothing witness makes the closure inconsistent"
+        );
+        assert_eq!(verdict.inconsistencies.len(), 1);
+        assert_eq!(verdict.inconsistencies[0].individual, "http://ex/i");
+
+        // A consistent decision and an out-of-fragment withhold are both no-ops.
+        for benign in [
+            RefutationCertificate::InFragment {
+                decision: Decision::Consistent,
+                witness: Witness {
+                    family: FragmentFamily::Counting,
+                    clashes: BTreeSet::new(),
+                    evidence: WitnessEvidence::default(),
+                },
+            },
+            RefutationCertificate::OutOfFragment {
+                reason: FragmentBoundary::NoDeciderEngaged,
+            },
+        ] {
+            let mut inferred2: Vec<InferredAxiom> = Vec::new();
+            let mut facts2: BTreeSet<Fact> = BTreeSet::new();
+            assert!(
+                !materialize_refutation(&benign, &mut inferred2, &mut facts2),
+                "a consistent decision / withhold materializes nothing: {benign:?}"
+            );
+            assert!(inferred2.is_empty(), "no witness axiom added: {benign:?}");
+        }
     }
 }

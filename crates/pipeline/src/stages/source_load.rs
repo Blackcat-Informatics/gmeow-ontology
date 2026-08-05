@@ -27,6 +27,8 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
+use gmeow_logic_compile::ir::ANNOTATION_LIFT_PREDS;
+
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
@@ -239,10 +241,13 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_error
 /// schema.org, Wikidata, FOAF, and the bibliographic-metadata families) are matched by prefix
 /// in [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`].
 pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
-    // RDFS presentational/navigational documentation predicates. NOT rdfs:comment — that is
-    // read by `read_caveats` and MUST survive; only these presentational RDFS predicates are
-    // stripped. (SKOS — including its mapping predicates — is a prefix family below.)
-    "http://www.w3.org/2000/01/rdf-schema#label",
+    // RDFS presentational/navigational documentation predicates. NOT rdfs:label — that is now
+    // LIFTED into a NodeKind::Annotation axiom (`ANNOTATION_LIFT_PREDS`), so it is READ and must
+    // survive (the annotation-exception early-return in `predicate_is_logic_compile_denylisted`
+    // keeps it out of the strip). NOT rdfs:comment either — read by `read_caveats` AND lifted.
+    // Only these genuinely-inert navigational RDFS predicates are stripped. (SKOS annotations are
+    // un-denied by the same exception; the SKOS *mapping* surface stays denied by the prefix
+    // family below.)
     "http://www.w3.org/2000/01/rdf-schema#seeAlso",
     "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
 ];
@@ -251,10 +256,13 @@ pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
 /// augmentation readers — matched by predicate-IRI `starts_with`, so the whole family is
 /// denylisted without enumerating each term. Four groups, all provably never read (the
 /// `logic_compile_input_subgraph_preserves_reader_output` guard REDs on any family that is):
-///   * Documentation / annotation: SKOS (`skos:` — labels, definitions, notes, AND the
-///     mapping predicates closeMatch/exactMatch/relatedMatch/broadMatch/…, pure alignment
-///     surface no reader consults; the correspondence reader keys on `logic:` predicates and
-///     `rdf:type`, never SKOS).
+///   * Documentation / annotation: SKOS (`skos:`). The prefix denies the SKOS mapping surface
+///     (closeMatch/exactMatch/relatedMatch/broadMatch/…) — pure alignment surface the
+///     compile-logic augmentation readers never consult. EXCEPTION: the four SKOS *annotation*
+///     predicates (skos:definition/prefLabel/altLabel/scopeNote) are un-denied by the
+///     `ANNOTATION_LIFT_PREDS` early-return in `predicate_is_logic_compile_denylisted` — they
+///     are LIFTED into NodeKind::Annotation axioms and so ARE read (the annotation reader in the
+///     `logic_compile_input_subgraph_preserves_reader_output` guard REDs if they are re-denied).
 ///   * Alignment/mapping provenance: SSSOM `semapv:` mapping-justification vocabulary.
 ///   * Foreign-domain example / correspondence-target vocabularies: gUFO (`gufo:`),
 ///     schema.org, FOAF (`foaf:`), and Wikidata (`wd:`/`wdt:`/`wikibase:`) — used only as
@@ -302,6 +310,16 @@ pub const LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES: &[&str] = &[
 /// readers never consult — an exact [`LOGIC_COMPILE_INPUT_DENYLIST`] member or a
 /// [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`] namespace member.
 fn predicate_is_logic_compile_denylisted(predicate: &str) -> bool {
+    // The six RDFS/SKOS annotation predicates are LIFTED into NodeKind::Annotation axioms
+    // (`isSupersetOf` SKOS/RDFS), so they are READ and must reach the compiler — surgically
+    // un-denied BEFORE the prefix scan. This exception un-denies exactly
+    // skos:definition/prefLabel/altLabel/scopeNote (leaving the rest of the `skos:` prefix —
+    // notably the skos:*Match mapping surface — denied) and rdfs:label (rdfs:comment is already
+    // off the exact denylist). The `logic_compile_input_subgraph_preserves_reader_output`
+    // annotation reader REDs if any of these is silently re-denied.
+    if ANNOTATION_LIFT_PREDS.contains(&predicate) {
+        return false;
+    }
     LOGIC_COMPILE_INPUT_DENYLIST.contains(&predicate)
         || LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES
             .iter()
@@ -578,7 +596,12 @@ impl Stage for SourceLoadStage {
         // narrowing of the whole authored corpus compile-logic reads — so compile-logic
         // consumes it as a typed entity and a documentation-only edit no longer busts the
         // compiler's cache.
-        "source_load.v5-logic-compile-inputs"
+        // v6: attach the `graph/grounding-seams` named graph — the authored `gmeow:Seam`
+        // registry re-projected losslessly off the SAME slice catalog the slice-analysis
+        // graph reads. A `manifest.ttl` never enters the composed fold, so this graph is
+        // the only path by which the closed set of sanctioned cross-grounding reference
+        // channels reaches `gmeow.gts`.
+        "source_load.v6-grounding-seams"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -614,13 +637,28 @@ impl Stage for SourceLoadStage {
         // Score slice quality ONCE at the DAG root: the RDF graph rides in the
         // self-description carrier and the rendered diagnostics HTML rides as an internal
         // pipeline artifact for the terminal docs archive.
+        //
+        // The DocMaturity axis's constraint catalog is rendered FRESH here from THIS run's
+        // authored sources (root ontology + slice modules) and handed to the sweep, never
+        // read off the committed generated/catalog/constraint-catalog.nq. That file is
+        // absent on a cold tree and the previous run's bytes on a warm one, and a disk read
+        // would fail the whole documentation-model build, collapsing every slice's
+        // DocMaturity to a vacuous 1.0 (diverging cold-vs-warm — a two-generation
+        // determinism break). `render_constraint_catalog` is a PURE function of the authored
+        // sources (source-load already declares them as inputs), so it needs no DAG edge to
+        // the constraint-catalog stage — which cannot precede this DAG root anyway — and is
+        // byte-identical to what that stage produces and the fanout writes.
         let started = Instant::now();
-        let quality = gmeow_slice_quality::assessment_artifacts(input.root).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_string(),
-                message: format!("quality-assessment sweep: {e}"),
-            })
-        })?;
+        let catalog_bytes =
+            crate::stages::constraint_catalog::render_constraint_catalog(input.root)?;
+        let quality =
+            gmeow_slice_quality::assessment_artifacts_with_catalog(input.root, &catalog_bytes)
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: self.id().to_string(),
+                        message: format!("quality-assessment sweep: {e}"),
+                    })
+                })?;
         timings.push(crate::node::StageRunTiming::new(
             "slice-quality",
             started.elapsed().as_millis(),

@@ -62,11 +62,17 @@ pub const AGREEMENT_TALLIES_PATH: &str = "pipeline/agreement-tallies.json";
 /// the attached bytes are deterministic (the `bench` integer-baseline discipline;
 /// no `f64`).
 ///
-/// `lane` is the `corpus.json` lane (`"a"`/`"b"`/`"divergence"`). The dashboard needs
-/// it to present a `divergence`-lane corpus honestly: its `corpus_only` rows are the
-/// DOCUMENTED, intended native↔published divergences (native EL correctly differs from
-/// the published DL/Full answer), never engine defects — so they are excluded from the
-/// headline agreement rate rather than counted as failures.
+/// `lane` is the `corpus.json` lane (`"a"`/`"b"`/`"divergence"`/`"decided"`). The
+/// dashboard needs it to present a `divergence`-lane corpus honestly: its
+/// `corpus_only` rows are the DOCUMENTED, intended native↔published divergences
+/// (native EL correctly differs from the published DL/Full answer), never engine
+/// defects — so they are excluded from the headline agreement rate rather than
+/// counted as failures. A `decided`-lane corpus is graded exactly like Lane A (the
+/// native path now DECIDES these cases and agrees with the published verdict), so
+/// its `corpus_only`/`dl_gap` rows are real problems, never tolerated divergences —
+/// [`crate::stages::agreement::render_agreement_matrix`]'s lane partition only
+/// special-cases `"divergence"`, so `"decided"` already falls into the
+/// agreement-expected bucket alongside `"a"`/`"b"`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct TallyRecord {
     pub(crate) lane: String,
@@ -443,7 +449,7 @@ fn fired_disciplines_in_golden(
     materialized: &Path,
 ) -> Result<std::collections::BTreeSet<String>, gmeow_errors::Diag> {
     const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    use gmeow_ns::LOGIC_NS;
     let text = std::fs::read_to_string(materialized)
         .map_err(|e| stage_err(&format!("read {}: {e}", materialized.display())))?;
     let mut fired = std::collections::BTreeSet::new();
@@ -725,7 +731,7 @@ mod tests {
                 "corpus {corpus}: cases must partition into agree/corpus-only/dl-gap"
             );
             assert!(
-                matches!(r.lane.as_str(), "a" | "b" | "divergence"),
+                matches!(r.lane.as_str(), "a" | "b" | "divergence" | "decided"),
                 "corpus {corpus}: lane must be a recognized token, got {:?}",
                 r.lane
             );

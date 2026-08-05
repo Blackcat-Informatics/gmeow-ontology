@@ -3,8 +3,8 @@
 
 [package]
 name = "gmeow-docs"
-description = "GMEOW typed documentation model built from the slice catalog (#853)"
-version = "0.1.0"
+description = "GMEOW typed documentation model built from the slice catalog"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -21,14 +21,15 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex = "1"
 sha1 = "0.10"
-# The project's canonical content-digest. Two uses: the vendored purrdf wasm
+# The project's canonical content-digest. Two uses: the committed query wasm
 # anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
 # manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each
 # term's competency query text as a `blake3:<hex>` grounding property (matching
 # the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
-blake3 = "1"
+blake3.workspace = true
 purrdf.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The wasm-clean logic compiler — the source of truth for the projection loss
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
@@ -40,14 +41,26 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # stamps into a finding's `helpUri` fragment — so a finding's help link resolves to
 # its rule entry. Pure-Rust rlib; acyclic (validate does not depend on docs).
 gmeow-validate = { path = "../validate" }
-# Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
+# The GMN-1 codec + glyph registry + operator-form resolver: the graph-derived
+# source of the GMN-1 teachability primer's glyph table (glyph / fixity / alias per
+# operator) and its held-out-task AST-validity check. Pure-Rust rlib; acyclic
+# (lang-bridge does not depend on docs — docs sits DOWNSTREAM of it, the same edge
+# gmn_metrics.rs's `estimate_tokens` re-declaration note describes).
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# Static-site renderers. minijinja is a pure-Rust template engine (no
 # build scripts, deterministic rendering); pulldown-cmark converts the per-page
 # Markdown body to HTML. Both are self-contained — no network assets are pulled.
 minijinja = "2"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 
 [dev-dependencies]
-# Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
+tempfile = "3"
+# Rich colored line-diffs on assert_eq! failure. Drop-in: a shadowing
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 insta = { version = "1.48", features = ["json"] }

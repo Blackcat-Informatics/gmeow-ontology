@@ -27,14 +27,14 @@ jobs:
           # artipacked).
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6.3.0
         with:
           python-version: "3.13"
 
       - name: Guard — the generated package must be present
         run: |
           test -f packages/python/gmeow_models/__init__.py \
-            || { echo "packages/python/gmeow_models is missing — run 'make sync' and commit it"; exit 1; }
+            || { echo "packages/python/gmeow_models is missing — run 'make check-sync SYNC_MODE=update SYNC_OUTPUTS=all' and commit it"; exit 1; }
 
       - name: Build the wheel + sdist
         run: |
@@ -62,7 +62,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist-gmeow-ontology
           path: dist/

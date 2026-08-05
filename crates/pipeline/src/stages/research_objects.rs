@@ -82,9 +82,13 @@ const DATACITE_NS: &str = "http://datacite.org/schema/kernel-4";
 const XSI_NS: &str = "http://www.w3.org/2001/XMLSchema-instance";
 const PLACEHOLDER_DOI_PREFIX: &str = "10.5072";
 
-/// The worked example's canonical instance Turtle inputs, in generator order.
-/// `(repo-relative path, crate file name)`.
-const EXAMPLE_INPUTS: [(&str, &str); 6] = [
+/// The worked example's AUTHORED instance Turtle inputs, in generator order.
+/// `(repo-relative path, crate file name)`. These are pure authored-source reads
+/// (`slices/…`, `evals/…`); the sixth worked-example input — `scores.ttl` — is NOT
+/// authored: it is the `stage-export-evals` product (see [`SCORES_INPUT_LABEL`]),
+/// threaded in from the consumed evals product rather than read off the git-ignored
+/// `generated/` tree (the stale-disk-fold class).
+const AUTHORED_EXAMPLE_INPUTS: [(&str, &str); 5] = [
     (
         "slices/extensions/graphrag/examples/lillith-dataset.ttl",
         "lillith-dataset.ttl",
@@ -99,8 +103,32 @@ const EXAMPLE_INPUTS: [(&str, &str); 6] = [
     ),
     ("evals/corpus.ttl", "corpus.ttl"),
     ("evals/rubric.ttl", "rubric.ttl"),
-    ("generated/evals/scores.ttl", "scores.ttl"),
 ];
+
+/// The logical label of the sixth worked-example input, `generated/evals/scores.ttl`.
+/// It is the `stage-export-evals` product ([`crate::stages::evals::SCORES_PATH`]); the
+/// research-objects stage sources its bytes from that consumed product, never a disk read
+/// of the git-ignored file. Kept identical to the producer's path so the parsed A-Box is
+/// byte-identical regardless of whether the bytes came from disk or the carrier.
+const SCORES_INPUT_LABEL: &str = crate::stages::evals::SCORES_PATH;
+/// The crate file name of the scores input (its RO-Crate member basename).
+const SCORES_INPUT_NAME: &str = "scores.ttl";
+
+/// One worked-example A-Box input in generator order: `(logical-label, crate-name, bytes)`.
+type ExampleInput = (&'static str, &'static str, Vec<u8>);
+
+/// The six worked-example A-Box inputs in generator order: the five authored Turtle files
+/// read off disk plus `scores.ttl`, whose bytes are threaded in via `scores_ttl` (the
+/// consumed `stage-export-evals` product) — never re-read off the git-ignored `generated/`
+/// tree. `scores.ttl` stays LAST, preserving the union order the artifacts were generated under.
+fn example_inputs(root: &Path, scores_ttl: &[u8]) -> Result<Vec<ExampleInput>, gmeow_errors::Diag> {
+    let mut out: Vec<ExampleInput> = Vec::with_capacity(AUTHORED_EXAMPLE_INPUTS.len() + 1);
+    for (rel, name) in AUTHORED_EXAMPLE_INPUTS {
+        out.push((rel, name, std::fs::read(root.join(rel))?));
+    }
+    out.push((SCORES_INPUT_LABEL, SCORES_INPUT_NAME, scores_ttl.to_vec()));
+    Ok(out)
+}
 
 fn g(local: &str) -> String {
     format!("{NS}{local}")
@@ -114,12 +142,14 @@ fn parse_into(bytes: &[u8], path: &str) -> Result<Arc<RdfDataset>, gmeow_errors:
 }
 
 /// Parse the six worked-example Turtle files into one native A-Box `Store` (each parsed
-/// through the native codec then unioned, blanks standardized apart per source).
-fn load_instance_graph(root: &Path) -> Result<Store, gmeow_errors::Diag> {
-    let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(EXAMPLE_INPUTS.len());
-    for (rel, _) in EXAMPLE_INPUTS {
-        let bytes = std::fs::read(root.join(rel))?;
-        parsed.push(parse_into(&bytes, rel)?);
+/// through the native codec then unioned, blanks standardized apart per source). The five
+/// authored inputs are read off disk; `scores.ttl` rides in via `scores_ttl` (the consumed
+/// `stage-export-evals` product), never a disk read of the git-ignored generated tree.
+fn load_instance_graph(root: &Path, scores_ttl: &[u8]) -> Result<Store, gmeow_errors::Diag> {
+    let inputs = example_inputs(root, scores_ttl)?;
+    let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(inputs.len());
+    for (label, _name, bytes) in &inputs {
+        parsed.push(parse_into(bytes, label)?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     Ok(Store::from_dataset(&RdfDataset::union(&refs)))
@@ -1537,8 +1567,9 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
 pub fn render_research_objects(
     root: &Path,
     dcat_rq: &str,
+    scores_ttl: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let store = load_instance_graph(root)?;
+    let store = load_instance_graph(root, scores_ttl)?;
     let ds = dataset_meta(&store)?;
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let p = |rel: &str| format!("{RESEARCH_OBJECTS_DIR}/{rel}");
@@ -1551,9 +1582,8 @@ pub fn render_research_objects(
     // RO-Crate: retag+serialize each .ttl input, copy the croissant, build metadata.
     let tag_map = load_tag_map(root)?;
     let mut payload: Vec<String> = Vec::new();
-    for (rel, name) in EXAMPLE_INPUTS {
-        let bytes = std::fs::read(root.join(rel))?;
-        let ttl = serialize_source_turtle(&bytes, rel, &tag_map)?;
+    for (label, name, bytes) in example_inputs(root, scores_ttl)? {
+        let ttl = serialize_source_turtle(&bytes, label, &tag_map)?;
         out.insert(p(&format!("ro-crate/{name}")), ttl.into_bytes());
         payload.push(name.to_string());
     }
@@ -1571,7 +1601,7 @@ pub fn render_research_objects(
     );
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root, dcat_rq)?;
+    let dcat = render_dcat(root, dcat_rq, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML.
@@ -1591,7 +1621,11 @@ pub fn render_research_objects(
 /// Build the DCAT store (whole ontology + example A-Box), run `dcat.rq`, serialize.
 /// `dcat_rq` is the CONSTRUCT query text, threaded in from the consumed stage-mappings
 /// product (`generated/queries/dcat.rq`) — never re-read off disk (the stale-disk-fold class).
-fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, gmeow_errors::Diag> {
+fn render_dcat(
+    root: &Path,
+    dcat_rq: &str,
+    scores_ttl: &[u8],
+) -> Result<String, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
     let onto = root.join("ontology").join("gmeow.ttl");
@@ -1601,10 +1635,9 @@ fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, gmeow_errors::Diag>
         let bytes = std::fs::read(&module)?;
         parsed.push(parse_into(&bytes, &module.display().to_string())?);
     }
-    // The worked-example A-Box.
-    for (rel, _) in EXAMPLE_INPUTS {
-        let bytes = std::fs::read(root.join(rel))?;
-        parsed.push(parse_into(&bytes, rel)?);
+    // The worked-example A-Box (scores.ttl rides in from the consumed evals product).
+    for (label, _name, bytes) in example_inputs(root, scores_ttl)? {
+        parsed.push(parse_into(&bytes, label)?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let dataset = Arc::new(RdfDataset::union(&refs));
@@ -1658,13 +1691,26 @@ pub struct ResearchObjectsStage {
 }
 
 impl ResearchObjectsStage {
-    /// Construct the stage. It consumes `stage-mappings` to obtain the generated DCAT
-    /// CONSTRUCT query (`generated/queries/dcat.rq`) from that stage's in-memory product,
-    /// rather than re-reading the stale committed file off disk (the stale-disk-fold
-    /// class): a `dcat.rq` edit then reaches `lillith.dcat.ttl` in a single regenerate.
+    /// Construct the stage. It consumes:
+    ///
+    /// * `stage-export-evals` — to obtain `generated/evals/scores.ttl` (a product of the
+    ///   SAME run, written to the git-ignored generated tree only by the post-pipeline
+    ///   fanout) from that stage's in-memory product, and
+    /// * `stage-mappings` — to obtain the generated DCAT CONSTRUCT query
+    ///   (`generated/queries/dcat.rq`) from that stage's in-memory product.
+    ///
+    /// Both are sourced from the consumed product rather than re-reading the stale/absent
+    /// committed files off disk (the stale-disk-fold class): a scores or `dcat.rq` edit then
+    /// reaches the research objects in a single regenerate, and a cold clone (no materialized
+    /// generated tree) still builds.
+    /// Kept in sorted order to match the registry `consumes()` and the module.ttl
+    /// `dataflowConsumes`.
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-mappings".to_string()],
+            consumes: vec![
+                "stage-export-evals".to_string(),
+                "stage-mappings".to_string(),
+            ],
         }
     }
 }
@@ -1683,18 +1729,21 @@ impl Stage for ResearchObjectsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2: the DCAT CONSTRUCT query rides in from the consumed stage-mappings product
-        // (`generated/queries/dcat.rq`) instead of a stale disk read.
-        "research_objects.v2"
+        // v3: `generated/evals/scores.ttl` rides in from the consumed stage-export-evals
+        // product (never a disk read of the git-ignored generated tree); the DCAT CONSTRUCT
+        // query rides in from the consumed stage-mappings product.
+        "research_objects.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // Pure authored-source reads: the worked-example A-Box inputs and the
-        // language-tag map (root ontology + slice modules). NONE are in the composed
-        // fold, so declare them so any edit busts the cache. The DCAT CONSTRUCT query is
-        // NOT declared here: it is a generated projection consumed from the stage-mappings
-        // product (whose digest covers a dcat.rq edit), never read off disk.
+        // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
+        // language-tag map (root ontology + slice modules). NONE are in the composed fold, so
+        // declare them so any edit busts the cache. Two inputs are NOT declared here — they are
+        // generated projections consumed from upstream products (whose digests cover their
+        // edits), never read off disk: `generated/evals/scores.ttl` (stage-export-evals) and
+        // `generated/queries/dcat.rq` (stage-mappings). A generated/ path in input_files would
+        // itself be the stale-disk-fold class.
         let mut files: Vec<std::path::PathBuf> = Vec::new();
-        for (rel, _) in EXAMPLE_INPUTS {
+        for (rel, _) in AUTHORED_EXAMPLE_INPUTS {
             files.push(root.join(rel));
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
@@ -1723,9 +1772,25 @@ impl Stage for ResearchObjectsStage {
                 message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
             })
         })?;
+        // `generated/evals/scores.ttl` from THIS run's stage-export-evals product
+        // (fail-closed: a missing artifact is a hard error, never a disk fallback of the
+        // git-ignored generated tree).
+        let scores_ttl = input
+            .upstream
+            .get("stage-export-evals")
+            .and_then(|p| p.artifact(SCORES_INPUT_LABEL))
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "missing {SCORES_INPUT_LABEL} in the stage-export-evals product; refusing \
+                         to re-read the git-ignored generated file off disk (fail-closed)"
+                    ),
+                })
+            })?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_research_objects(input.root, dcat_rq)?,
+            render_research_objects(input.root, dcat_rq, scores_ttl)?,
         )))
     }
 }
@@ -1743,6 +1808,45 @@ mod tests {
     }
 
     #[test]
+    fn scores_ttl_rides_the_evals_product_not_disk() {
+        // The scores bytes are threaded from the (consumed) evals product, never read off
+        // the git-ignored generated/evals/scores.ttl: a sentinel passed as the scores bytes
+        // appears verbatim as the LAST example input, labelled by the producer's SCORES_PATH.
+        let root = repo_root();
+        let sentinel = b"# sentinel scores\n".as_slice();
+        let inputs = example_inputs(&root, sentinel).expect("example inputs");
+        assert_eq!(inputs.len(), 6, "five authored inputs + scores.ttl");
+        let (label, name, bytes) = inputs.last().expect("scores input present");
+        assert_eq!(*label, crate::stages::evals::SCORES_PATH);
+        assert_eq!(*label, "generated/evals/scores.ttl");
+        assert_eq!(*name, "scores.ttl");
+        assert_eq!(bytes.as_slice(), sentinel);
+    }
+
+    #[test]
+    fn input_files_omit_generated_scores_and_the_dag_edge_binds() {
+        let root = repo_root();
+        let stage = ResearchObjectsStage::default();
+        // The generated evals product no longer rides input_files() (the stale-disk-fold
+        // class): its freshness rides the consumed stage-export-evals product digest.
+        let files = stage.input_files(&root).expect("input files");
+        assert!(
+            files
+                .iter()
+                .all(|f| !f.ends_with("generated/evals/scores.ttl")),
+            "generated/evals/scores.ttl must not be an input_files() disk read"
+        );
+        // The DAG edge binds: the stage consumes both producers, in sorted order.
+        assert_eq!(
+            stage.consumes(),
+            &[
+                "stage-export-evals".to_string(),
+                "stage-mappings".to_string()
+            ]
+        );
+    }
+
+    #[test]
     fn research_objects_are_byte_identical_to_committed() {
         let root = repo_root();
         // The DCAT query is a stage-mappings product artifact; in production the stage
@@ -1751,7 +1855,15 @@ mod tests {
         // stage would emit) — asserting the rendered bundle is byte-identical to committed.
         let dcat_rq = std::fs::read_to_string(root.join(DCAT_QUERY_PATH))
             .expect("committed generated/queries/dcat.rq");
-        let arts = render_research_objects(&root, &dcat_rq).expect("render");
+        // scores.ttl is a stage-export-evals product; produce it FRESH from the evals
+        // renderer (the same bytes the evals leaf emits and the fanout writes to disk)
+        // rather than reading the git-ignored generated/evals/scores.ttl — the production
+        // product-sourcing path, not a stale disk read.
+        let evals = crate::stages::evals::render_evals(&root).expect("render evals");
+        let scores_ttl = evals
+            .get(crate::stages::evals::SCORES_PATH)
+            .expect("evals product carries scores.ttl");
+        let arts = render_research_objects(&root, &dcat_rq, scores_ttl).expect("render");
         let mut failures: Vec<String> = Vec::new();
         let mut checked = 0;
         for (path, bytes) in &arts {

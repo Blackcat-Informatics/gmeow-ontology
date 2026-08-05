@@ -10,7 +10,7 @@
 # (`ontology/gmeow.ttl`), read by hatchling from the GENERATED
 # `gmeow_models/__about__.py` (see `[tool.hatch.version]` below). To release a
 # new wheel version, bump `owl:versionInfo` in `ontology/gmeow.ttl` and run
-# `make sync` — never hand-edit `__about__.py` or set `version` here.
+# `make check` — never hand-edit `__about__.py` or set `version` here.
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

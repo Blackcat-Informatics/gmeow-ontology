@@ -76,7 +76,7 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// The registry stage's `consumed_entities()` disagrees with the RDF
-    /// `gmeow:DataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
+    /// `gmeow:BuildDataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
     pub struct DataFlowMismatch {
         stage: String,
         rdf: Vec<(String, Vec<String>)>,
@@ -84,7 +84,7 @@ define_diag_kind! {
     }
     code = "pipeline.contract.dataflow-mismatch";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF gmeow:DataFlow typed entities {:?} disagree with the Rust impl consumed_entities() {:?}", stage, rdf, rust;
+    message = "stage {}: RDF gmeow:BuildDataFlow typed entities {:?} disagree with the Rust impl consumed_entities() {:?}", stage, rdf, rust;
 }
 
 define_diag_kind! {
@@ -149,6 +149,21 @@ define_diag_kind! {
     code = "pipeline.contract.fanout-bijection";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "gmeow:fanoutExtracts is not a bijection over the reconstructed paths: {}", message;
+}
+
+define_diag_kind! {
+    /// The independently-authored expected-output inventory (`gmeow:expectsGeneratedOutput`,
+    /// hand-written TTL in the pipeline slice) and the bundle's reconstructed projection
+    /// disagree: a declared `generated/` output the bundle no longer produces (a deterministic
+    /// carrier drop the two-generation determinism gate cannot see), or a derivable prefix
+    /// family whose authored members do not exactly equal the members the carrier's
+    /// reconstruction graphs yield. A HARD FAIL (completeness) — the authored inventory is a
+    /// DIFFERENT source from the carrier's `files.keys()`, so a silent capability degradation
+    /// (a dropped consumed output on a clean clone) is caught here, not hidden.
+    pub struct ExpectedOutputMissing { message: String }
+    code = "pipeline.contract.expected-output";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "authored expected-output inventory and the reconstructed bundle disagree: {}", message;
 }
 
 define_diag_kind! {
@@ -293,6 +308,30 @@ define_diag_kind! {
     message = "diagnostic meta-fold error: {}", message;
 }
 
+define_diag_kind! {
+    /// A hard defect raised while measuring the documentation-distribution
+    /// designs (`docs_measure`): a renderer failure, a missing upstream
+    /// pipeline product, or a GTS-framing failure while computing a
+    /// per-format L12 delta.
+    pub struct DocsMeasure { message: String }
+    code = "pipeline.docs-measure";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "docs-measure error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while rendering the external documentation /
+    /// serialization distributions or building the release-time DCAT
+    /// distribution manifest (`docs_distribution`): a
+    /// serializer failure, a malformed OKF member path, a missing bundled
+    /// `dcat.rq` projection query, or a DCAT projection failure over the
+    /// release-time distribution instance graph.
+    pub struct DocsDistribution { message: String }
+    code = "pipeline.docs-distribution";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "docs-distribution error: {}", message;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -311,6 +350,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     AttachDeclMismatch::CODE,
     AttachDrift::CODE,
     FanoutBijection::CODE,
+    ExpectedOutputMissing::CODE,
     CacheMismatch::CODE,
     StageFailed::CODE,
     Transform::CODE,
@@ -325,6 +365,8 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     EvalSchema::CODE,
     MetaFold::CODE,
     SpanTableConsumedAfterDrop::CODE,
+    DocsMeasure::CODE,
+    DocsDistribution::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -356,6 +398,7 @@ pub fn register_all() -> Vec<Code> {
         AttachDeclMismatch::register(),
         AttachDrift::register(),
         FanoutBijection::register(),
+        ExpectedOutputMissing::register(),
         CacheMismatch::register(),
         StageFailed::register(),
         Transform::register(),
@@ -370,6 +413,8 @@ pub fn register_all() -> Vec<Code> {
         EvalSchema::register(),
         MetaFold::register(),
         SpanTableConsumedAfterDrop::register(),
+        DocsMeasure::register(),
+        DocsDistribution::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),

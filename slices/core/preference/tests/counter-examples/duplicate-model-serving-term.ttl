@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the no-duplicate ban on MODEL-SERVING (charter Hard Rule 10,
+# ex:saNoRemintModelServingTerms): a fixture that RE-MINTS gmeow:ModelArtifact as rdfs:isDefinedBy
+# the preference slice — the AC7 no-duplication violation (Principle 16). Unioned with the module
+# by the gmeow:saFailWitness teeth check, it makes the ∃-redeclared-term ASK HOLD, proving the
+# mustNot ban has teeth. The module reuses model-serving terms by-reference only; it must never
+# carry this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:ModelArtifact rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .

@@ -42,7 +42,7 @@ use sha1::{Digest, Sha1};
 use crate::exec::ExecutableDocsData;
 use crate::i18n::{ENGLISH, Translations, UiCatalog};
 use crate::mdbook::render_book;
-use crate::model::DocsModel;
+use crate::model::{DocsError, DocsModel};
 use crate::render::{Site, render_site_lang};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run
@@ -53,9 +53,24 @@ use crate::render::{Site, render_site_lang};
 ///
 /// A cache file that is PRESENT but unreadable / undeserializable is an integrity
 /// violation (a corrupt or partial envelope, or a serde regression) — it panics
-/// loudly rather than silently rebuilding and masking it. Only a genuine absence
-/// is a legitimate miss that falls through to `discover()`.
+/// loudly rather than silently rebuilding and masking it. So is a file that
+/// deserializes but does not fold to the payload digest it carries: an entry EDITED
+/// after it was written (see [`verify_payload`]). Only a genuine absence is a
+/// legitimate miss that falls through to `discover()`.
 pub fn load(root: &Path) -> DocsModel {
+    try_load(root).unwrap_or_else(|e| panic!("build docs model from live slices: {e}"))
+}
+
+/// [`load`], but surfacing a model-BUILD failure as `Err` instead of panicking.
+///
+/// Same cache, same key, same integrity contract: a cache file that is present but
+/// undeserializable still panics (that is corruption, not an honest absence), and a
+/// genuine miss still builds and caches. The only difference is the disposition of a
+/// [`DocsModel::discover`] error, which some callers must report as a first-class
+/// finding rather than a crash — `gmeow-slice-quality`'s DocMaturity axis records it
+/// as `slice-quality.doc-maturity.model-unavailable`, and swapping that for a panic
+/// would turn a recorded, gradeable condition into a dead process.
+pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
     let cache_path = cache_path(root);
     match fs::read(&cache_path) {
         Ok(bytes) => {
@@ -66,9 +81,13 @@ pub fn load(root: &Path) -> DocsModel {
                     cache_path.display()
                 )
             });
-            cached.into_model()
+            Ok(cached.into_model(&cache_path))
         }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => build_and_cache(root, &cache_path),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let model = DocsModel::discover(root)?;
+            write_cache(&cache_path, &CachedModel::from_model(&model));
+            Ok(model)
+        }
         Err(e) => panic!(
             "cannot read docs-fixture cache at {}: {e}",
             cache_path.display()
@@ -142,7 +161,7 @@ fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site
                     cache_path.display()
                 )
             });
-            cached.into_site()
+            cached.into_site(cache_path)
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             let site = build();
@@ -167,19 +186,19 @@ fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site
 /// are on disk. Only a cold or interrupted-partial cache loads the model — once —
 /// to enumerate `available_languages` and render the missing artifacts.
 pub fn prime(root: &Path) {
-    let cache_path = cache_path(root);
-    let model = if cache_path.exists() {
-        // English is rendered last below, so an existing English site means every
-        // translation AND the book for this key are already warm — return without
-        // loading the model. The book check makes a pre-book-cache warm directory
-        // (English present, book absent) correctly re-prime the book.
-        if site_cache_path(root, ENGLISH).exists() && book_cache_path(root).exists() {
-            return;
-        }
-        load(root)
-    } else {
-        build_and_cache(root, &cache_path)
-    };
+    // English is rendered last below, so an existing English site means every
+    // translation AND the book for this key are already warm — return without
+    // loading the model. The book check makes a pre-book-cache warm directory
+    // (English present, book absent) correctly re-prime the book.
+    if cache_path(root).exists()
+        && site_cache_path(root, ENGLISH).exists()
+        && book_cache_path(root).exists()
+    {
+        return;
+    }
+    // Cold, or interrupted-partial: `load` builds-and-caches the model on a genuine
+    // miss and deserializes the warm entry otherwise — one authority for both.
+    let model = load(root);
 
     // Render every translation first, then the book, then the English carrier last
     // so the sentinel above only becomes true once the complete set is on disk.
@@ -203,12 +222,6 @@ pub fn prime(root: &Path) {
     let english_path = site_cache_path(root, ENGLISH);
     let english = render_site_lang(&model, ENGLISH);
     write_cache(&english_path, &CachedSite::from_site(&english));
-}
-
-fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
-    let model = DocsModel::discover(root).expect("build docs model from live slices");
-    write_cache(cache_path, &CachedModel::from_model(&model));
-    model
 }
 
 /// The on-disk cache path for the model built from the inputs under `root`.
@@ -247,11 +260,63 @@ fn book_cache_path(root: &Path) -> PathBuf {
         .join(format!("{key}.book.json"))
 }
 
-/// The serialized cache envelope. The model serializes with its i18n fields
-/// `#[serde(skip)]`ped (empty in JSON), so the three derived-from-catalog fields
-/// are carried alongside it explicitly and reattached on load.
+/// The digest an envelope carries over its OWN payload, and the guard that refuses a
+/// payload which does not fold to it.
+///
+/// The cache KEY content-addresses the INPUTS: it proves the entry was built from these
+/// slices, these shapes, this renderer. It says nothing about the entry, so an envelope
+/// edited on disk — `.cache/` is gitignored and persists across every branch — is served
+/// verbatim as if the model builder had produced it. The `DocMaturity` quality axis reads
+/// its whole coverage computation out of this cache, so an edited model is an edited
+/// grade. The payload digest closes that: the key says WHICH INPUTS, the digest says WHAT
+/// WAS CACHED, and a warm read requires both.
+///
+/// It is a fold over the payload's re-serialization rather than the raw file bytes, so it
+/// is invariant to JSON formatting while sensitive to every value a reader consumes.
+fn payload_digest<T: Serialize>(label: &str, payload: &T) -> String {
+    let bytes = serde_json::to_vec(payload)
+        .unwrap_or_else(|e| panic!("serializing the {label} cache payload for its digest: {e}"));
+    let mut hasher = Sha1::new();
+    hasher.update(b"gmeow-docs-fixture-payload\x1f");
+    hasher.update(label.as_bytes());
+    hasher.update(b"\x1e");
+    hasher.update(&bytes);
+    hex(&hasher.finalize())
+}
+
+/// Hard-fail unless `payload` folds to the `declared` digest its envelope carries.
+///
+/// An edited cache entry is corruption of the same class as an undeserializable one, and
+/// is treated identically: panic naming the file, never a silent rebuild that would mask
+/// it and never a quiet acceptance of the edited values.
+fn verify_payload<T: Serialize>(cache_path: &Path, label: &str, declared: &str, payload: &T) {
+    let live = payload_digest(label, payload);
+    assert!(
+        live == declared,
+        "tampered docs-fixture {label} cache at {}: it declares payload digest {declared} but \
+         its content folds to {live}. The entry was edited after it was written — delete the \
+         file (or run `rm -rf .cache/docs-fixture`) to rebuild; an edited cache entry is never \
+         served",
+        cache_path.display(),
+    );
+}
+
+/// The serialized cache envelope: the payload plus a digest OVER that payload.
+///
+/// The model serializes with its i18n fields `#[serde(skip)]`ped (empty in JSON), so the
+/// three derived-from-catalog fields are carried alongside it explicitly and reattached on
+/// load. `digest` is `#[serde(skip)]`ped OUT of the digested body by construction — it
+/// lives on the envelope, the body is what gets folded — so the fold has nothing circular
+/// in it.
 #[derive(Serialize, Deserialize)]
 struct CachedModel {
+    digest: String,
+    body: CachedModelBody,
+}
+
+/// The digested half of [`CachedModel`] — everything a loader reconstructs the model from.
+#[derive(Serialize, Deserialize)]
+struct CachedModelBody {
     model: DocsModel,
     available_languages: Vec<String>,
     translations: Translations,
@@ -260,21 +325,27 @@ struct CachedModel {
 
 impl CachedModel {
     fn from_model(model: &DocsModel) -> Self {
-        Self {
+        let body = CachedModelBody {
             model: model.clone(),
             available_languages: model.available_languages.clone(),
             translations: model.translations.clone(),
             ui_catalog: model.ui_catalog.clone(),
+        };
+        Self {
+            digest: payload_digest("model", &body),
+            body,
         }
     }
 
-    fn into_model(self) -> DocsModel {
-        let CachedModel {
+    /// Reconstruct the model, first proving the envelope carries the payload it claims.
+    fn into_model(self, cache_path: &Path) -> DocsModel {
+        verify_payload(cache_path, "model", &self.digest, &self.body);
+        let CachedModelBody {
             mut model,
             available_languages,
             translations,
             ui_catalog,
-        } = self;
+        } = self.body;
         model.available_languages = available_languages;
         model.translations = translations;
         model.ui_catalog = ui_catalog;
@@ -289,25 +360,30 @@ impl CachedModel {
 /// regression and hard-fails loudly on cache write.
 #[derive(Serialize, Deserialize)]
 struct CachedSite {
+    digest: String,
     files: BTreeMap<String, String>,
 }
 
 impl CachedSite {
     fn from_site(site: &Site) -> Self {
+        let files: BTreeMap<String, String> = site
+            .files
+            .iter()
+            .map(|(path, bytes)| {
+                let text = std::str::from_utf8(bytes)
+                    .unwrap_or_else(|e| panic!("rendered site file {path} is not UTF-8: {e}"));
+                (path.clone(), text.to_string())
+            })
+            .collect();
         Self {
-            files: site
-                .files
-                .iter()
-                .map(|(path, bytes)| {
-                    let text = std::str::from_utf8(bytes)
-                        .unwrap_or_else(|e| panic!("rendered site file {path} is not UTF-8: {e}"));
-                    (path.clone(), text.to_string())
-                })
-                .collect(),
+            digest: payload_digest("site", &files),
+            files,
         }
     }
 
-    fn into_site(self) -> Site {
+    /// Reconstruct the site, first proving the envelope carries the files it claims.
+    fn into_site(self, cache_path: &Path) -> Site {
+        verify_payload(cache_path, "site", &self.digest, &self.files);
         Site {
             files: self
                 .files
@@ -317,6 +393,53 @@ impl CachedSite {
         }
     }
 }
+
+/// Every workspace crate whose Rust sources can execute inside the model build or
+/// a render — the TRANSITIVE `path = "../…"` dependency closure of `gmeow-docs`,
+/// `gmeow-docs` itself included.
+///
+/// A path dependency carries NO content hash in `Cargo.lock` (unlike a registry or
+/// git dependency, which is pinned by checksum/rev), so editing one changes what
+/// `discover()` computes while leaving every other hashed input byte-identical. A
+/// cache keyed on less than this closure therefore serves a stale model across such
+/// an edit — and `.cache/` is gitignored and persists, so the stale entry survives
+/// indefinitely. The closure — not a hand-picked subset — is the only set that is
+/// sound by construction: it needs no per-call-site argument about which imported
+/// symbol "really" affects the model, and `crate_dep_closure_is_fully_hashed`
+/// re-derives it from the workspace manifests so a NEW path dependency reds a test
+/// instead of silently opening the hole again.
+///
+/// Sorted; each entry's `src/` tree and `Cargo.toml` are folded into the key.
+const HASHED_CRATE_ROOTS: &[&str] = &[
+    "affect-ingest",
+    "cost-measure",
+    "docs",
+    "errors",
+    "gts-profile",
+    "lang-bridge",
+    "lang-form",
+    "license",
+    "logic",
+    "logic-compile",
+    "math",
+    "math-lift",
+    "ns",
+    "query-wasm",
+    "term-arena",
+    "validate",
+];
+
+/// The repo-root-relative directories a `gmeow:cqQueryFile` may resolve into.
+///
+/// This is BOTH the authoring contract `crates/slicetest/src/paths.rs::query_file`
+/// documents (a shared `queries/…` tree or a slice's own
+/// `slices/<group>/<name>/queries/…`) AND the soundness boundary of
+/// [`cache_key`]: every path under these roots is folded into the key, so a
+/// competency query's TEXT can never change behind the cache's back.
+/// `apply_competency_query_text` hard-fails on a `cqQueryFile` outside them —
+/// see [`crate::model::COMPETENCY_QUERY_ROOTS`], which this mirrors and the
+/// `competency_query_roots_are_hashed` test pins.
+const COMPETENCY_QUERY_ROOTS: &[&str] = crate::model::COMPETENCY_QUERY_ROOTS;
 
 /// Content-address the inputs `discover()` reads. The key folds (in order): a
 /// salt of the crate version + model schema version, then the sorted
@@ -335,24 +458,34 @@ fn cache_key(root: &Path) -> String {
     // Data roots discover() walks recursively. `queries` is the shared repo-root
     // SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
     // `apply_competency_query_text`) alongside the per-slice `.rq` files already
-    // covered by the `slices` walk. The implementation roots close the stale-cache
-    // hole left by the old crate-version-only salt: normal source edits do not bump
-    // Cargo's package version on every commit.
-    for dir in [
-        "slices",
-        "shapes",
-        "i18n",
-        "queries",
-        "crates/docs/src",
-        "crates/docs/templates",
-        "crates/docs/assets",
-        "crates/errors/src",
-        "crates/logic-compile/src",
-        "crates/validate/src",
-    ] {
+    // covered by the `slices` walk — and `COMPETENCY_QUERY_ROOTS` is the enforced
+    // boundary that keeps that resolution inside this hashed set.
+    for dir in COMPETENCY_QUERY_ROOTS
+        .iter()
+        .map(|r| r.trim_end_matches('/'))
+        .chain(["shapes", "i18n"])
+    {
         collect_files(&root.join(dir), &mut files);
     }
-    // Individual files discover() reads directly.
+    // gmeow-docs' own non-source render inputs (templates + assets).
+    for dir in ["crates/docs/templates", "crates/docs/assets"] {
+        collect_files(&root.join(dir), &mut files);
+    }
+    // The implementation roots close the stale-cache hole left by the old
+    // crate-version-only salt (normal source edits do not bump Cargo's package
+    // version on every commit) AND the path-dependency hole: a `path = "../…"`
+    // dependency carries no content hash in `Cargo.lock`, so nothing else in the
+    // key moves when one is edited. See `HASHED_CRATE_ROOTS`.
+    for krate in HASHED_CRATE_ROOTS {
+        collect_files(&root.join("crates").join(krate).join("src"), &mut files);
+        let manifest = root.join("crates").join(krate).join("Cargo.toml");
+        if manifest.is_file() {
+            files.push(manifest);
+        }
+    }
+    // Individual files discover() reads directly, plus `Cargo.lock` — which pins
+    // every REGISTRY and GIT dependency by checksum/rev (purrdf included), the
+    // half of the dependency graph `HASHED_CRATE_ROOTS` does not cover.
     for file in [
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
@@ -360,10 +493,6 @@ fn cache_key(root: &Path) -> String {
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
         "Cargo.lock",
-        "crates/docs/Cargo.toml",
-        "crates/errors/Cargo.toml",
-        "crates/logic-compile/Cargo.toml",
-        "crates/validate/Cargo.toml",
     ] {
         let p = root.join(file);
         if p.is_file() {
@@ -460,16 +589,17 @@ mod tests {
     use super::*;
 
     /// A fresh, empty temp root (cache_key over absent discovery roots = salt
-    /// only, so these stay cheap). The process id keeps it unique under nextest's
-    /// process-per-test model; the tag keeps tests within a process disjoint.
-    fn temp_root(tag: &str) -> PathBuf {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-docs-fixture-test-{}-{tag}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&root);
+    /// only, so these stay cheap). The root is owned by the returned
+    /// [`tempfile::TempDir`], which removes the whole tree when it drops — on
+    /// success, on panic, and on early return. Uniqueness comes from the guard,
+    /// so the tag is purely a readable name for the root inside it. Callers must
+    /// bind the guard (`let (_tmp, root) = temp_root("key");`); binding it to a
+    /// bare `_` drops it immediately and deletes the root out from under the test.
+    fn temp_root(tag: &str) -> (tempfile::TempDir, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let root = guard.path().join(tag);
         fs::create_dir_all(&root).expect("create temp root");
-        root
+        (guard, root)
     }
 
     #[test]
@@ -482,7 +612,91 @@ mod tests {
             "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
         );
         let site = Site { files };
-        assert_eq!(site, CachedSite::from_site(&site).into_site());
+        assert_eq!(
+            site,
+            CachedSite::from_site(&site).into_site(Path::new("<in-memory>"))
+        );
+    }
+
+    /// An envelope whose PAYLOAD was edited after it was written is refused, even though
+    /// it deserializes cleanly and its cache key is untouched.
+    ///
+    /// This is the whole point of the payload digest: the key content-addresses the
+    /// INPUTS, so editing the cached OUTPUT leaves it satisfied. `.cache/` is gitignored
+    /// and persists, so an entry edited once would keep being served — and the
+    /// `DocMaturity` quality axis reads its coverage computation straight out of it.
+    #[test]
+    #[should_panic(expected = "tampered docs-fixture site cache")]
+    fn an_edited_site_envelope_is_refused() {
+        let mut files = BTreeMap::new();
+        files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
+        let mut cached = CachedSite::from_site(&Site { files });
+        // The hand-edit: rewrite a cached page, leave the declared digest alone.
+        cached
+            .files
+            .insert("index.html".to_string(), "<h1>edited</h1>".to_string());
+        let _ = cached.into_site(Path::new("<in-memory>"));
+    }
+
+    /// **The write→read proof, across the real serde boundary.** An envelope written by
+    /// [`write_cache`] and read back by the loader that serves warm hits must VERIFY.
+    ///
+    /// The in-memory `from_site(..).into_site(..)` round trip above cannot see this
+    /// class: the digest is folded over a re-serialization of the payload, so a payload
+    /// field that does not survive JSON — one whose `skip_serializing_if` has no matching
+    /// `default`, or a map whose iteration order is not the wire order — folds to one
+    /// value before the write and another after the read, and the guard fires on every
+    /// warm hit even though nothing was edited. That is exactly the failure the SHACL
+    /// verdict's own self-digest shipped with (its digest was folded over the pre-render
+    /// report while the file carried the normalized one), so the docs fixture's analogous
+    /// guard is proven here rather than assumed. Both envelope kinds are driven through
+    /// the real writer and the real loader, in one process.
+    #[test]
+    fn an_envelope_written_to_disk_verifies_when_read_back() {
+        let (_tmp, root) = temp_root("disk-round-trip");
+
+        // Site: the loader writes on the miss, then serves — and verifies — the warm hit.
+        let path = root.join(".cache/docs-fixture/site.json");
+        let mut files = BTreeMap::new();
+        files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
+        files.insert(
+            "a/b.md".to_string(),
+            "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
+        );
+        let built = Site { files };
+        let cold = load_cached_site(&path, "site", || built.clone());
+        assert_eq!(cold, built, "the cold miss returns the built site");
+        assert!(path.is_file(), "the miss wrote the envelope");
+        let warm = load_cached_site(&path, "site", || {
+            panic!("the warm hit must be served from disk, not rebuilt")
+        });
+        assert_eq!(
+            warm, built,
+            "the warm hit verifies its payload digest and reconstructs the site"
+        );
+
+        // Model: written by the same writer, read by the same deserialize + verify path
+        // `try_load` takes on a warm hit.
+        let model_path = root.join(".cache/docs-fixture/model.json");
+        let model = DocsModel::default();
+        write_cache(&model_path, &CachedModel::from_model(&model));
+        let bytes = fs::read(&model_path).expect("read back the model envelope");
+        let cached: CachedModel = serde_json::from_slice(&bytes).expect("the envelope parses");
+        let recovered = cached.into_model(&model_path);
+        assert_eq!(
+            recovered.available_languages, model.available_languages,
+            "the reattached i18n fields survive the disk round trip"
+        );
+    }
+
+    /// The model envelope carries the same guard, over the whole reconstructed payload.
+    #[test]
+    #[should_panic(expected = "tampered docs-fixture model cache")]
+    fn an_edited_model_envelope_is_refused() {
+        let mut cached = CachedModel::from_model(&DocsModel::default());
+        // The hand-edit: claim a language the builder never found.
+        cached.body.available_languages.push("klingon".to_string());
+        let _ = cached.into_model(Path::new("<in-memory>"));
     }
 
     #[test]
@@ -495,7 +709,7 @@ mod tests {
 
     #[test]
     fn cache_key_is_deterministic_and_content_sensitive() {
-        let root = temp_root("key");
+        let (_tmp, root) = temp_root("key");
         fs::create_dir_all(root.join("slices")).unwrap();
         fs::write(root.join("slices/a.ttl"), b"v1").unwrap();
         let k1 = cache_key(&root);
@@ -521,9 +735,111 @@ mod tests {
         );
     }
 
+    /// Every crate in `HASHED_CRATE_ROOTS` genuinely moves the key. A path
+    /// dependency has no `Cargo.lock` checksum, so this is the ONLY thing standing
+    /// between an edit to one of them and a stale cached model.
+    #[test]
+    fn every_hashed_crate_root_moves_the_key() {
+        let (_tmp, root) = temp_root("crate-roots");
+        for krate in HASHED_CRATE_ROOTS {
+            let src = root.join("crates").join(krate).join("src");
+            fs::create_dir_all(&src).unwrap();
+            let before = cache_key(&root);
+            fs::write(src.join("lib.rs"), format!("// {krate} v1")).unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "editing crates/{krate}/src must invalidate the docs-fixture cache"
+            );
+            let before = cache_key(&root);
+            fs::write(
+                root.join("crates").join(krate).join("Cargo.toml"),
+                b"[package]\n",
+            )
+            .unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "editing crates/{krate}/Cargo.toml must invalidate the docs-fixture cache"
+            );
+        }
+    }
+
+    /// `HASHED_CRATE_ROOTS` IS the transitive `path = "../…"` dependency closure of
+    /// `gmeow-docs`, re-derived here from the live workspace manifests.
+    ///
+    /// This is the construction that keeps the cache sound as the crate graph moves:
+    /// adding a path dependency anywhere in the closure opens a fresh unhashed hole
+    /// (path deps carry no `Cargo.lock` checksum), and this test reds instead of the
+    /// hole opening silently. Removing one leaves a dead entry, which it also reds.
+    #[test]
+    fn crate_dep_closure_is_fully_hashed() {
+        /// The `path = "../<name>"` dependencies declared by one crate manifest.
+        fn path_deps(crates_dir: &Path, krate: &str) -> Vec<String> {
+            let manifest = crates_dir.join(krate).join("Cargo.toml");
+            let text = fs::read_to_string(&manifest)
+                .unwrap_or_else(|e| panic!("read {}: {e}", manifest.display()));
+            let mut out = Vec::new();
+            for (idx, _) in text.match_indices("path = \"../") {
+                let rest = &text[idx + "path = \"../".len()..];
+                let Some(end) = rest.find('"') else { continue };
+                let name = &rest[..end];
+                // Only sibling crates (`../<name>`), never a deeper relative path.
+                if !name.is_empty() && !name.contains('/') {
+                    out.push(name.to_string());
+                }
+            }
+            out
+        }
+
+        let crates_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("crates/docs has a parent")
+            .to_path_buf();
+
+        let mut closure: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        let mut queue = vec!["docs".to_string()];
+        while let Some(krate) = queue.pop() {
+            if !closure.insert(krate.clone()) {
+                continue;
+            }
+            queue.extend(path_deps(&crates_dir, &krate));
+        }
+
+        let hashed: std::collections::BTreeSet<String> = HASHED_CRATE_ROOTS
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect();
+        assert_eq!(
+            hashed, closure,
+            "HASHED_CRATE_ROOTS must be exactly gmeow-docs' transitive path-dependency \
+             closure — a path dependency carries no Cargo.lock checksum, so an unhashed \
+             one is a permanent stale-cache hole in .cache/docs-fixture"
+        );
+    }
+
+    /// The competency-query resolution boundary the model enforces is exactly a set
+    /// of directories this key walks in full — otherwise a `gmeow:cqQueryFile` could
+    /// name a file whose text changes without moving the key.
+    #[test]
+    fn competency_query_roots_are_hashed() {
+        for boundary in COMPETENCY_QUERY_ROOTS {
+            let dir = boundary.trim_end_matches('/');
+            let (_tmp, root) = temp_root(&format!("cq-{dir}"));
+            fs::create_dir_all(root.join(dir)).unwrap();
+            let before = cache_key(&root);
+            fs::write(root.join(dir).join("q.rq"), b"SELECT * {}").unwrap();
+            assert_ne!(
+                before,
+                cache_key(&root),
+                "a competency query under {boundary} must be folded into the cache key"
+            );
+        }
+    }
+
     #[test]
     fn model_and_site_cache_paths_share_the_key_with_distinct_suffix() {
-        let root = temp_root("paths");
+        let (_tmp, root) = temp_root("paths");
         let key = cache_key(&root);
         assert_eq!(
             cache_path(&root).file_name().unwrap().to_string_lossy(),
@@ -555,7 +871,7 @@ mod tests {
 
     #[test]
     fn per_language_site_paths_are_tagged_and_distinct() {
-        let root = temp_root("lang-paths");
+        let (_tmp, root) = temp_root("lang-paths");
         let key = cache_key(&root);
         // English keeps the bare suffix; translations are tagged by language.
         assert_eq!(
@@ -582,7 +898,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture cache")]
     fn present_but_corrupt_model_cache_panics() {
-        let root = temp_root("corrupt-model");
+        let (_tmp, root) = temp_root("corrupt-model");
         let cp = cache_path(&root);
         fs::create_dir_all(cp.parent().unwrap()).unwrap();
         fs::write(&cp, b"{ not valid json").unwrap();
@@ -592,7 +908,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture site cache")]
     fn present_but_corrupt_site_cache_panics() {
-        let root = temp_root("corrupt-site");
+        let (_tmp, root) = temp_root("corrupt-site");
         let sp = site_cache_path(&root, ENGLISH);
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
@@ -602,7 +918,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "corrupt docs-fixture book cache")]
     fn present_but_corrupt_book_cache_panics() {
-        let root = temp_root("corrupt-book");
+        let (_tmp, root) = temp_root("corrupt-book");
         let bp = book_cache_path(&root);
         fs::create_dir_all(bp.parent().unwrap()).unwrap();
         fs::write(&bp, b"{ not valid json").unwrap();

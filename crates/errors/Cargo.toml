@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-errors"
 description = "GMEOW errors and diagnostics substrate: first-class model and renderers (rlib)"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -20,7 +20,7 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 purrdf.workspace = true
-blake3 = "1"
+blake3.workspace = true
 
 [dev-dependencies]
 # insta: whole-output snapshot goldens for the five renderers. The

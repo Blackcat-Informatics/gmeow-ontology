@@ -689,7 +689,7 @@ impl ConstraintIr {
             "iri={}{SEP}{}{SEP}integrity={}{SEP}sev={}",
             key_field(&self.iri),
             self.target.content_key(),
-            key_field(&self.integrity.content_key()),
+            key_field(self.integrity.content_key().as_str()),
             self.severity.as_str(),
         );
         // Append-only: an aggregate-free constraint keeps the byte-identical historical key.

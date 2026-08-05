@@ -24,232 +24,188 @@ gmeow:mapsetDeception a gmeow:MappingSet ;
         CRMinf: I6_Belief_Value aligns to gmeow:StandpointModality (including the bullshit modality); I1_Argumentation is referenced for the solver-layer argument-acceptability function.
         PROV-O: deception events are prov:Activity; standpoint claims are prov:Entity.
         Wikidata: wd:Q170028 (deception) aligns to gmeow:eventTypeDeception.
-        AIF (Argument Interchange Format) is referenced in the solver layer (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF lacks a stable, resolvable RDF namespace suitable for SSSOM rows.""" .
+        AIF (Argument Interchange Format) is referenced in the solver layer (fnArgumentAcceptability) but not aligned via an alignment cell because AIF lacks a stable, resolvable RDF namespace suitable for SSSOM rows.""" .
 
 # schema.org — ClaimReview as attestation act (lossy projection).
-gmeow:eqDeception001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:ClaimReview ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:Attestation ;
+schema:ClaimReview skos:relatedMatch gmeow:Attestation {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "schema:ClaimReview is a fact-checking act; in GMEOW it is an Attestation with attestationTypeFactCheck. The single-verdict model of ClaimReview is a lossy projection — GMEOW keeps every standpoint's assessment as a coexisting claim." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "schema:ClaimReview is a fact-checking act; in GMEOW it is an Attestation with attestationTypeFactCheck. The single-verdict model of ClaimReview is a lossy projection — GMEOW keeps every standpoint's assessment as a coexisting claim."
+|} .
 
-gmeow:eqDeception002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Rating ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:VerificationResult ;
+schema:Rating skos:closeMatch gmeow:VerificationResult {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:Rating (the outcome of a ClaimReview) projects to gmeow:VerificationResult — a lossy downcast dropping the standpoint axis and confidence." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "schema:Rating (the outcome of a ClaimReview) projects to gmeow:VerificationResult — a lossy downcast dropping the standpoint axis and confidence."
+|} .
 
 # PROV-O — deception events as activities, claims as entities.
-gmeow:eqDeception003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Event ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:Event skos:relatedMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ;
-    gmeow:comment "a deception event is a provenance activity; the specific deception semantics are GMEOW-specific and not entailed by PROV-O" ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:confidence 0.5 ;
+    gmeow:comment "a deception event is a provenance activity; the specific deception semantics are GMEOW-specific and not entailed by PROV-O"
+|} .
 
-gmeow:eqDeception004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:StandpointClaim skos:relatedMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "a standpoint claim (held or projected) is a provenance entity attributed to its standpoint agent" ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "a standpoint claim (held or projected) is a provenance entity attributed to its standpoint agent"
+|} .
 
 # CRMinf — belief value and argumentation.
-gmeow:eqDeception005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointModality ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I6_Belief_Value ;
+gmeow:StandpointModality skos:closeMatch crminf:I6_Belief_Value {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GMEOW's StandpointModality (unequivocal/probable/conceivable/refuted/bullshit) spans and extends CRMinf's I6 Belief Value" ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "GMEOW's StandpointModality (unequivocal/probable/conceivable/refuted/bullshit) spans and extends CRMinf's I6 Belief Value"
+|} .
 
-gmeow:eqDeception006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:deceptiveIntentClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crminf:I1_Argumentation ;
+gmeow:deceptiveIntentClaim skos:relatedMatch crminf:I1_Argumentation {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "an attribution of deceptive intent is an argumentation act in the CRMinf sense; acceptability is computed externally (Principle 12)" ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "an attribution of deceptive intent is an argumentation act in the CRMinf sense; acceptability is computed externally (Principle 12)"
+|} .
 
 # Wikidata — deception concept.
-gmeow:eqDeception007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDeception ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q170028 ;
+gmeow:eventTypeDeception skos:closeMatch wd:Q170028 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'deception' (Q170028) — the act of propagating beliefs that are not true" ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'deception' (Q170028) — the act of propagating beliefs that are not true"
+|} .
 
 # ---------------------------------------------------------------------------
 # the design — Speech-act deception event types (Wikidata QIDs re-curled 2026-06-09).
 # ---------------------------------------------------------------------------
 
-gmeow:eqDeception008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeLie ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q4925193 ;
+gmeow:eventTypeLie skos:closeMatch wd:Q4925193 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'lie' (Q4925193) — a false statement made with deliberate intent to deceive. GMEOW models this as eventTypeLie with held standpoint refuted and projected standpoint unequivocal." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'lie' (Q4925193) — a false statement made with deliberate intent to deceive. GMEOW models this as eventTypeLie with held standpoint refuted and projected standpoint unequivocal."
+|} .
 
 # eventTypePaltering: no direct Wikidata item found (searched 2026-06-09).
 # The concept was introduced in Rogers et al., JPSP 112(3), 2017, but no
-# Wikidata entity currently represents it. No TermEquivalence row is asserted
+# Wikidata entity currently represents it. No alignment cell is asserted
 # until a suitable item is identified.
 
 # eventTypeOmission: no direct Wikidata item found (searched 2026-06-09).
 # It is a form of deception by suppressing truth rather than asserting falsehood.
 # Conceptually skos:broader wd:Q4925193 (lie) but the relationship is weak;
-# no TermEquivalence row is asserted until a suitable item is identified.
+# no alignment cell is asserted until a suitable item is identified.
 
-gmeow:eqDeception010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDistortion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q12776523 ;
+gmeow:eventTypeDistortion skos:closeMatch wd:Q12776523 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'spin' (Q12776523) — a form of propaganda, achieved through providing an interpretation of an event or campaign to persuade public opinion. GMEOW generalises this to eventTypeDistortion covering all sharpening/re-framing deceptions." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'spin' (Q12776523) — a form of propaganda, achieved through providing an interpretation of an event or campaign to persuade public opinion. GMEOW generalises this to eventTypeDistortion covering all sharpening/re-framing deceptions."
+|} .
 
-gmeow:eqDeception011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeBullshit ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q2063516 ;
+gmeow:eventTypeBullshit skos:relatedMatch wd:Q2063516 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'bullshit' (Q2063516) — the general vulgar term, not specifically Frankfurt's philosophical concept. Related rather than close match because the item is the broad term, not the indifference-to-truth modality." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'bullshit' (Q2063516) — the general vulgar term, not specifically Frankfurt's philosophical concept. Related rather than close match because the item is the broad term, not the indifference-to-truth modality."
+|} .
 
-gmeow:eqDeception012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeBullshit ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q1760159 ;
+gmeow:eventTypeBullshit skos:relatedMatch wd:Q1760159 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Frankfurt's essay 'On Bullshit' (Q1760159) — the philosophical source of the bullshit modality. Related rather than close match because the item is a literary work, not the concept itself." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Frankfurt's essay 'On Bullshit' (Q1760159) — the philosophical source of the bullshit modality. Related rather than close match because the item is a literary work, not the concept itself."
+|} .
 
-gmeow:eqDeception013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeSelfDeception ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1602343 ;
+gmeow:eventTypeSelfDeception skos:closeMatch wd:Q1602343 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'self-deception' (Q1602343) — the process of denying or rationalising away the relevance, significance, or importance of opposing evidence and logical argument." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'self-deception' (Q1602343) — the process of denying or rationalising away the relevance, significance, or importance of opposing evidence and logical argument."
+|} .
 
 # ---------------------------------------------------------------------------
 # the design — Carrier deception event types (Wikidata QIDs re-curled 2026-06-10).
 # ---------------------------------------------------------------------------
 
-gmeow:eqDeception014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeFabrication ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q18387855 ;
+gmeow:eventTypeFabrication skos:closeMatch wd:Q18387855 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'tampering with evidence' (Q18387855) — the act of altering or fabricating evidence to mislead. GMEOW models this as eventTypeFabrication: a false CreativeWork whose attested provenance is refuted." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'tampering with evidence' (Q18387855) — the act of altering or fabricating evidence to mislead. GMEOW models this as eventTypeFabrication: a false CreativeWork whose attested provenance is refuted."
+|} .
 
-gmeow:eqDeception015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeFabrication ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1332286 ;
+gmeow:eventTypeFabrication skos:closeMatch wd:Q1332286 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'forgery' (Q1332286) — the generic concept shared with eventTypeForgery. Close match for fabrication at lower confidence because fabrication invents without mimicking a specific genuine work." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'forgery' (Q1332286) — the generic concept shared with eventTypeForgery. Close match for fabrication at lower confidence because fabrication invents without mimicking a specific genuine work."
+|} .
 
-gmeow:eqDeception016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeForgery ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1332286 ;
+gmeow:eventTypeForgery skos:closeMatch wd:Q1332286 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'forgery' (Q1332286) — the act of fabricating or imitating a document, signature, currency, or work of art with intent to deceive. GMEOW models this as eventTypeForgery: a fabrication with a counterpartOf link to the genuine work and a failed cryptographic signature verification." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'forgery' (Q1332286) — the act of fabricating or imitating a document, signature, currency, or work of art with intent to deceive. GMEOW models this as eventTypeForgery: a fabrication with a counterpartOf link to the genuine work and a failed cryptographic signature verification."
+|} .
 
-gmeow:eqDeception017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeForgery ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q693988 ;
+gmeow:eventTypeForgery skos:closeMatch wd:Q693988 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'document forgery' (Q693988) — a specific form of forgery involving official or personal documents. GMEOW models this as eventTypeForgery with the same structural machinery." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'document forgery' (Q693988) — a specific form of forgery involving official or personal documents. GMEOW models this as eventTypeForgery with the same structural machinery."
+|} .
 
-gmeow:eqDeception018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeImpersonation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2146099 ;
+gmeow:eventTypeImpersonation skos:closeMatch wd:Q2146099 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'impersonation' (Q2146099) — the act of pretending to be another person. GMEOW models this as eventTypeImpersonation: a projected identity claim whose facetSubject differs from the deceiver. Phishing and spoofing are instances, never taxonomy primitives." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'impersonation' (Q2146099) — the act of pretending to be another person. GMEOW models this as eventTypeImpersonation: a projected identity claim whose facetSubject differs from the deceiver. Phishing and spoofing are instances, never taxonomy primitives."
+|} .
 
 # ---------------------------------------------------------------------------
 # the design — Disinformation campaign + misinformation (Wikidata QIDs re-curled 2026-06-10).
 # ---------------------------------------------------------------------------
 
-gmeow:eqDeception019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDisinformation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q189656 ;
+gmeow:eventTypeDisinformation skos:closeMatch wd:Q189656 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'disinformation' (Q189656) — false information spread deliberately to deceive. GMEOW models this as eventTypeDisinformation: a coordinated propagated deception where the originating node carries held≠projected divergence + deceptive intent, and unwitting reshares become misinformation at their local node." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'disinformation' (Q189656) — false information spread deliberately to deceive. GMEOW models this as eventTypeDisinformation: a coordinated propagated deception where the originating node carries held≠projected divergence + deceptive intent, and unwitting reshares become misinformation at their local node."
+|} .
 
-gmeow:eqDeception020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:veridicalityUntrue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q13579947 ;
+gmeow:veridicalityUntrue skos:closeMatch wd:Q13579947 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'misinformation' (Q13579947) — false or inaccurate information regardless of intent. GMEOW models misinformation structurally: a claim tagged veridicalityUntrue with no held≠projected divergence and no deceptiveIntentClaim at the local node. The boundary is per-node, not global." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'misinformation' (Q13579947) — false or inaccurate information regardless of intent. GMEOW models misinformation structurally: a claim tagged veridicalityUntrue with no held≠projected divergence and no deceptiveIntentClaim at the local node. The boundary is per-node, not global."
+|} .
 
-gmeow:eqDeception021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDisinformation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q7281 ;
+gmeow:eventTypeDisinformation skos:relatedMatch wd:Q7281 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'propaganda' (Q7281) — information, especially of a biased or misleading nature, used to promote a political cause or point of view. Related rather than close match because propaganda may be true or false; disinformation is specifically false and deceptive." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'propaganda' (Q7281) — information, especially of a biased or misleading nature, used to promote a political cause or point of view. Related rather than close match because propaganda may be true or false; disinformation is specifically false and deceptive."
+|} .
 
-gmeow:eqDeception022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDisinformation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q878352 ;
+gmeow:eventTypeDisinformation skos:relatedMatch wd:Q878352 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'rumor' (Q878352) — a circulating story of uncertain origin. Related rather than close match because a rumor may be true, false, or unverified; disinformation is deliberately false." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'rumor' (Q878352) — a circulating story of uncertain origin. Related rather than close match because a rumor may be true, false, or unverified; disinformation is deliberately false."
+|} .
 
-gmeow:eqDeception023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDisinformation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q28549308 ;
+gmeow:eventTypeDisinformation skos:relatedMatch wd:Q28549308 {|
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'fake news' (Q28549308) — a type of yellow journalism or propaganda that consists of deliberate disinformation or hoaxes spread via traditional print and broadcast news media or online social media. Related match because fake news is a media-format instance of disinformation, not the general concept." ;
-    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+    gmeow:comment "Wikidata 'fake news' (Q28549308) — a type of yellow journalism or propaganda that consists of deliberate disinformation or hoaxes spread via traditional print and broadcast news media or online social media. Related match because fake news is a media-format instance of disinformation, not the general concept."
+|} .
 
 # AIF (Argument Interchange Format) is referenced in the solver layer
-# (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF
+# (fnArgumentAcceptability) but not aligned via an alignment cell because AIF
 # lacks a stable, resolvable RDF namespace suitable for SSSOM rows.

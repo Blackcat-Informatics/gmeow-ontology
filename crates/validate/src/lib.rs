@@ -57,6 +57,8 @@ pub mod store;
 // Tier-2 reasoner path all pull native-only crates (gmeow-logic, rayon, ureq,
 // gmeow-slice) and cannot cross-compile to wasm.
 #[cfg(not(target_arch = "wasm32"))]
+pub mod abductive;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod advisory;
 // The ontology-surface authoring gates (shape-IRI ownership, profile/catalog
 // closure, term-declaration + language-tag discipline, graft isolation, slice
@@ -118,6 +120,12 @@ pub mod shape_oracle;
 pub mod signature;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod slice_ownership;
+// The peerage-aware projection of `slice_ownership`'s undeclared-dependency
+// diagnostics: joins an undeclared semantic edge to the grounding-peerage
+// relation + seam registry so a registered `lang:`/`math:`/`logic:` crossing is
+// suppressed instead of HARD-FAILing, while an unregistered one still gates.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod slice_peerage;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod statement;
 #[cfg(not(target_arch = "wasm32"))]

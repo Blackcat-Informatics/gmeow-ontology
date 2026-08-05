@@ -25,15 +25,15 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
 }
 
 #[test]
-fn scores_the_rubric_slice_across_all_fifteen_axes() {
+fn scores_the_rubric_slice_across_all_sixteen_axes() {
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
     let report = score(&root, &dir).expect("the rubric slice scores");
 
     assert_eq!(
         report.assessment.grades.len(),
-        15,
-        "all fifteen axes graded"
+        16,
+        "all sixteen axes graded"
     );
     assert!(
         !report.rollup_label().is_empty(),
@@ -137,8 +137,8 @@ fn scores_the_logic_slice_green_vs_advisory() {
     let report = score(&root, &dir).expect("the logic slice scores");
     assert_eq!(
         report.assessment.grades.len(),
-        15,
-        "all fifteen axes graded on logic"
+        16,
+        "all sixteen axes graded on logic"
     );
     assert!(report.to_report().ok(), "advisory only");
 }

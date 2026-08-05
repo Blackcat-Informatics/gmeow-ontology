@@ -27,503 +27,308 @@ gmeow:mapsetMusic a gmeow:MappingSet ;
 # Wikidata — pitch / tuning terms (pitch frames)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu001 a gmeow:TermEquivalence ;
-    rdfs:label "TuningSystem ↔ Wikidata Q723441"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW TuningSystem class to Wikidata 'musical tuning' (Q723441). The Wikidata sense is broader than the GMEOW reference-frame view."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:TuningSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q723441 ;
+gmeow:TuningSystem skos:closeMatch wd:Q723441 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view."
+|} .
 
-gmeow:eqMu002 a gmeow:TermEquivalence ;
-    rdfs:label "12-EDO ↔ Wikidata Q752518"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW 12-tone equal temperament individual to Wikidata '12 equal temperament' (Q752518)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:tuningSystem12EDO ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q752518 ;
+gmeow:tuningSystem12EDO skos:exactMatch wd:Q752518 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.98 ;
-    gmeow:comment "Wikidata '12 equal temperament' (Q752518)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata '12 equal temperament' (Q752518)."
+|} .
 
-gmeow:eqMu003 a gmeow:TermEquivalence ;
-    rdfs:label "Pythagorean tuning ↔ Wikidata Q1045756"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW Pythagorean tuning individual to Wikidata 'Pythagorean tuning' (Q1045756)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:tuningSystemPythagorean ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1045756 ;
+gmeow:tuningSystemPythagorean skos:exactMatch wd:Q1045756 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'Pythagorean tuning' (Q1045756)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'Pythagorean tuning' (Q1045756)."
+|} .
 
-gmeow:eqMu004 a gmeow:TermEquivalence ;
-    rdfs:label "Bohlen–Pierce ↔ Wikidata Q11901664"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW Bohlen–Pierce tuning individual to Wikidata 'Bohlen–Pierce scale' (Q11901664)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:tuningSystemBohlenPierce ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q11901664 ;
+gmeow:tuningSystemBohlenPierce skos:exactMatch wd:Q11901664 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'Bohlen–Pierce scale' (Q11901664)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'Bohlen–Pierce scale' (Q11901664)."
+|} .
 
-gmeow:eqMu005 a gmeow:TermEquivalence ;
-    rdfs:label "slendro ↔ Wikidata Q431434"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW slendro tuning individual to Wikidata 'slendro' (Q431434)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:tuningSystemSlendro ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q431434 ;
+gmeow:tuningSystemSlendro skos:exactMatch wd:Q431434 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'slendro' (Q431434)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'slendro' (Q431434)."
+|} .
 
-gmeow:eqMu006 a gmeow:TermEquivalence ;
-    rdfs:label "pelog ↔ Wikidata Q1094781"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW pelog tuning individual to Wikidata 'pelog' (Q1094781)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:tuningSystemPelog ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1094781 ;
+gmeow:tuningSystemPelog skos:exactMatch wd:Q1094781 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'pelog' (Q1094781)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'pelog' (Q1094781)."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — pitch collections & spelling (pitch collections and spelling)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu007 a gmeow:TermEquivalence ;
-    rdfs:label "PitchCollection ↔ Wikidata Q179651"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW PitchCollection class to Wikidata 'scale' (Q179651)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:PitchCollection ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q179651 ;
+gmeow:PitchCollection skos:closeMatch wd:Q179651 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'scale' (Q179651) — broader than the GMEOW collection view." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'scale' (Q179651) — broader than the GMEOW collection view."
+|} .
 
-gmeow:eqMu008 a gmeow:TermEquivalence ;
-    rdfs:label "mode kind ↔ Wikidata Q731978"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW mode PitchCollectionKind value to Wikidata 'mode (music)' (Q731978)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:pitchCollectionKindMode ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q731978 ;
+gmeow:pitchCollectionKindMode skos:exactMatch wd:Q731978 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'mode (music)' (Q731978)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'mode (music)' (Q731978)."
+|} .
 
-gmeow:eqMu009 a gmeow:TermEquivalence ;
-    rdfs:label "PitchValue ↔ Wikidata Q1760309"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW PitchValue class to Wikidata 'pitch class' (Q1760309)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:PitchValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1760309 ;
+gmeow:PitchValue skos:closeMatch wd:Q1760309 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence."
+|} .
 
-gmeow:eqMu010 a gmeow:TermEquivalence ;
-    rdfs:label "maqam kind ↔ Wikidata Q12826678 (close match)"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW maqam PitchCollectionKind value to Wikidata 'Arabic maqam' (Q12826678); the Wikidata concept is Arabic-only, while the GMEOW value also covers Turkish maqam practice."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:pitchCollectionKindMaqam ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q12826678 ;
+gmeow:pitchCollectionKindMaqam skos:closeMatch wd:Q12826678 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions."
+|} .
 
-gmeow:eqMu011 a gmeow:TermEquivalence ;
-    rdfs:label "raga kind ↔ Wikidata Q216926"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW raga PitchCollectionKind value to Wikidata 'raga' (Q216926)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:pitchCollectionKindRaga ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q216926 ;
+gmeow:pitchCollectionKindRaga skos:exactMatch wd:Q216926 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'raga' (Q216926)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'raga' (Q216926)."
+|} .
 
-gmeow:eqMu012 a gmeow:TermEquivalence ;
-    rdfs:label "PitchSpellingSystem ↔ Wikidata Q233861"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW PitchSpellingSystem class to Wikidata 'musical notation' (Q233861)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:PitchSpellingSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q233861 ;
+gmeow:PitchSpellingSystem skos:closeMatch wd:Q233861 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — musical time / meter / tuplet (musical time)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu013 a gmeow:TermEquivalence ;
-    rdfs:label "MetricStructure ↔ Wikidata Q155234"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW MetricStructure class to Wikidata 'time signature' (Q155234)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:MetricStructure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q155234 ;
+gmeow:MetricStructure skos:closeMatch wd:Q155234 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure."
+|} .
 
-gmeow:eqMu014 a gmeow:TermEquivalence ;
-    rdfs:label "TempoMap ↔ Wikidata Q189214"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW TempoMap class to Wikidata 'tempo' (Q189214)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:TempoMap ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q189214 ;
+gmeow:TempoMap skos:closeMatch wd:Q189214 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping."
+|} .
 
-gmeow:eqMu015 a gmeow:TermEquivalence ;
-    rdfs:label "polymeter pattern ↔ Wikidata Q2102956"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW polymeter pattern (concurrent MeterAssignments within a MusicalTimeFrame) to Wikidata 'polymeter' (Q2102956)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:polymeterPattern ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2102956 ;
+gmeow:polymeterPattern skos:closeMatch wd:Q2102956 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'polymeter' (Q2102956) — in GMEOW polymeter is modelled as the concurrent MeterAssignment pattern, not as a class." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'polymeter' (Q2102956) — in GMEOW polymeter is modelled as the concurrent MeterAssignment pattern, not as a class."
+|} .
 
-gmeow:eqMu016 a gmeow:TermEquivalence ;
-    rdfs:label "timeMappingKindTuplet ↔ Wikidata Q2092296"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW tuplet TimeMappingKind value to Wikidata 'tuplet' (Q2092296)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:timeMappingKindTuplet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2092296 ;
+gmeow:timeMappingKindTuplet skos:closeMatch wd:Q2092296 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'tuplet' (Q2092296) — a tuplet is one kind of rational TimeMapping." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'tuplet' (Q2092296) — a tuplet is one kind of rational TimeMapping."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — form, process & indeterminacy (performance constraints)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu017 a gmeow:TermEquivalence ;
-    rdfs:label "DegreeOfFreedom ↔ Wikidata Q623715"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW DegreeOfFreedom relator to Wikidata 'aleatoric music' (Q623715); the GMEOW construct is the structural declaration of the indeterminacy that aleatoric music denotes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:DegreeOfFreedom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q623715 ;
+gmeow:DegreeOfFreedom skos:closeMatch wd:Q623715 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally."
+|} .
 
-gmeow:eqMu018 a gmeow:TermEquivalence ;
-    rdfs:label "determinationDelegatedPerformer ↔ Wikidata Q1049625"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW determinationDelegatedPerformer status to Wikidata 'musical improvisation' (Q1049625); improvisation is modeled as performer-delegated parameter determination."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:determinationDelegatedPerformer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1049625 ;
+gmeow:determinationDelegatedPerformer skos:closeMatch wd:Q1049625 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — performance events & participation (performance events and participation)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu019 a gmeow:TermEquivalence ;
-    rdfs:label "performanceOf ↔ Wikidata P2550"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW performanceOf property to Wikidata 'recording or performance of' (P2550)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:performanceOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:P2550 ;
+gmeow:performanceOf skos:closeMatch wd:P2550 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage."
+|} .
 
-gmeow:eqMu020 a gmeow:TermEquivalence ;
-    rdfs:label "eventTypeConcert ↔ Wikidata Q182832"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW concert event-type value to Wikidata 'concert' (Q182832)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:eventTypeConcert ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q182832 ;
+gmeow:eventTypeConcert skos:closeMatch wd:Q182832 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'concert' (Q182832)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'concert' (Q182832)."
+|} .
 
-gmeow:eqMu021 a gmeow:TermEquivalence ;
-    rdfs:label "roleEnsembleMember ↔ Wikidata Q2088357"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW ensemble-member participant-role value to Wikidata 'musical ensemble' (Q2088357); the role is the participation relation, the QID is the entity type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:roleEnsembleMember ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q2088357 ;
+gmeow:roleEnsembleMember skos:relatedMatch wd:Q2088357 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Wikidata 'musical ensemble' (Q2088357) — the entity an ensemble member participates in." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical ensemble' (Q2088357) — the entity an ensemble member participates in."
+|} .
 
 # --------------------------------------------------------------------------- #
 # External vocabularies — performance events & participation (performance events and participation)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu022 a gmeow:TermEquivalence ;
-    rdfs:label "PerformanceParticipation ↔ prov:Association"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW PerformanceParticipation relator to PROV-O Association; GMEOW adds music-specific attributes (instrument, technique) and reifies the role."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:PerformanceParticipation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Association ;
+gmeow:PerformanceParticipation skos:closeMatch prov:Association {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "PROV-O Association is the generic qualified participation idiom." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "PROV-O Association is the generic qualified participation idiom."
+|} .
 
-gmeow:eqMu023 a gmeow:TermEquivalence ;
-    rdfs:label "performanceOf ↔ Music Ontology mo:performance_of"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW performanceOf property to the Music Ontology performance relation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:performanceOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mo:performance_of ;
+gmeow:performanceOf skos:closeMatch mo:performance_of {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Music Ontology mo:performance_of relates a performance event to the musical work performed." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Music Ontology mo:performance_of relates a performance event to the musical work performed."
+|} .
 
-gmeow:eqMu024 a gmeow:TermEquivalence ;
-    rdfs:label "rolePerformer ↔ schema:performer"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW performer participant-role value to schema.org performer property; the role value is projected to the flat predicate by the events projection."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:rolePerformer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:performer ;
+gmeow:rolePerformer skos:closeMatch schema:performer {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org performer — already bridged from the events slice; repeated here for the music alignment set." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "schema.org performer — already bridged from the events slice; repeated here for the music alignment set."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — instruments & configurations (instruments and configurations)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu025 a gmeow:TermEquivalence ;
-    rdfs:label "InstrumentType ↔ Wikidata Q34379"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW InstrumentType value vocabulary to Wikidata 'musical instrument' (Q34379)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:InstrumentType ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q34379 ;
+gmeow:InstrumentType skos:closeMatch wd:Q34379 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object."
+|} .
 
-gmeow:eqMu026 a gmeow:TermEquivalence ;
-    rdfs:label "hsNumber ↔ Wikidata P1762"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW hsNumber property to Wikidata 'Hornbostel-Sachs classification' (P1762)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:hsNumber ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:P1762 ;
+gmeow:hsNumber skos:closeMatch wd:P1762 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'Hornbostel-Sachs classification' (P1762) — the property that carries Hornbostel-Sachs classification identifiers, matching the values stored in gmeow:hsNumber literals." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'Hornbostel-Sachs classification' (P1762) — the property that carries Hornbostel-Sachs classification identifiers, matching the values stored in gmeow:hsNumber literals."
+|} .
 
-gmeow:eqMu027 a gmeow:TermEquivalence ;
-    rdfs:label "InstrumentType ↔ Wikidata Q26836418"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW InstrumentType value vocabulary to Wikidata 'MIMO's classification of musical instruments' (Q26836418)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:InstrumentType ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q26836418 ;
+gmeow:InstrumentType skos:closeMatch wd:Q26836418 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals."
+|} .
 
-gmeow:eqMu028 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypePiano ↔ MIMO 2299"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW piano instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypePiano ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mimo:2299 ;
+gmeow:instrumentTypePiano skos:exactMatch mimo:2299 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "MIMO 'Piano' (2299)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Piano' (2299)."
+|} .
 
-gmeow:eqMu029 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeElectricGuitar ↔ MIMO 3236"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW electric guitar instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeElectricGuitar ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mimo:3236 ;
+gmeow:instrumentTypeElectricGuitar skos:exactMatch mimo:3236 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "MIMO 'Electric guitar' (3236)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Electric guitar' (3236)."
+|} .
 
-gmeow:eqMu030 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeDrumKit ↔ MIMO 2493"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW drum kit instrument type to the MIMO 'Drums' vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeDrumKit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mimo:2493 ;
+gmeow:instrumentTypeDrumKit skos:closeMatch mimo:2493 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "MIMO 'Drums' (2493) — broader than the drum kit sense." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Drums' (2493) — broader than the drum kit sense."
+|} .
 
-gmeow:eqMu031 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeSitar ↔ MIMO 3456"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW sitar instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeSitar ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mimo:3456 ;
+gmeow:instrumentTypeSitar skos:exactMatch mimo:3456 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "MIMO 'Sitar' (3456)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Sitar' (3456)."
+|} .
 
-gmeow:eqMu032 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeTabla ↔ MIMO 2899"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW tabla instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeTabla ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mimo:2899 ;
+gmeow:instrumentTypeTabla skos:exactMatch mimo:2899 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "MIMO 'Tabla' (2899)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Tabla' (2899)."
+|} .
 
-gmeow:eqMu033 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeModularSynth ↔ MIMO 2321"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW modular synthesizer instrument type to the MIMO 'Synthesizer' vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeModularSynth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mimo:2321 ;
+gmeow:instrumentTypeModularSynth skos:closeMatch mimo:2321 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "MIMO 'Synthesizer' (2321) — broader than modular synthesizer." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Synthesizer' (2321) — broader than modular synthesizer."
+|} .
 
-gmeow:eqMu034 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeGamelan ↔ MIMO 2805"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW gamelan instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeGamelan ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mimo:2805 ;
+gmeow:instrumentTypeGamelan skos:exactMatch mimo:2805 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "MIMO 'Gamelan' (2805)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MIMO 'Gamelan' (2805)."
+|} .
 
-gmeow:eqMu035 a gmeow:TermEquivalence ;
-    rdfs:label "playingTechniquePreparedPiano ↔ Wikidata Q754186"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW prepared piano playing technique to Wikidata 'prepared piano' (Q754186)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:playingTechniquePreparedPiano ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q754186 ;
+gmeow:playingTechniquePreparedPiano skos:closeMatch wd:Q754186 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'prepared piano' (Q754186) — a playing technique and an instrument configuration." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'prepared piano' (Q754186) — a playing technique and an instrument configuration."
+|} .
 
-gmeow:eqMu036 a gmeow:TermEquivalence ;
-    rdfs:label "instrumentTypeGamelan ↔ Wikidata Q194492"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW gamelan instrument type to Wikidata 'gamelan' (Q194492), the music/ensemble sense closest to the instrument-type usage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:instrumentTypeGamelan ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q194492 ;
+gmeow:instrumentTypeGamelan skos:closeMatch wd:Q194492 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'gamelan' (Q194492) — the music/ensemble sense; closest available for the instrument-type seed." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'gamelan' (Q194492) — the music/ensemble sense; closest available for the instrument-type seed."
+|} .
 
 
 # --------------------------------------------------------------------------- #
 # Genre doctrine alignments
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu037 a gmeow:TermEquivalence ;
-    rdfs:label "Genre ↔ MusicBrainz genre namespace"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW Genre class to the MusicBrainz genre resource namespace."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:Genre ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mbz:genre ;
+gmeow:Genre skos:relatedMatch mbz:genre {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "MusicBrainz genre pages use /genre/{mbid}." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MusicBrainz genre pages use /genre/{mbid}."
+|} .
 
-gmeow:eqMu038 a gmeow:TermEquivalence ;
-    rdfs:label "Genre ↔ Discogs style namespace"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW Genre class to the Discogs style resource namespace."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:Genre ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject discogs:style ;
+gmeow:Genre skos:relatedMatch discogs:style {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Discogs style pages use /style/{name}." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Discogs style pages use /style/{name}."
+|} .
 
 # --------------------------------------------------------------------------- #
 # AFO 1.1 — timbre descriptor
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMu039 a gmeow:TermEquivalence ;
-    rdfs:label "TimbreDescriptor ↔ AFO AudioFeature"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW TimbreDescriptor value vocabulary to AFO AudioFeature."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:TimbreDescriptor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afo:AudioFeature ;
+gmeow:TimbreDescriptor skos:closeMatch afo:AudioFeature {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A categorical timbre descriptor is a coarse, human-interpretable audio feature in the AFO sense." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "A categorical timbre descriptor is a coarse, human-interpretable audio feature in the AFO sense."
+|} .

@@ -71,8 +71,7 @@ gmeow:SensoryPerception
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:coordinateMatrixFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "coordinate matrix frame"@x-gmeow-english ;
@@ -91,8 +90,7 @@ gmeow:environmentAtInstant
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:environmentAtLocation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SensoryEnvironment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "environment at location"@x-gmeow-english ;
@@ -128,8 +126,7 @@ gmeow:hasPerceivedCondition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:matrixShape
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrix shape"@x-gmeow-english ;
@@ -138,8 +135,7 @@ gmeow:matrixShape
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:matrixValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrix value"@x-gmeow-english ;
@@ -148,8 +144,7 @@ gmeow:matrixValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:perceptionEnvironment
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perception environment"@x-gmeow-english ;
@@ -159,8 +154,7 @@ gmeow:perceptionEnvironment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:perceptionModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SensoryPerception ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perception modality"@x-gmeow-english ;
@@ -372,3 +366,105 @@ gmeow:sensoryModalityVisual
     skos:definition "The GMEOW Sensory Environment Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:coordinateMatrixFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "coordinateMatrixFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coordinateMatrixFrame is functional: a coordinate matrix is expressed in exactly one reference frame, frame transformation being a solver concern rather than a second asserted frame on the same matrix."@x-gmeow-english ;
+    logic:characterizes gmeow:coordinateMatrixFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:coordinateMatrixFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:coordinateMatrixFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:coordinateMatrixFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:coordinateMatrixFrame and nothing else. It is not a definition of gmeow:coordinateMatrixFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:coordinateMatrixFrameFunctionality logic:characterizes gmeow:coordinateMatrixFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:environmentAtLocationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "environmentAtLocation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:environmentAtLocation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:environmentAtLocation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:environmentAtLocation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:environmentAtLocation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:environmentAtLocation and nothing else. It is not a definition of gmeow:environmentAtLocation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:environmentAtLocationFunctionality logic:characterizes gmeow:environmentAtLocation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:matrixShapeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "matrixShape is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:matrixShape ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:matrixShape ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:matrixShape names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:matrixShape, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:matrixShape and nothing else. It is not a definition of gmeow:matrixShape (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:matrixShapeFunctionality logic:characterizes gmeow:matrixShape ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:matrixValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "matrixValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:matrixValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:matrixValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:matrixValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:matrixValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:matrixValue and nothing else. It is not a definition of gmeow:matrixValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:matrixValueFunctionality logic:characterizes gmeow:matrixValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:perceptionEnvironmentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "perceptionEnvironment is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:perceptionEnvironment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:perceptionEnvironment ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:perceptionEnvironment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:perceptionEnvironment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:perceptionEnvironment and nothing else. It is not a definition of gmeow:perceptionEnvironment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:perceptionEnvironmentFunctionality logic:characterizes gmeow:perceptionEnvironment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:perceptionModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+    rdfs:label "perceptionModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:perceptionModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:perceptionModality ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:perceptionModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:perceptionModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:perceptionModality and nothing else. It is not a definition of gmeow:perceptionModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:perceptionModalityFunctionality logic:characterizes gmeow:perceptionModality ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

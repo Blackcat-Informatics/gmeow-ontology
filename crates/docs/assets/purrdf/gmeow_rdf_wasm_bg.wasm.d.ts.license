@@ -1,6 +1,0 @@
-SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
-SPDX-License-Identifier: AGPL-3.0-only
-
-Generated verbatim by `make maint-refresh-purrdf-asset` (wasm-bindgen --target web
-over the gmeow-rdf-wasm / purrdf crate). Do not hand-edit; refresh with the maint
-target after changing crates/rdf-wasm. See PROVENANCE.md.

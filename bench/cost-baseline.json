@@ -17,7 +17,7 @@
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 20403
       },
       "world": "https://example.org/bench/world"
@@ -38,7 +38,7 @@
         "consumed_steps": 4,
         "cost_vector": [],
         "derived_count": 4,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 23789
       },
       "world": "https://example.org/bench/world"
@@ -59,7 +59,7 @@
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 20178
       },
       "world": "https://example.org/bench/world"
@@ -100,7 +100,7 @@
           ]
         ],
         "derived_count": 91,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "inner_iterations": 14,
         "joined_rows": 1211,
         "peak_live_bytes": 139517,
@@ -130,7 +130,7 @@
             ]
           ],
           "derived_count": 91,
-          "engine": "gmeow-logic/0.1.0+native",
+          "engine": "gmeow-logic/0.2.0+native",
           "peak_live_bytes": 233288,
           "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0"
         },
@@ -170,7 +170,7 @@
         "consumed_steps": 1,
         "cost_vector": [],
         "derived_count": 7,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "grounding": {
           "active_ground_rules": 13,
           "edb_changes": 1,
@@ -201,7 +201,7 @@
           "consumed_steps": 13,
           "cost_vector": [],
           "derived_count": 7,
-          "engine": "gmeow-logic/0.1.0+native",
+          "engine": "gmeow-logic/0.2.0+native",
           "ground_rule_probe_rows": 195,
           "peak_live_bytes": 234381,
           "rows_fingerprint": "096896570ef546e0c63c9b158c00af7c70cffdb804b7a558d7397408eb5482b1"
@@ -250,7 +250,7 @@
           ]
         ],
         "derived_count": 10,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 37625,
         "plan_cache": {
           "cold": {
@@ -373,7 +373,7 @@
           ]
         ],
         "derived_count": 6,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 28483,
         "plan_cache": {
           "cold": {
@@ -484,7 +484,7 @@
           ]
         ],
         "derived_count": 4,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 23537,
         "plan_cache": {
           "cold": {
@@ -595,7 +595,7 @@
           ]
         ],
         "derived_count": 2,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 16304,
         "plan_cache": {
           "cold": {
@@ -697,7 +697,7 @@
         "answers_fingerprint": "c7bad3bcb027e585f09fc29670de58a2afa5ce9e85a5d694107bfcefcb98531b",
         "consumed_steps": 2,
         "cost_vector": [],
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 19964
       },
       "reference": {
@@ -736,7 +736,7 @@
           ]
         ],
         "derived_count": 8,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 39514,
         "plan_cache": {
           "cold": {
@@ -853,7 +853,7 @@
           ]
         ],
         "derived_count": 8,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 30484,
         "plan_cache": {
           "cold": {
@@ -976,7 +976,7 @@
           ]
         ],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 17376,
         "plan_cache": {
           "cold": {
@@ -1087,7 +1087,7 @@
           ]
         ],
         "derived_count": 78,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 207187,
         "plan_cache": {
           "cold": {
@@ -1192,7 +1192,7 @@
           ]
         ],
         "derived_count": 64,
-        "engine": "gmeow-logic/0.1.0+native",
+        "engine": "gmeow-logic/0.2.0+native",
         "peak_live_bytes": 620600,
         "plan_cache": {
           "cold": {
@@ -1265,7 +1265,7 @@
   ],
   "engine_pins": {
     "backward_reference": "captured-sld-goldens/v1",
-    "native": "gmeow-logic/0.1.0+native"
+    "native": "gmeow-logic/0.2.0+native"
   },
   "ledgers": {
     "chasebench-mini": {

@@ -1,19 +1,38 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the sources slice (crates/slicetest),
-# migrated from test_competency_import_provenance_query. TBox subset
-# over the asserted merged ontology (contains-check). No Gap-1 universal.
+# Competency cells for the sources slice.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sources/tests/> .
 
+# Empty over the TBox-only merged graph: no logic:Enactment instances exist, so
+# the ingestion query returns no rows. Pinning count 0 verifies the query parses
+# and runs and that the asserted graph carries no spurious enactments.
+ex:cqIngestionEnactments a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/ingestion-executions.rq" ;
+    gmeow:cqRationale "Over the asserted TBox there are no ingestion-plan enactments, so the query that finds enactments producing Observations but no Events returns the empty set."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqIngestionEnactmentsShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqIngestionEnactmentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "enactment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .
+
+# The import-envelope cell, pinned as an EXACT roster of the three carrier
+# properties. The ingestion cell above replaced it once and left these three
+# terms exercised by nothing, which silently dropped their competency, test-reach
+# and prose-quality coverage; the two cells ask different questions and both are
+# needed. A count-only pin would not do here — the point is WHICH properties
+# carry the envelope, not how many.
 ex:cqImportProvenance a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/import-provenance.rq" ;
-    gmeow:cqRationale "GMEOW must model import provenance: when a source was modified (sourceModifiedAt), its content digest, and where it came from (sourceLocation)." ;
+    gmeow:cqRationale "An imported record is only re-checkable if the envelope survives the import: gmeow:sourceModifiedAt fixes the carrier time the copy was taken at, gmeow:contentDigest fixes what was taken, and gmeow:sourceLocation fixes where from. Drop any one and a later reader can no longer tell a stale copy from a current one, an altered copy from an intact one, or a copy from an original."@x-gmeow-english ;
     gmeow:cqResultShape ex:cqImportProvenanceShape ;
-    gmeow:cqExpectRow ex:ipSourceModifiedAt, ex:ipContentDigest, ex:ipSourceLocation .
+    gmeow:cqExpectRow ex:ipSourceModifiedAt , ex:ipContentDigest , ex:ipSourceLocation .
 
 ex:cqImportProvenanceShape a logic:ResultShape ;
     logic:declaresColumn
@@ -22,7 +41,9 @@ ex:cqImportProvenanceShape a logic:ResultShape ;
 
 ex:ipSourceModifiedAt a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceModifiedAt ] .
+
 ex:ipContentDigest a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:contentDigest ] .
+
 ex:ipSourceLocation a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceLocation ] .

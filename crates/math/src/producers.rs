@@ -1,23 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The eight native producers of the `math:` grounding slice: five flagship-acceptance
-//! producers, the probability layer's live `logic:probabilityModel` seam producer, and the
-//! signature `lang:` → `logic:` → `math:` p-value tri-slice producer, plus the exact
-//! `Cl(12)` → `Cl(13)` positive-extension producer.
+//! The ten native producers of the `math:` grounding slice: five bound to the
+//! flagship-acceptance manifest ([`e8_weyl_order`], [`additive_he_demo`], [`proof_ingest`],
+//! [`r_lift`], [`exact_pca_residual`]), plus the probability layer's live
+//! `logic:probabilityModel` seam producer, the signature `lang:` → `logic:` → `math:`
+//! p-value tri-slice producer, the exact `Cl(12)` → `Cl(13)` positive-extension producer,
+//! and the two remaining EXECUTABLE ingestion lifts ([`onnx_lift`], [`proof_lift`]).
 //!
 //! Each flagship scenario in `slices/grounding/math/examples/flagship-acceptance.ttl`
 //! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module IS
 //! those five entrypoints — deterministic, exact-arithmetic Rust functions that each
 //!
 //! 1. compute a **falsifiable pinned value** (the E8 Weyl order, the homomorphic-sum
-//!    equality, the grounded verification verdict, the lifted-observation count, and the
+//!    equality, the grounded verification verdict, the R lift's codomain size, and the
 //!    exact PCA dominant axis / LDLᵀ pivots), and
 //! 2. emit a **deterministic RDF graph fragment** (Turtle) in the exact `math:` / `gmeow:`
 //!    / `logic:` vocabulary the slice's SHACL shapes expect, so the emitted graph validates
 //!    clean against the math shapes (no `math:` failure) once merged with the ontology.
 //!
-//! [`probability_model_seam`] is a SIXTH producer, folded into the bundle the SAME way
+//! The `rBridge` flagship's producer is [`r_lift`] — the EXECUTABLE R front-end run over a
+//! real committed script, not a hand-written imitation of one. There is no second, in-code
+//! R-bridge producer: an emitter that parsed nothing was strictly subsumed by the one that
+//! runs the shipped parser, so it was removed rather than kept alongside it.
+//!
+//! [`probability_model_seam`] is folded into the bundle the SAME way
 //! (Design A) but NOT bound to a `gmeow:FlagshipScenario` — the flagship manifest's "five,
 //! not adjectives" depth-bar contract stays exactly five. It exists so the probability
 //! layer's `logic:probabilityModel` reasoning seam has a LIVE A-box crossing triple inside
@@ -28,25 +35,41 @@
 //! native producers are the one established path for demonstrator A-box content to ride
 //! inside `gmeow.gts` as queryable RDF).
 //!
-//! [`pvalue_tri_slice`] is a SEVENTH producer, folded the SAME way and likewise NOT
+//! [`pvalue_tri_slice`] is folded the SAME way and likewise NOT
 //! flagship-bound. It carries the charter's signature tri-slice round-trip — the sentence
 //! "the p-value was 0.03" grounded as a `lang:SurfaceForm` → a `logic:Formula` → a
 //! well-framed `math:PValue` with a framed `math:pValue` measure — as ONE genuinely grounded
 //! chain (a `lang:denotesLogicFormula` denotation whose target is the formula, and the
 //! formula predicating over the specific p-value) inside `gmeow.gts` itself.
 //!
-//! [`clifford_twelve_thirteen`] is the EIGHTH producer, likewise non-flagship. It calculates
+//! [`clifford_twelve_thirteen`] is likewise non-flagship. It calculates
 //! both `Cl(12,0)` → `Cl(13,0)` and `Cl(6,6)` → `Cl(7,6)` with the exact sparse Clifford
 //! kernel, including generator laws, pseudoscalar squares, algebra dimensions, and the
 //! `8192 = 4096 + 4096` last-generator split. It exposes no E8 action or equivalence: such a
 //! claim requires a supplied faithful representation/equivariant map, not dimensional
 //! coincidence.
 //!
+//! [`r_lift`], [`onnx_lift`], and [`proof_lift`] are the three EXECUTABLE lifts ([`r_lift`]
+//! flagship-bound, the other two not). They differ from every producer above in one decisive
+//! way: their graphs are not written here at all. Each calls the SAME
+//! `gmeow_math_lift::{r,onnx,proof}::lift` entrypoint the shipped `gmeow` CLI calls, over a
+//! REAL committed artifact (`mtcars.R`, `mlp.onnx`, `theorem-subclass.tstp`) embedded at
+//! COMPILE TIME with `include_str!` / `include_bytes!`. So what ships in `gmeow.gts` is the
+//! output of the actual R recursive-descent parser, the actual ONNX protobuf wire decoder,
+//! and the actual TSTP annotated-formula reader — not a hand-typed imitation of what they
+//! would produce. The embedding is what keeps the producers pure: the bytes are in the
+//! binary, so there is no disk read, no argument, and no machine dependence; the same lift
+//! functions serve the CLI (bytes read from a user's path) and the bundle (bytes compiled
+//! in). A lift failure is a HARD FAIL (a panic), never a degraded or omitted graph.
+//!
 //! The graphs are built from constant templates and formatted exact integers/rationals —
 //! there is no `HashMap` iteration, no clock, and no randomness — so two calls to the same
 //! producer return byte-identical Turtle. All arithmetic that pins a value is exact
 //! (`i128` / [`Rational`]); the only engine that touches this module is the shared
-//! [`crate::InnerProductSpace`], never `f64`.
+//! [`crate::InnerProductSpace`], never `f64`. The three lift producers inherit the same
+//! property from the other end: every IRI they mint is a pure function of the embedded
+//! source bytes (a content digest, no counter), and their Turtle is serialized by the
+//! canonicalizing purrdf codec, so a re-lift of the same bytes is byte-identical too.
 
 use std::fmt::Write as _;
 
@@ -266,102 +289,6 @@ pub fn proof_ingest() -> ProofIngest {
         verification_result,
         grounding_observation,
         grounded: true,
-        turtle: t,
-    }
-}
-
-// ===========================================================================
-// Flagship 4 — the universal R → math: bridge.
-// ===========================================================================
-
-/// The number of observations in the canonical in-code R ingest corpus. Each lifts into
-/// exactly one `math:Residual`, so the emitted `math:IngestRun`'s lifted-observation count is
-/// this value.
-pub const R_BRIDGE_OBSERVATIONS: usize = 5;
-
-/// The pinned result of [`r_bridge_lift`].
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RBridgeLift {
-    /// The IRI of the emitted `math:RIngestRun`.
-    pub ingest_run: String,
-    /// The exact number of lifted observations (one `math:Residual` per observation).
-    pub lifted_observations: usize,
-    /// The graph: a grounded ingest run producing a fitted model and one residual per
-    /// observation, each `gmeow:wasGeneratedBy` the run.
-    pub turtle: String,
-}
-
-/// Lift a canonical, fixed in-code R-style statistical ingest corpus (`N =
-/// [`R_BRIDGE_OBSERVATIONS`]` observations of an `lm(mpg ~ wt + hp)` fit) into a
-/// `math:RIngestRun` graph. The run retains its source witness (`math:parseSource`), carries
-/// the process-layer witness (`logic:instantiatesSchema` / `logic:instantiatesPlan`) and its
-/// law-spine (`math:ingestCorrespondence` → a `logic:Correspondence`) — satisfying
-/// `math:IngestRunShape` — and produces a structured `math:` codomain (a `math:FittedModel`
-/// over a `math:ModelFormula` and one `math:Residual` per observation, each
-/// `gmeow:wasGeneratedBy` the run), so the native `math:UnliftableIngest` lint sees a
-/// non-empty lift. Nothing is dropped silently.
-pub fn r_bridge_lift() -> RBridgeLift {
-    let ingest_run = format!("{PRODUCER_NS}rRun");
-
-    let mut t = header();
-    t.push_str("# Flagship 4 — lifting an R lm(mpg ~ wt + hp) fit into the math: codomain.\n");
-    t.push_str("p:rRun a math:RIngestRun ;\n");
-    t.push_str("    math:parseSource p:rSrcWitness ;\n");
-    t.push_str("    logic:instantiatesSchema p:rBridgeSchema ;\n");
-    t.push_str("    logic:instantiatesPlan p:rBridgePlan ;\n");
-    t.push_str("    math:ingestCorrespondence p:rCorr .\n\n");
-    t.push_str("# The retained, load-bearing source witness (the R call, by reference).\n");
-    t.push_str("p:rSrcWitness a math:MathematicalObject ;\n");
-    t.push_str("    logic:loadBearing true .\n");
-    // The schema/plan witnesses are bare in-band references: math:IngestRunShape requires
-    // the logic:instantiatesSchema / logic:instantiatesPlan edges (min 1, no class), and
-    // typing these as full logic:ActionSchema / logic:Plan would drag in their own
-    // capability/precondition/goal obligations the ingest witness does not carry.
-    t.push_str("p:rBridgeSchema a math:MathematicalObject .\n");
-    t.push_str("p:rBridgePlan a math:MathematicalObject .\n\n");
-    t.push_str("# The lift's law-spine: a lossy lens with a retained (mnemomorphic) witness.\n");
-    t.push_str("p:rCorr a logic:Correspondence ;\n");
-    t.push_str("    logic:preservationKind logic:ValidationOnly ;\n");
-    t.push_str("    logic:correspondenceRelation logic:RelatedMatch ;\n");
-    t.push_str("    logic:morphismClass logic:LossyLens ;\n");
-    t.push_str("    logic:hasDeterminacy logic:Vague ;\n");
-    t.push_str("    logic:mnemomorphic true .\n\n");
-    t.push_str("# The model formula: the ~ is a binder over indexed argument slots.\n");
-    t.push_str("p:mpgFormula a math:ModelFormula ;\n");
-    t.push_str("    math:argumentSlot p:respSlot , p:wtSlot , p:hpSlot .\n");
-    t.push_str(
-        "p:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression p:mpgVar .\n",
-    );
-    t.push_str(
-        "p:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression p:wtVar .\n",
-    );
-    t.push_str(
-        "p:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression p:hpVar .\n",
-    );
-    t.push_str("p:mpgVar a math:VariableExpression .\n");
-    t.push_str("p:wtVar  a math:VariableExpression .\n");
-    t.push_str("p:hpVar  a math:VariableExpression .\n\n");
-    t.push_str("# The lifted codomain: the data (by reference) and the fitted model.\n");
-    t.push_str("p:mtcarsMatrix a math:DatasetMatrix ;\n");
-    t.push_str("    gmeow:wasGeneratedBy p:rRun .\n");
-    t.push_str("p:mtcarsFit a math:FittedModel ;\n");
-    t.push_str("    math:modelFormula p:mpgFormula ;\n");
-    t.push_str("    math:fittedToData p:mtcarsMatrix ;\n");
-    t.push_str("    gmeow:wasGeneratedBy p:rRun .\n\n");
-    let _ = writeln!(
-        t,
-        "# One math:Residual per lifted observation (N = {R_BRIDGE_OBSERVATIONS})."
-    );
-    for i in 0..R_BRIDGE_OBSERVATIONS {
-        let _ = writeln!(
-            t,
-            "p:obs{i}Residual a math:Residual ;\n    math:residualOf p:mtcarsFit ;\n    gmeow:wasGeneratedBy p:rRun ."
-        );
-    }
-
-    RBridgeLift {
-        ingest_run,
-        lifted_observations: R_BRIDGE_OBSERVATIONS,
         turtle: t,
     }
 }
@@ -1043,6 +970,162 @@ pub fn clifford_twelve_thirteen() -> CliffordTwelveThirteen {
     }
 }
 
+// ===========================================================================
+// Ninth, tenth, and eleventh producers — the EXECUTABLE R / ONNX / proof lifts.
+// ===========================================================================
+
+/// The R script [`r_lift`] lifts: `crates/math-lift/fixtures/mtcars.R`, the same committed
+/// artifact the R front-end's own tests read, embedded at COMPILE TIME so the producer
+/// performs no disk read.
+const R_LIFT_SOURCE: &str = include_str!("../../math-lift/fixtures/mtcars.R");
+
+/// The ONNX model [`onnx_lift`] lifts: `crates/math-lift/fixtures/mlp.onnx`, a real
+/// protobuf `ModelProto`, embedded at COMPILE TIME. `include_bytes!` (not `include_str!`)
+/// because an ONNX graph is binary and is decoded off the wire format, never off text.
+const ONNX_LIFT_SOURCE: &[u8] = include_bytes!("../../math-lift/fixtures/mlp.onnx");
+
+/// The TSTP derivation [`proof_lift`] lifts:
+/// `crates/math-lift/fixtures/theorem-subclass.tstp`, embedded at COMPILE TIME.
+const PROOF_LIFT_SOURCE: &str = include_str!("../../math-lift/fixtures/theorem-subclass.tstp");
+
+/// The codomain sizes the three executable lifts produce.
+///
+/// ONE source for a number that four surfaces assert: the two producer test binaries, the
+/// three dogfood fixture headers, and the drift gate. It was hard-coded in each, and a
+/// parser change updated some and not others TWICE — the gate that reds is not always the
+/// one you re-blessed, so the miss surfaced an hour later in a different crate.
+///
+/// The fixture headers stay independently written (they are prose a reader sees) and
+/// `lift_fixture_drift` proves them equal to the live producer, so the two mechanisms
+/// cross-check rather than duplicate.
+pub mod codomain {
+    /// [`super::r_lift`]'s codomain node count.
+    pub const R_LIFT: usize = 141;
+    /// [`super::onnx_lift`]'s codomain node count.
+    pub const ONNX_LIFT: usize = 55;
+    /// [`super::proof_lift`]'s codomain node count.
+    pub const PROOF_LIFT: usize = 33;
+}
+
+/// The pinned result of [`r_lift`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RLift {
+    /// The IRI of the emitted `math:RIngestRun` — content-addressed on the embedded source
+    /// bytes, so it names exactly this artifact.
+    pub ingest_run: String,
+    /// How many structured `math:` codomain nodes the run generated. Non-zero by
+    /// construction: [`gmeow_math_lift::Lifted::seal`] refuses an empty codomain rather
+    /// than serializing a run the native `math:UnliftableIngest` lint would reject.
+    pub codomain_nodes: usize,
+    /// The lift's canonical Turtle, exactly as the R front-end emitted it.
+    pub turtle: String,
+}
+
+/// Run the REAL R front-end (`gmeow_math_lift::r::lift` — the same entrypoint the shipped
+/// `gmeow` CLI calls) over the embedded `mtcars.R` fixture and ship its `math:RIngestRun`
+/// graph in the bundle.
+///
+/// This producer writes no RDF at all: the graph is whatever the recursive-descent R parser
+/// and its lift tier actually derive from a real script. That is the point — the bundle
+/// carries evidence about the executable bridge, not about a template. It is the `rBridge`
+/// flagship's producer: the acceptance manifest's `gmeow:demonstratedByExample` names the
+/// committed `tests/fixtures/lifted-r.ttl` this emits byte for byte.
+///
+/// # Panics
+///
+/// Panics (a loud hard fail) if the embedded fixture does not lift. The bytes are compiled
+/// in, so a failure is a defect in this workspace — a parser regression or a fixture edit —
+/// never an environment condition, and never grounds for shipping a degraded or absent
+/// graph.
+#[must_use]
+pub fn r_lift() -> RLift {
+    let lifted = gmeow_math_lift::r::lift(R_LIFT_SOURCE.as_bytes(), PRODUCER_NS)
+        .expect("the embedded mtcars.R fixture must lift through the R front-end");
+    RLift {
+        ingest_run: lifted.run_iri,
+        codomain_nodes: lifted.codomain_nodes,
+        turtle: lifted.turtle,
+    }
+}
+
+/// The pinned result of [`onnx_lift`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OnnxLift {
+    /// The IRI of the emitted `math:ONNXIngestRun`, content-addressed on the embedded
+    /// model bytes.
+    pub ingest_run: String,
+    /// How many structured `math:` codomain nodes the run generated (non-zero by
+    /// construction — an empty codomain never seals).
+    pub codomain_nodes: usize,
+    /// The lift's canonical Turtle, exactly as the ONNX front-end emitted it.
+    pub turtle: String,
+}
+
+/// Run the REAL ONNX front-end (`gmeow_math_lift::onnx::lift`) over the embedded
+/// `mlp.onnx` model and ship its `math:ONNXIngestRun` graph in the bundle.
+///
+/// The model is decoded by the hand-written protobuf wire reader — operator types, tensor
+/// shapes, and the declared opset are read off the actual bytes — so the emitted
+/// `math:TensorComputationGraph` is a report on a real artifact. Weight PAYLOADS are held
+/// by reference and never inlined (the blob-by-reference doctrine), which is exactly why
+/// the ONNX rung is a lossy lens over a CRISP source.
+///
+/// # Panics
+///
+/// Panics (a loud hard fail) if the embedded model does not decode or does not lift; see
+/// [`r_lift`] for why that is a workspace defect rather than a fallback condition.
+#[must_use]
+pub fn onnx_lift() -> OnnxLift {
+    let lifted = gmeow_math_lift::onnx::lift(ONNX_LIFT_SOURCE, PRODUCER_NS)
+        .expect("the embedded mlp.onnx fixture must lift through the ONNX front-end");
+    OnnxLift {
+        ingest_run: lifted.run_iri,
+        codomain_nodes: lifted.codomain_nodes,
+        turtle: lifted.turtle,
+    }
+}
+
+/// The pinned result of [`proof_lift`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProofLift {
+    /// The IRI of the emitted `math:ProofIngestRun`, content-addressed on the embedded
+    /// derivation bytes.
+    pub ingest_run: String,
+    /// How many structured `math:` codomain nodes the run generated (non-zero by
+    /// construction — an empty codomain never seals).
+    pub codomain_nodes: usize,
+    /// The lift's canonical Turtle, exactly as the proof front-end emitted it.
+    pub turtle: String,
+}
+
+/// Run the REAL proof front-end (`gmeow_math_lift::proof::lift`) over the embedded
+/// `theorem-subclass.tstp` derivation and ship its `math:ProofIngestRun` graph in the
+/// bundle.
+///
+/// This is the one bridge whose law-spine rung is a SECTION/RETRACTION: the lift carries
+/// every step name, inference rule, parent edge, and rendered conclusion, so the derivation
+/// genuinely reconstructs from the lift plus its witness. It is therefore also the sharpest
+/// of the three as bundle evidence — the strongest preservation claim `math:` makes about
+/// an ingest is here backed by a graph a parser actually produced.
+///
+/// Distinct from [`proof_ingest`], which emits a hand-written
+/// `math:FormalVerificationResult` scene for flagship 3 and parses nothing.
+///
+/// # Panics
+///
+/// Panics (a loud hard fail) if the embedded derivation does not parse or does not lift;
+/// see [`r_lift`] for why that is a workspace defect rather than a fallback condition.
+#[must_use]
+pub fn proof_lift() -> ProofLift {
+    let lifted = gmeow_math_lift::proof::lift(PROOF_LIFT_SOURCE.as_bytes(), PRODUCER_NS)
+        .expect("the embedded theorem-subclass.tstp fixture must lift through the proof front-end");
+    ProofLift {
+        ingest_run: lifted.run_iri,
+        codomain_nodes: lifted.codomain_nodes,
+        turtle: lifted.turtle,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1191,56 +1274,6 @@ mod tests {
     #[test]
     fn proof_ingest_is_deterministic() {
         assert_eq!(proof_ingest().turtle, proof_ingest().turtle);
-    }
-
-    // ---- Flagship 4 -------------------------------------------------------
-
-    #[test]
-    fn r_bridge_lift_pins_the_observation_count() {
-        let l = r_bridge_lift();
-        assert_eq!(l.lifted_observations, 5);
-        assert_eq!(l.ingest_run, prod("rRun"));
-    }
-
-    #[test]
-    fn r_bridge_lift_graph_is_a_grounded_nonempty_lift() {
-        let l = r_bridge_lift();
-        let idx = index_turtle(l.turtle.as_bytes()).expect("parse R bridge graph");
-        assert!(has_type(&idx, &prod("rRun"), &math_iri("RIngestRun")));
-        // IngestRunShape obligations.
-        assert!(first_iri(&idx, &prod("rRun"), &math_iri("parseSource")).is_some());
-        assert!(
-            first_iri(
-                &idx,
-                &prod("rRun"),
-                "https://blackcatinformatics.ca/logic/instantiatesSchema"
-            )
-            .is_some()
-        );
-        assert!(
-            first_iri(
-                &idx,
-                &prod("rRun"),
-                "https://blackcatinformatics.ca/logic/instantiatesPlan"
-            )
-            .is_some()
-        );
-        assert!(first_iri(&idx, &prod("rRun"), &math_iri("ingestCorrespondence")).is_some());
-        // Exactly N residuals, each generated by the run (the non-empty lift the native
-        // math:UnliftableIngest lint requires).
-        for i in 0..5 {
-            let residual = prod(&format!("obs{i}Residual"));
-            assert!(has_type(&idx, &residual, &math_iri("Residual")));
-            assert_eq!(
-                first_iri(&idx, &residual, &gmeow_iri("wasGeneratedBy")).as_deref(),
-                Some(prod("rRun").as_str())
-            );
-        }
-    }
-
-    #[test]
-    fn r_bridge_lift_is_deterministic() {
-        assert_eq!(r_bridge_lift().turtle, r_bridge_lift().turtle);
     }
 
     // ---- Flagship 5 -------------------------------------------------------
@@ -1551,5 +1584,96 @@ mod tests {
             clifford_twelve_thirteen().turtle,
             clifford_twelve_thirteen().turtle
         );
+    }
+
+    // ---- Ninth/tenth/eleventh producers — the executable lifts ------------
+
+    /// A lift producer's run node must be minted under [`PRODUCER_NS`], carry the bridge's
+    /// own `math:*IngestRun` class, and generate a non-empty structured codomain (the
+    /// condition the native `math:UnliftableIngest` lint checks).
+    fn assert_lift_producer(run_iri: &str, turtle: &str, codomain_nodes: usize, run_class: &str) {
+        assert!(
+            run_iri.starts_with(PRODUCER_NS),
+            "the lift run <{run_iri}> must be minted under {PRODUCER_NS}"
+        );
+        assert!(
+            codomain_nodes > 0,
+            "a lift producer must generate a non-empty math: codomain"
+        );
+        let idx = index_turtle(turtle.as_bytes()).expect("parse the lift graph");
+        assert!(
+            has_type(&idx, run_iri, &math_iri(run_class)),
+            "<{run_iri}> must be a math:{run_class}"
+        );
+        // The four ingest-frame obligations math:IngestRunShape requires.
+        assert!(first_iri(&idx, run_iri, &math_iri("parseSource")).is_some());
+        assert!(first_iri(&idx, run_iri, &logic_iri("instantiatesSchema")).is_some());
+        assert!(first_iri(&idx, run_iri, &logic_iri("instantiatesPlan")).is_some());
+        assert!(first_iri(&idx, run_iri, &math_iri("ingestCorrespondence")).is_some());
+    }
+
+    #[test]
+    fn r_lift_runs_the_real_r_front_end_over_the_embedded_fixture() {
+        let l = r_lift();
+        assert_lift_producer(&l.ingest_run, &l.turtle, l.codomain_nodes, "RIngestRun");
+        // The embedded artifact IS the lifter's committed fixture — the producer parses a
+        // real script, it does not template one.
+        assert!(R_LIFT_SOURCE.contains("lm("));
+    }
+
+    #[test]
+    fn r_lift_is_deterministic() {
+        assert_eq!(r_lift().turtle, r_lift().turtle);
+        assert_eq!(r_lift().ingest_run, r_lift().ingest_run);
+    }
+
+    #[test]
+    fn onnx_lift_runs_the_real_onnx_front_end_over_the_embedded_fixture() {
+        let l = onnx_lift();
+        assert_lift_producer(&l.ingest_run, &l.turtle, l.codomain_nodes, "ONNXIngestRun");
+        // A real protobuf ModelProto, not text: the wire decoder is what read it. The
+        // field-1 varint tag (`\x08`, ir_version) opens every ModelProto.
+        assert_eq!(ONNX_LIFT_SOURCE.first(), Some(&0x08));
+    }
+
+    #[test]
+    fn onnx_lift_is_deterministic() {
+        assert_eq!(onnx_lift().turtle, onnx_lift().turtle);
+        assert_eq!(onnx_lift().ingest_run, onnx_lift().ingest_run);
+    }
+
+    #[test]
+    fn proof_lift_runs_the_real_proof_front_end_over_the_embedded_fixture() {
+        let l = proof_lift();
+        assert_lift_producer(&l.ingest_run, &l.turtle, l.codomain_nodes, "ProofIngestRun");
+        // The proof bridge is the one section/retraction rung: the law spine says so on the
+        // Correspondence, and nowhere else (math: never shadows the law).
+        let idx = index_turtle(l.turtle.as_bytes()).expect("parse the proof lift graph");
+        let corr = first_iri(&idx, &l.ingest_run, &math_iri("ingestCorrespondence"))
+            .expect("the run names its law-spine Correspondence");
+        assert_eq!(
+            first_iri(&idx, &corr, &logic_iri("morphismClass")).as_deref(),
+            Some(logic_iri("SectionRetraction").as_str())
+        );
+        assert!(PROOF_LIFT_SOURCE.contains("cnf(") || PROOF_LIFT_SOURCE.contains("fof("));
+    }
+
+    #[test]
+    fn proof_lift_is_deterministic() {
+        assert_eq!(proof_lift().turtle, proof_lift().turtle);
+        assert_eq!(proof_lift().ingest_run, proof_lift().ingest_run);
+    }
+
+    /// The three executable lifts are three DISTINCT runs over three distinct artifacts —
+    /// a shared IRI would mean two bridges' codomains merged into one run's product.
+    #[test]
+    fn the_three_lift_producers_mint_distinct_runs() {
+        let runs = [
+            r_lift().ingest_run,
+            onnx_lift().ingest_run,
+            proof_lift().ingest_run,
+        ];
+        let distinct: std::collections::BTreeSet<&String> = runs.iter().collect();
+        assert_eq!(distinct.len(), runs.len(), "lift run IRIs must be distinct");
     }
 }

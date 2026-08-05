@@ -21,147 +21,117 @@ gmeow:mapsetCitations a gmeow:MappingSet ;
 # CiTO — Citation Typing Ontology (SPAR)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCit001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:cites ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject cito:cites ;
+gmeow:cites owl:equivalentProperty cito:cites {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CiTO cites — the core citation property." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO cites — the core citation property."
+|} .
 
-gmeow:eqCit002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentCitesAsDataSource ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:citesAsDataSource ;
+gmeow:intentCitesAsDataSource skos:closeMatch cito:citesAsDataSource {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO citesAsDataSource is a sub-property of cito:cites; GMEOW encodes the intent as a CitationIntent value." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO citesAsDataSource is a sub-property of cito:cites; GMEOW encodes the intent as a CitationIntent value."
+|} .
 
-gmeow:eqCit003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentUsesMethodIn ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:usesMethodIn ;
+gmeow:intentUsesMethodIn skos:closeMatch cito:usesMethodIn {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO usesMethodIn intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO usesMethodIn intent."
+|} .
 
-gmeow:eqCit004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentExtends ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:extends ;
+gmeow:intentExtends skos:closeMatch cito:extends {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO extends intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO extends intent."
+|} .
 
-gmeow:eqCit005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentIsInspiredBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:isInspiredBy ;
+gmeow:intentIsInspiredBy skos:closeMatch cito:isInspiredBy {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO isInspiredBy intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO isInspiredBy intent."
+|} .
 
-gmeow:eqCit006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentConformsTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:obtainsSupportFrom ;
+gmeow:intentConformsTo skos:closeMatch cito:obtainsSupportFrom {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "CiTO obtainsSupportFrom approximates conforming to a standard; not an exact match." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO obtainsSupportFrom approximates conforming to a standard; not an exact match."
+|} .
 
-gmeow:eqCit007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentDerivedFrom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:isDerivedFrom ;
+gmeow:intentDerivedFrom skos:closeMatch cito:isDerivedFrom {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO isDerivedFrom intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO isDerivedFrom intent."
+|} .
 
-gmeow:eqCit008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentDocuments ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:documents ;
+gmeow:intentDocuments skos:closeMatch cito:documents {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO documents intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO documents intent."
+|} .
 
-gmeow:eqCit009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentSupports ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:providesSupportFor ;
+gmeow:intentSupports skos:closeMatch cito:providesSupportFor {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CiTO providesSupportFor approximates support intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO providesSupportFor approximates support intent."
+|} .
 
-gmeow:eqCit010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intentDisagreesWith ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cito:disagreesWith ;
+gmeow:intentDisagreesWith skos:closeMatch cito:disagreesWith {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "CiTO disagreesWith intent." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "CiTO disagreesWith intent."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Web Annotation — Selector / text position model
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCit011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Selector ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Selector ;
+gmeow:Selector skos:closeMatch oa:Selector {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Web Annotation oa:Selector is the closest peer to GMEOW Selector." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "Web Annotation oa:Selector is the closest peer to GMEOW Selector."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O — attribution
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCit012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Contribution ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Attribution ;
+gmeow:Contribution skos:closeMatch prov:Attribution {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "PROV-O Attribution is an influence/association; GMEOW Contribution is a relator. Lossy but close." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "PROV-O Attribution is an influence/association; GMEOW Contribution is a relator. Lossy but close."
+|} .
 
-gmeow:eqCit013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:contributor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:agent ;
+gmeow:contributor skos:closeMatch prov:agent {|
+    gmeow:sssomFile "gmeow-citations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "PROV-O agent within an Attribution; GMEOW contributor is the relator player. Lossy." ;
-    gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+    gmeow:comment "PROV-O agent within an Attribution; GMEOW contributor is the relator player. Lossy."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:references ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:references ;
+gmeow:references skos:closeMatch dcterms:references {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms references — a related resource that is referenced by the described resource. GMEOW references is general (formerly message-scoped, now Entity-scoped)." ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms references — a related resource that is referenced by the described resource. GMEOW references is general (formerly message-scoped, now Entity-scoped)."
+|} .
 
-gmeow:eqDcTerms016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isReferencedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isReferencedBy ;
+gmeow:isReferencedBy skos:closeMatch dcterms:isReferencedBy {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms isReferencedBy — a related resource that references the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms isReferencedBy — a related resource that references the described resource"
+|} .

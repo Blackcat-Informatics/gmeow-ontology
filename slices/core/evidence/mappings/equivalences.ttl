@@ -35,73 +35,59 @@ gmeow:mapsetEvidence a gmeow:MappingSet ;
 # CRMinf (CIDOC Argumentation model)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqEvidence001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EvidenceClass ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I2_Belief ;
+gmeow:EvidenceClass skos:closeMatch crminf:I2_Belief {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "An evidence class describes the warrant/kind of belief held about a claim; CRMinf I2 Belief is the temporal entity representing that belief" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "An evidence class describes the warrant/kind of belief held about a claim; CRMinf I2 Belief is the temporal entity representing that belief"
+|} .
 
-gmeow:eqEvidence002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasEvidenceClass ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crminf:J5_holds_to_be ;
+gmeow:hasEvidenceClass skos:relatedMatch crminf:J5_holds_to_be {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "gmeow:hasEvidenceClass names the warrant type; J5_holds_to_be is the belief-value predicate (true/probable/possible/false) — related but distinct dimensions" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "gmeow:hasEvidenceClass names the warrant type; J5_holds_to_be is the belief-value predicate (true/probable/possible/false) — related but distinct dimensions"
+|} .
 
-gmeow:eqEvidence003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Citation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crminf:I4_Proposition_Set ;
+gmeow:Citation skos:relatedMatch crminf:I4_Proposition_Set {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "A citation references a source that carries propositions; I4 Proposition Set is the set of propositions being argued over" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "A citation references a source that carries propositions; I4 Proposition Set is the set of propositions being argued over"
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O
 # --------------------------------------------------------------------------- #
 
-gmeow:eqEvidence004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Citation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:Citation skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A citation is an information object that can be derived from, attributed to, and used in provenance traces" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "A citation is an information object that can be derived from, attributed to, and used in provenance traces"
+|} .
 
-gmeow:eqEvidence005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasEvidenceClass ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:hasEvidenceClass skos:relatedMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "PROV-O wasDerivedFrom links an entity to its source but carries no explicit warrant-typing; gmeow:hasEvidenceClass adds the missing typing layer" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "PROV-O wasDerivedFrom links an entity to its source but carries no explicit warrant-typing; gmeow:hasEvidenceClass adds the missing typing layer"
+|} .
 
 # --------------------------------------------------------------------------- #
 # schema.org
 # --------------------------------------------------------------------------- #
 
-gmeow:eqEvidence006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CitationAct ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:citation ;
+gmeow:CitationAct skos:relatedMatch schema:citation {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Cross-category relatedness: schema:citation is a flat property on schema:CreativeWork, while gmeow:CitationAct is a reified relator class that carries intent, selector, warrant, and source-typing facets. They occupy the same semantic space (the citation link) but at different levels of reification." ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "Cross-category relatedness: schema:citation is a flat property on schema:CreativeWork, while gmeow:CitationAct is a reified relator class that carries intent, selector, warrant, and source-typing facets. They occupy the same semantic space (the citation link) but at different levels of reification."
+|} .
 
-gmeow:eqEvidence007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasEvidenceClass ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:isBasedOn ;
+gmeow:hasEvidenceClass skos:relatedMatch schema:isBasedOn {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:isBasedOn links a CreativeWork to its source material; gmeow:hasEvidenceClass types the evidential warrant of that link" ;
-    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+    gmeow:comment "schema:isBasedOn links a CreativeWork to its source material; gmeow:hasEvidenceClass types the evidential warrant of that link"
+|} .

@@ -43,10 +43,13 @@ impl DocMaturity {
     /// bounded `gmeow:coverageFraction` (already `[0,1]`), consumed verbatim from the
     /// documentation model; the advisories name the FULL-anchor coverage dimensions
     /// the slice does not yet cover, in stable dimension order (the incremental uplift
-    /// targets the ratchet drives). A slice with no resolvable repo root, an
-    /// un-buildable documentation model, or no record in the model is scored the
-    /// crate's neutral vacuous `1.0` WITH an advisory naming the reason — never a
-    /// silent false-positive "fully documented".
+    /// targets the ratchet drives).
+    ///
+    /// A condition under which the axis CANNOT BE MEASURED — no resolvable repo root, or
+    /// a documentation model that will not build — scores [`unmeasurable`]'s `0.0` with
+    /// an advisory naming the reason. A slice that IS measurable but carries no record in
+    /// the model (no documented terms) is genuinely vacuous and keeps the neutral `1.0`:
+    /// having nothing to document is a different fact from not having been able to look.
     ///
     /// The documentation model's SOURCE branches on the scoring environment:
     /// [`ScoringEnv::Repo`] reads the memoized repo-wide model ([`Self::axis_repo`]);
@@ -66,25 +69,15 @@ impl DocMaturity {
     /// up by its IRI. This is the verbatim pre-seam behaviour.
     fn axis_repo(ctx: &ScoreContext) -> AxisScore {
         let Some(root) = repo_root_of(&ctx.slice_dir) else {
-            return AxisScore {
-                score: 1.0,
-                findings: vec![advisory(
-                    "slice-quality.doc-maturity.model-unavailable",
-                    "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).".to_owned(),
-                )],
-            };
+            return unmeasurable(
+                "the slice directory carries no resolvable slices/ path prefix".to_owned(),
+            );
         };
         let facts = repo_facts(&root);
         match &*facts {
-            RepoFacts::Failed(err) => AxisScore {
-                score: 1.0,
-                findings: vec![advisory(
-                    "slice-quality.doc-maturity.model-unavailable",
-                    format!(
-                        "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
-                    ),
-                )],
-            },
+            RepoFacts::Failed(err) => unmeasurable(format!(
+                "the documentation model could not be built ({err})"
+            )),
             RepoFacts::Ready(by_slice) => match by_slice.get(&ctx.slice_iri) {
                 Some(fact) => score_and_advice(fact),
                 None => AxisScore {
@@ -118,15 +111,9 @@ impl DocMaturity {
         let model = match DocsModel::from_slice_dir(&ctx.slice_dir) {
             Ok(model) => model,
             Err(err) => {
-                return AxisScore {
-                    score: 1.0,
-                    findings: vec![advisory(
-                        "slice-quality.doc-maturity.model-unavailable",
-                        format!(
-                            "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
-                        ),
-                    )],
-                };
+                return unmeasurable(format!(
+                    "the documentation model could not be built ({err})"
+                ));
             }
         };
         let graph = documentation_graph(&model);
@@ -143,6 +130,33 @@ impl DocMaturity {
                 )],
             },
         }
+    }
+}
+
+/// The score for a slice whose documentation maturity CANNOT BE MEASURED: `0.0` plus an
+/// advisory naming `reason`.
+///
+/// It used to be `1.0`. That was a silent, maximal false positive on exactly the
+/// condition under which nothing was known — and it was load-bearing, not theoretical:
+/// a corpus recorded on a tree where the documentation model would not build carried a
+/// ceilinged `DocMaturity` for EVERY slice, and (because the freshness fingerprint folds
+/// only authored sources) verified as fresh. The unmeasured case now scores the bottom
+/// of the axis, so it reds the per-axis floor instead of clearing it: an axis that could
+/// not be measured is a defect to fix, never a grade to bank.
+///
+/// This is distinct from the genuinely vacuous case (a measurable slice that documents no
+/// terms), which keeps `1.0` — there the measurement succeeded and found nothing owed.
+fn unmeasurable(reason: String) -> AxisScore {
+    AxisScore {
+        score: 0.0,
+        findings: vec![advisory(
+            "slice-quality.doc-maturity.model-unavailable",
+            format!(
+                "{reason} — documentation maturity cannot be measured, so it is scored 0.0 \
+                 (the bottom of the axis). An unmeasurable axis is never a passing one; fix \
+                 the condition and re-score."
+            ),
+        )],
     }
 }
 
@@ -197,6 +211,21 @@ static REPO_FACTS: LazyLock<Mutex<HashMap<PathBuf, Arc<RepoFacts>>>> =
 /// held across the build so the expensive model is constructed exactly once; a second
 /// caller blocks on the mutex and then reads the shared result.
 fn repo_facts(root: &Path) -> Arc<RepoFacts> {
+    // The bare axis lookup has no live catalog bytes to offer, so a cache MISS falls
+    // back to the disk-sourced model build — the legitimate post-pipeline / CLI path
+    // over a materialized tree. The in-pipeline sweep always PRIMES the cache with the
+    // live catalog bytes first ([`prime_repo_facts`]), so this lookup finds that entry
+    // and never touches disk on a cold tree.
+    facts_or_build(root, None)
+}
+
+/// Resolve (building on first use) the documentation facts for `root`, sourcing the
+/// constraint catalog from `catalog_bytes` when supplied (the live in-pipeline bytes)
+/// or from disk otherwise. The lock is held across the build so the expensive model is
+/// constructed exactly once; a second caller blocks on the mutex and then reads the
+/// shared result — and a caller with live bytes and a caller without both settle on
+/// the SAME already-cached entry (whichever primed first).
+fn facts_or_build(root: &Path, catalog_bytes: Option<&[u8]>) -> Arc<RepoFacts> {
     let mut guard = REPO_FACTS
         .lock()
         .expect("doc-maturity repo-facts cache mutex is not poisoned");
@@ -204,26 +233,52 @@ fn repo_facts(root: &Path) -> Arc<RepoFacts> {
     if let Some(existing) = guard.get(&key) {
         return existing.clone();
     }
-    let built = Arc::new(build_repo_facts(root));
+    let built = Arc::new(build_repo_facts(root, catalog_bytes));
     guard.insert(key, built.clone());
     built
 }
 
-/// Prime the immutable repo-wide documentation facts before a parallel slice sweep.
+/// Prime the immutable repo-wide documentation facts before a parallel slice sweep,
+/// sourcing the constraint catalog from `catalog_bytes` (THIS run's freshly-rendered
+/// `stage-constraint-catalog` bytes) when the caller is the in-pipeline sweep, or from
+/// disk (`None`) for the post-pipeline / CLI sweep over a materialized tree.
 ///
 /// The ordinary axis lookup remains the single cache authority. This entry point only
 /// moves its first construction ahead of the worker fan-out so workers never occupy a
-/// Rayon thread while waiting on the cache mutex.
-pub(crate) fn prime_repo_facts(root: &Path) {
-    drop(repo_facts(root));
+/// Rayon thread while waiting on the cache mutex — and, crucially, seeds the cache with
+/// the live catalog bytes so a cold tree's absent `generated/catalog/constraint-catalog.nq`
+/// never fails the model build (which would collapse every slice to a vacuous 1.0 and
+/// diverge from a warm run).
+pub(crate) fn prime_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) {
+    drop(facts_or_build(root, catalog_bytes));
 }
 
 /// Build the per-slice documentation facts from a fresh [`DocsModel`]. The per-slice
 /// coverage fraction + covered-dimension incidence are read back from the SAME
 /// `graph/documentation` N-Quads the docs projection emits (via [`documentation_graph`]),
 /// so this axis and the published documentation health surface can never disagree.
-fn build_repo_facts(root: &Path) -> RepoFacts {
-    match DocsModel::discover(root) {
+///
+/// `catalog_bytes` selects the constraint-catalog source: the live in-pipeline bytes
+/// ([`DocsModel::discover_with_catalog`]) when supplied, else the committed on-disk
+/// catalog ([`DocsModel::discover`]). The catalog content does not feed the coverage
+/// fraction; supplying live bytes only guarantees the model BUILDS on a cold tree.
+fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
+    let built = match catalog_bytes {
+        // In-pipeline: the catalog is THIS run's freshly-rendered bytes, which are not
+        // part of the on-disk content-addressed key, so the disk fixture cache cannot
+        // and must not serve it.
+        Some(bytes) => DocsModel::discover_with_catalog(root, bytes),
+        // Post-pipeline / CLI over a materialized tree: take the model from the
+        // content-addressed `.cache/docs-fixture` store instead of paying a fresh
+        // ~12 s `discover()`. `fixture::try_load` is byte-identical to `discover()`
+        // and preserves its Result — a build failure still becomes
+        // `RepoFacts::Failed` (and thence the `doc-maturity.model-unavailable`
+        // advisory), never a panic. The key folds every input `discover()` reads plus
+        // gmeow-docs' whole transitive path-dependency closure, so a stale model
+        // cannot be served across any edit that would change this axis's score.
+        None => gmeow_docs::fixture::try_load(root),
+    };
+    match built {
         Ok(model) => {
             let graph = documentation_graph(&model);
             let by_slice = graph
@@ -294,6 +349,104 @@ mod tests {
                 .iter()
                 .any(|f| f.message.contains("dimExample") && f.message.contains("slices/zoo")),
             "an uncovered FULL dimension is named for the slice"
+        );
+    }
+
+    /// Scaffold a temp repo root carrying exactly one real slice (copied from the
+    /// committed `gmeow-docs` single-slice fixture). Returns the owning
+    /// [`tempfile::TempDir`], the root, and the slice directory. No `generated/`
+    /// tree is created.
+    ///
+    /// Two scaffolded roots never collide because each owns a distinct
+    /// `TempDir`, and each tree is removed when its guard drops — on success, on
+    /// panic, and on early return. The caller must bind the guard
+    /// (`let (_tmp, root, slice) = scaffold_single_slice_root();`); a bare `_`
+    /// binding would drop it at once and delete the tree out from under the test.
+    fn scaffold_single_slice_root() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let root = guard.path().join("gmeow-docmaturity-det");
+        let slice_dir = root.join("slices").join("fixture").join("single");
+        std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
+        // The committed fixture lives in the sibling gmeow-docs crate.
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("docs")
+            .join("tests")
+            .join("fixtures")
+            .join("single-slice");
+        for file in ["manifest.ttl", "module.ttl"] {
+            std::fs::copy(fixture.join(file), slice_dir.join(file))
+                .unwrap_or_else(|e| panic!("copy fixture {file}: {e}"));
+        }
+        (guard, root, slice_dir)
+    }
+
+    /// Minimal but valid constraint-catalog N-Quads: one `gmeow:ValidationRule` with a
+    /// `gmeow:ruleCode`.
+    fn sample_catalog_bytes() -> Vec<u8> {
+        let graph =
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq";
+        let rule = "https://blackcatinformatics.ca/gmeow/rule/box-roles-invalid";
+        format!(
+            "<{rule}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+             <https://blackcatinformatics.ca/gmeow/ValidationRule> <{graph}> .\n\
+             <{rule}> <https://blackcatinformatics.ca/gmeow/ruleCode> \"box-roles.invalid\" <{graph}> .\n"
+        )
+        .into_bytes()
+    }
+
+    /// The DocMaturity axis score is BYTE-IDENTICAL whether the constraint catalog is
+    /// sourced from THIS run's live bytes (a cold tree with no `generated/`) or read
+    /// from disk (a warm tree carrying the SAME bytes). This is the determinism the
+    /// two-generation sync gate needs: without the fix, the cold run's absent catalog
+    /// fails the model build and collapses the axis to the vacuous model-unavailable
+    /// `1.0`, while the warm run scores the real fraction — a divergent
+    /// `graph/quality-assessment`.
+    #[test]
+    fn doc_maturity_score_identical_live_bytes_vs_disk_catalog() {
+        let catalog = sample_catalog_bytes();
+        let empty = purrdf::RdfDatasetBuilder::new()
+            .freeze()
+            .expect("empty dataset");
+        let slice_iri = "https://blackcatinformatics.ca/gmeow/slices/fixture-single".to_owned();
+
+        // COLD tree: no generated/ on disk, catalog primed from LIVE bytes.
+        let (_live_tmp, live_root, live_slice) = scaffold_single_slice_root();
+        prime_repo_facts(&live_root, Some(&catalog));
+        let live_ctx = ScoreContext::new(slice_iri.clone(), live_slice, &empty, ScoringEnv::Repo);
+        let live = DocMaturity::axis(&live_ctx);
+
+        // WARM tree: the SAME catalog bytes on disk, sourced by the disk path (None).
+        let (_warm_tmp, warm_root, warm_slice) = scaffold_single_slice_root();
+        std::fs::create_dir_all(warm_root.join("generated").join("catalog"))
+            .expect("mkdir generated");
+        std::fs::write(
+            warm_root
+                .join("generated")
+                .join("catalog")
+                .join("constraint-catalog.nq"),
+            &catalog,
+        )
+        .expect("write catalog");
+        prime_repo_facts(&warm_root, None);
+        let warm_ctx = ScoreContext::new(slice_iri, warm_slice, &empty, ScoringEnv::Repo);
+        let warm = DocMaturity::axis(&warm_ctx);
+
+        assert_eq!(
+            live.score.to_bits(),
+            warm.score.to_bits(),
+            "DocMaturity score must be byte-identical cold(live) vs warm(disk); live={} warm={}",
+            live.score,
+            warm.score
+        );
+        // The live path genuinely BUILT the model — it did not fall back to the vacuous
+        // model-unavailable 1.0 the cold disk read would have forced.
+        assert!(
+            !live
+                .findings
+                .iter()
+                .any(|f| f.message.contains("documentation model could not be built")),
+            "the live-bytes path must build the model, never the model-unavailable fallback"
         );
     }
 

@@ -4,7 +4,7 @@
 //!
 //! Proves the full oxigraph-free rail end-to-end on real data: parse the DSL + slice
 //! mapping sources natively into one merged `RdfDataset`, lower every
-//! `gmeow:TermEquivalence` via `gmeow_logic_compile::projections::sssom::lower_sssom`,
+//! native alignment cells via `gmeow_logic_compile::projections::sssom::lower_sssom`,
 //! and assert each emitted TSV is byte-identical to the committed
 //! `generated/mappings/*.sssom.tsv`. The committed artifacts are the source of truth
 //! (the historical oxigraph emitter already matches them), so new-lowering == committed
@@ -69,11 +69,8 @@ fn merge_sssom_sources(root: &Path) -> Arc<RdfDataset> {
 
     let slices_dir = root.join("slices");
     if slices_dir.is_dir() {
-        let catalog = SliceCatalog::discover(
-            &slices_dir,
-            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-        )
-        .expect("discover slices");
+        let catalog = SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+            .expect("discover slices");
         let mut slice_mappings: Vec<(PathBuf, Vec<u8>)> = Vec::new();
         for record in catalog.records() {
             for artifact in &record.artifacts {

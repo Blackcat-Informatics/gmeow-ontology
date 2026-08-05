@@ -9,10 +9,19 @@ name: Pages
 on:
   push:
     branches: [main]
-    # Only re-publish when something that can change the rendered site moves:
-    # the bundle the site is projected from, the renderer/CLI, or this workflow.
+    # The site is rendered from CANONICAL SOURCES (make check-sync SYNC_OUTPUTS=docs), not
+    # from the git-ignored generated/ product — so trigger on the sources the bundle and
+    # site are projected from, the renderer/CLI/pipeline, or this workflow, never on a
+    # generated/ path (which no longer exists in the tree).
     paths:
-      - generated/dist/gmeow.gts
+      - slices/**
+      - shapes/**
+      - dsl/**
+      - imports/**
+      - metadata/**
+      - queries/**
+      - i18n/**
+      - ontology/**
       - crates/docs/**
       - crates/gmeow-dev-cli/**
       - crates/pipeline/**
@@ -50,7 +59,7 @@ jobs:
       # The site remains external to gmeow.gts; sync writes the Pages tree into
       # ontology-docs/ and validates the complete one-pass fixed point.
       - name: Render ontology docs
-        run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs
+        run: make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -72,4 +81,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

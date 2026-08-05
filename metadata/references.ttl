@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Canonical GMEOW citation ledger. Edit this file, then run `make sync`.
+# Canonical GMEOW citation ledger. Edit this file, then run `make check`.
 # Generated bibliography projections live under generated/references/.
 
 @prefix brick: <https://brickschema.org/schema/Brick#> .
@@ -159,10 +159,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/062116a573f2c964> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/0622892e74697d93> a gmeow:CitationAct ;
-    rdfs:label "slices/extensions/procedures/mappings/equivalences.ttl"@en ;
+    rdfs:label "slices/core/work-orchestration/mappings/equivalences.ttl"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.opmw.org/ontology/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/procedures/mappings/equivalences.ttl> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/work-orchestration/mappings/equivalences.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/0622892e74697d93> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/0624aecdfd770d7a> a gmeow:CitationAct ;
@@ -565,10 +565,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/198a0b1c957bee15> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/19bb560736b759b7> a gmeow:CitationAct ;
-    rdfs:label "slices/extensions/procedures/mappings/equivalences.ttl"@en ;
+    rdfs:label "slices/core/work-orchestration/mappings/equivalences.ttl"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://purl.org/net/p-plan#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/procedures/mappings/equivalences.ttl> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/work-orchestration/mappings/equivalences.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/19bb560736b759b7> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/19bbf67250ccd98b> a gmeow:CitationAct ;
@@ -1258,10 +1258,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/31bd4302f79dc61c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/31ed7ff38ce2e211> a gmeow:CitationAct ;
-    rdfs:label "slices/extensions/procedures/mappings/equivalences.ttl"@en ;
+    rdfs:label "slices/core/work-orchestration/mappings/equivalences.ttl"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://www.omg.org/spec/BPMN/20100524/MODEL#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/procedures/mappings/equivalences.ttl> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/work-orchestration/mappings/equivalences.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/31ed7ff38ce2e211> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/32508726e21ea401> a gmeow:CitationAct ;
@@ -4156,10 +4156,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/af61d14d7dae0d09> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/b07af94f17de8036> a gmeow:CitationAct ;
-    rdfs:label "slices/extensions/procedures/mappings/equivalences.ttl"@en ;
+    rdfs:label "slices/core/work-orchestration/mappings/equivalences.ttl"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://w3id.org/ro/crate/#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/procedures/mappings/equivalences.ttl> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/work-orchestration/mappings/equivalences.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/b07af94f17de8036> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/b0c0e0999c7d018d> a gmeow:CitationAct ;
@@ -7367,7 +7367,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/218#discussion_r3375225968:39" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/0622892e74697d93> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/extensions/procedures/mappings/equivalences.ttl:9" .
+    gmeow:selectorLocator "slices/core/work-orchestration/mappings/equivalences.ttl:9" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/0624aecdfd770d7a> a gmeow:Selector ;
     gmeow:selectorLocator "docs/research-objects.md:97" .
@@ -7541,7 +7541,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "README.md:290" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/19bb560736b759b7> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/extensions/procedures/mappings/equivalences.ttl:8" .
+    gmeow:selectorLocator "slices/core/work-orchestration/mappings/equivalences.ttl:8" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/19bbf67250ccd98b> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108588:20" .
@@ -7838,7 +7838,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "dsl/mappings/projections/crmarchaeo.ttl:5" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/31ed7ff38ce2e211> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/extensions/procedures/mappings/equivalences.ttl:11" .
+    gmeow:selectorLocator "slices/core/work-orchestration/mappings/equivalences.ttl:11" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/32508726e21ea401> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/424#discussion_r3407573029:12" .
@@ -9080,7 +9080,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/487#discussion_r3409869912:57" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/b07af94f17de8036> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/extensions/procedures/mappings/equivalences.ttl:12" .
+    gmeow:selectorLocator "slices/core/work-orchestration/mappings/equivalences.ttl:12" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/b0c0e0999c7d018d> a gmeow:Selector ;
     gmeow:selectorLocator "README.md:295" .
@@ -12921,9 +12921,9 @@ repo:CONTRIBUTING.md a gmeow:CreativeWork ;
     rdfs:label "slices/core/creative-works/mappings/equivalences.ttl"@en ;
     gmeow:sourceLocation "slices/core/creative-works/mappings/equivalences.ttl" .
 
-<https://blackcatinformatics.ca/gmeow/repo/slices/extensions/procedures/mappings/equivalences.ttl> a gmeow:CreativeWork ;
-    rdfs:label "slices/extensions/procedures/mappings/equivalences.ttl"@en ;
-    gmeow:sourceLocation "slices/extensions/procedures/mappings/equivalences.ttl" .
+<https://blackcatinformatics.ca/gmeow/repo/slices/core/work-orchestration/mappings/equivalences.ttl> a gmeow:CreativeWork ;
+    rdfs:label "slices/core/work-orchestration/mappings/equivalences.ttl"@en ;
+    gmeow:sourceLocation "slices/core/work-orchestration/mappings/equivalences.ttl" .
 
 <https://blackcatinformatics.ca/gmeow/repo/tests/fixtures/coverage/places-virtual.ttl> a gmeow:CreativeWork ;
     rdfs:label "tests/fixtures/coverage/places-virtual.ttl"@en ;

@@ -85,6 +85,47 @@ pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, gmeow
     reason_over_dataset(edb.as_ref())
 }
 
+/// Build a `stage-reason` [`StageProduct`] by reasoning over `composed_nquads` — the
+/// real dual-carriage product a downstream consumer reads: the closure in the default
+/// graph, the `graph/reasoning` projection, and the pinned typed Reasoning handle. This
+/// is the SAME construction [`ReasonStage::run`] performs (minus the committed byte-lane
+/// artifacts a consumer never reads off the handle), exposed so a harness driving a
+/// single consumer stage in isolation can supply a genuine reasoned upstream rather than
+/// a hand-built stand-in. An empty EDB yields an empty closure (a valid "no entailments"
+/// reasoned product).
+///
+/// # Errors
+///
+/// Returns `Err` if reasoning, the dual-carriage dataset build, or the handle pin fails.
+pub fn reason_product(composed_nquads: &[u8]) -> Result<StageProduct, gmeow_errors::Diag> {
+    let reasoned = reason_artifacts(composed_nquads)?;
+    let dataset = reason_dataset(
+        &reasoned.closure,
+        &reasoned.result,
+        &reasoned.chase_report,
+        &reasoned.witness_derivations,
+    )?;
+    let mut bundle = crate::bundle::bundle_from_artifacts_over(
+        dataset,
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+    );
+    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    bundle
+        .pin_handle(
+            GRAPH_REASONING,
+            PipelineHandle::Reasoning(Arc::new(reasoned.result)),
+            pinned,
+        )
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+            })
+        })?;
+    Ok(StageProduct::from_bundle("stage-reason", Arc::new(bundle)))
+}
+
 /// Reason over an in-memory EDB and return the three artifacts plus the typed
 /// [`ReasoningResult`]. Canonicalizes the EDB (RDFC-1.0) BEFORE reasoning so the
 /// content-addressed Skolem witnesses are transport-independent (carrier vs a

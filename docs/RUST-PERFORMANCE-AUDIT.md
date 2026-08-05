@@ -101,17 +101,24 @@ After integrating the newer main-branch corpus, the same slice-quality phase was
 passed in 493.616 s, including 6,170 default-lane Rust tests; those corpus-expanded
 figures are evidence for the current checkout, not a like-for-like baseline.
 
-The aggregate check runner now has two execution profiles. `make check-full`
-physically executes the entire task DAG. `make check` may reuse an unaffected task
-only from a GitHub-attested successful main-push receipt whose commit, tree, task
-registry, toolchain contract, and full task inventory match. It classifies the
-complete committed/staged/unstaged/untracked diff; unknown paths, Rust/tooling
-changes, missing `gh`, missing receipts, and any attestation or contract failure
-fall back to the full profile. This is proof-carrying DAG pruning, not a reduced
-correctness profile (Principles 4, 7, and 18).
+The aggregate check runner has ONE execution profile: `make check` physically
+executes its entire task DAG. The receipt-backed impact profile that once pruned
+unaffected tasks has been removed — it bought a saving only on the docs-only edits
+that were already cheap, while every Rust or ontology edit fell closed to the full
+registry, and it made the gate's behaviour depend on network reachability of a
+GitHub attestation. The successful-check receipt itself is retained: CI still emits
+and attests one per green `main` push as a supply-chain artifact
+(`cargo xtask receipt create`), it simply no longer feeds scheduling.
+
+Wall time is now bought by scheduling instead. `sync` is a prerequisite of a task
+only when that task genuinely reads a `generated/` artifact, and the monolithic
+`rust-gate` node is split into four concurrent siblings (`carrier-purity`, `clippy`,
+`nextest`, `doctests`) under one `rust-build`. The breadth-dominated lanes
+(`wasm-parity`, `acceptance`, `bench-soak`) moved to the CI-only `make heavy`, which
+still runs on every PR.
 
 The local `make check` entry point also owns update-mode synchronization. This
-removes the developer-visible `make sync` / `make check` boundary without adding
+removes the developer-visible regenerate-then-gate boundary without adding
 another cold pipeline: a clean manifest returns immediately, while a miss pays the
 same regeneration that previously had to be run as a separate command. The
 internal `make check-sync` target defaults to read-only mode for CI drift proof.
@@ -222,10 +229,11 @@ make fmt
 make reason-gate       # REMOVED; use make reason-verify
 make reason-verify
 make reason-crosscheck # REMOVED — the live native-vs-purrdf::entail oracle lane
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make check-sync
 make gts-frame-profile-gate
 make check
-make check-full
+make check-full        # REMOVED; `make check` now always runs every task
+make heavy             # CI-only breadth lane
 ```
 
 The focused allocation counter was intentionally a bench-only diagnostic and has since been

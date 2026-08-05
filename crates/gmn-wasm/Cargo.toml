@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-gmn-wasm"
+description = "wasm32 bindings for the GMEOW Model Notation (GMN-0<->GMN-1) codec: transcode authored RDF to the token-compact GMN-1 surface and back, client-side"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "gmn", "notation", "wasm", "knowledge-graph"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The GMN-0/GMN-1 codec + glyph symbology (already shipped + gated). Cross-compiles
+# to wasm32 as-is (blake3 / purrdf / unicode-* / tiktoken-rs are pure-Rust, no
+# network, no filesystem).
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The ONE canonical RDF parser/serializer.
+purrdf.workspace = true
+wasm-bindgen.workspace = true

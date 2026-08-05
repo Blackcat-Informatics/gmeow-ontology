@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the GOVERNING gmeow:NoGlobalWinnerWithoutConsensusConstraint —
+# the TYPED-witness clause. A gmeow:PreferenceClaim asserts a global winner and carries
+# EVERY discharge edge correctly: it gmeow:extendsToConsensusSection ex:sec, ex:sec has a
+# gmeow:sectionContext that reconciles the whole registered vantage base (F2 satisfied), and
+# it gmeow:dischargesDisagreement a TYPED gmeow:DisagreementObstruction. The ONLY defect:
+# ex:sec is typed gmeow:InformationObject, never gmeow:ConsensusSection. Because the
+# ∀→∃(∧…) constraint requires the section witness be a resource TYPED gmeow:ConsensusSection
+# (gmeow:ngwSecType), it MUST reject the claim with shacl.SPARQLConstraintComponent and NO
+# other finding — a resource carrying the consensus edges is not a typed consensus section.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ---------------------------------------------- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- One agreeing vantage under a context that registers exactly it ----------- #
+ex:eval a gmeow:Standpoint ; rdfs:label "evaluator"@en .
+ex:goal a gmeow:Goal ; rdfs:label "select the strongest draft"@en .
+ex:ctx a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal ;
+    gmeow:contentDigest "blake3:aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01aa01" ;
+    gmeow:registersObservation ex:obs .
+ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obs a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:feat ;
+    gmeow:observationPrefers ex:candA .
+
+# --- The H0 lift and a correctly-typed discharged obstruction ----------------- #
+ex:h0 a math:GlobalSection ; rdfs:label "the H0 global section"@en .
+ex:h1 a math:GluingObstruction ; rdfs:label "the (vanishing) H1 obstruction"@en .
+ex:obstruction a gmeow:DisagreementObstruction ;
+    gmeow:obstructionClass ex:h1 .
+
+# --- The DEFECT: the consensus witness carries every edge but is NOT typed
+#     gmeow:ConsensusSection (it is a bare gmeow:InformationObject) --------------- #
+ex:sec a gmeow:InformationObject ;                     # <-- NOT gmeow:ConsensusSection
+    rdfs:label "a resource carrying the consensus edges but not typed a ConsensusSection"@en ;
+    gmeow:consensusGlobalSection ex:h0 ;
+    gmeow:sectionContext ex:ctx ;
+    gmeow:reconcilesObservation ex:obs .
+
+ex:claim a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:eval ;
+    gmeow:accordingTo ex:eval ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:sec ;
+    gmeow:dischargesDisagreement ex:obstruction .

@@ -57,7 +57,25 @@ faithfulness) are the load-bearing invariants.
 | `profiles/` | rule sets under each declared semantics | answers match the declared semantic profile (PositiveHorn, StratifiedNAF, WellFounded, StableModel); cut appears only under `ProceduralPrologProfile`; under `ProbabilisticProfile` (`probabilistic-*` cases) each binding carries a `probability` from weighted model counting under a declared model, `logic:confidence` is never read as a probability, and probabilistic facts with no declared model return `unknown` | — |
 | `explanation/` | a failed-constraint or derivation query | the `explanation/<q>.md` skeleton validates that **every cited IRI appears in the trace** — no justification outside the proof | — |
 | `paraconsistency/` | a cross-world contradiction | `materialized.nq` confines the contradiction to separate graphs (no explosion); a within-world contradiction emits `witnesses.nq` | — |
+| `enactment/` | a prescription/enactment-kernel A-Box asserting NO `logic:entryLabel`, with the shipped rule IRIs the case reasons with named in `profile.json`'s `"shipped_rules"` | `materialized.nq` is a strict superset of `input.nq` carrying the frontier labels and means–end conclusions the shipped rules derive; the budget-cut case's `budget.json` records `incomplete: true` with `logic:entryLabel` absent from the saturated set. See [`cases/enactment/README.md`](cases/enactment/README.md) | enactment kernel |
 | `holonic/` | a `logic:properPartOf` mereology spine over domain entities (goals, actions, agent turns) with `profile.json` carrying `foundation_lowering: true` and `StratifiedNAFProfile` | `materialized.nq` carries engine-derived holon-kernel verdicts: `logic:isHolon` on interior nodes (root and leaf excluded), `logic:assessmentVerdict` for emergence (`logic:Emergent` / `logic:Aggregate` / `logic:EmergenceUnknown`) per property-theory pair, non-transitive downward-constraint quads, and `logic:agencyVerdict` agency-profile bindings; explanation skeletons cite only IRIs that appear in the trace | — |
+
+## Reasoning with the rules that ship: `"shipped_rules"`
+
+A case that needs a `logic:Rule` the repository ships names it by IRI in `profile.json`:
+
+```json
+{ "shipped_rules": ["https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized"] }
+```
+
+The runner resolves each IRI against `slices/grounding/logic/module.ttl` — the same file
+`gmeow logic frontier` embeds via `include_str!` — and merges the resolved rules into the compiled
+program. An IRI the module does not declare is a **hard failure**, and so is redeclaring a loaded
+rule inside the case's own `input.logic.ttl`.
+
+Both refusals exist for one reason: a case that restates a shipped rule in its own input stays green
+after the shipped rule is deleted, so it pins its own copy rather than what ships. Resolution
+through the module makes deletion or renaming red in every case that reasons with the rule.
 
 ## The `foundation/` category
 

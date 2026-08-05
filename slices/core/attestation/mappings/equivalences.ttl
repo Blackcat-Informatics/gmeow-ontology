@@ -33,133 +33,105 @@ gmeow:mapsetAttestation a gmeow:MappingSet ;
 # PROV-O
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAttestation001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Attestation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:Attestation skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "An attestation is a kind of provenance entity — information object that participates in an activity and may be attributed to an agent" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "An attestation is a kind of provenance entity — information object that participates in an activity and may be attributed to an agent"
+|} .
 
-gmeow:eqAttestation002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:VerificationActivity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:VerificationActivity skos:closeMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqAttestation003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AttestationArtifact ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:AttestationArtifact skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "An attestation artifact is a provenance entity" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "An attestation artifact is a provenance entity"
+|} .
 
-gmeow:eqAttestation004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:attester ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasAttributedTo ;
+gmeow:attester skos:closeMatch prov:wasAttributedTo {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "The attester is the agent to whom the attestation is attributed; directionality differs (attester is a direct property, wasAttributedTo is an annotation/derivation)" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "The attester is the agent to whom the attestation is attributed; directionality differs (attester is a direct property, wasAttributedTo is an annotation/derivation)"
+|} .
 
-gmeow:eqAttestation005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasGeneratedBy ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasGeneratedBy ;
+gmeow:wasGeneratedBy skos:exactMatch prov:wasGeneratedBy {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqAttestation006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasDerivedFrom ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:wasDerivedFrom skos:exactMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqAttestation007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasAttributedTo ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasAttributedTo ;
+gmeow:wasAttributedTo skos:exactMatch prov:wasAttributedTo {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
 # --------------------------------------------------------------------------- #
 # W3C Verifiable Credentials / DID
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAttestation008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Attestation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vc:VerifiableCredential ;
+gmeow:Attestation skos:closeMatch vc:VerifiableCredential {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "A VC is credential-like; Attestation is broader (includes non-credential envelopes such as SLSA, DSSE, transparency logs)" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "A VC is credential-like; Attestation is broader (includes non-credential envelopes such as SLSA, DSSE, transparency logs)"
+|} .
 
-gmeow:eqAttestation009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:attester ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vc:issuer ;
+gmeow:attester skos:closeMatch vc:issuer {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqAttestation010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:attestedSubject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vc:credentialSubject ;
+gmeow:attestedSubject skos:closeMatch vc:credentialSubject {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.75
+|} .
 
-gmeow:eqAttestation011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:issuedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vc:issuanceDate ;
+gmeow:issuedAt skos:closeMatch vc:issuanceDate {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqAttestation012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:VerificationResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vc:VerifiablePresentation ;
+gmeow:VerificationResult skos:closeMatch vc:VerifiablePresentation {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "A verification result is the outcome of checking a VC, not the presentation itself; loose mapping" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "A verification result is the outcome of checking a VC, not the presentation itself; loose mapping"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Web of Trust (WOT) — broader attestation pattern
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAttestation013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Attestation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject <http://xmlns.com/wot/0.1/Endorsement> ;
+gmeow:Attestation skos:relatedMatch <http://xmlns.com/wot/0.1/Endorsement> {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "WoT Endorsement is a key-certification edge; Attestation is the broader envelope pattern. Certification (trust.ttl) is the closer match." ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "WoT Endorsement is a key-certification edge; Attestation is the broader envelope pattern. Certification (trust.ttl) is the closer match."
+|} .
 
 # --------------------------------------------------------------------------- #
 # DQV — quality assessments consume attestation evidence
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAttestation014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:VerificationActivity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject <http://www.w3.org/ns/dqv#QualityAssessment> ;
+gmeow:VerificationActivity skos:relatedMatch <http://www.w3.org/ns/dqv#QualityAssessment> {|
+    gmeow:sssomFile "gmeow-attestation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Verification and quality assessment are distinct but related; quality may consume verification results as evidence" ;
-    gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
+    gmeow:comment "Verification and quality assessment are distinct but related; quality may consume verification results as evidence"
+|} .

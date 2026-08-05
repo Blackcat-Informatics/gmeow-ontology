@@ -33,10 +33,17 @@ use gmeow_cli_core::ConsoleMode;
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
 /// generator inputs, and no network. Every command that defaults to "the bundle"
 /// reads these bytes unless the user supplies a file / `--gts`.
-pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../generated/dist/gmeow.gts"
-));
+///
+/// The bundle is a git-ignored staged product materialized by `make check` (or
+/// `make install`), never a committed input. `build.rs` resolves it to an
+/// absolute path, guards against it being absent or empty, and exposes that
+/// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
+/// reads — so the build fails closed with a bootstrap pointer (naming
+/// `make check`) rather than a bare "file not found" when the bundle hasn't
+/// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
+/// override the staged path for release/package flows; the same hard fail on
+/// absence still applies.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -65,6 +72,24 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
+/// The output serialization every structured `gmeow logic` reader shares
+/// (`fragments`, `frontier`, `explain`, `refine`, `saga`).
+///
+/// ONE convention, not one per verb: a derived frontier that an agent runtime must
+/// read back into a graph is the same kind of product as the decidability manifest,
+/// and giving each verb its own flag name would make the machine-readable surface
+/// discoverable only verb by verb.
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum OutputFormat {
+    /// Deterministic, greppable human-readable text (the default).
+    #[default]
+    Text,
+    /// Pretty JSON carrying the FULL derived content — every row with its
+    /// provenance split, every witness, and the run's outcome — so a derived
+    /// result can flow back into a graph instead of ending at a terminal.
+    Json,
+}
+
 /// The `gmeow` consumer CLI.
 #[derive(Debug, Parser)]
 #[command(name = "gmeow", version, about = "The GMEOW ontology consumer CLI.")]
@@ -85,6 +110,12 @@ pub struct Cli {
 }
 
 /// The consumer subcommands.
+///
+/// This is the top-level clap dispatch enum, constructed exactly once per
+/// process from parsed arguments; the flag-rich `HybridQuery` variant makes it
+/// the largest, but there is no hot path allocating many of these, so the
+/// per-variant size difference is immaterial here.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Print the gmeow package version.
@@ -254,6 +285,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: AffectCommands,
     },
+    /// `math:` ingestion bridges: lift a REAL external mathematical artifact into the
+    /// shipped `math:` codomain.
+    Math {
+        #[command(subcommand)]
+        command: MathCommands,
+    },
     /// Conjecture-and-refutation tools over the `logic:` engine.
     Conjecture {
         #[command(subcommand)]
@@ -286,6 +323,13 @@ pub enum Commands {
     Slice {
         #[command(subcommand)]
         command: SliceCommands,
+    },
+    /// External documentation distribution tools: the checkout-free consumer twin
+    /// of the release-time docs distribution — dogfoods the distribution catalog
+    /// and verifies the content-addressed distribution.
+    Docs {
+        #[command(subcommand)]
+        cmd: DocsCmd,
     },
     /// GMN-1 conformance surface: the shipped, checkout-free twin of the GMN-1
     /// codec gates. `digest`/`encode`/`decode` expose the digest + codec legs, and
@@ -321,8 +365,8 @@ pub enum Commands {
         /// IRI (`--relation`) plus any ordinary RDF predicates from `--facts`.
         #[arg(long = "program")]
         program: PathBuf,
-        /// The external provider's candidate tuples: DERIVED QUERY INPUTS,
-        /// never asserted ontology facts, so this is deliberately a plain
+        /// TABLE MODE. The external provider's candidate tuples: DERIVED QUERY
+        /// INPUTS, never asserted ontology facts, so this is deliberately a plain
         /// line-oriented table, not RDF. One tuple per line:
         /// `<arg1-iri> <arg2-iri> annotation order-key`, whitespace-separated
         /// (tabs or spaces, repeated whitespace collapses); blank lines and
@@ -330,11 +374,68 @@ pub enum Commands {
         /// bracketed absolute IRIs (`<https://example.org/x>`); `annotation`
         /// is a signed 64-bit ZWeight integer; `order-key` is the provider's
         /// own lexical rank key for the pushed-down ascending total order
-        /// (ties break on canonical tuple order).
+        /// (ties break on canonical tuple order). Mutually exclusive with
+        /// `--purremb`; exactly one mode must be selected.
         #[arg(long = "candidates")]
-        candidates: PathBuf,
+        candidates: Option<PathBuf>,
+        /// PURREMB MODE. A `.purremb` artifact to open and fully verify
+        /// (verify-once and source-pack certify), then expose as a query-scoped
+        /// nearest-neighbour relation whose retrieved rows are RDF 1.2 identities.
+        /// Requires `--source` and the full selection surface below; mutually
+        /// exclusive with `--candidates`.
+        #[arg(long = "purremb")]
+        purremb: Option<PathBuf>,
+        /// PURREMB MODE. The exact source pack the `--purremb` artifact is bound
+        /// to (verified under `--source-mode`).
+        #[arg(long = "source")]
+        source: Option<PathBuf>,
+        /// PURREMB MODE. Target-set identity (64 hex characters).
+        #[arg(long = "target-set")]
+        target_set: Option<String>,
+        /// PURREMB MODE. Embedding-family identity (64 hex characters).
+        #[arg(long = "family")]
+        family: Option<String>,
+        /// PURREMB MODE. Effective vector-space identity (64 hex characters).
+        #[arg(long = "vector-space")]
+        vector_space: Option<String>,
+        /// PURREMB MODE. Stored-matrix identity (64 hex characters).
+        #[arg(long = "matrix")]
+        matrix: Option<String>,
+        /// PURREMB MODE. Effective-projection identity (64 hex characters);
+        /// required only for the Matryoshka prefix-then-rerank policy.
+        #[arg(long = "projection")]
+        projection: Option<String>,
+        /// PURREMB MODE. Declared distance metric: `cosine`, `negative-dot`, or
+        /// `squared-euclidean`.
+        #[arg(long = "metric", default_value = "cosine")]
+        metric: String,
+        /// PURREMB MODE. Effective (leading-prefix) dimension scored against.
+        #[arg(long = "effective-dimension", default_value_t = 0)]
+        effective_dimension: u32,
+        /// PURREMB MODE. Declared stored scalar type: `f32` or `f64`.
+        #[arg(long = "dtype", default_value = "f32")]
+        dtype: String,
+        /// PURREMB MODE. Effective-space prefix postprocessing: `none` or
+        /// `deterministic-l2`.
+        #[arg(long = "postprocessing", default_value = "none")]
+        postprocessing: String,
+        /// PURREMB MODE. Selected retrieval branch: `exact-full-space` or
+        /// `matryoshka-prefix-then-rerank`.
+        #[arg(long = "retrieval-policy", default_value = "exact-full-space")]
+        retrieval_policy: String,
+        /// PURREMB MODE. Source-verification mode: `exact` or `certified`.
+        #[arg(long = "source-mode", default_value = "certified")]
+        source_mode: String,
+        /// PURREMB MODE. RDF 1.2 term kind of the corpus target rows, applied to
+        /// both the query and candidate columns: `iri` (default), `triple-term`,
+        /// or `literal`. A `triple-term` corpus is queried with a `<<( s p o )>>`
+        /// goal term and its candidates round-trip as quoted triples.
+        #[arg(long = "term-kind", default_value = "iri")]
+        term_kind: String,
         /// The provider relation IRI referenced by `--program` (fixed arity 2,
-        /// both arguments IRIs, `logic:SimilarityAnnotation` dimension).
+        /// both arguments IRIs). Table mode carries a
+        /// `logic:SimilarityAnnotation`; PURREMB mode carries a
+        /// `logic:DistanceAnnotation`.
         #[arg(long = "relation")]
         relation: String,
         /// Provider identity IRI (provenance only).
@@ -349,8 +450,10 @@ pub enum Commands {
             default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/model"
         )]
         model_iri: String,
-        /// Immutable artifact-generation IRI the `--candidates` table is
-        /// pinned to (provenance only).
+        /// Artifact-generation IRI. Table mode: the immutable generation the
+        /// `--candidates` table is pinned to. PURREMB mode: the BASE IRI the
+        /// pinned artifact root and the explicit selection (policy + source
+        /// mode) are folded into, so a differing selection is never cache-aliased.
         #[arg(
             long = "artifact-generation",
             default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/generation/1"
@@ -431,6 +534,27 @@ pub enum SliceCommands {
     },
 }
 
+/// The `gmeow docs` nested subcommands.
+#[derive(Debug, Subcommand)]
+pub enum DocsCmd {
+    /// Resolve the per-format consumer-need matrix by querying the meta-level
+    /// distribution-catalog named graph shipped inside the embedded `gmeow.gts`
+    /// bundle (AC2) — dogfooding the distribution-catalog ontology content, never a
+    /// re-authored static table.
+    Matrix,
+    /// Verify a materialized documentation distribution's blake3 content digests
+    /// against its DCAT manifest (`<dir>/manifest/docs-manifest.ttl`).
+    Verify {
+        /// The materialized `dist/gmeow-docs/`-shaped documentation distribution root.
+        #[arg(long, default_value = "dist/gmeow-docs")]
+        dir: PathBuf,
+        /// Restrict verification to a single distribution slug (default: every
+        /// distribution the manifest declares).
+        #[arg(long)]
+        format: Option<String>,
+    },
+}
+
 /// The `gmeow gmn` nested subcommands (the GMN-1 conformance surface over
 /// `gmeow_lang_bridge`'s digest / codec / witness / pack layer).
 #[derive(Debug, Subcommand)]
@@ -470,6 +594,28 @@ pub enum GmnCommands {
         #[arg(long = "format", short = 'f', value_enum, default_value_t = DecodeFormat::Nquads)]
         format: DecodeFormat,
     },
+    /// The consume-path security-ring filter: canonicalize → SECURITY-RING FILTER →
+    /// GMN-1 → token-budget fit. Filters a ring-tagged Turtle input to exactly the
+    /// content admissible into `--ring` under the derived `gmeow:gmnRingWithin`
+    /// product-order, projects it to GMN-1 on stdout, and fits it to `--budget`
+    /// tokens with the elided remainder disclosed. Hard-fails (`lang:GmnRingLeak`)
+    /// on any leakage violation.
+    Project {
+        /// The ring-tagged RDF (Turtle) input to filter and project.
+        input: PathBuf,
+        /// The TARGET security ring: a full IRI or a `gmeow:` local name
+        /// (`gmnRingCore` / `gmnRingTrusted` / `gmnRingRestricted` / `gmnRingNato`).
+        #[arg(long = "ring")]
+        ring: String,
+        /// An optional token budget: admitted claims beyond it are elided (whole-claim,
+        /// disclosed on stderr), never silently truncated.
+        #[arg(long = "budget")]
+        budget: Option<u64>,
+        /// Override the embedded bundle's codebook/dictionary AND ring-lattice coordinates with a
+        /// lang `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+    },
     /// The conformance driver: over a frozen vector corpus, prove every positive
     /// vector is byte-frozen + round-trips, every codec-tier negative raises its
     /// recorded class, and the recomputed codebook digest + pack root match the bundle's
@@ -492,6 +638,26 @@ pub enum GmnCommands {
         /// file (default: the `gmeow:gmnPackRoot` in the embedded `gmeow.gts` snapshot).
         #[arg(long = "pack")]
         pack: Option<PathBuf>,
+    },
+    /// Re-emit a STORED GMN-1 document at a target dialect major across an authored
+    /// inter-version correspondence (the version-migration executor's production entry
+    /// point). Hard-fails with the named `lang:GmnUnbridgedGlyphDrop` class (exit 1) on an
+    /// operator the target major drops with no covering rewrite — never a silent repair.
+    Migrate {
+        /// The stored source-major GMN-1 (`.gmn`) document to migrate.
+        input: PathBuf,
+        /// The migration `logic:Correspondence` IRI (the `gmeow:gmnMigratesFrom` /
+        /// `gmeow:gmnMigratesTo` leg to apply).
+        #[arg(long = "correspondence")]
+        correspondence: String,
+        /// The Turtle file authoring the correspondence, its `gmeow:GmnMigrationRewrite`s, and the
+        /// target major's `gmeow:gmnVersionDefinesOperator` native inventory.
+        #[arg(long = "migrations")]
+        migrations: PathBuf,
+        /// Override the embedded bundle's codebook/dictionary + operator registry with a lang
+        /// `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
     },
 }
 
@@ -598,6 +764,99 @@ pub enum CandidateCommands {
 /// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
+    /// Print the actionable frontier for an enactment: one row per entry, its label, the
+    /// SOURCE of that label, and the lifecycle-axis tuple behind it.
+    ///
+    /// Every label is re-computed by the shipped `logic:Rule` set from the entry's axis
+    /// witnesses, and the SOURCE column says what happened to it, because the three
+    /// outcomes are three different things for an operator to know:
+    ///
+    /// - `derived` — a rule concluded this label from the witnesses. Authoritative.
+    /// - a `DISAGREEMENT` marker — the input asserts a DIFFERENT label from the one the
+    ///   rules derive. The derived label is printed as the row and governs; the stale
+    ///   hand-written value is named in the marker rather than echoed back as fact.
+    /// - `ASSERTED-UNCHECKED` — the input asserts a label and NO shipped rule derives one
+    ///   for that entry, so nothing has verified it. An entry that carries too few
+    ///   witnesses for any rule to reach it lands here; this is how you tell an unexamined
+    ///   assertion apart from a conclusion instead of reading both as the same claim.
+    ///
+    /// The re-derivation is genuine: the labels the input asserts are WITHHELD from the
+    /// audit run, so a rule cannot be credited with a conclusion it merely found already
+    /// present. That is what makes `derived (input agrees)` a real statement about the
+    /// author's label rather than a restatement of it.
+    Frontier {
+        /// An RDF file carrying the frontier entries and their axis witnesses.
+        input: PathBuf,
+        /// Explain why ONE action is not actionable, instead of listing the whole
+        /// frontier: prints its derived label, the axis witnesses behind it, and any
+        /// operational capability gap and proposal bound to the step. Every part of that
+        /// answer already exists in the graph; this is the surfacing an operator needs
+        /// to act without reading Turtle.
+        #[arg(long = "why-not")]
+        why_not: Option<String>,
+        /// Output serialization: `text` (default) or `json`. The JSON carries every
+        /// derived row with its provenance split, so an agent runtime can fold the
+        /// frontier back into a graph rather than scraping a table.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Explain a recommended or blocked action: the proof it rests on, its evidence, the
+    /// governing policy, the cost/risk/benefit criteria weighed, and any recorded dissent.
+    ///
+    /// Dissent is printed rather than averaged away. A recommendation that has quietly
+    /// discarded the objection to it is not one an operator can properly weigh.
+    Explain {
+        /// An RDF file carrying the frontier entries and their explanations.
+        input: PathBuf,
+        /// The action (or frontier entry) IRI to explain.
+        #[arg(long = "action")]
+        action: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries all five
+        /// R3.5 elements, the re-derived label verdict and every derived row, so a
+        /// consumer never has to re-parse prose to find the dissent.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Run a BOUNDED means-end search over the authored logic:DecompositionMethod set
+    /// and print the candidate decompositions with an honest completeness status.
+    ///
+    /// The status is the point. A closed roster, a roster cut short by the budget, and a
+    /// method set outside the declared decidable fragment are three different answers,
+    /// and only the first may be treated as exhaustive.
+    Refine {
+        /// An RDF file carrying the logic:DecompositionMethod set.
+        input: PathBuf,
+        /// The task IRI to decompose.
+        #[arg(long = "task")]
+        task: String,
+        /// Maximum method applications. Exhausting it yields an incomplete-by-budget
+        /// result, never a silently truncated roster presented as closed.
+        #[arg(long = "budget", default_value_t = 1000)]
+        budget: u32,
+        /// The declared logic:SearchFragment IRI.
+        #[arg(
+            long = "fragment",
+            default_value = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod"
+        )]
+        fragment: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries the
+        /// completeness status, every candidate and typed rejection, and each one's
+        /// chase witness (rule IRI, proof height, premises).
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Print the external-effect saga status for an enactment: what was intended, what
+    /// was attempted, what came back, and — when an outcome is undetermined — what is
+    /// owed before anything else may happen.
+    Saga {
+        /// An RDF file carrying the enactment and its effect records.
+        input: PathBuf,
+        /// Output serialization: `text` (default) or `json`. The JSON carries each
+        /// attempt's outcome, what is owed, and every derived row with its
+        /// provenance split.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
     /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
     /// native proof-carrying SLG-WFS backward (goal-directed) engine
     /// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
@@ -619,21 +878,210 @@ pub enum LogicCommands {
         /// (`ex:peanoAdd`) is NOT accepted — pass the program's full IRI.
         #[arg(long = "program-iri")]
         program_iri: Option<String>,
-        /// An additional Turtle document whose told `rdfs:subClassOf` edges seed
-        /// the order-sorted unification lattice — e.g.
-        /// `slices/grounding/math/module.ttl`, whose `math:Integer ⊑
-        /// math:RationalNumber ⊑ math:RealNumber ⊑ …` chain the engine composes
-        /// into `math:Integer ⊑ math:RealNumber` internally (the engine computes
-        /// its own reflexive-transitive closure over whatever covering edges it
-        /// is given, so passing the told chain is sufficient — never a
-        /// pre-reasoned closure). Default: use ONLY the `rdfs:subClassOf` edges
-        /// told in `--program-file` itself. A program whose sort obligation
-        /// needs an edge absent from every source resolves to ZERO order-sorted
-        /// answers for that obligation — a correct, honest gap, never a silent
-        /// hardcoded fallback to some vocabulary's subsort tower.
+        /// An additional Turtle document whose told class-subsumption edges seed
+        /// the order-sorted unification lattice — read on EITHER spelling of the
+        /// subsumption predicate (the canonical `logic:subClassOf` and its
+        /// `rdfs:subClassOf` projection) — e.g. `slices/grounding/math/module.ttl`,
+        /// whose `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …` chain
+        /// the engine composes into `math:Integer ⊑ math:RealNumber` internally
+        /// (the engine computes its own reflexive-transitive closure over
+        /// whatever covering edges it is given, so passing the told chain is
+        /// sufficient — never a pre-reasoned closure). Default: use ONLY the
+        /// `logic:subClassOf`/`rdfs:subClassOf` edges told in `--program-file`
+        /// itself. A program whose sort obligation needs an edge absent from
+        /// every source resolves to ZERO order-sorted answers for that
+        /// obligation — a correct, honest gap, never a silent hardcoded
+        /// fallback to some vocabulary's subsort tower.
         #[arg(long = "subsort-source")]
         subsort_source: Option<PathBuf>,
     },
+    /// Drive the stable operational `gmeow_logic::runtime::ReasoningSession` façade
+    /// over authored `logic:` programs and RDF EDBs: open a content-addressed
+    /// session, apply content-addressed deltas, READ BACK the incrementally
+    /// maintained derived closure with its proof provenance, and round-trip a
+    /// content-addressed / identity-gated checkpoint to disk. This is the real
+    /// production consumer of the façade — it drives AND surfaces the reasoning
+    /// output, so the maintained closure is never a test-only surface.
+    Session {
+        #[command(subcommand)]
+        command: LogicSessionCommands,
+    },
+    /// Query the shipped fragment-certified decidability surface: list the construct
+    /// families the native refutation kernel natively DECIDES (each with the
+    /// `logic:RefutationPattern` it closes under and its completeness bound), plus
+    /// their dual — the retained `logic:expressivenessBoundary` records the kernel
+    /// deliberately WITHHOLDS, with their technical reasons. Reads the decidability
+    /// manifest (`logic:DecidedFragment` / `logic:RefutationPattern` /
+    /// `logic:expressivenessBoundary`) straight from a graph source via graph queries:
+    /// the embedded `gmeow.gts` bundle by default, or a `--bundle` override (a `.gts`
+    /// snapshot, or an RDF file such as the `logic` slice `module.ttl`, chosen by
+    /// extension). Output is deterministic (sorted by fragment / boundary id).
+    Fragments {
+        /// Query this graph source instead of the embedded bundle: a `.gts` snapshot,
+        /// or an RDF file (`.ttl`/`.nt`/`.nq`/`.rdf`/`.owl`/`.xml`/`.trig`) carrying
+        /// the `logic:DecidedFragment` / `logic:expressivenessBoundary` manifest.
+        #[arg(long = "bundle")]
+        bundle: Option<PathBuf>,
+        /// Output serialization: `text` (default) or `json`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+}
+
+/// The `gmeow logic session` nested subcommands — the production consumer of the
+/// operational [`gmeow_logic::runtime::ReasoningSession`] façade.
+///
+/// Every subcommand loads the authored `logic:` program (`--program`) and the
+/// authorized RDF EDB (`--edb`, Turtle/N-Triples/N-Quads/TriG, re-homed into one
+/// named-graph world) through the SAME production loaders the rest of the CLI uses,
+/// then drives the real façade — never a re-implementation.
+#[derive(Debug, Subcommand)]
+pub enum LogicSessionCommands {
+    /// Open a session over an authorized EDB + program and print the full
+    /// seven-axis `SessionIdentity` (as N-Quads), the genesis journal head, and the
+    /// fixed program's fragment disposition.
+    Open {
+        /// The authorized RDF EDB (Turtle/N-Triples/N-Quads/TriG).
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// The single named-graph world IRI the EDB is re-homed into (the façade
+        /// maintains exactly one world). Default: the session world IRI.
+        #[arg(long = "world")]
+        world: Option<String>,
+        /// Compose over a demand-paged world-source: page the authorized EDB back in
+        /// through a `PagedDataset` and drive `ReasoningSession::open_paged`, then print
+        /// the page-fault composition metrics. Implied by `--page-size`.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
+    },
+    /// Open a session, build a content-addressed `SessionDelta` (additions +
+    /// optional retirements, anchored on the session's own data-generation and
+    /// current head), apply it, and print the typed `OperationOutcome` variant with
+    /// its evidence plus the advanced journal head.
+    Apply {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// The facts to insert (RDF, re-homed into the session world).
+        #[arg(long = "additions")]
+        additions: PathBuf,
+        /// Active state to retire/suppress (RDF, re-homed into the session world).
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// Optional committed-derivation step budget for the insertion.
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+    },
+    /// Read the incrementally-maintained derived closure back out — the production
+    /// READER that makes the maintained answer set observable. Optionally applies a
+    /// delta first (`--apply`), then prints the deterministic, diffable closure with
+    /// per-fact proof provenance (firing rule, premises, signed Z-weight).
+    Facts {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Optionally apply this additions delta before reading the closure back.
+        #[arg(long = "apply")]
+        apply: Option<PathBuf>,
+        /// Active state to retire/suppress before reading the closure back (RDF,
+        /// re-homed into the session world exactly as `--apply` additions are, via the
+        /// identical suppression path `checkpoint --retract` / `apply --retract` use).
+        /// Folds a NON-EMPTY suppression into the applied delta, so the read-back
+        /// closure and its per-fact proof heights reflect the retraction — e.g. a
+        /// surviving fact's min-proof-height RISES when its shortest proof is retired.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// Read the closure back over a demand-paged world-source
+        /// (`ReasoningSession::open_paged`) instead of the resident open, and print the
+        /// page-fault composition metrics. Implied by `--page-size`. The maintained
+        /// closure read back is identical to the resident path.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
+    },
+    /// Open a session (optionally applying a delta first), mint a content-addressed
+    /// checkpoint, and write it to disk as JSON (identity + EDB generation + journal
+    /// head + content address).
+    Checkpoint {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Optionally apply this additions delta before checkpointing.
+        #[arg(long = "apply")]
+        apply: Option<PathBuf>,
+        /// Active state to retire/suppress in the applied delta (RDF, re-homed into
+        /// the session world exactly as the additions are). Folds a NON-EMPTY
+        /// suppression into the committed delta the checkpoint persists and replays.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// The path to write the checkpoint JSON to.
+        #[arg(long = "out", short = 'o')]
+        out: PathBuf,
+    },
+    /// Load a checkpoint from disk and restore a session by deterministic
+    /// re-materialization, printing the typed outcome — including the identity-gated
+    /// `Invalid{IdentityMismatch}` rejection when the checkpoint does not match the
+    /// current identity, and `Invalid{CorruptCheckpoint}` when the bytes were
+    /// tampered with.
+    Restore {
+        /// The checkpoint JSON to load.
+        #[arg(long = "in")]
+        input: PathBuf,
+        /// The authorized RDF EDB to re-materialize from.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+    },
+    /// Restart from a checkpoint and resume at its durable journal head. If
+    /// `--reapply` re-submits an already-committed delta (anchored on the stale
+    /// pre-checkpoint head), print the `Invalid{PreconditionMismatch}` refusal — the
+    /// structural no-double-apply guard surviving a persist→restore boundary.
+    Restart {
+        /// The checkpoint JSON to load.
+        #[arg(long = "in")]
+        input: PathBuf,
+        /// The authorized RDF EDB to re-materialize from.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Re-submit this already-committed additions delta (anchored on the
+        /// genesis head) to demonstrate the double-apply refusal after a restart.
+        #[arg(long = "reapply")]
+        reapply: Option<PathBuf>,
+    },
+}
+
+/// The metric lens for `gmeow affect classify`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
+pub enum ClassifyMetric {
+    /// Rank by exact G-distance `(x − p)ᵀG(x − p)` — nearest INCLUDING intensity.
+    #[default]
+    Distance,
+    /// Rank by G-cosine alignment `⟨x,p⟩_G/(‖x‖‖p‖)` — nearest QUALITY / direction.
+    Cosine,
 }
 
 /// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
@@ -652,6 +1100,37 @@ pub enum AffectCommands {
         /// between it and `--observation` (requires `--observation`).
         #[arg(long, requires = "observation")]
         to: Option<String>,
+    },
+    /// Classify a state affect vector to its nearest named-emotion prototype(s) under
+    /// an EXPLICIT vantage metric (competency Q9: "is this vector a schadenfreude?").
+    /// Ranks by exact G-distance (`--metric distance`, incl. intensity) or G-cosine
+    /// (`--metric cosine`, direction/quality); every squared distance is computed
+    /// THROUGH the native exact-ℚ bilinear builtin, and the reported √ decimals + cosine
+    /// are display-only, never selection. Defaults to the full canonical
+    /// `gmeow:AffectPrototype` set; the empty set / a non-PD vantage / coincident
+    /// prototypes / a zero-norm cosine vector are hard fails. Classification is a
+    /// derived, vantage-relative view — never a stored label.
+    Classify {
+        /// Source `.gts` snapshot carrying the state (+ optional explicit prototypes).
+        source: PathBuf,
+        /// The state `gmeow:AffectVectorObservation` IRI to classify.
+        #[arg(long)]
+        observation: String,
+        /// A candidate prototype observation IRI (repeatable). When omitted, classify
+        /// against EVERY `gmeow:AffectPrototype` in the snapshot.
+        #[arg(long = "prototype")]
+        prototype: Vec<String>,
+        /// The metric lens: `distance` (G-distance, incl. intensity) or `cosine`
+        /// (direction / quality). Default: `distance`.
+        #[arg(long, value_enum, default_value_t = ClassifyMetric::Distance)]
+        metric: ClassifyMetric,
+        /// The vantage `gmeow:AffectScaleProfile` IRI whose `gmeow:metricGram` is
+        /// imposed on every vector. Default: the canonical `gmeow:coreAffectMetricPAD`.
+        #[arg(long = "metric-profile")]
+        metric_profile: Option<String>,
+        /// Report only the top-`N` ranked prototypes (default: the full ranked list).
+        #[arg(long = "top-k")]
+        top_k: Option<usize>,
     },
     /// Ingest a captured classifier output (JSON) into attributed GMEOW evidence
     /// Turtle: a gmeow:ModelInferenceRun + one gmeow:AffectClassifierOutput per
@@ -673,6 +1152,74 @@ pub enum AffectCommands {
     Recover {
         /// GMEOW evidence Turtle, as produced by `ingest`.
         source: PathBuf,
+    },
+}
+
+/// The `gmeow math` nested subcommands (native `gmeow_math_lift` ingestion bridges).
+///
+/// Each leaf is one of the three shipped `math:` ingestion bridges. Every one reads a REAL
+/// external artifact — an R script, an `.onnx` export, a TSTP derivation — and emits the
+/// `math:IngestRun` it produced together with the structured codomain that run generated:
+/// the run's four mandatory frame edges (`math:parseSource`, `logic:instantiatesSchema`,
+/// `logic:instantiatesPlan`, `math:ingestCorrespondence`), the `logic:Correspondence`
+/// carrying the lift's law spine, and every codomain node linked back by
+/// `gmeow:wasGeneratedBy`.
+///
+/// There is no degraded path and no partial lift. An artifact the bridge cannot FULLY
+/// structure emits no triples at all and fails with a typed `math.lift.*` diagnostic — a
+/// string-valued placeholder for an expression the bridge could not read would be a lie
+/// about what crossed the bridge.
+#[derive(Debug, Subcommand)]
+pub enum MathCommands {
+    /// Lift an R model/statistics script into `math:` structures: `math:ModelFormula` over
+    /// indexed `math:ArgumentSlot`s, `math:FittedModel` (with both its formula and its
+    /// `math:fittedToData` dataset), `math:DatasetMatrix` BY REFERENCE, `math:Distribution`,
+    /// `math:Estimate`, `math:Residual`, and `math:ApplicationExpression`; general
+    /// computation and control flow route to `logic:` via `math:compilesToLogicFormula`.
+    ///
+    /// Identical normalized subexpressions intern to ONE node, so the fact count grows with
+    /// distinct structure rather than textual repetition. A syntactically malformed script,
+    /// or one whose content carries no statistical structure at all, is a hard failure.
+    #[command(name = "lift-r")]
+    LiftR {
+        /// The R source file; `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Lift an ONNX model graph into `math:` structures: a `math:TensorComputationGraph`
+    /// over its `math:computationNode`s, each node's operator grounded in the model's
+    /// DECLARED opset, and its weight tensors held by reference.
+    ///
+    /// Weight PAYLOADS are never inlined (the blob-by-reference doctrine), so the lift is a
+    /// lossy lens over a CRISP source. A byte stream that is not a well-formed protobuf
+    /// `ModelProto`, or a model with no graph, no computation node, or no declared opset, is
+    /// a hard failure.
+    #[command(name = "lift-onnx")]
+    LiftOnnx {
+        /// The `.onnx` model file (BINARY protobuf); `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Lift a TSTP derivation (a proof dependency DAG) into the `math:` proof layer:
+    /// `math:ProofStep`s and `math:Axiom` leaves over their parent edges, each step's
+    /// inference rule, and the derivation's conclusion expression.
+    ///
+    /// This is the one bridge that claims a `logic:SectionRetraction` /
+    /// `logic:ExactPreservation` rung — the derivation reconstructs from the lifted graph and
+    /// its retained witness alone. That claim is what makes its refusals mandatory: any TSTP
+    /// construct the reader does not structure is a hard failure rather than a silently
+    /// dropped field, because dropping one would make the section claim false.
+    #[command(name = "lift-proof")]
+    LiftProof {
+        /// The TSTP derivation file; `-` reads standard input.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
     },
 }
 
@@ -806,6 +1353,7 @@ pub fn run() -> i32 {
         Commands::Gts { args } => passthrough::gts(reporter, &args),
         Commands::Music { command } => passthrough::music(reporter, &command),
         Commands::Affect { command } => passthrough::affect(reporter, &command),
+        Commands::Math { command } => passthrough::math(reporter, &command),
         Commands::Conjecture { command } => match command {
             ConjectureCommands::Test {
                 formula,
@@ -863,6 +1411,24 @@ pub fn run() -> i32 {
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
         Commands::Logic { command } => match command {
+            LogicCommands::Frontier {
+                input,
+                why_not,
+                format,
+            } => commands::logic_frontier(reporter, &input, why_not.as_deref(), format),
+            LogicCommands::Explain {
+                input,
+                action,
+                format,
+            } => commands::logic_explain(reporter, &input, &action, format),
+            LogicCommands::Refine {
+                input,
+                task,
+                budget,
+                fragment,
+                format,
+            } => commands::logic_refine(reporter, &input, &task, &fragment, budget, format),
+            LogicCommands::Saga { input, format } => commands::logic_saga(reporter, &input, format),
             LogicCommands::Backward {
                 program_file,
                 program_iri,
@@ -873,6 +1439,86 @@ pub fn run() -> i32 {
                 program_iri.as_deref(),
                 subsort_source.as_deref(),
             ),
+            LogicCommands::Session { command } => match command {
+                LogicSessionCommands::Open {
+                    edb,
+                    program,
+                    world,
+                    paged,
+                    page_size,
+                } => commands::logic_session_open(
+                    reporter,
+                    &edb,
+                    &program,
+                    world.as_deref(),
+                    paged,
+                    page_size,
+                ),
+                LogicSessionCommands::Apply {
+                    edb,
+                    program,
+                    additions,
+                    retract,
+                    max_steps,
+                } => commands::logic_session_apply(
+                    reporter,
+                    &edb,
+                    &program,
+                    &additions,
+                    retract.as_deref(),
+                    max_steps,
+                ),
+                LogicSessionCommands::Facts {
+                    edb,
+                    program,
+                    apply,
+                    retract,
+                    paged,
+                    page_size,
+                } => commands::logic_session_facts(
+                    reporter,
+                    &edb,
+                    &program,
+                    apply.as_deref(),
+                    retract.as_deref(),
+                    paged,
+                    page_size,
+                ),
+                LogicSessionCommands::Checkpoint {
+                    edb,
+                    program,
+                    apply,
+                    retract,
+                    out,
+                } => commands::logic_session_checkpoint(
+                    reporter,
+                    &edb,
+                    &program,
+                    apply.as_deref(),
+                    retract.as_deref(),
+                    &out,
+                ),
+                LogicSessionCommands::Restore {
+                    input,
+                    edb,
+                    program,
+                } => commands::logic_session_restore(reporter, &input, &edb, &program),
+                LogicSessionCommands::Restart {
+                    input,
+                    edb,
+                    program,
+                    reapply,
+                } => commands::logic_session_restart(
+                    reporter,
+                    &input,
+                    &edb,
+                    &program,
+                    reapply.as_deref(),
+                ),
+            },
+            LogicCommands::Fragments { bundle, format } => {
+                commands::logic_fragments(reporter, bundle.as_deref(), format)
+            }
         },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
@@ -901,6 +1547,12 @@ pub fn run() -> i32 {
                 commands::slice_projection_ceilings(reporter, &format)
             }
         },
+        Commands::Docs { cmd } => match cmd {
+            DocsCmd::Matrix => commands::docs_matrix(reporter),
+            DocsCmd::Verify { dir, format } => {
+                commands::docs_verify(reporter, &dir, format.as_deref())
+            }
+        },
         Commands::Gmn { command } => match command {
             GmnCommands::Digest {
                 input,
@@ -915,6 +1567,12 @@ pub fn run() -> i32 {
                 lang_module,
                 format,
             } => gmn::decode(reporter, &input, lang_module.as_deref(), format),
+            GmnCommands::Project {
+                input,
+                ring,
+                budget,
+                lang_module,
+            } => gmn::project(reporter, &input, &ring, budget, lang_module.as_deref()),
             GmnCommands::Verify {
                 vectors,
                 lang_module,
@@ -927,11 +1585,37 @@ pub fn run() -> i32 {
                 grammar.as_deref(),
                 pack.as_deref(),
             ),
+            GmnCommands::Migrate {
+                input,
+                correspondence,
+                migrations,
+                lang_module,
+            } => gmn::migrate(
+                reporter,
+                &input,
+                &correspondence,
+                &migrations,
+                lang_module.as_deref(),
+            ),
         },
         Commands::HybridQuery {
             facts,
             program,
             candidates,
+            purremb,
+            source,
+            target_set,
+            family,
+            vector_space,
+            matrix,
+            projection,
+            metric,
+            effective_dimension,
+            dtype,
+            postprocessing,
+            retrieval_policy,
+            source_mode,
+            term_kind,
             relation,
             provider_iri,
             model_iri,
@@ -939,18 +1623,173 @@ pub fn run() -> i32 {
             per_call_limit,
             max_calls,
             max_rows,
-        } => commands::hybrid_query(
+        } => dispatch_hybrid_query(
             reporter,
-            &facts,
-            &program,
-            &candidates,
-            &relation,
-            &provider_iri,
-            &model_iri,
-            &artifact_generation,
-            per_call_limit,
-            max_calls,
-            max_rows,
+            HybridQueryInputs {
+                facts,
+                program,
+                candidates,
+                purremb,
+                source,
+                target_set,
+                family,
+                vector_space,
+                matrix,
+                projection,
+                metric,
+                effective_dimension,
+                dtype,
+                postprocessing,
+                retrieval_policy,
+                source_mode,
+                term_kind,
+                relation,
+                provider_iri,
+                model_iri,
+                artifact_generation,
+                per_call_limit,
+                max_calls,
+                max_rows,
+            },
         ),
+    }
+}
+
+/// Owned `hybrid-query` inputs, threaded from clap to the mode selector.
+struct HybridQueryInputs {
+    facts: PathBuf,
+    program: PathBuf,
+    candidates: Option<PathBuf>,
+    purremb: Option<PathBuf>,
+    source: Option<PathBuf>,
+    target_set: Option<String>,
+    family: Option<String>,
+    vector_space: Option<String>,
+    matrix: Option<String>,
+    projection: Option<String>,
+    metric: String,
+    effective_dimension: u32,
+    dtype: String,
+    postprocessing: String,
+    retrieval_policy: String,
+    source_mode: String,
+    term_kind: String,
+    relation: String,
+    provider_iri: String,
+    model_iri: String,
+    artifact_generation: String,
+    per_call_limit: usize,
+    max_calls: u64,
+    max_rows: u64,
+}
+
+/// Stable diagnostic code for a mis-specified `hybrid-query` mode selection.
+const HYBRID_QUERY_MODE_DIAG: &str = "gmeow-cli.hybrid-query.mode";
+
+/// Select the table or verified-PURREMB retrieval mode from the CLI inputs. The
+/// two modes are mutually exclusive and each is fully specified — a
+/// half-specified request is a hard usage failure, never a silent degradation to
+/// the other mode.
+fn dispatch_hybrid_query(
+    reporter: &dyn gmeow_cli_core::Reporter,
+    inputs: HybridQueryInputs,
+) -> i32 {
+    match (inputs.candidates.as_ref(), inputs.purremb.as_ref()) {
+        (Some(_), Some(_)) => commands::fail_code(
+            reporter,
+            HYBRID_QUERY_MODE_DIAG,
+            "--candidates (table mode) and --purremb (PURREMB mode) are mutually exclusive; \
+             select exactly one",
+            2,
+        ),
+        (None, None) => commands::fail_code(
+            reporter,
+            HYBRID_QUERY_MODE_DIAG,
+            "one retrieval mode is required: pass --candidates (table mode) or --purremb + \
+             --source (PURREMB mode)",
+            2,
+        ),
+        (Some(candidates), None) => commands::hybrid_query(
+            reporter,
+            &inputs.facts,
+            &inputs.program,
+            candidates,
+            &inputs.relation,
+            &inputs.provider_iri,
+            &inputs.model_iri,
+            &inputs.artifact_generation,
+            inputs.per_call_limit,
+            inputs.max_calls,
+            inputs.max_rows,
+        ),
+        (None, Some(purremb)) => {
+            let Some(source) = inputs.source.as_ref() else {
+                return commands::fail_code(
+                    reporter,
+                    HYBRID_QUERY_MODE_DIAG,
+                    "PURREMB mode requires --source (the exact source pack the artifact is \
+                     bound to)",
+                    2,
+                );
+            };
+            // Every selection identity is mandatory in PURREMB mode.
+            let required = [
+                ("--target-set", inputs.target_set.as_deref()),
+                ("--family", inputs.family.as_deref()),
+                ("--vector-space", inputs.vector_space.as_deref()),
+                ("--matrix", inputs.matrix.as_deref()),
+            ];
+            for (flag, value) in required {
+                if value.is_none() {
+                    return commands::fail_code(
+                        reporter,
+                        HYBRID_QUERY_MODE_DIAG,
+                        format!("PURREMB mode requires {flag} (a bound in-corpus identity)"),
+                        2,
+                    );
+                }
+            }
+            // The effective (leading-prefix) dimension is a mandatory selection input; its
+            // clap default of 0 is not a valid scored space. Reject it here with a clear
+            // usage error rather than letting it fail deep inside `PurrembBinding::open`.
+            if inputs.effective_dimension == 0 {
+                return commands::fail_code(
+                    reporter,
+                    HYBRID_QUERY_MODE_DIAG,
+                    "PURREMB mode requires --effective-dimension (a non-zero effective \
+                     vector-space dimension)"
+                        .to_owned(),
+                    2,
+                );
+            }
+            commands::hybrid_query_purremb(
+                reporter,
+                &commands::PurrembHybridQuery {
+                    facts: &inputs.facts,
+                    program: &inputs.program,
+                    purremb,
+                    source,
+                    relation: &inputs.relation,
+                    provider_iri: &inputs.provider_iri,
+                    model_iri: &inputs.model_iri,
+                    generation_base: &inputs.artifact_generation,
+                    target_set: inputs.target_set.as_deref().unwrap_or_default(),
+                    family: inputs.family.as_deref().unwrap_or_default(),
+                    vector_space: inputs.vector_space.as_deref().unwrap_or_default(),
+                    matrix: inputs.matrix.as_deref().unwrap_or_default(),
+                    projection: inputs.projection.as_deref(),
+                    metric: &inputs.metric,
+                    effective_dimension: inputs.effective_dimension,
+                    dtype: &inputs.dtype,
+                    postprocessing: &inputs.postprocessing,
+                    retrieval_policy: &inputs.retrieval_policy,
+                    source_mode: &inputs.source_mode,
+                    term_kind: &inputs.term_kind,
+                    per_call_limit: inputs.per_call_limit,
+                    max_calls: inputs.max_calls,
+                    max_rows: inputs.max_rows,
+                },
+            )
+        }
     }
 }

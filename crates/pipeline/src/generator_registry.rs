@@ -5,14 +5,16 @@
 //!
 //! The Python generator framework was retired when the DAG-driven pipeline
 //! executor landed, but the Makefile still needs a machine-readable list
-//! of committed generated artifact paths. This module provides a static,
+//! of retained-product paths. This module provides a static,
 //! human-maintained registry that maps each logical generator to its canonical
-//! source directories/files and committed output paths.
+//! source directories/files and output paths.
 //!
 //! The registry is intentionally simple: it does not drive the pipeline (the
-//! dogfooded `gmeow:Pipeline` DAG in `slices/core/pipeline/module.ttl` does),
-//! it only *describes* the committed artifacts so tooling like `make commit`
-//! can stage the right paths without importing deleted Python modules.
+//! dogfooded `gmeow:Pipeline` DAG in `slices/core/pipeline/module.ttl` does).
+//! The git-ignored `generated/` projection is materialized by `make check`;
+//! `make commit` stages only the retained products
+//! ([`RETAINED_PRODUCT_PATHS`]: `catalog-v001.xml`,
+//! `packages/python/gmeow_models/`) without importing deleted Python modules.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -28,13 +30,15 @@ pub struct GeneratorInfo {
     pub name: &'static str,
     /// Canonical source paths (repo-relative directories or files).
     pub sources: &'static [&'static str],
-    /// Committed output paths (repo-relative directories or files).
+    /// Output paths (repo-relative directories or files) — mostly the
+    /// git-ignored `generated/` projection; see [`RETAINED_PRODUCT_PATHS`]
+    /// for the paths that remain tracked.
     pub outputs: &'static [&'static str],
     /// Names of other generators whose outputs are inputs to this one.
     pub dependencies: &'static [&'static str],
 }
 
-/// The committed generated artifact registry.
+/// The generated artifact registry.
 ///
 /// Sources and outputs are repo-relative. The ordering is alphabetical by name
 /// for deterministic output.
@@ -84,6 +88,18 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         name: "frame-shapes",
         sources: &["slices/", "shapes/"],
         outputs: &["generated/shapes/"],
+        dependencies: &[],
+    },
+    GeneratorInfo {
+        name: "glossary",
+        sources: &["slices/"],
+        outputs: &[
+            "generated/catalog/glossary.md",
+            // The two external terminology-interchange lowerings (OntoLex vartrans + TBX),
+            // rendered on stage-export-glossary from the SAME reviewed-crossing entry list.
+            "generated/projections/glossary.tbx",
+            "generated/projections/glossary.vartrans.ttl",
+        ],
         dependencies: &[],
     },
     GeneratorInfo {
@@ -157,12 +173,6 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &[],
     },
     GeneratorInfo {
-        name: "parquet",
-        sources: &["generated/dist/gmeow.gts"],
-        outputs: &["generated/parquet/"],
-        dependencies: &["gts"],
-    },
-    GeneratorInfo {
         name: "profiles",
         sources: &["slices/"],
         outputs: &["generated/profiles/"],
@@ -206,17 +216,16 @@ pub const GENERATORS: &[GeneratorInfo] = &[
     },
 ];
 
-/// The canonical top-level committed artifact paths derived from the registry.
+/// The retained product paths derived from the registry — the outputs `make commit`
+/// still stages after `generated/` became an ignored local projection.
 ///
-/// This is the path list `make commit` stages. It contains every committed output
-/// root owned by sync: the carrier/fanout tree, the root OASIS catalog, and the
-/// generated Python model package. External documentation (`ontology-docs/` and
+/// The `generated/` carrier/fanout tree is NO LONGER a committed input: it is a
+/// git-ignored local/release product materialized by `make check` and reconstructed
+/// from `generated/dist/gmeow.gts`, so it is absent here. What remains tracked are the
+/// two retained products that ride outside that projection: the root OASIS catalog and
+/// the generated Python model package. External documentation (`ontology-docs/` and
 /// `dist/gmeow-docs/`) is intentionally ephemeral and therefore absent.
-pub const COMMITTED_GENERATED_PATHS: &[&str] = &[
-    "catalog-v001.xml",
-    "generated/",
-    "packages/python/gmeow_models/",
-];
+pub const RETAINED_PRODUCT_PATHS: &[&str] = &["catalog-v001.xml", "packages/python/gmeow_models/"];
 
 /// Return every generator name, sorted.
 pub fn generator_names() -> Vec<&'static str> {
@@ -238,10 +247,10 @@ pub fn all_output_paths() -> Vec<&'static str> {
     paths
 }
 
-/// Return the union of [`COMMITTED_GENERATED_PATHS`] as a sorted, deduplicated
-/// list. This is the conservative path set used by `make commit`.
-pub fn committed_generated_paths() -> Vec<&'static str> {
-    COMMITTED_GENERATED_PATHS.to_vec()
+/// Return [`RETAINED_PRODUCT_PATHS`] as a list. This is the tracked-product path set
+/// `make commit` stages; `generated/` is not among them (it is an ignored projection).
+pub fn retained_product_paths() -> Vec<&'static str> {
+    RETAINED_PRODUCT_PATHS.to_vec()
 }
 
 /// Compute a stable SHA-256 source hash for a generator from its declared
@@ -430,14 +439,12 @@ mod tests {
     }
 
     #[test]
-    fn committed_paths_are_stable() {
+    fn retained_product_paths_exclude_the_ignored_generated_projection() {
+        // `generated/` is a git-ignored local projection materialized by `make check`,
+        // never staged by `make commit`; only the two retained products remain tracked.
         assert_eq!(
-            committed_generated_paths(),
-            vec![
-                "catalog-v001.xml",
-                "generated/",
-                "packages/python/gmeow_models/"
-            ]
+            retained_product_paths(),
+            vec!["catalog-v001.xml", "packages/python/gmeow_models/"]
         );
     }
 

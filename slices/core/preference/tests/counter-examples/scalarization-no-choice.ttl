@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ScalarizationDisclosureConstraint (AC4): a gmeow:ProjectionReceipt
+# whose gmeow:projectionKind is gmeow:projectionScalarized carries NO gmeow:scalarizationWeights
+# — a scalarized ranking that hides how it collapsed the criteria into a scalar. The ∀→∃ SPARQL
+# constraint MUST reject it with shacl.SPARQLConstraintComponent and NO other finding. The
+# receipt is otherwise well-formed (content-addressed, deterministic with a tie-break rule, and
+# — using logic:ExactPreservation — carrying no dropped relation, so the loss-disclosure and
+# preservation-consistency gates never fire), isolating the missing scalarization weights.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# The DEFECT: a scalarized receipt with no disclosed gmeow:scalarizationWeights.
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a scalarized projection that hides its weights"@en ;
+    gmeow:projectionKind gmeow:projectionScalarized ;   # <-- scalarized...
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "higher-accuracy-first" ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:08a308a308a308a308a308a308a308a308a308a308a308a308a308a308a308a3" .
+                                                        # <-- ...but NO gmeow:scalarizationWeights

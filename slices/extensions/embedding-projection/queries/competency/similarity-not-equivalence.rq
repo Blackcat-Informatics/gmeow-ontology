@@ -1,0 +1,16 @@
+# CT5 — similarity is not equivalence (violation finder; EMPTY over valid data). A
+# gmeow:SimilarityObservation illegitimately PROMOTED to a logical identity —
+# owl:sameAs or owl:equivalentClass, in either direction. A pairwise similarity
+# CLAIM is logic:Vague and never an entailment; the overclaim counter-example makes
+# this non-empty, the clean scene keeps it empty.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?obs WHERE {
+  ?obs a gmeow:SimilarityObservation .
+  {
+    { ?obs owl:sameAs ?x } UNION { ?x owl:sameAs ?obs }
+    UNION { ?obs owl:equivalentClass ?x } UNION { ?x owl:equivalentClass ?obs }
+  }
+}
+ORDER BY ?obs

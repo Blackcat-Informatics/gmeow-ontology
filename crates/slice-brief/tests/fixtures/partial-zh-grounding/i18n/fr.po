@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: partial-zh-grounding-fixture, language: fr).
+# Test-only fixture: covers both terms' labels in French.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture/Alpha|rdfs:label"
+msgid "Alpha"
+msgstr "Alpha (fr)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture/Beta|rdfs:label"
+msgid "Beta"
+msgstr "Bêta (fr)"

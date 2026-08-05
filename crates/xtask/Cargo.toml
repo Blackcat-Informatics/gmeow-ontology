@@ -4,7 +4,7 @@
 [package]
 name = "xtask"
 description = "Worktree-local DAG orchestration for GMEOW developer workflows."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -15,3 +15,12 @@ path = "src/main.rs"
 
 [dependencies]
 gmeow-errors = { path = "../errors" }
+gmeow-logic-compile = { path = "../logic-compile" }
+
+[dev-dependencies]
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
+tempfile = "3"

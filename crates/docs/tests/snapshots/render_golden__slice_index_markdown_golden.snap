@@ -1,11 +1,10 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 310
 expression: head
 ---
 # Slices
 
-83 compilation unit(s).
+85 compilation unit(s).
 
 ## Dependency graph
 

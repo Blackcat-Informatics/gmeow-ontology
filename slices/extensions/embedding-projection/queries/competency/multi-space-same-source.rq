@@ -1,0 +1,19 @@
+# CT9 — multiple vector spaces over one source (POSITIVE capability). Two DISTINCT
+# gmeow:EmbeddingProjections sharing ONE gmeow:projectionSource but committing
+# gmeow:VectorSpaceContracts whose gmeow:contentDigests DIFFER — legitimately
+# independent projections of the identical pack under different embedding spaces.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?projA ?projB WHERE {
+  ?projA a gmeow:EmbeddingProjection ;
+         gmeow:projectionSource ?src ;
+         gmeow:hasVectorSpaceContract ?cA .
+  ?projB a gmeow:EmbeddingProjection ;
+         gmeow:projectionSource ?src ;
+         gmeow:hasVectorSpaceContract ?cB .
+  ?cA gmeow:contentDigest ?dA .
+  ?cB gmeow:contentDigest ?dB .
+  FILTER(STR(?dA) != STR(?dB))
+  FILTER(STR(?projA) < STR(?projB))
+}
+ORDER BY ?projA ?projB

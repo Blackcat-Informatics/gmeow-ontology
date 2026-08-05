@@ -160,6 +160,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The generated alignment lowerings (SSSOM / EDOAL / FnO / SPARQL) of `logic:Correspondence`, and how lossy down-projection works |
 | [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) | Specification | The build dataflow — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout; every `generated/` file is a projection of the bundle |
+| [`docs/GATE-AND-PIPELINE.md`](./docs/GATE-AND-PIPELINE.md) | Doctrine | How `make check` and the single `check-sync` producer are designed and why: one producer per run, the host-global lock as a fairness queue with no override, "the pipeline records, the gate grades", when a gate may read a recorded result instead of recomputing it, `check` vs the CI-only `heavy` lane, and the ratchet and truth-in-claims rules — each grounded in the real defect that produced it, with checklists for adding a gate task or a pipeline stage |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/okf.md`](./docs/okf.md) | Doctrine | The Open Knowledge Format agent surface — bidirectional Markdown-per-concept export (`gmeow okf`) + lift (`gmeow transpile <okf-dir>`); a lossy projection consuming the Rust `gts from-okf` codec |
 | [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The shipped `logic:` grounding correspondence catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL, with explicit bridge and preservation policy |
@@ -198,7 +199,7 @@ dist/bin/gmeow mcp
 The public `gmeow` CLI is a native Rust binary backed by the bundled
 `generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
 projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
-Documentation projections are regenerated from canonical sources with `make sync SYNC_OUTPUTS=docs`;
+Documentation projections are regenerated from canonical sources with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`;
 they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
@@ -208,8 +209,7 @@ developer command.
 
 ```bash
 make install         # build the Rust CLIs and configure repo-local Git merge drivers
-make check           # synchronize generated outputs, then run the evidence-complete impact gate
-make check-full      # synchronize outputs, then force every gate task to execute physically
+make check           # synchronize generated outputs, then run the local gate DAG
 make reason-verify   # one fresh native closure feeding reasoned-graph verify (native, Docker-free)
 make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
 ```
@@ -218,10 +218,10 @@ make reason-verify   # native reasoning + reasoned-graph verify (consistency), o
 it updates only byte-changed generated outputs, then runs fully Java/Docker-free
 validation (native EL/DL reasoning and native reasoned-graph verify). A clean
 manifest makes its sync stage effectively free. CI uses the read-only
-`make check-sync` form so drift cannot be silently repaired. The gate may reuse an unaffected task only
-from a GitHub-attested successful `main` receipt matching the exact commit tree,
-task registry, and toolchain contract; any verification or classification doubt
-falls back to `make check-full`. The native `logic:` engine is the single
+`make check-sync` form so drift cannot be silently repaired. Every task in the gate
+DAG executes on every run — there is no reuse profile — but the tasks run under their
+*accurate* dependencies, so the ones that read no generated artifact start immediately
+rather than queueing behind synchronization. The native `logic:` engine is the single
 reasoning authority; the aggregate `make reason-verify` computes one complete
 native closure and shares it with reasoned-graph verification, so `make check`
 never repeats the chase.
@@ -291,13 +291,13 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make reason` | Native Docker-free EL/DL reasoning authority |
 | `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
-| `make sync` | Run one cached synchronization DAG and materialize every output family: committed/generated, runtime `dist/`, and external docs (`SYNC_VERBOSE=1` streams live phases) |
-| `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
+| `make check` | THE entry point: run the single producer (materializing `generated/` + the bundle), then the whole local gate DAG — one host-locked pass |
+| `make check-sync` | The single producer, standalone: read-only drift + orphan + internal-tag-leak gate by default; `SYNC_MODE=update` materializes, `SYNC_OUTPUTS={generated,docs,all}` scopes the fanout, `SYNC_VERBOSE=1` streams live phases |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make sync SYNC_OUTPUTS=docs` | Regenerate the external site, book, print, snippet, and generated-model documentation projections |
+| `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` | Regenerate the external site, book, print, snippet, and generated-model documentation projections |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
@@ -338,7 +338,9 @@ crates/gmeow-cli/         The native Rust `gmeow` consumer CLI; gmeow-dev-cli/ i
 generated/                EVERY committed generated artifact — one root, every
                           path owned by a registered generator (drift-, orphan-,
                           and internal-tag-leak-gated):
-                          mappings/ (SSSOM) · projections/ (EDOAL+FnO) ·
+                          mappings/ (SSSOM) · projections/ (EDOAL+FnO ·
+                          lang/ EBNF/ABNF/GBNF/Lark grammars + the GMN-1
+                          ecosystem under gmn1/v*/) ·
                           queries/ (projection CONSTRUCTs) · statements/
                           (RDF 1.2 lead + OWL downcast) · schemas/ · lpg/ ·
                           metadata/ (VoID+DCAT) · apache/ · module-status.md
@@ -373,17 +375,22 @@ second engine on every build.
   surface. The complete class catalog is oriented `logic:` → gUFO, including explicit
   `Unsupported` rows where the richer canonical model must not be flattened.
 - **UMBEL** (CC-BY-3.0) is intended as a *curated, extracted* reference-concept layer — never
-  imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
+  imported whole (it is too large for DL reasoning). Extraction is by syntactic-locality module
+  extraction (BOT/TOP/STAR), carried natively by the `purrdf` entailment substrate — not by a
+  Java/Docker tool, which the rust-first authoritative path forbids.
 - **DOLCE/DUL** is linked by reference, never imported; its six shipped rows are
   commitment-shifting views, not equivalence axioms.
-- **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, PATO,
+- **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, OBI, PATO,
   YAMATO, and OpenCyc are explicit
   `BridgeView` + `CommitmentShiftingBridge` correspondences, so no equivalence can be fabricated.
   BFO IRIs and labels are verified against `imports/targets/bfo.ttl`; BFO/OBO/SUMO target axioms
   stay outside object-level closure. OWL/RDFS is a `SoundUnderApproximation` compiler dialect and
-  SHACL Core/AF is `ValidationOnly`. The 140-row core and 23-row additive sources are
+  SHACL Core/AF is `ValidationOnly`. The 140-row core and 25-row additive sources are
   `slices/grounding/logic/mappings/grounding-bridges.ttl` and
-  `slices/grounding/logic/mappings/foundation-bridges.ttl`; full guide:
+  `slices/grounding/logic/mappings/foundation-bridges.ttl`; the 37-row process-model
+  catalog (P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate Workflow-Run,
+  Airflow/CWL/WDL/Temporal/Nextflow, openEHR Task Planning) is
+  `slices/grounding/logic/mappings/plan-enactment-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 - **The peer grounding slices ship their laws too.** `math:` owns reusable mathematical structure
   (including computational topology, sheaves/Hodge, Hamiltonian systems, reduction/information,
@@ -453,6 +460,7 @@ examples lives in
 | **BOT** | <https://w3id.org/bot> | Building-topology projection of indoor places — `bot:Zone`/`Element`/`hasSpace` |
 | **RDF Data Cube** | <https://www.w3.org/TR/vocab-data-cube/> | Well-formed `qb:Observation` + `qb:DataSet` + `qb:DataStructureDefinition` — a statistical-cube projection of spatial aggregations (IC-1, IC-2) |
 | **OntoLex-Lemon** | <https://www.w3.org/2016/05/ontolex/> | `ontolex:LexicalEntry`/`Form`/`writtenRep` from appellations and language data |
+| **GMN-1** (token-compact model notation) | [`docs/projections.md`](./docs/projections.md#gmn-1--the-token-compact-model-notation-projection) | The `lang:` token-compact serialization for LLM producers + constrained decoding: EBNF/ABNF + GBNF/Lark grammars, a token-metric 7-vector, GMN↔NL verbalizations, and a proof-carrying training corpus, version-keyed under `generated/projections/lang/gmn1/v*/**` |
 | **W3C Web Annotation** | <https://www.w3.org/TR/annotation-vocab/> | `oa:Annotation` body/target projection (tags, standpoints) |
 | **Standpoint projections** | [`docs/standpoints.md`](./docs/standpoints.md) | Five frame-preserving exports of contested claims: **CRMinf**, **PROV-O**, **schema:Claim**, **Web Annotation**, **Standpoint-OWL 2** — never one that picks a winner |
 
@@ -490,7 +498,7 @@ reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
 principle GMEOW applies to schema.org / vCard / FOAF ([Principle 4](./CONSTITUTION.md)), not a
 competing source of truth — and it recedes as RDF-1.2-native reasoners and stores arrive. Both
-downcasts are guarded by `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
+downcasts are guarded by `make check-sync`
 ([Principle 7](./CONSTITUTION.md)). The **canonical logical core is the RDF-1.2-native `logic:`
 layer** (see *Native logic*, below); the OWL 2 DL form is one generated projection of it — a
 decidable downcast for today's reasoners, never a ceiling on what the canonical model may say.
@@ -776,7 +784,7 @@ The issue backlog is represented here as current capability:
   manifests, constitution-as-code, annotation-driven co-equal/suppression/frame guards,
   `owl:sameAs` hard gates, and RDF compliance report make constitutional drift a build failure.
 - **Docs-from-the-ontology.** Every slice has a full guide; `gmeow describe` works from the
-  bundled logical graph, while `make sync SYNC_OUTPUTS=docs` source-renders every external documentation
+  bundled logical graph, while `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` source-renders every external documentation
   projection; the citation ledger lives in `metadata/references.ttl` and exports to
   CSL, BibTeX, Markdown, and generated docs.
 - **Transpile and projection.** `gmeow transpile` lifts consumer RDF to a pure-GMEOW draft,

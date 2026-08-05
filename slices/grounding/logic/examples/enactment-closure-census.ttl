@@ -1,0 +1,240 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# What a closed frontier actually certifies.
+#
+# Every other enactment example in this directory shows the kernel being USED. This
+# one shows the kernel being FINISHED: the moment the frontier derivation runs out
+# of new tuples, and the witness it leaves behind so that a reader can check the
+# claim instead of taking it.
+#
+# The reason the witness enumerates rather than summarizes is that closure is not a
+# property of a run, it is a property of a PREDICATE. "The chase reached a fixed
+# point" is shorthand for "for each of these predicates, no further rule application
+# adds a tuple", and the predicates the witness does not name are exactly the ones it
+# does not certify. So a reader of a closed roster who wants to know whether the
+# absence of an entry is evidence of absence has a precise question to ask — is the
+# predicate that would have produced it on this list? — and this scene is the answer
+# for a whole-kernel run.
+#
+# Read as documentation, the roster below is also a map of the enactment kernel's
+# derived surface: the approval, effect-protocol, journal, checkpoint, refinement and
+# frontier predicates the chase touches, in one place, with the budget it cost.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/closure/> .
+
+# The run this closure is about. Naming it matters: a witness detached from the
+# enactment it closed over is a certificate with no subject.
+ex:auditRun2291 a logic:Enactment ;
+    rdfs:label "Quarterly reconciliation run 2291"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:reconciliationV7 ;
+    logic:enactmentInputSnapshot ex:ledgerGeneration412 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# The frozen text the run is following, and the frozen inputs it is following it
+# over. A closure claim about a run that could name neither would be a claim about
+# nothing repeatable: the same frontier derived tomorrow would be a different
+# derivation, and the witness below could not be checked against it.
+ex:reconciliationQuarterly a logic:Plan ;
+    rdfs:label "Quarterly ledger reconciliation"@x-gmeow-english ;
+    logic:planGoal ex:ledgersReconciled ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess .
+
+ex:ledgersReconciled a gmeow:Goal ;
+    rdfs:label "Every ledger line is matched or exceptioned"@x-gmeow-english .
+
+ex:reconciliationV7 a logic:PrescriptionVersion ;
+    rdfs:label "Quarterly ledger reconciliation, revision 7"@x-gmeow-english ;
+    logic:prescriptionOf ex:reconciliationQuarterly ;
+    logic:prescriptionDigest "b3:9d4a17c6b0e83f52a7148db93c05fe6218a7d340bb6c19e57f2043ae8c1d76b9" .
+
+ex:ledgerGeneration412 a logic:InputSnapshot ;
+    rdfs:label "Ledger generation 412, frozen at run start"@x-gmeow-english ;
+    logic:snapshotDigest "b3:3e05fa71c8b249d06e37a1cd5840bf9276e1a03d5cb87f4e2091da6c37bf5108" .
+
+ex:auditFrontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier of run 2291, derived to a fixed point"@x-gmeow-english ;
+    logic:frontierOfEnactment ex:auditRun2291 ;
+    logic:frontierSaturationWitness ex:auditSaturation .
+
+# logic:EvaluationCompleted, not logic:BudgetExhausted: the search stopped because
+# there was nothing left to add. The budget is recorded anyway — a fixed point is a
+# claim relative to a bound, and a bound nobody wrote down cannot be re-checked.
+ex:auditSaturation a logic:SaturationWitness ;
+    rdfs:label "Saturation witness for run 2291"@x-gmeow-english ;
+    logic:resultEvaluation logic:EvaluationCompleted ;
+    logic:consumedBudget "steps=41208;pages=96;wallclock-ms=1873" ;
+    # The census enumerates what the chase SETTLED. Its complement is the roster of
+    # constructs the kernel does not decide at all, and the one an operator reading an
+    # RDF 1.2 attribution here will meet is the nested triple term: the statement-metadata
+    # lowering below is what puts logic:reifiedStatementSubject / Predicate / Object in
+    # this list, and logic:rdf12-nested-triple-term is exactly what it does not reach.
+    rdfs:seeAlso logic:rdf12-nested-triple-term ;
+    logic:settledPredicate
+        logic:adjudicatesAttempt ,
+        logic:advisoryAbout ,
+        logic:approvalBindingFault ,
+        logic:approvalDecision ,
+        logic:approvalEnactment ,
+        logic:approvalIntentDigest ,
+        logic:approvalOperator ,
+        logic:approvalPolicy ,
+        logic:approvalState ,
+        logic:approvalValidityWindow ,
+        logic:assemblyExcluded ,
+        logic:assemblyExclusionReason ,
+        logic:assemblyForEnactment ,
+        logic:assemblyGuidanceVersion ,
+        logic:assemblyIncluded ,
+        logic:attemptOfIntent ,
+        logic:certifiesDeadlockFreedom ,
+        logic:certifiesNoOrphanIntent ,
+        logic:certifiesReachability ,
+        logic:checkpointAnnotationDigest ,
+        logic:checkpointContractDigest ,
+        logic:checkpointDataDigest ,
+        logic:candidateInstantiatesMethod ,
+        logic:checkpointDescriptorHash ,
+        logic:checkpointEngineDigest ,
+        logic:checkpointFragmentDigest ,
+        logic:checkpointOfEnactment ,
+        logic:checkpointOfStep ,
+        logic:checkpointRulesDigest ,
+        logic:checkpointSliceDigest ,
+        logic:clockObservedAt ,
+        logic:clockSource ,
+        logic:cohortMember ,
+        logic:compensatesEffect ,
+        logic:compensationReceipt ,
+        logic:contestedByAttribution ,
+        logic:continuationKind ,
+        logic:deadlineExhausted ,
+        logic:deadlineOfEnactment ,
+        logic:deltaAddition ,
+        logic:deltaSuppression ,
+        logic:deviationFromStep ,
+        logic:effectKnowledge ,
+        logic:effectProtocolPosition ,
+        logic:enactmentInputSnapshot ,
+        logic:enactmentJournal ,
+        logic:enactmentState ,
+        logic:enactsPrescriptionVersion ,
+        logic:entryAction ,
+        logic:entryAwaits ,
+        logic:entryAxisWitness ,
+        logic:entryExcludes ,
+        logic:entryLabel ,
+        logic:expectedJournalHead ,
+        logic:fencingIdentity ,
+        logic:frontierOfEnactment ,
+        logic:frontierSaturationWitness ,
+        logic:frontierVantage ,
+        logic:gapBlockedStep ,
+        logic:hasFrontierEntry ,
+        logic:hasRejection ,
+        logic:idempotencyDuplicateSemantics ,
+        logic:idempotencyKey ,
+        logic:idempotencyProviderEvidence ,
+        logic:idempotencyRetention ,
+        logic:idempotencyScope ,
+        logic:impossibleOfAttempt ,
+        logic:incompleteCause ,
+        logic:integrityFault ,
+        logic:intentActionSchemaVersion ,
+        logic:intentApprovalRequired ,
+        logic:intentDigest ,
+        logic:intentIdempotency ,
+        logic:intentNormalizedArguments ,
+        logic:intentOfEnactment ,
+        logic:intentOfStep ,
+        logic:intentPolicy ,
+        logic:intentTarget ,
+        logic:journalDeltaIdentity ,
+        logic:journalHead ,
+        logic:journalNewHead ,
+        logic:journalOutcomeTag ,
+        logic:journalPrevHead ,
+        logic:knowledgePrecedes ,
+        logic:lawAdmits ,
+        logic:lawGovernsAxis ,
+        logic:leaseExpiry ,
+        logic:leaseOwner ,
+        logic:leaseScope ,
+        logic:lensGetPutHolds ,
+        logic:lensGoverns ,
+        logic:lensPutGetHolds ,
+        logic:licenceCoversAttempt ,
+        logic:methodApplicability ,
+        logic:methodDecomposes ,
+        logic:methodDigest ,
+        logic:methodStep ,
+        logic:methodYieldCell ,
+        logic:methodYields ,
+        logic:normalizationRecipe ,
+        logic:operationOutcome ,
+        logic:outcomeOfCompensation ,
+        logic:pinAuthority ,
+        logic:pinDigest ,
+        logic:pinInstantiatesMethod ,
+        logic:pinnedStepSequence ,
+        logic:preparationOf ,
+        logic:prescriptionDigest ,
+        logic:prescriptionKind ,
+        logic:prescriptionOf ,
+        logic:probesAttempt ,
+        logic:producedCandidateSet ,
+        logic:proofEstablishes ,
+        logic:proposalBlockedStep ,
+        logic:proposalExpectedEffects ,
+        logic:proposalExpectedInputs ,
+        logic:proposalExpectedOutputs ,
+        logic:proposalMissingCapability ,
+        logic:proposalRequiredContract ,
+        logic:proposalSecurityLifecycle ,
+        logic:proposalVerificationMethod ,
+        logic:providerCorrelationId ,
+        logic:rebuildReason ,
+        logic:receiptEvidence ,
+        logic:receiptOfAttempt ,
+        logic:receiptOfPreparation ,
+        logic:reconciliationVerdict ,
+        logic:recoveryWitness ,
+        logic:recurrenceState ,
+        logic:refinementBudget ,
+        logic:refinementCandidate ,
+        logic:refinementCandidateMethod ,
+        logic:refinementExpands ,
+        logic:refinementReaches ,
+        logic:refinementRejectedOnApproval ,
+        logic:refinementRejectedOnCapability ,
+        logic:refinementRejectedOnPrecondition ,
+        logic:refinementRejectedOnResource ,
+        logic:refinementServesGoal ,
+        logic:refinementWorldSnapshot ,
+        logic:refinesStep ,
+        logic:rejectedCandidate ,
+        logic:rejectionKind ,
+        logic:rejectionWitness ,
+        logic:requiredPriorPrescription ,
+        logic:requiredPriorState ,
+        logic:restoreDescriptorHash ,
+        logic:restoreOfEnactment ,
+        logic:reifiedStatementObject ,
+        logic:reifiedStatementPredicate ,
+        logic:reifiedStatementSubject ,
+        logic:restoresCheckpoint ,
+        logic:resultOfProbe ,
+        logic:retryLicence ,
+        logic:retryOfAttempt ,
+        logic:searchFragment ,
+        logic:selectedPin ,
+        logic:settledPredicate ,
+        logic:skipReason ,
+        logic:snapshotDigest ,
+        logic:stepState ,
+        logic:unknownOfAttempt ,
+        logic:unsupportedCondition ,
+        logic:violatedLaw .

@@ -100,15 +100,22 @@ ex:saMetaTargetCharacteristicFree a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    VALUES ?characteristic {
-        owl:ReflexiveProperty owl:IrreflexiveProperty owl:TransitiveProperty
-        owl:SymmetricProperty owl:FunctionalProperty
+    {
+        VALUES ?characteristic {
+            owl:ReflexiveProperty owl:IrreflexiveProperty owl:TransitiveProperty
+            owl:SymmetricProperty owl:FunctionalProperty
+        }
+        gmeow:metaTarget a ?characteristic .
     }
-    gmeow:metaTarget a ?characteristic .
+    UNION
+    {
+        ?rec logic:characterizes gmeow:metaTarget ; logic:characteristicSort logic:functionalProperty .
+    }
 }""" ;
-    gmeow:saRationale "gmeow:metaTarget MUST NOT carry any property characteristic (ReflexiveProperty, IrreflexiveProperty, TransitiveProperty, SymmetricProperty, FunctionalProperty) — conceptual reflexivity is not OWL reflexivity, and reflexivity leaves EL." .
+    gmeow:saRationale "gmeow:metaTarget MUST NOT carry any property characteristic (ReflexiveProperty, IrreflexiveProperty, TransitiveProperty, SymmetricProperty, FunctionalProperty) — conceptual reflexivity is not OWL reflexivity, and reflexivity leaves EL. Functionality is now carried on the logic: PropertyCharacteristicAssertion carrier, so the second UNION arm forbids a functional carrier over gmeow:metaTarget (the deprecated owl:FunctionalProperty marker stays forbidden in the first arm as defence in depth)." .
 
 # --- 4. CalibrationStatus is an AbstractIndividualType (MUST hold) ------------
 ex:saCalibrationStatusIsAbstractIndividualType a gmeow:StructuralAssertion ;
@@ -167,8 +174,9 @@ ex:saCalibrationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:calibration a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:calibration ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:calibration MUST NOT be functional — a self-assessment and an external assessment may coexist (Principle 9)." .
 
 # --- 7. calibrationError is a solver-layer AnnotationProperty (MUST hold) -----
@@ -249,10 +257,11 @@ ex:saKnownUnknownAndSelfTrustNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:awareOfNotKnowing gmeow:epistemicSelfTrust }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT be owl:FunctionalProperty — an agent recognises many gaps / trusts different faculties." .
 

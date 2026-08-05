@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
-assertion_line: 72
 expression: head
 ---
 # Summary
@@ -15,6 +14,7 @@ expression: head
   - [GMEOW Accessibility Module](slices/accessibility/index.md)
   - [GMEOW Accounts Module](slices/accounts/index.md)
   - [GMEOW Affect Module](slices/affect/index.md)
+    - [GMEOW Affect — emotions, feelings, moods, appraisal, and affective evidence](slices/affect/documents/design/AFFECT-DESIGN/index.md)
   - [GMEOW Agent-Runtime Profile](slices/agent-runtime/index.md)
   - [GMEOW Agentic Module](slices/agentic/index.md)
   - [GMEOW Spatial Aggregation Module](slices/aggregation/index.md)
@@ -37,9 +37,8 @@ expression: head
   - [GMEOW Documents Module](slices/documents/index.md)
   - [GMEOW Dreaming Module](slices/dreaming/index.md)
   - [GMEOW Email Module](slices/email/index.md)
+  - [GMEOW Embedding Projection Module](slices/embedding-projection/index.md)
+    - [The `.purremb` projection profile — normative specification](slices/embedding-projection/documents/design/PURREMB-PROFILE/index.md)
   - [GMEOW Employment Module](slices/employment/index.md)
   - [GMEOW Entities Module](slices/entities/index.md)
   - [GMEOW Epistemics Module](slices/epistemics/index.md)
-  - [GMEOW Events Module](slices/events/index.md)
-  - [GMEOW Evidence Module](slices/evidence/index.md)
-  - [GMEOW Expertise Module](slices/expertise/index.md)

@@ -40,8 +40,9 @@ The external vocabulary is never the source from which GMEOW derives its
 meaning. Inverse ingestion is the correspondence's `put` direction; it does not
 reverse semantic ownership.
 
-Each authored row is both an ergonomic `gmeow:TermEquivalence` frontend cell and
-an explicit `logic:GroundingCorrespondence`. A grounding row must state all
+Each authored row is a native alignment cell — a reified RDF-1.2 match statement
+(`skos:*Match` / `owl:equivalent*`) carrying `gmeow:sssomFile` — whose reifier is
+also an explicit `logic:GroundingCorrespondence`. A grounding row must state all
 three judgments:
 
 - `logic:morphismClass` — its position on the law spine;
@@ -68,18 +69,19 @@ requires extending the catalog and its coverage test in the same change.
 
 ## The additive foundation catalog
 
-`foundation-bridges.ttl` adds 21 curated, by-reference rows without importing
+`foundation-bridges.ttl` adds 25 curated, by-reference rows without importing
 any target TBox:
 
 | Target | Rows | Disposition |
 |---|---:|---|
 | **DOLCE+DnS Ultralite (DUL)** | 6 | Entity, Object, Event, Quality, Situation, and InformationObject as commitment-shifting `BridgeView`s |
 | **IAO** | 1 | Information content entity as a close, validation-only bridge |
+| **OBI** | 2 | The planned-process backbone: `logic:Plan` → protocol and `logic:Enactment` → planned process, each with its explicit lossy drop |
 | **PATO** | 1 | Biomedical quality root as a close, validation-only bridge |
-| **YAMATO 2021-08-08** | 7 | Version-pinned particular, independent entity, object, event, process, quality, and role bridges |
+| **YAMATO 2021-08-08** | 9 | Version-pinned particular, independent entity, object, event, process, quality, amount-of-matter, quality-value, and role bridges |
 | **OpenCyc 2012-05-10** | 6 | Permanent identifiers for Individual, Collection, Event, Role, InformationBearingThing, and Microtheory |
 
-All 21 are `BridgeView` + `CommitmentShiftingBridge` + `ValidationOnly`.
+All 25 are `BridgeView` + `CommitmentShiftingBridge` + `ValidationOnly`.
 This is deliberate: shared labels do not erase differences in identity,
 participation, process/event, role, collection, or microtheory commitments.
 YAMATO uses the versioned
@@ -174,8 +176,7 @@ The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
 
 ```bash
 make validate
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make check
 cargo nextest run -p gmeow-validate --test conformance_foundational_bridging
 cargo nextest run -p gmeow-pipeline --test correspondence_laws_bundle
 ```

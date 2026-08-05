@@ -52,19 +52,27 @@ use crate::stages::carrier::{GRAPH_AUTHORING_BRIEFS, parse_into_graph};
 /// The number of same-slice exemplar coats each packet seeks.
 const EXEMPLAR_TARGET: usize = 3;
 
-/// The `slice_brief` pipeline stage — a leaf compute node. It consumes no upstream
-/// product (it reads the authored slice sources directly) and attaches the single
-/// `graph/authoring-briefs` corpus to its carrier dataset.
+/// The `slice_brief` pipeline stage. It reads the authored slice sources directly and
+/// attaches the single `graph/authoring-briefs` corpus to its carrier dataset. Its ONE
+/// upstream dependency is the FRESH SHACL shape union: the exemplar tiering gates each
+/// term against the same union `make validate` enforces, whose `generated/shapes/*.ttl`
+/// members are THIS run's producer products
+/// ([`crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS`]) — never the previous
+/// run's committed bytes (the stale-disk-fold class). Consuming the producers also orders
+/// this stage AFTER they materialize `generated/shapes/` on disk, so the union enumeration
+/// (`shape_files`) never fires before the directory exists (the cold-enumeration failure a
+/// no-consumes leaf hit once `generated/` became an untracked local product).
 pub struct SliceBriefStage {
     consumes: Vec<String>,
 }
 
 impl SliceBriefStage {
-    /// Construct the stage. It reads nothing upstream — the packets are assembled from
-    /// the authored slice sources on disk at `run()`.
+    /// Construct the stage. The packets are assembled from the authored slice sources on
+    /// disk at `run()`; the shape union's generated members ride in on the consumed
+    /// [`crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS`] products.
     pub fn new() -> Self {
         Self {
-            consumes: Vec::new(),
+            consumes: crate::stages::shape_union_fresh::producer_consumes(),
         }
     }
 }
@@ -94,10 +102,15 @@ impl Stage for SliceBriefStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v2: the exemplar-tiering shape union is FRESH — its generated/shapes/*.ttl
+        // members are read off THIS run's producer products (shape_union_fresh) instead
+        // of the committed files, so a shape-source edit re-tiers exemplars in ONE
+        // regenerate and the leaf no longer cold-fails enumerating an unmaterialized
+        // generated/shapes.
         // v1: assemble a gmeow:AuthoringPacket per in-repo slice batch and fold the union
         // into the carrier as graph/authoring-briefs (folded to
         // generated/briefs/authoring-packets.nt by stage-snapshot).
-        "slice_brief.v1"
+        "slice_brief.v2-fresh-shape-union"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The cache key must bust when ANY source a packet reads changes (a stale source
@@ -105,9 +118,14 @@ impl Stage for SliceBriefStage {
         // slice graph (module.ttl + examples/ + tests/, via `slice_ttl_paths`), the slice
         // identity (manifest.ttl), the alignment linkage (mappings/*.ttl), and the
         // translation catalogs (i18n/*.po). The exemplar tiering additionally gates terms
-        // against the SHACL shape union, so every shape file in that union
-        // (`purrdf::shapes::shape_union::shape_files`) is an input too — a changed shape
-        // can flip a term's conformance and hence which exemplars ship. Declare them all.
+        // against the SHACL shape union, so its AUTHORED members
+        // (`shape_union_fresh::authored_shape_files` — `shapes/*.ttl` +
+        // `slices/*/*/shapes.ttl`) are inputs too; a changed shape can flip a term's
+        // conformance and hence which exemplars ship. The GENERATED shape members are
+        // NOT declared here — they are product-sourced off the consumed producer stages
+        // (a `generated/` path in the cache key is itself the stale-disk-fold bug class),
+        // so their change basis is those producers' digests on this stage's `consumes()`
+        // edges.
         let slices_root = root.join("slices");
         let mut files: Vec<PathBuf> = Vec::new();
         for slice_dir in gmeow_slice_quality::discover_slice_dirs(&slices_root) {
@@ -119,11 +137,9 @@ impl Stage for SliceBriefStage {
             collect_ext(&slice_dir.join("mappings"), "ttl", &mut files)?;
             collect_ext(&slice_dir.join("i18n"), "po", &mut files)?;
         }
-        files.extend(purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
-            stage_err(&format!(
-                "cannot enumerate the SHACL shape union for the cache key: {e}"
-            ))
-        })?);
+        files.extend(crate::stages::shape_union_fresh::authored_shape_files(
+            root,
+        )?);
         files.sort();
         files.dedup();
         Ok(files)
@@ -132,8 +148,17 @@ impl Stage for SliceBriefStage {
         let slices_root = input.root.join("slices");
         // Load the SHACL shape union ONCE per stage run (not per slice): every slice's
         // exemplar tiering gates its terms against this same union, matching the live
-        // `make validate` gate and the `gmeow slice brief` CLI.
-        let shapes = gmeow_slice_brief::load_shape_union(input.root)?;
+        // `make validate` gate and the `gmeow slice brief` CLI. The union's
+        // `generated/shapes/*.ttl` members are sourced from THIS run's consumed producer
+        // products (never the committed files — the stale-disk-fold class), through the
+        // SAME fresh-union path `stage-validate` / `stage-export-pydantic` use; only the
+        // authored `shapes/*.ttl` + `slices/*/*/shapes.ttl` half is read from disk.
+        let fresh = crate::stages::shape_union_fresh::fresh_generated_shape_members(
+            self.id(),
+            input.upstream,
+        )?;
+        let (_shape_store, shapes) =
+            crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
         // Iterate slices in the SINGLE discovery authority's sorted order (dogfooding
         // coherence with the quality sweep) so the unioned corpus is byte-stable.
         let mut graphs: Vec<std::sync::Arc<RdfDataset>> = Vec::new();
@@ -285,6 +310,54 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 mod tests {
     use super::*;
 
+    /// Build the four fresh shape-producer products the stage now consumes by reading
+    /// THIS checkout's committed `generated/shapes/*.ttl` members off disk and packaging
+    /// them exactly as [`crate::stages::shape_union_fresh::fresh_generated_shape_members`]
+    /// expects. In an in-repo (post-`make check`) checkout these bytes ARE the committed
+    /// projection, so the loaded fresh union is byte-identical to the disk-read union the
+    /// stage used before the fresh-source migration — the parity these real-repo tests
+    /// assert. Under the live pipeline the SAME map is assembled from the producers'
+    /// in-memory products instead.
+    fn fresh_shape_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
+        let sources: [(&str, &[&str]); 4] = [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
+            ),
+        ];
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        for (producer, rels) in sources {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| {
+                    let bytes = std::fs::read(root.join(rel))
+                        .unwrap_or_else(|e| panic!("read committed {rel}: {e}"));
+                    ((*rel).to_string(), bytes)
+                })
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        upstream
+    }
+
     /// The stage attaches EXACTLY the authoring-briefs graph, carrying real
     /// `gmeow:AuthoringPacket` triples — the proof the packet corpus reaches the carrier
     /// (and thence `gmeow.gts`), not merely a test.
@@ -292,7 +365,7 @@ mod tests {
     fn run_attaches_the_authoring_briefs_graph() {
         let root = repo_root();
         let stage = SliceBriefStage::new();
-        let upstream = BTreeMap::new();
+        let upstream = fresh_shape_upstream(&root);
         let out = stage
             .run(StageInput {
                 root: &root,
@@ -319,7 +392,7 @@ mod tests {
     fn run_is_deterministic() {
         let root = repo_root();
         let stage = SliceBriefStage::new();
-        let upstream = BTreeMap::new();
+        let upstream = fresh_shape_upstream(&root);
         let a = stage
             .run(StageInput {
                 root: &root,
@@ -396,6 +469,67 @@ mod tests {
         assert!(
             out.is_empty(),
             "no paths must be collected on the error path, got {out:?}"
+        );
+    }
+
+    /// The stage's ONE dependency set is the four generated-shape producers, so the
+    /// scheduler orders it AFTER they materialize `generated/shapes/` (the ordering that
+    /// stops a no-consumes leaf from cold-failing the union enumeration) and keys its
+    /// generated union members on their product digests rather than a `generated/` disk
+    /// read (the stale-disk-fold class).
+    #[test]
+    fn new_consumes_the_generated_shape_producers() {
+        let stage = SliceBriefStage::new();
+        assert_eq!(
+            stage.consumes(),
+            crate::stages::shape_union_fresh::producer_consumes().as_slice(),
+            "slice-brief must consume exactly the generated-shape producers for the fresh union"
+        );
+    }
+
+    /// The cache key declares NO `generated/` path: the shape union's generated members
+    /// are product-sourced off the consumed producers (their digests are the change
+    /// basis), so a `generated/shapes/*.ttl` file NEVER appears in `input_files` — a
+    /// `generated/` path there is itself the stale-disk-fold bug class. Proven on a temp
+    /// root (no real slices, a single on-disk generated member so `shape_files` succeeds),
+    /// so it needs no materialized repo.
+    #[test]
+    fn input_files_declares_no_generated_path() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let root = temp.path();
+        // The AUTHORED half `shape_files` requires: an authored shapes/ member and at
+        // least one generated/shapes/ member on disk (its fail-closed non-empty gate).
+        std::fs::create_dir_all(root.join("shapes")).unwrap();
+        std::fs::write(root.join("shapes/authored.ttl"), b"# authored shape\n").unwrap();
+        std::fs::create_dir_all(root.join("generated/shapes")).unwrap();
+        std::fs::write(
+            root.join("generated/shapes/validation-shapes.ttl"),
+            b"# generated shape\n",
+        )
+        .unwrap();
+        std::fs::create_dir_all(root.join("slices")).unwrap();
+
+        let files = SliceBriefStage::new()
+            .input_files(root)
+            .expect("input_files enumerates the authored cache-key basis");
+        assert!(
+            !files.is_empty(),
+            "the authored shape members must still be declared, got {files:?}"
+        );
+        for f in &files {
+            let rel = f.strip_prefix(root).unwrap_or(f.as_path());
+            assert!(
+                !rel.starts_with("generated"),
+                "no generated/ path may enter the cache key (stale-disk-fold class): {}",
+                f.display()
+            );
+        }
+        // The authored generated-shapes member on disk is deliberately NOT declared.
+        assert!(
+            files
+                .iter()
+                .all(|f| !f.ends_with("generated/shapes/validation-shapes.ttl")),
+            "the on-disk generated union member must be product-sourced, never a cache-key input"
         );
     }
 }

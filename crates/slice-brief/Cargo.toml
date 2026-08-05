@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-slice-brief"
 description = "Assembles a gmeow:AuthoringPacket for a batch of a slice's terms: definition + axioms + bounded neighbourhood + definitional closure, same-slice exemplars, and cross-ontology / cross-lingual grounding, emitted as canonical turtle, JSON, and human text"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -18,6 +18,7 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 purrdf.workspace = true
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The per-slice term graph loader (`dataset_from_paths`) + the shared RDF-reading
 # helpers (`graph::instances_of`, `graph::g`) the partition reuses.

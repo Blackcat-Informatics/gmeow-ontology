@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_errors::{Diag, ResultExt};
 use purrdf::gts::model::{Term, TermKind};
-use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::gts_compose::SnapshotBuilder;
 use purrdf::{NativeRdfFormat, parse_dataset};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -789,18 +789,13 @@ pub fn piece_to_gts_bytes(piece: &Piece) -> gmeow_errors::Result<Vec<u8>> {
     builder
         .add_dataset(&dataset)
         .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))?;
-    emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
+    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None).map_err(
+        |e| {
+            Diag::of_kind(error::RdfPipelineFailed {
+                detail: e.to_string(),
+            })
+        },
     )
-    .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

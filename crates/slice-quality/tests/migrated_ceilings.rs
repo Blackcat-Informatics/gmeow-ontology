@@ -28,6 +28,31 @@ fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
+/// Slices RETIRED since the golden was frozen.
+///
+/// The golden TSVs are a permanent historical record and are never edited — a
+/// dropped or perturbed ceiling must stay detectable forever. But a slice that no
+/// longer exists has no commitment to reproduce, so its frozen rows are skipped
+/// here rather than deleted there. Each entry names the slice and why it went,
+/// so the exemption is a recorded decision rather than a silent hole.
+const RETIRED_SLICES: &[(&str, &str)] = &[(
+    "https://blackcatinformatics.ca/gmeow/slices/procedures",
+    "process-model slice superseded by the canonical logic: prescription/enactment \
+     spine; its terms were removed rather than kept as a second source of truth",
+)];
+
+/// True when the row belongs to a slice retired since the freeze.
+fn is_retired(slice: &str) -> bool {
+    RETIRED_SLICES.iter().any(|(iri, _)| *iri == slice)
+}
+
+/// The frozen rows that still name a live slice.
+fn live_rows(rows: &[String]) -> Vec<&String> {
+    rows.iter()
+        .filter(|r| !is_retired(r.split('\t').next().unwrap_or("")))
+        .collect()
+}
+
 /// The non-comment, non-blank rows of a golden TSV fixture.
 fn golden_rows(name: &str) -> Vec<String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -49,16 +74,24 @@ fn every_committed_projection_ceiling_is_reproduced_integer_exactly() {
     let rows = golden_rows("projection-ceilings.golden.tsv");
     assert_eq!(
         rows.len(),
-        140,
-        "the frozen projection-ceiling golden has 140 rows"
+        141,
+        // 141, not 140: the math/obi row was ADDED when OBI's catalog ownership moved to
+        // the logic: grounding slice, where its planned-process backbone belongs and where
+        // this vocabulary was already declared subsumed. math: keeps its one pre-existing
+        // OBI_0200000 data-transformation bridge, which is now an off-owner residue of
+        // exactly one and is bounded here. Extending the record is what a newly bounded
+        // residue looks like; no committed historical value moved.
+        "the frozen projection-ceiling golden has 141 rows"
     );
+    let live = live_rows(&rows);
     assert_eq!(
         ceilings.ceilings.len(),
-        rows.len(),
-        "the loaded ProjectionCeilingCommitment set must have exactly the frozen row count"
+        live.len(),
+        "the loaded ProjectionCeilingCommitment set must have exactly the frozen row count \
+         for every slice that still exists"
     );
 
-    for row in &rows {
+    for row in live {
         let cols: Vec<&str> = row.split('\t').collect();
         assert_eq!(
             cols.len(),
@@ -92,8 +125,15 @@ fn every_guarded_projection_vocabulary_is_reproduced_exactly() {
     let rows = golden_rows("projection-vocabularies.golden.tsv");
     assert_eq!(
         rows.len(),
-        37,
-        "the frozen projection-vocabulary golden has 37 rows"
+        47,
+        // 47, not 37: the ten process-model catalogs the logic: prescription/enactment spine
+        // grounds onto — P-Plan, OPMW, BPMN, RO-Crate, Airflow, CWL, WDL, Temporal, Nextflow
+        // and openEHR Task Planning — became GUARDED when their correspondences moved into
+        // the grounding kernel. Registering a vocabulary only ever ADDS teeth (its default
+        // ceiling is 0, so the first ungrounded use anywhere reds); each of the ten measures
+        // a residue of 0 on every slice, so not one carries a ceiling commitment. No frozen
+        // historical row moved.
+        "the frozen projection-vocabulary golden has 47 rows"
     );
     assert_eq!(
         ceilings.vocabularies.len(),
@@ -140,6 +180,47 @@ fn every_guarded_projection_vocabulary_is_reproduced_exactly() {
             preservation_local,
             "prefix {prefix}: loaded preservation {} must match the frozen golden {preservation_local}",
             found.preservation
+        );
+    }
+}
+
+/// The escape hatch must never be able to silence a LIVE slice.
+///
+/// `RETIRED_SLICES` skips frozen golden rows, and the golden is a permanent record whose
+/// whole value is that a dropped or perturbed commitment stays detectable forever. A slice
+/// that no longer exists genuinely has no commitment to reproduce; a slice that still ships
+/// does, and adding it here would silently drain the teeth from every one of its frozen
+/// rows while the suite kept reporting green.
+///
+/// So the list is pinned to the one thing that makes an entry legitimate: the slice is
+/// GONE. Liveness is read from the repository itself — the same
+/// `discover_slice_dirs` + `slice_iri_of_dir` pair the sweep, the ratchet gate and the
+/// pipeline carrier producer use — not from a second hand-maintained roster that could
+/// drift from it.
+#[test]
+fn no_retired_slice_entry_names_a_slice_that_still_exists() {
+    let root = repo_root();
+    let live: Vec<String> = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"))
+        .iter()
+        .map(|dir| {
+            gmeow_slice_quality::slice_iri_of_dir(dir)
+                .unwrap_or_else(|e| panic!("{} must declare a gmeow:Slice: {e}", dir.display()))
+        })
+        .collect();
+    assert!(
+        !live.is_empty(),
+        "slice discovery found no slices at all, so this guard would pass vacuously"
+    );
+    for (iri, reason) in RETIRED_SLICES {
+        assert!(
+            !live.contains(&(*iri).to_owned()),
+            "{iri} is still a LIVE slice in the repository, so its frozen ceiling rows must \
+             keep their full teeth; RETIRED_SLICES exempts only slices that are gone (the \
+             recorded reason was: {reason})"
+        );
+        assert!(
+            !reason.trim().is_empty(),
+            "{iri} must carry a recorded reason, or the exemption is a silent hole"
         );
     }
 }

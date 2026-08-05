@@ -2503,8 +2503,8 @@ msgid "Relates a quadratic space or Clifford algebra to the quadratic form gover
 msgstr "Relie un espace quadratique ou une algèbre de Clifford à sa forme quadratique."
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
-msgid "scalar field"
-msgstr "corps scalaire"
+msgid "field of scalars"
+msgstr "corps des scalaires"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
 msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
@@ -2885,3 +2885,155 @@ msgstr "borne de perte"
 msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
 msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
 msgstr "Relie un math:RecoveryLossContract à la math:RationalValue exacte de sa borne de perte à la récupération — exactement 0/1 lorsqu'une algèbre exacte rend l'opération inversible, et un rationnel positif énoncé sinon — portée comme une paire numérateur/dénominateur exacte, jamais un décimal. Domaine math:RecoveryLossContract, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShape|rdfs:label"
+msgid "Tensor Shape"
+msgstr "Forme de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShape|skos:definition"
+msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."
+msgstr "La forme déclarée d'un tenseur : son math:tensorRank accompagné d'un math:TensorAxis par axe, chacun portant un math:axisIndex commençant à zéro et son étendue. Une sous-classe de math:MathematicalObject partagée par tout ce qui A cette forme — le math:ExpressionType typant un emplacement de tenseur et le math:WeightTensor qui l'occupe nomment le même objet de forme, de sorte que « ces deux tenseurs ont la même forme » relève de l'identité dans le graphe et non de l'égalité de deux étiquettes rendues. C'est une forme, jamais une charge utile : une étendue dit la longueur d'un axe et ne dit rien du contenu du tenseur. L'absence de forme est une affirmation réelle et plus faible que le rang 0 ; elle s'écrit en ne nommant aucun math:tensorShape, jamais par un objet de forme sans axe."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxis|rdfs:label"
+msgid "Tensor Axis"
+msgstr "Axe de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxis|skos:definition"
+msgid "One indexed axis of a math:TensorShape: it carries exactly one zero-based integer math:axisIndex and at most one extent — a concrete math:axisExtent, or a math:symbolicExtent naming the math:FreeVariableDeclaration a named, unresolved extent stands for. Axis order is carried by these indexes, not by RDF list ordering, so [4,3] and [3,4] are different shapes and a transposed tensor is a different shape object rather than a coincidentally equal one. Indexes under one shape are unique, non-negative, zero-based, and contiguous, exactly as math:ArgumentSlot's are within one application. An axis carrying NEITHER extent is well-formed and informative: it says the rank counts this axis while the source declares nothing about how long it is."
+msgstr "Un axe indexé d'un math:TensorShape : il porte exactement un math:axisIndex entier commençant à zéro et au plus une étendue — un math:axisExtent concret, ou un math:symbolicExtent nommant la math:FreeVariableDeclaration que représente une étendue nommée non résolue. L'ordre des axes est porté par ces indices, non par l'ordre des listes RDF, de sorte que [4,3] et [3,4] sont des formes différentes et qu'un tenseur transposé est un objet de forme distinct plutôt qu'un objet accidentellement égal. Les indices sous une même forme sont uniques, non négatifs, commencent à zéro et sont contigus, exactement comme ceux de math:ArgumentSlot au sein d'une application. Un axe ne portant AUCUNE étendue est bien formé et informatif : il dit que le rang compte cet axe alors que la source ne déclare rien de sa longueur."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorElementType|rdfs:label"
+msgid "Tensor Element Type"
+msgstr "Type d'élément de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorElementType|skos:definition"
+msgid "The datatype of a tensor's elements AS A TERM — a 32-bit float, a bfloat16, an int8, a bool, a complex or string element — rather than as a fragment of a rendered type label. A subclass of math:MathematicalObject, named through math:tensorElementType and bearing its format's spelling as its rdfs:label. It is a term so that 'every float16 tensor in this model' is a graph query over one shared node instead of a substring match, and so that an element format with no RDF datatype image (bfloat16, an 8-bit float, a 4-bit integer) has exactly the standing of one that has (xsd:float). Distinct from math:numericDatatype, which names the RDF datatype an approximate value's LITERAL is carried in: no literal is carried here, because a tensor element type describes a tensor whose values never cross."
+msgstr "Le type de données des éléments d'un tenseur EN TANT QUE TERME — un flottant 32 bits, un bfloat16, un int8, un booléen, un élément complexe ou textuel — plutôt que comme fragment d'une étiquette de type rendue. Une sous-classe de math:MathematicalObject, nommée via math:tensorElementType et portant l'orthographe de son format comme rdfs:label. C'est un terme afin que « tous les tenseurs float16 de ce modèle » soit une requête sur un nœud partagé plutôt qu'une correspondance de sous-chaîne, et afin qu'un format d'élément sans image de type de données RDF (bfloat16, un flottant 8 bits, un entier 4 bits) ait exactement le même statut qu'un format qui en a une (xsd:float). Distinct de math:numericDatatype, qui nomme le type de données RDF dans lequel le LITTÉRAL d'une valeur approchée est porté : aucun littéral n'est porté ici, car un type d'élément de tenseur décrit un tenseur dont les valeurs ne traversent jamais."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorShape|rdfs:label"
+msgid "tensor shape"
+msgstr "forme de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorShape|skos:definition"
+msgid "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorShape it declares. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorShape (stated in prose). Naming no shape is the positive claim that the source declared none — an unknown rank, which is strictly weaker than rank 0 and must never be conflated with a shape carrying no axis."
+msgstr "Relie un math:ExpressionType typant un emplacement de tenseur, ou un math:WeightTensor, au math:TensorShape qu'il déclare. Domaine un math:ExpressionType ou un math:WeightTensor, portée math:TensorShape (précisé en prose). Ne nommer aucune forme est l'affirmation positive que la source n'en a déclaré aucune — un rang inconnu, strictement plus faible que le rang 0 et à ne jamais confondre avec une forme ne portant aucun axe."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorRank|rdfs:label"
+msgid "tensor rank"
+msgstr "rang de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorRank|skos:definition"
+msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."
+msgstr "Le nombre d'axes qu'un math:TensorShape déclare. Domaine math:TensorShape, portée xsd:nonNegativeInteger (précisé en prose). Porté explicitement plutôt que laissé à compter, pour deux raisons : le rang 0 (un scalaire — une forme sans axe) doit pouvoir être affirmé positivement et ne pas être indiscernable d'un nœud de forme dont les axes auraient été perdus, et un agrégat de comptage est hors du fragment décidable dans lequel les contraintes natives sont écrites, de sorte qu'un rang qu'une contrainte doit comparer à la famille math:shapeAxis doit être présent comme valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/shapeAxis|rdfs:label"
+msgid "shape axis"
+msgstr "axe de forme"
+
+msgctxt "https://blackcatinformatics.ca/math/shapeAxis|skos:definition"
+msgid "Relates a math:TensorShape to one math:TensorAxis — one indexed axis of the shape. Domain math:TensorShape, range math:TensorAxis (stated in prose). Axis order is carried by each axis's math:axisIndex, never by RDF list ordering: the same discipline math:argumentSlot applies to operand order, applied here to axis order, because a tensor's axes are as order-sensitive as a non-commutative operator's operands."
+msgstr "Relie un math:TensorShape à un math:TensorAxis — un axe indexé de la forme. Domaine math:TensorShape, portée math:TensorAxis (précisé en prose). L'ordre des axes est porté par le math:axisIndex de chaque axe, jamais par l'ordre des listes RDF : la même discipline que math:argumentSlot applique à l'ordre des opérandes, appliquée ici à l'ordre des axes, car les axes d'un tenseur sont aussi sensibles à l'ordre que les opérandes d'un opérateur non commutatif."
+
+msgctxt "https://blackcatinformatics.ca/math/axisIndex|rdfs:label"
+msgid "axis index"
+msgstr "indice d'axe"
+
+msgctxt "https://blackcatinformatics.ca/math/axisIndex|skos:definition"
+msgid "The zero-based integer position of a math:TensorAxis within its math:TensorShape. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). Indexes under one shape are unique, non-negative, zero-based, and contiguous. Deliberately distinct from math:slotIndex, whose domain is a math:ArgumentSlot: a slot additionally owes exactly one math:slotExpression, an axis extent is not a math:MathematicalExpression, and an axis reusing that class would be a math:MalformedArgumentSlot by construction."
+msgstr "La position entière, commençant à zéro, d'un math:TensorAxis au sein de son math:TensorShape. Domaine math:TensorAxis, portée xsd:nonNegativeInteger (précisé en prose). Les indices sous une même forme sont uniques, non négatifs, commencent à zéro et sont contigus. Délibérément distinct de math:slotIndex, dont le domaine est un math:ArgumentSlot : un emplacement doit en outre exactement une math:slotExpression, l'étendue d'un axe n'est pas une math:MathematicalExpression, et un axe réutilisant cette classe serait par construction un math:MalformedArgumentSlot."
+
+msgctxt "https://blackcatinformatics.ca/math/axisExtent|rdfs:label"
+msgid "axis extent"
+msgstr "étendue d'axe"
+
+msgctxt "https://blackcatinformatics.ca/math/axisExtent|skos:definition"
+msgid "The concrete non-negative integer length of one math:TensorAxis. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). A shape fact — how many positions the axis has — never a value read out of the tensor, so carrying it is compatible with holding the tensor itself by reference. An axis carries this, OR a math:symbolicExtent, OR neither (the source states the axis exists but not its length); never both, because an extent that is at once 4 and 'batch' is two incompatible claims about one axis."
+msgstr "La longueur entière concrète et non négative d'un math:TensorAxis. Domaine math:TensorAxis, portée xsd:nonNegativeInteger (précisé en prose). Un fait de forme — combien de positions l'axe possède — jamais une valeur lue dans le tenseur, de sorte que le porter reste compatible avec le fait de tenir le tenseur lui-même par référence. Un axe porte ceci, OU un math:symbolicExtent, OU ni l'un ni l'autre (la source affirme que l'axe existe mais pas sa longueur) ; jamais les deux, car une étendue qui vaut à la fois 4 et « batch » est deux affirmations incompatibles sur un même axe."
+
+msgctxt "https://blackcatinformatics.ca/math/symbolicExtent|rdfs:label"
+msgid "symbolic extent"
+msgstr "étendue symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/symbolicExtent|skos:definition"
+msgid "Relates a math:TensorAxis whose length the source leaves open to the math:FreeVariableDeclaration naming it — the 'batch' or 'sequence' axis of a model that is not fixed until the tensor is supplied. Domain math:TensorAxis, range math:FreeVariableDeclaration (stated in prose). A declaration rather than a bare string, so that two axes sharing a symbolic extent share ONE declaration and therefore genuinely denote the same unknown length; equality of two label strings would leave that co-identity to be re-derived by every consumer, which is the flattening this property exists to avoid."
+msgstr "Relie un math:TensorAxis dont la source laisse la longueur ouverte à la math:FreeVariableDeclaration qui la nomme — l'axe « batch » ou « sequence » d'un modèle qui n'est fixé qu'à la fourniture du tenseur. Domaine math:TensorAxis, portée math:FreeVariableDeclaration (précisé en prose). Une déclaration plutôt qu'une simple chaîne, afin que deux axes partageant une étendue symbolique partagent UNE déclaration et dénotent donc véritablement la même longueur inconnue ; l'égalité de deux chaînes d'étiquettes laisserait cette co-identité à re-dériver par chaque consommateur, ce qui est précisément l'aplatissement que cette propriété évite."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorElementType|rdfs:label"
+msgid "tensor element type"
+msgstr "type d'élément de tenseur"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorElementType|skos:definition"
+msgid "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorElementType of its elements. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorElementType (stated in prose). The element format is stated by every interchange format that carries a computation graph, so leaving it inside a rendered type label would discard a fact the source makes explicit."
+msgstr "Relie un math:ExpressionType typant un emplacement de tenseur, ou un math:WeightTensor, au math:TensorElementType de ses éléments. Domaine un math:ExpressionType ou un math:WeightTensor, portée math:TensorElementType (précisé en prose). Le format d'élément est énoncé par tout format d'échange portant un graphe de calcul, de sorte que le laisser à l'intérieur d'une étiquette de type rendue reviendrait à écarter un fait que la source rend explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/retainedSource|rdfs:label"
+msgid "retained source"
+msgstr "source conservée"
+
+msgctxt "https://blackcatinformatics.ca/math/retainedSource|skos:definition"
+msgid "The source artifact a math:parseSource witness retains, verbatim. Domain the retained source witness, range a literal (stated in prose): the source text for a textual artifact, or xsd:base64Binary for a binary one. This is what makes the witness mnemomorphic rather than amnesic — math:parseSource requires a witness 'carrying enough of the source to recover what the lift did not map', and a witness bearing only a type and logic:loadBearing carries strictly less than the opaque blob that definition already rejects. It is the retained half of the put leg: with it, get is a projection along a witness; without it, get is a reconstruction."
+msgstr "L'artefact source qu'un témoin math:parseSource conserve, verbatim. Domaine le témoin de source conservée, portée un littéral (précisé en prose) : le texte source pour un artefact textuel, ou xsd:base64Binary pour un artefact binaire. C'est ce qui rend le témoin mnémomorphe plutôt qu'amnésique — math:parseSource exige un témoin « portant assez de la source pour recouvrer ce que le relèvement n'a pas transposé », et un témoin ne portant qu'un type et logic:loadBearing porte strictement moins que le blob opaque que cette définition rejette déjà. C'est la moitié conservée de la branche put : avec elle, get est une projection le long d'un témoin ; sans elle, get est une reconstruction."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceDigest|rdfs:label"
+msgid "source digest"
+msgstr "empreinte de source"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceDigest|skos:definition"
+msgid "A content digest identifying the source artifact a math:parseSource witness refers to, for a source whose bytes are NOT retained. Domain the retained source witness, range a literal digest (stated in prose). It is the blob-by-reference complement of math:retainedSource: a binary artifact — an ONNX model's weight payload, a data matrix, an MCMC sample — is held by reference and never inlined, so the witness names the artifact instead of embedding it. A digest identifies; it does not retain, so a witness carrying only this one does NOT support a logic:mnemomorphic claim and cannot climb to a section/retraction rung."
+msgstr "Une empreinte de contenu identifiant l'artefact source auquel un témoin math:parseSource se réfère, pour une source dont les octets ne sont PAS conservés. Domaine le témoin de source conservée, portée un littéral d'empreinte (précisé en prose). C'est le complément par référence de math:retainedSource : un artefact binaire — la charge de poids d'un modèle ONNX, une matrice de données, un échantillon MCMC — est tenu par référence et jamais inséré, de sorte que le témoin nomme l'artefact au lieu de l'incorporer. Une empreinte identifie ; elle ne conserve pas, de sorte qu'un témoin ne portant que celle-ci ne soutient PAS une affirmation logic:mnemomorphic et ne peut atteindre un échelon de section ou de rétraction."
+
+msgctxt "https://blackcatinformatics.ca/math/unmappedConstruct|rdfs:label"
+msgid "unmapped construct"
+msgstr "construction non transposée"
+
+msgctxt "https://blackcatinformatics.ca/math/unmappedConstruct|skos:definition"
+msgid "Names a construct present in the retained source that the lift did NOT carry into the math: codomain — MULTI-valued. Domain the math:parseSource witness, range a literal naming the construct (stated in prose). The second half of what math:parseSource demands: the witness must let a consumer recover WHAT THE LIFT DID NOT MAP, which the source alone answers only by re-parsing it. Enumerating the residue makes a lossy lens's loss queryable rather than merely declared by its logic:preservationKind rung."
+msgstr "Nomme une construction présente dans la source conservée que le relèvement n'a PAS portée dans le codomaine math: — MULTIVALUÉ. Domaine le témoin math:parseSource, portée un littéral nommant la construction (précisé en prose). La seconde moitié de ce qu'exige math:parseSource : le témoin doit permettre à un consommateur de recouvrer CE QUE LE RELÈVEMENT N'A PAS TRANSPOSÉ, ce à quoi la source seule ne répond qu'en la ré-analysant. Énumérer le résidu rend interrogeable la perte d'une lentille lacunaire, au lieu de la laisser simplement déclarée par son échelon logic:preservationKind."
+
+msgctxt "https://blackcatinformatics.ca/math/SourceAnnotation|rdfs:label"
+msgid "Source Annotation"
+msgstr "Annotation de source"
+
+msgctxt "https://blackcatinformatics.ca/math/SourceAnnotation|skos:definition"
+msgid "A reified free-form annotation an ingested source carried on ITSELF: a machine key (math:annotationKey), its value (math:annotationValue), and a human rendering (rdfs:label). It rides on the math:parseSource witness through math:sourceAnnotation, so a producer's own metadata — an exporter's declared IR version, a licence, an author, a 'converted from' note — survives the lift as a queryable pair rather than as prose a consumer must re-split. Reification is what keeps several annotations from being cross-paired: flat key and value properties on one bearer produce a cross product the moment a second annotation appears. It is deliberately NOT a gmeow:Identifier — an Identifier is a reified EXTERNAL-identifier record whose value resolves an entity within a named scheme (an ORCID, an LEI, a ROR ID), and typing a producer's free-form note as one would assert an external-identity claim the source never made."
+msgstr "Une annotation libre réifiée qu'une source ingérée portait sur ELLE-MÊME : une clé machine (math:annotationKey), sa valeur (math:annotationValue) et un rendu humain (rdfs:label). Elle est portée par le témoin math:parseSource via math:sourceAnnotation, de sorte que les métadonnées propres d'un producteur — la version d'IR déclarée par un exportateur, une licence, un auteur, une note « converti depuis » — survivent au relèvement sous forme de paire interrogeable plutôt que de prose qu'un consommateur devrait re-découper. La réification est ce qui empêche l'appariement croisé de plusieurs annotations : des propriétés plates de clé et de valeur sur un même porteur produisent un produit cartésien dès qu'une seconde annotation apparaît. Ce n'est délibérément PAS un gmeow:Identifier — un Identifier est un enregistrement réifié d'identifiant EXTERNE dont la valeur résout une entité dans un schéma nommé (un ORCID, un LEI, un identifiant ROR), et typer ainsi la note libre d'un producteur affirmerait une identité externe que la source n'a jamais revendiquée."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceAnnotation|rdfs:label"
+msgid "source annotation"
+msgstr "annotation de source"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceAnnotation|skos:definition"
+msgid "Relates a math:parseSource witness to one math:SourceAnnotation the ingested source carried — MULTI-valued. Domain the math:parseSource witness, range math:SourceAnnotation (stated in prose). The witness already retains the source verbatim (math:retainedSource) and enumerates what the lift did not carry (math:unmappedConstruct); this is the third leg, the metadata the source declared about itself that the lift DID read. An annotation reaching here is carried, so it is never also residue."
+msgstr "Relie un témoin math:parseSource à une math:SourceAnnotation que la source ingérée portait — MULTIVALUÉ. Domaine le témoin math:parseSource, portée math:SourceAnnotation (précisé en prose). Le témoin conserve déjà la source verbatim (math:retainedSource) et énumère ce que le relèvement n'a pas porté (math:unmappedConstruct) ; ceci est la troisième branche, les métadonnées que la source déclarait sur elle-même et que le relèvement A lues. Une annotation parvenant ici est portée, donc jamais aussi résidu."
+
+msgctxt "https://blackcatinformatics.ca/math/annotationKey|rdfs:label"
+msgid "annotation key"
+msgstr "clé d'annotation"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationKey|skos:definition"
+msgid "The machine key of a math:SourceAnnotation — the name under which the source filed the annotation. Domain math:SourceAnnotation, range a literal (stated in prose). It is the source's own spelling, unnormalized: rewriting a producer's key would make the retained annotation disagree with the retained source it is drawn from."
+msgstr "La clé machine d'une math:SourceAnnotation — le nom sous lequel la source a classé l'annotation. Domaine math:SourceAnnotation, portée un littéral (précisé en prose). C'est l'orthographe propre de la source, non normalisée : réécrire la clé d'un producteur ferait diverger l'annotation conservée de la source conservée dont elle est tirée."
+
+msgctxt "https://blackcatinformatics.ca/math/annotationValue|rdfs:label"
+msgid "annotation value"
+msgstr "valeur d'annotation"
+
+msgctxt "https://blackcatinformatics.ca/math/annotationValue|skos:definition"
+msgid "The value of a math:SourceAnnotation — what the source filed under its math:annotationKey. Domain math:SourceAnnotation, range a literal (stated in prose). Carried verbatim, including the empty string where the source declared an empty value, because an annotation's presence with an empty value is a different fact from its absence."
+msgstr "La valeur d'une math:SourceAnnotation — ce que la source a classé sous sa math:annotationKey. Domaine math:SourceAnnotation, portée un littéral (précisé en prose). Portée verbatim, y compris la chaîne vide là où la source a déclaré une valeur vide, car la présence d'une annotation à valeur vide est un fait distinct de son absence."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraphOf|rdfs:label"
+msgid "dependency graph of"
+msgstr "graphe de dépendances de"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraphOf|skos:definition"
+msgid "Relates a math:ProofDependencyGraph to the math:Proof it underlies. Domain math:ProofDependencyGraph, range math:Proof (stated in prose). math:ProofDependencyGraph's own definition names the proof it underlies, so without this property that naming is prose only and the DAG floats unattached in the lifted graph — a consumer asking which proof a DAG belongs to would have to infer it from co-generation by the same math:ProofIngestRun, which is a run-scoped coincidence rather than the structural fact."
+msgstr "Relie un math:ProofDependencyGraph à la math:Proof qu'il sous-tend. Domaine math:ProofDependencyGraph, portée math:Proof (précisé en prose). La définition même de math:ProofDependencyGraph nomme la preuve qu'il sous-tend ; sans cette propriété, ce nommage reste de la prose et le DAG flotte sans attache dans le graphe relevé — un consommateur demandant à quelle preuve appartient un DAG devrait le déduire d'une co-génération par le même math:ProofIngestRun, ce qui est une coïncidence liée à l'exécution plutôt que le fait structurel."
+
+msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|rdfs:label"
+msgid "uses inference rule"
+msgstr "utilise la règle d'inférence"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
+msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
+msgstr "Relie un math:ProofStep à la règle d'inférence qui l'autorise. Domaine math:ProofStep, portée laissée OUVERTE en prose : la règle peut être une règle logic: ou une identité de trace de preuve, une règle nommée du calcul d'un prouveur, ou une identité de déclenchement adressée par contenu, et le couplage à logic: se fait par référence plutôt que par des triplets affirmés dans celui-ci. Le pendant au niveau de l'étape de math:usesProofMethod, qui nomme la stratégie globale d'une math:Proof ; l'autorisation d'une étape de résolution n'est pas la stratégie de la preuve, de sorte que les deux sont des propriétés distinctes à des niveaux distincts."

@@ -25,14 +25,12 @@ use crate::store::{Node, Object, Store};
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 /// The GMEOW vocabulary namespace; IRIs under it get the `gmeow:` CURIE prefix.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
@@ -48,7 +46,6 @@ const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 // ── GMEOW-vocabulary predicates / classes used by the linkage / concern surfaces ─
 
 const GMEOW_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
-const GMEOW_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
 const GMEOW_DOCUMENTATION_CONCERN: &str =
     "https://blackcatinformatics.ca/gmeow/DocumentationConcern";
 
@@ -56,12 +53,6 @@ const GMEOW_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GMEOW_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GMEOW_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
 const GMEOW_SET_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/setComment";
-
-const GMEOW_ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
-const GMEOW_ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
-const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
-const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
-const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 
 // ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
 const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
@@ -92,7 +83,7 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it are surfaced as the term's logic stereotypes.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// `logic:PathShape` — a named, parametric predicate-path traversal specification
 /// (design/LOGIC-PATHS.md). Its authored INSTANCES are first-class, reusable
@@ -110,11 +101,11 @@ const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/compl
 /// The language-grounding vocabulary namespace (`slices/grounding/lang`). Its
 /// slice owns first-class documented vocabulary in this namespace, exactly like
 /// `logic:` / `math:`.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 // ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
 /// The math-grounding vocabulary namespace (`slices/grounding/math`).
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 /// `math:hasDimension` — the predicate a worked instance's subject (a
 /// `Quantity`/`Integral`/`Measure`/measurable-function/…) declares its
 /// dimension object through. The SUBJECT-discovery predicate for
@@ -149,6 +140,12 @@ const GMEOW_RULE_CATEGORY: &str = "https://blackcatinformatics.ca/gmeow/ruleCate
 const GMEOW_RULE_SEVERITY: &str = "https://blackcatinformatics.ca/gmeow/ruleSeverity";
 const GMEOW_RULE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/ruleHelpUri";
 const GMEOW_APPLIES_TO_TERM: &str = "https://blackcatinformatics.ca/gmeow/appliesToTerm";
+// The advice-catalog projection: the recommendation tier.
+const GMEOW_ADVICE_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/AdviceEntry";
+const GMEOW_ADVICE_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceAvoidWhen";
+const GMEOW_ADVICE_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceUseWhen";
+const GMEOW_ADVICE_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/adviceHowToUse";
+const GMEOW_DOCUMENTED_BY_RULE: &str = "https://blackcatinformatics.ca/gmeow/documentedByRule";
 /// `logic:instantiatesFramework` — the per-term reasoning-discipline selector;
 /// its objects (closed `logic:LogicalFramework` individuals) surface as the
 /// term's frameworks.
@@ -254,6 +251,31 @@ const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
 /// `logic:StrongPlanSuccess`).
 const LOGIC_PLAN_SUCCESS_MODE: &str = "https://blackcatinformatics.ca/logic/planSuccessMode";
 
+// ── Grounding seams (`gmeow:Seam` individuals) ──────────────────────────────
+// The closed set of sanctioned cross-grounding reference channels (Principle
+// 19), authored as canonical governance DATA in a grounding slice's
+// `manifest.ttl` (today, `logic:`'s) rather than hand-maintained prose.
+// Discovered generically: [`extract_seams`] scans the `manifest_graph` of
+// EVERY slice typed `gmeow:GroundingSlice`, so a future seam authored in
+// `lang:`/`math:` is picked up without a code change.
+
+/// The marker class typing a grounding slice (`logic:`/`lang:`/`math:`) in its
+/// own `manifest.ttl` — the machine-checked signal [`extract_seams`] uses to
+/// find every manifest that may carry `gmeow:Seam` individuals.
+const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
+/// `gmeow:Seam` — a sanctioned cross-grounding reference channel.
+const GMEOW_SEAM: &str = "https://blackcatinformatics.ca/gmeow/Seam";
+/// `gmeow:seamDirection` — a seam's directed (from, to) legs (blank nodes).
+const GMEOW_SEAM_DIRECTION: &str = "https://blackcatinformatics.ca/gmeow/seamDirection";
+/// `gmeow:seamFromSlice` — a seam-direction leg's referencing grounding slice.
+const GMEOW_SEAM_FROM_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamFromSlice";
+/// `gmeow:seamToSlice` — a seam-direction leg's referenced grounding slice.
+const GMEOW_SEAM_TO_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamToSlice";
+/// `gmeow:seamCarryingTerm` — an exact term IRI a seam sanctions crossing it.
+const GMEOW_SEAM_CARRYING_TERM: &str = "https://blackcatinformatics.ca/gmeow/seamCarryingTerm";
+/// `gmeow:seamOwningDoc` — the design-doc filename that owns a seam's theory.
+const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOwningDoc";
+
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
@@ -269,6 +291,22 @@ pub enum DocsError {
     /// silent empty — a dropped `MappingSet` would leave relocated linkage
     /// resolving its set IRI to the raw filename.
     MappingSets(String),
+    /// A slice-owned mapping artifact (`mappings/*.ttl`, `ArtifactRole::Mapping`)
+    /// is present but will not parse as Turtle. Carries the owning slice IRI, the
+    /// slice-relative source path, and the parser diagnostic. A mapping file that
+    /// cannot be read contributes ZERO `gmeow:MappingSet` headers and ZERO
+    /// alignment cells; swallowing the parse error would silently subtract its
+    /// whole contribution from the published linkage index (the term-equivalence
+    /// count that evidences a relocation preserved the grounding corpus), so the
+    /// defect is raised here rather than absorbed into a smaller number.
+    MappingParse {
+        /// The owning slice IRI.
+        slice_iri: String,
+        /// The offending slice-relative mapping source path.
+        source_path: String,
+        /// The underlying Turtle parser diagnostic, preserved verbatim.
+        detail: String,
+    },
     /// The committed term content manifest
     /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
     /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
@@ -283,6 +321,37 @@ pub enum DocsError {
     /// `crates/slicetest/src/paths.rs::query_file` resolution), so a dangling
     /// reference is a data bug, never an honest absence to swallow as `None`.
     CompetencyQuery(String),
+    /// A `text/markdown` source under a slice carries invalid UTF-8, so it cannot be
+    /// read into the strict-UTF-8 [`DocMarkdownDocument`] model. Carries the owning
+    /// slice IRI and the offending slice-relative source path. There is no
+    /// `from_utf8_lossy` fallback — a malformed source is a data bug surfaced loudly
+    /// with its path, never silently mojibake'd.
+    MarkdownUtf8 {
+        /// The owning slice IRI.
+        slice_iri: String,
+        /// The offending slice-relative markdown source path.
+        source_path: String,
+    },
+    /// Two `text/markdown` sources in ONE slice normalize to the SAME logical path,
+    /// so one would silently shadow the other. Carries the owning slice IRI and the
+    /// colliding normalized path.
+    MarkdownPathCollision {
+        /// The owning slice IRI.
+        slice_iri: String,
+        /// The normalized logical path two distinct sources both claim.
+        source_path: String,
+    },
+    /// Two [`DocMarkdownDocument`]s map to the SAME generated page path, so one page
+    /// would overwrite the other. Carries the colliding page path and the two
+    /// `slice-iri :: source-path` document identities.
+    MarkdownPageCollision {
+        /// The generated page path two documents both claim.
+        page: String,
+        /// The first document's `slice-iri :: source-path` identity.
+        first: String,
+        /// The second document's `slice-iri :: source-path` identity.
+        second: String,
+    },
 }
 
 impl std::fmt::Display for DocsError {
@@ -291,8 +360,40 @@ impl std::fmt::Display for DocsError {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
+            DocsError::MappingParse {
+                slice_iri,
+                source_path,
+                detail,
+            } => write!(
+                f,
+                "mapping artifact `{source_path}` in slice {slice_iri} will not parse as Turtle \
+                 (its mapping sets and alignment cells would silently vanish from the linkage \
+                 index): {detail}"
+            ),
             DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
             DocsError::CompetencyQuery(msg) => write!(f, "competency query file error: {msg}"),
+            DocsError::MarkdownUtf8 {
+                slice_iri,
+                source_path,
+            } => write!(
+                f,
+                "markdown source `{source_path}` in slice {slice_iri} is not valid UTF-8"
+            ),
+            DocsError::MarkdownPathCollision {
+                slice_iri,
+                source_path,
+            } => write!(
+                f,
+                "two markdown sources in slice {slice_iri} normalize to the same logical path `{source_path}`"
+            ),
+            DocsError::MarkdownPageCollision {
+                page,
+                first,
+                second,
+            } => write!(
+                f,
+                "two documents map to the same generated page path `{page}`: {first} and {second}"
+            ),
         }
     }
 }
@@ -352,6 +453,149 @@ impl DocArtifact {
     }
 }
 
+/// A first-class, strictly-decoded Markdown source document owned by a slice.
+///
+/// Every `text/markdown` artifact recursively discovered in the slice becomes one
+/// of these — selected by MEDIA TYPE, never by [`ArtifactRole`], so a
+/// `design/*.md` file (classified `ArtifactRole::Other`) is a first-class document
+/// exactly like the top-level `docs.md`. The source text is decoded with STRICT
+/// `std::str::from_utf8` (never `from_utf8_lossy`), so a malformed source is a
+/// hard failure carrying its path, not silent mojibake.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocMarkdownDocument {
+    /// The owning slice IRI (`a gmeow:Slice`).
+    pub slice_iri: String,
+    /// The owning slice's filesystem-safe slug (the `{slug}` in its
+    /// `slices/{slug}/…` page space) — carried so the document self-describes its
+    /// generated URL space without re-deriving it from the IRI.
+    pub slice_slug: String,
+    /// The normalized logical source path, relative within the slice: forward-slash
+    /// separators, no leading `./` and no leading `/` (e.g. `design/ARCHITECTURE.md`).
+    pub source_path: String,
+    /// The document title: the first ATX (`#`) H1 of the source when present, else a
+    /// humanized fallback from the filename stem (`design/ARCHITECTURE.md` →
+    /// `Architecture`).
+    pub title: String,
+    /// The STRICT-UTF-8 decoded source text (via `std::str::from_utf8`).
+    pub source_text: String,
+    /// The raw digest already carried by the artifact record (`raw_digest`) — the
+    /// content address of the source bytes.
+    pub raw_digest: String,
+}
+
+/// Normalize an artifact's slice-relative logical path for the document model:
+/// forward-slash separators, no leading `./`, no leading `/`. The purrdf slice
+/// classifier already yields a relative path with no `..` and no leading `/`, so
+/// this is a light idempotent fold, not a `..`-resolving canonicalizer.
+pub(crate) fn normalize_logical_path(path: &str) -> String {
+    let mut p = path.replace('\\', "/");
+    while let Some(stripped) = p.strip_prefix("./") {
+        p = stripped.to_string();
+    }
+    p.trim_start_matches('/').to_string()
+}
+
+/// Humanize a markdown filename stem into a title-cased fallback title:
+/// `ARCHITECTURE` → `Architecture`, `getting-started` → `Getting Started`. Each
+/// `-`/`_`/`.`-separated word is title-cased (first char upper, rest lower), so an
+/// all-caps stem reads as a word rather than a shout.
+fn humanize_stem(stem: &str) -> String {
+    let words: Vec<String> = stem
+        .split(['-', '_', '.', ' '])
+        .filter(|w| !w.is_empty())
+        .map(|w| {
+            let mut chars = w.chars();
+            match chars.next() {
+                Some(first) => {
+                    first.to_uppercase().collect::<String>() + &chars.as_str().to_lowercase()
+                }
+                None => String::new(),
+            }
+        })
+        .collect();
+    if words.is_empty() {
+        "Untitled".to_string()
+    } else {
+        words.join(" ")
+    }
+}
+
+/// Resolve a markdown document title: the first ATX (`#`) H1 line of the source
+/// (one leading `#` then whitespace; any trailing closing `#` run trimmed), else a
+/// [`humanize_stem`] fallback over the source path's filename stem.
+pub(crate) fn markdown_title(source: &str, source_path: &str) -> String {
+    for line in source.lines() {
+        let t = line.trim();
+        // An ATX H1 is exactly one `#` followed by whitespace (a `##` heading is
+        // not an H1). A setext H1 (`===` underline) is not matched — the ATX form
+        // is the project's authored convention.
+        if let Some(rest) = t.strip_prefix('#')
+            && !rest.starts_with('#')
+            && rest.starts_with(char::is_whitespace)
+        {
+            let title = rest.trim().trim_end_matches('#').trim();
+            if !title.is_empty() {
+                return title.to_string();
+            }
+        }
+    }
+    let stem = source_path
+        .rsplit('/')
+        .next()
+        .unwrap_or(source_path)
+        .strip_suffix(".md")
+        .unwrap_or(source_path);
+    humanize_stem(stem)
+}
+
+impl DocMarkdownDocument {
+    /// Collect every `text/markdown` artifact in `record` into a strictly-decoded,
+    /// path-sorted document set. Selection is by `media_type == "text/markdown"`
+    /// over EVERY recursively-discovered artifact (never by `ArtifactRole`).
+    ///
+    /// Hard-fails (a real `Err` naming the offending source path) on invalid UTF-8
+    /// ([`DocsError::MarkdownUtf8`]) and on two sources normalizing to the same
+    /// logical path ([`DocsError::MarkdownPathCollision`]). No lossy fallback, no
+    /// silent skip.
+    fn collect(
+        record: &SliceRecord,
+        slice_iri: &str,
+        slice_slug: &str,
+    ) -> Result<Vec<DocMarkdownDocument>, DocsError> {
+        // A BTreeMap keyed by normalized path yields the path-sorted output order
+        // deterministically and makes the collision check a simple insert probe.
+        let mut by_path: BTreeMap<String, DocMarkdownDocument> = BTreeMap::new();
+        for artifact in &record.artifacts {
+            if artifact.media_type != "text/markdown" {
+                continue;
+            }
+            let source_text = std::str::from_utf8(&artifact.content)
+                .map_err(|_| DocsError::MarkdownUtf8 {
+                    slice_iri: slice_iri.to_string(),
+                    source_path: artifact.logical_path.clone(),
+                })?
+                .to_string();
+            let source_path = normalize_logical_path(&artifact.logical_path);
+            let title = markdown_title(&source_text, &source_path);
+            let doc = DocMarkdownDocument {
+                slice_iri: slice_iri.to_string(),
+                slice_slug: slice_slug.to_string(),
+                source_path: source_path.clone(),
+                title,
+                source_text,
+                raw_digest: artifact.raw_digest.clone(),
+            };
+            if by_path.insert(source_path.clone(), doc).is_some() {
+                return Err(DocsError::MarkdownPathCollision {
+                    slice_iri: slice_iri.to_string(),
+                    source_path,
+                });
+            }
+        }
+        Ok(by_path.into_values().collect())
+    }
+}
+
 /// A documented slice: manifest identity + its artifact inventory.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocSlice {
@@ -378,6 +622,12 @@ pub struct DocSlice {
     pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
+    /// Every `text/markdown` source in the slice as a first-class, strictly-decoded
+    /// [`DocMarkdownDocument`], selected by media type (never by `ArtifactRole`) and
+    /// sorted deterministically by normalized logical path. The top-level `docs.md`
+    /// appears here alongside `design/*.md` and any other markdown.
+    #[serde(default)]
+    pub documents: Vec<DocMarkdownDocument>,
     /// Deterministic `docs.md` fact: the slice's `docs.md` opens with a thesis
     /// sentence (a prose sentence, not a heading/table/list). Drives the
     /// slice-scoped `gmeow:dimThesisSentence` coverage dimension. Computed in
@@ -479,7 +729,7 @@ fn detect_realized_state_complete(md: &str) -> bool {
 }
 
 impl DocSlice {
-    fn from_record(record: &SliceRecord) -> Self {
+    fn from_record(record: &SliceRecord) -> Result<Self, DocsError> {
         let ManifestView {
             slice_iri,
             label,
@@ -528,7 +778,14 @@ impl DocSlice {
         let profiles = profiles.clone();
         let depends_on = depends_on.clone();
 
-        Self {
+        // Every `text/markdown` source as a first-class strictly-decoded document
+        // (hard-fails on invalid UTF-8 or a normalized-path collision). The slice
+        // slug is derived from the IRI directly — the same slug the renderer and RDF
+        // projection use for this slice's `slices/{slug}/…` page space.
+        let slice_slug = crate::render::slice_slug_of_iri(slice_iri);
+        let documents = DocMarkdownDocument::collect(record, slice_iri, &slice_slug)?;
+
+        Ok(Self {
             iri: slice_iri.clone(),
             label: label.clone(),
             title: title.clone(),
@@ -541,6 +798,29 @@ impl DocSlice {
             artifacts,
             has_thesis_sentence,
             realized_state_complete,
+            documents,
+        })
+    }
+
+    /// A bare slice carrying only an IRI and a document set — for the
+    /// [`crate::source_map`] unit tests that exercise the page map over a
+    /// hand-built model without the full catalog machinery.
+    #[cfg(test)]
+    pub(crate) fn bare_for_test(iri: &str, documents: Vec<DocMarkdownDocument>) -> Self {
+        Self {
+            iri: iri.to_string(),
+            label: None,
+            title: None,
+            tier: None,
+            identifier: None,
+            creators: Vec::new(),
+            consumers: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
+            artifacts: Vec::new(),
+            has_thesis_sentence: false,
+            realized_state_complete: false,
+            documents,
         }
     }
 }
@@ -755,21 +1035,21 @@ pub struct DocMappingSet {
     pub equivalence_count: usize,
 }
 
-/// A single term equivalence (`gmeow:TermEquivalence`) — a cross-walk from a
-/// GMEOW term to an external IRI via a SKOS-style alignment predicate.
+/// A single native alignment cell — a cross-walk from a GMEOW term to an external
+/// IRI via a SKOS-style (`skos:*Match`) alignment predicate.
 ///
 /// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocLinkage {
     /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
     pub mapping_set: Option<String>,
-    /// `gmeow:alignSubject` — the GMEOW term IRI.
+    /// The GMEOW term IRI (the match subject).
     pub subject: String,
     /// The subject as a CURIE.
     pub subject_curie: String,
-    /// `gmeow:alignPredicate` — e.g. `skos:closeMatch`.
+    /// The match predicate — e.g. `skos:closeMatch`.
     pub predicate: String,
-    /// `gmeow:alignObject` — the external IRI.
+    /// The match object — the external IRI.
     pub object: String,
     /// `gmeow:justification`.
     pub justification: Option<String>,
@@ -1098,9 +1378,42 @@ pub struct DocExternalTerm {
     pub namespace: String,
     /// GMEOW CURIEs that reference this external IRI (sorted, deduped).
     pub referenced_by: Vec<String>,
-    /// The predicates the reference travels over (`alignObject`, `subClassOf`,
+    /// The predicates the reference travels over (`matchObject`, `subClassOf`,
     /// `domain`, `range`), sorted/deduped.
     pub via_predicate: Vec<String>,
+}
+
+/// One directed leg of a `gmeow:Seam` (a `gmeow:SeamDirection` blank node): the
+/// referencing (from) and referenced (to) grounding-slice IRIs.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct DocSeamDirection {
+    /// `gmeow:seamFromSlice` — the referencing (source) grounding slice IRI.
+    pub from: String,
+    /// `gmeow:seamToSlice` — the referenced (target) grounding slice IRI.
+    pub to: String,
+}
+
+/// A sanctioned cross-grounding reference channel (`gmeow:Seam`) — one edge of
+/// the grounding-reference information-flow policy (Principle 19). Authored as
+/// canonical governance data in a grounding slice's `manifest.ttl` (today,
+/// `logic:`'s — see [`extract_seams`]), never hand-duplicated as a markdown
+/// table: [`crate::render::Page::SeamRegistry`] projects this set to the
+/// generated seam-registry page, and `gmeow-validate`'s authoring-integrity
+/// gate asserts that projection never drifts from this data.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocSeam {
+    /// The seam IRI (`a gmeow:Seam`).
+    pub iri: String,
+    /// `rdfs:label`.
+    pub label: Option<String>,
+    /// `skos:definition` (falling back to `rdfs:comment`).
+    pub definition: Option<String>,
+    /// `gmeow:seamDirection` legs, sorted by `(from, to)` and deduped.
+    pub directions: Vec<DocSeamDirection>,
+    /// `gmeow:seamCarryingTerm` IRIs, sorted/deduped.
+    pub carrying_terms: Vec<String>,
+    /// `gmeow:seamOwningDoc` filenames, sorted/deduped.
+    pub owning_docs: Vec<String>,
 }
 
 /// A task-oriented adoption recipe (`gmeow:Recipe`), parsed from the guides
@@ -1274,6 +1587,10 @@ pub struct DocsModel {
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
     pub external_terms: Vec<DocExternalTerm>,
+    /// All sanctioned cross-grounding seams (`gmeow:Seam` individuals), read
+    /// from every slice typed `gmeow:GroundingSlice` (sorted by IRI). See
+    /// [`DocSeam`].
+    pub seams: Vec<DocSeam>,
     /// All adoption recipes parsed from the guides slice (sorted by slug).
     pub recipes: Vec<DocRecipe>,
     /// All curated learning paths parsed from the guides slice (sorted by slug).
@@ -1284,6 +1601,11 @@ pub struct DocsModel {
     /// unit-test model). Drives the "What GMEOW enforces" page, whose per-rule
     /// anchor is the same slug the validator mints for a finding's `helpUri`.
     pub constraint_rules: Vec<ConstraintRule>,
+    /// The advice catalog — every `gmeow:AdviceEntry` individual read from the same
+    /// `constraint-catalog.nq` in `discover()` (sorted by term). The recommendation
+    /// tier peer of `constraint_rules`: drives the distinct "Advice" section of the
+    /// "What GMEOW enforces" page. Empty when no realized advice carrier exists.
+    pub advice_entries: Vec<AdviceEntry>,
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
@@ -1426,6 +1748,34 @@ pub struct ConstraintRule {
     pub applies_to_terms: Vec<String>,
     /// The `logic:` axiom IRI this rule formalizes (`logic:formalizes`), if present.
     pub formalizes: Option<String>,
+}
+
+/// One advice-catalog entry (`gmeow:AdviceEntry`): the standing RECOMMENDATION
+/// harvested for one governed term — the advisory peer of [`ConstraintRule`].
+/// Rendered in the distinct "Advice" section beneath the `advice.` family rule
+/// (`documented_by_rule`), the single `#advice-` anchor every advisory finding code
+/// resolves to. Each prose leg is the term's OWN verbatim prose, projected from the
+/// realized carriers — never a fabricated recommendation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AdviceEntry {
+    /// The governed term IRI (`gmeow:appliesToTerm` / `logic:formalizes`).
+    pub term: String,
+    /// The readable in-page sub-anchor slug `advice-{slugify(local-name(term))}`
+    /// (navigation only; the guaranteed static resolution target is `#advice-`).
+    pub slug: String,
+    /// The term's human label (`rdfs:label`), if present.
+    pub label: Option<String>,
+    /// The term's prose definition (`skos:definition`), if present.
+    pub definition: Option<String>,
+    /// The prohibition prose (`gmeow:adviceAvoidWhen`), sorted; may be empty.
+    pub avoid_when: Vec<String>,
+    /// The conditional-permission prose (`gmeow:adviceUseWhen`), sorted; may be empty.
+    pub use_when: Vec<String>,
+    /// The positive-directive prose (`gmeow:adviceHowToUse`), sorted; may be empty.
+    pub how_to_use: Vec<String>,
+    /// The advice family `gmeow:ValidationRule` IRI this entry hangs beneath
+    /// (`gmeow:documentedByRule`), if present.
+    pub documented_by_rule: Option<String>,
 }
 
 /// One diagnostic (`gmeow_errors::DiagNode`) projected for docs rendering: the
@@ -1627,7 +1977,57 @@ impl DocsModel {
     /// (`gmeow:attachesGraph` / `gmeow:attachesBlobRep`) — the stage's declared,
     /// run-verified carrier contribution, so a stage term page self-explains what it
     /// produced.
-    pub const VERSION: &'static str = "16";
+    ///
+    /// v17: two additions land together. [`seams`](DocsModel::seams) carries the
+    /// sanctioned cross-grounding `gmeow:Seam` registry, read generically from every
+    /// slice manifest typed `gmeow:GroundingSlice` and projected to the generated
+    /// seam-registry page (`Page::SeamRegistry`). Each [`DocSlice`] also grows
+    /// `documents` — every `text/markdown` source in the slice as a first-class,
+    /// strictly-decoded [`DocMarkdownDocument`] (selected by media type, never by
+    /// `ArtifactRole`, so `design/*.md` is a first-class document). The
+    /// [`crate::source_map::SourceToPageMap`] is the single link-rewrite authority
+    /// over that set (a pure function of the model).
+    pub const VERSION: &'static str = "17";
+
+    /// An empty model with every collection cleared — for the [`crate::source_map`]
+    /// unit tests, which populate only `slices` before exercising the page map.
+    #[cfg(test)]
+    pub(crate) fn empty_for_test() -> Self {
+        Self {
+            title: "GMEOW Ontology Documentation".to_string(),
+            version: Self::VERSION.to_string(),
+            slices: Vec::new(),
+            terms: Vec::new(),
+            dependency_edges: Vec::new(),
+            mapping_sets: Vec::new(),
+            linkages: Vec::new(),
+            examples: Vec::new(),
+            fixtures: Vec::new(),
+            shapes: Vec::new(),
+            seams: Vec::new(),
+            competencies: Vec::new(),
+            grammars: Vec::new(),
+            loss_targets: Vec::new(),
+            worked_instances: Vec::new(),
+            concerns: Vec::new(),
+            external_terms: Vec::new(),
+            recipes: Vec::new(),
+            learning_paths: Vec::new(),
+            advice_entries: Vec::new(),
+            constraint_rules: Vec::new(),
+            four_boxes: None,
+            concept_doi: None,
+            pipeline: None,
+            available_languages: vec!["english".to_string()],
+            translations: Translations::default(),
+            ui_catalog: UiCatalog::default(),
+            reasoning: None,
+            diagnostics: None,
+            term_loss: None,
+            schema_fragments: None,
+            lang: String::new(),
+        }
+    }
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1639,13 +2039,15 @@ impl DocsModel {
         catalog: &SliceCatalog,
         ownership: &OwnershipReport,
         central_mapping_sets: &[DocMappingSet],
-    ) -> Self {
+    ) -> Result<Self, DocsError> {
         // ── Slices ──────────────────────────────────────────────────────────
+        // `from_record` hard-fails on a markdown-document defect (invalid UTF-8 or a
+        // normalized-path collision) — propagated here rather than silently skipped.
         let mut slices: Vec<DocSlice> = catalog
             .records()
             .iter()
             .map(DocSlice::from_record)
-            .collect();
+            .collect::<Result<Vec<_>, _>>()?;
         slices.sort_by(|a, b| a.iri.cmp(&b.iri));
 
         // ── Terms (parsed from each slice's module.ttl) ─────────────────────
@@ -1826,9 +2228,19 @@ impl DocsModel {
                 if artifact.role != ArtifactRole::Mapping {
                     continue;
                 }
-                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
-                    continue;
-                };
+                // Fail closed. A `mappings/*.ttl` that will not parse carries an
+                // unknown number of `gmeow:MappingSet` headers and alignment cells;
+                // skipping it silently subtracts every one of them from the linkage
+                // index with no diagnostic, so the published equivalence count drops
+                // and nothing says why. The count IS the evidence that the grounding
+                // corpus survived a relocation, so it may never be quietly wrong.
+                let store = parse_turtle_lenient(&artifact.content).map_err(|e| {
+                    DocsError::MappingParse {
+                        slice_iri: owner.clone(),
+                        source_path: artifact.logical_path.clone(),
+                        detail: e.to_string(),
+                    }
+                })?;
                 let (sets, links) = extract_mappings(&store, owner);
                 mapping_sets.extend(sets);
                 linkages.extend(links);
@@ -2008,6 +2420,23 @@ impl DocsModel {
         // ── External terms (linkage objects + non-GMEOW term edges) ────────────
         let external_terms = extract_external_terms(&terms, &linkages);
 
+        // ── Grounding seams (gmeow:Seam individuals, read from every slice's
+        // manifest_graph typed gmeow:GroundingSlice) ────────────────────────────
+        // Governance data, not module.ttl vocabulary: read directly off the
+        // catalog's already-parsed, lossless per-slice manifest IR (no re-parse of
+        // manifest.ttl bytes). Generic across every grounding slice — today only
+        // `logic:`'s manifest carries the registry, but a future seam authored in
+        // `lang:`/`math:` is picked up without a code change.
+        let mut seams: Vec<DocSeam> = Vec::new();
+        for record in catalog.records() {
+            let manifest_store = Store::from_dataset(std::sync::Arc::clone(&record.manifest_graph));
+            if is_grounding_slice(&manifest_store, &record.manifest.slice_iri) {
+                seams.extend(extract_seams(&manifest_store));
+            }
+        }
+        seams.sort_by(|a, b| a.iri.cmp(&b.iri));
+        seams.dedup_by(|a, b| a.iri == b.iri);
+
         // ── Guides: recipes + learning paths (parsed from module graphs) ───────
         let (recipes, learning_paths) = extract_guides(catalog);
 
@@ -2015,7 +2444,7 @@ impl DocsModel {
         let translations = Translations::from_catalog(catalog);
         let available_languages = i18n::available_languages(&translations);
 
-        Self {
+        let model = Self {
             title: "GMEOW Ontology Documentation".to_string(),
             version: Self::VERSION.to_string(),
             slices,
@@ -2032,9 +2461,11 @@ impl DocsModel {
             worked_instances,
             concerns,
             external_terms,
+            seams,
             recipes,
             learning_paths,
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline,
@@ -2046,57 +2477,87 @@ impl DocsModel {
             term_loss: None,
             schema_fragments: None,
             lang: String::new(),
-        }
+        };
+
+        // The single link-rewrite authority is a pure function of the assembled
+        // model. Build it now to VALIDATE the last markdown-document invariant —
+        // that no two documents map to one generated page path
+        // ([`DocsError::MarkdownPageCollision`]) — before the model escapes the
+        // constructor. Renderers and the RDF projection rebuild it from the model on
+        // demand (it is a pure function), so it is not stored on the model.
+        crate::source_map::SourceToPageMap::build(&model)?;
+        Ok(model)
     }
 
     /// Discover the slice catalog under `root/slices`, run ownership analysis,
     /// and build the model. Also reads the curated `<root>/docs/four-boxes.md`
     /// prose at build time, if present.
     ///
-    /// The per-term content manifest is sourced from the committed
-    /// `<root>/generated/catalog/term-content-manifest.nq` ([`read_term_manifest`]) —
-    /// the disk-sourced path for the standalone `make docs` fanout, which runs
-    /// post-pipeline against the fanout-refreshed committed file. The in-pipeline
-    /// `stage-docs-render` run uses [`discover_with_manifest`](Self::discover_with_manifest)
-    /// instead, so the documentation graph reflects THIS run's freshly-computed
-    /// manifest rather than lagging one regenerate behind (the stale-disk-fold class).
+    /// The per-term content manifest AND the constraint catalog are sourced from the
+    /// committed `<root>/generated/catalog/*.nq` files
+    /// ([`read_term_manifest`] / [`read_constraint_catalog`]) — the disk-sourced path
+    /// for the standalone `make docs` fanout, which runs post-pipeline against the
+    /// fanout-refreshed committed files. The in-pipeline `stage-docs-render` run uses
+    /// [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog)
+    /// instead, so the model reflects THIS run's freshly-computed products rather than
+    /// lagging one regenerate behind (the stale-disk-fold class).
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let manifest = read_term_manifest(root)?;
-        Self::discover_with_manifest_map(root, manifest)
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Disk)
     }
 
-    /// Same as [`discover`](Self::discover) but sources the per-term content
-    /// manifest from `manifest_bytes` — THIS run's fresh `stage-term-manifest`
-    /// product ([`crate::model`]'s in-pipeline caller passes the
-    /// `stage-term-manifest` artifact bytes) — instead of the committed
-    /// (previous-run) `generated/catalog/term-content-manifest.nq` on disk. When a
-    /// term's definition digest changes this build, the fresh manifest carries the
-    /// newly-minted "Definition changed" changelog entry; a committed-file read
-    /// here would omit it, leaving the documentation named graph one regenerate
-    /// behind the manifest (the stale-disk-fold class this fixes). Shares the whole
-    /// discovery body with [`discover`](Self::discover) via
+    /// Same as [`discover`](Self::discover) but sources BOTH the per-term content
+    /// manifest AND the constraint catalog from THIS run's fresh pipeline stage
+    /// products (`manifest_bytes` from `stage-term-manifest`, `catalog_bytes` from
+    /// `stage-constraint-catalog`), instead of the committed (previous-run)
+    /// `generated/catalog/*.nq` files on disk. This is the in-pipeline `stage-docs-render`
+    /// entry point: when a term's definition digest changes this build the fresh
+    /// manifest carries the newly-minted "Definition changed" changelog entry, and on
+    /// a cold tree (no materialized `generated/`) the catalog read no longer
+    /// hard-fails — both are the stale-disk-fold / cold-absence class this retires.
+    /// Shares the whole discovery body with [`discover`](Self::discover) via
     /// [`discover_with_manifest_map`](Self::discover_with_manifest_map); only the
-    /// manifest source differs.
-    pub fn discover_with_manifest(root: &Path, manifest_bytes: &[u8]) -> Result<Self, DocsError> {
+    /// manifest and catalog sources differ.
+    pub fn discover_with_manifest_and_catalog(
+        root: &Path,
+        manifest_bytes: &[u8],
+        catalog_bytes: &[u8],
+    ) -> Result<Self, DocsError> {
         let manifest = parse_term_manifest(manifest_bytes, "stage-term-manifest product")?;
-        Self::discover_with_manifest_map(root, manifest)
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Live(catalog_bytes))
+    }
+
+    /// Same as [`discover`](Self::discover) but sources the constraint catalog from
+    /// THIS run's freshly-rendered `stage-constraint-catalog` bytes instead of the
+    /// committed `generated/catalog/constraint-catalog.nq` on disk. The in-pipeline
+    /// DocMaturity axis (slice-quality) uses this so a cold tree does not hard-fail
+    /// on the not-yet-materialized catalog, and every run scores against the SAME
+    /// freshly-produced catalog (cold == warm — the catalog content does not feed the
+    /// coverage fraction, so the guarantee is that the model always BUILDS, never
+    /// collapsing every slice to the vacuous model-unavailable 1.0 a failed disk read
+    /// would force). The per-term content manifest stays disk-sourced and tolerant
+    /// ([`read_term_manifest`] returns an empty map when absent), because it is
+    /// provenance-only and likewise does not feed the coverage fraction.
+    pub fn discover_with_catalog(root: &Path, catalog_bytes: &[u8]) -> Result<Self, DocsError> {
+        let manifest = read_term_manifest(root)?;
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Live(catalog_bytes))
     }
 
     /// The shared discovery body: build the model from the slice catalog and layer
     /// on every repo-only enrichment, applying the already-obtained per-term content
     /// `manifest` (from disk in [`discover`](Self::discover), from the fresh stage
-    /// product in [`discover_with_manifest`](Self::discover_with_manifest)).
+    /// product in [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog))
+    /// and sourcing the constraint catalog per `catalog` (disk in [`discover`](Self::discover),
+    /// live stage bytes in the in-pipeline entry points).
     fn discover_with_manifest_map(
         root: &Path,
         manifest: BTreeMap<String, TermProvenance>,
+        catalog_source: CatalogSource<'_>,
     ) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(
-            &root.join("slices"),
-            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-        )?;
+        let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
-        let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
+        let mut model = Self::from_catalog(&catalog, &ownership, &central_sets)?;
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
         // Concept DOI for the per-term citation block: the `dcterms:identifier` on
         // the `gmeow:Work` subject of the self-description.
@@ -2107,11 +2568,20 @@ impl DocsModel {
         merge_root_shapes(&mut model, &root.join("shapes"));
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
-        // The constraint catalog (`gmeow:ValidationRule` individuals), read from the
-        // committed N-Quads fanout artifact. A missing/unparsable/malformed
-        // artifact is a broken invariant on a regenerated tree, not an optional
-        // input — hard-fail rather than render an empty-state page.
-        model.constraint_rules = read_constraint_catalog(root)?;
+        // The constraint catalog (`gmeow:ValidationRule` individuals). Sourced per
+        // `catalog`: the committed N-Quads fanout artifact on disk (post-pipeline /
+        // CLI consumers), or THIS run's freshly-rendered `stage-constraint-catalog`
+        // bytes (the in-pipeline consumers, which must not read a not-yet-materialized
+        // `generated/` file). An unparsable/malformed catalog is a broken invariant
+        // either way — hard-fail rather than render an empty-state page.
+        let parsed_catalog = match catalog_source {
+            CatalogSource::Disk => read_constraint_catalog(root)?,
+            CatalogSource::Live(bytes) => {
+                parse_constraint_catalog(bytes, "stage-constraint-catalog product")?
+            }
+        };
+        model.constraint_rules = parsed_catalog.rules;
+        model.advice_entries = parsed_catalog.advice;
         // Resolve each fixture's catalog_slug now that constraint_rules is
         // populated (from_catalog runs before the catalog is read, so every
         // fixture starts with catalog_slug: None).
@@ -2123,7 +2593,7 @@ impl DocsModel {
         apply_competency_query_text(&mut model, root)?;
         // The per-term content-address manifest (already obtained by the caller:
         // from the committed N-Quads fanout artifact in `discover`, or from THIS
-        // run's fresh stage-term-manifest product in `discover_with_manifest`). It
+        // run's fresh stage-term-manifest product in `discover_with_manifest_and_catalog`). It
         // sets each documented term's content digest and first-seen version and
         // unions the computed changelog into the authored one. A term absent from
         // the manifest is a term added since the last commit — its content-address
@@ -2161,10 +2631,9 @@ impl DocsModel {
     /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
     /// driven honestly by the slice's authored content.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
-        let catalog =
-            SliceCatalog::discover(slice_dir, purrdf::SliceVocab::for_namespace(GMEOW_NS))?;
+        let catalog = SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
-        Ok(Self::from_catalog(&catalog, &ownership, &[]))
+        Self::from_catalog(&catalog, &ownership, &[])
     }
 }
 
@@ -2213,7 +2682,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
 /// Parse term-content-manifest N-Quads (`source` names them for diagnostics) into
 /// the per-term provenance map. Shared by the committed-file reader
 /// ([`read_term_manifest`]) and the fresh-stage-product path
-/// ([`DocsModel::discover_with_manifest`]).
+/// ([`DocsModel::discover_with_manifest_and_catalog`]).
 fn parse_term_manifest(
     bytes: &[u8],
     source: &str,
@@ -2276,8 +2745,8 @@ fn parse_term_manifest(
 /// The `manifest` map is obtained by the caller — from the committed on-disk file
 /// ([`read_term_manifest`], used by [`DocsModel::discover`]) or from THIS run's
 /// fresh `stage-term-manifest` product bytes ([`parse_term_manifest`], used by
-/// [`DocsModel::discover_with_manifest`]) — so the pure application logic below is
-/// identical regardless of the manifest source.
+/// [`DocsModel::discover_with_manifest_and_catalog`]) — so the pure application logic
+/// below is identical regardless of the manifest source.
 fn apply_term_manifest(model: &mut DocsModel, manifest: BTreeMap<String, TermProvenance>) {
     for term in &mut model.terms {
         let Some(provenance) = manifest.get(&term.iri) else {
@@ -2329,6 +2798,29 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
     }
 }
 
+/// The repo-root-relative directory roots a `gmeow:cqQueryFile` may resolve into:
+/// the shared root-level SPARQL tree and a slice's own committed queries.
+///
+/// Both are content-addressed by `crate::fixture::cache_key` (which walks `queries`
+/// and `slices` in full), which is what makes the documentation-model fixture cache
+/// sound with respect to competency-query text. `crate::fixture` re-exports this as
+/// its own boundary constant so the two can never drift.
+pub const COMPETENCY_QUERY_ROOTS: &[&str] = &["queries/", "slices/"];
+
+/// Whether `rel` is a legal `gmeow:cqQueryFile` value: repo-root-relative (never
+/// absolute), free of any `..` component (which could escape the hashed roots
+/// while still passing a naive prefix test), and under one of
+/// [`COMPETENCY_QUERY_ROOTS`].
+fn is_competency_query_path(rel: &str) -> bool {
+    if rel.starts_with('/') || rel.starts_with('\\') {
+        return false;
+    }
+    if rel.split(['/', '\\']).any(|seg| seg == "..") {
+        return false;
+    }
+    COMPETENCY_QUERY_ROOTS.iter().any(|r| rel.starts_with(r))
+}
+
 /// Resolve each [`DocCompetency::query_file`] to its [`DocCompetency::query_text`]
 /// by reading the repo-root-relative `.rq` path. `query_file` is
 /// REPO-ROOT-RELATIVE regardless of whether it happens to start with
@@ -2343,12 +2835,31 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
 /// A CQ with `query_file` set but no readable file at that path is a hard
 /// fail — `cqQueryFile` existing is the ontology's own claim that the file
 /// resolves; a dangling reference is a data bug, not an honest absence.
+///
+/// A `cqQueryFile` that resolves OUTSIDE [`COMPETENCY_QUERY_ROOTS`] is likewise a
+/// hard fail. Two reasons, both structural: it is outside the resolution contract
+/// `crates/slicetest/src/paths.rs::query_file` documents (so the executing
+/// competency harness and the docs model would disagree about where the query
+/// lives), and it is outside the content-addressed input set
+/// `crate::fixture::cache_key` folds — a query whose TEXT changed under an
+/// unhashed path would be served stale from `.cache/docs-fixture` forever. Making
+/// the boundary an error keeps the cache sound BY CONSTRUCTION rather than by the
+/// authoring convention that today's values all happen to satisfy.
 fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
     for cq in &mut model.competencies {
         if cq.query_text.is_some() {
             continue;
         }
         let Some(rel) = &cq.query_file else { continue };
+        if !is_competency_query_path(rel) {
+            return Err(DocsError::CompetencyQuery(format!(
+                "competency question <{}> declares gmeow:cqQueryFile {rel:?}, which is outside \
+                 the resolution contract: the path must be repo-root-relative, free of `..`, and \
+                 under one of {}",
+                cq.iri,
+                COMPETENCY_QUERY_ROOTS.join(" / "),
+            )));
+        }
         let path = root.join(rel);
         let text = std::fs::read_to_string(&path).map_err(|e| {
             DocsError::CompetencyQuery(format!(
@@ -2363,6 +2874,19 @@ fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(),
     Ok(())
 }
 
+/// Where [`DocsModel::discover_with_manifest_map`] sources the constraint-catalog
+/// N-Quads: the committed `generated/catalog/constraint-catalog.nq` on disk
+/// (post-pipeline / CLI consumers scanning a materialized tree), or THIS run's
+/// freshly-rendered `stage-constraint-catalog` bytes carried in from the pipeline
+/// (the in-pipeline consumers, which must never read a not-yet-materialized
+/// `generated/` file — the cold-absence class this retires).
+enum CatalogSource<'a> {
+    /// Read the committed `generated/catalog/constraint-catalog.nq` off disk.
+    Disk,
+    /// Use THIS run's freshly-rendered catalog bytes (never a disk read).
+    Live(&'a [u8]),
+}
+
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
 /// — every `gmeow:ValidationRule` individual, sorted by rule code. The file is a
 /// committed fixed-point projection of `gmeow.gts` (N-Quads: every triple in the
@@ -2373,14 +2897,33 @@ fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(),
 /// `gmeow:ruleCode` is a broken invariant (a pipeline bug), never an optional
 /// input — the caller must stop and report rather than silently render the
 /// "What GMEOW enforces" page as empty.
-fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError> {
+fn read_constraint_catalog(root: &Path) -> Result<ParsedCatalog, DocsError> {
     let path = root.join("generated/catalog/constraint-catalog.nq");
     let bytes = std::fs::read(&path).map_err(|e| {
         DocsError::ConstraintCatalog(format!("cannot read {}: {e}", path.display()))
     })?;
-    let store = Store::parse_nquads(&bytes).map_err(|e| {
-        DocsError::ConstraintCatalog(format!("cannot parse {}: {e}", path.display()))
-    })?;
+    parse_constraint_catalog(&bytes, &path.display().to_string())
+}
+
+/// The two tiers a `constraint-catalog.nq` carries: the enforced-check
+/// [`ConstraintRule`] compliance tier and the [`AdviceEntry`] recommendation tier.
+/// Parsed together from one document so the disk and live sources cannot diverge.
+struct ParsedCatalog {
+    rules: Vec<ConstraintRule>,
+    advice: Vec<AdviceEntry>,
+}
+
+/// Parse constraint-catalog N-Quads (`source` names them for diagnostics) into the
+/// sorted [`ConstraintRule`] list. Shared by the committed-file reader
+/// ([`read_constraint_catalog`]) and the in-pipeline fresh-stage-product path
+/// ([`DocsModel::discover_with_catalog`] /
+/// [`DocsModel::discover_with_manifest_and_catalog`]), so the disk and live sources
+/// can never diverge in how a rule is decoded. An unparsable document or a
+/// `gmeow:ValidationRule` subject with no `gmeow:ruleCode` is a broken invariant,
+/// never an optional input.
+fn parse_constraint_catalog(bytes: &[u8], source: &str) -> Result<ParsedCatalog, DocsError> {
+    let store = Store::parse_nquads(bytes)
+        .map_err(|e| DocsError::ConstraintCatalog(format!("cannot parse {source}: {e}")))?;
     let mut rules: Vec<ConstraintRule> = Vec::new();
     for iri in store.subjects_of_type_any(GMEOW_VALIDATION_RULE) {
         // The rule code is the identity; a subject with none is malformed
@@ -2389,8 +2932,7 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
             .first_literal_any(&iri, GMEOW_RULE_CODE)
             .ok_or_else(|| {
                 DocsError::ConstraintCatalog(format!(
-                    "gmeow:ValidationRule {iri} in {} carries no gmeow:ruleCode",
-                    path.display()
+                    "gmeow:ValidationRule {iri} in {source} carries no gmeow:ruleCode"
                 ))
             })?;
         let slug = gmeow_validate::rule_catalog::slugify(&code);
@@ -2425,7 +2967,48 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
         });
     }
     rules.sort_by(|a, b| a.code.cmp(&b.code));
-    Ok(rules)
+
+    // The advice tier: every gmeow:AdviceEntry, keyed by its governed term. The
+    // recommendation peer of the ValidationRule loop above, parsed from the SAME
+    // document so disk and live sources cannot diverge. A subject with no governed
+    // term is malformed generated data, never a tolerable optional field.
+    let mut advice: Vec<AdviceEntry> = Vec::new();
+    for iri in store.subjects_of_type_any(GMEOW_ADVICE_ENTRY) {
+        let term = store
+            .named_objects_any(&iri, GMEOW_APPLIES_TO_TERM)
+            .into_iter()
+            .min()
+            .or_else(|| {
+                store
+                    .named_objects_any(&iri, LOGIC_FORMALIZES)
+                    .into_iter()
+                    .min()
+            })
+            .ok_or_else(|| {
+                DocsError::ConstraintCatalog(format!(
+                    "gmeow:AdviceEntry {iri} in {source} carries no governed term \
+                     (gmeow:appliesToTerm / logic:formalizes)"
+                ))
+            })?;
+        let local = term.rsplit(['/', '#']).next().unwrap_or(&term);
+        let slug = format!("advice-{}", gmeow_validate::rule_catalog::slugify(local));
+        advice.push(AdviceEntry {
+            term: term.clone(),
+            slug,
+            label: store.first_literal_any(&iri, RDFS_LABEL),
+            definition: store.first_literal_any(&iri, SKOS_DEFINITION),
+            avoid_when: store.literals_any(&iri, GMEOW_ADVICE_AVOID_WHEN),
+            use_when: store.literals_any(&iri, GMEOW_ADVICE_USE_WHEN),
+            how_to_use: store.literals_any(&iri, GMEOW_ADVICE_HOW_TO_USE),
+            documented_by_rule: store
+                .named_objects_any(&iri, GMEOW_DOCUMENTED_BY_RULE)
+                .into_iter()
+                .min(),
+        });
+    }
+    advice.sort_by(|a, b| a.term.cmp(&b.term));
+
+    Ok(ParsedCatalog { rules, advice })
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
@@ -2449,8 +3032,7 @@ fn read_concept_doi(root: &Path) -> Option<String> {
 /// `<root>/dsl/mappings/mapping-sets.ttl`. Each set aggregates linkage cells
 /// authored across many slices (one set per external vocabulary), so it has no
 /// single owning slice — it is marked with the ontology-root owner. Only the
-/// `gmeow:MappingSet` headers are read; the file carries no
-/// `gmeow:TermEquivalence` cells.
+/// `gmeow:MappingSet` headers are read; the file carries no alignment cells.
 ///
 /// An **absent** file ⇒ `Ok(Vec::new())` (slices carry their own sets). A file
 /// that **exists but is unreadable or unparsable** is a hard failure, never a
@@ -2604,8 +3186,14 @@ fn build_doc_terms(
         let definition = first_literal(store, &iri, SKOS_DEFINITION)
             .or_else(|| first_literal(store, &iri, RDFS_COMMENT));
 
-        let mut parents = named_objects(store, &iri, RDFS_SUBCLASS_OF);
-        parents.extend(named_objects(store, &iri, RDFS_SUBPROPERTY_OF));
+        // BOTH spellings of the subsumption edge: a term re-authored onto the
+        // canonical `logic:subClassOf` has no `rdfs:` edge at all, and reading only
+        // the projection renders it with an empty parent list and an empty
+        // hierarchy diagram. One definition, in `gmeow_ns`.
+        let mut parents: Vec<String> = gmeow_ns::subsumption_predicates()
+            .into_iter()
+            .flat_map(|predicate| named_objects(store, &iri, predicate))
+            .collect();
         parents.sort();
         parents.dedup();
 
@@ -2989,46 +3577,81 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
         });
     }
 
+    // Native alignment cells (the legacy `gmeow:TermEquivalence` + `alignSubject/Predicate/
+    // Object` cell form was deleted): read through the canonical `equivalence_cells` reader,
+    // which resolves the reified `S P O {| … |}` statements + their reifier annotations.
+    // Fail closed: a malformed alignment cell is a hard error. Swallowing the reader error
+    // here would silently drop *every* mapping linkage from the docs output for this slice.
     let mut links = Vec::new();
-    for iri in subjects_of_type(store, GMEOW_TERM_EQUIVALENCE) {
-        let Some(subject) = named_objects(store, &iri, GMEOW_ALIGN_SUBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(predicate) = named_objects(store, &iri, GMEOW_ALIGN_PREDICATE)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(object) = named_objects(store, &iri, GMEOW_ALIGN_OBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        // The justification is usually a NamedNode (semapv:…); accept literal too.
-        let justification = named_objects(store, &iri, GMEOW_JUSTIFICATION)
-            .into_iter()
-            .next()
-            .map(|j| to_curie(&j))
-            .or_else(|| first_literal(store, &iri, GMEOW_JUSTIFICATION));
-        let confidence =
-            first_literal(store, &iri, GMEOW_CONFIDENCE).and_then(|v| v.trim().parse::<f64>().ok());
+    for cell in gmeow_logic_compile::projections::sssom::equivalence_cells(
+        &gmeow_logic_compile::ingest::DslView::new(store.dataset()),
+    )
+    .expect("alignment cell extraction must not fail while building docs mapping linkages")
+    {
         links.push(DocLinkage {
-            mapping_set: first_literal(store, &iri, GMEOW_SSSOM_FILE),
-            subject_curie: to_curie(&subject),
-            subject,
-            predicate: to_curie(&predicate),
-            object,
-            justification,
-            confidence,
+            mapping_set: Some(cell.sssom_file.clone()),
+            subject_curie: to_curie(&cell.subject),
+            predicate: to_curie(&cell.predicate),
+            object: cell.obj.clone(),
+            justification: cell.justification.as_deref().map(to_curie),
+            confidence: cell.confidence,
             owner_slice: owner_slice.to_string(),
+            subject: cell.subject,
         });
     }
     (sets, links)
+}
+
+/// True when `slice_iri` is typed `gmeow:GroundingSlice` in its own already-
+/// parsed manifest `store` — the machine-checked signal (replacing the
+/// `slices/grounding/*` directory-path convention) that a manifest may carry
+/// `gmeow:Seam` individuals.
+fn is_grounding_slice(store: &Store, slice_iri: &str) -> bool {
+    subjects_of_type(store, GMEOW_GROUNDING_SLICE)
+        .iter()
+        .any(|iri| iri == slice_iri)
+}
+
+/// Extract every `gmeow:Seam` individual from an already-parsed manifest
+/// `store`. Generic over ANY grounding slice's manifest (gated by
+/// [`is_grounding_slice`] at the call site in [`DocsModel::from_catalog`]) — a
+/// future seam authored in `lang:`/`math:` is picked up without a code change.
+fn extract_seams(store: &Store) -> Vec<DocSeam> {
+    let mut seams = Vec::new();
+    for iri in subjects_of_type(store, GMEOW_SEAM) {
+        let label = first_literal(store, &iri, RDFS_LABEL);
+        let definition = first_literal(store, &iri, SKOS_DEFINITION)
+            .or_else(|| first_literal(store, &iri, RDFS_COMMENT));
+
+        let mut directions: Vec<DocSeamDirection> =
+            blank_objects(store, &iri, GMEOW_SEAM_DIRECTION)
+                .into_iter()
+                .filter_map(|blank| {
+                    let node = Node::Blank(blank);
+                    let from = first_named_of_node(store, &node, GMEOW_SEAM_FROM_SLICE)?;
+                    let to = first_named_of_node(store, &node, GMEOW_SEAM_TO_SLICE)?;
+                    Some(DocSeamDirection { from, to })
+                })
+                .collect();
+        directions.sort();
+        directions.dedup();
+
+        let mut carrying_terms = named_objects(store, &iri, GMEOW_SEAM_CARRYING_TERM);
+        carrying_terms.sort();
+        carrying_terms.dedup();
+
+        let owning_docs = literals(store, &iri, GMEOW_SEAM_OWNING_DOC);
+
+        seams.push(DocSeam {
+            iri,
+            label,
+            definition,
+            directions,
+            carrying_terms,
+            owning_docs,
+        });
+    }
+    seams
 }
 
 /// Extract a single example, carrying its Turtle source in full. Parses the
@@ -3788,7 +4411,7 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
     };
 
     for link in linkages {
-        record(&link.object, &link.subject_curie, "alignObject");
+        record(&link.object, &link.subject_curie, "matchObject");
     }
     for term in terms {
         for parent in &term.parents {
@@ -4092,6 +4715,62 @@ mod tests {
         parse_turtle_lenient(ttl.as_bytes()).expect("parse")
     }
 
+    /// The `cqQueryFile` resolution boundary: repo-root-relative, `..`-free, and
+    /// under one of the content-addressed roots. Anything else is a hard fail —
+    /// see `apply_competency_query_text`.
+    #[test]
+    fn competency_query_paths_are_confined_to_the_hashed_roots() {
+        assert!(is_competency_query_path("queries/competency/agents.rq"));
+        assert!(is_competency_query_path(
+            "slices/core/kernel/queries/competency/k.rq"
+        ));
+        // Outside the hashed roots: unhashed text would be served stale forever.
+        assert!(!is_competency_query_path("dsl/competency/agents.rq"));
+        assert!(!is_competency_query_path("generated/queries/agents.rq"));
+        // Absolute, and `..` escapes that would pass a naive prefix test.
+        assert!(!is_competency_query_path("/etc/passwd"));
+        assert!(!is_competency_query_path("queries/../dsl/agents.rq"));
+        assert!(!is_competency_query_path("slices/..\\dsl\\agents.rq"));
+    }
+
+    /// A `cqQueryFile` outside the boundary is an ERROR, not a silent skip and not
+    /// a tolerated read — the model build fails and names the offending path.
+    #[test]
+    fn competency_query_outside_the_hashed_roots_hard_fails() {
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-cq-root-test");
+        std::fs::create_dir_all(root.join("dsl")).expect("mkdir");
+        // The file EXISTS and is readable — only its location is illegal, so this
+        // proves the boundary itself rejects, not a dangling-path fallback.
+        std::fs::write(root.join("dsl/escape.rq"), b"SELECT * {}").expect("write");
+
+        let mut model = DocsModel {
+            competencies: vec![DocCompetency {
+                iri: "https://blackcatinformatics.ca/gmeow/cq/escape".to_owned(),
+                query_file: Some("dsl/escape.rq".to_owned()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let err = apply_competency_query_text(&mut model, &root)
+            .expect_err("a cqQueryFile outside the hashed roots must hard-fail");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("dsl/escape.rq") && msg.contains("outside the resolution contract"),
+            "the error must name the offending path and the contract, got: {msg}"
+        );
+
+        // The legal location, same bytes, resolves.
+        std::fs::create_dir_all(root.join("queries/competency")).expect("mkdir");
+        std::fs::write(root.join("queries/competency/ok.rq"), b"SELECT * {}").expect("write");
+        model.competencies[0].query_file = Some("queries/competency/ok.rq".to_owned());
+        apply_competency_query_text(&mut model, &root).expect("a query under queries/ resolves");
+        assert_eq!(
+            model.competencies[0].query_text.as_deref(),
+            Some("SELECT * {}")
+        );
+    }
+
     #[test]
     fn thesis_sentence_detection_is_structural() {
         assert!(detect_thesis_sentence(
@@ -4175,17 +4854,66 @@ gmeow:hasOwner a owl:ObjectProperty ;
         assert_eq!(animal.definition.as_deref(), Some("A living organism."));
     }
 
+    /// A term whose taxonomy is authored in the CANONICAL `logic:` spelling —
+    /// with no `rdfs:` edge anywhere — still renders its parents.
+    ///
+    /// This is the blinding regression: reading only `rdfs:subClassOf` /
+    /// `rdfs:subPropertyOf` gave a re-authored term an EMPTY parent list, which
+    /// silently emptied both its parent section and its `term_neighbourhood_svg`
+    /// hierarchy diagram (which projects exactly `DocTerm::parents`).
+    #[test]
+    fn canonical_logic_subsumption_edges_are_parents() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:Animal a owl:Class ;
+    rdfs:label "Animal" .
+
+gmeow:Cat a owl:Class ;
+    logic:subClassOf gmeow:Animal ;
+    rdfs:label "Cat" .
+
+gmeow:touches a owl:ObjectProperty ;
+    rdfs:label "touches" .
+
+gmeow:grooms a owl:ObjectProperty ;
+    logic:subPropertyOf gmeow:touches ;
+    rdfs:label "grooms" .
+"#;
+        let store = store_from(ttl);
+        let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
+
+        let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
+        assert_eq!(
+            cat.parents,
+            vec![format!("{GMEOW_NS}Animal")],
+            "a `logic:subClassOf` edge is a parent"
+        );
+
+        let grooms = terms.iter().find(|t| t.iri.ends_with("grooms")).unwrap();
+        assert_eq!(
+            grooms.parents,
+            vec![format!("{GMEOW_NS}touches")],
+            "a `logic:subPropertyOf` edge is a parent"
+        );
+
+        // The user-visible surface: the hierarchy diagram is non-empty.
+        assert!(
+            crate::svg::term_neighbourhood_svg(cat).contains("Animal"),
+            "the neighbourhood diagram must draw the canonical parent edge"
+        );
+    }
+
     /// `read_central_mapping_sets` distinguishes an absent file (fine — slices
     /// carry their own sets) from a present-but-unparsable one (hard fail, never
     /// a silent empty that would drop every relocated linkage's `MappingSet`).
     #[test]
     fn central_mapping_sets_absent_ok_but_malformed_hard_fails() {
-        let root = std::env::temp_dir().join(format!(
-            "gmeow-mapsets-test-{}-{}",
-            std::process::id(),
-            line!()
-        ));
-        std::fs::remove_dir_all(&root).ok();
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-mapsets-test");
         let dir = root.join("dsl").join("mappings");
         std::fs::create_dir_all(&dir).expect("mkdir");
 
@@ -4206,8 +4934,6 @@ gmeow:hasOwner a owl:ObjectProperty ;
         let err = read_central_mapping_sets(&root)
             .expect_err("a malformed central mapping-sets.ttl must hard-fail, not return empty");
         assert!(matches!(err, DocsError::MappingSets(_)));
-
-        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
@@ -4330,6 +5056,64 @@ ex:elProjectionReport a gmeow:InformationObject ;
         assert_eq!(row.slice, "https://example.org/slice/demo");
     }
 
+    #[test]
+    fn extract_seams_reads_labels_directions_terms_and_docs() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .
+
+<https://blackcatinformatics.ca/gmeow/seam/denotation>
+    a gmeow:Seam ;
+    rdfs:label "Denotation seam"@x-gmeow-english ;
+    skos:definition "The lang -> logic seam."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;
+    gmeow:seamOwningDoc "LANG-MEANING.md" .
+"#;
+        let store = store_from(ttl);
+        assert!(is_grounding_slice(
+            &store,
+            "https://blackcatinformatics.ca/gmeow/slices/logic"
+        ));
+        assert!(!is_grounding_slice(
+            &store,
+            "https://blackcatinformatics.ca/gmeow/slices/lang"
+        ));
+
+        let seams = extract_seams(&store);
+        assert_eq!(seams.len(), 1);
+        let seam = &seams[0];
+        assert_eq!(
+            seam.iri,
+            "https://blackcatinformatics.ca/gmeow/seam/denotation"
+        );
+        assert_eq!(seam.label.as_deref(), Some("Denotation seam"));
+        assert_eq!(seam.definition.as_deref(), Some("The lang -> logic seam."));
+        assert_eq!(
+            seam.directions,
+            vec![DocSeamDirection {
+                from: "https://blackcatinformatics.ca/gmeow/slices/lang".to_string(),
+                to: "https://blackcatinformatics.ca/gmeow/slices/logic".to_string(),
+            }]
+        );
+        assert_eq!(
+            seam.carrying_terms,
+            vec![
+                "https://blackcatinformatics.ca/lang/denotationKind".to_string(),
+                "https://blackcatinformatics.ca/lang/denotationTarget".to_string(),
+            ]
+        );
+        assert_eq!(seam.owning_docs, vec!["LANG-MEANING.md".to_string()]);
+    }
+
     /// Build a bare in-memory [`ArtifactRecord`] for a Turtle example, mirroring
     /// the shape [`extract_worked_instances`] reads (`logical_path` is the only
     /// field it consults; the rest are filler).
@@ -4342,6 +5126,127 @@ ex:elProjectionReport a gmeow:InformationObject ;
             semantic_digest: None,
             content: ttl.as_bytes().to_vec(),
         }
+    }
+
+    /// A bare in-memory `text/markdown` [`ArtifactRecord`] carrying `body`. Selected
+    /// by media type (like a real `design/*.md`), so [`DocMarkdownDocument::collect`]
+    /// treats it as a first-class document.
+    fn markdown_artifact(logical_path: &str, body: &str) -> ArtifactRecord {
+        ArtifactRecord {
+            role: ArtifactRole::Other(logical_path.to_string()),
+            logical_path: logical_path.to_string(),
+            media_type: "text/markdown".to_string(),
+            raw_digest: format!("digest-{logical_path}"),
+            semantic_digest: None,
+            content: body.as_bytes().to_vec(),
+        }
+    }
+
+    /// A hand-built [`SliceRecord`] carrying only a set of artifacts — the minimum
+    /// [`DocMarkdownDocument::collect`] reads (it consults `record.artifacts` only).
+    /// The manifest graph is an empty frozen dataset; the manifest view is filler.
+    fn record_with_artifacts(slice_iri: &str, artifacts: Vec<ArtifactRecord>) -> SliceRecord {
+        SliceRecord {
+            manifest: ManifestView {
+                slice_iri: slice_iri.to_string(),
+                label: None,
+                title: None,
+                creators: Vec::new(),
+                identifier: None,
+                tier: None,
+                consumers: Vec::new(),
+                profiles: Vec::new(),
+                depends_on: Vec::new(),
+            },
+            manifest_graph: purrdf::RdfDatasetBuilder::new()
+                .freeze()
+                .expect("empty dataset freezes"),
+            artifacts,
+            slice_dir: std::path::PathBuf::from("/nonexistent/synthetic-slice"),
+        }
+    }
+
+    /// Item 1 (model ordering): `collect` selects every `text/markdown` artifact,
+    /// decodes it strictly, sorts by normalized logical path, and derives each
+    /// title from its first ATX H1 — regardless of artifact input order or role.
+    #[test]
+    fn collect_orders_documents_and_derives_titles() {
+        // Deliberately out of sorted order on input; `design/*.md` carries the open
+        // `ArtifactRole::Other` role, exercising media-type (not role) selection.
+        let record = record_with_artifacts(
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            vec![
+                markdown_artifact("docs.md", "# Zoo Guide\n\nProse.\n"),
+                markdown_artifact("design/ARCHITECTURE.md", "# Architecture\n\n## Overview\n"),
+                // A non-markdown artifact is ignored.
+                example_artifact("examples/x.ttl", "ex:a a ex:B ."),
+            ],
+        );
+        let docs = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect("collect succeeds");
+        assert_eq!(docs.len(), 2, "only the two markdown sources");
+        assert_eq!(docs[0].source_path, "design/ARCHITECTURE.md");
+        assert_eq!(docs[0].title, "Architecture");
+        assert_eq!(docs[1].source_path, "docs.md");
+        assert_eq!(docs[1].title, "Zoo Guide");
+        assert_eq!(docs[0].raw_digest, "digest-design/ARCHITECTURE.md");
+    }
+
+    /// Item 10a (hard-fail): an invalid-UTF-8 markdown artifact makes `collect`
+    /// return `Err(MarkdownUtf8)` naming the offending source path — no lossy
+    /// fallback.
+    #[test]
+    fn collect_hard_fails_on_invalid_utf8_naming_path() {
+        let mut bad = markdown_artifact("design/BAD.md", "");
+        bad.content = b"# X\n\xff\xfe\n".to_vec();
+        let record =
+            record_with_artifacts("https://blackcatinformatics.ca/gmeow/slices/zoo", vec![bad]);
+        let err = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect_err("invalid UTF-8 must hard-fail");
+        match &err {
+            DocsError::MarkdownUtf8 { source_path, .. } => {
+                assert_eq!(source_path, "design/BAD.md");
+            }
+            other => panic!("expected MarkdownUtf8, got {other:?}"),
+        }
+        assert!(err.to_string().contains("design/BAD.md"));
+    }
+
+    /// Item 10b (hard-fail): two markdown artifacts whose logical paths NORMALIZE to
+    /// the same logical path (`./design/A.md` vs `design/A.md`) make `collect` return
+    /// `Err(MarkdownPathCollision)` naming the colliding path — one source can never
+    /// silently shadow the other.
+    #[test]
+    fn collect_hard_fails_on_normalized_path_collision() {
+        let record = record_with_artifacts(
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            vec![
+                markdown_artifact("design/A.md", "# First\n"),
+                // Distinct input path, identical after `./`-stripping normalization.
+                markdown_artifact("./design/A.md", "# Second\n"),
+            ],
+        );
+        let err = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect_err("normalized-path collision must hard-fail");
+        match &err {
+            DocsError::MarkdownPathCollision { source_path, .. } => {
+                assert_eq!(source_path, "design/A.md");
+            }
+            other => panic!("expected MarkdownPathCollision, got {other:?}"),
+        }
+        assert!(err.to_string().contains("design/A.md"));
     }
 
     /// [`extract_worked_instances`] is generic: it finds every subject carrying
@@ -4443,6 +5348,106 @@ ex:uniformProbability a math:ProbabilityMeasure ;
         assert!(
             !uniform.turtle.contains("baseDimensionExponent"),
             "no fabricated exponent breakdown for the dimensionless case"
+        );
+    }
+
+    /// Cold-tree bootstrap + determinism: [`DocsModel::discover_with_catalog`] builds
+    /// the whole model from LIVE constraint-catalog bytes with NO
+    /// `generated/catalog/constraint-catalog.nq` on disk — the state a fresh clone /
+    /// cold `make check` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
+    /// Once the SAME bytes are written to disk, the disk path yields byte-identical
+    /// constraint rules AND identical per-slice DocMaturity coverage facts. This pins
+    /// the guarantee the in-pipeline DocMaturity axis relies on: cold (live bytes) ==
+    /// warm (disk bytes), so the `graph/quality-assessment` in `gmeow.gts` cannot
+    /// differ between a cold and a warm sync run.
+    #[test]
+    fn discover_with_catalog_bootstraps_cold_tree_and_matches_disk_path() {
+        // A temp repo root carrying exactly one real slice (copied from the committed
+        // single-slice fixture) and — deliberately — NO generated/ tree.
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let root = tmp.path().join("gmeow-catalog-bootstrap");
+        let slice_dir = root.join("slices").join("fixture").join("single");
+        std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("single-slice");
+        for file in ["manifest.ttl", "module.ttl"] {
+            std::fs::copy(fixture.join(file), slice_dir.join(file))
+                .unwrap_or_else(|e| panic!("copy fixture {file}: {e}"));
+        }
+
+        // Minimal but valid constraint-catalog N-Quads: one gmeow:ValidationRule with a
+        // gmeow:ruleCode (the identity the reader keys on).
+        let graph =
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq";
+        let rule = "https://blackcatinformatics.ca/gmeow/rule/box-roles-invalid";
+        let catalog_bytes = format!(
+            "<{rule}> <{RDF_TYPE}> <{GMEOW_VALIDATION_RULE}> <{graph}> .\n\
+             <{rule}> <{GMEOW_RULE_CODE}> \"box-roles.invalid\" <{graph}> .\n"
+        )
+        .into_bytes();
+
+        // Cold tree: the pure-disk discover HARD-FAILS on the absent catalog...
+        let cold = DocsModel::discover(&root);
+        assert!(
+            matches!(cold, Err(DocsError::ConstraintCatalog(_))),
+            "discover() must hard-fail on a cold tree with no generated catalog, got {cold:?}"
+        );
+
+        // ...but the live-bytes path BUILDS the whole model with NO disk file present.
+        let live = DocsModel::discover_with_catalog(&root, &catalog_bytes)
+            .expect("discover_with_catalog must build with no generated/ on disk");
+        assert_eq!(
+            live.constraint_rules.len(),
+            1,
+            "the one live rule is decoded"
+        );
+        assert_eq!(live.constraint_rules[0].code, "box-roles.invalid");
+
+        // Warm tree: writing the SAME bytes to disk lets the disk path build; it must
+        // agree with the live path byte-for-byte on the constraint rules AND on the
+        // per-slice DocMaturity coverage facts (documents / covers / coverage_fraction),
+        // which are exactly what the DocMaturity axis consumes.
+        std::fs::create_dir_all(root.join("generated").join("catalog")).expect("mkdir generated");
+        std::fs::write(
+            root.join("generated")
+                .join("catalog")
+                .join("constraint-catalog.nq"),
+            &catalog_bytes,
+        )
+        .expect("write catalog");
+        let warm =
+            DocsModel::discover(&root).expect("discover() must build once the catalog is on disk");
+        assert_eq!(
+            live.constraint_rules, warm.constraint_rules,
+            "live-bytes and disk-bytes constraint rules must be identical"
+        );
+
+        // DocSliceFacts is not PartialEq, so compare the load-bearing projection the
+        // DocMaturity axis reads: (documents, covers, coverage_fraction bit pattern).
+        let project = |m: &DocsModel| -> Vec<(String, std::collections::BTreeSet<String>, u64)> {
+            crate::rdf::documentation_graph(m)
+                .slices
+                .into_iter()
+                .map(|s| (s.documents, s.covers, s.coverage_fraction.to_bits()))
+                .collect()
+        };
+        let live_facts = project(&live);
+        let warm_facts = project(&warm);
+        assert_eq!(
+            live_facts, warm_facts,
+            "DocMaturity per-slice coverage facts must be identical cold(live) vs warm(disk)"
+        );
+        assert_eq!(
+            live_facts.len(),
+            1,
+            "the one fixture slice yields exactly one coverage fact"
+        );
+        let fraction = f64::from_bits(live_facts[0].2);
+        assert!(
+            (0.0..=1.0).contains(&fraction),
+            "the fixture slice earns a bounded, non-vacuous coverage fraction, got {fraction}"
         );
     }
 }

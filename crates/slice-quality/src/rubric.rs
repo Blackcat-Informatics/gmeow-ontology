@@ -13,9 +13,9 @@ use purrdf::RdfDataset;
 
 use crate::graph::{all_iris, all_lits, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{
-    Axis, AxisFloorCommitment, ContextScope, CountKind, Exemption, GovernanceFloors,
-    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
-    SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, CeilingRelocation, ContextScope, CountKind, Exemption,
+    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
+    Rubric, SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
@@ -533,6 +533,103 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     ceilings.sort_by(|a, b| a.0.cmp(&b.0));
     let ceilings: Vec<ProjectionCeilingCommitment> = ceilings.into_iter().map(|(_, c)| c).collect();
 
+    // --- Ceiling relocation declarations -----------------------------------
+    // The AUTHORED half of relocation-aware ceiling accounting: a maintainer states
+    // that named terms MOVED from one slice to another, and the gate re-projects the
+    // base ceiling through that relocation before the lower-only comparison. Every
+    // binding is a hard fail when missing — a declaration with no term, no source, no
+    // destination, or no date cannot be corroborated against the derived witness, and a
+    // silently-defaulted one would be an unbounded permit (.goals no-optionality).
+    //
+    // The AUTHORITY for the four required-binding checks below (relocationTerm,
+    // relocationFromSlice, relocationToSlice, relocationDate) is the EL-safe
+    // required-path PAIR authored on `gmeow:CeilingRelocation` in
+    // slices/core/slice-quality-rubric/module.ttl: a `logic:subClassOf
+    // [ a logic:Restriction ; logic:onProperty P ; logic:allValuesFrom F ]` value
+    // restriction PLUS a class-scoped `[ a logic:ClosureEntry ; logic:onClass
+    // gmeow:CeilingRelocation ; logic:closureKey P ; logic:closureValue
+    // logic:ClosedWorldClosure ]`, which together derive the `sh:minCount 1` this
+    // loader's hard fail mirrors — never an un-qualified `logic:minCardinality`,
+    // which sits outside the EL fragment. This loader's hard fail is that axiom
+    // pair's DERIVED enforcement, not a second, Rust-only source of truth. The
+    // cross-node `from_slice == to_slice` rejection and the unknown-vocabulary-
+    // reference rejections below are genuinely procedural checks with no declarative
+    // cardinality/class/datatype form, so they remain enforced here only.
+    let reloc_term_p = id(ds, &g("relocationTerm"));
+    let reloc_from_p = id(ds, &g("relocationFromSlice"));
+    let reloc_to_p = id(ds, &g("relocationToSlice"));
+    let reloc_vocab_p = id(ds, &g("relocationVocabulary"));
+    let reloc_date_p = id(ds, &g("relocationDate"));
+    let mut relocations: Vec<CeilingRelocation> = Vec::new();
+    for iri in instances_of(ds, &g("CeilingRelocation")) {
+        let sid = id(ds, &iri)
+            .ok_or_else(|| rubric_err(format!("ceiling relocation {iri} not resolvable")))?;
+        let mut terms = reloc_term_p
+            .map(|p| all_iris(ds, sid, p))
+            .unwrap_or_default();
+        terms.sort();
+        terms.dedup();
+        if terms.is_empty() {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} names no gmeow:relocationTerm — a declaration with no \
+                 term can never be corroborated by the derived relocation witness"
+            )));
+        }
+        let from_slice = reloc_from_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling relocation {iri} has no gmeow:relocationFromSlice"
+                ))
+            })?;
+        let to_slice = reloc_to_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling relocation {iri} has no gmeow:relocationToSlice"
+                ))
+            })?;
+        if from_slice == to_slice {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} names the same slice {from_slice} as both source and \
+                 destination — a relocation that does not cross a slice boundary moves no residue"
+            )));
+        }
+        // The vocabulary scope is OPTIONAL, but a PRESENT reference must resolve to a
+        // real loaded gmeow:ProjectionVocabulary — an unknown IRI would otherwise load
+        // cleanly and scope the declaration to nothing (a dead declaration), so it is a
+        // hard fail exactly as an unknown gmeow:ceilingVocabulary is.
+        let vocabulary = match reloc_vocab_p.and_then(|p| one_iri(ds, sid, p)) {
+            None => None,
+            Some(vocab_iri) => Some(vocab_iri_to_prefix.get(&vocab_iri).cloned().ok_or_else(
+                || {
+                    rubric_err(format!(
+                        "ceiling relocation {iri} names unknown gmeow:relocationVocabulary \
+                         {vocab_iri} (no such gmeow:ProjectionVocabulary in the registry)"
+                    ))
+                },
+            )?),
+        };
+        let date = reloc_date_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .unwrap_or_default();
+        if date.trim().is_empty() {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} is undated — every relocation declaration carries a \
+                 gmeow:relocationDate, exactly as a gmeow:AxisExemption does"
+            )));
+        }
+        relocations.push(CeilingRelocation {
+            iri,
+            terms,
+            from_slice,
+            to_slice,
+            vocabulary,
+            date,
+        });
+    }
+    relocations.sort_by(|a, b| a.iri.cmp(&b.iri));
+
     Ok(Rubric {
         standard: MeasurementStandard { tiers, axes },
         floors: GovernanceFloors {
@@ -541,6 +638,7 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
             tier_floors,
             vocabularies,
             ceilings,
+            relocations,
         },
     })
 }
@@ -1028,5 +1126,164 @@ gmeow:pcc-b a gmeow:ProjectionCeilingCommitment ;\n\
         assert!(err.message().contains("sliceFoo"), "names the slice: {err}");
     }
 
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    // --- Ceiling relocation loaders -----------------------------------------
+    //
+    // `gmeow:CeilingRelocation logic:subClassOf [ a logic:Restriction ; ... ]` in
+    // `slices/core/slice-quality-rubric/module.ttl` authors the four required-binding
+    // axioms (relocationTerm/relocationFromSlice/relocationToSlice/relocationDate all
+    // minCardinality 1) as EL-safe declarative axioms; this loader is the DERIVED
+    // enforcement of those axioms, not a second, Rust-only source of truth. The
+    // `from_slice == to_slice` rejection and the unknown-vocabulary-reference
+    // rejection are genuinely procedural checks with no declarative cardinality/
+    // class/datatype form and remain enforced here only. These tests exercise the
+    // LOADER'S behavior, not that axiom authoring.
+
+    #[test]
+    fn relocation_with_no_term_hard_fails() {
+        let body = r#"gmeow:reloc-noterm a gmeow:CeilingRelocation ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ;
+    gmeow:relocationDate "2026-07-08" ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("names no gmeow:relocationTerm"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("reloc-noterm"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
+    fn relocation_with_no_from_slice_hard_fails() {
+        let body = r#"gmeow:reloc-nofrom a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ;
+    gmeow:relocationDate "2026-07-08" ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("has no gmeow:relocationFromSlice"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("reloc-nofrom"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
+    fn relocation_with_no_to_slice_hard_fails() {
+        let body = r#"gmeow:reloc-noto a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationDate "2026-07-08" ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("has no gmeow:relocationToSlice"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("reloc-noto"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
+    fn relocation_naming_the_same_slice_twice_hard_fails() {
+        let body = r#"gmeow:reloc-same a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceFoo ;
+    gmeow:relocationDate "2026-07-08" ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("as both source and destination"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("sliceFoo"),
+            "names the offending slice: {err}"
+        );
+    }
+
+    #[test]
+    fn relocation_with_unknown_vocabulary_hard_fails() {
+        let body = r#"gmeow:reloc-badvocab a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ;
+    gmeow:relocationVocabulary gmeow:projVocab-nope ;
+    gmeow:relocationDate "2026-07-08" ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("unknown gmeow:relocationVocabulary"),
+            "{err}"
+        );
+        assert!(err.message().contains("projVocab-nope"), "names it: {err}");
+    }
+
+    #[test]
+    fn relocation_with_no_date_hard_fails() {
+        let body = r#"gmeow:reloc-nodate a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(err.message().contains("undated"), "{err}");
+        assert!(
+            err.message().contains("reloc-nodate"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
+    fn relocation_with_blank_date_hard_fails() {
+        // A PRESENT but whitespace-only gmeow:relocationDate must fail exactly like a
+        // missing one (the loader's `date.trim().is_empty()` check) — a blank date
+        // dates nothing, and a regression that dropped the `.trim()` would let this
+        // one slip through as "present" while `relocation_with_no_date_hard_fails`
+        // above stays green.
+        let body = r#"gmeow:reloc-blankdate a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ;
+    gmeow:relocationDate "   " ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(err.message().contains("undated"), "{err}");
+        assert!(
+            err.message().contains("reloc-blankdate"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
+    fn well_formed_relocation_loads_with_sorted_deduped_terms_and_resolved_vocabulary() {
+        // (a) A well-formed gmeow:CeilingRelocation: repeated and out-of-order
+        // gmeow:relocationTerm values collapse to a SORTED, DEDUPED `terms` vec, and
+        // the optional gmeow:relocationVocabulary resolves to the registered prefix.
+        let body = format!(
+            "{VOCAB_SH}\n\
+gmeow:reloc-good a gmeow:CeilingRelocation ;\n\
+    gmeow:relocationTerm gmeow:termB, gmeow:termA, gmeow:termA ;\n\
+    gmeow:relocationFromSlice gmeow:sliceFoo ;\n\
+    gmeow:relocationToSlice gmeow:sliceBar ;\n\
+    gmeow:relocationVocabulary gmeow:projVocab-sh ;\n\
+    gmeow:relocationDate \"2026-07-08\" ."
+        );
+        let rubric = load(&rubric_with(&body)).expect("valid relocation loads");
+        assert_eq!(rubric.floors.relocations.len(), 1);
+        let r = &rubric.floors.relocations[0];
+        assert_eq!(
+            r.terms,
+            vec![format!("{GMEOW_NS}termA"), format!("{GMEOW_NS}termB")],
+            "terms are sorted and deduped: {r:?}"
+        );
+        assert_eq!(r.from_slice, format!("{GMEOW_NS}sliceFoo"));
+        assert_eq!(r.to_slice, format!("{GMEOW_NS}sliceBar"));
+        assert_eq!(r.vocabulary, Some("sh".to_owned()));
+        assert_eq!(r.date, "2026-07-08");
+    }
+
+    use gmeow_ns::GMEOW_NS;
 }

@@ -129,8 +129,7 @@ gmeow:depictionAuthority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionContext
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction context"@x-gmeow-english ;
@@ -236,8 +235,7 @@ gmeow:depictionContextWork
         gmeow:boxCBox .
 
 gmeow:depictionImage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction image"@x-gmeow-english ;
@@ -255,8 +253,7 @@ gmeow:depictionInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction subject"@x-gmeow-english ;
@@ -268,8 +265,7 @@ gmeow:depicts
     gmeow:pairsWith gmeow:DepictionUsage .
 
 gmeow:exifTagId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag id"@x-gmeow-english ;
@@ -278,8 +274,7 @@ gmeow:exifTagId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:exifTagValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag value"@x-gmeow-english ;
@@ -325,8 +320,7 @@ gmeow:regionLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region of"@x-gmeow-english ;
@@ -336,8 +330,7 @@ gmeow:regionOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionSelector
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region selector"@x-gmeow-english ;
@@ -346,8 +339,7 @@ gmeow:regionSelector
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneConfidence
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene confidence"@x-gmeow-english ;
@@ -357,8 +349,7 @@ gmeow:sceneConfidence
         gmeow:boxRBox .
 
 gmeow:sceneObject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene object"@x-gmeow-english ;
@@ -367,8 +358,7 @@ gmeow:sceneObject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneRelation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene relation"@x-gmeow-english ;
@@ -482,8 +472,7 @@ gmeow:sceneRelationWearing
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sceneSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene subject"@x-gmeow-english ;
@@ -492,8 +481,7 @@ gmeow:sceneSubject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectorType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RegionSelector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selector type"@x-gmeow-english ;
@@ -677,3 +665,195 @@ gmeow:SceneGraphEdgeConfidenceRangeConstraint
     logic:minInclusiveBound 0.0 ;
     logic:maxInclusiveBound 1.0 ;
     logic:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:depictionContextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "depictionContext is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionContext is functional: a gmeow:DepictionUsage relator records exactly one context — the single work, family, childhood, portrait, or candid setting in which the image depicts its subject. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:depictionContext ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:depictionContext ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:depictionContext names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:depictionContext, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:depictionContext and nothing else. It is not a definition of gmeow:depictionContext (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:depictionContextFunctionality logic:characterizes gmeow:depictionContext ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:depictionImageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "depictionImage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionImage is functional: a gmeow:DepictionUsage relator binds exactly one image — the single gmeow:MediaObject that depicts the subject in that reified depiction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:depictionImage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:depictionImage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:depictionImage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:depictionImage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:depictionImage and nothing else. It is not a definition of gmeow:depictionImage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:depictionImageFunctionality logic:characterizes gmeow:depictionImage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:depictionSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "depictionSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionSubject is functional: a gmeow:DepictionUsage relator names exactly one depicted entity — the single subject shown in that reified depiction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:depictionSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:depictionSubject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:depictionSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:depictionSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:depictionSubject and nothing else. It is not a definition of gmeow:depictionSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:depictionSubjectFunctionality logic:characterizes gmeow:depictionSubject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exifTagIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "exifTagId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exifTagId is functional: a gmeow:ExifTag carries exactly one tag identifier — the single machine key, such as 'FNumber' or 'ExposureTime', naming which EXIF field the record captures. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exifTagId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exifTagId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exifTagId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exifTagId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exifTagId and nothing else. It is not a definition of gmeow:exifTagId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exifTagIdFunctionality logic:characterizes gmeow:exifTagId ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exifTagValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "exifTagValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exifTagValue is functional: a gmeow:ExifTag holds exactly one value — the single reading, such as 'f/2.0' or 'sRGB', recorded for that one tagged field. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exifTagValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exifTagValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exifTagValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exifTagValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exifTagValue and nothing else. It is not a definition of gmeow:exifTagValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exifTagValueFunctionality logic:characterizes gmeow:exifTagValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:regionOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "regionOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:regionOf is functional: a gmeow:ImageRegion is part of exactly one image — a bounded region belongs to the single gmeow:MediaObject it was cut from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:regionOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:regionOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:regionOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:regionOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:regionOf and nothing else. It is not a definition of gmeow:regionOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:regionOfFunctionality logic:characterizes gmeow:regionOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:regionSelectorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "regionSelector is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:regionSelector is functional: a gmeow:ImageRegion is described by exactly one selector — the single boundary specification that fixes its extent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:regionSelector ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:regionSelector ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:regionSelector names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:regionSelector, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:regionSelector and nothing else. It is not a definition of gmeow:regionSelector (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:regionSelectorFunctionality logic:characterizes gmeow:regionSelector ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sceneConfidenceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "sceneConfidence is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneConfidence is functional: a gmeow:SceneGraphEdge carries exactly one confidence value — a single decimal in [0.0, 1.0] quantifying that one asserted relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sceneConfidence ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sceneConfidence ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sceneConfidence names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sceneConfidence, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sceneConfidence and nothing else. It is not a definition of gmeow:sceneConfidence (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sceneConfidenceFunctionality logic:characterizes gmeow:sceneConfidence ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sceneObjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "sceneObject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneObject is functional: a gmeow:SceneGraphEdge points at exactly one object region — the single gmeow:ImageRegion toward which its relation is directed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sceneObject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sceneObject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sceneObject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sceneObject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sceneObject and nothing else. It is not a definition of gmeow:sceneObject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sceneObjectFunctionality logic:characterizes gmeow:sceneObject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sceneRelationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "sceneRelation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneRelation is functional: a gmeow:SceneGraphEdge asserts exactly one relation — the single spatial or semantic tie it represents between its subject and object regions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sceneRelation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sceneRelation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sceneRelation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sceneRelation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sceneRelation and nothing else. It is not a definition of gmeow:sceneRelation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sceneRelationFunctionality logic:characterizes gmeow:sceneRelation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sceneSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "sceneSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneSubject is functional: a gmeow:SceneGraphEdge originates at exactly one subject region — the single gmeow:ImageRegion from which its relation proceeds. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sceneSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sceneSubject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sceneSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sceneSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sceneSubject and nothing else. It is not a definition of gmeow:sceneSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sceneSubjectFunctionality logic:characterizes gmeow:sceneSubject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:selectorTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:label "selectorType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:selectorType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:selectorType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:selectorType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:selectorType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:selectorType and nothing else. It is not a definition of gmeow:selectorType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:selectorTypeFunctionality logic:characterizes gmeow:selectorType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

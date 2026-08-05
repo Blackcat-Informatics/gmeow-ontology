@@ -3,8 +3,9 @@
 
 //! The superset gate: `gmeow.gts` is a superset of `generated/`.
 //!
-//! For every committed path under `generated/`, this gate resolves the path's
-//! carrier representative from the **shipped** bundle and reconstructs the bytes:
+//! The **authority is the projection** — the set of committed `generated/` paths the
+//! shipped bundle reconstructs ([`project_bundle`]). The gate proves that projection
+//! equals the materialized `generated/` tree on disk, in both directions:
 //!
 //! * an RDF output with a canonical graph fold is reconstructed from one named graph
 //!   (Turtle via the wasm-clean renderer; N-Quads via a graph-rooted serialization),
@@ -13,12 +14,14 @@
 //!   contain comments / section markers) is a member of one inline content-addressed
 //!   archive blob.
 //!
-//! A committed path with no representative, a representative whose reconstruction
-//! does not match the committed bytes, or a carried representative with no
-//! committed counterpart is a hard failure — no skips, no optional coverage, no
-//! degraded pass. The gate proves equality of the carried set, not merely a
-//! one-directional superset: it sweeps both `generated/ -> bundle` (missing /
-//! mismatch) and `bundle -> generated/` (orphan).
+//! The forward sweep drives off the projection: every projection key MUST exist on
+//! disk with byte-matching content (`missing` = a projection key with no file on
+//! disk; `mismatch` = present but drifted). The reverse sweep drives off the disk:
+//! every materialized `generated/` file MUST be a projection key (`orphan` = an
+//! undeclared / stale on-disk file). Because the projection is the must-exist set,
+//! an empty or absent `generated/` tree can never pass vacuously — every projection
+//! key becomes `missing`. Any non-empty sweep is a hard failure — no skips, no
+//! optional coverage, no degraded pass.
 //!
 //! Reconstruction reads the bundle back through [`purrdf::import_gts_events`]
 //! and the GTS blob reader, closing the serialize -> parse loop, so it proves
@@ -30,9 +33,10 @@ use std::path::Path;
 
 use purrdf::RdfDataset;
 
-/// The two terminal bundles cannot byte-contain themselves; they are the only
-/// committed paths the gate excludes (a bundle is not a projection of itself).
-pub const EXCLUDED: [&str; 2] = ["generated/dist/gmeow.gts", "generated/dist/gmeow-full.gts"];
+/// The one terminal bundle that cannot byte-contain itself: it is the only
+/// on-disk `generated/` path the reverse (orphan) sweep excludes, because a bundle
+/// is not a projection of itself and so is never a projection key.
+pub const EXCLUDED: [&str; 1] = ["generated/dist/gmeow.gts"];
 
 /// The committed-path -> carrier-representative outcome for one file.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,9 +86,11 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     let dataset = read_dataset(gts_bytes)?;
     let dataset = dataset.as_ref();
     let blob_members = read_blob_members(gts_bytes)?;
-    // The path↔representative map as DATA: the authored gmeow:fanoutExtracts rows read
-    // back from the bundle (the pipeline slice rides in the default graph). The gate reads
-    // these rows instead of branching in Rust (PIPELINE_SPINE §6/§7).
+    // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
+    // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
+    // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
+    // riding the meta-level fanout-manifest graph). The gate reads them as data instead of
+    // branching in Rust (PIPELINE_SPINE §6/§7).
     let rules = read_fanout_rules(dataset)?;
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -122,7 +128,7 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // Inline blob members: the opaque + byte-decorated committed files under
     // `generated/`. Source archive members (`shapes/`, `slices/`, `dsl/`) are carried
     // for self-sufficiency but are not `generated/` targets — skip them.
-    for (path, bytes) in blob_members {
+    for (path, bytes) in blob_members.files {
         if !path.starts_with("generated/") {
             continue;
         }
@@ -133,10 +139,40 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
         }
     }
 
-    // Bijection completeness HARD-FAIL: the promoted gmeow:fanoutExtracts rows must be a
-    // bijection over the reconstruction graphs — no path unmapped/ambiguous, no stale row —
-    // so reading the map from data never silently drops a path from fanout.
-    check_fanout_bijection(&rules, &reconstructed_paths)?;
+    // Family-scope the two bijections so an opaque row can never claim a named-graph path
+    // and vice versa: the RDF-fanout / EDOAL rows are proved against the reconstruction
+    // graphs, the opaque rows against the generated-opaque archive members.
+    let (opaque_rules, named_rules): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+        .into_iter()
+        .partition(|r| r.family == FanoutFamily::Opaque);
+
+    // Bijection completeness HARD-FAIL (named graphs): the authored gmeow:fanoutExtracts
+    // rows must be a bijection over the reconstruction graphs — no path unmapped/ambiguous,
+    // no stale row — so reading the map from data never silently drops a path from fanout.
+    check_fanout_bijection(&named_rules, &reconstructed_paths)?;
+
+    // Bijection completeness HARD-FAIL (opaque archive): every generated-opaque archive
+    // member resolves to exactly one emitted opaque row and every opaque row is claimed by
+    // exactly one member — so the opaque byte lane is a DECLARED, bijection-checked
+    // inventory, not a silent hidden set the superset gate never sees.
+    check_opaque_bijection(&opaque_rules, &blob_members.opaque_paths)?;
+
+    // ── Independent completeness anchor (PIPELINE_SPINE §6/§7). ──
+    // The expected-output inventory is AUTHORED TTL (the pipeline slice's
+    // `gmeow:expectsGeneratedOutput` rows), read back from the bundle here — a DIFFERENT
+    // source from the carrier's `files.keys()` (which the fanout rows are self-consistent
+    // with). A carrier code change that stops emitting a declared output shrinks `files`
+    // but NOT the authored inventory, so the ⊇ HARD FAIL below fires exactly where the
+    // two-generation determinism gate is blind (a deterministic drop is byte-identical
+    // across both runs). Running it inside `project_bundle` makes BOTH the fanout (Update)
+    // and superset-gate (Check) paths enforce it.
+    let expected = read_expected_outputs(dataset)?;
+    check_expected_completeness(&files, &expected)?;
+    // Prefix-family robustness: the two families whose members are cleanly DERIVABLE at the
+    // gate (from the carrier's reconstruction-graph IRIs, independent of the authored TTL)
+    // must have their authored members EXACTLY equal the derived members — so adding or
+    // dropping a producing individual without its expected path HARD-fails.
+    check_derivable_families(&expected, &reconstructed_paths)?;
 
     Ok(BundleProjection { files })
 }
@@ -154,6 +190,12 @@ enum GraphForm {
     /// N-Quads re-rooted into the graph's OWN fanout IRI: the committed `.nq`
     /// carries the fanout container IRI itself as its 4th column. RDFC-canonical.
     NQuadsSelf,
+    /// No named-graph fold: the committed path rides as a byte-exact member of the
+    /// inline generated-opaque archive blob (the `"opaque"` family). Never produces a
+    /// [`GraphRep`] — [`graph_rep_for_path`] skips opaque rules — so it is never handed
+    /// to [`reconstruct_graph`]; the enum arm exists only so [`read_fanout_rules`] can
+    /// round-trip the `"blob"` form string of an opaque row.
+    Blob,
 }
 
 /// A committed path carried as the fold of one named graph: the backing graph IRI
@@ -171,13 +213,19 @@ enum FanoutFamily {
     RdfFanout,
     /// `graph/projections/<stem>.edoal` for `generated/projections/<stem>.edoal.ttl`.
     Edoal,
+    /// No reconstruction graph: the committed path is a byte-exact member of the inline
+    /// generated-opaque archive blob (`REP_GENERATED`). These rows are EMITTED by the
+    /// carrier (one per archive member), never authored, and are bijection-checked
+    /// against the blob members by [`check_opaque_bijection`] — family-scoped so they
+    /// never cross-contaminate the RDF-fanout / EDOAL named-graph bijection.
+    Opaque,
 }
 
 /// One parsed `gmeow:FanoutExtraction` row — the DATA the superset gate reads in place
 /// of the former hard-coded path↔representative branches (`graph_rep_for_path` /
 /// `is_rdf_fanout_class` form selection).
 #[derive(Debug, Clone)]
-struct FanoutRule {
+pub(crate) struct FanoutRule {
     /// The committed path (exact) or directory prefix (prefix), per `match_prefix`.
     path: String,
     /// `true` = prefix match, `false` = exact match.
@@ -191,6 +239,20 @@ struct FanoutRule {
 }
 
 impl FanoutRule {
+    /// Whether this is an `opaque`-family row (a byte-exact archive member, not a
+    /// named-graph fold). Crate-visible so the carrier's emit-side tests can assert the
+    /// gate's OWN reader recovered the opaque rows it emitted.
+    #[cfg(test)]
+    pub(crate) fn is_opaque(&self) -> bool {
+        self.family == FanoutFamily::Opaque
+    }
+
+    /// The committed path (exact) or directory prefix this rule matches.
+    #[cfg(test)]
+    pub(crate) fn path(&self) -> &str {
+        &self.path
+    }
+
     /// Whether this rule matches a committed `generated/` path.
     fn matches(&self, path: &str) -> bool {
         if self.match_prefix {
@@ -301,7 +363,9 @@ fn optional_literal(
 /// fresh scan of the whole dataset (O(R) total instead of O(R·M) over R rows and M
 /// fields). `BTreeMap` (not `HashMap`) keeps subject — and hence row — order
 /// deterministic.
-fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
+pub(crate) fn read_fanout_rules(
+    dataset: &RdfDataset,
+) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
     let mut by_subject: BTreeMap<String, Vec<purrdf::RdfQuad>> = BTreeMap::new();
@@ -338,6 +402,7 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
             match mandatory_literal(&by_subject, row, "extractsGraphFamily", GMEOW)?.as_str() {
                 "rdf-fanout" => FanoutFamily::RdfFanout,
                 "edoal" => FanoutFamily::Edoal,
+                "opaque" => FanoutFamily::Opaque,
                 other => {
                     return Err(stage_err(&format!(
                         "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
@@ -349,12 +414,33 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
             "ntriples" => GraphForm::NTriples,
             "nquads-self" => GraphForm::NQuadsSelf,
             "nquads-diagnostics" => GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI),
+            "blob" => GraphForm::Blob,
             other => {
                 return Err(stage_err(&format!(
                     "fanout row {row} has unknown gmeow:extractsForm {other:?}"
                 )));
             }
         };
+        // The `opaque`/`blob` pairing is total: an opaque family MUST carry the blob form
+        // (and an exact match — an opaque member is one byte-exact archive entry, never a
+        // prefix family) and the blob form MUST be opaque. Any other pairing is a
+        // malformed row — HARD FAIL (no-optionality), so a hand-authored opaque row that
+        // forgets the pairing never silently degrades to a named-graph fold.
+        let is_opaque = family == FanoutFamily::Opaque;
+        let is_blob = form == GraphForm::Blob;
+        if is_opaque != is_blob {
+            return Err(stage_err(&format!(
+                "fanout row {row} pairs gmeow:extractsGraphFamily/{family:?} with \
+                 gmeow:extractsForm/{form:?} (the \"opaque\" family and \"blob\" form are \
+                 mutually required)"
+            )));
+        }
+        if is_opaque && match_prefix {
+            return Err(stage_err(&format!(
+                "opaque fanout row {row} must use gmeow:extractsMatch \"exact\" (an opaque \
+                 archive member is one byte-exact entry, never a prefix family)"
+            )));
+        }
         rules.push(FanoutRule {
             path,
             match_prefix,
@@ -373,10 +459,16 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
 /// matched rule's family; the form is the rule's declared form, so `file == fold` holds
 /// by construction (the producing stage emits with the same form).
 fn graph_rep_for_path(rules: &[FanoutRule], path: &str) -> Option<GraphRep> {
-    let rule = rules.iter().find(|r| r.matches(path))?;
+    // Opaque rows carry no named-graph rep (they reconstruct from the archive blob), so
+    // they are skipped here — a byte-decorated RDF path (`.ttl`) that now has an opaque row
+    // still falls through to its blob member, never a phantom named-graph fold.
+    let rule = rules
+        .iter()
+        .find(|r| r.family != FanoutFamily::Opaque && r.matches(path))?;
     let iri = match rule.family {
         FanoutFamily::Edoal => edoal_projection_graph_iri(path)?,
         FanoutFamily::RdfFanout => rdf_fanout_graph_iri(path)?,
+        FanoutFamily::Opaque => return None,
     };
     Some(GraphRep {
         iri,
@@ -420,63 +512,241 @@ fn check_fanout_bijection(
     Ok(())
 }
 
+/// The completeness HARD-FAIL for the OPAQUE half of the fanout map: assert the emitted
+/// `gmeow:extractsGraphFamily "opaque"` rows are a BIJECTION against the generated-opaque
+/// archive members (`REP_GENERATED`). Every opaque archive member path resolves to exactly
+/// one opaque row (no undeclared member, no ambiguity), and every opaque row is claimed by
+/// exactly one member (no stale row). This is the guard that closes the former hole where
+/// the opaque blob members were declared NOWHERE and never bijection-checked — the exact
+/// symmetric property [`check_fanout_bijection`] gives the RDF-fanout / EDOAL named graphs.
+/// Opaque rows are always `exact` matches, so `rule.matches(path)` is `path == rule.path`.
+fn check_opaque_bijection(
+    opaque_rules: &[FanoutRule],
+    member_paths: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    // Forward: every opaque archive member is claimed by exactly one opaque row.
+    for path in member_paths {
+        let n = opaque_rules.iter().filter(|r| r.matches(path)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "generated-opaque archive member {path} matches {n} opaque \
+                     gmeow:fanoutExtracts rows (want exactly 1)"
+                ),
+            }));
+        }
+    }
+    // Reverse: every opaque row is claimed by exactly one archive member (no stale/duplicate).
+    for rule in opaque_rules {
+        let n = member_paths.iter().filter(|p| rule.matches(p)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "opaque gmeow:fanoutExtracts row for {:?} claims {n} generated-opaque \
+                     archive members (want exactly 1)",
+                    rule.path
+                ),
+            }));
+        }
+    }
+    Ok(())
+}
+
+/// The predicate carrying one authored expected-output path on the pipeline individual.
+const EXPECTED_OUTPUT_PRED: &str = "https://blackcatinformatics.ca/gmeow/expectsGeneratedOutput";
+
+/// Read the AUTHORED expected-output inventory from the bundle dataset: every
+/// `gmeow:expectsGeneratedOutput "generated/…"` literal, deduplicated and sorted. This is
+/// hand-written TTL in the pipeline slice (NOT carrier-emitted like the opaque fanout rows),
+/// so it is an INDEPENDENT completeness oracle — when a carrier change silently drops an
+/// output, `project_bundle`'s reconstructed set shrinks but this authored set does not, and
+/// [`check_expected_completeness`] HARD-fails. A non-literal object, a path not under
+/// `generated/`, a duplicate value, or an empty inventory (the rows never reached the bundle)
+/// is a HARD FAIL (no-optionality), never a silent pass.
+pub(crate) fn read_expected_outputs(
+    dataset: &RdfDataset,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        if quad.predicate != EXPECTED_OUTPUT_PRED {
+            continue;
+        }
+        let purrdf::RdfTerm::Literal(lit) = &quad.object else {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput on {:?} has a non-literal object (want a \"generated/…\" path literal)",
+                quad.subject
+            )));
+        };
+        let path = &lit.lexical_form;
+        if !path.starts_with("generated/") {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput value {path:?} is not under generated/"
+            )));
+        }
+        if EXCLUDED.contains(&path.as_str()) {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput must not list the terminal bundle {path:?} (a bundle is not a projection of itself)"
+            )));
+        }
+        if !out.insert(path.clone()) {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput lists {path:?} more than once (the inventory is a set)"
+            )));
+        }
+    }
+    if out.is_empty() {
+        return Err(expected_err(
+            "no gmeow:expectsGeneratedOutput rows in the bundle — the authored expected-output inventory did not reach gmeow.gts",
+        ));
+    }
+    Ok(out)
+}
+
+/// The independent-oracle completeness HARD-FAIL: every AUTHORED expected path must be
+/// PRODUCED by the reconstructed bundle (`expected ⊆ files.keys()`). The message names EVERY
+/// missing path. This is the anchor that survives the Task-3 disk-walk inversion: it is the
+/// "every declared output is produced" direction, proved against the bundle rather than the
+/// on-disk tree, so a clean clone that no longer emits a consumed output cannot pass silently.
+fn check_expected_completeness(
+    files: &BTreeMap<String, Vec<u8>>,
+    expected: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    let missing: Vec<&str> = expected
+        .iter()
+        .filter(|p| !files.contains_key(p.as_str()))
+        .map(String::as_str)
+        .collect();
+    if !missing.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::ExpectedOutputMissing {
+                message: format!(
+                    "{} authored generated/ output(s) not produced by the bundle: {}",
+                    missing.len(),
+                    missing.join(", ")
+                ),
+            },
+        ));
+    }
+    Ok(())
+}
+
+/// A derivable prefix family: an authored expected-output family whose members can be
+/// INDEPENDENTLY re-derived at the gate from the carrier's reconstruction-graph IRIs (an
+/// emitted-Rust source, distinct from the authored TTL). Only families all of whose members
+/// travel as named-graph folds qualify (the mixed RDF/opaque families — research-objects,
+/// lang projections — are authored-only, guarded by a count-consistency test instead).
+struct DerivableFamily {
+    /// The committed-path prefix (e.g. `generated/profiles/`).
+    prefix: &'static str,
+    /// An optional suffix filter isolating the family within a shared directory (the EDOAL
+    /// `.edoal.ttl` case, which shares `generated/projections/` with plain RDF projections).
+    suffix: Option<&'static str>,
+}
+
+impl DerivableFamily {
+    fn contains(&self, path: &str) -> bool {
+        path.starts_with(self.prefix) && self.suffix.is_none_or(|s| path.ends_with(s))
+    }
+}
+
+/// The prefix families whose membership is DERIVED (not merely authored): the RDF-fanout
+/// `generated/profiles/*` set and the EDOAL `generated/projections/*.edoal.ttl` set. Both
+/// travel entirely as reconstruction named graphs, so the carrier's reconstructed-path set
+/// yields their exact membership independently of the authored inventory.
+const DERIVABLE_FAMILIES: [DerivableFamily; 2] = [
+    DerivableFamily {
+        prefix: "generated/profiles/",
+        suffix: None,
+    },
+    DerivableFamily {
+        prefix: "generated/projections/",
+        suffix: Some(".edoal.ttl"),
+    },
+];
+
+/// The derivation cross-check: for each [`DERIVABLE_FAMILIES`] member, the AUTHORED family
+/// (from the expected-output inventory) must EXACTLY equal the family DERIVED from the
+/// carrier's reconstructed named-graph paths. A source individual added without its expected
+/// path (derived ⊋ authored) or a stale authored path (authored ⊋ derived) HARD-fails, so
+/// the dynamic families cannot silently drift out of the authored inventory.
+fn check_derivable_families(
+    expected: &BTreeSet<String>,
+    reconstructed: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    for family in &DERIVABLE_FAMILIES {
+        let authored: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| family.contains(p))
+            .map(String::as_str)
+            .collect();
+        let derived: BTreeSet<&str> = reconstructed
+            .iter()
+            .filter(|p| family.contains(p))
+            .map(String::as_str)
+            .collect();
+        if authored != derived {
+            let authored_only: Vec<&str> = authored.difference(&derived).copied().collect();
+            let derived_only: Vec<&str> = derived.difference(&authored).copied().collect();
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::ExpectedOutputMissing {
+                    message: format!(
+                        "derivable family {}{} authored≠derived: authored-only [{}], derived-only [{}]",
+                        family.prefix,
+                        family.suffix.unwrap_or(""),
+                        authored_only.join(", "),
+                        derived_only.join(", ")
+                    ),
+                },
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn expected_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::ExpectedOutputMissing {
+        message: message.to_string(),
+    })
+}
+
 /// The embedded graph label of the committed diagnostics `.nq` files (mirrors
 /// `carrier::GRAPH_DIAGNOSTICS`).
 pub(crate) const GRAPH_DIAGNOSTICS_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
-/// Whether a committed RDF `generated/` path is carried as an RDF-fanout named graph
-/// (vs. an older dedicated rep). Both the gate (claiming the rep) and the carrier
-/// (attaching the graph) consult this single predicate, so the wired set is one
-/// authority. Classes are added here as their producing stage starts emitting the
-/// committed file as the canonical fold of its attached graph.
-pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
-    path.starts_with("generated/profiles/")
-        || path.starts_with("generated/research-objects/")
-        || path == "generated/evals/scores.ttl"
-        || path == "generated/foundation/gufo.ttl"
-        // The projection-report loss ledger (no RDF-star). The reasoning closure /
-        // explanations / crosscheck are RDF-1.2 with reifiers — their graph-less
-        // side-tables do not separate cleanly under a per-file fold, so they ride a
-        // dedicated reifier-preserving path (below), not the generic fanout.
-        || path == "generated/logic/projection-report.ttl"
-        // The shape-grounding certificate ledger: the per-record preservation judgments
-        // re-derived each regenerate over the projected constraint surfaces (the
-        // per-record sibling of the projection-report loss ledger; no RDF-star).
-        || path == "generated/logic/shape-grounding-ledger.ttl"
-        || path == "generated/logic/gmeow.relational-core.nt"
-        || path == "generated/logic/gmeow.correspondence.nt"
-        // The correspondence-laws projection: the on-disk fold of the bundle's
-        // `graph/correspondence-laws` named graph (every authored `logic:Correspondence`
-        // re-projected with its EXECUTED lens-law discharge verdicts). RDF travels as RDF,
-        // so the discharged `logic:SectionLaw` claims land in `generated/` too, not only in
-        // the bundle graph.
-        || path == "generated/logic/gmeow.correspondence-laws.nt"
-        // The quality-assessment projection: the on-disk fold of the bundle's
-        // `graph/quality-assessment` named graph (every slice scored against the rubric as
-        // `gmeow:QualityAssessment` observations). RDF travels as RDF, so the assessment
-        // triples land in `generated/` too, not only in the bundle graph.
-        || path == "generated/quality/gmeow.quality-assessment.nt"
-        // The authoring-packet projection: the on-disk fold of the bundle's
-        // `graph/authoring-briefs` named graph (a gmeow:AuthoringPacket per in-repo slice
-        // batch). RDF travels as RDF, so the packet triples land in `generated/` too, not
-        // only in the bundle graph.
-        || path == "generated/briefs/authoring-packets.nt"
-        || path == "generated/diagnostics/shacl.nq"
-        || path == "generated/diagnostics/logic-compile.nq"
-        // The generated constraint catalog: its committed `.nq` carries the fanout
-        // graph IRI itself as its 4th column (unlike the diagnostics `.nq`, which
-        // restamp to the shared `graph/diagnostics` label), so its reconstruction
-        // restamps to its OWN fanout IRI (see `graph_rep_for_path`).
-        || path == "generated/catalog/constraint-catalog.nq"
-        // The generated term content manifest: like the constraint catalog, its
-        // committed `.nq` carries its OWN fanout graph IRI as the 4th column, so it
-        // reconstructs via `GraphForm::NQuadsSelf` (see `graph_rep_for_path`).
-        || path == "generated/catalog/term-content-manifest.nq"
-        // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
-        || path == "generated/projections/core-prefixes.ttl"
-        || path == "generated/projections/functions.fno.ttl"
-        || path == "generated/projections/list-functions.fno.ttl"
+/// The build-time authority for "which committed RDF `generated/` path is attached as an
+/// RDF-fanout named graph", DERIVED from the AUTHORED `gmeow:fanoutExtracts` rows (family
+/// `"rdf-fanout"`) of the loaded pipeline-slice source — the SAME rows the superset gate
+/// reads back from the shipped bundle. This replaces a former hand-maintained `||` chain
+/// that duplicated the authored inventory as a third copy; the set is now a single
+/// source-of-truth read from data, so the carrier's attach set and the gate's claim set
+/// cannot silently drift.
+///
+/// Built once per assemble (from the `stage-source-load` product, which already holds the
+/// pipeline `module.ttl` in memory — a source INPUT, not the bundle being produced, so
+/// there is no bootstrapping cycle) and consulted per committed path.
+pub(crate) struct RdfFanoutClasses {
+    rules: Vec<FanoutRule>,
+}
+
+impl RdfFanoutClasses {
+    /// Parse the authored `gmeow:fanoutExtracts` rows from a pipeline-slice `source`
+    /// dataset, keeping only the RDF-fanout family (EDOAL keeps its own
+    /// `graph/projections/` family; opaque rows are carrier-emitted, not a build-time
+    /// attach class). A malformed row HARD-fails through [`read_fanout_rules`].
+    pub(crate) fn from_source(source: &RdfDataset) -> Result<Self, gmeow_errors::Diag> {
+        let rules = read_fanout_rules(source)?
+            .into_iter()
+            .filter(|r| r.family == FanoutFamily::RdfFanout)
+            .collect();
+        Ok(Self { rules })
+    }
+
+    /// Whether a committed RDF `generated/` path is attached as an RDF-fanout named graph,
+    /// per the authored rows (exact or directory-prefix match).
+    pub(crate) fn contains(&self, path: &str) -> bool {
+        self.rules.iter().any(|r| r.matches(path))
+    }
 }
 
 /// The named graph IRI for any RDF committed file under `generated/` (other than the
@@ -554,49 +824,55 @@ pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, g
     // reconstructed from the shipped bytes alone. The gate compares it to disk; the
     // fanout phase writes it. One code path, no second reconstruction.
     let projection = project_bundle(gts_bytes)?;
-    sweep_against_committed(&projection, root)
+    sweep_against_materialized(&projection, root)
 }
 
-/// Sweep a reconstructed [`BundleProjection`] against the committed `generated/` tree
-/// under `root`: forward (missing / mismatch) and reverse (orphan). A pure function of
-/// the projection and the on-disk tree — no bundle parsing — so the sweep verdicts are
-/// unit-testable with an injected projection.
-fn sweep_against_committed(
+/// Sweep a reconstructed [`BundleProjection`] against the materialized `generated/`
+/// tree under `root`. The **projection is the authority**: the forward sweep drives
+/// off the projection keys (the must-exist set), the reverse sweep off the on-disk
+/// tree (the orphan oracle). A pure function of the projection and the on-disk tree —
+/// no bundle parsing — so the sweep verdicts are unit-testable with an injected
+/// projection.
+fn sweep_against_materialized(
     projection: &BundleProjection,
     root: &Path,
 ) -> Result<SupersetReport, gmeow_errors::Diag> {
-    let committed = committed_generated_paths(root)?;
-    let committed_set: BTreeSet<&str> = committed.iter().map(String::as_str).collect();
-
     let mut missing = Vec::new();
     let mut mismatch = Vec::new();
 
-    // ── Forward sweep: every committed path must reconstruct from the bundle. ──
-    for path in &committed {
-        if EXCLUDED.contains(&path.as_str()) {
-            continue;
-        }
-        match projection.files.get(path) {
-            None => missing.push(path.clone()),
-            Some(reconstructed) => {
-                let committed_bytes = std::fs::read(root.join(path))
-                    .map_err(|e| stage_err(&format!("read committed {path}: {e}")))?;
-                if *reconstructed != committed_bytes {
+    // ── Forward sweep: every projection key MUST be materialized on disk with
+    // byte-matching content. A key with no file on disk is `missing`; a key present
+    // on disk whose bytes differ from the reconstruction is `mismatch`. Because the
+    // projection (not the disk walk) is the must-exist set, an empty or absent
+    // `generated/` tree flags EVERY key as missing — no vacuous pass on a fresh
+    // clone. A read error other than "not found" is a hard failure, never a skip. ──
+    for (path, reconstructed) in &projection.files {
+        match std::fs::read(root.join(path)) {
+            Ok(disk_bytes) => {
+                if *reconstructed != disk_bytes {
                     mismatch.push(path.clone());
                 }
             }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => missing.push(path.clone()),
+            Err(e) => return Err(stage_err(&format!("read materialized {path}: {e}"))),
         }
     }
 
-    // ── Reverse sweep: every reconstructed `generated/` path must back a committed
-    // file. The bundle is a *superset* of `generated/` (§5): it also carries source
-    // archives (`dsl/`, `slices/` shapes/cells/tests) and the rendered docs site for
-    // self-sufficiency — but `project_bundle` already filtered those out (it emits
-    // only `generated/`-targeting reps). An orphan is thus a STALE reconstruction rep:
-    // a carried `generated/` path with no committed file. ──
+    // ── Reverse sweep: every materialized `generated/` file MUST be a projection key.
+    // The bundle is a *superset* of `generated/` (§5): it also carries source archives
+    // (`dsl/`, `slices/` shapes/cells/tests) and the rendered docs site for
+    // self-sufficiency — but `project_bundle` already filtered those out (it emits only
+    // `generated/`-targeting reps). An orphan is thus an UNDECLARED / STALE on-disk
+    // file: a materialized `generated/` path that is not a projection key. The terminal
+    // bundle is a materialized `generated/` file that is not a projection of itself, so
+    // it is excluded here rather than reported as an orphan. ──
+    let materialized = materialized_generated_paths(root)?;
     let mut orphan = Vec::new();
-    for path in projection.files.keys() {
-        if !committed_set.contains(path.as_str()) {
+    for path in &materialized {
+        if EXCLUDED.contains(&path.as_str()) {
+            continue;
+        }
+        if !projection.files.contains_key(path) {
             orphan.push(path.clone());
         }
     }
@@ -636,6 +912,10 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
             let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
             canonical_ntriples(&rooted).ok()
         }
+        // Unreachable in practice: an opaque row never yields a `GraphRep`
+        // (`graph_rep_for_path` skips the opaque family), so a `Blob` form is never handed
+        // to a graph fold. Fail closed rather than panic if the invariant is ever violated.
+        GraphForm::Blob => None,
     }
 }
 
@@ -677,12 +957,23 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, gmeow_er
 /// [`crate::stages::carrier::committed_path_for_archive_member`] (the inverse of the
 /// rep's member-naming convention), so the caller resolves a member to its
 /// `generated/` path with no basename guessing.
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+/// The blob-member reconstruction map plus the opaque-archive member set: [`files`]
+/// is every archive member keyed by committed path (all `generated/`-carrying archives),
+/// and [`opaque_paths`] is the subset that rode the `REP_GENERATED` generated-opaque
+/// archive — the exact set the carrier declares as `gmeow:extractsGraphFamily "opaque"`
+/// rows, which [`check_opaque_bijection`] proves is a bijection against those rows.
+struct BlobMembers {
+    files: BTreeMap<String, Vec<u8>>,
+    opaque_paths: BTreeSet<String>,
+}
+
+fn read_blob_members(gts_bytes: &[u8]) -> Result<BlobMembers, gmeow_errors::Diag> {
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
     let lookaside = purrdf::gts::lookaside_from_graph(&graph);
 
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
     for record in &lookaside.blobs {
         // Only archive blobs unpack to member files; non-archive blobs (reports,
         // guides, docs) are not committed `generated/` reconstruction targets and
@@ -716,23 +1007,36 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeo
                     "archive rep {rep} carries member {name} with no committed-path mapping"
                 )));
             };
+            // The generated-opaque archive is the byte lane the carrier declares as
+            // `opaque` fanout rows; record its members (all under `generated/`) as the
+            // set the opaque bijection proves against those rows.
+            if rep == crate::stages::carrier::REP_GENERATED && committed.starts_with("generated/") {
+                opaque_paths.insert(committed.clone());
+            }
             out.insert(committed, member_bytes);
         }
     }
-    Ok(out)
+    Ok(BlobMembers {
+        files: out,
+        opaque_paths,
+    })
 }
 
-/// Every committed file under `<root>/generated/`, repo-relative (`generated/...`),
-/// sorted. Walks the tree directly (the gate enumerates the on-disk committed set,
-/// not a stage product).
-fn committed_generated_paths(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
-    // GENERATED-READ-OK: the superset gate VERIFIES the shipped bundle is a superset of the
-    // committed generated/ tree, so it must enumerate that on-disk tree — a verification read,
-    // not a produce-stage fold of a stale projection. Nothing here folds into gmeow.gts; this
-    // read is the oracle the gate checks the freshly-projected bundle against.
+/// Every materialized file under `<root>/generated/`, repo-relative (`generated/...`),
+/// sorted. Walks the tree directly.
+fn materialized_generated_paths(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
+    // GENERATED-READ-OK: this read is ONLY the reverse (orphan) oracle. After the
+    // authority inversion the projection — not this disk walk — is the must-exist set,
+    // so the walk no longer decides completeness; it only enumerates the materialized
+    // tree so the reverse sweep can flag an on-disk file that is not a projection key.
+    // Nothing here folds into gmeow.gts. An absent `generated/` tree is not a clean
+    // pass: it yields zero orphans here while the forward sweep flags every projection
+    // key as missing.
     let base = root.join("generated");
     let mut out = Vec::new();
-    walk(&base, root, &mut out)?;
+    if base.exists() {
+        walk(&base, root, &mut out)?;
+    }
     out.sort();
     Ok(out)
 }
@@ -815,10 +1119,9 @@ mod tests {
     }
 
     #[test]
-    fn excluded_holds_exactly_the_two_terminal_bundles() {
-        assert_eq!(EXCLUDED.len(), 2);
+    fn excluded_holds_exactly_the_one_terminal_bundle() {
+        assert_eq!(EXCLUDED.len(), 1);
         assert!(EXCLUDED.contains(&"generated/dist/gmeow.gts"));
-        assert!(EXCLUDED.contains(&"generated/dist/gmeow-full.gts"));
     }
 
     #[test]
@@ -935,7 +1238,13 @@ mod tests {
         // plain N-Triples (default graph, no label) — the form the fanout writer emits and
         // the superset gate reconstructs, so `file == fold` holds by construction.
         const PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
-        assert!(is_rdf_fanout_class(PATH));
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let source = purrdf::parse_dataset(&ttl, "text/turtle", None).unwrap();
+        assert!(
+            RdfFanoutClasses::from_source(&source)
+                .unwrap()
+                .contains(PATH)
+        );
         let rules = authored_fanout_rules();
         let rep =
             graph_rep_for_path(&rules, PATH).expect("quality-assessment path resolves a graph rep");
@@ -1004,40 +1313,107 @@ mod tests {
             report.is_clean(),
             "superset gate not clean after the seam refactor: {report:?}"
         );
+
+        // ── The inventory's OTHER direction. `project_bundle` proves authored ⊆ produced
+        // (`check_expected_completeness`); nothing proved produced ⊆ authored, so an output
+        // the pipeline emits could stay absent from the hand-authored oracle indefinitely —
+        // and one did (`generated/mappings/gmeow-preference.sssom.tsv`, produced from the
+        // preference slice's MappingSet but never declared). An undeclared output is a real
+        // hole, not a harmless omission: the completeness anchor is the ONLY gate that catches
+        // a stage silently ceasing to emit a file, so a path missing from the inventory is a
+        // path that can vanish from a clean clone unnoticed. Closing the loop here makes the
+        // inventory EXACTLY the produced set: authored ⊆ produced (project_bundle, above)
+        // plus produced ⊆ authored (here) = equality. Free — the projection is already in hand.
+        let authored = authored_expected();
+        let undeclared: Vec<&str> = proj
+            .files
+            .keys()
+            .map(String::as_str)
+            .filter(|p| !EXCLUDED.contains(p) && !authored.contains(*p))
+            .collect();
+        assert!(
+            undeclared.is_empty(),
+            "the bundle produces generated/ output(s) absent from the authored \
+             gmeow:expectsGeneratedOutput inventory in slices/core/pipeline/module.ttl, so the \
+             completeness oracle would not notice them disappearing: {undeclared:?}"
+        );
     }
 
     #[test]
-    fn sweep_detects_missing_mismatch_and_orphan() {
+    fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
         use std::io::Write;
-        // A temp committed tree: two files under generated/.
-        let dir = std::env::temp_dir().join(format!("gmeow-superset-sweep-{}", std::process::id()));
+        // Authority is the PROJECTION. Materialize a disk tree of three files under
+        // generated/, then inject a projection whose keys diverge from it.
+        // RAII: the materialized tree is removed when `tmp` drops, including on a
+        // failed assertion below.
+        let tmp = tempfile::tempdir().expect("create temp materialized root");
+        let dir = tmp.path();
         let gen_dir = dir.join("generated/x");
         std::fs::create_dir_all(&gen_dir).unwrap();
         let write = |name: &str, bytes: &[u8]| {
             let mut f = std::fs::File::create(gen_dir.join(name)).unwrap();
             f.write_all(bytes).unwrap();
         };
-        write("kept.ttl", b"KEEP");
+        write("match.ttl", b"SAME");
         write("drift.ttl", b"DISK-BYTES");
-        write("absent.ttl", b"NO-REP");
+        write("orphan.ttl", b"UNDECLARED");
 
-        // A projection that: matches kept, drifts on drift, has NO rep for absent
-        // (missing), and carries a stale extra path (orphan).
+        // Projection keys: match.ttl agrees with disk; drift.ttl reconstructs to
+        // different bytes than disk (mismatch); missing.ttl has NO disk file (missing).
+        // orphan.ttl is on disk but is NOT a projection key (orphan).
         let mut files = BTreeMap::new();
-        files.insert("generated/x/kept.ttl".to_string(), b"KEEP".to_vec());
+        files.insert("generated/x/match.ttl".to_string(), b"SAME".to_vec());
         files.insert(
             "generated/x/drift.ttl".to_string(),
             b"BUNDLE-BYTES".to_vec(),
         );
-        files.insert("generated/x/stale.ttl".to_string(), b"ORPHAN".to_vec());
+        files.insert("generated/x/missing.ttl".to_string(), b"GONE".to_vec());
         let projection = BundleProjection { files };
 
-        let report = sweep_against_committed(&projection, &dir).unwrap();
-        let _ = std::fs::remove_dir_all(&dir);
+        let report = sweep_against_materialized(&projection, dir).unwrap();
 
-        assert_eq!(report.missing, vec!["generated/x/absent.ttl".to_string()]);
+        assert_eq!(report.missing, vec!["generated/x/missing.ttl".to_string()]);
         assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
-        assert_eq!(report.orphan, vec!["generated/x/stale.ttl".to_string()]);
+        assert_eq!(report.orphan, vec!["generated/x/orphan.ttl".to_string()]);
+        assert!(!report.is_clean());
+    }
+
+    #[test]
+    fn superset_empty_materialized_tree_hard_fails() {
+        // The vacuous-pass guard: with the projection as the authority, an EMPTY
+        // (or absent) generated/ tree can never pass clean — every projection key is
+        // flagged missing. Prove it for both an empty generated/ dir and a wholly
+        // absent one.
+        let mut files = BTreeMap::new();
+        files.insert("generated/x/a.ttl".to_string(), b"A".to_vec());
+        files.insert("generated/y/b.ttl".to_string(), b"B".to_vec());
+        let projection = BundleProjection { files };
+
+        // (a) An empty-but-present generated/ directory. RAII: removed when
+        // `empty_tmp` drops, including on a failed assertion below.
+        let empty_tmp = tempfile::tempdir().expect("create empty materialized root");
+        let empty_dir = empty_tmp.path();
+        std::fs::create_dir_all(empty_dir.join("generated")).unwrap();
+        let report = sweep_against_materialized(&projection, empty_dir).unwrap();
+        assert_eq!(
+            report.missing,
+            vec![
+                "generated/x/a.ttl".to_string(),
+                "generated/y/b.ttl".to_string()
+            ]
+        );
+        assert!(report.orphan.is_empty());
+        assert!(
+            !report.is_clean(),
+            "an empty generated/ tree must HARD-fail, never pass vacuously"
+        );
+
+        // (b) A wholly absent generated/ tree (fresh clone) is equally not clean.
+        // The root exists but carries no `generated/` child at all.
+        let absent_tmp = tempfile::tempdir().expect("create absent-generated root");
+        let absent_dir = absent_tmp.path();
+        let report = sweep_against_materialized(&projection, absent_dir).unwrap();
+        assert_eq!(report.missing.len(), 2);
         assert!(!report.is_clean());
     }
 
@@ -1121,6 +1497,77 @@ gmeow:r5 gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "pref
     }
 
     #[test]
+    fn opaque_rows_parse_and_bijection_checks_the_archive_members() {
+        // The opaque family: exact/opaque/blob rows carrier-emitted per REP_GENERATED
+        // member. Prove they parse, resolve NO named-graph rep (they ride the blob lane),
+        // and that check_opaque_bijection HARD-fails on an undeclared member AND a stale row.
+        let ttl = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:o1 gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+gmeow:o2 gmeow:extractsPath "generated/logic/inferred-closure.rdf12.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+"#;
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let rules = read_fanout_rules(&ds).unwrap();
+        let (opaque, named): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+            .into_iter()
+            .partition(|r| r.family == FanoutFamily::Opaque);
+        assert_eq!(opaque.len(), 2);
+        assert_eq!(named.len(), 1);
+
+        // Opaque rows never resolve a named-graph rep — even the byte-decorated `.ttl` one.
+        assert!(graph_rep_for_path(&opaque, "generated/n3/gmeow.n3").is_none());
+        assert!(
+            graph_rep_for_path(&opaque, "generated/logic/inferred-closure.rdf12.ttl").is_none()
+        );
+
+        // Bijection holds when the member set equals the opaque-row path set exactly.
+        let members: BTreeSet<String> = [
+            "generated/n3/gmeow.n3",
+            "generated/logic/inferred-closure.rdf12.ttl",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        check_opaque_bijection(&opaque, &members).expect("opaque bijection holds");
+
+        // Undeclared member (a blob member with no opaque row) HARD-fails.
+        let mut undeclared = members.clone();
+        undeclared.insert("generated/cl/gmeow.clif".to_string());
+        let err = check_opaque_bijection(&opaque, &undeclared).unwrap_err();
+        assert_eq!(err.code(), crate::error::FanoutBijection::register());
+
+        // Stale opaque row (a row claiming no archive member) HARD-fails.
+        let mut stale = members.clone();
+        stale.remove("generated/n3/gmeow.n3");
+        let err2 = check_opaque_bijection(&opaque, &stale).unwrap_err();
+        assert_eq!(err2.code(), crate::error::FanoutBijection::register());
+    }
+
+    #[test]
+    fn opaque_family_and_blob_form_are_mutually_required() {
+        // A row that pairs opaque family with a non-blob form is malformed → HARD FAIL.
+        let bad_form = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "turtle" .
+"#;
+        let ds = purrdf::parse_dataset(bad_form.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds).is_err());
+
+        // A blob form paired with a non-opaque family is equally malformed.
+        let bad_family = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "blob" .
+"#;
+        let ds2 = purrdf::parse_dataset(bad_family.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds2).is_err());
+
+        // An opaque row using a prefix match is malformed (opaque members are exact).
+        let bad_prefix = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+"#;
+        let ds3 = purrdf::parse_dataset(bad_prefix.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds3).is_err());
+    }
+
+    #[test]
     fn clean_report_requires_all_three_sweeps_empty() {
         let clean = SupersetReport {
             missing: vec![],
@@ -1134,5 +1581,280 @@ gmeow:r5 gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "pref
             orphan: vec![],
         };
         assert!(!dirty.is_clean());
+    }
+
+    /// The authored expected-output inventory, read from the pipeline slice module.ttl
+    /// (the same data the shipped bundle carries) — the real independent oracle.
+    fn authored_expected() -> BTreeSet<String> {
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let ds = purrdf::parse_dataset(&ttl, "text/turtle", None).unwrap();
+        read_expected_outputs(&ds).unwrap()
+    }
+
+    #[test]
+    fn expected_output_inventory_round_trips_from_the_authored_module_ttl() {
+        // The authored gmeow:expectsGeneratedOutput rows round-trip through the gate's OWN
+        // reader: the complete non-terminal generated/ tree, deduplicated, every path under
+        // generated/, and neither terminal bundle present.
+        let expected = authored_expected();
+        assert_eq!(
+            expected.len(),
+            407,
+            "the authored inventory must hold every non-terminal generated/ path"
+        );
+        for p in &expected {
+            assert!(
+                p.starts_with("generated/"),
+                "non-generated inventory path: {p}"
+            );
+            assert!(
+                !EXCLUDED.contains(&p.as_str()),
+                "terminal bundle leaked in: {p}"
+            );
+        }
+        // The known runtime-consumed catalog files (crates/docs/src/model.rs) are present.
+        assert!(expected.contains("generated/catalog/constraint-catalog.nq"));
+        assert!(expected.contains("generated/catalog/term-content-manifest.nq"));
+    }
+
+    #[test]
+    fn read_expected_outputs_rejects_malformed_rows() {
+        // Non-literal object.
+        let bad_obj = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput gmeow:not-a-literal ."#;
+        let ds = purrdf::parse_dataset(bad_obj.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // A path not under generated/.
+        let outside = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "docs/x.md" ."#;
+        let ds = purrdf::parse_dataset(outside.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // A terminal bundle listed.
+        let terminal = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/dist/gmeow.gts" ."#;
+        let ds = purrdf::parse_dataset(terminal.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // The same path declared by two subjects (identical triples collapse under RDF set
+        // semantics, so a genuine duplicate needs distinct subjects).
+        let dup = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/a.ttl" .
+gmeow:other gmeow:expectsGeneratedOutput "generated/a.ttl" ."#;
+        let ds = purrdf::parse_dataset(dup.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // No rows at all — the inventory did not reach the bundle.
+        let empty = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build a gmeow:Pipeline ."#;
+        let ds = purrdf::parse_dataset(empty.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+    }
+
+    #[test]
+    fn completeness_hard_fails_naming_every_dropped_output() {
+        // The completeness anchor: dropping ONE declared path from the produced set fires the
+        // ExpectedOutputMissing HARD FAIL, and the message names the missing path — exactly the
+        // deterministic-drop case the two-generation determinism gate is blind to.
+        let expected = authored_expected();
+        // A produced set that reconstructs every declared path passes.
+        let full: BTreeMap<String, Vec<u8>> =
+            expected.iter().map(|p| (p.clone(), Vec::new())).collect();
+        check_expected_completeness(&full, &expected).expect("full production is complete");
+        // Drop one declared output (simulate a carrier code change that stops emitting it).
+        let dropped = "generated/catalog/constraint-catalog.nq";
+        let mut partial = full.clone();
+        partial.remove(dropped);
+        let err = check_expected_completeness(&partial, &expected).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+        assert!(
+            err.to_string().contains(dropped),
+            "the HARD FAIL must name the dropped path, got: {err}"
+        );
+    }
+
+    #[test]
+    fn project_bundle_hard_fails_when_a_declared_output_is_never_produced() {
+        // NEVER-PRODUCED — the regression this task guards: a producing stage change stops
+        // emitting a declared output. The bundle then carries NO representative for it, so the
+        // bytes are IDENTICAL across two cold runs — the two-generation determinism gate is
+        // blind. Only the completeness oracle catches it, and it must bite through the REAL
+        // `project_bundle` path (not only the hand-built projection map
+        // `completeness_hard_fails_naming_every_dropped_output` exercises), proving the
+        // `check_expected_completeness` call at the top of `project_bundle` is wired.
+        //
+        // Build a minimal-but-valid gmeow.gts through the production terminal
+        // (`emit_gmeow_gts`): the ontology header the importer requires, plus two authored
+        // `gmeow:expectsGeneratedOutput` rows for paths the bundle does NOT produce — one
+        // OPAQUE-family member (`generated/n3/gmeow.n3`, normally an inline archive member) and
+        // one PREFIX-family member (`generated/profiles/full.ttl`, normally a named-graph fold).
+        // With no fanout rows, no reconstruction graphs, and no opaque archive, the
+        // reconstructed `files` set is empty, so BOTH declared paths are "never produced".
+        use purrdf::gts_compose::SnapshotBuilder;
+
+        const OPAQUE_MEMBER: &str = "generated/n3/gmeow.n3";
+        const PREFIX_MEMBER: &str = "generated/profiles/full.ttl";
+        let doc = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix dcterms: <http://purl.org/dc/terms/> .\n\
+             <https://blackcatinformatics.ca/gmeow> a owl:Ontology ;\n\
+                 dcterms:title \"GMEOW\" ;\n\
+                 owl:versionInfo \"test\" .\n\
+             gmeow:pipeline-build gmeow:expectsGeneratedOutput \"{OPAQUE_MEMBER}\" , \"{PREFIX_MEMBER}\" .\n"
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).unwrap();
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(ds.as_ref()).expect("add_dataset");
+        let gts =
+            crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+                .expect("emit minimal expected-output bundle");
+
+        // The REAL production path: parse the bundle -> reconstruct -> completeness check.
+        let err = project_bundle(&gts)
+            .expect_err("project_bundle must HARD-fail: two declared outputs were never produced");
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+        let msg = err.to_string();
+        assert!(
+            msg.contains(OPAQUE_MEMBER),
+            "the HARD FAIL must name the never-produced opaque-family path, got: {msg}"
+        );
+        assert!(
+            msg.contains(PREFIX_MEMBER),
+            "the HARD FAIL must name the never-produced prefix-family path, got: {msg}"
+        );
+    }
+    #[test]
+    fn derivable_families_cross_check_catches_authored_derived_drift() {
+        // The two DERIVED families (profiles, edoal): authored must EXACTLY equal the set the
+        // carrier's reconstruction graphs yield. The real authored counts are pinned so a
+        // silent family-count change trips the count-consistency guard.
+        let expected = authored_expected();
+        let profiles: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/profiles/"))
+            .map(String::as_str)
+            .collect();
+        let edoal: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
+            .map(String::as_str)
+            .collect();
+        assert_eq!(profiles.len(), 8, "profiles family membership drifted");
+        assert_eq!(edoal.len(), 47, "edoal family membership drifted");
+
+        // Equal authored/derived over the derivable families passes.
+        let reconstructed: BTreeSet<String> = expected
+            .iter()
+            .filter(|p| {
+                p.starts_with("generated/profiles/")
+                    || (p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
+            })
+            .cloned()
+            .collect();
+        check_derivable_families(&expected, &reconstructed).expect("authored == derived");
+
+        // A source individual added without its expected path (derived ⊋ authored) HARD-fails.
+        let mut extra = reconstructed.clone();
+        extra.insert("generated/profiles/newprofile.ttl".to_string());
+        let err = check_derivable_families(&expected, &extra).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+
+        // A stale authored path (authored ⊋ derived) HARD-fails too.
+        let mut short = reconstructed.clone();
+        assert!(short.remove("generated/profiles/full.ttl"));
+        let err = check_derivable_families(&expected, &short).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+    }
+
+    #[test]
+    fn authored_only_families_hold_their_count_consistency() {
+        // The two prefix families whose producing individuals are NOT cleanly enumerable at
+        // the gate — research-objects (a single research object with a mixed RDF / JSON / XML /
+        // HTML sub-tree) and the heterogeneous lang projections (per-reading CoNLL-U, per-example
+        // GMN1, per-sentence NIF/TEI/SEMAF, EBNF grammars) — are AUTHORED-ONLY. They cannot be
+        // re-derived from reconstruction graphs (their non-RDF members ride opaque blobs), so a
+        // count-consistency guard stands in for a derivation cross-check: a silent add/drop trips
+        // the pinned membership. Both prefixes are also fully covered by the completeness ⊇ anchor.
+        let expected = authored_expected();
+        let research: Vec<&String> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/research-objects/"))
+            .collect();
+        let lang: Vec<&String> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/projections/lang/"))
+            .collect();
+        assert_eq!(
+            research.len(),
+            13,
+            "research-objects family membership drifted"
+        );
+        assert_eq!(lang.len(), 35, "lang-projections family membership drifted");
+        // These families are genuinely mixed (not all RDF), the reason they are authored-only.
+        assert!(
+            research.iter().any(|p| p.ends_with(".json"))
+                && research.iter().any(|p| p.ends_with(".ttl")),
+            "research-objects should carry both RDF and non-RDF members"
+        );
+        assert!(
+            lang.iter().any(|p| p.ends_with(".conllu")) && lang.iter().any(|p| p.ends_with(".ttl")),
+            "lang projections should carry both RDF and non-RDF members"
+        );
+    }
+
+    /// Recursively collect the committed `generated/<file>` paths that shipped code names via
+    /// the repo-root read idiom `root.join("generated/…")` under one directory, skipping
+    /// integration-test trees (`…/tests/…`).
+    fn collect_root_join_generated(dir: &Path, out: &mut BTreeSet<String>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().is_some_and(|n| n == "tests") {
+                    continue;
+                }
+                collect_root_join_generated(&path, out);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                let text = std::fs::read_to_string(&path).unwrap();
+                let needle = "root.join(\"generated/";
+                let mut rest = text.as_str();
+                while let Some(i) = rest.find(needle) {
+                    let after = &rest[i + "root.join(\"".len()..];
+                    if let Some(end) = after.find('"') {
+                        let p = &after[..end];
+                        // Only file references (a dotted final segment), never bare dirs.
+                        if p.rsplit('/').next().is_some_and(|seg| seg.contains('.')) {
+                            out.insert(p.to_string());
+                        }
+                        rest = &after[end..];
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn every_runtime_generated_read_is_in_the_authored_inventory() {
+        // Downstream-read guarantee: every committed generated/ file shipped code reads at
+        // runtime (via root.join) must be in the authored inventory, so a clean clone cannot
+        // silently lose a consumed output. The terminal bundle is legitimately excluded.
+        let inventory = authored_expected();
+        let mut refs = BTreeSet::new();
+        collect_root_join_generated(&repo_root().join("crates"), &mut refs);
+        // Sanity: the flagged docs consumer read is actually discovered by the scan.
+        assert!(
+            refs.contains("generated/catalog/constraint-catalog.nq"),
+            "scan failed to discover the crates/docs/src/model.rs catalog read"
+        );
+        for path in &refs {
+            if EXCLUDED.contains(&path.as_str()) {
+                continue;
+            }
+            assert!(
+                inventory.contains(path),
+                "runtime read {path} is absent from the authored expected-output inventory — a \
+                 clean clone would silently lose a consumed file"
+            );
+        }
     }
 }

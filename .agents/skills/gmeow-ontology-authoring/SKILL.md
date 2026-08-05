@@ -31,9 +31,9 @@ resources in the current slices-first, Rust-native repository.
      `ontology-docs/`, `dist/`, or generated mapping/projection/query outputs.
      Regenerate them from canonical sources.
 3. **No-Drift Gate (Principle 7)**:
-   - Run `make regenerate` after canonical source changes that affect generated
-     artifacts.
-   - Run `make check-generated` to verify generated output is synchronized.
+   - Run `make check` after canonical source changes that affect generated
+     artifacts: it materializes them through the single producer and then gates
+     the result, so it is the whole no-drift proof in one pass.
    - Run `make check` before proposing, committing, or submitting changes unless
      the user explicitly narrows validation.
 4. **Logic projection doctrine (Principle 17)**:
@@ -53,8 +53,10 @@ resources in the current slices-first, Rust-native repository.
      Migrate under equivalence-before-deletion: never delete a shape whose check
      is not yet reproduced by the projected union.
    - Cross-ontology linkage and projection should be represented as
-     correspondence work: use the current slice-local `gmeow:TermEquivalence`
-     and `gmeow:ProjectionMapping` frontend honestly so it can lower to
+     correspondence work: use the current slice-local native alignment cell
+     (a reified `skos:*Match` statement carrying
+     `gmeow:sssomFile`/`gmeow:justification`/`gmeow:confidence`) and
+     `gmeow:ProjectionMapping` frontend honestly so it can lower to
      `logic:Correspondence` with the right relation, direction, loss, law, and
      preservation claims.
 5. **Reasoner-driven flagship counter-examples (Principle 17/18)**:
@@ -95,9 +97,32 @@ resources in the current slices-first, Rust-native repository.
   make validate
   ```
 
+- **Edit translations and the per-slice glossary**:
+  A term's annotation coat and its fr/zh translations are **one term-batch** and land
+  together — never add a coat and defer its translations. A new coat grows the
+  localizable-literal denominator, so an unpaired coat dilutes measured translation
+  coverage and reds `make slice-quality-gate` against the slice's raise-only
+  `axisTranslationCoverage` floor; ratchet that floor to the freshly measured value on
+  each landing. Translations live in `slices/<group>/<name>/i18n/{fr,zh}.po`; they are
+  the only home for non-English ontology prose.
+
+  The per-slice terminology **glossary** is a *derived* object — the pipeline folds
+  every reviewed `.po` pair into a `gmeow:Glossary` in `graph/lang-glossary-corpus`,
+  resident in `gmeow.gts` (never a hand-authored sidecar). `make i18n-lint`
+  hard-rejects cross-batch terminology drift — one term translated two different ways
+  across batches (`lang:GlossaryTermInconsistency`) — unless the source is an explicit
+  `lang:DeclaredTerminologyHomograph`. That cross-node consistency check is authored as
+  a `logic:Constraint` + `logic:Formula` in `module.ttl` (the functional-dependency
+  dual of the GMN alias-injectivity bijection) and enforced by the Rust detector; never
+  hand-author a `sh:NodeShape` for it.
+
+  ```bash
+  make i18n-lint
+  ```
+
 - **Edit cross-ontology linkage and projections**:
   1. Put pure identity or match linkage in the slice that owns the
-     `gmeow:alignSubject`, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
+     match subject, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
   2. Put lossy projection legs, profile bindings, guards, transforms, and loss
      notes in the owning slice's `mappings/projections-<profile>.ttl`; use
      `dsl/mappings/projections/*.ttl` only for shared cross-slice enrichment.
@@ -120,8 +145,7 @@ resources in the current slices-first, Rust-native repository.
   Open and edit files in `dsl/statements/`, then regenerate and check drift:
 
   ```bash
-  make regenerate
-  make check-generated
+  make check
   ```
 
 - **Assess slice quality**:

@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: versions, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "versionMember is functional"
+msgstr "versionMember est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:versionMember is functional: each gmeow:VersionMembership is about exactly one concrete version artifact — a different version of the same lineage is its own membership relator, not a second member."
+msgstr "Affirme sur le porteur canonique que gmeow:versionMember est fonctionnelle : chaque gmeow:VersionMembership porte sur exactement un artefact de version concret — une version différente de la même lignée constitue son propre relateur d'appartenance, et non un second membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "versionSet is functional"
+msgstr "versionSet est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:versionSet est fonctionnelle : chaque gmeow:VersionMembership place son membre dans exactement une lignée, de sorte qu'une appartenance relève d'un unique gmeow:VersionSet. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:versionMember names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:versionMember nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:versionMember, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:versionMember, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:versionMemberFunctionality logic:characterizes gmeow:versionMember ."
+msgstr "gmeow:versionMemberFunctionality logic:characterizes gmeow:versionMember ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:versionSet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:versionSet nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:versionSet, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:versionSet, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:versionSetFunctionality logic:characterizes gmeow:versionSet ."
+msgstr "gmeow:versionSetFunctionality logic:characterizes gmeow:versionSet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:versionMember and nothing else. It is not a definition of gmeow:versionMember (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:versionMember, et rien d'autre. Ce n'est pas une définition de gmeow:versionMember (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:versionSet and nothing else. It is not a definition of gmeow:versionSet (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:versionSet, et rien d'autre. Ce n'est pas une définition de gmeow:versionSet (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an entity's version designation as it is actually written."
+msgstr "À utiliser pour consigner la désignation de version d'une entité telle qu'elle est réellement écrite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing it into components or ordering by it — it is a label, not a comparable version structure."
+msgstr "Évitez de l'analyser en composants ou de trier dessus — c'est une étiquette, non une structure de version comparable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "A plain literal on any gmeow:Entity: a release, a book edition, a dataset, a language variant."
+msgstr "Un littéral simple sur toute gmeow:Entity : une version logicielle, une édition de livre, un jeu de données, une variante linguistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
+msgstr "Exemple : gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."

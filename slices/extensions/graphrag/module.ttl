@@ -38,39 +38,6 @@ gmeow:Corpus
     skos:definition "An indexed collection of source information objects over which retrieval operates — the working document set behind a pipeline, distinct from the documents slice's bibliographic gmeow:Collection (a Work). Members via gmeow:corpusMember; content-addressable via the EXISTING gmeow:contentDigest, so an index can prove WHAT it indexed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:DistanceMetric
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "Distance Metric"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "An open value vocabulary of vector similarity/distance functions."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:Embedding
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "Embedding"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:embeddingOf ;
-            owl:someValuesFrom gmeow:InformationObject ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:embeddingModel ;
-            owl:someValuesFrom gmeow:SoftwareAgent ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:distanceMetric ;
-            owl:someValuesFrom gmeow:DistanceMetric ;
-        ] ;
-    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (GraphRAG provenance design): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 gmeow:ExtractedEntity
     a logic:Kind ,
         owl:Class ;
@@ -108,39 +75,6 @@ gmeow:IndexAlgorithm
     skos:definition "An open value vocabulary of vector-index structures."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:RetrievalEvent
-    a logic:Event ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "Retrieval Event"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:againstIndex ;
-            owl:someValuesFrom gmeow:VectorIndex ;
-        ] ;
-    skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned — the answer to 'why did the model see this passage?'. An agent-memory recall is a RetrievalEvent too (the core MemoryItem doctrine's read operation). Per-chunk relevance rides gmeow:retrievalScore statement annotations on each gmeow:retrievedChunk triple."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:VectorIndex
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "Vector Index"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its algorithm (gmeow:indexAlgorithm), parameters (verbatim, for reproducibility), and metric; its build provenance rides the EXISTING gmeow:wasGeneratedBy, tying index contents to the corpus state (contentDigest) at build time."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:againstIndex
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:RetrievalEvent ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "against index"@x-gmeow-english ;
-    rdfs:range gmeow:VectorIndex ;
-    skos:definition "The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:communityLevel
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Community ;
@@ -170,65 +104,6 @@ gmeow:corpusMember
     skos:definition "Relates a corpus to a source information object it collects. Non-functional: a source may belong to many corpora."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:distanceMetric
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "distance metric"@x-gmeow-english ;
-    rdfs:range gmeow:DistanceMetric ;
-    skos:definition "The similarity/distance function under which an embedding or index is meaningful — cosine and euclidean disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:distanceMetricCosine
-    a gmeow:DistanceMetric ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "cosine"@x-gmeow-english ;
-    skos:definition "Cosine similarity — angle between vectors, magnitude-invariant."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:distanceMetricDotProduct
-    a gmeow:DistanceMetric ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "dot product"@x-gmeow-english ;
-    skos:definition "Inner-product similarity — magnitude-sensitive; common for normalized embeddings."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:distanceMetricEuclidean
-    a gmeow:DistanceMetric ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "euclidean"@x-gmeow-english ;
-    skos:definition "Euclidean (L2) distance between vectors."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:embeddingDimensions
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Embedding ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "embedding dimensions"@x-gmeow-english ;
-    rdfs:range xsd:positiveInteger ;
-    skos:definition "The dimensionality of the embedding vector."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:embeddingModel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:Embedding ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "embedding model"@x-gmeow-english ;
-    rdfs:range gmeow:SoftwareAgent ;
-    skos:definition "The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:embeddingOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:Embedding ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
-    rdfs:label "embedding of"@x-gmeow-english ;
-    rdfs:range gmeow:InformationObject ;
-    skos:definition "The information object this embedding represents. Functional: one embedding represents exactly one object under one model."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:forQuery
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:RetrievalEvent ;
@@ -239,13 +114,16 @@ gmeow:forQuery
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexAlgorithm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "index algorithm"@x-gmeow-english ;
     rdfs:range gmeow:IndexAlgorithm ;
-    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary)."@x-gmeow-english ;
+    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary). It is not the index itself and never its parameters — those are gmeow:indexParameters."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which algorithm built a vector index."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from the parameters or omitting it on a rebuilt index."@x-gmeow-english ;
+    gmeow:howToUse "Attach one gmeow:IndexAlgorithm value to the index; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexAlgorithmFlat
@@ -288,24 +166,30 @@ gmeow:indexesCorpus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship source"@x-gmeow-english ;
     rdfs:range gmeow:ExtractedEntity ;
-    skos:definition "The extracted-entity description at the tail of this extracted relationship."@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the tail of this extracted relationship. It is not the target, and never the relationship record itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the entity an extracted relationship points FROM."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping it with gmeow:relationshipTarget on a symmetric-looking relation — direction is asserted, not inferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:ExtractedEntity as the tail of the relationship; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
 gmeow:relationshipTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship target"@x-gmeow-english ;
     rdfs:range gmeow:ExtractedEntity ;
-    skos:definition "The extracted-entity description at the head of this extracted relationship."@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the head of this extracted relationship. It is not the source, and never the relationship record itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the entity an extracted relationship points TO."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping it with gmeow:relationshipSource — direction is asserted, not inferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:ExtractedEntity as the head of the relationship; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:retrievalScore
@@ -325,13 +209,16 @@ gmeow:retrievedChunk
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:summarizesCommunity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CommunitySummary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizes community"@x-gmeow-english ;
     rdfs:range gmeow:Community ;
-    skos:definition "The community this summary condenses."@x-gmeow-english ;
+    skos:definition "The community this summary condenses. It is not the summary text and never a second community for one summary."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which community a summary condenses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing one summary at several communities — that is several summaries."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:Community; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:vectorRef
@@ -348,30 +235,20 @@ gmeow:vectorRef
     rdfs:comment "Per-result epistemics (a retrieval's score for ONE chunk) ride RDF 1.2 statement annotations on the gmeow:retrievedChunk triple (gmeow:retrievalScore) — competing re-ranker scores coexist attributed, never overwritten (P9, P3)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "GMEOW GraphRAG Module"@x-gmeow-english ;
-    skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (GraphRAG provenance design facets A/B/F): the corpus, embedding, index, and retrieval substrate, and the derived entity-graph artifacts (extracted entities/relationships, communities, community summaries) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
+    skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (GraphRAG provenance design facets A/B/F): the corpus and derived entity-graph artifacts (extracted entities/relationships, communities, community summaries), plus the graphrag-specific corpus/index/retrieval wiring (gmeow:Corpus, gmeow:indexAlgorithm/gmeow:indexParameters/gmeow:indexesCorpus, gmeow:retrievedChunk/gmeow:retrievalScore/gmeow:forQuery) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). The generic vector/embedding primitives (gmeow:Embedding, gmeow:VectorIndex, gmeow:DistanceMetric, gmeow:RetrievalEvent, and their properties) are CORE-tier infrastructure owned by the ai slice (any embedding consumer needs them, not only GraphRAG) and reused here via the EXISTING gmeow:sliceDependsOn ai edge. Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the graphrag-specific machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 # =========================================================================== #
 # Declarative constraint axioms (extension slices) — the closed-
 # world cardinality obligations the hand-authored shapes.ttl NodeShapes state
-# (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape,
-# gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
+# (gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
 # axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
 # derive_validation_shapes (Principle 17). exact-one -> owl:maxQualifiedCardinality 1
-# (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1. The gmeow:distanceMetric `sh:nodeKind sh:IRI`
-# facet has no ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI,
-# not sh:IRI); it is a value-node-kind facet carried on the procedural residue
-# in the procedural constraint fragment, so only its cardinality migrates here.
+# (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1. The Embedding/RetrievalEvent
+# cardinality axioms (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape)
+# migrated to the ai slice's module.ttl alongside the classes they constrain.
 # =========================================================================== #
-
-gmeow:Embedding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-
-gmeow:RetrievalEvent rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:ExtractedRelationship rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -379,9 +256,77 @@ gmeow:ExtractedRelationship rdfs:subClassOf
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/distanceMetric> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/RetrievalEvent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/againstIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipSource> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingModel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:indexAlgorithmFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    rdfs:label "indexAlgorithm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:indexAlgorithm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:indexAlgorithm ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:indexAlgorithm names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexAlgorithm, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:indexAlgorithm and nothing else. It is not a definition of gmeow:indexAlgorithm (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationshipSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    rdfs:label "relationshipSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relationshipSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relationshipSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relationshipSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relationshipSource and nothing else. It is not a definition of gmeow:relationshipSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationshipTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    rdfs:label "relationshipTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relationshipTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relationshipTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relationshipTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relationshipTarget and nothing else. It is not a definition of gmeow:relationshipTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:summarizesCommunityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    rdfs:label "summarizesCommunity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:summarizesCommunity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:summarizesCommunity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:summarizesCommunity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:summarizesCommunity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

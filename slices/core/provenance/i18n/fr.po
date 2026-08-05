@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: provenance, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ingestedAt is functional"
+msgstr "ingestedAt est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ingestedAt is functional: a gmeow:ImportActivity has a single transaction time — the one instant it recorded its claims into the system — so exactly one xsd:dateTime stamps the activity, keeping the ingest axis distinct from assertion and validity."
+msgstr "Affirme sur le porteur canonique que gmeow:ingestedAt est fonctionnelle : une gmeow:ImportActivity possède un unique temps de transaction — l'instant unique où elle a enregistré ses affirmations dans le système — de sorte qu'un unique xsd:dateTime horodate l'activité, maintenant l'axe d'ingestion distinct de ceux d'affirmation et de validité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ingestedAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:ingestedAt nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ingestedAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:ingestedAt, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ingestedAtFunctionality logic:characterizes gmeow:ingestedAt ."
+msgstr "gmeow:ingestedAtFunctionality logic:characterizes gmeow:ingestedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ingestedAt and nothing else. It is not a definition of gmeow:ingestedAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:ingestedAt, et rien d'autre. Ce n'est pas une définition de gmeow:ingestedAt (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

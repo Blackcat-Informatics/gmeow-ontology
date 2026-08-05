@@ -24,26 +24,27 @@ use std::sync::{Arc, Mutex, OnceLock};
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+use gmeow_lang_bridge::{
+    Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, resolve_operator_forms,
+};
 use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
-use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
+use gmeow_logic::conjecture::ConjectureLifecycleState;
 use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
 use gmeow_logic::provenance::{reifier_from_strings, term_display};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic::reason::reason_all_budgeted;
 use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
-use gmeow_logic::result_rdf::{
-    ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
-    project_conjecture_withdrawal, project_reasoning_result,
-};
+use gmeow_logic::result_rdf::{project_conjecture_withdrawal, project_reasoning_result};
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
-use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
+use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+use purrdf::gts::reader::read_file_segments;
 use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
@@ -60,7 +61,7 @@ const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The `gmeow:` vocabulary namespace — the base of the documentation-graph
 /// predicate and enumeration IRIs (`gmeow:docFixtureKind…`, etc.).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// The distinct external-provenance named graph the read-only local overlay is
 /// re-homed into (the origin marker). Overlay triples are visible to reads
@@ -78,10 +79,39 @@ const MCP_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 /// the tool that produced the finding.
 const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
 
+/// The origin marker stamped on every `advise` finding's primary location — the
+/// `advise`-tool twin of [`VALIDATE_LOCAL_ORIGIN`].
+const ADVISE_ORIGIN: &str = "mcp:advise";
+
 /// A generous ceiling on the inline `data` payload `validate_local` accepts (8 MiB).
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
 const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// `rdfs:label` — the controlled-NL nucleus the GMN verbalizer joins each operator
+/// form to; harvested from the bundle dataset for `gmn_explain`'s gloss.
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+/// `x-gmeow-english` — the preferred label language tag (mirrors the pipeline's
+/// verbalizer label harvest: a GMEOW-English label wins, ties break to the smallest
+/// lexical form), so the gloss the tool serves is byte-identical to Task 8's.
+const GMEOW_ENGLISH: &str = "x-gmeow-english";
+/// `lang:Denotation` — the typed meaning-assignment node `gmn_explain` resolves a
+/// glyph back to (its denoted form supplies fixity/precedence/arity).
+const LANG_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
+/// `lang:denotedForm` — the Denotation → Form edge carrying the operator signature.
+const LANG_DENOTED_FORM: &str = "https://blackcatinformatics.ca/lang/denotedForm";
+/// `lang:denotationTarget` — the Denotation → denoted term (the operator's meaning).
+const LANG_DENOTATION_TARGET: &str = "https://blackcatinformatics.ca/lang/denotationTarget";
+/// `gmeow:gmnFixity` — the operator Form's fixity individual IRI.
+const GMN_FIXITY: &str = "https://blackcatinformatics.ca/gmeow/gmnFixity";
+/// `gmeow:gmnPrecedence` — the operator Form's binding-strength integer.
+const GMN_PRECEDENCE: &str = "https://blackcatinformatics.ca/gmeow/gmnPrecedence";
+/// `gmeow:gmnArity` — the operator Form's operand count.
+const GMN_ARITY: &str = "https://blackcatinformatics.ca/gmeow/gmnArity";
+/// The honest typed miss `gmn_explain` returns for an input that is not a covered GMN
+/// operator glyph — the SAME `lang:` uncovered-term class the codec raises for a term
+/// the dictionary does not mint, never a fabricated answer.
+const LANG_GMN_UNCOVERED_TERM: &str = "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
 
 /// The pre-reasoning hard ceiling on the `verify_graph` overlay size (quad count).
 /// An overlay larger than this is REFUSED before any reasoning runs, so an
@@ -908,13 +938,26 @@ impl McpView {
         })
     }
 
-    /// The complete inlined index (`llms-full.txt`) for `requested`.
-    fn llms_full_text(&self, requested: Vec<String>) -> String {
+    /// The complete inlined index (`llms-full.txt`) for `requested`, carrying the graph-derived
+    /// GMN-1 teachability primer. A carrier that fails to yield the primer's GMN-1 codebook is a
+    /// HARD FAIL (no-optionality), never a silently primer-less complete form.
+    fn llms_full_text(&self, requested: Vec<String>) -> gmeow_errors::Result<String> {
         let title = self.title.clone();
         let version = self.version.clone();
         let modeled_defs = self.modeled_defs();
-        self.with_terms(requested, |terms| {
-            export::consumer_llms_full(terms, &title, &version, &modeled_defs)
+        let primer = self.gmn1_primer()?;
+        Ok(self.with_terms(requested, |terms| {
+            export::consumer_llms_full(terms, &title, &version, &modeled_defs, &primer)
+        }))
+    }
+
+    /// The graph-derived GMN-1 teachability primer over THIS view's carrier dataset — shared by
+    /// the `llms_full` surface and the `gmeow://ontology/gmn1-primer` resource.
+    fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs::gmn1_primer::Gmn1Primer> {
+        gmeow_docs::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("build GMN-1 teachability primer: {e}"),
+            })
         })
     }
 
@@ -2122,6 +2165,57 @@ impl McpServer {
                 ],
             ),
             tool(
+                "gmn_validate",
+                "Validate a GMN-1 document (the token-compact GMEOW Model Notation surface) \
+                 against the shipped codebook dictionary + validator tier, checkout-free off the \
+                 bundle. This is an external LLM's entry to the GMN `@err` repair loop: `gmn` is \
+                 the GMN-1 document text. Returns {ok, conformant} — conformant:true for a \
+                 well-formed document, or conformant:false with the TYPED lang:Gmn*Failure class \
+                 (failure_class / failure_local_name) and message of the first defect, so the \
+                 caller repairs against the named class. A defect is a valid result, never a tool \
+                 error; an oversized payload is a hard error.",
+                &[("gmn", "string")],
+            ),
+            tool(
+                "gmn_expand",
+                "Expand a GMN-1 document to its GMN-0 normal form (the alias/glyph → full-IRI \
+                 direction) and return the canonical N-Quads, checkout-free off the bundle. `gmn` \
+                 is the GMN-1 document text. The expansion carries an internal round-trip witness \
+                 (the decoded model is re-encoded and re-read, and canonical equality asserted), \
+                 so it never returns a lossy expansion. Returns {ok, expanded_nquads, \
+                 reencoded_gmn, round_trip}. A non-conformant input, or a round-trip that does not \
+                 hold, is a hard error.",
+                &[("gmn", "string")],
+            ),
+            tool(
+                "gmn_explain",
+                "Explain a GMN operator glyph: resolve `glyph` to its lang:Denotation and its \
+                 graph-authored gmeow:gmnFixity / gmeow:gmnPrecedence / gmeow:gmnArity signature, \
+                 plus its controlled-NL gloss (the deterministic GMN⇄NL verbalizer rendering), \
+                 checkout-free off the bundle. Returns {ok, found, glyph, denotation, \
+                 denotation_target, label, fixity, fixity_local_name, precedence, arity, \
+                 gmn_surface, gloss}. An input that is not a covered operator glyph returns an \
+                 honest typed miss (found:false + lang:GmnUncoveredTerm), never a fabricated \
+                 answer.",
+                &[("glyph", "string")],
+            ),
+            tool(
+                "advise",
+                "Advise on an inline agent-authored RDF claim: return the non-gating \
+                 RECOMMENDATIONS (never rejections) GMEOW harvests for it — the avoid-when \
+                 prohibition, the how-to-use corrective directive, and the use-when permission \
+                 prose of every advisory `advice.*` finding the claim trips. The companion of \
+                 `validate_local`: where validate reports OBLIGATIONS (a claim can fail), advise \
+                 reports RECOMMENDATIONS and ALWAYS returns `ok:true` — a clean claim returns an \
+                 empty list. Routes through the SAME shipped validator core as `validate_local` \
+                 (shallow Tier-1 pass only; advice is a fast structural concept), so it never \
+                 diverges. `data` is the RDF text; `format` is one of turtle|ttl|text/turtle, \
+                 ntriples|nt|n-triples, nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml, \
+                 jsonld|json-ld. Nothing is written; an unknown format or an oversized payload \
+                 is a hard error.",
+                &[("data", "string"), ("format", "string")],
+            ),
+            tool(
                 "explain_finding",
                 "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
                  addressed by its fingerprint IRI (a finding) or its anchor IRI (a cluster): \
@@ -2353,6 +2447,13 @@ impl McpServer {
                 "text/plain",
             ),
             resource(
+                "gmeow://ontology/gmn1-primer",
+                "gmn1-primer",
+                "The ~500-token graph-derived GMN-1 teachability primer (record sigils, \
+                 operator glyph table, repair loop).",
+                "text/plain",
+            ),
+            resource(
                 "gmeow://ontology/okf-index",
                 "okf-index",
                 "OKF manifest JSON envelope.",
@@ -2387,6 +2488,10 @@ impl McpServer {
             "explain_quad" => self.tool_explain_quad(args),
             "coherence_certificate" => self.tool_coherence_certificate(args),
             "validate_local" => self.tool_validate_local(args),
+            "gmn_validate" => self.tool_gmn_validate(args),
+            "gmn_expand" => self.tool_gmn_expand(args),
+            "gmn_explain" => self.tool_gmn_explain(args),
+            "advise" => self.tool_advise(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
@@ -2512,7 +2617,7 @@ impl McpServer {
 
     fn tool_llms_full(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
-        Ok(self.view.llms_full_text(requested))
+        self.view.llms_full_text(requested)
     }
 
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -2740,6 +2845,250 @@ impl McpServer {
         serde_json::to_string(&enriched).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("validate_local: serialize enriched report: {e}"),
+            })
+        })
+    }
+
+    /// Resolve the shipped GMN-1 dictionary (`gmeow:gmnDictV3` + its current codebook)
+    /// straight off the bundled snapshot dataset — the SAME checkout-free source the
+    /// `gmeow gmn` CLI folds from `BUNDLE_GTS`, so the MCP verifier tools an external LLM
+    /// calls share ONE dictionary with the shipped CLI and gates. A load failure is a HARD
+    /// FAIL, never a degraded default.
+    fn gmn_dictionary(&self) -> gmeow_errors::Result<GmnDictionary> {
+        GmnDictionary::from_dataset(self.view.dataset.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn: cannot resolve gmeow:gmnDictV3 from the bundled snapshot: {}",
+                    e.0
+                ),
+            })
+        })
+    }
+
+    /// `gmn_validate` — the external LLM's entry to the GMN `@err` repair loop: read a
+    /// GMN-1 document against the shipped dictionary + validator tier and report either
+    /// conformance or the TYPED `lang:Gmn*Failure` class (+ message) of the first defect.
+    /// A defect is a VALID result (`ok:true, conformant:false`), never a tool error — the
+    /// caller repairs against the named class.
+    fn tool_gmn_validate(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let gmn = required_str(args, "gmn")?;
+        guard_gmn_size(gmn, "gmn_validate")?;
+        let dict = self.gmn_dictionary()?;
+        let doc = Gmn1Document::from_text(gmn.to_owned());
+        match gmn1_read(&doc, &dict) {
+            Ok(_model) => Ok(json!({ "ok": true, "conformant": true }).to_string()),
+            Err(error) => {
+                let class = error.failure_class();
+                Ok(json!({
+                    "ok": true,
+                    "conformant": false,
+                    "failure_class": class,
+                    "failure_local_name": iri_local_name(class),
+                    "message": error.to_string(),
+                })
+                .to_string())
+            }
+        }
+    }
+
+    /// `gmn_expand` — decode a GMN-1 document to its GMN-0 normal form (the "expand
+    /// alias/glyph → full IRI" direction) and return the canonical N-Quads. The expansion
+    /// carries an internal round-trip WITNESS: the decoded model is re-encoded and re-read,
+    /// and canonical equality is asserted, so the tool never returns an unstable expansion.
+    /// A non-conformant input, or a round-trip that does not hold, is a HARD FAIL.
+    fn tool_gmn_expand(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let gmn = required_str(args, "gmn")?;
+        guard_gmn_size(gmn, "gmn_expand")?;
+        let dict = self.gmn_dictionary()?;
+        let doc = Gmn1Document::from_text(gmn.to_owned());
+        let model = gmn1_read(&doc, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn_expand: input is not a conformant GMN-1 document (lang:{}): {error}",
+                    iri_local_name(error.failure_class())
+                ),
+            })
+        })?;
+        // Round-trip witness: re-encode the expanded model and read it back; the expansion
+        // is only sound if the reconstruction is canonically equal (no lossy expansion).
+        let reencoded = gmn1_write(&model, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_expand: re-encoding the expanded model failed: {error}"),
+            })
+        })?;
+        let back = gmn1_read(&reencoded, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_expand: re-reading the re-encoded model failed: {error}"),
+            })
+        })?;
+        if !gmn0_canonically_equal(&model, &back) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "gmn_expand: round-trip witness failed — the expanded GMN-0 normal form \
+                          is not canonically stable under re-encode/re-read (refusing a lossy \
+                          expansion)"
+                    .to_owned(),
+            }));
+        }
+        Ok(json!({
+            "ok": true,
+            "expanded_nquads": model.canonical_nquads(),
+            "reencoded_gmn": reencoded.text,
+            "round_trip": true,
+        })
+        .to_string())
+    }
+
+    /// `gmn_explain` — resolve a GMN operator glyph to its `lang:Denotation` and its
+    /// graph-authored `gmeow:gmnFixity` / `gmeow:gmnPrecedence` / `gmeow:gmnArity`
+    /// signature, plus its controlled-NL gloss (the SAME Task 8 verbalizer rendering).
+    /// An input that is not a covered operator glyph returns an HONEST typed miss
+    /// (`found:false` + `lang:GmnUncoveredTerm`), never a fabricated answer.
+    fn tool_gmn_explain(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let glyph = required_str(args, "glyph")?;
+        let dataset = self.view.dataset.as_ref();
+        let dict = self.gmn_dictionary()?;
+        let labels = harvest_dataset_labels(dataset);
+        let forms = resolve_operator_forms(dict.glyph_registry(), &labels).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn_explain: resolve GMN operator forms from the codebook: {error}"
+                ),
+            })
+        })?;
+        let Some(form) = forms.iter().find(|f| f.gmn_glyph == glyph) else {
+            return Ok(json!({
+                "ok": true,
+                "found": false,
+                "glyph": glyph,
+                "failure_class": LANG_GMN_UNCOVERED_TERM,
+                "failure_local_name": iri_local_name(LANG_GMN_UNCOVERED_TERM),
+                "message": format!(
+                    "glyph {glyph:?} is not a covered GMN operator in the current codebook"
+                ),
+            })
+            .to_string());
+        };
+        // The controlled-NL gloss is Task 8's verbalizer rendering VERBATIM: build the whole
+        // (injective, disambiguated) corpus and read off this form's rendered pair, so the
+        // gloss the LLM sees is the exact GMN⇄NL training-pair surface, not a re-derivation.
+        let pairs = build_verbalization_pairs(&forms).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_explain: render the verbalizer gloss corpus: {error}"),
+            })
+        })?;
+        let rendered = pairs.iter().find(|p| &p.form == form).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_explain: no verbalizer pair for glyph {glyph:?}"),
+            })
+        })?;
+        // Precedence + the lang:Denotation IRI are NOT carried by the glyph registry (it keys
+        // on fixity/arity only), so join them from the dataset by the (target, fixity, arity)
+        // signature the operator's denoted Form authors.
+        let (precedence, denotation) =
+            gmn_signature_join(dataset, &form.term_iri, &form.fixity, form.arity);
+        Ok(json!({
+            "ok": true,
+            "found": true,
+            "glyph": form.gmn_glyph,
+            "denotation": denotation,
+            "denotation_target": form.term_iri,
+            "label": form.term_label,
+            "fixity": form.fixity,
+            "fixity_local_name": iri_local_name(&form.fixity),
+            "precedence": precedence,
+            "arity": form.arity,
+            "gmn_surface": rendered.gmn_surface,
+            "gloss": rendered.nl,
+        })
+        .to_string())
+    }
+
+    /// The `advise` tool: return the non-gating RECOMMENDATIONS (never rejections) a
+    /// submitted claim trips — the companion of `validate_local`. It runs the SAME
+    /// shipped validator core (shallow Tier-1 only — the advisory `advice.*` Note tier
+    /// is a fast structural pass; deep reasoning buys no advisory yield for its
+    /// multi-minute cost), keeps only the advisory tier, and serializes each as a
+    /// contrary-to-duty-shaped recommendation. ALWAYS `ok:true`: advice is a
+    /// recommendation, so a clean claim returns an empty list, never a failure.
+    fn tool_advise(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let canonical = canonical_rdf_format(format)?;
+
+        if data.len() > MAX_VALIDATE_DATA_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "advise: data payload is {} bytes, exceeding the {} byte ceiling; \
+                     split the graph and advise on the parts (no silent truncation)",
+                    data.len(),
+                    MAX_VALIDATE_DATA_BYTES
+                ),
+            }));
+        }
+
+        // Shallow Tier-1 only (deep = false): advisory Notes come from the fast SHACL
+        // pass. Same bundle parts and core as validate_local, so advice never diverges
+        // from the shipped validator.
+        let report = gmeow_validate::data_validate::run_with(
+            gmeow_validate::data_validate::BundleParts {
+                gts_bytes: self.view.gts_bytes(),
+                shapes: self.view.tier1_shapes()?,
+                dataset: self.view.dataset.as_ref(),
+            },
+            data.as_bytes(),
+            canonical,
+            MCP_NAMESPACE,
+            ADVISE_ORIGIN,
+            false,
+        )?;
+
+        // Keep only the advisory tier (the advice.* Note family) and shape each as a
+        // contrary-to-duty recommendation: the violated prohibition (avoid_when = the
+        // finding message), the sub-ideal repair (how_to_use), and the permission gate
+        // (use_when). The bridge builds `suggestions` as [howToUse, "Use when: <prose>"],
+        // so the shared `gmeow_validate::advisory::ADVICE_USE_WHEN_PREFIX` marker cleanly
+        // separates the permission leg.
+        let recommendations: Vec<Value> = report
+            .findings
+            .iter()
+            .filter(|f| f.code.starts_with(gmeow_validate::codes::ADVICE_FAMILY))
+            .map(|f| {
+                let mut use_when: Vec<String> = Vec::new();
+                let mut how_to_use: Vec<String> = Vec::new();
+                for suggestion in &f.suggestions {
+                    match suggestion.strip_prefix(gmeow_validate::advisory::ADVICE_USE_WHEN_PREFIX)
+                    {
+                        Some(rest) => use_when.push(rest.to_string()),
+                        None => how_to_use.push(suggestion.clone()),
+                    }
+                }
+                // The governed term the advice formalizes rides as a `formalizes:<term>`
+                // tag; the tripped subject is the first location's logical IRI.
+                let formalizes = f
+                    .tags
+                    .iter()
+                    .find_map(|t| t.strip_prefix("formalizes:").map(str::to_string));
+                let subject = f.locations.iter().find_map(|l| l.logical.clone());
+                json!({
+                    "code": f.code,
+                    "subject": subject,
+                    "formalizes": formalizes,
+                    "avoid_when": f.message,
+                    "how_to_use": how_to_use,
+                    "use_when": use_when,
+                    "help_uri": gmeow_validate::rule_catalog::catalog_anchor_uri(&f.code),
+                })
+            })
+            .collect();
+
+        let response = json!({
+            "ok": true,
+            "tool": "advise",
+            "recommendations": recommendations,
+        });
+        serde_json::to_string(&response).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("advise: serialize recommendations: {e}"),
             })
         })
     }
@@ -3432,9 +3781,14 @@ impl McpServer {
             .unwrap_or_else(|| self.startup_requested.clone());
         match base {
             "gmeow://ontology/llms.txt" => Ok(("text/plain", self.view.llms_txt_text(requested))),
-            "gmeow://ontology/llms-full.txt" => {
-                Ok(("text/plain", self.view.llms_full_text(requested)))
-            }
+            "gmeow://ontology/llms-full.txt" => self
+                .view
+                .llms_full_text(requested)
+                .map(|t| ("text/plain", t)),
+            "gmeow://ontology/gmn1-primer" => self
+                .view
+                .gmn1_primer()
+                .map(|p| ("text/plain", p.resource_text())),
             "gmeow://ontology/okf-index" => {
                 Ok(("application/json", self.view.okf_index_json(requested)))
             }
@@ -3564,7 +3918,7 @@ pub struct ConjecturePureOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
 }
 
@@ -3594,7 +3948,7 @@ pub struct ConjectureRunOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body [`gmeow_logic::result_rdf::project_conjecture_verdict`] emitted.
     pub verdict_nt: String,
     /// The TR receipt gating the persist (rendered as the transaction summary by callers).
     pub receipt: TxReceipt,
@@ -3633,98 +3987,42 @@ fn evaluate_conjecture(
     max_steps: Option<u64>,
     max_answers: Option<usize>,
 ) -> gmeow_errors::Result<ConjectureEvaluation> {
-    // (1) Parse the candidate document and extract exactly one candidate formula.
-    let candidate = parse_candidate_formula(formula_ttl)?;
-
-    // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
-    //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
-    let kb = rehome_kb_into_scenario(kb_ttl)?;
-
-    // (3) Run the engine. The KB is borrowed and never mutated (isolation is inherent).
-    let kb_world = format!(
-        "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
-        sha256_hex(kb_ttl.as_bytes())
-    );
-    // The optional post-hoc closure-size ceiling (criterion (2)): a bound the surfaces MAY pass
-    // and the oracle NEVER sees (it is applied above the run). Both `None` ⟹ unbounded.
-    let budget = Budget {
-        max_answers,
-        max_steps,
-    };
-    let answer = conjecture_test(
-        kb.as_ref(),
-        CONJECTURE_SCENARIO_WORLD,
-        &candidate,
-        standpoint,
-        &[],
-        &budget,
+    // Delegate to the SINGLE conjecture-evaluation authority in gmeow-logic (shared with the
+    // browser conjecture playground so both produce byte-identical verdict N-Triples), then
+    // adapt its projection to the pipeline's response type at the boundary.
+    let projection = gmeow_logic::conjecture_eval::evaluate_conjecture_eval(
+        &gmeow_logic::conjecture_eval::ConjectureEvalInput {
+            formula_ttl,
+            kb_ttl,
+            kb_format: "text/turtle",
+            standpoint,
+            math_conjecture,
+            max_steps,
+            max_answers,
+        },
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("conjecture_test failed: {e}"),
+            message: format!("conjecture evaluation failed: {}", e.message()),
         })
     })?;
 
-    // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
-    //     (formula × standpoint × KB-world) conjecture node IRI.
-    let content_key = candidate.content_key();
-    // The anti-conjecture leg's forbidden predicate: the refuted formula's PRINCIPAL
-    // predicate (the predicate the closure must never draw). A refuted formula that names no
-    // single predicate (a compound conjunction / disjunction / implication / biconditional)
-    // has no soundly-derivable forbidden predicate — its `logic:NonEntailmentObligation`
-    // forbidden predicate is a reviewer decision — so we HARD-FAIL rather than fabricate one
-    // or emit a shape-invalid obligation node (Constitution: no fabrication, no optionality).
-    let forbidden_predicate = candidate.principal_predicate();
-    if answer.lifecycle == ConjectureLifecycleState::RefutedInStandpoint
-        && forbidden_predicate.is_none()
-    {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
-                "conjecture refuted in standpoint <{standpoint}>, but its candidate formula \
-                 is compound and names no single predicate: the anti-conjecture \
-                 logic:NonEntailmentObligation's forbidden predicate cannot be soundly \
-                 derived and must be a reviewer decision. Refute an atomic or universally \
-                 quantified single-predicate claim, or author the obligation directly."
-            ),
-        }));
-    }
-    let verdict_input = ConjectureVerdictInput {
-        content_key: &content_key,
-        standpoint,
-        kb_world: &kb_world,
-        answer: &answer,
-        math_conjecture,
-        forbidden_predicate: forbidden_predicate.as_deref(),
-    };
-    let verdict_nt = project_conjecture_verdict(&verdict_input);
-    let node_iri = conjecture_node_iri(&verdict_input);
-
-    let verdict = &answer.verdict;
-    let witness = answer.witness.as_ref().map(|w| ConjectureRunWitness {
-        individual: w.individual.clone(),
-        world: w.world.clone(),
-        premises: w
-            .premises
-            .iter()
-            .map(|(s, p, o)| format!("{s} {p} {o}"))
-            .collect(),
+    let witness = projection.witness.map(|w| ConjectureRunWitness {
+        individual: w.individual,
+        world: w.world,
+        premises: w.premises,
     });
-    let lifecycle = answer.lifecycle.wire().to_string();
-    let information = verdict.information.wire().to_string();
-    let evaluation = verdict.evaluation.wire().to_string();
-    let completeness = verdict.completeness.wire().to_string();
-    let discharge = answer.discharge.local_name().to_string();
 
     Ok(ConjectureEvaluation {
-        lifecycle,
-        information,
-        evaluation,
-        completeness,
-        discharge,
+        lifecycle: projection.lifecycle,
+        information: projection.information,
+        evaluation: projection.evaluation,
+        completeness: projection.completeness,
+        discharge: projection.discharge,
         witness,
-        node_iri,
-        verdict_nt,
-        content_key,
+        node_iri: projection.node_iri,
+        verdict_nt: projection.verdict_nt,
+        content_key: projection.content_key,
     })
 }
 
@@ -4426,6 +4724,11 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "target_iri"
                     | "data"
                     | "format"
+                    // The GMN verifier tools: `gmn_validate` / `gmn_expand` require the GMN-1
+                    // document `gmn`; `gmn_explain` requires the operator `glyph`. Enforced via
+                    // `required_str` in each handler, so the advertised schema must match.
+                    | "gmn"
+                    | "glyph"
                     | "query"
                     | "subject"
                     | "predicate"
@@ -5000,6 +5303,135 @@ fn locate_explain_target(
     }
 }
 
+/// HARD-FAIL a GMN document argument that exceeds the inline payload ceiling, mirroring
+/// `validate_local`'s size guard — never a silent truncation (a truncated GMN-1 document
+/// would mis-parse and mislead the repair loop).
+fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
+    if gmn.len() > MAX_VALIDATE_DATA_BYTES {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "{tool}: gmn payload is {} bytes, exceeding the {} byte ceiling; split the \
+                 document (no silent truncation)",
+                gmn.len(),
+                MAX_VALIDATE_DATA_BYTES
+            ),
+        }));
+    }
+    Ok(())
+}
+
+/// Harvest the `rdfs:label` index (`IRI → label`) from the bundle dataset — the SAME
+/// deterministic pick the pipeline verbalizer uses (a `@x-gmeow-english` label wins; ties
+/// break to the smallest lexical form), so `gmn_explain`'s gloss nucleus matches Task 8.
+fn harvest_dataset_labels(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
+    // (is_gmeow_english, lexical_form) per IRI — the preference key.
+    let mut best: BTreeMap<String, (bool, String)> = BTreeMap::new();
+    for quad in dataset.owned_quads() {
+        if quad.predicate != RDFS_LABEL {
+            continue;
+        }
+        let (RdfTerm::Iri(subject), RdfTerm::Literal(literal)) = (&quad.subject, &quad.object)
+        else {
+            continue;
+        };
+        let is_english = literal.language.as_deref() == Some(GMEOW_ENGLISH);
+        let candidate = (is_english, literal.lexical_form.clone());
+        match best.get(subject) {
+            Some((cur_english, cur_lex)) => {
+                let better = (candidate.0, Reverse(candidate.1.clone()))
+                    > (*cur_english, Reverse(cur_lex.clone()));
+                if better {
+                    best.insert(subject.clone(), candidate);
+                }
+            }
+            None => {
+                best.insert(subject.clone(), candidate);
+            }
+        }
+    }
+    best.into_iter().map(|(k, (_, v))| (k, v)).collect()
+}
+
+/// Join a resolved operator form back to the `gmeow:gmnPrecedence` integer and the
+/// `lang:Denotation` IRI the glyph registry does NOT carry (it keys on fixity/arity only),
+/// by matching the `(denotationTarget, gmnFixity, gmnArity)` signature the operator's
+/// denoted Form authors in the dataset. Returns `(precedence, denotation_iri)`, each `None`
+/// when the codebook authors no matching record (surfaced honestly, never fabricated).
+fn gmn_signature_join(
+    dataset: &purrdf::RdfDataset,
+    target: &str,
+    fixity: &str,
+    arity: u32,
+) -> (Option<i64>, Option<String>) {
+    // Form → (fixity, precedence, arity); Denotation → (form, target); Denotation typed set.
+    let mut form_fixity: BTreeMap<String, String> = BTreeMap::new();
+    let mut form_precedence: BTreeMap<String, i64> = BTreeMap::new();
+    let mut form_arity: BTreeMap<String, u32> = BTreeMap::new();
+    let mut den_form: BTreeMap<String, String> = BTreeMap::new();
+    let mut den_target: BTreeMap<String, String> = BTreeMap::new();
+    let mut is_denotation: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            RDF_TYPE => {
+                if matches!(&quad.object, RdfTerm::Iri(class) if class == LANG_DENOTATION) {
+                    is_denotation.insert(subject.clone());
+                }
+            }
+            GMN_FIXITY => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    form_fixity.insert(subject.clone(), value.clone());
+                }
+            }
+            GMN_PRECEDENCE => {
+                if let RdfTerm::Literal(literal) = &quad.object
+                    && let Ok(value) = literal.lexical_form.parse::<i64>()
+                {
+                    form_precedence.insert(subject.clone(), value);
+                }
+            }
+            GMN_ARITY => {
+                if let RdfTerm::Literal(literal) = &quad.object
+                    && let Ok(value) = literal.lexical_form.parse::<u32>()
+                {
+                    form_arity.insert(subject.clone(), value);
+                }
+            }
+            LANG_DENOTED_FORM => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    den_form.insert(subject.clone(), value.clone());
+                }
+            }
+            LANG_DENOTATION_TARGET => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    den_target.insert(subject.clone(), value.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+    // Deterministic (BTreeSet iteration): the first Denotation whose denoted Form signature
+    // matches (target, fixity, arity).
+    for denotation in &is_denotation {
+        let Some(form) = den_form.get(denotation) else {
+            continue;
+        };
+        if den_target.get(denotation).map(String::as_str) != Some(target) {
+            continue;
+        }
+        if form_fixity.get(form).map(String::as_str) != Some(fixity) {
+            continue;
+        }
+        if form_arity.get(form).copied() != Some(arity) {
+            continue;
+        }
+        return (form_precedence.get(form).copied(), Some(denotation.clone()));
+    }
+    (None, None)
+}
+
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
     optional_str(args, key).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -5099,7 +5531,7 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// file is the one source of truth, and the worked example and conformance case reference these
 /// same schema IRIs (they encode no second copy).
 const MCP_ACTION_POLICY_TTL: &str =
-    include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
+    include_str!("../../../slices/core/agentic/examples/mcp-action-policy.ttl");
 
 /// The transient world the TR run reasons in — a fresh in-memory store per call, NEVER persisted.
 /// The executed verdict gates the write; the materialized outcome rides the tool response.
@@ -5163,13 +5595,6 @@ const MCP_CANDIDATE_IN_LIBRARY: &str =
 const GMEOW_AUTHORING_CANDIDATE: &str = "https://blackcatinformatics.ca/gmeow/AuthoringCandidate";
 const GMEOW_CANDIDATE_FOR_SLICE: &str = "https://blackcatinformatics.ca/gmeow/candidateForSlice";
 const GMEOW_CANDIDATE_FOR_PACKET: &str = "https://blackcatinformatics.ca/gmeow/candidateForPacket";
-
-/// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
-/// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
-/// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
-/// [`conjecture_test`] copies the KB into a fresh dataset and never mutates the input.
-const CONJECTURE_SCENARIO_WORLD: &str =
-    "https://blackcatinformatics.ca/gmeow/agentic/conjecture/scenario";
 
 const LOGIC_INSTANTIATES_SCHEMA: &str = "https://blackcatinformatics.ca/logic/instantiatesSchema";
 const LOGIC_TRANSITION_FROM_STATE: &str =
@@ -5320,7 +5745,32 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
+    // `store_claim`/`revise_belief` already committed the claim (and, for `store_claim`, the
+    // `record_tool_call` provenance) into `memory.gts`'s ONE growing segment before this runs —
+    // so the file on disk is never empty here. Reading it back and CONTINUING that same segment
+    // (rather than minting a fresh header, as this used to do unconditionally) matters because
+    // `Memory::revise` resolves `claim_id` only against the term table of the store's LAST
+    // segment (see `purrdf::gts::examples::agent_memory::SegmentIris`): a second, independent
+    // segment tacked on after every write left every claim's own segment permanently behind the
+    // audit segment, so the very next `revise_belief` for that claim could never resolve it.
+    let existing = fs::read(memory_path).unwrap_or_default();
+    let term_base = read_file_segments(&existing)
+        .segments
+        .last()
+        .map_or(0, |segment| segment.terms.len());
+    let (terms, quads) = audit_triples(call_id, schema_iri, obtains, at_time, term_base);
+    let mut writer = if existing.is_empty() {
+        GtsWriter::new("ai-package")
+    } else {
+        GtsWriter::appending(&existing).map_err(|err| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("cannot continue memory.gts segment for audit record: {err}"),
+            })
+        })?
+    };
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    let segment = writer.into_bytes();
     let mut file = fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -5333,18 +5783,43 @@ fn write_audit_segment(
 /// half of [`write_audit_segment`], factored out so the conjecture-library commit path can
 /// build the verdict segment AND its audit segment in memory and commit both together via
 /// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
-/// the second can fail after the first has already landed.
+/// the second can fail after the first has already landed. The conjecture/candidate libraries
+/// always mint this as ITS OWN fresh segment (`term_base` 0), matching how `build_nt_segment`
+/// mints the verdict segment it rides alongside.
 fn build_audit_segment(
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
 ) -> Vec<u8> {
+    let (terms, quads) = audit_triples(call_id, schema_iri, obtains, at_time, 0);
+    let mut writer = GtsWriter::new("ai-package");
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    writer.to_bytes()
+}
+
+/// A GTS quad as term-table indices: `(subject, predicate, object, graph)`, where `graph`
+/// is `None` for the default graph. Indices are relative to whatever `term_base` the rows
+/// were numbered from.
+type GtsQuadRow = (usize, usize, usize, Option<usize>);
+
+/// Build the trajectory-audit context's `(terms, quads)`, numbered locally from `term_base` —
+/// the shared shape behind both [`build_audit_segment`] (always `term_base` 0, its own fresh
+/// segment) and [`write_audit_segment`] (`term_base` = the live memory segment's current term
+/// count, so the rows CONTINUE that segment instead of dangling in a disconnected one).
+fn audit_triples(
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+    term_base: usize,
+) -> (Vec<GtsTerm>, Vec<GtsQuadRow>) {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
     let mut terms: Vec<GtsTerm> = Vec::new();
-    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+    let mut quads: Vec<GtsQuadRow> = Vec::new();
 
     let t_call = push_gts_term(&mut terms, gts_iri(call_id));
     let t_anchor = push_gts_term(&mut terms, gts_iri(&anchor));
@@ -5375,10 +5850,32 @@ fn build_audit_segment(
         quads.push((t_start, t_so, t_sit, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
-    writer.to_bytes()
+    if term_base == 0 {
+        return (terms, quads);
+    }
+    // Shift every LOCALLY-numbered row (including a term's own `dt`/`rf` back-references, per
+    // §7.5) into the live segment's term-id space — mirrors
+    // `purrdf::gts::examples::agent_memory::Memory::store`'s `shift_terms`/`shift_quads`.
+    let terms = terms
+        .into_iter()
+        .map(|term| GtsTerm {
+            datatype: term.datatype.map(|id| id + term_base),
+            reifier: term.reifier.map(|id| id + term_base),
+            ..term
+        })
+        .collect();
+    let quads = quads
+        .into_iter()
+        .map(|(s, p, o, g)| {
+            (
+                s + term_base,
+                p + term_base,
+                o + term_base,
+                g.map(|g| g + term_base),
+            )
+        })
+        .collect();
+    (terms, quads)
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -5437,89 +5934,62 @@ fn sha256_hex(bytes: &[u8]) -> String {
     out
 }
 
-/// One term of the projection's closed N-Triples subset (`<iri>` / `_:b` / `"lex"^^<dt>`).
-enum NtTerm {
-    Iri(String),
-    Blank(String),
-    Lit { lex: String, datatype: String },
-}
-
-/// Take one N-Triples term off the front of `s`, returning `(term, rest)`. Handles the
-/// closed subset [`project_conjecture_verdict`] emits: `<iri>`, `_:id`, and `"lex"^^<dt>`
-/// typed literals (the literal walk is char-based, so it is UTF-8 safe and un-escapes).
-fn take_nt_term(s: &str) -> Option<(NtTerm, &str)> {
-    let s = s.trim_start();
-    if let Some(rest) = s.strip_prefix('<') {
-        let end = rest.find('>')?;
-        return Some((NtTerm::Iri(rest[..end].to_owned()), &rest[end + 1..]));
-    }
-    if let Some(rest) = s.strip_prefix("_:") {
-        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
-        return Some((NtTerm::Blank(rest[..end].to_owned()), &rest[end..]));
-    }
-    if let Some(rest) = s.strip_prefix('"') {
-        let mut lex = String::new();
-        let mut chars = rest.char_indices();
-        while let Some((idx, ch)) = chars.next() {
-            match ch {
-                '\\' => match chars.next() {
-                    Some((_, '\\')) => lex.push('\\'),
-                    Some((_, '"')) => lex.push('"'),
-                    Some((_, 'n')) => lex.push('\n'),
-                    Some((_, 'r')) => lex.push('\r'),
-                    Some((_, 't')) => lex.push('\t'),
-                    Some((_, c)) => lex.push(c),
-                    None => return None,
-                },
-                '"' => {
-                    // Past the closing quote: read the required `^^<dt>` typed-literal suffix.
-                    let after = rest[idx + 1..].strip_prefix("^^")?;
-                    let after = after.strip_prefix('<')?;
-                    let end = after.find('>')?;
-                    let datatype = after[..end].to_owned();
-                    return Some((NtTerm::Lit { lex, datatype }, &after[end + 1..]));
-                }
-                _ => lex.push(ch),
-            }
-        }
-        return None;
-    }
-    None
-}
-
-/// Intern one N-Triples node into the GTS term table (deduplicated by semantic value), a
-/// literal first interning its datatype IRI so the literal term references a live datatype id.
-fn intern_nt_term(
-    node: &NtTerm,
-    terms: &mut Vec<GtsTerm>,
-    seen: &mut HashMap<String, usize>,
-) -> usize {
-    let sig = match node {
-        NtTerm::Iri(iri) => format!("I\u{1}{iri}"),
-        NtTerm::Blank(id) => format!("B\u{1}{id}"),
-        NtTerm::Lit { lex, datatype } => format!("L\u{1}{datatype}\u{1}{lex}"),
-    };
+/// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /
+/// predicate / object paths and by a typed literal's datatype-IRI leg.
+fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String, usize>) -> usize {
+    let sig = format!("I\u{1}{iri}");
     if let Some(&id) = seen.get(&sig) {
         return id;
     }
-    let term = match node {
-        NtTerm::Iri(iri) => gts_iri(iri),
-        NtTerm::Blank(id) => GtsTerm {
-            kind: GtsTermKind::Bnode,
-            value: Some(id.clone()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-        },
-        NtTerm::Lit { lex, datatype } => {
-            let dt_id = intern_nt_term(&NtTerm::Iri(datatype.clone()), terms, seen);
-            gts_literal_dt(lex, dt_id)
-        }
-    };
-    let id = push_gts_term(terms, term);
+    let id = push_gts_term(terms, gts_iri(iri));
     seen.insert(sig, id);
     id
+}
+
+/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or typed literal) into the GTS
+/// term table (deduplicated by semantic value); a literal first interns its datatype IRI so
+/// the literal term references a live datatype id — reproducing the exact encounter order the
+/// append-only, content-addressed GTS segment bytes are keyed on. A quoted-triple term is
+/// rejected fail-closed via `reject`: the projection's closed subset never emits one.
+fn intern_nt_term(
+    node: &RdfTerm,
+    terms: &mut Vec<GtsTerm>,
+    seen: &mut HashMap<String, usize>,
+    reject: impl FnOnce() -> gmeow_errors::Diag,
+) -> gmeow_errors::Result<usize> {
+    match node {
+        RdfTerm::Iri(iri) => Ok(intern_nt_iri(iri, terms, seen)),
+        RdfTerm::BlankNode(label) => {
+            let sig = format!("B\u{1}{label}");
+            if let Some(&id) = seen.get(&sig) {
+                return Ok(id);
+            }
+            let term = GtsTerm {
+                kind: GtsTermKind::Bnode,
+                value: Some(label.clone()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            };
+            let id = push_gts_term(terms, term);
+            seen.insert(sig, id);
+            Ok(id)
+        }
+        RdfTerm::Literal(lit) => {
+            // The projection always emits `"lex"^^<dt>`, so purrdf carries an explicit datatype.
+            let datatype = lit.datatype.as_deref().ok_or_else(reject)?;
+            let sig = format!("L\u{1}{datatype}\u{1}{}", lit.lexical_form);
+            if let Some(&id) = seen.get(&sig) {
+                return Ok(id);
+            }
+            let dt_id = intern_nt_iri(datatype, terms, seen);
+            let id = push_gts_term(terms, gts_literal_dt(&lit.lexical_form, dt_id));
+            seen.insert(sig, id);
+            Ok(id)
+        }
+        RdfTerm::Triple(_) => Err(reject()),
+    }
 }
 
 /// Build one N-Triples body (e.g. the `project_conjecture_verdict` verdict, or a candidate
@@ -5533,7 +6003,7 @@ fn intern_nt_term(
 /// together as one atomic file replace — see [`append_conjecture_segments`].
 fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
-    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+    let mut quads: Vec<GtsQuadRow> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
 
     for (lineno, raw) in nt_body.lines().enumerate() {
@@ -5541,27 +6011,37 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         if line.is_empty() {
             continue;
         }
-        let line = line.strip_suffix(" .").ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("conjecture projection line {} missing ' .'", lineno + 1),
-            })
-        })?;
         let malformed = |what: &str| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("conjecture projection line {} bad {what}", lineno + 1),
             })
         };
-        let (subject, rest) = take_nt_term(line).ok_or_else(|| malformed("subject"))?;
-        let (predicate, rest) =
-            take_nt_term(rest.trim_start()).ok_or_else(|| malformed("predicate"))?;
-        let (object, _rest) = take_nt_term(rest.trim_start()).ok_or_else(|| malformed("object"))?;
-        // The projection's predicates are always IRIs; reject anything else fail-closed.
-        if !matches!(predicate, NtTerm::Iri(_)) {
-            return Err(malformed("predicate (non-IRI)"));
+        // Delegate N-Triples lexing of THIS single statement to purrdf, one line at a time,
+        // in DOCUMENT order. A whole-body parse cannot be used here: purrdf's dataset freeze
+        // sorts quads by term id, so `owned_quads()` would not preserve document order — and
+        // that order (subject, predicate, [datatype,] object per line) is baked into the
+        // append-only, content-addressed GTS segment bytes. Line-at-a-time parsing recovers
+        // it exactly while still owning zero hand-rolled term lexing.
+        let statement = purrdf::parse_dataset(line.as_bytes(), "application/n-triples", None)
+            .map_err(|_| malformed("triple"))?;
+        let mut quad_iter = statement.owned_quads();
+        let quad = quad_iter.next().ok_or_else(|| malformed("triple"))?;
+        if quad_iter.next().is_some() {
+            return Err(malformed("triple (multiple statements on one line)"));
         }
-        let s = intern_nt_term(&subject, &mut terms, &mut seen);
-        let p = intern_nt_term(&predicate, &mut terms, &mut seen);
-        let o = intern_nt_term(&object, &mut terms, &mut seen);
+        // A subject is an IRI or a blank node; a literal/quoted-triple subject is rejected
+        // fail-closed (purrdf never yields a literal subject in N-Triples, but the guard keeps
+        // the closed subset honest). The predicate is always an IRI in purrdf's `RdfQuad`.
+        let s = match &quad.subject {
+            RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {
+                intern_nt_term(&quad.subject, &mut terms, &mut seen, || {
+                    malformed("subject")
+                })?
+            }
+            RdfTerm::Literal(_) | RdfTerm::Triple(_) => return Err(malformed("subject")),
+        };
+        let p = intern_nt_iri(&quad.predicate, &mut terms, &mut seen);
+        let o = intern_nt_term(&quad.object, &mut terms, &mut seen, || malformed("object"))?;
         quads.push((s, p, o, None));
     }
 
@@ -5793,89 +6273,6 @@ fn read_conjecture_library(
         .into_iter()
         .filter(|(node, _)| is_conjecture.contains(node))
         .collect())
-}
-
-/// Parse the candidate `logic:` document and extract exactly ONE candidate [`Formula`]: the
-/// single top-level `logic:Formula` when present, else the single ground `logic:` axiom
-/// lifted to a binary [`Formula::Atom`]. Any other shape (zero / multiple candidates) is a
-/// hard, fail-closed error — a conjecture test names one formula, never a program.
-fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formula> {
-    let (program, _diags) = parse_logic_str(formula_src, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("candidate logic: document failed to parse: {e}"),
-        })
-    })?;
-    let bad = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
-    // A reified `logic:Formula` is the primary surface: prefer the single top-level formula
-    // even when the frontend leaks the formula's own structural triples as axioms.
-    let formula_count = program.formulas.len();
-    if formula_count == 1 {
-        return Ok(program.formulas.into_iter().next().expect("len == 1"));
-    }
-
-    // No single top-level formula. A REIFIED trivially-Horn `logic:Formula` (a ground binary
-    // atom — e.g. `relation=rdf:type, arg0=ex:a, arg1=ex:B`, the fact `ex:a rdf:type ex:B`) is
-    // routed by the front-end to `LogicProgram.axioms` (its Horn home — `with_formulas`
-    // hard-fails on a trivially-Horn leaf), so `formulas` is EMPTY and the candidate lives in
-    // the axiom set. That set also carries the formula node's own `rdf:type logic:Formula`
-    // self-typing, which leaks as a structural axiom — drop that noise, then a lone remaining
-    // axiom IS the candidate fact, lifted here to a binary `Formula::Atom`. `conjecture_test`'s
-    // `as_ground_fact` then asserts a ground lift as an EDB fact and decides it like any
-    // candidate, so a reified ground-atom conjecture is a first-class, evaluated candidate —
-    // never a panic (the previously dead `(0,1)` lift is now genuinely reachable).
-    let logic_formula_iri = format!("{LOGIC_NAMESPACE}Formula");
-    let mut candidate_axioms: Vec<_> = program
-        .axioms
-        .into_iter()
-        .filter(|ax| !(ax.predicate == RDF_TYPE && ax.obj == logic_formula_iri))
-        .collect();
-    if formula_count == 0 && candidate_axioms.len() == 1 {
-        let ax = candidate_axioms.pop().expect("len == 1");
-        let object = if ax.obj_is_literal {
-            IrTerm::Literal {
-                lexical: ax.obj,
-                datatype: None,
-            }
-        } else {
-            IrTerm::Iri(ax.obj)
-        };
-        return Formula::atom(
-            IrTerm::Iri(ax.predicate),
-            vec![IrTerm::Iri(ax.subject), object],
-        )
-        .map_err(|e| bad(e.message().to_owned()));
-    }
-    Err(bad(format!(
-        "candidate must be exactly one formula/atom, got {formula_count} formula(s) and \
-         {} candidate axiom(s)",
-        candidate_axioms.len()
-    )))
-}
-
-/// Re-home every triple of the caller's KB Turtle into [`CONJECTURE_SCENARIO_WORLD`] as a
-/// fresh, frozen [`purrdf::RdfDataset`]. World-homing is required because the DL consistency
-/// calculus is world-scoped: KB facts must sit in the SAME world the candidate is asserted /
-/// evaluated in for a disjointness clash to fire.
-fn rehome_kb_into_scenario(
-    kb_src: &str,
-) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
-    let parsed = purrdf::parse_dataset(kb_src.as_bytes(), "text/turtle", None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("KB Turtle failed to parse: {e}"),
-        })
-    })?;
-    let world = RdfTerm::iri(CONJECTURE_SCENARIO_WORLD);
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let rehomed =
-            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
-        builder.push_owned_quad(&rehomed);
-    }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("re-homed KB dataset failed to freeze: {e}"),
-        })
-    })
 }
 
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
@@ -6225,6 +6622,37 @@ mod tests {
         with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
     }
 
+    /// A representative N-Triples body mirroring what `project_conjecture_verdict` /
+    /// `project_candidate_verdict` emit: multiple triples; a repeated subject/predicate IRI
+    /// (exercises term-table dedup); a blank-node subject linked to a blank-node object
+    /// (`_:witness0` → `_:premise0`); typed literals carrying the projection's `\\ \" \n \t`
+    /// escape subset; and both `xsd:string` and `xsd:integer` datatypes. Interning order per
+    /// line is subject, predicate, [datatype,] object — the order the append-only GTS segment
+    /// bytes are keyed on.
+    const BYTE_PARITY_NT_BODY: &str = concat!(
+        "<urn:c:1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.ai/logic#Conjecture> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureFormula> \"line1\\nquote \\\" back \\\\ tab \\t end\"^^<http://www.w3.org/2001/XMLSchema#string> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureStandpoint> <urn:sp:default> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureRefutationWitness> _:witness0 .\n",
+        "_:witness0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.ai/logic#ContradictionWitness> .\n",
+        "_:witness0 <https://gmeow.ai/logic#derivedFrom> _:premise0 .\n",
+        "_:premise0 <https://gmeow.ai/logic#conjectureFormula> \"0\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+    );
+
+    /// Permanent regression guard for [`build_nt_segment`]'s exact output bytes. The append-only
+    /// conjecture/candidate libraries are content-addressed, so the segment bytes (and thus this
+    /// digest) MUST stay byte-identical across any change to how the body is parsed — this pins
+    /// the delegation of N-Triples parsing to purrdf against the prior hand-rolled lexer.
+    #[test]
+    fn build_nt_segment_bytes_are_stable() {
+        let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
+        assert_eq!(
+            sha256_hex(&bytes),
+            "8be75532bab466852c33fea79c803ba2a847c14c0a063db6435dcb63468e0405",
+            "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
+        );
+    }
+
     static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
     struct EnvRestore(Vec<(&'static str, Option<OsString>)>);
@@ -6335,6 +6763,8 @@ mod tests {
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
         assert!(consumer_tools.contains("\"validate_local\""));
+        // `advise` — the recommendation companion of `validate_local`.
+        assert!(consumer_tools.contains("\"advise\""));
         assert!(consumer_tools.contains("\"docs_search\""));
         assert!(consumer_tools.contains("\"counter_examples\""));
         assert!(consumer_tools.contains("\"entailments\""));
@@ -6530,12 +6960,31 @@ mod tests {
         }
         let bytes = snapshot();
         // CONSUMER mode (root: None) serves the packet purely from the embedded
-        // `graph/authoring-briefs` corpus — no checkout. The `lang` slice batch 14
-        // carries a present French grounding cell, so this also proves fr/zh grounding
-        // survives the bundle round-trip (AC4).
+        // `graph/authoring-briefs` corpus — no checkout. The deterministic term-batch
+        // numbering shifts whenever lang terms are added/removed, so the batch that
+        // carries a present French grounding cell is NOT a fixed constant — it is
+        // discovered dynamically below (a bare, batch-less request returns every `lang`
+        // packet) rather than hardcoded, so the test survives future renumbering.
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let all = text_payload(server.call_tool_result("slice_brief", &json!({"slice": "lang"})));
+        let fr_batch = all["packets"]
+            .as_array()
+            .expect("packets array")
+            .iter()
+            .find(|p| {
+                p["grounding"].as_array().is_some_and(|g| {
+                    g.iter()
+                        .any(|c| c["attribute"] == "groundingFr" && c["value"].is_string())
+                })
+            })
+            .unwrap_or_else(|| {
+                panic!("no `lang` batch carries a present French grounding cell: {all}")
+            })["batch"]
+            .as_u64()
+            .expect("batch is a number");
+
         let out = text_payload(
-            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": 14})),
+            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": fr_batch})),
         );
 
         assert!(
@@ -6549,7 +6998,7 @@ mod tests {
         assert_eq!(out["packet_count"], 1, "exactly the requested batch: {out}");
         let packet = &out["packets"][0];
         assert_eq!(packet["axis"], "whole");
-        assert_eq!(packet["batch"], 14);
+        assert_eq!(packet["batch"], fr_batch);
         assert!(
             packet["digest"].is_string(),
             "packet digest present: {packet}"
@@ -7021,7 +7470,7 @@ mod tests {
             "revise_belief",
             &json!({"claim_id": claim_id, "reason": "superseded"}),
         ));
-        assert_eq!(revised["ok"], true);
+        assert_eq!(revised["ok"], true, "revise_belief payload: {revised}");
         assert_eq!(revised["transaction"]["committed"], true);
 
         // Default recall hides it (suppressed) ...
@@ -8196,6 +8645,12 @@ mod tests {
             "validate_local",
             json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
         );
+        // `advise` is the fast Tier-1-only recommendation surface: a tiny clean graph
+        // dispatches and returns ok:true with no recommendations.
+        call_args.insert(
+            "advise",
+            json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
+        );
         call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
         call_args.insert(
             "conjecture_test",
@@ -8814,6 +9269,241 @@ mod tests {
         );
     }
 
+    /// The n-triples claim that types an individual as a BARE gmeow:Entity — the
+    /// exact fixture the advisory bridge fires `BareEntitySortalAdviceConstraint`
+    /// (Entity avoidWhen) on.
+    const BARE_ENTITY_CLAIM: &str = "<https://ex.test/x> \
+         <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+         <https://blackcatinformatics.ca/gmeow/Entity> .\n";
+
+    /// AC2: `advise` returns the non-gating RECOMMENDATIONS a claim
+    /// trips — driven over the REAL JSON-RPC `handle_message` dispatch. A bare-Entity
+    /// claim surfaces the Entity avoid/use/how-to advice, `ok:true`.
+    #[test]
+    fn advise_surfaces_recommendations_for_a_matching_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // Drive the REAL JSON-RPC path: tools/call → dispatch → tool_advise.
+        let body = format!(
+            r#"{{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{{"name":"advise","arguments":{{"data":{},"format":"ntriples"}}}}}}"#,
+            serde_json::to_string(BARE_ENTITY_CLAIM).unwrap()
+        );
+        let raw = server.handle_message(&body);
+        let envelope: Value = serde_json::from_str(&raw).expect("JSON-RPC response");
+        assert_eq!(envelope["jsonrpc"], "2.0");
+        let payload: Value = serde_json::from_str(
+            envelope["result"]["content"][0]["text"]
+                .as_str()
+                .expect("tool text"),
+        )
+        .expect("advise payload is JSON");
+
+        assert_eq!(
+            payload["ok"], true,
+            "advise is a recommendation surface — always ok:true: {payload}"
+        );
+        assert_eq!(payload["tool"], "advise");
+        let recs = payload["recommendations"]
+            .as_array()
+            .expect("recommendations array");
+        assert!(
+            !recs.is_empty(),
+            "a bare-Entity claim must surface at least one recommendation: {payload}"
+        );
+        for rec in recs {
+            let code = rec["code"].as_str().unwrap();
+            assert!(
+                code.starts_with("advice."),
+                "advise must surface ONLY advisory advice.* codes: {rec}"
+            );
+            assert!(
+                !rec["avoid_when"].as_str().unwrap().is_empty(),
+                "each recommendation carries its avoid-when prohibition prose: {rec}"
+            );
+            assert_eq!(
+                rec["help_uri"].as_str().unwrap(),
+                gmeow_validate::rule_catalog::catalog_anchor_uri(code),
+                "help_uri routes through the single anchor authority (→ #advice-): {rec}"
+            );
+        }
+        // The Entity advice carries its formalized term and its corrective/permission
+        // guidance (the contrary-to-duty how-to-use / use-when legs).
+        let entity = recs
+            .iter()
+            .find(|r| {
+                r["formalizes"].as_str() == Some("https://blackcatinformatics.ca/gmeow/Entity")
+            })
+            .unwrap_or_else(|| {
+                panic!("the Entity advice recommendation must be present: {payload}")
+            });
+        let use_when = entity["use_when"].as_array().unwrap();
+        assert!(
+            !use_when.is_empty(),
+            "the Entity advice carries use-when guidance: {entity}"
+        );
+        assert!(
+            use_when
+                .iter()
+                .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
+            "use_when entries must have the \"Use when: \" marker stripped: {entity}"
+        );
+        let how_to_use = entity["how_to_use"].as_array().unwrap();
+        assert!(
+            !how_to_use.is_empty(),
+            "the Entity advice carries how-to-use guidance: {entity}"
+        );
+        assert!(
+            how_to_use
+                .iter()
+                .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
+            "no permission-leg prose may leak into how_to_use: {entity}"
+        );
+        // The tripped node is visible on the MCP surface, not just the RDF claim wing —
+        // `subject` resolves to the focus IRI the finding's location carries.
+        assert_eq!(
+            entity["subject"].as_str(),
+            Some("https://ex.test/x"),
+            "advise must surface the tripped node as `subject`, not null: {entity}"
+        );
+    }
+
+    /// AC2: a claim that trips NO advice returns an empty recommendation list, still
+    /// `ok:true` — advice is a recommendation, never a rejection.
+    #[test]
+    fn advise_returns_empty_for_a_clean_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let payload = text_payload(server.call_tool_result(
+            "advise",
+            &json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "ntriples"}),
+        ));
+        assert_eq!(
+            payload["ok"], true,
+            "advice never fails, even for a claim with no recommendations: {payload}"
+        );
+        assert_eq!(payload["tool"], "advise");
+        assert!(
+            payload["recommendations"].as_array().unwrap().is_empty(),
+            "a claim tripping no advice returns an empty recommendation list: {payload}"
+        );
+    }
+
+    /// AC2 (the sharpest witness): on a MIXED claim tripping BOTH a binding Error AND
+    /// the Entity advice, `advise` returns ONLY the advisory tier — `ok:true`, never
+    /// the binding code — while `validate_local` on the same claim is `ok:false`.
+    #[test]
+    fn advise_on_a_mixed_claim_returns_only_advice() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let tier1_shapes =
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
+                .expect("parse the bundle's Tier-1 shapes once");
+        let (_fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+
+        // The Error-tripping fixture PLUS a bare-Entity advice trigger (a new subject,
+        // so the fixture's Error still fires and the Entity advice is added).
+        let claim = format!(
+            "{text}\n<https://ex.test/advicex> a <https://blackcatinformatics.ca/gmeow/Entity> .\n"
+        );
+
+        // validate_local sees the binding Error → ok:false.
+        let validated = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": claim, "format": "turtle"}),
+        ));
+        assert_eq!(
+            validated["ok"], false,
+            "the mixed claim carries a binding Error (validate_local rejects it): {validated}"
+        );
+
+        // advise returns ONLY the advisory tier, ok:true, and NEVER the binding code.
+        let advised = text_payload(
+            server.call_tool_result("advise", &json!({"data": claim, "format": "turtle"})),
+        );
+        assert_eq!(
+            advised["ok"], true,
+            "advise never fails, even on a claim carrying a binding violation: {advised}"
+        );
+        let recs = advised["recommendations"].as_array().unwrap();
+        assert!(
+            !recs.is_empty(),
+            "the bare-Entity leg must still surface advice on the mixed claim: {advised}"
+        );
+        for rec in recs {
+            let rec_code = rec["code"].as_str().unwrap();
+            assert!(
+                rec_code.starts_with("advice."),
+                "advise surfaces only advice.* codes, never the binding {code}: {rec}"
+            );
+            assert_ne!(
+                rec_code, code,
+                "the binding Error code must never appear in advise output: {rec}"
+            );
+        }
+    }
+
+    /// ROBUSTNESS (parity with `validate_local`): an unknown `format` and an oversized
+    /// `data` payload each return a well-formed `ok:false` error envelope — never a
+    /// panic, never a silent truncation.
+    #[test]
+    fn advise_hard_fails_bad_format_and_oversize() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        let bad_format = text_payload(server.call_tool_result(
+            "advise",
+            &json!({"data": "<urn:s> <urn:p> <urn:o> .", "format": "bogus"}),
+        ));
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format must be a hard fail"
+        );
+        assert!(
+            bad_format["error"]
+                .as_str()
+                .unwrap()
+                .contains("unrecognized RDF format"),
+            "the error must name the offending format: {bad_format}"
+        );
+
+        let huge = format!(
+            "<urn:s> <urn:p> \"{}\" .",
+            "x".repeat(MAX_VALIDATE_DATA_BYTES + 1)
+        );
+        let oversize = text_payload(
+            server.call_tool_result("advise", &json!({"data": huge, "format": "turtle"})),
+        );
+        assert_eq!(
+            oversize["ok"], false,
+            "oversized payload must be a hard fail"
+        );
+        assert!(
+            oversize["error"].as_str().unwrap().contains("ceiling"),
+            "the error must explain the size ceiling: {oversize}"
+        );
+    }
+
     /// The `explain_finding` tool, driven by DISPATCH BY NAME over a server built
     /// from the shipped bundle: a real fingerprint IRI returns the finding's code +
     /// a gate verdict; an unknown IRI is a HARD FAIL (isError), never an empty DAG.
@@ -8924,8 +9614,8 @@ mod tests {
 
     // ── Conjecture-library persistence ───────────────────────────────────────
 
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+    use gmeow_ns::LOGIC_NS;
+    use gmeow_ns::MATH_NS;
     const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
     /// A `∀x. trigger(x, mark) → rdf:type(x, <cls>)` candidate, authored as a reified
@@ -9782,8 +10472,13 @@ mod tests {
         // route it to `LogicProgram.axioms` (not `with_formulas`, which hard-asserts) and
         // `parse_candidate_formula` must reconstruct it — cleanly, never a panic and never a
         // false "0 formula(s) and 0 axiom(s)" rejection.
-        let candidate = parse_candidate_formula(&reified_ground_atom_candidate("B"))
-            .expect("reified ground atom must lift to a candidate formula");
+        use gmeow_logic_compile::ir::{Formula, Term as IrTerm};
+        // `parse_candidate_formula` now lives in the shared gmeow-logic conjecture-eval
+        // authority; assert the SHIPPED re-export still lifts a reified ground atom cleanly.
+        let candidate = gmeow_logic::conjecture_eval::parse_candidate_formula(
+            &reified_ground_atom_candidate("B"),
+        )
+        .expect("reified ground atom must lift to a candidate formula");
         match candidate {
             Formula::Atom { relation, args } => {
                 assert_eq!(relation, IrTerm::Iri(RDF_TYPE_IRI.to_owned()));
@@ -11546,6 +12241,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny cert-carrying snapshot");
 
@@ -11618,6 +12314,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 
@@ -11677,7 +12374,7 @@ mod tests {
     /// DELIBERATELY not an `owl:AllDisjointClasses` set, so the ONE bad-example
     /// verify query that could independently catch a disjoint-axis violation
     /// (`class-in-two-disjoint-axes.rq`, which matches only `owl:AllDisjointClasses`
-    /// membership) does NOT fire: `report.ok()` is true. Before the G4 fix,
+    /// membership) does NOT fire: `report.ok()` is true. Earlier,
     /// `coherent` was read straight from `report.ok()`, so this exact fixture would
     /// render the self-contradictory `coherent:true` alongside
     /// `class_local_name:"Refused"`. The fix routes `coherent` through the SAME
@@ -11735,6 +12432,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny header-only canon");
 
@@ -11781,5 +12479,268 @@ mod tests {
              whether any bad-example verify query matched: {out}"
         );
         drop(overlay_dir);
+    }
+
+    // ── GMN verifier tools: gmn_validate / gmn_expand / gmn_explain ─────────────────
+
+    /// Read a frozen GMN-1 conformance-vector file from the shipped corpus (a test
+    /// artifact, never in the bundle) by its path relative to the vector root.
+    fn gmn_vector(rel: &str) -> String {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        fs::read_to_string(
+            root.join("slices/grounding/lang/tests/gmn1-vectors")
+                .join(rel),
+        )
+        .unwrap_or_else(|e| panic!("read GMN vector {rel}: {e}"))
+    }
+
+    /// `gmn_validate` accepts a frozen conformance vector (`{ok, conformant:true}`) and
+    /// rejects a perturbed document with the TYPED `lang:Gmn*Failure` class — the external
+    /// LLM's entry to the `@err` repair loop.
+    #[test]
+    fn gmn_validate_accepts_conformant_and_rejects_perturbed() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // A frozen POSITIVE vector conforms.
+        let good = gmn_vector("claim-basic.gmn");
+        let ok = text_payload(server.call_tool_result("gmn_validate", &json!({ "gmn": good })));
+        assert_eq!(ok["ok"], true, "{ok}");
+        assert_eq!(
+            ok["conformant"], true,
+            "a frozen conformance vector must validate: {ok}"
+        );
+        assert!(
+            ok.get("failure_class").is_none(),
+            "a conformant document carries no failure class: {ok}"
+        );
+
+        // A perturbed document (a value glyph flipped to a non-canonical 3-digit fraction,
+        // the frozen negative fixture the corpus pins) raises the TYPED failure class.
+        let bad = gmn_vector("negative-codec/neg-malformed-number-frac.gmn");
+        let defect = text_payload(server.call_tool_result("gmn_validate", &json!({ "gmn": bad })));
+        assert_eq!(defect["ok"], true, "{defect}");
+        assert_eq!(
+            defect["conformant"], false,
+            "the perturbed document must be rejected: {defect}"
+        );
+        assert_eq!(
+            defect["failure_class"], "https://blackcatinformatics.ca/lang/GmnMalformedNumber",
+            "the typed lang:Gmn*Failure class names the defect: {defect}"
+        );
+        assert_eq!(
+            defect["failure_local_name"], "GmnMalformedNumber",
+            "{defect}"
+        );
+        assert!(
+            defect["message"].as_str().is_some_and(|m| !m.is_empty()),
+            "the defect carries a message: {defect}"
+        );
+    }
+
+    /// `gmn_expand` decodes a GMN-1 document to its GMN-0 normal form (alias/glyph → full
+    /// IRI) and its expansion round-trips: re-encoding equals the input under
+    /// `gmn0_canonically_equal`.
+    #[test]
+    fn gmn_expand_roundtrips() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let doc = gmn_vector("claim-basic.gmn");
+        let out =
+            text_payload(server.call_tool_result("gmn_expand", &json!({ "gmn": doc.clone() })));
+        assert_eq!(out["ok"], true, "{out}");
+        assert_eq!(
+            out["round_trip"], true,
+            "the expansion carries a holding round-trip witness: {out}"
+        );
+        let expanded = out["expanded_nquads"].as_str().expect("expanded_nquads");
+        assert!(
+            !expanded.is_empty(),
+            "the GMN-0 normal form is non-empty: {out}"
+        );
+        // The "expand alias/glyph → full IRI" direction: the compact `gmeow__gate1` token
+        // expands to its full IRI under the gmeow namespace.
+        assert!(
+            expanded.contains("https://blackcatinformatics.ca/gmeow/"),
+            "the GMN-0 normal form carries full IRIs, not compact aliases: {out}"
+        );
+
+        // Expand then re-encode equals the input under gmn0_canonically_equal.
+        let reencoded = out["reencoded_gmn"].as_str().expect("reencoded_gmn");
+        let dict = server.gmn_dictionary().expect("dictionary resolves");
+        let input_model = gmn1_read(&Gmn1Document::from_text(doc), &dict).expect("input reads");
+        let re_model = gmn1_read(&Gmn1Document::from_text(reencoded.to_owned()), &dict)
+            .expect("re-encoded reads");
+        assert!(
+            gmn0_canonically_equal(&input_model, &re_model),
+            "expand then re-encode equals the input under gmn0_canonically_equal: {out}"
+        );
+    }
+
+    /// `gmn_explain` resolves a known operator glyph (`¬` → `logic:not`) to its authored
+    /// fixity / precedence / arity and its controlled-NL gloss, and returns an HONEST typed
+    /// miss for an unknown glyph — never a fabricated answer.
+    #[test]
+    fn gmn_explain_names_fixity_and_gloss() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // ¬ is the seeded prefix operator for logic:not (precedence 90, arity 1).
+        let hit = text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": "¬" })));
+        assert_eq!(hit["ok"], true, "{hit}");
+        assert_eq!(
+            hit["found"], true,
+            "¬ is a covered GMN operator glyph: {hit}"
+        );
+        assert_eq!(hit["fixity_local_name"], "gmnFixityPrefix", "{hit}");
+        assert_eq!(
+            hit["precedence"], 90,
+            "the graph-authored binding strength: {hit}"
+        );
+        assert_eq!(hit["arity"], 1, "{hit}");
+        assert_eq!(
+            hit["denotation_target"], "https://blackcatinformatics.ca/logic/not",
+            "{hit}"
+        );
+        assert!(
+            hit["denotation"]
+                .as_str()
+                .is_some_and(|d| d.contains("blackcatinformatics.ca")),
+            "the lang:Denotation IRI is surfaced, not fabricated: {hit}"
+        );
+        // The gloss is Task 8's verbalizer rendering: the prefix template `<label> arg1`.
+        assert!(
+            hit["gloss"].as_str().is_some_and(|g| g.contains("arg1")),
+            "the controlled-NL gloss is the prefix verbalizer rendering: {hit}"
+        );
+        assert_eq!(
+            hit["gmn_surface"], "¬ arg1",
+            "the GMN operator surface arranges the glyph in prefix position: {hit}"
+        );
+
+        // An unknown glyph returns the honest typed miss, never a fabricated answer.
+        let miss = text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": "☃" })));
+        assert_eq!(miss["ok"], true, "{miss}");
+        assert_eq!(
+            miss["found"], false,
+            "an unknown glyph is not found: {miss}"
+        );
+        assert_eq!(
+            miss["failure_class"], "https://blackcatinformatics.ca/lang/GmnUncoveredTerm",
+            "the miss is the typed lang:GmnUncoveredTerm class: {miss}"
+        );
+        assert_eq!(miss["failure_local_name"], "GmnUncoveredTerm", "{miss}");
+    }
+
+    /// The three GMN verifier tools are advertised in the CONSUMER surface (served off the
+    /// bundle alone, like `validate_local`, never dev-gated) and each advertises its
+    /// required arg honestly (the `tool()` allowlist addition).
+    #[test]
+    fn gmn_tools_are_advertised_in_the_consumer_surface() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let result = consumer.tools_result();
+        let arr = result["tools"].as_array().expect("tools array");
+        for (name, req) in [
+            ("gmn_validate", "gmn"),
+            ("gmn_expand", "gmn"),
+            ("gmn_explain", "glyph"),
+        ] {
+            let tool = arr
+                .iter()
+                .find(|t| t["name"] == name)
+                .unwrap_or_else(|| panic!("{name} is advertised: {result}"));
+            let required = tool["inputSchema"]["required"]
+                .as_array()
+                .expect("required array");
+            assert!(
+                required.iter().any(|r| r == req),
+                "{name} advertises its required arg `{req}`: {tool}"
+            );
+        }
+    }
+
+    /// The GMN-1 teachability primer is exposed as a CONSUMER MCP resource
+    /// (`gmeow://ontology/gmn1-primer`, served off the bundle alone), advertised in
+    /// `resources/list` and readable through `resources/read` — a self-contained, graph-derived,
+    /// budget-bounded card carrying the record sigils, the operator glyph table, and the repair
+    /// loop. The shared `llms_full` surface carries the same primer section.
+    #[test]
+    fn gmn1_primer_resource_is_advertised_and_readable() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Advertised in the consumer resource list.
+        let list = consumer.resources_result();
+        let resources = list["resources"].as_array().expect("resources array");
+        assert!(
+            resources
+                .iter()
+                .any(|r| r["uri"] == "gmeow://ontology/gmn1-primer"),
+            "the gmn1-primer resource must be advertised: {list}"
+        );
+
+        // Readable through resources/read, with the primer heading + a repair card + an operator
+        // glyph row present (the graph-derived teaching surface).
+        let read = consumer.read_resource_result("gmeow://ontology/gmn1-primer");
+        assert!(
+            read.get("isError").is_none(),
+            "primer read must succeed: {read}"
+        );
+        let text = read["contents"][0]["text"].as_str().expect("primer text");
+        assert!(
+            text.contains(&format!("## {}", gmn1_primer_heading())),
+            "the primer resource must carry its heading: {text}"
+        );
+        assert!(
+            text.contains("gmeow:GmnErr"),
+            "the primer resource must teach the @err repair record"
+        );
+        assert!(
+            text.contains("⊑ (infix"),
+            "the primer resource must carry the operator glyph table (⊑ subsumption row)"
+        );
+
+        // The same primer section rides the shared `llms_full` surface.
+        let full = consumer
+            .view
+            .llms_full_text(vec!["en".to_string()])
+            .expect("llms_full builds with the primer");
+        assert!(
+            full.contains(&format!("## {}", gmn1_primer_heading())),
+            "llms_full must carry the primer section"
+        );
+    }
+
+    /// The primer heading constant, re-exposed for the resource test (the shared docs const).
+    fn gmn1_primer_heading() -> &'static str {
+        gmeow_docs::gmn1_primer::PRIMER_HEADING
     }
 }

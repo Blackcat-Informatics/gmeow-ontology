@@ -29,7 +29,7 @@ use crate::native_query::{self, render_term};
 pub const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The `logic:` namespace; the result-shape terms live directly under it.
-pub const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+pub use gmeow_ns::LOGIC_NS;
 
 /// The three cell collections parsed out of one `tests/*.ttl` spec file.
 #[derive(Debug, Clone, Default)]
@@ -112,6 +112,15 @@ pub struct StructuralAssertion {
     pub shape: Option<String>,
     /// `gmeow:saScope` — defaults to [`Scope::ModuleAndExamples`] when omitted.
     pub scope: Scope,
+    /// `gmeow:saFailWitness` — OPTIONAL SLICE-relative fixture whose triples SUPPLY
+    /// the banned pattern, so the assertion has demonstrable teeth. When present, the
+    /// harness runs the assertion's `pattern` a SECOND time over module ∪ fixture and
+    /// requires the polarity to be VIOLATED there (a `mustNot` ban must now HOLD; a
+    /// `must` ban must now FAIL). A fixture that does not trip the ban is a hard fail —
+    /// it proves the ban is vacuous. This is how a `scopeModule` ban (an ASK over the
+    /// slice's own module, which by construction never carries the banned triple) gets
+    /// a fail-witness: the fixture injects the violation the real module must never hold.
+    pub fail_witness: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -124,6 +133,32 @@ pub struct ExampleConformance {
     pub outcome: Outcome,
     /// `gmeow:expectedViolationCode` — the `shacl.<LocalName>` code (violates only).
     pub violation_code: Option<String>,
+    /// `gmeow:expectedSourceShape` — OPTIONAL (violates cells only). The SHACL
+    /// `sh:sourceShape` IRI the matching finding must originate from. Every
+    /// `logic:Constraint` projects to the SAME generic finding component
+    /// (`shacl.SPARQLConstraintComponent`), so the component code alone cannot
+    /// prove the SPECIFIC named rule fired. When present, the harness additionally
+    /// requires the finding that matched `expectedViolationCode` to carry this
+    /// source shape (exact IRI, or a local-name suffix match). Absent → the check
+    /// is component-code-only, exactly as before (backward-compatible: a cell that
+    /// does not set it is unaffected).
+    pub expected_source_shape: Option<String>,
+    /// `gmeow:expectedSoleFinding` — OPTIONAL (violates cells only). The
+    /// EXHAUSTIVENESS half, which neither of the two fields above can express: they
+    /// pin that a particular law DID fire, and the harness's violates branch asks
+    /// only that SOME finding match, so a rationale claiming the fixture isolates
+    /// one defect is unfalsifiable while this is absent. When `Some(true)`, EVERY
+    /// violation-severity result must originate from `expected_source_shape` —
+    /// several rows of the SAME law still conform, one finding from another law is a
+    /// hard failure. Absent → unchanged behaviour, so no cell that omits it is
+    /// affected.
+    ///
+    /// `expected_source_shape` is REQUIRED whenever this is `Some(true)`: soleness is
+    /// a claim about WHICH law is the only one, and an unnamed law cannot carry it.
+    /// A `Some(true)` with no pinned shape is a cell-configuration HARD FAIL in
+    /// [`crate::exec`], and `shapes/test-dsl-shapes.ttl` rejects the same pairing
+    /// declaratively.
+    pub expected_sole_finding: Option<bool>,
     pub rationale: Option<String>,
 }
 
@@ -204,21 +239,24 @@ SELECT ?cq ?row ?var ?iri ?lit WHERE {
 }";
 
 const Q_STRUCTURAL: &str = "
-SELECT ?sa ?polarity ?pattern ?shape ?scope ?rationale WHERE {
+SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
   ?sa a gmeow:StructuralAssertion ;
       gmeow:saPolarity ?polarity .
   OPTIONAL { ?sa gmeow:saPattern ?pattern }
   OPTIONAL { ?sa gmeow:saShape ?shape }
   OPTIONAL { ?sa gmeow:saScope ?scope }
+  OPTIONAL { ?sa gmeow:saFailWitness ?failWitness }
   OPTIONAL { ?sa gmeow:saRationale ?rationale }
 }";
 
 const Q_CONFORMANCE: &str = "
-SELECT ?ec ?file ?outcome ?code ?rationale WHERE {
+SELECT ?ec ?file ?outcome ?code ?shape ?sole ?rationale WHERE {
   ?ec a gmeow:ExampleConformance ;
       gmeow:exampleFile ?file ;
       gmeow:expectedOutcome ?outcome .
   OPTIONAL { ?ec gmeow:expectedViolationCode ?code }
+  OPTIONAL { ?ec gmeow:expectedSourceShape ?shape }
+  OPTIONAL { ?ec gmeow:expectedSoleFinding ?sole }
   OPTIONAL { ?ec gmeow:conformanceRationale ?rationale }
 }";
 
@@ -389,6 +427,7 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>>
             pattern: opt_string(&sol, "pattern"),
             shape: sol.get("shape").and_then(term_iri),
             scope,
+            fail_witness: opt_string(&sol, "failWitness"),
             rationale: opt_string(&sol, "rationale"),
         });
     }
@@ -417,6 +456,10 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
             })?,
             outcome,
             violation_code: opt_string(&sol, "code"),
+            // An IRI object; term_iri keeps it as the resolved absolute IRI so it
+            // compares directly against the finding's `sh:sourceShape` term.
+            expected_source_shape: sol.get("shape").and_then(term_iri),
+            expected_sole_finding: opt_bool(&sol, "sole")?,
             rationale: opt_string(&sol, "rationale"),
         });
     }

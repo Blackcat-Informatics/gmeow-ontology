@@ -73,11 +73,11 @@ text through the `gh` CLI. It writes:
 After changing `metadata/references.ttl`, regenerate exports:
 
 ```bash
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make check
 ```
 
-For a complete PR, run `make check`.
+`make check` materializes the exports through the single producer and then
+gates them in the same run — there is no separate regenerate step.
 
 ## Generated Exports
 

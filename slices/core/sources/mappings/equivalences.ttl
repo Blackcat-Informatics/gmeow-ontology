@@ -8,19 +8,15 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sourceLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:source ;
+gmeow:sourceLocation skos:closeMatch dcterms:source {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqProperties079 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sourceLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:contentUrl ;
+gmeow:sourceLocation skos:closeMatch schema:contentUrl {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a source/distribution's resolvable location IS schema:contentUrl on the DataDownload" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "a source/distribution's resolvable location IS schema:contentUrl on the DataDownload"
+|} .

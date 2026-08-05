@@ -114,6 +114,11 @@ fn mapping_dsl_vocabulary_has_no_missing_annotations() {
     let root = repo_root();
     let paths = vec![
         root.join("slices/core/kernel/module.ttl"),
+        // The gmeow:GraphBoxRole value type and its five role individuals are
+        // description-logic knowledge-base partitioning — a logical grounding
+        // concept — so they live in `logic:`, not in `kernel`. Without it the
+        // sweep sees every gmeow:graphBoxRole value as an untyped IRI.
+        root.join("slices/grounding/logic/module.ttl"),
         root.join("dsl/mappings/vocabulary.ttl"),
     ];
     let errors = lint_errors(&paths);
@@ -129,6 +134,9 @@ fn statement_dsl_vocabulary_has_no_missing_annotations() {
     let root = repo_root();
     let paths = vec![
         root.join("slices/core/kernel/module.ttl"),
+        // See mapping_dsl_vocabulary_has_no_missing_annotations: the
+        // gmeow:GraphBoxRole cluster is owned by the `logic:` grounding slice.
+        root.join("slices/grounding/logic/module.ttl"),
         root.join("dsl/statements/vocabulary.ttl"),
     ];
     let errors = lint_errors(&paths);
