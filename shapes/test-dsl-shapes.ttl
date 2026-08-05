@@ -1,5 +1,6 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -24,6 +25,8 @@
 gmeow:CompetencyQuestionShape
     a sh:NodeShape ;
     rdfs:label "Competency question shape"@en ;
+    logic:formalizes gmeow:CompetencyQuestionRationaleRequiredConstraint, gmeow:CompetencyQuestionQueryChoiceConstraint,
+        gmeow:CompetencyQuestionDataFileReasoningConstraint, gmeow:CompetencyQuestionExpectationChoiceConstraint ;
     sh:targetClass gmeow:CompetencyQuestion ;
     sh:property [
         sh:path gmeow:cqRationale ;
@@ -132,6 +135,7 @@ gmeow:CompetencyQuestionShape
 gmeow:StructuralAssertionShape
     a sh:NodeShape ;
     rdfs:label "Structural assertion shape"@en ;
+    logic:formalizes gmeow:StructuralAssertionPolarityRequiredConstraint, gmeow:StructuralAssertionPatternChoiceConstraint ;
     sh:targetClass gmeow:StructuralAssertion ;
     sh:property [
         sh:path gmeow:saPolarity ;
@@ -167,6 +171,8 @@ gmeow:StructuralAssertionShape
 gmeow:ExampleConformanceShape
     a sh:NodeShape ;
     rdfs:label "Example conformance shape"@en ;
+    logic:formalizes gmeow:ExampleConformanceFileRequiredConstraint, gmeow:ExampleConformanceOutcomeRequiredConstraint,
+        gmeow:ExampleConformanceViolationCodeConstraint ;
     sh:targetClass gmeow:ExampleConformance ;
     sh:property [
         sh:path gmeow:exampleFile ;
@@ -249,6 +255,7 @@ gmeow:ExampleConformanceShape
 gmeow:ExpectedRowShape
     a sh:NodeShape ;
     rdfs:label "Expected row shape"@en ;
+    logic:formalizes gmeow:ExpectedRowCellRequiredConstraint ;
     sh:targetClass gmeow:ExpectedRow ;
     sh:property [
         sh:path gmeow:rowCell ;
@@ -260,6 +267,7 @@ gmeow:ExpectedRowShape
 gmeow:ExpectedCellShape
     a sh:NodeShape ;
     rdfs:label "Expected cell shape"@en ;
+    logic:formalizes gmeow:ExpectedCellVarRequiredConstraint, gmeow:ExpectedCellValueChoiceConstraint ;
     sh:targetClass gmeow:ExpectedCell ;
     sh:property [
         sh:path gmeow:cellVar ;
@@ -290,6 +298,7 @@ gmeow:ExpectedCellShape
 gmeow:TestDslVocabularyTermShape
     a sh:NodeShape ;
     rdfs:label "Test DSL vocabulary annotation completeness shape"@x-gmeow-english ;
+    logic:formalizes gmeow:TestDslVocabularyTermCompletenessConstraint ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """

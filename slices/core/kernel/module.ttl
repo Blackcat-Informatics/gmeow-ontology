@@ -975,6 +975,51 @@ gmeow:coarsenTo logic:domain
     [ a logic:Restriction ; logic:onProperty gmeow:coarsenTo ; logic:allValuesFrom gmeow:GranularityLevel ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/coarsenTo" ; logic:closureValue logic:ClosedWorldClosure ] .
 
+# gmeow:UseForConsumerTargetShape / gmeow:AvoidForConsumerTargetShape — every
+# gmeow:useForConsumer / gmeow:avoidForConsumer value is a declared
+# gmeow:ProjectionContext individual. Domain-free (sh:targetSubjectsOf, not
+# sh:targetClass), so this is the SAME logic:domain + closure-opt-in idiom as
+# gmeow:HasGranularityShape above, not a class-scoped restriction.
+# gmeow:useForConsumer / gmeow:avoidForConsumer are owl:AnnotationProperty (the gmeow:accordingTo
+# downcast keeps generated OWL in OWL 2 DL), so their value-range obligation cannot ride an
+# owl:Restriction. It is authored procedurally: every value of the property must be a declared
+# gmeow:ProjectionContext individual. Each formalizes the exact retired shape IRI.
+gmeow:UseForConsumerTargetConstraint
+    a logic:Constraint ;
+    rdfs:label "useForConsumer range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:useForConsumer value is a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
+    logic:formalizes gmeow:UseForConsumerTargetShape ;
+    logic:message "Every gmeow:useForConsumer value must be a declared gmeow:ProjectionContext individual." ;
+    logic:integrity logic:ufcForall .
+logic:ufcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:ufcImpl .
+logic:ufcImpl a logic:Formula ; logic:antecedent logic:ufcGuard ; logic:consequent logic:ufcType .
+logic:ufcGuard a logic:Formula ; logic:relation gmeow:useForConsumer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:ufcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionContext ] .
+
+gmeow:AvoidForConsumerTargetConstraint
+    a logic:Constraint ;
+    rdfs:label "avoidForConsumer range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:avoidForConsumer value is a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
+    logic:formalizes gmeow:AvoidForConsumerTargetShape ;
+    logic:message "Every gmeow:avoidForConsumer value must be a declared gmeow:ProjectionContext individual." ;
+    logic:integrity logic:afcForall .
+logic:afcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:afcImpl .
+logic:afcImpl a logic:Formula ; logic:antecedent logic:afcGuard ; logic:consequent logic:afcType .
+logic:afcGuard a logic:Formula ; logic:relation gmeow:avoidForConsumer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:afcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionContext ] .
+
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes

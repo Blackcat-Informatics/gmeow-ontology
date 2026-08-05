@@ -88,11 +88,11 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
-    // wired here yet: it is activated at the terminal migration increment once the legacy shape
-    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
-    // Its production semantics are proven now over the live tree by
-    // `declarative_gate_flags_the_live_legacy_corpus`.
+    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
+    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
+    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
+    // single-source-of-truth invariant (Principle 17).
+    check_declarative_shape_purity(root, &mut report);
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
@@ -195,7 +195,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -314,7 +314,7 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
 /// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl"] {
+    for sub in ["shapes", "slices", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -417,12 +417,12 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
 /// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
 /// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-// Not yet reachable from a non-test build (activation is deferred to the terminal migration
-// increment); its live-tree production semantics are exercised by the gate test below.
-#[allow(dead_code)]
+// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
+// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
+// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
 fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -473,6 +473,55 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
                 parents.entry(q.o).or_default().insert(q.s);
             }
         }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut node = Some(head);
+            let mut guard = 0usize;
+            while let Some(n) = node {
+                if Some(n) == rdf_nil || guard > 100_000 {
+                    break;
+                }
+                guard += 1;
+                if let Some(q) = ds
+                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
+                    .next()
+                {
+                    out.push(q.o);
+                }
+                node = ds
+                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
+                    .next()
+                    .map(|q| q.o);
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        construct_subjects.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
         if construct_subjects.is_empty() {
             continue;
         }
@@ -507,7 +556,7 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// it enforces the invariant going forward.
 fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_shex_files(&dir, report, &mut shex_files);
@@ -3426,24 +3475,21 @@ mod tests {
     }
 
     #[test]
-    fn declarative_gate_flags_the_live_legacy_corpus() {
-        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
-        // activates at the terminal migration increment). This test proves its PRODUCTION
-        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
-        // shapes that carry no `logic:formalizes` back-reference.
+    fn declarative_gate_is_clean_on_the_migrated_tree() {
+        // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
+        // migration increment): the hand-authored shape corpus has been retired to the `logic:`
+        // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
+        // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
+        // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
+        // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
         let mut report = RepoStaticReport::default();
         check_declarative_shape_purity(live_repo_root(), &mut report);
         assert!(
-            !report.errors.is_empty(),
-            "the blanket declarative-shape gate must red on the live legacy corpus"
-        );
-        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
-        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
-        let legacy = "slices/core/inhabitation/shapes.ttl";
-        assert!(
-            report.errors.iter().any(|e| e.contains(legacy)),
-            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-            report.errors.len()
+            report.errors.is_empty(),
+            "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
+             authored shape remains (ground it in logic: and re-project, or add a \
+             logic:formalizes back-reference to the boundary-kept residue): {:?}",
+            report.errors
         );
     }
 
