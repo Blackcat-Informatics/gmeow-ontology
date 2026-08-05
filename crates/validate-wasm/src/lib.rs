@@ -66,8 +66,21 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// it here documents EXACTLY which codebook this wasm image validates against; the
 /// `gmn_codebook_digest_is_pinned` host test recomputes it over the embedded bytes and
 /// hard-fails if the two drift, so this constant can never silently fall out of date.
+///
+/// Re-blessed for the `logic:`-only validation migration (retiring hand-authored shapes):
+/// `module.ttl`'s TBox restriction blocks for `lang:inSignSystem`, `lang:analysisLevel`,
+/// `lang:featureKey`, `lang:denotationKind`, `lang:renderingKind`, `lang:translationCorrespondence`,
+/// `lang:paraphraseSamenessKind`, `gmeow:gmnSecurityRing`, and `gmeow:gmnRingLevel` drop their
+/// redundant hand-paired `maxQualifiedCardinality 1` (or, for `gmnSecurityRing`, both min/max)
+/// restriction, replaced by an `owl:FunctionalProperty` typing (or, for `gmeow:gmnSecurityRing`
+/// / `gmeow:gmnEnvelopeCorrespondence` / `gmeow:gmnRingLevel`, a new `logic:ClosureEntry` closed-world
+/// record) that reasons the same exactly-one/exactly-one-typed obligation instead of restating it
+/// as a shape-shaped restriction pair. None of this touches the GMN dictionary/glyph predicates
+/// [`GmnDictionary::from_dataset`] and [`gmn1_read`] actually resolve (`gmeow:gmnDictV3` and the
+/// glyph/prefix tables are untouched), so the codebook this wasm image validates against is
+/// unchanged in every way [`gmn_validate`] observes — only the raw carrier bytes moved.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "f0f74df9b13699007c68f73da9bc2642e6cc5b8a0c1f11921ab09a9391efccc2";
+    "5b82edd3b1819ef59db9dc881d5b07cdd1728172be1053be237c028988bf0c97";
 
 /// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
 ///
