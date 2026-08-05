@@ -545,6 +545,7 @@ ex:ecLogicLoweringDeclared a gmeow:ExampleConformance ;
 ex:ecUndeclaredLogicLowering a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/undeclared-logic-lowering.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UndeclaredLogicLowering ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example lowers a math:MathematicalExpression to a logic:Formula through math:compilesToLogicFormula while omitting both math:denotationKind and math:logicLoweringPreservation (two sh:minCount 1 constraints on math:LogicLoweringShape), so validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredLogicLowering) — the forbidden silent-promotion case." .
 
@@ -1437,6 +1438,7 @@ ex:ecPersistentHomologyComplete a gmeow:ExampleConformance ;
 ex:ecPersistentHomologyNoResult a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/persistent-homology-no-result.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompletePersistentHomologyAnalysis ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample fully frames the input and filtration but omits the required persistence-diagram result, isolating math:IncompletePersistentHomologyAnalysis." .
 
@@ -1564,6 +1566,7 @@ ex:ecCliffordNoGrading a gmeow:ExampleConformance ;
 ex:ecCliffordExtensionNoGenerator a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/clifford-extension-no-generator.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompleteCliffordExtension ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies two fully framed Clifford algebras but omits the extension generator, isolating math:IncompleteCliffordExtension." .
 

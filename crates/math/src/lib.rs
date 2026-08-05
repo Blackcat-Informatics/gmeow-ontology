@@ -20,7 +20,7 @@
 //! its own exact-rational inner-product engine.
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, RDF_LANG_STRING, Term, TermKind, XSD_STRING};
@@ -759,21 +759,32 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
             }
             TermRef::Triple { .. } => continue,
         };
-        // DISTINCT (s, p, o), never once per graph carrying it. `quads_for_pattern` walks
-        // every graph, and a slice's triples reach the reasoning EDB in more than one, so a
-        // plain push counted each authored triple as many times as graphs held it. Cardinality
-        // obligations read this index — an RDF triple is identity-bearing regardless of which
-        // graphs assert it, so "exactly one math:operator" must count operators, not
-        // assertions of one. Left unguarded, `gmeow validate --deep` reported this slice's own
-        // conforming examples as carrying two operators where they author one.
-        let objects = index
+        index
             .by_subject
             .entry(subject)
             .or_default()
             .entry(predicate.to_owned())
-            .or_default();
-        if !objects.contains(&object) {
-            objects.push(object);
+            .or_default()
+            .push(object);
+    }
+
+    // DISTINCT (s, p, o), never once per graph carrying it. `quads_for_pattern` walks every
+    // graph, and a slice's triples reach the reasoning EDB in more than one, so the push above
+    // records each authored triple as many times as graphs hold it. Cardinality obligations read
+    // this index — an RDF triple is identity-bearing regardless of which graphs assert it, so
+    // "exactly one math:operator" must count operators, not assertions of one. Left unguarded,
+    // `gmeow validate --deep` reported this slice's own conforming examples as carrying two
+    // operators where they author one.
+    //
+    // Deduplicating in a second pass rather than probing on every push keeps this linear in the
+    // dataset: a membership scan per push is quadratic in the objects one (subject, predicate)
+    // carries, and compares whole IRI/lexical strings each time. `retain` keeps the FIRST
+    // occurrence of each object, so the surviving order is exactly the order the probing form
+    // produced — the digests computed over this index are unchanged.
+    for predicates in index.by_subject.values_mut() {
+        for objects in predicates.values_mut() {
+            let mut seen: HashSet<Node> = HashSet::with_capacity(objects.len());
+            objects.retain(|object| seen.insert(object.clone()));
         }
     }
     index

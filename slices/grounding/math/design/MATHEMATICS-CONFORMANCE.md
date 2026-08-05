@@ -477,6 +477,16 @@ counter-example convention the logic slice already uses (`tests/counter-examples
 negative fixture is not considered enforced, however green the positive path looks — the negative
 fixture is what proves the gate actually bites.
 
+The matrix above is discharged by execution, not by reading: `crates/pipeline/tests/
+math_conformance_discharge.rs` registers **every** class-bearing row of **every** section of this
+document, resolves each row's declared tier to the channel that actually fires it (native lint,
+generated SHACL, reasoned closure, projection, or OWL axiom), and executes that channel against the
+counter-example corpus. It fails on a class this document names but the ontology does not author, on
+an authored class no row claims, and on a class a channel emits but `module.ttl` never declares. Its
+section registry is compared against this document's own headings in both directions, so adding a
+row here without a class, a gate, and a fixture reds that test — which is what keeps this charter
+from drifting away from the ontology it charters.
+
 ## What conformance does not claim
 
 Conformance establishes that the *ontology source and its projections* satisfy their gates. It does

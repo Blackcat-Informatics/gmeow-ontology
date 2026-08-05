@@ -144,9 +144,11 @@ fn non_literal_structural_key_value_is_flagged_as_malformed() {
 /// Two independently-named, alpha-equivalent `math:BindingExpression`s (∑ᵢ i and ∑ⱼ j —
 /// same operator, same slot-indexed binding shape, differing ONLY in the bound-variable
 /// declaration's IRI), each carrying a deliberately WRONG `math:structuralKey` so BOTH
-/// raise `math:StructuralKeyDrift`. Committed once and shared with
-/// `crates/logic/examples/alpha_class_join.rs` so the test and the runnable
-/// demonstration read the identical fixture.
+/// raise `math:StructuralKeyDrift`. This test is the sole authority for the join claim: it
+/// drives the production entry point rather than the minting helper, so the assertion below
+/// is the one a consumer's own join depends on. The shipped consumer-facing demonstration of
+/// the same property is `slices/grounding/math/examples/alpha-equivalent-twins.ttl`, which
+/// reaches the object-level bundle and is therefore reachable from `gmeow validate --deep`.
 const ALPHA_EQUIVALENCE_DRIFT_JOIN: &str = include_str!(
     "../../../../slices/grounding/math/tests/conformance-fixtures/alpha-equivalence-drift-join.ttl"
 );
