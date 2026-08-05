@@ -119,14 +119,13 @@ pub fn produce_expression_annotation_projection() -> String {
 /// Builds a self-contained Normal `math:Distribution` whose `math:distributionParameterization`
 /// names BOTH required roles (`mean`, `stddev`). SciPy's `scipy.stats.norm(loc=…,
 /// scale=…)` keeps named parameters exactly, so a projection that maps role-for-role onto
-/// SciPy's keyword arguments loses nothing: an HONEST `logic:preservationKind
-/// logic:ExactPreservation`, decided by inspecting that both roles are representable
-/// one-to-one, not a hardcoded claim. Exercises the real-producer acceptance path for
+/// SciPy's keyword arguments loses nothing. The emitted `logic:preservationKind
+/// logic:ExactPreservation` is therefore authored, not computed: this is a fixture producer,
+/// and the claim it makes is one a reader can check against the two roles it emits directly
+/// below. Exercises the real-producer acceptance path for
 /// `math:MissingPreservationKind` and `math:ProjectionDroppedParameterization` (an exact
 /// record is vacuously clean for both — nothing is dropped, so nothing need be declared).
 pub fn produce_distribution_scipy_projection() -> String {
-    // SciPy's `scipy.stats.norm` names exactly these two roles; both are representable as
-    // named keyword arguments, so the mapping is role-complete (checked, not assumed).
     // The two roles SciPy's `norm` takes as named keyword arguments. Asserting they are
     // non-empty would be a tautology over the literals on the line above; what the projection
     // must actually preserve is that BOTH of them survive into the emitted parameterization,
@@ -171,11 +170,11 @@ pub fn produce_distribution_scipy_projection() -> String {
 /// real-producer acceptance path for `math:MissingPreservationKind`,
 /// `math:UndeclaredUnsupportedConstruct`, and `math:ProjectionConfidenceAsProbability`.
 pub fn produce_confidence_probability_projection() -> String {
+    // The confidence score this producer carries through, as a proper fraction in (0, 1).
+    // Asserting that property here would be a tautology over the two literals on this line;
+    // what the projection must actually preserve is that the SAME two integers reach the
+    // emitted `math:ProbabilityValue`, which the acceptance query over this output checks.
     let (numerator, denominator): (i64, i64) = (87, 100);
-    assert!(
-        numerator > 0 && denominator > numerator,
-        "the confidence score must be a proper fraction in (0, 1)"
-    );
 
     let mut t = String::new();
     t.push_str(PRODUCER_PREFIXES);

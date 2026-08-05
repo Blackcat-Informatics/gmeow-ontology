@@ -1444,14 +1444,20 @@ fn total_math_conformance_matrix_is_discharged() {
     // broken test rather than a flaky one; the work itself is what had to get cheaper.
     // On a BOUNDED pool, not the global one. nextest already runs tests in parallel, so a
     // test that quietly seizes every core starves its siblings — which is how two heavy
-    // pipeline tests started timing out the moment this loop went parallel. Eight threads —
-    // a quarter of this machine — keep the win here (the cost is one DL closure per fixture,
-    // not per core: ~700s sequential, ~350s on four, ~235s on eight) while leaving the rest
-    // of the suite room to run.
+    // pipeline tests started timing out the moment this loop went parallel. A QUARTER of the
+    // host's parallelism keeps most of the win (the cost is one DL closure per fixture, not
+    // per core: ~700s sequential, ~350s on four threads, ~235s on eight) while leaving the
+    // rest of the suite room to run. Derived rather than hardcoded so the fraction is true on
+    // every host: a fixed count is a quarter of one developer's machine and oversubscription
+    // on a small CI runner, which is precisely the starvation this bound exists to prevent.
+    // Floored at two so the parallel fold is still exercised on a uniprocessor.
+    let pool_threads = std::thread::available_parallelism()
+        .map(|n| (n.get() / 4).max(2))
+        .unwrap_or(2);
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(8)
+        .num_threads(pool_threads)
         .build()
-        .expect("an eight-thread pool for the per-fixture closures");
+        .expect("a bounded pool for the per-fixture closures");
     let per_fixture: Vec<(String, Vec<(String, Channel)>)> = pool.install(|| {
         fixtures
             .par_iter()
@@ -1472,13 +1478,12 @@ fn total_math_conformance_matrix_is_discharged() {
                     Arc::clone(&conformance_modules),
                     Arc::clone(&fixture_ds),
                 ]);
-                // Reasoned exactly as production reasons: no `logic:`->`rdfs:` projection is applied
-                // here, because the shipped pipeline applies none either. `logic:subClassOf` /
-                // `logic:subPropertyOf` are inert to OWL 2 RL in their authored spelling, and
-                // `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from a
-                // `logic:`-authored chain. Projecting here would make this gate STRONGER than the
-                // shipped reasoner and credit a class through a derived edge `gmeow validate --deep`
-                // never sees.
+                // Reasoned exactly as production reasons: no `logic:`->`rdfs:` projection is
+                // applied here, because the engine already applies it at the EDB boundary
+                // (`gmeow_logic::reason::edb_predicate_spellings`), for this closure and for the
+                // shipped one alike. Re-projecting on top would only duplicate facts; SKIPPING it
+                // is what keeps this gate exactly as strong as the reasoner `gmeow validate --deep`
+                // runs, crediting a class through no derived edge the consumer cannot see.
                 let (derived, closure, closure_result) = fixture_closure(&ds, &name);
 
                 // The native structural-lint channel — credited under the channel its OWN
@@ -1539,11 +1544,6 @@ fn total_math_conformance_matrix_is_discharged() {
 
     // ── Reconciliation report. ────────────────────────────────────────────────────────
     let mut hard_gaps: Vec<String> = Vec::new();
-    // Retained as a defensive gate, not a leniency valve: every push site that used
-    // to feed this bucket (absent/malformed shapes, an unbuilt owl-axiom channel) is gone,
-    // so this stays empty by construction — but the final assert still fails loudly if a
-    // future regression ever pushes to it, rather than silently accepting a weaker verdict.
-    let unverified: Vec<String> = Vec::new();
     let mut orphan_notes: Vec<String> = Vec::new();
     let mut prose_notes: Vec<String> = Vec::new();
 
@@ -1784,13 +1784,6 @@ fn total_math_conformance_matrix_is_discharged() {
         report.push_str(&format!("  • {n}\n"));
     }
     report.push_str(&format!(
-        "\n--- UNVERIFIED (must always be empty — defensive gate only, {}) ---\n",
-        unverified.len()
-    ));
-    for n in &unverified {
-        report.push_str(&format!("  • {n}\n"));
-    }
-    report.push_str(&format!(
         "\n--- prose-row notes ({}) ---\n",
         prose_notes.len()
     ));
@@ -1803,12 +1796,9 @@ fn total_math_conformance_matrix_is_discharged() {
     // (only the `assert!` panic payload carried it, invisible unless the test failed).
     println!("{report}");
 
-    // The gate: HARD GAPS, ORPHAN CLASSES, and a non-empty UNVERIFIED bucket are all
-    // actionable and drive failure. There is no "environment-limited" carve-out:
+    // The gate: HARD GAPS and ORPHAN CLASSES are both actionable and drive failure. There is
+    // no "environment-limited" carve-out and no third "unverified" bucket to fall into —
     // every channel above is executed for real, so a class this harness cannot discharge is
     // always a hard gap, never a silently-accepted weaker verdict.
-    assert!(
-        hard_gaps.is_empty() && orphan_notes.is_empty() && unverified.is_empty(),
-        "{report}"
-    );
+    assert!(hard_gaps.is_empty() && orphan_notes.is_empty(), "{report}");
 }
