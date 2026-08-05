@@ -102,53 +102,19 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
     builder.freeze().expect("valid scoped test dataset")
 }
 
-/// Project the authored `logic:` structural predicates onto the `rdfs:` twins OWL 2 RL reasons
-/// over, before the closure runs.
-///
-/// `logic:subClassOf` / `logic:subPropertyOf` are this repo's CANONICAL authoring predicates for
-/// subsumption, and OWL 2 RL has rules only for the `rdfs:` forms, so a closure that does not
-/// project them parses each authored axiom and then does nothing with it: every authored
-/// specialization silently vanishes, and the missing entailment reads as an ontology defect
-/// rather than as a missing projection.
-///
-/// Projecting here lets THESE cases assert the subsumption the slices authored. It does NOT
-/// make a source-level closure identical to the shipped one: the pipeline performs no such
-/// projection, so `generated/logic/inferred-closure.rdf12.ttl` carries no entailment from any
-/// `logic:`-authored chain while `rdfs:`-authored chains close normally. This projection is
-/// therefore a statement about what the AXIOMS mean, not a claim about what the shipped
-/// reasoner currently derives.
-fn project_logic_structural_predicates(quads: &mut Vec<RdfQuad>) {
-    const PROJECTIONS: &[(&str, &str)] = &[
-        (
-            "https://blackcatinformatics.ca/logic/subClassOf",
-            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-        ),
-        (
-            "https://blackcatinformatics.ca/logic/subPropertyOf",
-            "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
-        ),
-    ];
-    let projected: Vec<RdfQuad> = quads
-        .iter()
-        .filter_map(|q| {
-            PROJECTIONS
-                .iter()
-                .find(|(authored, _)| q.predicate == *authored)
-                .map(|(_, rdfs)| RdfQuad::new(q.subject.clone(), *rdfs, q.object.clone()))
-        })
-        .collect();
-    quads.extend(projected);
-}
-
 /// An RL closure of the named slice modules plus injected `abox` quads — the native twin of the
 /// Python `_materialize(*modules, abox)` pattern. `slices` are `<group>/<name>` ids; the relevant
 /// `module.ttl` files (small TBox) plus the tiny A-Box close in seconds, Docker-free.
+///
+/// The authored `logic:subClassOf` / `logic:subPropertyOf` taxonomy needs no projection here:
+/// the engine lowers a canonical subsumption edge onto its `rdfs:` twin at the EDB boundary
+/// (`gmeow_logic::reason::edb_predicate_spellings`), so these cases exercise the SAME path the
+/// shipped pipeline reasons over.
 pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let mut paths: Vec<String> = slices.iter().map(|s| module(s)).collect();
     paths.sort();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
-    project_logic_structural_predicates(&mut quads);
     let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
@@ -159,7 +125,6 @@ pub fn scoped_closure_files(rel_paths: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let paths: Vec<String> = rel_paths.iter().map(|s| (*s).to_owned()).collect();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
-    project_logic_structural_predicates(&mut quads);
     let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }

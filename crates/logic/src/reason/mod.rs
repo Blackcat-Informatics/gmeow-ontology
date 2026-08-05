@@ -371,9 +371,10 @@ const LOO_OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equival
 const LOO_OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
 
 /// Lower a CANONICAL `logic:` subsumption predicate to the `rdfs:` spelling the fixed
-/// DL/RDFS calculus matches — the SAME EDB-boundary lowering `rl::encode_generic_edb`
-/// performs, applied here at the leave-one-out boundary. Every other predicate is
-/// itself.
+/// DL/RDFS calculus matches — the SAME lowering [`edb_predicate_spellings`] applies at
+/// the EDB boundary, applied here at the leave-one-out boundary. It REPLACES the
+/// spelling rather than adding to it, because the probe index is keyed on one
+/// spelling per edge. Every other predicate is itself.
 ///
 /// # Why the leave-one-out path needs it
 ///
@@ -1657,6 +1658,45 @@ pub(crate) fn run_reasoning_rules_budgeted(
     })
 }
 
+/// The predicate spellings one authored quad contributes to a fixed-calculus EDB:
+/// the authored predicate itself, plus — for a canonical `logic:` subsumption edge —
+/// the `rdfs:` spelling every fixed rule set matches on.
+///
+/// # Why the lowering lives at the EDB boundary
+///
+/// The EL/DL/RL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`],
+/// [`rl_rules`]) are FIXED and largely W3C-specified: every subsumption rule
+/// (`el:subClassOf-transitive`, `el:type-propagation`, `cax-sco`, `scm-sco`,
+/// `scm-spo`, `prp-spo1`, …) matches the `rdfs:subClassOf` / `rdfs:subPropertyOf`
+/// spelling *by specification*, and is not GMEOW's to re-author. But GMEOW's
+/// authored surface is the CANONICAL `logic:` vocabulary (Principle 17: `rdfs:` is
+/// one of its lossy projections), so a chase fed authored `module.ttl` sources sees
+/// a taxonomy spelled `logic:subClassOf` and would derive nothing from it —
+/// silently, with a taxonomy-free closure rather than an error. A consumer of the
+/// shipped artifacts could not then answer "is this class a `math:MathConformanceFailure`?"
+/// for any class whose parent edge was authored canonically.
+///
+/// So the projection is materialized at the EDB boundary, once, for every fixed
+/// calculus: a canonical `logic:subClassOf` / `logic:subPropertyOf` quad is encoded a
+/// second time under its `rdfs:` spelling ([`gmeow_ns::SUB_CLASS_OF`] /
+/// [`gmeow_ns::SUB_PROPERTY_OF`], canonical first, projected second), in the same
+/// world. The canonical quad is kept too — the projection ADDS the RDFS view, it
+/// never replaces the authored edge — and both are asserted (`is_edb`), because a
+/// projection of an asserted axiom is asserted, not derived.
+///
+/// When the `rdfs:` projection ceilings reach zero corpus-wide and the `rdfs:` arm of
+/// the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the lowering
+/// (canonical → the fixed calculi's RDFS vocabulary) is what those calculi need, not
+/// a transitional read of two authored spellings.
+pub(crate) fn edb_predicate_spellings(predicate: &str) -> impl Iterator<Item = &str> {
+    let projection: Option<&str> = match predicate {
+        gmeow_ns::LOGIC_SUB_CLASS_OF => Some(gmeow_ns::RDFS_SUB_CLASS_OF),
+        gmeow_ns::LOGIC_SUB_PROPERTY_OF => Some(gmeow_ns::RDFS_SUB_PROPERTY_OF),
+        _ => None,
+    };
+    std::iter::once(predicate).chain(projection)
+}
+
 /// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
 /// fact-set construction the whole reasoning path shares.
 ///
@@ -1668,6 +1708,13 @@ pub(crate) fn run_reasoning_rules_budgeted(
 /// participate in any rule, and skipping them is sound for the closure AND the
 /// verdict. It is no longer a transport necessity: the typed adapter carries
 /// literal objects — control characters included — losslessly through the chase.
+///
+/// Each surviving quad is pushed under every spelling
+/// [`edb_predicate_spellings`] gives it, so a canonically-spelled
+/// `logic:subClassOf` / `logic:subPropertyOf` taxonomy drives the fixed
+/// RDFS-vocabulary calculus instead of sitting inert in the EDB. This is the one
+/// place the whole native reasoning path — the shipped closure, the DL verdict,
+/// `gmeow entails`, and every incremental session — takes that lowering.
 ///
 /// This deliberately does not first copy the entire immutable `RdfDataset` into a
 /// mutable `WorldStore` and then query every world back out. The frozen IR already
@@ -1701,7 +1748,9 @@ pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFac
         // travels as a plain string literal exactly as before.
         let subject = edb.term_value(quad.s);
         let object = edb.term_value(quad.o);
-        edb_facts.push_quad(&subject, predicate, &object, world);
+        for spelling in edb_predicate_spellings(predicate) {
+            edb_facts.push_quad(&subject, spelling, &object, world);
+        }
     }
     Ok(edb_facts)
 }

@@ -893,6 +893,52 @@ mod tests {
         );
     }
 
+    /// A premise authored in the CANONICAL `logic:` subsumption vocabulary entails the
+    /// same memberships and subsumptions as one authored in its `rdfs:` projection.
+    ///
+    /// This is the consumer-visible statement of
+    /// [`crate::reason::edb_predicate_spellings`]: `gmeow entails` composes over
+    /// [`crate::reason::dl_consistency`], which folds from the ONE chase
+    /// [`crate::reason::build_edb_facts`] feeds. Every `module.ttl` authors subsumption
+    /// as `logic:subClassOf` (Principle 17 — `rdfs:` is one of its lossy projections),
+    /// so without the EDB-boundary lowering a consumer asking "is this class a
+    /// `math:MathConformanceFailure`?" of the shipped bundle gets `not-entailed`: the
+    /// enforcement fires while the taxonomy stays dark.
+    #[test]
+    fn canonical_logic_subsumption_is_entailment_equivalent_to_its_rdfs_projection() {
+        const LOGIC_SUBCLASS: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+        let premise = dataset(&format!(
+            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n\
+             <http://ex/a> <{LOGIC_SUBCLASS}> <http://ex/b> .\n\
+             <http://ex/b> <{LOGIC_SUBCLASS}> <http://ex/c> .\n"
+        ));
+        let membership = dataset(
+            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/c> .\n",
+        );
+        let subsumption = dataset(
+            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
+        );
+        assert_eq!(
+            dl_entails(premise.as_ref(), membership.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed,
+            "x ∈ c must follow from a canonically-spelled a ⊑ b ⊑ c"
+        );
+        assert_eq!(
+            dl_entails(premise.as_ref(), subsumption.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed,
+            "a ⊑ c must follow from a canonically-spelled a ⊑ b ⊑ c"
+        );
+
+        // The lowering ADDS the taxonomy; it does not make everything entailed.
+        let unrelated = dataset(
+            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/d> .\n",
+        );
+        assert_eq!(
+            dl_entails(premise.as_ref(), unrelated.as_ref()).unwrap(),
+            EntailmentVerdict::NotEntailed
+        );
+    }
+
     /// A multi-triple conjunctive conclusion is entailed iff EVERY component is.
     #[test]
     fn multi_triple_conjunction_all_entailed_is_entailed() {

@@ -329,8 +329,24 @@ use session_common::*;
 /// and its digest is a THIRD value that is neither side's; taking a side would pin a hash no
 /// build produces. Recomputed from the merged engine. Every contributing change is
 /// individually verdict-preserving on the fixed edge-only input, so only the identity moved.
+/// Re-blessed once more for the canonical-subsumption lowering at the FORWARD EDB boundary:
+/// `reason/mod.rs`'s `build_edb_facts` — the single typed-fact-set construction the whole
+/// native path shares (the shipped closure, the `DlVerdict`, `gmeow entails`, every
+/// incremental session) — now pushes each quad under every spelling the new shared
+/// `edb_predicate_spellings` gives it, so a `logic:subClassOf` / `logic:subPropertyOf`
+/// taxonomy also enters the EDB under the `rdfs:` spelling the fixed EL/DL rules match.
+/// `reason/rl.rs` was already doing exactly this privately and now calls the shared helper
+/// instead of its own copy. `reason/mod.rs`, `reason/rl.rs` and `reason/el.rs` are all folded
+/// into `native_contract_hash()` by `include_str!`, so the raw-source content digest moves.
+/// This DOES change reasoning verdicts on canonically-spelled subsumption (previously the
+/// authored edge sat inert in the EDB and derived nothing), but the change is
+/// semantics-preserving in the direction that matters: the added facts are the RDFS
+/// PROJECTION of asserted axioms (asserted, never derived), the authored canonical edge is
+/// kept, and no rule, decider, or profile capability changed. The fixed input here is
+/// edge-only and authors no subsumption edge in either spelling, so its reasoning verdict is
+/// unchanged — only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "eb741f90d6d66b70bac2c612515fcdab316c873c77e90c6bffccaf7d77737c74";
+    "dca3d7d68e78cac2c694112ae5099713cdaa52f5b52e1d5e7b56b31cd8855208";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -496,8 +512,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine descriptor above: both sides had again moved this golden away from the merge base,
 /// so the merged fixed-input session identity is a THIRD value recomputed from the merged
 /// engine rather than a choice between the two sides.
+/// Re-blessed once more for the canonical-subsumption lowering at the FORWARD EDB boundary
+/// (see the engine-descriptor golden above): `build_edb_facts` now pushes each quad under
+/// every spelling `edb_predicate_spellings` gives it, and the native contract hash is one of
+/// the seven folded identity axes, so this fixed-input session identity moves with it. The
+/// fixed edge-only input authors no subsumption edge in either spelling, so its reasoning
+/// verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "027dc877a67b388666f65810236f06505dab157b426147d0ff9b81d36566a4d1";
+    "d0e06525f88cd8401dbf194a6bafde1b0b757b925c893ec3ef3cee75d939de10";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
