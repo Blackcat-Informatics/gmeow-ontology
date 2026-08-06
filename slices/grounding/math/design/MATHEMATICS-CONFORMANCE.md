@@ -388,11 +388,17 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | No projection flattens an expression AST to a string without recording loss | Rust validator (`check_math_unrecorded_projection_loss`) | `math:UnrecordedProjectionLoss` |
 
 > **Why these five name the native validator and not a projection producer.** No production
-> `math:` projection producer emits `math:ProjectionRecord` individuals today — the shipped bundle
-> carries none, and the authored records live in slice fixtures. A charter row must name the
-> mechanism that actually decides the rule on shipped content; naming a test-support module would
-> make the gate an artifact of the test that asserts it. When a real producer lands, these rows
-> move to it and the acceptance query runs over its output.
+> `math:` pipeline stage COMPUTES `math:ProjectionRecord` individuals today — the three lowerings
+> above (the OWL-annotation flattening, the SciPy/Stan role mapping, and the confidence
+> calibration) are hand-authored, positive demonstrators in `examples/projection-loss-ledger.ttl`
+> (shipped in `gmeow.gts`) and, separately, computed by the test-support producers in
+> `crates/pipeline/tests/support/math_projection_producer.rs` (exercised as a real-producer
+> acceptance query in `crates/pipeline/tests/math_conformance_discharge.rs`, over genuinely
+> computed output rather than hand-typed testimony). Neither is a DAG stage that derives a
+> `math:ProjectionRecord` from a live source object during `make check`. A charter row must name
+> the mechanism that actually decides the rule on shipped content; naming a test-support module
+> would make the gate an artifact of the test that asserts it. When a real pipeline-stage producer
+> lands, these rows move to it and the acceptance query runs over its output.
 
 | A declared-exact `math:JointProbabilityTable`/`math:MarkovKernel`/`math:BayesianNetwork`/`math:FactorGraph` actually has the outcome mass / completeness its declared `logic:ExactPreservation` claims | Rust validator (`check_math_probability_invariants`; arithmetic outcome-mass summation and dependency-graph completeness over the probability-model families, not a `math:ProjectionRecord` join) | `math:ExactPreservationViolated` |
 

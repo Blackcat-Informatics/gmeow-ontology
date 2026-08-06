@@ -35,6 +35,7 @@ use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipRepor
 use purrdf::slice::{Phase, ToolchainContext, product_unit_key};
 
 use crate::cache::{CachedResult, ValidationCache};
+use crate::findings::FailureClassIndex;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
@@ -523,6 +524,28 @@ impl ValidationRun {
                 },
             )?;
 
+        // The shape surface's `gmeow:enforcesFailureClass` annotations, read ONCE from
+        // the very dataset the shapes were parsed from (the union loader hands its own
+        // store back, so a second parse with different blank scoping is impossible).
+        // Every SHACL finding this run emits is resolved through it, so a violation
+        // NAMES the typed conformance failure its law declares rather than shipping
+        // only the generic component code every gate of that shape shares.
+        let failure_classes = match &shape_store {
+            Some(store) => FailureClassIndex::from_shapes_dataset(store),
+            None => {
+                let shapes_ds = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
+                    .map_err(|e| {
+                    Diag::of_kind(crate::error::Parse {
+                        detail: format!(
+                            "SHACL shapes failed to parse as a dataset for the \
+                                 gmeow:enforcesFailureClass index: {e}"
+                        ),
+                    })
+                })?;
+                FailureClassIndex::from_shapes_dataset(&shapes_ds)
+            }
+        };
+
         // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
         // ontology validation phases, so malformed, unsigned, or untrusted bundles
@@ -828,7 +851,7 @@ impl ValidationRun {
                     // property path (constraint projector + the legacy shape bodies), so the raw dataset
                     // is validated directly.
                     let report = store::shacl_validate_dataset(&dataset, &shapes);
-                    Ok(shacl_findings_from_report(&report, None))
+                    Ok(shacl_findings_from_report(&report, None, &failure_classes))
                 })?
             }
             // The verdict the pipeline already recorded over the same inputs, proven
@@ -861,6 +884,7 @@ impl ValidationRun {
             let (result, meta) = check_examples(
                 &dataset,
                 &shapes,
+                &failure_classes,
                 slices_dir,
                 cache.as_ref(),
                 &merged_shacl_key,
@@ -1841,6 +1865,7 @@ type CachedPhaseResult = gmeow_errors::Result<(Vec<Finding>, Option<String>)>;
 fn check_examples(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_classes: &FailureClassIndex,
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
@@ -1895,7 +1920,7 @@ fn check_examples(
                 ])
             };
             run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(&base_projected, shapes, path, name)
+                run_example_shacl(&base_projected, shapes, failure_classes, path, name)
             })
         })
         .collect();
@@ -1948,6 +1973,7 @@ fn example_shacl_key(
 fn run_example_shacl(
     base_projected: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_classes: &FailureClassIndex,
     path: &Path,
     name: &str,
 ) -> gmeow_errors::Result<Vec<Finding>> {
@@ -1987,7 +2013,7 @@ fn run_example_shacl(
             detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
         })
     })?;
-    let report = if example_allows_focus_pruning(example_ds.as_ref()) {
+    let mut report = if example_allows_focus_pruning(example_ds.as_ref()) {
         let affected = affected_focus_terms(example_projected.as_ref());
         // ABox-only examples cannot alter the ontology's target/class/property
         // structure, so the merged run only needs to recheck focus terms touched
@@ -2006,7 +2032,16 @@ fn run_example_shacl(
             detail: format!("example {name}: SHACL validation failed: {e}"),
         })
     })?;
-    Ok(shacl_findings_from_report(&report, Some(name)))
+    // The per-example path calls the engine directly (it needs the focus-filter
+    // variant), so it applies the same result-set collapse
+    // `store::shacl_validate_dataset` does — a violation reported twice is one
+    // violation on every validate surface, not just the bundle-driven one.
+    store::dedupe_validation_results(&mut report);
+    Ok(shacl_findings_from_report(
+        &report,
+        Some(name),
+        failure_classes,
+    ))
 }
 
 const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
@@ -2987,7 +3022,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             results: vec![result],
         };
 
-        let findings = shacl_findings_from_report(&report, None);
+        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
 
         assert_eq!(findings.len(), 1, "expected exactly one finding");
         assert_eq!(
@@ -3014,7 +3049,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             results: vec![],
         };
 
-        let findings = shacl_findings_from_report(&report, None);
+        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
 
         assert_eq!(
             findings.len(),

@@ -414,6 +414,21 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &mut lines,
             );
         }
+        // The TYPED conformance-failure class the violated law declares
+        // (gmeow:findingFailureClass) — the object is the class IRI the law's own
+        // gmeow:enforcesFailureClass names, projected verbatim. `gmeow:findingCode`
+        // above carries only the generic mechanism that fired, so this is the sole
+        // place the projected graph can be QUERIED by which failure was raised.
+        // Guarded by Some so a finding whose law declares no class leaves the
+        // projection byte-unchanged.
+        if let Some(class) = &finding.failure_class {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingFailureClass"),
+                &format!("<{class}>"),
+                &mut lines,
+            );
+        }
         // The provenance-DAG antecedent edges (gmeow:findingAntecedent): this
         // finding derives FROM each object, keyed on the antecedent's canonical
         // fingerprint IRI — the SAME IRI that antecedent's own subject carries, so
@@ -656,6 +671,13 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
         line.push(')');
     }
     out.push(line);
+    // The TYPED conformance-failure class the violated law declares. The headline
+    // line can only carry the generic component `code` (every cardinality gate in the
+    // ontology shares `shacl.MinCountConstraintComponent`), so without this line the
+    // human surface can never name WHICH failure was raised.
+    if let Some(class) = &finding.failure_class {
+        out.push(format!("  ↳ failure class: {class}"));
+    }
     // Secondary TEXT-bearing labels (Rust-compiler-style "defined here" / SHACL
     // result-path spans): one indented line each, rendering the label message
     // beside its location so the prose survives to the human text surface too.
@@ -939,6 +961,15 @@ pub fn to_html(report: &Report) -> String {
 
         // Message cell: message text, optional suggestions list, optional help link.
         let mut msg_cell = escape_html(&finding.message);
+        // The TYPED conformance-failure class the violated law declares — the code
+        // column above can only carry the generic component name every gate of that
+        // shape shares.
+        if let Some(class) = &finding.failure_class {
+            msg_cell.push_str(&format!(
+                "<p class=\"failure-class\">failure class: {}</p>",
+                escape_html(class)
+            ));
+        }
         if !finding.suggestions.is_empty() {
             msg_cell.push_str("<ul class=\"suggestions\">");
             for suggestion in &finding.suggestions {
@@ -1213,6 +1244,13 @@ fn sarif_result(finding: &Finding) -> Value {
     if let Some(category) = finding.category {
         props.insert("gmeow.category".to_owned(), json!(category.as_str()));
     }
+    // The TYPED conformance-failure class the violated law declares, under the PINNED
+    // key `gmeow.failureClass`. `ruleId` carries only the generic component name every
+    // gate of that shape shares, so this is the only place the SARIF artifact can name
+    // the specific failure. Guarded by Some so a class-less finding is byte-unchanged.
+    if let Some(class) = &finding.failure_class {
+        props.insert("gmeow.failureClass".to_owned(), json!(class));
+    }
     if !finding.attributions.is_empty() {
         // Sorted (role, slice_iri) for deterministic output.
         let mut sorted: Vec<_> = finding
@@ -1476,6 +1514,91 @@ mod tests {
     use super::*;
     use crate::grade::Standpoint;
     use crate::model::{DiagnosticAttribution, Finding, Location, Report, Rule, Severity};
+
+    /// F1: the typed conformance-failure class the violated law declares must reach
+    /// EVERY output surface, not just the struct. `code` names only the generic
+    /// mechanism (`shacl.MinCountConstraintComponent` is shared by every cardinality
+    /// gate in the ontology), so a surface that renders the code alone cannot name the
+    /// authored failure at all — which is the defect this field exists to close, and a
+    /// field nothing renders is that same defect one layer up.
+    #[test]
+    fn the_typed_failure_class_reaches_every_rendered_surface() {
+        let mut finding = Finding::new(
+            Severity::Error,
+            "shacl.MinCountConstraintComponent",
+            "SHACL constraint violated",
+        )
+        .with_tool("shacl")
+        .with_failure_class("https://blackcatinformatics.ca/math/UntypedFreeVariable");
+        finding.add_location(Location::new(
+            Some("counter-examples/free-variable-untyped.ttl".to_owned()),
+            None,
+            None,
+            Some("https://example.org/math/untypedFreeVariable".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        const CLASS: &str = "https://blackcatinformatics.ca/math/UntypedFreeVariable";
+
+        let json = to_json(&report).expect("JSON renders");
+        assert!(
+            json.contains(CLASS),
+            "JSON must name the failure class: {json}"
+        );
+        assert!(
+            json.contains("\"failure_class\""),
+            "under a stable key: {json}"
+        );
+
+        let sarif = to_sarif(&report).expect("SARIF renders");
+        assert!(
+            sarif.contains("gmeow.failureClass") && sarif.contains(CLASS),
+            "SARIF must name the failure class under its pinned property key: {sarif}"
+        );
+
+        let text = to_text(&report);
+        assert!(
+            text.contains(&format!("failure class: {CLASS}")),
+            "the human surface must name the failure class: {text}"
+        );
+
+        let html = to_html(&report);
+        assert!(
+            html.contains(CLASS),
+            "the HTML surface must name the failure class: {html}"
+        );
+
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains(&format!("<{GMEOW}findingFailureClass> <{CLASS}>")),
+            "the RDF projection must carry the class as an IRI-valued edge: {nquads}"
+        );
+    }
+
+    /// A finding whose law declares no failure class leaves every surface exactly as it
+    /// was — the absence is honest, and no surface fabricates a class or an empty slot.
+    #[test]
+    fn a_finding_without_a_failure_class_renders_no_class_anywhere() {
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(Some("x.ttl".to_owned()), None, None, None));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        assert!(
+            !to_json(&report)
+                .expect("JSON renders")
+                .contains("failure_class")
+        );
+        assert!(
+            !to_sarif(&report)
+                .expect("SARIF renders")
+                .contains("gmeow.failureClass")
+        );
+        assert!(!to_text(&report).contains("failure class:"));
+        assert!(!to_html(&report).contains("failure-class"));
+        assert!(!to_gmeow_rdf(&report).contains("findingFailureClass"));
+    }
 
     // ── Fixtures ─────────────────────────────────────────────────────────────
     //

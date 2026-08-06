@@ -372,8 +372,28 @@ use session_common::*;
 /// is now DECIDED instead of reported as an out-of-fragment construct, and a literal
 /// that violates one produces a value-space clash the kernel materializes. The fixed
 /// edge-only input carries no datatype facet, so only the identity moved.
+/// Re-blessed once more for the canonical `logic:` CLASS-EXPRESSION lowering. One shared
+/// table (`reason/mod.rs`'s `CALCULUS_VOCABULARY`) now maps the canonical restriction
+/// vocabulary — `logic:Restriction` and its slots, plus the `logic:subClassOf` /
+/// `logic:equivalentClass` anchors that attach a body to the class it constrains — onto the
+/// W3C spelling the FIXED calculi name by specification. It is consumed at the typed-EDB
+/// boundary (`edb_predicate_spellings`, which ADDS the projection) and at every raw-dataset
+/// scan waist (`reason/dl.rs`'s `quads_by_subject` / `raw_resource_facts` and the three
+/// `reason/refute/*` per-quad scans, which normalize). `reason/dl.rs`, `reason/mod.rs` and
+/// `reason/refute.rs`'s module tree fold into the native contract hash, so the descriptor
+/// moves. This DOES change reasoning verdicts: a class-expression body authored in the
+/// canonical vocabulary previously reached only the derived SHACL surface and contributed
+/// nothing to the DL/EL closure; it is now read, so `gmeow entails` decides over it. The H2
+/// class-definition cardinality withhold moves with it — it is now narrowed by
+/// `counting::class_definition_counting_residual`, which applies the engine's existing exact
+/// `cardinality 1` carve-out to the EFFECTIVE per-class/per-property bound, so a `min 1` +
+/// `max 1` pair spelled as two restriction nodes is decided exactly as the one-node `= 1`
+/// spelling already was. Every other bound (one-sided, effective minimum ≥ 2, collapsed)
+/// stays an honest gap, and the W3C divergence corpus is unchanged
+/// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
+/// class expression, so its reasoning verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "5ae6582aefbb423e015393972568488a77430a514a892d080a4ebee76c2ccb7b";
+    "545d0b2fc49854794d518a7ffeffeb1d41e4c9c946ce95e9957f0e81545ea962";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -556,8 +576,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `include_str!`s the whole of `reason/dl.rs`, so this fixed-input session identity moves
 /// with it. The fixed edge-only input carries no datatype facet, so its reasoning verdict
 /// is unchanged.
+/// Re-blessed once more for the canonical `logic:` class-expression lowering (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and `native_contract_hash()` `include_str!`s the whole of `reason/mod.rs`
+/// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
+/// edge-only input authors no class expression in either spelling, so its reasoning verdict
+/// is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e39ec9d3784922dbd2a655df4421673c3191e478f9990dd8b053640fd0c18adf";
+    "6c419ca04cd8d6bafbb6c6353845a3bad9615eee52d4b28baec06ed21a20b3c7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

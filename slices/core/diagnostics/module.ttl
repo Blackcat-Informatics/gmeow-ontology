@@ -736,6 +736,29 @@ gmeow:findingDerivedFromQuad
     gmeow:howToUse "Project each cited quad-reifier IRI from the reasoner's explain skeleton onto the finding as gmeow:findingDerivedFromQuad; render the set beside the finding as the reasoned-derivation citation."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the reasoner's explain-skeleton cited quad-reifier IRIs on a reasoned-quad finding, distinct from the finding-to-finding gmeow:findingAntecedent provenance edge."@x-gmeow-english .
 
+# ════════════════════════════════════════════════════════════════════════════
+# The typed conformance-failure class a finding instantiates.
+#
+# gmeow:findingCode names the generic MECHANISM that fired — every cardinality
+# gate in the ontology reports the same SHACL constraint component — while a law
+# names the SPECIFIC failure it raises through gmeow:enforcesFailureClass. This
+# is the occurrence projection of that annotation onto the finding, so a reader
+# of the diagnostics graph can query by which failure was raised rather than by
+# the shared mechanism name.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingFailureClass
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding failure class"@x-gmeow-english ;
+    skos:definition "The typed conformance-failure class a finding instantiates — the class IRI the violated law declares through gmeow:enforcesFailureClass, projected verbatim onto the occurrence. It is the occurrence twin of gmeow:enforcesFailureClass (which is carried by the LAW, a logic:Constraint or the shape derived from it) exactly as gmeow:findingRemediation is the occurrence twin of gmeow:ruleRemediation. Distinct from gmeow:findingCode, which names only the generic MECHANISM that fired and is shared by every gate of that shape: the code says a cardinality gate tripped, the failure class says WHICH authored failure that is. Projected verbatim from the law, never fabricated at render time; a finding whose law declares no failure class carries none. The range is left open (like gmeow:findingAnchor): the value is the slice-owned failure class the law minted, not a class this slice enumerates."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingFailureClass math:UntypedFreeVariable ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a class when the violated law declares none (honest absence is the contract) and avoid reading it as the diagnostic code — gmeow:findingCode is the mechanism, findingFailureClass is the authored failure that mechanism raised."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Resolve the finding's violated law (a SHACL result's sh:sourceShape, a logic:Constraint) to its gmeow:enforcesFailureClass and project that IRI onto the finding; render it beside the code on every output surface so a consumer never has to re-resolve the shape."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the typed failure a finding instantiates on the occurrence, so a consumer can name and query the specific authored failure instead of only the generic constraint-component code it shares with every other gate of that shape."@x-gmeow-english .
+
 gmeow:findingAntecedent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Finding ;

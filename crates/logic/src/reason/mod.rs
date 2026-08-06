@@ -1658,9 +1658,100 @@ pub(crate) fn run_reasoning_rules_budgeted(
     })
 }
 
+/// The ONE table mapping the canonical `logic:` axiom vocabulary onto the W3C spelling
+/// the FIXED calculi match — the single definition of that correspondence for the whole
+/// reasoner. Nothing under `reason/` may re-spell a `logic:` IRI outside it.
+///
+/// Two groups, and both are needed for one authored axiom to reach the closure:
+///
+/// * the **class-expression body** — `logic:Restriction` and its slots. Their local
+///   names are shared by BOTH authoring surfaces (the same fact the compiler's
+///   `RestrictionVocab` is parameterized on: only the namespace differs between a
+///   `logic:`-authored restriction and its `owl:` projection), so each entry is built
+///   from the local alone.
+/// * the **anchors** that attach a body to the class it constrains — `logic:subClassOf`
+///   / `logic:equivalentClass`, the two `RestrictionVocab` names as well, plus
+///   `logic:subPropertyOf` for the property hierarchy. A body without its anchor is
+///   still dark: `dl:type-propagation` and `cax-sco` reach a restriction node only
+///   along a subsumption edge, so lowering the slots and not the anchor would read the
+///   restriction and never apply it to an individual.
+static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
+    macro_rules! owl {
+        ($local:literal) => {
+            (
+                concat!("https://blackcatinformatics.ca/logic/", $local),
+                concat!("http://www.w3.org/2002/07/owl#", $local),
+            )
+        };
+    }
+    [
+        // Anchors.
+        (gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF),
+        (
+            gmeow_ns::LOGIC_SUB_PROPERTY_OF,
+            gmeow_ns::RDFS_SUB_PROPERTY_OF,
+        ),
+        owl!("equivalentClass"),
+        // Class-expression body.
+        owl!("Restriction"),
+        owl!("onProperty"),
+        owl!("someValuesFrom"),
+        owl!("allValuesFrom"),
+        owl!("hasValue"),
+        owl!("onClass"),
+        owl!("onDataRange"),
+        owl!("onDatatype"),
+        owl!("withRestrictions"),
+        owl!("cardinality"),
+        owl!("minCardinality"),
+        owl!("maxCardinality"),
+        owl!("qualifiedCardinality"),
+        owl!("minQualifiedCardinality"),
+        owl!("maxQualifiedCardinality"),
+    ]
+};
+
+/// The fixed-calculus spelling of a canonical `logic:` axiom term, or `None` when `iri`
+/// is not one — the single lookup behind both lowerings below.
+fn calculus_projection(iri: &str) -> Option<&'static str> {
+    if !iri.starts_with(gmeow_ns::LOGIC_NS) {
+        return None;
+    }
+    CALCULUS_VOCABULARY
+        .iter()
+        .find(|(canonical, _)| *canonical == iri)
+        .map(|(_, projected)| *projected)
+}
+
+/// Normalize one term — a predicate, or an `rdf:type` object — onto the vocabulary the
+/// fixed calculi match: a canonical `logic:` axiom term becomes its `rdfs:`/`owl:`
+/// spelling, every other IRI passes through untouched.
+///
+/// This is the RAW-DATASET twin of [`edb_predicate_spellings`], and the two differ only
+/// in how they carry the projection. The typed EDB holds a quad under two spellings at
+/// once, so there the projection ADDS. A raw scan instead folds each quad into a struct
+/// field keyed by predicate, where a second spelling would double-count (two
+/// `Restriction` entries for one node, a doubled `predicates` completeness set), so here
+/// it REPLACES. The direction is the same one in both: canonical → the fixed calculi's
+/// W3C vocabulary, never the reverse (Principle 17 — `owl:`/`rdfs:` are the lossy
+/// projections, and the reasoner reads them because the rules it implements are
+/// specified in them).
+///
+/// # Why the raw waists need their own lowering at all
+///
+/// [`build_edb_facts`] keeps only IRI-object quads, so a restriction body — which is
+/// anchored through a BLANK node (`C logic:subClassOf [ a logic:Restriction ; … ]`) —
+/// never reaches the typed EDB in the first place. The DL post-pass reads those bodies
+/// straight off the frozen dataset instead, which is exactly where an unlowered
+/// canonical spelling goes dark.
+pub(crate) fn calculus_term(iri: &str) -> &str {
+    calculus_projection(iri).unwrap_or(iri)
+}
+
 /// The predicate spellings one authored quad contributes to a fixed-calculus EDB:
-/// the authored predicate itself, plus — for a canonical `logic:` subsumption edge —
-/// the `rdfs:` spelling every fixed rule set matches on.
+/// the authored predicate itself, plus — for a canonical `logic:` subsumption edge or a
+/// canonical `logic:` restriction slot — the `rdfs:`/`owl:` spelling every fixed rule set
+/// matches on.
 ///
 /// # Why the lowering lives at the EDB boundary
 ///
@@ -1688,13 +1779,20 @@ pub(crate) fn run_reasoning_rules_budgeted(
 /// the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the lowering
 /// (canonical → the fixed calculi's RDFS vocabulary) is what those calculi need, not
 /// a transitional read of two authored spellings.
+///
+/// # The same lowering carries the class-expression (restriction) vocabulary
+///
+/// The restriction slots are the identical situation one construct over. `cls-svf1`,
+/// `cls-avf`, `cls-hv1`/`cls-hv2` and the DL existential/counting readers all name
+/// `owl:onProperty` / `owl:someValuesFrom` / `owl:allValuesFrom` *by specification*,
+/// while a slice authors `[ a logic:Restriction ; logic:onProperty … ]`. Without the
+/// projection an authored restriction body reaches the SHACL surface and contributes
+/// nothing to the DL/EL closure: a mandatory-value axiom would enforce in validation
+/// and be invisible to `gmeow entails`. So [`CLASS_EXPRESSION_VOCABULARY`] is projected
+/// here on the same terms as the subsumption edge — canonical first, projected second,
+/// both asserted, the authored quad never replaced.
 pub(crate) fn edb_predicate_spellings(predicate: &str) -> impl Iterator<Item = &str> {
-    let projection: Option<&str> = match predicate {
-        gmeow_ns::LOGIC_SUB_CLASS_OF => Some(gmeow_ns::RDFS_SUB_CLASS_OF),
-        gmeow_ns::LOGIC_SUB_PROPERTY_OF => Some(gmeow_ns::RDFS_SUB_PROPERTY_OF),
-        _ => None,
-    };
-    std::iter::once(predicate).chain(projection)
+    std::iter::once(predicate).chain(calculus_projection(predicate))
 }
 
 /// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
@@ -1982,6 +2080,78 @@ mod tests {
     /// reduced dataset per axiom, which is what turned the corpus-wide quality sweep
     /// from minutes into hours.
     ///
+    /// Every canonical `logic:` term the class-expression surface authors reaches its
+    /// fixed-calculus spelling through the ONE shared table, in both modes.
+    ///
+    /// The local names are the complete `logic:` class-expression vocabulary — the same
+    /// set the compiler's restriction lifter enumerates. A term missing here is a slot a
+    /// slice can author and the reasoner cannot see, which is the exact defect the table
+    /// exists to foreclose, so the list is spelled out rather than derived from the table
+    /// under test.
+    #[test]
+    fn every_canonical_class_expression_term_lowers_onto_the_fixed_calculus_spelling() {
+        const OWL: &str = "http://www.w3.org/2002/07/owl#";
+        for local in [
+            "Restriction",
+            "onProperty",
+            "someValuesFrom",
+            "allValuesFrom",
+            "hasValue",
+            "onClass",
+            "onDataRange",
+            "onDatatype",
+            "withRestrictions",
+            "cardinality",
+            "minCardinality",
+            "maxCardinality",
+            "qualifiedCardinality",
+            "minQualifiedCardinality",
+            "maxQualifiedCardinality",
+            // The anchors that attach a body to the class it constrains. Without them
+            // the body is read and never applied.
+            "equivalentClass",
+        ] {
+            let canonical = format!("{}{local}", gmeow_ns::LOGIC_NS);
+            let projected = format!("{OWL}{local}");
+            assert_eq!(
+                calculus_term(&canonical),
+                projected,
+                "the raw-scan waists must normalize logic:{local}"
+            );
+            assert_eq!(
+                edb_predicate_spellings(&canonical).collect::<Vec<_>>(),
+                vec![canonical.as_str(), projected.as_str()],
+                "the typed EDB must carry logic:{local} canonical-first, projected-second"
+            );
+        }
+        for (canonical, projected) in [
+            (gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF),
+            (
+                gmeow_ns::LOGIC_SUB_PROPERTY_OF,
+                gmeow_ns::RDFS_SUB_PROPERTY_OF,
+            ),
+        ] {
+            assert_eq!(calculus_term(canonical), projected);
+            assert_eq!(
+                edb_predicate_spellings(canonical).collect::<Vec<_>>(),
+                vec![canonical, projected]
+            );
+        }
+        // Everything else passes through untouched — the lowering ADDS a view of the
+        // canonical vocabulary, it does not rewrite the world.
+        for untouched in [
+            "http://www.w3.org/2002/07/owl#onProperty",
+            "https://blackcatinformatics.ca/math/normalizationStrength",
+            "https://blackcatinformatics.ca/logic/keyProperty",
+        ] {
+            assert_eq!(calculus_term(untouched), untouched);
+            assert_eq!(
+                edb_predicate_spellings(untouched).collect::<Vec<_>>(),
+                vec![untouched]
+            );
+        }
+    }
+
     /// `scratch_leave_one_out` is deliberately NOT used as the oracle here: it runs the
     /// fixed RDFS-vocabulary closure, which cannot derive a `logic:`-spelled head at
     /// all, so it is precisely the vacuous answer this lowering exists to replace.

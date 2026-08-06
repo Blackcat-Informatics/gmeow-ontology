@@ -671,7 +671,25 @@ fn graph_world_key(graph_name: &Option<RdfTerm>) -> String {
     }
 }
 
+/// The non-negative integer a cardinality-bound literal denotes, or `None` when the
+/// literal is not one the counting handlers may act on (which leaves its family an
+/// honest gap rather than a guessed bound).
+///
+/// `None` and `xsd:string` are ONE case, not two. RDF 1.1 abolished the untyped
+/// literal: a simple literal `"1"` IS `"1"^^xsd:string`, and which of the two a term
+/// arrives as here is decided by the serialization it travelled through, not by the
+/// author. `RdfLiteral::simple` (the in-memory form the `logic:` canonical projection
+/// emits a lifted restriction's bound as) carries no datatype, while the same term
+/// read back out of a GTS snapshot carries `xsd:string`. Accepting one and refusing
+/// the other made a bound decidable before a round-trip and undecidable after it —
+/// the same axiom, two verdicts. The repo's own literal-identity keys already fold
+/// the two together (`refute::counting::literal_value_key`,
+/// `refute::datatype`'s value key), and the counting sub-decider reads a bound
+/// lexically regardless of datatype, so this is that one convention rather than a
+/// looser check: a lexical form that is not a non-negative integer is still refused
+/// under EVERY datatype.
 fn literal_usize(lit: &RdfLiteral) -> Option<usize> {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
     match lit.datatype.as_deref() {
         Some(XSD_NON_NEGATIVE_INTEGER)
         | Some(XSD_INTEGER)
@@ -680,6 +698,7 @@ fn literal_usize(lit: &RdfLiteral) -> Option<usize> {
         | Some("http://www.w3.org/2001/XMLSchema#unsignedLong")
         | Some("http://www.w3.org/2001/XMLSchema#unsignedShort")
         | Some("http://www.w3.org/2001/XMLSchema#unsignedByte")
+        | Some(XSD_STRING)
         | None => lit.lexical_form.parse::<usize>().ok(),
         _ => None,
     }
@@ -755,14 +774,32 @@ fn materialize_refutation(
     added
 }
 
+/// The ONE raw-dataset scan waist of this module: every structural reader below
+/// (`read_restrictions`, `read_lists`, the coverage classifiers, the key/identity
+/// readers) folds these rows rather than touching `edb` itself.
+///
+/// Because it is the single waist, it is also where the canonical `logic:`
+/// class-expression vocabulary is lowered onto the W3C `owl:` spelling this module's
+/// readers match — see [`crate::reason::calculus_term`] for the
+/// direction and why a raw scan REPLACES the spelling where the typed EDB adds it. The
+/// `rdf:type` object is normalized on the same table, so an authored
+/// `[ a logic:Restriction ]` node is the `owl:Restriction` declaration the readers
+/// already skip rather than a phantom class membership.
 fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> {
     let mut rows = Vec::new();
     for quad in edb.owned_quads() {
         if let Some(subject) = term_resource_key(&quad.subject) {
+            let predicate = crate::reason::calculus_term(&quad.predicate).to_owned();
+            let object = match (predicate.as_str(), &quad.object) {
+                (RDF_TYPE, RdfTerm::Iri(class)) => {
+                    RdfTerm::iri(crate::reason::calculus_term(class))
+                }
+                _ => quad.object,
+            };
             rows.push((
                 subject,
-                quad.predicate,
-                quad.object,
+                predicate,
+                object,
                 graph_world_key(&quad.graph_name),
             ));
         }
@@ -939,6 +976,22 @@ fn read_lists(edb: &RdfDataset) -> HashMap<(String, String), Vec<String>> {
     out
 }
 
+/// The raw resource (IRI-and-skolemized-blank) facts of `edb`, in the finite DL
+/// post-pass's fact shape.
+///
+/// This is the raw MIRROR of the typed EDB, so it takes the same lowering the typed EDB
+/// takes: each quad is emitted under every spelling
+/// [`crate::reason::edb_predicate_spellings`] gives it — canonical first, the fixed
+/// calculi's `rdfs:`/`owl:` projection second, the authored quad never replaced. (The
+/// struct-keyed scans read through [`quads_by_subject`], which normalizes instead; the
+/// two modes are described on [`crate::reason::calculus_term`].)
+///
+/// The lowering is not redundant with the closure this fact set is unioned into.
+/// [`crate::reason::build_edb_facts`] keeps only IRI-OBJECT quads, so a class-expression
+/// body — anchored through a blank node, `C logic:subClassOf [ a logic:Restriction ; … ]`
+/// — never reaches the typed EDB at all. This is the only place that edge is projected,
+/// and without it `dl:type-propagation` never reaches the restriction node, so the whole
+/// authored body sits inert.
 fn raw_resource_facts(edb: &RdfDataset) -> Vec<Fact> {
     let mut rows = Vec::new();
     for RdfQuad {
@@ -954,12 +1007,15 @@ fn raw_resource_facts(edb: &RdfDataset) -> Vec<Fact> {
         else {
             continue;
         };
-        rows.push(Fact::new(
-            subject,
-            predicate,
-            object,
-            graph_world_key(&graph_name),
-        ));
+        let world = graph_world_key(&graph_name);
+        for spelling in crate::reason::edb_predicate_spellings(&predicate) {
+            rows.push(Fact::new(
+                subject.clone(),
+                spelling.to_owned(),
+                object.clone(),
+                world.clone(),
+            ));
+        }
     }
     rows
 }
@@ -3799,31 +3855,39 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
     // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
     // sits in a class-definition position — never when it is `rdf:type`d onto an
-    // individual (the Wave-A decided case). What keeps this quiet on production is that
-    // REACH condition, not a corpus census of cardinality assertions: every
-    // class-definition restriction in the committed bundle is a value restriction
-    // (`some`/`all`/`hasValue`) or a QUALIFIED cardinality, and each plain cardinality
-    // restriction the bundle does carry misses `nodes_in_class_constraint_position`
-    // structurally. The two it carries today show the two ways to miss:
-    // `math:compilesToLogicFormula`'s two `owl:minCardinality "1"` companions hang off
-    // `rdfs:domain`, a property-scoping position that helper deliberately never
-    // collects; the `logic:` grounding-surface demonstrators
-    // (`ex:minMemberRestriction` / `ex:maxLeadRestriction` in
+    // individual (the Wave-A decided case), and never when its EFFECTIVE bound is the
+    // functional `= 1`. Family 2 — the counting sub-decider
+    // ([`crate::reason::refute::counting`]) — COMPLETELY decides the pure
+    // class-definition cardinality fragment (a collapsed `min > max` bound on a
+    // populated class materializes `owl:Nothing`; an uncollapsed one is certified
+    // consistent), so when it decides the whole case the families it accounts for stay
+    // `decided`. Outside that pure fragment `class_definition_counting_residual` asks
+    // whether any definition-position class still carries a plain bound that is not
+    // exactly `= 1`. That carve-out is the one already made a few lines below, where
+    // only `cardinality n ≥ 2` withholds and an exact `cardinality 1` does not: a class
+    // carrying `min 1` and `max 1` on one property states the same functional fact in
+    // two nodes instead of one, and is decided on the same grounds. Everything else —
+    // a one-sided bound, an effective minimum ≥ 2 (the domain-size interaction of W3C
+    // `webont-description-logic-035`), a collapse — stays a residual.
+    //
+    // What keeps this quiet on production is those conditions together, not a corpus
+    // census of cardinality assertions. `math:compilesToLogicFormula`'s two
+    // `owl:minCardinality "1"` companions hang off `rdfs:domain`, a property-scoping
+    // position `nodes_in_class_constraint_position` deliberately never collects, and
+    // the `logic:` grounding-surface demonstrators (`ex:minMemberRestriction` /
+    // `ex:maxLeadRestriction` in
     // `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) are NAMED
     // declarations that no `rdfs:subClassOf`/`owl:equivalentClass`/`someValuesFrom`/
     // `allValuesFrom` object — nor any `intersectionOf`/`unionOf` list reachable from
-    // one — ever references, so nothing puts them in a constraint position. A plain
-    // cardinality restriction that IS referenced from a definition position is
-    // withheld the moment it appears; that is the intended trigger, not a regression.
-    // Family 2 — the counting sub-decider ([`crate::reason::refute::counting`]) now
-    // COMPLETELY decides the pure class-definition cardinality fragment (a collapsed
-    // `min > max` bound on a populated class materializes `owl:Nothing`; an
-    // uncollapsed one is certified consistent). When it decides the case, the
-    // cardinality families it accounts for stay `decided` rather than being demoted
-    // to an honest gap; the withhold is narrowed to exactly the residual (a case
-    // mixing cardinality with an existential/nominal/identity construct the
-    // sub-decider refuses) it cannot decide.
-    if !crate::reason::refute::counting::decides_cardinality(edb) {
+    // one — ever references, so nothing puts them in a constraint position. The
+    // canonically-authored `math:NormalizationDeclaration` exact-one pair (a
+    // `logic:minCardinality 1` and a `logic:maxCardinality 1` on
+    // `math:normalizationStrength`) IS in a definition position and IS read here; it is
+    // the functional case, so it is decided. A definition-position bound outside that
+    // case is withheld the moment it appears; that is the intended trigger.
+    if !crate::reason::refute::counting::decides_cardinality(edb)
+        && crate::reason::refute::counting::class_definition_counting_residual(edb)
+    {
         let restrictions = read_restrictions(edb);
         let constraint_nodes = nodes_in_class_constraint_position(edb);
         for ((world, node), r) in &restrictions {
@@ -5171,6 +5235,135 @@ mod tests {
                 .any(|d| d == "minCardinality"),
             "the minCardinality family is promoted to decided: {:?}",
             verdict.coverage
+        );
+    }
+
+    /// A class-expression body authored in the CANONICAL `logic:` vocabulary and
+    /// anchored through a BLANK node — the shape every `module.ttl` writes,
+    /// `C logic:subClassOf [ a logic:Restriction ; logic:onProperty p ;
+    /// logic:allValuesFrom D ]` — drives the closure exactly as its `owl:` projection
+    /// does.
+    ///
+    /// The blank anchor is the load-bearing detail: [`crate::reason::build_edb_facts`]
+    /// keeps only IRI-object quads, so this edge never reaches the typed EDB at all and
+    /// the whole body is read off the frozen dataset by the finite DL post-pass. That is
+    /// the raw waist [`quads_by_subject`] / [`raw_resource_facts`] lower.
+    #[test]
+    fn canonical_logic_restriction_on_a_blank_anchor_drives_the_closure() {
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        const OWL: &str = "http://www.w3.org/2002/07/owl#";
+        let blank_quad = |s: &str, p: &str, o: RdfTerm| {
+            RdfQuad::new(RdfTerm::BlankNode(s.to_owned()), p, o).in_graph(RdfTerm::iri(W))
+        };
+        // Both spellings of: C ⊑ ∀p.D, x : C, x p y  ⊨  y : D.
+        let body = |ns: &str, subclass: &str| {
+            dataset(vec![
+                RdfQuad::new(
+                    RdfTerm::iri(C),
+                    subclass,
+                    RdfTerm::BlankNode("r".to_owned()),
+                )
+                .in_graph(RdfTerm::iri(W)),
+                blank_quad("r", RDF_TYPE, RdfTerm::iri(format!("{ns}Restriction"))),
+                blank_quad("r", &format!("{ns}onProperty"), RdfTerm::iri(P)),
+                blank_quad("r", &format!("{ns}allValuesFrom"), RdfTerm::iri(D)),
+                quad(X, TYPE, C),
+                quad(X, P, Y),
+            ])
+        };
+        let types_the_filler = |edb: &RdfDataset| {
+            crate::reason::reason_closure_axioms(edb)
+                .expect("closure")
+                .iter()
+                .any(|ax| {
+                    ax.subject == Y && ax.predicate == RDF_TYPE && ax.object == format!("<{D}>")
+                })
+        };
+        assert!(
+            types_the_filler(body(OWL, RDFS_SUBCLASSOF).as_ref()),
+            "control: the `owl:`-spelled body must type the filler"
+        );
+        assert!(
+            types_the_filler(body(LOGIC, &format!("{LOGIC}subClassOf")).as_ref()),
+            "the CANONICAL `logic:` body must type the filler identically — an authored \
+             class expression is reasoner content, not derived-shape-only content"
+        );
+    }
+
+    /// The H2 class-definition cardinality withhold fires on the shape it is FOR.
+    ///
+    /// An effective per-class/per-property bound of exactly one is the functional
+    /// statement the engine already declines to withhold for in its one-node `owl:cardinality 1`
+    /// spelling, so the two-node `min 1` + `max 1` spelling is decided too. A one-sided
+    /// bound and an effective minimum ≥ 2 stay honest gaps.
+    #[test]
+    fn class_definition_cardinality_withhold_is_scoped_to_the_non_functional_bound() {
+        let r2 = "http://gmeow.example/r2";
+        // The pure-fragment sub-decider must NOT be the thing deciding these, or the
+        // narrowing under test is never reached: an ordinary domain predicate takes the
+        // case out of its allowlist, exactly as a real bundle does.
+        let noise = quad(C, "http://gmeow.example/unrelated", D);
+
+        let exact_one = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            noise.clone(),
+        ]);
+        let verdict = dl_consistency(exact_one.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.gaps.is_empty(),
+            "an effective `= 1` bound is the functional case the engine decides: {:?}",
+            verdict.gaps
+        );
+
+        let one_sided = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            noise.clone(),
+        ]);
+        assert_withheld(
+            &dl_consistency(one_sided.as_ref()).expect("dl consistency should succeed"),
+            "minCardinality",
+        );
+
+        let counting = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "3", XSD_NON_NEGATIVE_INTEGER),
+            noise,
+        ]);
+        assert_withheld(
+            &dl_consistency(counting.as_ref()).expect("dl consistency should succeed"),
+            "minCardinality",
+        );
+    }
+
+    /// A simple-literal cardinality bound reads the same before and after the RDF 1.1
+    /// `xsd:string` normalization a snapshot round-trip applies — `"1"` and
+    /// `"1"^^xsd:string` are the same term, so they cannot yield different verdicts.
+    /// A non-numeric lexical form is still refused under both.
+    #[test]
+    fn a_simple_literal_bound_reads_identically_typed_and_untyped() {
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        assert_eq!(literal_usize(&RdfLiteral::simple("1")), Some(1));
+        assert_eq!(literal_usize(&RdfLiteral::typed("1", XSD_STRING)), Some(1));
+        assert_eq!(literal_usize(&RdfLiteral::simple("many")), None);
+        assert_eq!(literal_usize(&RdfLiteral::typed("many", XSD_STRING)), None);
+        // A bound in a datatype that is not an integer tower member stays refused.
+        assert_eq!(
+            literal_usize(&RdfLiteral::typed(
+                "1",
+                "http://www.w3.org/2001/XMLSchema#decimal"
+            )),
+            None
         );
     }
 

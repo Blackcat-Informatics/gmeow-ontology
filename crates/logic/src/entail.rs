@@ -939,6 +939,60 @@ mod tests {
         );
     }
 
+    /// A class-expression body authored in the CANONICAL `logic:` restriction vocabulary
+    /// entails exactly what its `owl:` projection does.
+    ///
+    /// This is the consumer-visible statement of the class-expression half of
+    /// [`crate::reason::edb_predicate_spellings`]. Every slice authors a value
+    /// restriction as `[ a logic:Restriction ; logic:onProperty P ; logic:allValuesFrom D ]`;
+    /// the fixed RL rule that acts on it (`cls-avf`) names `owl:onProperty` /
+    /// `owl:allValuesFrom` by W3C specification. Without the EDB-boundary lowering such a
+    /// body reaches the derived SHACL surface and contributes NOTHING to the DL closure —
+    /// a mandatory-value axiom that enforces in validation and is invisible to
+    /// `gmeow entails`.
+    #[test]
+    fn canonical_logic_restriction_is_entailment_equivalent_to_its_owl_projection() {
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        const OWL: &str = "http://www.w3.org/2002/07/owl#";
+        const RDFS_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+        // `C ⊑ ∀p.D`, `v ∈ C`, `v p w`  ⊨  `w ∈ D`.
+        let body = |ns: &str, subclass: &str| {
+            dataset(&format!(
+                "<http://ex/C> <{subclass}> <http://ex/r> .\n\
+                 <http://ex/r> <{TYPE}> <{ns}Restriction> .\n\
+                 <http://ex/r> <{ns}onProperty> <http://ex/p> .\n\
+                 <http://ex/r> <{ns}allValuesFrom> <http://ex/D> .\n\
+                 <http://ex/v> <{TYPE}> <http://ex/C> .\n\
+                 <http://ex/v> <http://ex/p> <http://ex/w> .\n"
+            ))
+        };
+        let canonical = body(LOGIC, &format!("{LOGIC}subClassOf"));
+        let projected = body(OWL, RDFS_SUBCLASS);
+        let conclusion = dataset(&format!("<http://ex/w> <{TYPE}> <http://ex/D> .\n"));
+
+        assert_eq!(
+            dl_entails(projected.as_ref(), conclusion.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed,
+            "control: the `owl:`-spelled restriction must be read"
+        );
+        assert_eq!(
+            dl_entails(canonical.as_ref(), conclusion.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed,
+            "the CANONICAL `logic:` restriction must decide identically to its `owl:` \
+             projection — an authored class-expression body is reasoner content, not \
+             shape-surface-only content"
+        );
+
+        // The lowering ADDS the restriction; it does not make everything entailed.
+        let unrelated = dataset(&format!("<http://ex/w> <{TYPE}> <http://ex/E> .\n"));
+        assert_eq!(
+            dl_entails(canonical.as_ref(), unrelated.as_ref()).unwrap(),
+            EntailmentVerdict::NotEntailed
+        );
+    }
+
     /// A multi-triple conjunctive conclusion is entailed iff EVERY component is.
     #[test]
     fn multi_triple_conjunction_all_entailed_is_entailed() {

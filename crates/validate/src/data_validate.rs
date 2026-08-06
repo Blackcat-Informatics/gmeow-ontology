@@ -128,11 +128,15 @@ pub struct Tier1Shapes {
     shapes: purrdf::shapes::shapes::Shapes,
     /// The same data-graph shape union parsed as an [`RdfDataset`], read for each
     /// advisory shape's `logic:formalizes` provenance term during the advisory
-    /// split ([`crate::advisory::split_advisory_results`]). Native-only: the
-    /// advisory bridge is a native module, so the wasm Tier-1 surface never carries
-    /// (or applies) the split.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// split ([`crate::advisory::split_advisory_results`]) and — cross-platform —
+    /// for the `gmeow:enforcesFailureClass` scan that builds
+    /// [`failure_classes`](Tier1Shapes::failure_classes).
     shapes_dataset: Arc<RdfDataset>,
+    /// The shapes graph's `sh:NodeShape → gmeow:enforcesFailureClass` index, built
+    /// ONCE per bundle. Every Tier-1 finding is resolved through it so it NAMES the
+    /// typed conformance failure its violated law declares, instead of shipping only
+    /// the generic constraint-component code (which every gate of that shape shares).
+    failure_classes: crate::findings::FailureClassIndex,
     /// The bundle's imported RDF (the ontology): the source of the formalized terms'
     /// `gmeow:howToUse` / `gmeow:useWhen` prose the native-only advisory split reads, AND
     /// (cross-platform) the class-hierarchy authority [`inject_subclass_shortcuts`] walks
@@ -171,24 +175,26 @@ impl Tier1Shapes {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
         })?;
-        // Native-only advisory-split inputs: the shape union as an RdfDataset (source
-        // of each advisory shape's `logic:formalizes` provenance) and the bundle's RDF
-        // (source of the formalized terms' howToUse/useWhen prose). Parsed here once
-        // per bundle so a resident consumer never re-parses per payload.
-        #[cfg(not(target_arch = "wasm32"))]
+        // The shape union as an RdfDataset, parsed here once per bundle so a resident
+        // consumer never re-parses per payload. Two readers: the native-only advisory
+        // split (each advisory shape's `logic:formalizes` provenance) and — on every
+        // platform — the `gmeow:enforcesFailureClass` scan below, without which no
+        // Tier-1 finding can name the typed failure its law declares.
         let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     detail: format!("bundled SHACL shapes failed to parse as a dataset: {e}"),
                 })
             })?;
+        let failure_classes =
+            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
         // Cross-platform (native AND wasm — see the `ontology` field doc): the bundle's
         // ontology, the class-hierarchy authority the subclass-shortcut injection reads.
         let ontology = crate::store::dataset_from_gts(gts_bytes)?;
         Ok(Self {
             shapes,
-            #[cfg(not(target_arch = "wasm32"))]
             shapes_dataset,
+            failure_classes,
             ontology,
         })
     }
@@ -232,7 +238,8 @@ impl Tier1Shapes {
             &self.ontology,
         );
 
-        let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
+        let shacl_findings =
+            shacl_findings_from_report(&shacl_report, Some(origin), &self.failure_classes);
 
         let cfg = GufoConfig {
             namespace: namespace.to_owned(),
@@ -366,7 +373,10 @@ pub fn shacl_report_via_ledger(
     // so each finding gains the `related_labels` the bare `finding_from_shacl` lacks.
     let mut ledger = DiagLedger::new();
     for result in &shacl_report.results {
-        ledger.attach(diag_from_shacl(result), StageId::new("validate.data.shacl"));
+        ledger.attach(
+            diag_from_shacl(result, &tier1.failure_classes),
+            StageId::new("validate.data.shacl"),
+        );
     }
     Ok(ledger.project_report(tool))
 }
@@ -1205,9 +1215,12 @@ logic:c rdf:type logic:ReasoningContract ;
             purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).expect("shapes ds");
         let ontology = purrdf::parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
             .expect("ontology ds");
+        let failure_classes =
+            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
         Tier1Shapes {
             shapes,
             shapes_dataset,
+            failure_classes,
             ontology,
         }
     }

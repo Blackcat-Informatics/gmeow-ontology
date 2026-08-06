@@ -895,7 +895,13 @@ impl Model {
 
         for quad in edb.owned_quads() {
             let world = world_key(&quad.graph_name);
-            let predicate = quad.predicate.as_str();
+            // The one lowering point of this scan: a canonical `logic:` class-expression
+            // term becomes the `owl:` spelling every arm below matches
+            // ([`crate::reason::calculus_term`], the shared table). It
+            // must happen BEFORE `m.predicates` / `m.type_objects` are recorded, because
+            // those two sets are the whole-case completeness gate: an unlowered
+            // `logic:onDatatype` would read as an unknown construct and refuse the case.
+            let predicate = crate::reason::calculus_term(&quad.predicate);
             let subject = match resource_key(&quad.subject) {
                 Some(s) => s,
                 None => continue,
@@ -909,6 +915,7 @@ impl Model {
                         m.datatype_props.insert(subject.clone());
                     }
                     if let Some(class) = resource_key(&quad.object) {
+                        let class = crate::reason::calculus_term(&class).to_owned();
                         m.type_objects.insert(class.clone());
                         m.types
                             .entry((world.clone(), subject.clone()))

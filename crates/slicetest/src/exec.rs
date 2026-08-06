@@ -18,7 +18,7 @@
 //!   grounding kernel is the sole data-scope exception: its three co-foundational
 //!   modules are visible together, while shape authority remains slice-owned.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -26,7 +26,7 @@ use gmeow_errors::{Diag, Result, Severity};
 use gmeow_logic::math_expression::check_math_expression_findings;
 use gmeow_logic::reason::math_gate::dimension_gate_markers;
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
-use gmeow_validate::findings::finding_from_shacl;
+use gmeow_validate::findings::{FailureClassIndex, finding_from_shacl};
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::shapes::Shapes;
@@ -204,6 +204,9 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
     // gmeow:enforcesFailureClass IRI` index, so a `gmeow:expectedFailureClass` cell can
     // resolve a reported `sh:sourceShape` to the semantic class it enforces. See
     // `shape_failure_class_index`'s own doc comment for why this reads unscoped.
+    // It is the SAME index type the shipped validator resolves its findings through
+    // (`gmeow_validate::findings::FailureClassIndex`), so the harness and the consumer
+    // surface can never disagree about which class a shape enforces.
     let failure_class_index = shape_failure_class_index(&shapes_ttl)?;
     // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
     let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
@@ -763,7 +766,7 @@ fn run_conformance_cell(
     slice_dir: &Path,
     module: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
-    failure_class_index: &BTreeMap<String, String>,
+    failure_class_index: &FailureClassIndex,
     baseline: &NativeChannelBaseline,
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
@@ -784,16 +787,23 @@ fn run_conformance_cell(
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
     let data = union(&[module.clone(), example]);
-    let report = validate_dataset(&data, shapes).map_err(|e| {
+    let mut report = validate_dataset(&data, shapes).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("native SHACL validation failed: {e}"),
         })
     })?;
+    // A cell's rationale counts findings ("MUST emit exactly one …"), so it must count
+    // the same result SET the shipped validator reports. This harness calls the engine
+    // directly (it needs the raw report for the per-shape soleness reading below), so it
+    // applies the same collapse `gmeow_validate::store::shacl_validate_dataset` does:
+    // a violation the engine reports N times over is ONE violation, and a cell counting
+    // findings against an uncollapsed report counts binding combinations instead.
+    gmeow_validate::store::dedupe_validation_results(&mut report);
 
     let codes: BTreeSet<String> = report
         .results
         .iter()
-        .map(|r| finding_from_shacl(r).code)
+        .map(|r| finding_from_shacl(r, failure_class_index).code)
         .collect();
 
     match ec.outcome {
@@ -840,11 +850,12 @@ fn run_conformance_cell(
                     ),
                 }))
             } else {
-                let codes: BTreeSet<String> =
-                    violations().map(|r| finding_from_shacl(r).code).collect();
+                let codes: BTreeSet<String> = violations()
+                    .map(|r| finding_from_shacl(r, failure_class_index).code)
+                    .collect();
                 let locations = violations()
                     .map(|result| {
-                        let finding = finding_from_shacl(result);
+                        let finding = finding_from_shacl(result, failure_class_index);
                         let path = result
                             .result_path
                             .as_ref()
@@ -919,7 +930,7 @@ fn run_conformance_cell(
                 let from_shapes: Vec<String> = report
                     .results
                     .iter()
-                    .filter(|r| finding_from_shacl(r).code == expected)
+                    .filter(|r| finding_from_shacl(r, failure_class_index).code == expected)
                     .map(|r| strip_angle(&r.source_shape.to_string()).to_owned())
                     .collect();
                 if !from_shapes
@@ -1016,7 +1027,7 @@ fn run_conformance_cell(
                     .map(|r| {
                         format!(
                             "{} on {} (shape {})",
-                            finding_from_shacl(r).code,
+                            finding_from_shacl(r, failure_class_index).code,
                             r.focus_node,
                             r.source_shape
                         )
@@ -1069,26 +1080,9 @@ fn strip_angle(term: &str) -> &str {
 /// (not through `scope_shapes_to_slice`'s slice-owned filter) because a finding's
 /// reported source shape may legitimately belong to a co-foundational grounding module
 /// (`logic:`/`lang:`/`math:`) the cell's own slice does not own.
-fn shape_failure_class_index(shapes_ttl: &str) -> Result<BTreeMap<String, String>> {
+fn shape_failure_class_index(shapes_ttl: &str) -> Result<FailureClassIndex> {
     let dataset = native_query::dataset_from_turtle(shapes_ttl)?;
-    let solutions = native_query::select(
-        &dataset,
-        "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
-         SELECT ?shape ?class WHERE { ?shape gmeow:enforcesFailureClass ?class }",
-    )?;
-    let shape_idx = solutions.variables.iter().position(|v| v == "shape");
-    let class_idx = solutions.variables.iter().position(|v| v == "class");
-    let mut index = BTreeMap::new();
-    if let (Some(si), Some(ci)) = (shape_idx, class_idx) {
-        for row in &solutions.rows {
-            if let (Some(Some(TermValue::Iri(shape))), Some(Some(TermValue::Iri(class)))) =
-                (row.get(si), row.get(ci))
-            {
-                index.insert(shape.clone(), class.clone());
-            }
-        }
-    }
-    Ok(index)
+    Ok(FailureClassIndex::from_shapes_dataset(&dataset))
 }
 
 /// The MODULE's own contribution to the two whole-dataset native channels, computed
@@ -1252,7 +1246,7 @@ fn check_failure_class_isolation(
     report: &purrdf::shapes::report::ValidationReport,
     data: &Arc<RdfDataset>,
     expected_class: &str,
-    failure_class_index: &BTreeMap<String, String>,
+    failure_class_index: &FailureClassIndex,
     baseline: &NativeChannelBaseline,
 ) -> Result<()> {
     // One (description, matches-expected) pair per finding across every channel.
@@ -1263,9 +1257,11 @@ fn check_failure_class_isolation(
         .iter()
         .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
     {
-        let finding = finding_from_shacl(r);
+        let finding = finding_from_shacl(r, failure_class_index);
         let shape = strip_angle(&r.source_shape.to_string()).to_owned();
-        let class = failure_class_index.get(&shape).cloned();
+        let class = failure_class_index
+            .for_shape(&shape)
+            .map(std::borrow::ToOwned::to_owned);
         let matches = class.as_deref() == Some(expected_class);
         findings.push((
             format!(
@@ -1882,7 +1878,7 @@ mod tests {
             &slice_dir,
             &module,
             &shapes,
-            &BTreeMap::new(),
+            &FailureClassIndex::empty(),
             &baseline,
         )
         .expect(
@@ -1895,7 +1891,7 @@ mod tests {
             &slice_dir,
             &module,
             &shapes,
-            &BTreeMap::new(),
+            &FailureClassIndex::empty(),
             &baseline,
         )
         .expect_err("the cascade must be caught once the cell claims sole-ness");
@@ -1969,7 +1965,7 @@ mod tests {
             &slice_dir,
             &module,
             &shapes,
-            &BTreeMap::new(),
+            &FailureClassIndex::empty(),
             &baseline,
         )
         .expect_err(
@@ -1991,7 +1987,7 @@ mod tests {
             &slice_dir,
             &module,
             &shapes,
-            &BTreeMap::new(),
+            &FailureClassIndex::empty(),
             &baseline,
         )
         .expect_err("once the law is named, the SECOND law raising the same code is an intruder");

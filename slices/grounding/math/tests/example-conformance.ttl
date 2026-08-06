@@ -496,7 +496,9 @@ ex:ecArgumentSlotsNoncontiguous a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:NonContiguousArgumentSlots ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The slot family has unique, non-negative indexes 0 and 2 but no sibling at predecessor index 1, so math:ArgumentSlotContiguityConstraint MUST emit exactly one shacl.SPARQLConstraintComponent finding (math:NonContiguousArgumentSlots)." .
+    gmeow:expectedSourceShape math:ArgumentSlotContiguityConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The slot family has unique, non-negative indexes 0 and 2 but no sibling at predecessor index 1, so math:ArgumentSlotContiguityConstraint MUST emit exactly one shacl.SPARQLConstraintComponent finding (math:NonContiguousArgumentSlots). The 'exactly one' half is now enforceable rather than prose: gmeow:expectedSoleFinding pins math:ArgumentSlotContiguityConstraintProceduralConstraintShape as the ONLY law this fixture may trip, and the validator reads the engine's report as the SET it is, so the constraint's per-SPARQL-solution emission (one solution per guard-slot binding, all projecting the same $this) can no longer present one violation as two findings." .
 
 ex:ecSymbolReferenceResolved a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/symbol-reference-resolved.ttl" ;
@@ -508,7 +510,9 @@ ex:ecSymbolReferenceUnresolved a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:UnresolvedSymbolReference ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The math:SymbolReference has no math:hasMathematicalSymbol value of class math:MathematicalSymbol, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UnresolvedSymbolReference)." .
+    gmeow:expectedSourceShape math:SymbolReference-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The math:SymbolReference has no math:hasMathematicalSymbol value of class math:MathematicalSymbol, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UnresolvedSymbolReference). math:SymbolReference-shape is the ONLY law the fixture trips (gmeow:expectedSoleFinding), and it speaks twice about the one defect — an unqualified sh:minCount and the qualified typed minimum — which is one law saying one thing two ways, the per-shape soleness unit's whole reason for existing. Each of those is emitted once: the shape carries sh:qualifiedValueShape twice (once beside its max count, once beside its min count), and the validator reads the engine's report as the SET it is rather than counting that repetition as two violations." .
 
 ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
@@ -516,7 +520,8 @@ ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:expectedFailureClass math:DuplicateArgumentSlotIndex ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape math:ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "Two math:argumentSlot cells of one binder share math:slotIndex 0 (the SPARQL constraint of math:SlotIndexUniquenessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DuplicateArgumentSlotIndex)." .
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "Two math:argumentSlot cells of one binder share math:slotIndex 0 (the SPARQL constraint of math:SlotIndexUniquenessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DuplicateArgumentSlotIndex). The 'NO other finding' half is now enforceable rather than prose: gmeow:expectedSoleFinding pins the uniqueness shape as the ONLY law this fixture may trip, and the validator reads the engine's report as the SET it is, so the constraint's per-SPARQL-solution emission (one solution per guard × ordered-pair binding, all projecting the same $this) can no longer present one violation as four findings." .
 
 ex:ecVariableUnscoped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/variable-occurrence-unscoped.ttl" ;
