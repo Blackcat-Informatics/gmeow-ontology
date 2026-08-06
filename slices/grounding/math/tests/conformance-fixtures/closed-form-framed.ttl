@@ -18,7 +18,8 @@ ex:doublePlusOne a math:ClosedFormFunction ;
     math:formalArgument ex:xDecl ;
     math:definingExpression ex:body .
 
-ex:xDecl a math:FreeVariableDeclaration .
+ex:xDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers .
 
 # Addition( Multiplication(2, x), 1 )
 ex:body a math:ApplicationExpression ;

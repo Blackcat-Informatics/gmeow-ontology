@@ -1,0 +1,13 @@
+# Competency question (native gmeow:reasoningLogic lane): "Is math:coarserNormalizationThan's
+# owl:TransitiveProperty characteristic a LIVE entailment, not merely three adjacent
+# assertions?" module.ttl asserts ONLY the three ADJACENT links of the four-rung ladder —
+# semantic->algebraic, algebraic->commutative, commutative->structural — never the
+# two-hop-plus link from the COARSEST rung (math:semanticNormalization) directly to the
+# FINEST (math:structuralNormalization). This ASK can only succeed if the native logic:
+# reasoner's owl:TransitiveProperty chase genuinely derives that direct link from the three
+# adjacent facts; over the merged (asserted-only) graph it is absent.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+ASK {
+    math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization .
+}

@@ -496,3 +496,19 @@ msgstr "dimanche"
 msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Sunday, ISO-8601 weekday 7: the day that closes the ISO week, even though the Gregorian liturgical calendar and North American convention both place it first. The two orderings disagree only about where the week boundary falls, never about the day, so a weekly rule must state which convention it counts in instead of assuming this value sits at either end."
 msgstr "Dimanche, jour 7 de la semaine ISO-8601 : le jour qui clôt la semaine ISO, alors même que le calendrier liturgique grégorien et la convention nord-américaine le placent tous deux en tête. Les deux ordonnancements ne divergent que sur l'emplacement de la frontière hebdomadaire, jamais sur le jour lui-même ; une règle hebdomadaire doit donc énoncer selon quelle convention elle compte au lieu de supposer que cette valeur occupe l'une ou l'autre extrémité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Instant value-or-EDTF constraint"
+msgstr "contrainte « valeur ou EDTF » d'un Instant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:Instant carries at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal) — a point in time with no stated value is not an Instant."
+msgstr "Une contrainte d'intégrité en monde clos : un gmeow:Instant porte au moins l'un de gmeow:instantValue (xsd:dateTime) ou gmeow:edtfValue (un littéral EDTF) — un point du temps dépourvu de valeur énoncée n'est pas un Instant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Named period bounds-or-measurement constraint"
+msgstr "contrainte « bornes ou mesure » d'une période nommée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:NamedPeriod est bornée à la fois par gmeow:periodStart et par gmeow:periodEnd, ou bien porte au moins une gmeow:hasTemporalMeasurement — un intervalle de temps nommé qui n'a ni bornes ni durée mesurée reste sous-spécifié."

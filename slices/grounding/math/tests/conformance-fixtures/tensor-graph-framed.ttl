@@ -22,8 +22,13 @@ ex:node a math:ApplicationExpression ;
 ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:inExpr .
 ex:slot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:wExpr .
 
-ex:inExpr a math:MathematicalExpression .
-ex:wExpr a math:MathematicalExpression .
+# The two tensor operands are named, not decomposed: a math:SymbolReference resolving to a
+# SYMBOL is the concrete form for that. The abstract math:MathematicalExpression base names no
+# form and carries no structural identity (math:UnrecognizedExpressionType).
+ex:inExpr a math:SymbolReference ; math:hasMathematicalSymbol ex:inSymbol .
+ex:wExpr a math:SymbolReference ; math:hasMathematicalSymbol ex:wSymbol .
+ex:inSymbol a math:MathematicalSymbol .
+ex:wSymbol a math:MathematicalSymbol .
 
 ex:net a math:LearnedModel .
 ex:layer a math:NeuralLayer .

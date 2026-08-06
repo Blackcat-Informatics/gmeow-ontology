@@ -152,3 +152,19 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageTarget and nothing else. It is not a definition of gmeow:notationUsageTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationUsageTarget, et rien d'autre. Ce n'est pas une définition de gmeow:notationUsageTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SMuFL codepoint pattern constraint"
+msgstr "contrainte de motif des points de code SMuFL"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:smuflCodepoint value matches the SMuFL Unicode-codepoint pattern U+HHHH(HH)."
+msgstr "Une contrainte d'intégrité en monde clos : chaque valeur de gmeow:smuflCodepoint respecte le motif de point de code Unicode SMuFL U+HHHH(HH)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notation projection profile loss-or-parameter constraint"
+msgstr "contrainte « perte ou paramètre » d'un profil de projection de notation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:NotationProjectionProfile must declare at least one gmeow:representableParameter or one gmeow:declaredLoss."
+msgstr "Une contrainte d'obligation en monde clos : un gmeow:NotationProjectionProfile doit déclarer au moins un gmeow:representableParameter ou une gmeow:declaredLoss."

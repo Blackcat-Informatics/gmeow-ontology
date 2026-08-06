@@ -2644,3 +2644,203 @@ msgstr "范围：该记录仅承载关于 gmeow:voiceTimeFrame 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:voiceTuningFrame and nothing else. It is not a definition of gmeow:voiceTuningFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:voiceTuningFrame 的一项完整性义务，别无其他。它不是 gmeow:voiceTuningFrame 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DegreeOfFreedomConstraintTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "DegreeOfFreedom constraint-text unique-language constraint"
+msgstr "DegreeOfFreedom 约束文本语言唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DegreeOfFreedomConstraintTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a DegreeOfFreedom carries at most one gmeow:dofConstraintText per language tag (no two language-tagged values share a tag)."
+msgstr "闭世界完整性约束：一个 DegreeOfFreedom 对每个语言标记至多携带一个 gmeow:dofConstraintText（任何两个带语言标记的取值都不共用同一个标记）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GenerativeProcessRuleTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GenerativeProcess rule-text unique-language constraint"
+msgstr "GenerativeProcess 规则文本语言唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GenerativeProcessRuleTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a GenerativeProcess carries at most one gmeow:processRuleText per language tag (no two language-tagged values share a tag)."
+msgstr "闭世界完整性约束：一个 GenerativeProcess 对每个语言标记至多携带一个 gmeow:processRuleText（任何两个带语言标记的取值都不共用同一个标记）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstrumentConfigurationTargetChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Instrument configuration target choice constraint"
+msgstr "乐器配置目标择一约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstrumentConfigurationTargetChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an InstrumentConfiguration targets exactly one of a specific instrument item (gmeow:configurationOf) or an instrument type (gmeow:configurationInstrumentType), never both."
+msgstr "闭世界完整性约束：一个 InstrumentConfiguration 恰好指向具体乐器实例（gmeow:configurationOf）或乐器类型（gmeow:configurationInstrumentType）之一，二者不可兼有。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricGroupLengthDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MetricGroup length-denominator range constraint"
+msgstr "MetricGroup 长度分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricGroupLengthDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MetricGroup's gmeow:groupLengthDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：MetricGroup 的 gmeow:groupLengthDenominator 是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotSourcePatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric-modulation pivot-source rational pattern"
+msgstr "节拍转换枢轴源有理数模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotSourcePatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:pivotSourceValue is a rational string numerator/denominator with a non-zero denominator."
+msgstr "闭世界完整性约束：gmeow:pivotSourceValue 是形如「分子/分母」的有理数字符串，且分母非零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotTargetPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric-modulation pivot-target rational pattern"
+msgstr "节拍转换枢轴目标有理数模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotTargetPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:pivotTargetValue is a rational string numerator/denominator with a non-zero denominator."
+msgstr "闭世界完整性约束：gmeow:pivotTargetValue 是形如「分子/分母」的有理数字符串，且分母非零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeFrameDimensionCountRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeFrame dimension-count range constraint"
+msgstr "MusicalTimeFrame 维数取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeFrameDimensionCountRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeFrame's gmeow:dimensionCount is a nonNegativeInteger equal to 1 (scalar, one-dimensional)."
+msgstr "仅用于验证的完整性约束：MusicalTimeFrame 的 gmeow:dimensionCount 是等于 1 的非负整数（标量、一维）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan duration-denominator range constraint"
+msgstr "MusicalTimeSpan 时长分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeDurationDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：MusicalTimeSpan 的 gmeow:timeDurationDenominator 是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationNumeratorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan duration-numerator range constraint"
+msgstr "MusicalTimeSpan 时长分子取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationNumeratorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeDurationNumerator is a non-negative integer."
+msgstr "仅用于验证的完整性约束：MusicalTimeSpan 的 gmeow:timeDurationNumerator 是非负整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanStartDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan start-denominator range constraint"
+msgstr "MusicalTimeSpan 起点分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanStartDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeStartDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：MusicalTimeSpan 的 gmeow:timeStartDenominator 是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OrnamentProfileDescriptionUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OrnamentProfile description unique-language constraint"
+msgstr "OrnamentProfile 描述语言唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OrnamentProfileDescriptionUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an OrnamentProfile carries at most one gmeow:ornamentDescription per language tag (no two language-tagged values share a tag)."
+msgstr "闭世界完整性约束：一个 OrnamentProfile 对每个语言标记至多携带一个 gmeow:ornamentDescription（任何两个带语言标记的取值都不共用同一个标记）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationEventConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation event-present constraint"
+msgstr "演出参与事件必备约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationEventConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation names exactly one Event via gmeow:participationEvent."
+msgstr "闭世界完整性约束：一个 PerformanceParticipation 经 gmeow:participationEvent 恰好命名一个 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationParticipantConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation participant-present constraint"
+msgstr "演出参与参与者必备约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationParticipantConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation names exactly one participant via gmeow:participationParticipant."
+msgstr "闭世界完整性约束：一个 PerformanceParticipation 经 gmeow:participationParticipant 恰好命名一位参与者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationRoleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation role-present constraint"
+msgstr "演出参与角色必备约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationRoleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation declares exactly one ParticipantRole via gmeow:participationRole."
+msgstr "闭世界完整性约束：一个 PerformanceParticipation 经 gmeow:participationRole 恰好声明一个 ParticipantRole。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchAnchorFrequencyRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchAnchor frequency range constraint"
+msgstr "PitchAnchor 频率取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchAnchorFrequencyRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a PitchAnchor's gmeow:anchorFrequency (xsd:decimal) is strictly greater than 0.0 (a positive frequency in Hz)."
+msgstr "仅用于验证的完整性约束：PitchAnchor 的 gmeow:anchorFrequency（xsd:decimal）严格大于 0.0（以 Hz 计的正频率）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchIntervalRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchInterval ratio-denominator range constraint"
+msgstr "PitchInterval 比率分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchIntervalRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a PitchInterval's gmeow:ratioDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：PitchInterval 的 gmeow:ratioDenominator 若存在，则是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchTrajectoryControlPoint time-position-denominator range constraint"
+msgstr "PitchTrajectoryControlPoint 时间位置分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a PitchTrajectoryControlPoint's gmeow:controlPointTimePositionDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：PitchTrajectoryControlPoint 的 gmeow:controlPointTimePositionDenominator 是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchValueRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchValue ratio-denominator range constraint"
+msgstr "PitchValue 比率分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchValueRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a PitchValue's gmeow:ratioDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：PitchValue 的 gmeow:ratioDenominator 若存在，则是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SegmentKindNoSubclassConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SegmentKind no-subclass constraint"
+msgstr "SegmentKind 禁止子类约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SegmentKindNoSubclassConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: SegmentKind is a value vocabulary — no subclasses allowed (Principle 9)."
+msgstr "闭世界完整性约束：SegmentKind 是一个取值词表——不允许任何子类（原则 9）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TempoMapSegmentRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TempoMapSegment ratio-denominator range constraint"
+msgstr "TempoMapSegment 比率分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TempoMapSegmentRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a TempoMapSegment's gmeow:segmentMapRatioDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：TempoMapSegment 的 gmeow:segmentMapRatioDenominator 是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeMappingRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TimeMapping ratio-denominator range constraint"
+msgstr "TimeMapping 比率分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeMappingRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a TimeMapping's gmeow:mapRatioDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：TimeMapping 的 gmeow:mapRatioDenominator 若存在，则是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneEventPitchModeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tone event pitch-mode choice constraint"
+msgstr "音事件音高模式择一约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneEventPitchModeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a ToneEvent carries exactly one pitch-content mode — gmeow:toneEventPitchValue, gmeow:toneEventPitchTrajectory, or gmeow:toneEventIsUnpitched."
+msgstr "闭世界完整性约束：一个 ToneEvent 恰好携带一种音高内容模式——gmeow:toneEventPitchValue、gmeow:toneEventPitchTrajectory 或 gmeow:toneEventIsUnpitched。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransformationTypeNoSubclassConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TransformationType no-subclass constraint"
+msgstr "TransformationType 禁止子类约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransformationTypeNoSubclassConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: TransformationType is a value vocabulary — no subclasses allowed (Principle 9)."
+msgstr "闭世界完整性约束：TransformationType 是一个取值词表——不允许任何子类（原则 9）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraversalConstraintTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TraversalConstraint rule-text unique-language constraint"
+msgstr "TraversalConstraint 规则文本语言唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraversalConstraintTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a TraversalConstraint carries at most one gmeow:constraintText per language tag (no two language-tagged values share a tag)."
+msgstr "闭世界完整性约束：一个 TraversalConstraint 对每个语言标记至多携带一个 gmeow:constraintText（任何两个带语言标记的取值都不共用同一个标记）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TuningSystem divided-interval-denominator range constraint"
+msgstr "TuningSystem 被分音程分母取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a TuningSystem's gmeow:dividedIntervalDenominator is a positive integer."
+msgstr "仅用于验证的完整性约束：TuningSystem 的 gmeow:dividedIntervalDenominator 若存在，则是正整数。"

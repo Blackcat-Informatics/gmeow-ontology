@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: the statement carries a math:statementRole but no math:roleInTheory,
+# so math:UnscopedStatementRoleConstraint's closed-world existence check fails
+# (math:UnscopedStatementRole).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unscopedStatement a math:MathematicalStatement ;
+    math:statementRole math:roleLemma .

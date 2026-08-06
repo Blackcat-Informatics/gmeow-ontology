@@ -1024,6 +1024,26 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
             g.add_annotation(axiom);
             continue;
         }
+        // A cardinality count is an xsd:nonNegativeInteger, and the adapter read carries
+        // lexical form only — so the datatype has to be restored from the predicate here
+        // exactly as `emit_restriction` restores it on the OWL path below. Routing it
+        // through `add_obj` emits an untyped literal, which would leave the CANONICAL
+        // surface lossier than the lossy projection derived from it: `logic:` is the source
+        // and `owl:` is its Principle-17 view, so a round-trip through the canonical layer
+        // must not be the one that drops the type. Left unrestored, the bound comes back
+        // from a GTS round-trip as xsd:string and every reader has to special-case it.
+        if axiom.obj_is_literal
+            && restriction::CARDINALITY_LOCALS
+                .iter()
+                .any(|local| axiom.predicate == logic(local))
+        {
+            g.add_lit(
+                &axiom.subject,
+                &axiom.predicate,
+                RdfLiteral::typed(&axiom.obj, format!("{XSD_NS}nonNegativeInteger")),
+            );
+            continue;
+        }
         g.add_obj(
             &axiom.subject,
             &axiom.predicate,

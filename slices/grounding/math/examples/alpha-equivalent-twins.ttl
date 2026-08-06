@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Two expressions authored INDEPENDENTLY — different application nodes, different
+# argument-slot nodes, different math:SymbolReference occurrence nodes — that denote the
+# same product of the same two symbols. They must therefore intern to ONE structural key
+# and resolve to ONE math:AlphaEquivalenceClass.
+#
+# This is the case reference-ast-act.ttl cannot express. There, both expressions REUSE a
+# single pair of occurrence nodes, so the occurrence IRIs are held constant and a digest
+# keyed on them looks correct; the defect where a symbol occurrence was interned on its own
+# wrapper IRI rather than on the symbol it resolves to was invisible in that shape. A
+# content-addressed key has to survive independent authorship, so the shipped example corpus
+# carries a pair that varies exactly what such a key must ignore.
+#
+# Nothing here declares a math:structuralKey: the point is the JOIN. The expression-identity
+# reasoned gate materializes math:alphaEquivalenceClass for every root it lowers cleanly, and
+# a consumer reaches these two through that shared class node rather than by string-comparing
+# two digest literals.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/math/alpha-twins/> .
+
+ex:vectorSpaceTheory a math:MathematicalTheory ;
+    rdfs:label "vector spaces"@en .
+
+# The two symbols both expressions are written over. Symbol identity is shared; every
+# occurrence of a symbol is a separate resource.
+ex:symbolU a math:MathematicalSymbol ;
+    rdfs:label "u"@en ;
+    math:definedInTheory ex:vectorSpaceTheory .
+
+ex:symbolV a math:MathematicalSymbol ;
+    rdfs:label "v"@en ;
+    math:definedInTheory ex:vectorSpaceTheory .
+
+# ── First authoring: u ⋅ v ─────────────────────────────────────────────────────────────
+ex:firstProduct a math:ApplicationExpression ;
+    rdfs:label "u multiplied by v, as first authored"@en ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:firstSlot0 , ex:firstSlot1 .
+
+ex:firstSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:firstOccurrenceOfU .
+
+ex:firstSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:firstOccurrenceOfV .
+
+ex:firstOccurrenceOfU a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:symbolU .
+
+ex:firstOccurrenceOfV a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:symbolV .
+
+# ── Second authoring: the SAME expression, every node named differently ────────────────
+ex:secondProduct a math:ApplicationExpression ;
+    rdfs:label "u multiplied by v, authored separately"@en ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:secondSlot0 , ex:secondSlot1 .
+
+ex:secondSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:secondOccurrenceOfU .
+
+ex:secondSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:secondOccurrenceOfV .
+
+ex:secondOccurrenceOfU a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:symbolU .
+
+ex:secondOccurrenceOfV a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:symbolV .

@@ -496,3 +496,19 @@ msgstr "星期日"
 msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Sunday, ISO-8601 weekday 7: the day that closes the ISO week, even though the Gregorian liturgical calendar and North American convention both place it first. The two orderings disagree only about where the week boundary falls, never about the day, so a weekly rule must state which convention it counts in instead of assuming this value sits at either end."
 msgstr "星期日，ISO-8601 的第 7 日：收束 ISO 星期的那一天，尽管格里高利礼仪历和北美惯例都把它排在最前面。这两种排序仅仅在每周边界落于何处上存在分歧，而绝不在这一天本身；因此一条按周生效的规则必须说明自己依照哪一种惯例来计数，而不是假定这个取值必居首尾之一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Instant value-or-EDTF constraint"
+msgstr "Instant「取值或 EDTF」约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:Instant carries at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal) — a point in time with no stated value is not an Instant."
+msgstr "闭世界完整性约束：一个 gmeow:Instant 至少携带 gmeow:instantValue（xsd:dateTime）与 gmeow:edtfValue（EDTF 字面量）之一——没有给出任何取值的时间点不成其为 Instant。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Named period bounds-or-measurement constraint"
+msgstr "具名时段「边界或测量」约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."
+msgstr "闭世界完整性约束：一个 gmeow:NamedPeriod 要么同时由 gmeow:periodStart 与 gmeow:periodEnd 界定，要么至少携带一个 gmeow:hasTemporalMeasurement——既无边界又无实测时长的具名时间段属于欠定。"

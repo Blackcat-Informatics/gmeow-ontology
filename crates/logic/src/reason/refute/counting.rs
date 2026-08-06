@@ -342,27 +342,7 @@ fn analyze_cardinality(m: &Model) -> Verdict {
 fn cardinality_clashes(m: &Model) -> BTreeSet<NothingClash> {
     let mut clashes: BTreeSet<NothingClash> = BTreeSet::new();
     for ((world, class), nodes) in m.class_restrictions() {
-        // Per property: effective (min, max).
-        let mut per_property: BTreeMap<String, (Option<u128>, Option<u128>)> = BTreeMap::new();
-        for node in &nodes {
-            let Some(r) = m.restrictions.get(&(world.clone(), node.clone())) else {
-                continue;
-            };
-            let Some(property) = &r.on_property else {
-                continue;
-            };
-            let entry = per_property.entry(property.clone()).or_insert((None, None));
-            for lower in [r.min, r.exact].into_iter().flatten() {
-                entry.0 = Some(entry.0.map_or(lower, |cur: u128| cur.max(lower)));
-            }
-            for upper in [r.max, r.exact].into_iter().flatten() {
-                entry.1 = Some(entry.1.map_or(upper, |cur: u128| cur.min(upper)));
-            }
-        }
-        let collapsed_property = per_property.iter().find_map(|(property, (lo, hi))| {
-            matches!((lo, hi), (Some(lo), Some(hi)) if lo > hi).then(|| property.clone())
-        });
-        let Some(property) = collapsed_property else {
+        let Some(property) = collapsed_property(m, &world, &nodes) else {
             continue;
         };
         // The class is unsatisfiable; each individual directly typed `C` clashes.
@@ -384,6 +364,82 @@ fn cardinality_clashes(m: &Model) -> BTreeSet<NothingClash> {
         }
     }
     clashes
+}
+
+/// The EFFECTIVE plain-cardinality bounds, per property, that `nodes` — the
+/// restriction set a single class carries in `world` — imposes on that class.
+///
+/// `min = max(all mins ∪ exacts)` and `max = min(all maxes ∪ exacts)`, so a class
+/// carrying its bounds as several restriction nodes reads the same as one carrying
+/// them on a single node. Shared by [`cardinality_clashes`] (a `min > max` collapse
+/// makes the class unsatisfiable) and [`class_definition_counting_residual`].
+fn effective_bounds(
+    m: &Model,
+    world: &str,
+    nodes: &BTreeSet<String>,
+) -> BTreeMap<String, (Option<u128>, Option<u128>)> {
+    let mut per_property: BTreeMap<String, (Option<u128>, Option<u128>)> = BTreeMap::new();
+    for node in nodes {
+        let Some(r) = m.restrictions.get(&(world.to_owned(), node.clone())) else {
+            continue;
+        };
+        let Some(property) = &r.on_property else {
+            continue;
+        };
+        let entry = per_property.entry(property.clone()).or_insert((None, None));
+        for lower in [r.min, r.exact].into_iter().flatten() {
+            entry.0 = Some(entry.0.map_or(lower, |cur: u128| cur.max(lower)));
+        }
+        for upper in [r.max, r.exact].into_iter().flatten() {
+            entry.1 = Some(entry.1.map_or(upper, |cur: u128| cur.min(upper)));
+        }
+    }
+    per_property
+}
+
+/// The first property whose effective plain-cardinality bounds COLLAPSE (`min > max`)
+/// over the restriction set `nodes` a single class carries in `world`.
+fn collapsed_property(m: &Model, world: &str, nodes: &BTreeSet<String>) -> Option<String> {
+    effective_bounds(m, world, nodes)
+        .into_iter()
+        .find_map(|(property, (lo, hi))| {
+            matches!((lo, hi), (Some(lo), Some(hi)) if lo > hi).then_some(property)
+        })
+}
+
+/// True iff some class-DEFINITION-position plain cardinality bound falls OUTSIDE the
+/// functional (exactly-one) case, and so leaves a TBox-counting residual the forward
+/// chase does not decide.
+///
+/// This is the presence test for the shape the coverage coordinator
+/// ([`crate::reason::dl`]) withholds under H2. The carve-out is not a new soundness
+/// claim: `dl` already declines to withhold for an exact `owl:cardinality 1` (only
+/// `cardinality n ≥ 2` withholds), because an effective bound of exactly one is the
+/// functional statement, whose violation the chase decides on the individual. A class
+/// carrying `min 1` and `max 1` on one property states precisely that, spelled as two
+/// restriction nodes instead of one, so it is decided on the same grounds — this
+/// applies the established carve-out to the EFFECTIVE bound rather than to whichever
+/// node happens to carry each half.
+///
+/// Every other shape stays a residual, including a bound whose effective minimum is
+/// `≥ 2` (that is the domain-size interaction — a `≥3` obligation against an
+/// inverse/nominal-bounded two-object domain, W3C `webont-description-logic-035` —
+/// which needs real TBox counting), a one-sided bound, and a collapse. The test is
+/// deliberately population-BLIND: the residual [`cardinality_clashes`] genuinely
+/// misses is a collapse on a class with no directly-typed individual, so a collapse is
+/// reported here whether or not it also produced a clash.
+pub(crate) fn class_definition_counting_residual(edb: &RdfDataset) -> bool {
+    let m = Model::scan(edb);
+    m.class_restrictions()
+        .into_iter()
+        .any(|((world, _), nodes)| {
+            effective_bounds(&m, &world, &nodes)
+                .into_values()
+                // A property with no plain bound at all carries no counting obligation —
+                // a value restriction or a QUALIFIED cardinality is a different family.
+                .filter(|bounds| *bounds != (None, None))
+                .any(|bounds| bounds != (Some(1), Some(1)))
+        })
 }
 
 // ── Family 6a — inverse-functional / functional identity collapse ────────────────
@@ -729,7 +785,13 @@ impl Model {
 
         for quad in edb.owned_quads() {
             let world = world_key(&quad.graph_name);
-            let predicate = quad.predicate.clone();
+            // The one lowering point of this scan: a canonical `logic:` class-expression
+            // term becomes the `owl:` spelling every arm below matches
+            // ([`crate::reason::calculus_term`], the shared table). It
+            // must happen BEFORE `m.predicates` / `m.type_objects` are recorded, because
+            // those two sets are the whole-case completeness gate: an unlowered
+            // `logic:onProperty` would read as an unknown construct and refuse the case.
+            let predicate = crate::reason::calculus_term(&quad.predicate).to_owned();
             let Some(subject) = resource_key(&quad.subject) else {
                 continue;
             };
@@ -737,6 +799,7 @@ impl Model {
             match predicate.as_str() {
                 RDF_TYPE => {
                     if let Some(object) = resource_key(&quad.object) {
+                        let object = crate::reason::calculus_term(&object).to_owned();
                         m.type_objects.insert(object.clone());
                         match object.as_str() {
                             OWL_INVERSE_FUNCTIONAL_PROPERTY => {

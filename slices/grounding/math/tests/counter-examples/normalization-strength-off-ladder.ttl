@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration that correctly names its (source,
+# target) pair AND carries exactly one math:normalizationStrength — so the unqualified
+# min/max-cardinality-1 restriction pair is fully satisfied — but points that strength at
+# an IRI outside the four closed math:NormalizationStrength rungs.
+#
+# This is the WHICH-FOUR half of math:UndeclaredNormalizationStrength, which the count half
+# cannot see: counting reaches exactly one value and stops. It is decided by
+# math:NormalizationStrengthValueConstraint, whose logic:termIn formula tests IRI
+# MEMBERSHIP rather than the value's asserted type — so it decides identically here, where
+# ex:handWavyNormalization is typed as nothing at all, and in the shipped bundle, where the
+# four real rungs are typed. A value-set worded as a class constraint would instead have
+# asked what ex:handWavyNormalization is typed AS, found nothing, and rejected correct
+# consumer data for the same reason it rejected this slice's own reference example.
+#
+# Isolation: the declaration is held at a strength that is not math:structuralNormalization,
+# so math:UnattributedNormalizationConstraint's coarser-than-structural guard WOULD engage —
+# hence the full attribution coat below (procedure, holding observation with its vantage, and
+# preservation kind), so the only finding is the off-ladder strength itself.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:sumXY math:normalForm ex:sumYX .
+
+ex:offLadderDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:sumXY ;
+    math:normalizesTo ex:sumYX ;
+    math:normalizationStrength ex:handWavyNormalization ;
+    math:normalizationProcedure ex:handWavyRewrite ;
+    logic:preservationKind logic:preservesSatisfiability .
+
+ex:handWavyRewrite a math:NormalizationProcedure .
+
+ex:offLadderObservation a gmeow:Observation ;
+    gmeow:observationResult ex:offLadderDecl ;
+    gmeow:observedFeature ex:sumXY ;
+    gmeow:vantage ex:rewriterStandpoint .
+
+ex:rewriterStandpoint a gmeow:Standpoint , gmeow:Entity .

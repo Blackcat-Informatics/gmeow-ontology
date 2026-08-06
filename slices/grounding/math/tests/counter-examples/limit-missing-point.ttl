@@ -11,4 +11,9 @@ ex:pointlessLimit a math:Limit ;
     math:operator math:limitBinder ;
     math:limitOf ex:someExpr .
 
-ex:someExpr a math:MathematicalExpression .
+# The limited expression is an incidental named operand here, not the defect. It is a
+# math:SymbolReference so the ONLY class this fixture raises is the missing math:limitPoint —
+# the abstract math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:someExpr a math:SymbolReference ; math:hasMathematicalSymbol ex:someExprSymbol .
+ex:someExprSymbol a math:MathematicalSymbol .

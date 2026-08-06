@@ -35,6 +35,7 @@ use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipRepor
 use purrdf::slice::{Phase, ToolchainContext, product_unit_key};
 
 use crate::cache::{CachedResult, ValidationCache};
+use crate::findings::FailureClassIndex;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
@@ -523,6 +524,28 @@ impl ValidationRun {
                 },
             )?;
 
+        // The shape surface's `gmeow:enforcesFailureClass` annotations, read ONCE from
+        // the very dataset the shapes were parsed from (the union loader hands its own
+        // store back, so a second parse with different blank scoping is impossible).
+        // Every SHACL finding this run emits is resolved through it, so a violation
+        // NAMES the typed conformance failure its law declares rather than shipping
+        // only the generic component code every gate of that shape shares.
+        let failure_classes = match &shape_store {
+            Some(store) => FailureClassIndex::from_shapes_dataset(store),
+            None => {
+                let shapes_ds = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
+                    .map_err(|e| {
+                    Diag::of_kind(crate::error::Parse {
+                        detail: format!(
+                            "SHACL shapes failed to parse as a dataset for the \
+                                 gmeow:enforcesFailureClass index: {e}"
+                        ),
+                    })
+                })?;
+                FailureClassIndex::from_shapes_dataset(&shapes_ds)
+            }
+        };
+
         // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
         // ontology validation phases, so malformed, unsigned, or untrusted bundles
@@ -828,7 +851,7 @@ impl ValidationRun {
                     // property path (constraint projector + the legacy shape bodies), so the raw dataset
                     // is validated directly.
                     let report = store::shacl_validate_dataset(&dataset, &shapes);
-                    Ok(shacl_findings_from_report(&report, None))
+                    Ok(shacl_findings_from_report(&report, None, &failure_classes))
                 })?
             }
             // The verdict the pipeline already recorded over the same inputs, proven
@@ -861,6 +884,7 @@ impl ValidationRun {
             let (result, meta) = check_examples(
                 &dataset,
                 &shapes,
+                &failure_classes,
                 slices_dir,
                 cache.as_ref(),
                 &merged_shacl_key,
@@ -1138,7 +1162,20 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
             detail: format!("validate --deep: GTS read error: {e}"),
         })
     })?;
-    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).map_err(|e| {
+    // Narrow the full bundle down to the object-level reasoning EDB — the SAME
+    // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
+    // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`),
+    // so this CLI deep pass reasons over byte-identical worlds to the pipeline's own
+    // `make reason-verify` gate rather than silently drifting by also reasoning over
+    // meta/report graphs (documentation, diagnostics, correspondence, …) that assert no
+    // object-level axioms.
+    let edb = gmeow_logic::reasoning_graphs::project_object_level_edb(bundle.dataset.as_ref())
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Engine {
+                detail: format!("validate --deep: object-level EDB projection failed: {e}"),
+            })
+        })?;
+    let result = gmeow_logic::reason::reason_all(edb.as_ref()).map_err(|e| {
         Diag::of_kind(crate::error::Engine {
             detail: format!("validate --deep: native reasoning failed: {e}"),
         })
@@ -1170,6 +1207,20 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     fold_reasoning_result(&result, policy, &explanations, report).map_err(|e| {
         Diag::of_kind(crate::error::Engine {
             detail: format!("validate --deep: {}", e.message),
+        })
+    })?;
+
+    // Shared with `crate::data_validate::deep_consistency_findings` via
+    // `run_math_reasoned_gates` (see its doc comment for why this is safe to run
+    // unconditionally, and why the two callers deliberately map its failure
+    // differently). Runs over the SAME `edb` + `result` the consistency fold above
+    // just used, so both halves agree on what "object-level" means. A failure here
+    // means this dev bundle-only pass's own EDB projection produced a graph the
+    // shared gate could not materialize — an internal invariant violation, so it
+    // hard-fails rather than degrading to an advisory note.
+    run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: reasoned-graph materialization failed: {e}"),
         })
     })?;
 
@@ -1495,6 +1546,68 @@ pub(crate) fn fold_reasoning_result(
     Ok(())
 }
 
+/// Run the `math:` dimensional-homogeneity + `math:` expression-identity reasoned
+/// gates: the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
+/// build time over the pipeline's own `assemble_object_level_edb`, now reachable
+/// from the `gmeow` CLI's deep passes — both the dev bundle-only pass
+/// ([`deep_semantic_findings`]) and the consumer user-data-merge pass
+/// ([`crate::data_validate::deep_consistency_findings`]) call this ONE helper so
+/// the two surfaces can never drift. A consumer with their own math AST graph gets
+/// `math:StructuralKeyDrift` / `math:FalseStructuralNormalizationClaim` findings
+/// directly from the `gmeow` CLI, not only from the MCP `verify_graph` tool.
+///
+/// Deliberately narrower than the FULL
+/// [`gmeow_logic::verify::verify_with_reasoning_result`] battery: that also runs
+/// the embedded `queries/verify/*.rq` bad-example queries, several of which check
+/// for FIXED gmeow vocabulary (e.g. `axis-not-disjoint`'s seven identity-axis
+/// classes) that only the real production bundle carries — misfiring on a
+/// caller-supplied `edb` that is a non-production bundle, or a production bundle
+/// unioned with a consumer's own PARTIAL data graph. The math: gates carry no such
+/// fixed-vocabulary assumption: they read whatever `math:MathematicalExpression` /
+/// `math:GramMatrix` individuals the reasoned graph actually has, so they are safe
+/// to run unconditionally here.
+///
+/// `edb` and `result` MUST be the same pair the caller's own `fold_reasoning_result`
+/// fold just ran over, so both halves of the deep pass agree on what
+/// "object-level" means.
+///
+/// # Errors
+///
+/// Returns `Err` if reasoned-graph materialization
+/// ([`gmeow_logic::verify::materialize_reasoned_graph`]) fails. The two callers
+/// intentionally map this failure differently (a caller-supplied-data pass
+/// degrades it to an advisory note; the dev bundle-only pass hard-fails on it,
+/// since a failure there can only mean the bundle itself is broken) — that
+/// divergence is deliberately left to each call site's own `.map_err`, not hidden
+/// in here.
+pub(crate) fn run_math_reasoned_gates(
+    edb: &RdfDataset,
+    result: &gmeow_logic::result::ReasoningResult,
+    report: &mut Report,
+) -> gmeow_errors::Result<()> {
+    match gmeow_logic::verify::materialize_reasoned_graph(edb, result)? {
+        gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
+            for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+            for finding in gmeow_logic::math_expression::check_math_expression_findings(
+                edb,
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+        }
+        gmeow_logic::verify::ReasonedGraphOutcome::IncompleteClosure(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Run `closure` and, if timings are enabled, record how long it took.
 fn timed<F, T>(
     timings: &mut Vec<Timing>,
@@ -1752,6 +1865,7 @@ type CachedPhaseResult = gmeow_errors::Result<(Vec<Finding>, Option<String>)>;
 fn check_examples(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_classes: &FailureClassIndex,
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
@@ -1806,7 +1920,7 @@ fn check_examples(
                 ])
             };
             run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(&base_projected, shapes, path, name)
+                run_example_shacl(&base_projected, shapes, failure_classes, path, name)
             })
         })
         .collect();
@@ -1859,6 +1973,7 @@ fn example_shacl_key(
 fn run_example_shacl(
     base_projected: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_classes: &FailureClassIndex,
     path: &Path,
     name: &str,
 ) -> gmeow_errors::Result<Vec<Finding>> {
@@ -1898,7 +2013,7 @@ fn run_example_shacl(
             detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
         })
     })?;
-    let report = if example_allows_focus_pruning(example_ds.as_ref()) {
+    let mut report = if example_allows_focus_pruning(example_ds.as_ref()) {
         let affected = affected_focus_terms(example_projected.as_ref());
         // ABox-only examples cannot alter the ontology's target/class/property
         // structure, so the merged run only needs to recheck focus terms touched
@@ -1917,7 +2032,16 @@ fn run_example_shacl(
             detail: format!("example {name}: SHACL validation failed: {e}"),
         })
     })?;
-    Ok(shacl_findings_from_report(&report, Some(name)))
+    // The per-example path calls the engine directly (it needs the focus-filter
+    // variant), so it applies the same result-set collapse
+    // `store::shacl_validate_dataset` does — a violation reported twice is one
+    // violation on every validate surface, not just the bundle-driven one.
+    store::dedupe_validation_results(&mut report);
+    Ok(shacl_findings_from_report(
+        &report,
+        Some(name),
+        failure_classes,
+    ))
 }
 
 const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
@@ -2898,7 +3022,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             results: vec![result],
         };
 
-        let findings = shacl_findings_from_report(&report, None);
+        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
 
         assert_eq!(findings.len(), 1, "expected exactly one finding");
         assert_eq!(
@@ -2925,7 +3049,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             results: vec![],
         };
 
-        let findings = shacl_findings_from_report(&report, None);
+        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
 
         assert_eq!(
             findings.len(),

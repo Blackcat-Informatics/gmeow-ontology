@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:semanticNormalization —
+# the COARSEST rung, whose own definition says "the strongest attribution obligation
+# applies here" — carries its math:normalizationProcedure and its logic:preservationKind,
+# but is named by NO gmeow:Observation/gmeow:vantage pair — the claim is unattributed to
+# any standpoint (math:UnattributedNormalization). "Two closed forms are equal" is
+# precisely the inferential act that must never be asserted for free, even (especially)
+# at this coarsest rung.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:semanticUnattributedSource a math:NumberLiteral ;
+    math:normalForm ex:semanticUnattributedTarget ;
+    math:literalValue "11"^^xsd:integer .
+
+# The normal-form TARGET is incidental here, not the defect. It is a math:SymbolReference so
+# the ONLY class this fixture raises is the unattributed normalization — the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:semanticUnattributedTarget a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:semanticUnattributedTargetSymbol .
+ex:semanticUnattributedTargetSymbol a math:MathematicalSymbol .
+
+ex:semanticUnattributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:semanticUnattributedSource ;
+    math:normalizesTo ex:semanticUnattributedTarget ;
+    math:normalizationStrength math:semanticNormalization ;
+    math:normalizationProcedure ex:externalTheoremEquivalence ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:externalTheoremEquivalence a math:NormalizationProcedure .

@@ -105,6 +105,11 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
 /// An RL closure of the named slice modules plus injected `abox` quads — the native twin of the
 /// Python `_materialize(*modules, abox)` pattern. `slices` are `<group>/<name>` ids; the relevant
 /// `module.ttl` files (small TBox) plus the tiny A-Box close in seconds, Docker-free.
+///
+/// The authored `logic:subClassOf` / `logic:subPropertyOf` taxonomy needs no projection here:
+/// the engine lowers a canonical subsumption edge onto its `rdfs:` twin at the EDB boundary
+/// (`gmeow_logic::reason::edb_predicate_spellings`), so these cases exercise the SAME path the
+/// shipped pipeline reasons over.
 pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let mut paths: Vec<String> = slices.iter().map(|s| module(s)).collect();
     paths.sort();

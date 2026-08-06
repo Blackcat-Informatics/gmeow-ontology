@@ -124,3 +124,11 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:findingSeverity and nothing else. It is not a definition of gmeow:findingSeverity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:findingSeverity, et rien d'autre. Ce n'est pas une définition de gmeow:findingSeverity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitnessCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cross-node glut witness count constraint"
+msgstr "contrainte de cardinalité du témoin d'excès inter-nœuds"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitnessCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world structural integrity constraint: a gmeow:CrossNodeGlutWitness carries EXACTLY two gmeow:glutWitnessOf links (one per conflicting Finding) — the reasoner-minted meta-finding's two-sided coherence-conflict record."
+msgstr "Une contrainte d'intégrité structurelle en monde clos : un gmeow:CrossNodeGlutWitness porte EXACTEMENT deux liens gmeow:glutWitnessOf (un par constat en conflit) — l'enregistrement bilatéral du conflit de cohérence que constitue le méta-constat frappé par le raisonneur."

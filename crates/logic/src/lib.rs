@@ -60,6 +60,12 @@ pub mod materialize;
 // all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
 // speed. Runs alongside the obligation checks in `verify`.
 pub mod math_dimension;
+// The `math:` expression-identity reasoned-graph gate — recomputed `math:structuralKey`
+// drift, `math:NormalizationDeclaration` surface leaks, and a claimed structural key on a
+// rejected expression, all decided over the ONE `math:` expression lowering
+// (`crate::physical::lower::math_expression_structural_keys`). Runs alongside
+// `math_dimension` in the same reason-verify pass.
+pub mod math_expression;
 // Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
 // forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
@@ -111,8 +117,8 @@ pub mod synth_corpus;
 pub mod teleology;
 /// The shared structured-term arena's façade (`ContentKey` / `TermArena` / `StructNode` /
 /// `InterningStats`, re-exported from the reasoner-free [`gmeow_term_arena`] crate) plus
-/// [`term_arena::MathGraphInterning`] — the thin `math:`-graph interning wrapper, which
-/// lives here because it needs this crate's `purrdf`-backed `math:` expression lowering.
+/// [`term_arena::intern_math_root`] — the `math:`-graph interning seam, which lives here
+/// because it needs this crate's `purrdf`-backed `math:` expression lowering.
 pub mod term_arena;
 mod term_codec;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general

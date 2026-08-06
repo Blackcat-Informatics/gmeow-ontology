@@ -45,6 +45,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
+use gmeow_validate::repo_static::{enclosing_slice_dir, registered_fail_witnesses};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -82,11 +83,32 @@ fn ttl_files_recursive(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
+/// Every authored `.ttl` under [`AUTHORED_ROOTS`], MINUS the fixtures a slice's own
+/// `tests/*.ttl` registers as a `gmeow:saFailWitness` (via the shared
+/// [`gmeow_validate::repo_static::registered_fail_witnesses`], the SAME exemption the
+/// projection-purity gate applies — one rule, not two independently-maintained ones).
+///
+/// A `mustNot` structural assertion (e.g. `ex:saNoHandAuthoredShapes`) proves its ban is
+/// non-vacuous by committing a fixture that DELIBERATELY hand-authors the banned shape; without
+/// that exemption the census would flag the very evidence the ban's own test suite requires. The
+/// exemption is keyed on the REGISTRATION, not a blanket `tests/counter-examples/` directory
+/// skip, so an unregistered hand-authored shape parked in the same directory is still caught —
+/// the census stays a fail-closed oracle over everything that is not proven-deliberate.
 fn authored_ttl_files(root: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     for sub in AUTHORED_ROOTS {
         ttl_files_recursive(&root.join(sub), &mut out);
     }
+    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
+    out.retain(|path| {
+        let Some(slice_dir) = enclosing_slice_dir(path) else {
+            return true;
+        };
+        let witnesses = witness_cache
+            .entry(slice_dir.clone())
+            .or_insert_with(|| registered_fail_witnesses(&slice_dir));
+        !witnesses.contains(path)
+    });
     out
 }
 

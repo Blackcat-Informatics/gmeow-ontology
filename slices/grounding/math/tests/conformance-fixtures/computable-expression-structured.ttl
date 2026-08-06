@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The CONFORMING twin of computable-expression-string-only.ttl: a math: expression carrying a
+# math:normalForm trigger edge that DOES have a structured-child edge, so
+# math:StringOnlyComputableExpressionConstraint's existential witness is found and the fixture
+# validates with no findings.
+#
+# Both ends are concrete math:ApplicationExpression forms over identical content, so they are
+# structurally identical and the math:structuralNormalization claim between them is TRUE.
+# Their math:structuralKey values are therefore EQUAL and are the REAL recomputed digest —
+# an invented literal would be math:StructuralKeyDrift, and the abstract math:MathematicalExpression
+# base carrying a math:argumentSlot would be math:UnrecognizedExpressionType, since structure
+# present with no concrete form to interpret it is exactly what that class names.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:structuredExpr a math:ApplicationExpression ;
+    math:normalForm ex:structuredExprNormalForm ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:structuredExprSlot0 ;
+    math:structuralKey "1825a64ab1a1842487b8b381fcef947272a157a10ae1356b82a4201ad9168070" .
+
+ex:structuredExprSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:structuredExprOperand .
+
+ex:structuredExprOperand a math:NumberLiteral ;
+    math:literalValue "1"^^xsd:integer .
+
+ex:structuredExprNormalForm a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:normalFormSlot0 ;
+    math:structuralKey "1825a64ab1a1842487b8b381fcef947272a157a10ae1356b82a4201ad9168070" .
+
+ex:normalFormSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:normalFormOperand .
+
+ex:normalFormOperand a math:NumberLiteral ;
+    math:literalValue "1"^^xsd:integer .
+
+ex:structuredExprDeclaration a math:NormalizationDeclaration ;
+    math:normalizes ex:structuredExpr ;
+    math:normalizesTo ex:structuredExprNormalForm ;
+    math:normalizationStrength math:structuralNormalization .

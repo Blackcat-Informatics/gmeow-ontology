@@ -132,6 +132,7 @@ ex:saEmbeddingFunctionalEdges a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:embeddingOf a owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:InformationObject .
     gmeow:embeddingModel a owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:commutativeNormalization
+# (coarser than structural) carries its math:normalizationProcedure and its
+# logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair — the
+# claim is unattributed to any standpoint (math:UnattributedNormalization).
+# ex:unattributedSource carries a math:literalValue structured child so the
+# math:normalForm trigger does not ALSO fire math:StringOnlyComputableExpression — this
+# fixture isolates the ONE unattributed-normalization class.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:unattributedSource a math:NumberLiteral ;
+    math:normalForm ex:unattributedTarget ;
+    math:literalValue "3"^^xsd:integer .
+
+# The normal-form TARGET is incidental here, not the defect. It is a math:SymbolReference so
+# the ONLY class this fixture raises is the unattributed normalization — the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:unattributedTarget a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:unattributedTargetSymbol .
+ex:unattributedTargetSymbol a math:MathematicalSymbol .
+
+ex:unattributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:unattributedSource ;
+    math:normalizesTo ex:unattributedTarget ;
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:commutativityRewrite ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:commutativityRewrite a math:NormalizationProcedure .

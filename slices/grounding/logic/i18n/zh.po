@@ -18502,6 +18502,78 @@ msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeatExcludesReviseCo
 msgid "The logic:Constraint rejecting a continuation record typed as BOTH logic:ContinuationRepeat and logic:ContinuationRevise. It completes the pairwise disjointness of the three continuation kinds, whose resume leg logic:ContinuationKindDisjointnessConstraint carries: repeat mints a new logic:Enactment against a new snapshot and leaves the prescription untouched, revise mints a new logic:PrescriptionVersion and leaves in-flight enactments on the version they pinned, and a record asserting both has said neither which occurrence continued nor which prescription governs it."
 msgstr "拒斥同时被类型化为 logic:ContinuationRepeat 与 logic:ContinuationRevise 的续行记录的 logic:Constraint。它补全了三种续行类别的两两互斥，其中「恢复」那一支由 logic:ContinuationKindDisjointnessConstraint 承担：重复会针对一份新快照铸出一个新的 logic:Enactment，而处方原封不动；修订会铸出一个新的 logic:PrescriptionVersion，而在飞的执行仍停留在各自所固定的版本上；一条同时断言两者的记录，既没说清是哪一次发生在延续，也没说清由哪份处方治理它。"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence justification requiredness constraint"
+msgstr "GroundingCorrespondence 理据必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 gmeow:justification。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence source-endpoint requiredness constraint"
+msgstr "GroundingCorrespondence 源端点必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 logic:sourceEndpoint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence target-endpoint requiredness constraint"
+msgstr "GroundingCorrespondence 目标端点必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 logic:targetEndpoint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismClass requiredness constraint"
+msgstr "GroundingCorrespondence 态射类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismClass."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:morphismClass。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismKind requiredness constraint"
+msgstr "GroundingCorrespondence 态射种类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismKind."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:morphismKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence preservationKind requiredness constraint"
+msgstr "GroundingCorrespondence 保持种类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:preservationKind."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:preservationKind。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "String Pattern Constraint"
+msgstr "字符串模式约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Compact sugar for a per-value string-pattern constraint: a logic:onClass target (optional — omitted, the guard is the value path's own presence), a logic:valuePath predicate, a logic:stringOp mode (regexRequired / regexForbidden / prefixRequired / prefixForbidden), and a literal logic:stringPattern every (or no) value on that path must satisfy. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity using logic:termRegex / logic:termStrStarts, lowered to a sh:SPARQLConstraint — regex is out of the EL/OWL restriction fragment, so this stays procedural rather than a native declarative sh:pattern facet. Frontend-only authoring shortcut."
+msgstr "逐值字符串模式约束的紧凑语法糖：一个 logic:onClass 目标（可选——省略时，守卫即为值路径自身的存在）、一个 logic:valuePath 谓词、一个 logic:stringOp 模式（regexRequired / regexForbidden / prefixRequired / prefixForbidden），以及一个字面量 logic:stringPattern，该路径上的每个值（或没有任何值）都必须满足它。它展开为规范的 logic:Constraint，借助 logic:termRegex / logic:termStrStarts 承载诚实的具体化一阶逻辑完整性条件，并下降为 sh:SPARQLConstraint——正则表达式落在 EL/OWL 限制片段之外，因此这一形式保持为过程式，而非原生的声明式 sh:pattern 侧面。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "min exclusive bound"
+msgstr "最小排除界"
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly greater than this literal (projected to sh:minExclusive on the target class shape). The open-bound peer of logic:minInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "logic:ValueRangeConstraint 的排除式字面量下界：约束的 logic:valuePath 上的每个值都必须严格大于该字面量（投影到目标类形状上的 sh:minExclusive）。它是 logic:minInclusiveBound 的开界对应物；在同一端点上，包含式界限优先于排除式界限。"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "max exclusive bound"
+msgstr "最大排除界"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly less than this literal (projected to sh:maxExclusive on the target class shape). The open-bound peer of logic:maxInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "logic:ValueRangeConstraint 的排除式字面量上界：约束的 logic:valuePath 上的每个值都必须严格小于该字面量（投影到目标类形状上的 sh:maxExclusive）。它是 logic:maxInclusiveBound 的开界对应物；在同一端点上，包含式界限优先于排除式界限。"
+
 msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a selected pin was in the roster it was selected from"
 msgstr "所选定的固定项必须出自它被选出的那份名录"

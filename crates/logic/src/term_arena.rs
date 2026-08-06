@@ -13,14 +13,12 @@
 //! [`InterningStats`](gmeow_term_arena::InterningStats)) is re-exported below so a
 //! consumer that already depends on `gmeow-logic` names one surface.
 //!
-//! [`MathGraphInterning::intern_math_graph`](crate::term_arena::MathGraphInterning::intern_math_graph)
-//! is the one addition. It is a thin wrapper —
-//! it writes NO interning logic — over the existing
-//! [`MathGraph::from_turtle`](crate::physical::lower) parse, the existing
-//! [`lower_math_expression`](crate::physical::lower) lowering, and the arena's own content
-//! key.
+//! `intern_math_root` is the one addition. It writes NO interning logic — it composes the
+//! existing [`MathGraph`](crate::physical::lower) parse, the existing
+//! [`lower_math_expression`](crate::physical::lower) lowering, and the arena's own content key,
+//! and it is what the shipped `math:structuralKey` digest is computed through.
 //!
-//! ## Why the wrapper is HERE and not in `gmeow-term-arena`
+//! ## Why the lowering seam is HERE and not in `gmeow-term-arena`
 //!
 //! `math:` expressions have no typed Rust AST: the expression tree **is** an RDF graph, so
 //! lowering one means parsing Turtle and walking a `purrdf` dataset. That lowering
@@ -32,64 +30,54 @@
 //! splitting only the `math:` arm out of a three-consumer lowering would fork the shared
 //! de-Bruijn/binder-frame code into two copies.
 //!
-//! So the wrapper lives in the crate that ALREADY has the `purrdf` + `MathGraph` edge, and
-//! `gmeow-term-arena` stays minimal. It is spelled as an extension trait so the call site
-//! still reads `arena.intern_math_graph(turtle, root)` — a method on the arena, exactly as
-//! it would if it could live there.
+//! So the seam lives in the crate that ALREADY has the `purrdf` + `MathGraph` edge, and
+//! `gmeow-term-arena` stays minimal.
 
-use gmeow_errors::Result;
 use gmeow_term_arena::engine::ArenaAccess;
 
 pub use gmeow_term_arena::{
     Arena, ArenaSnapshot, ContentKey, ForeignNode, InterningStats, StructNode, TermArena,
 };
 
-use crate::physical::lower::{MathGraph, lower_math_expression};
+use crate::physical::lower::{MathGraph, MathResult, lower_math_expression};
 
-/// Intern a `math:` expression graph into the shared arena.
+/// Intern the expression rooted at `root` of an ALREADY-PARSED [`MathGraph`], keeping the typed
+/// [`MathLoweringError`](crate::physical::lower::MathLoweringError) algebra intact.
 ///
-/// Sealed by [`gmeow_term_arena::Arena`]: [`TermArena`] is the only implementer, so this
-/// extension cannot be attached to a second, invented arena.
-pub trait MathGraphInterning: Arena {
-    /// Parse `turtle` as a `math:` application/binding expression graph, lower the
-    /// expression rooted at `root` into this arena, and return its opaque handle together
-    /// with its content key.
-    ///
-    /// Because the arena is content-addressed and locally-nameless, a `math:` expression
-    /// and an alpha-equivalent `logic:` formula intern to the SAME node and the SAME
-    /// [`ContentKey`] — that cross-surface collapse is the point.
-    ///
-    /// # Errors
-    ///
-    /// Returns a typed diagnostic if the Turtle does not parse, if the expression graph is
-    /// malformed (a non-contiguous `math:slotIndex` sequence, an occurrence bound to
-    /// nothing, a `math:NumberLiteral` with no `math:literalValue`, an unrecognized node
-    /// type), or if a de-Bruijn distance/slot would overflow the physical node's field
-    /// width. There is no degraded path: an unliftable expression is a hard failure, never
-    /// a silently-dropped subterm.
-    fn intern_math_graph(&mut self, turtle: &[u8], root: &str) -> Result<(StructNode, ContentKey)>;
-}
-
-impl MathGraphInterning for TermArena {
-    fn intern_math_graph(&mut self, turtle: &[u8], root: &str) -> Result<(StructNode, ContentKey)> {
-        let graph = MathGraph::from_turtle(turtle)?;
-        let node = lower_math_expression(self.dag_mut(), &graph, root)?;
-        let handle = self.brand_node(node).map_err(|err| {
-            gmeow_errors::Diag::of_kind(gmeow_logic_compile::error::Ir {
-                detail: format!(
-                    "math expression lowering produced a node this arena rejects: {err}"
-                ),
-            })
-        })?;
-        let key = self.key(handle).map_err(|err| {
-            gmeow_errors::Diag::of_kind(gmeow_logic_compile::error::Ir {
-                detail: format!(
-                    "math expression lowering produced a node this arena rejects: {err}"
-                ),
-            })
-        })?;
-        Ok((handle, key))
-    }
+/// This is the seam the shipped structural-key computation
+/// ([`crate::physical::lower::math_expression_structural_keys`]) runs on: the digest the ontology
+/// publishes IS the [`ContentKey`] this arena mints, folded to fixed width — the same bytes by
+/// construction rather than by two implementations agreeing.
+///
+/// Crate-visible, and there is no public Turtle-bytes wrapper beside it. One existed and had no
+/// caller outside its own tests; a second entry point into the same lowering, reachable by nobody,
+/// is exactly the duplicate surface the greenfield rule says to delete rather than document.
+///
+/// # Errors
+///
+/// The lowering's own typed rejection — every variant carries the `math:` failure class it
+/// denotes, which is what makes an unliftable expression reportable rather than merely absent.
+///
+/// # Panics
+///
+/// If `arena` rejects a node its OWN backing DAG just minted. That is an internal invariant
+/// violation, not an input condition, so it is never folded into the typed error algebra (where
+/// it would mint a failure class no fixture could ever exhibit).
+pub(crate) fn intern_math_root(
+    arena: &mut TermArena,
+    graph: &MathGraph,
+    root: &str,
+) -> MathResult<(StructNode, ContentKey)> {
+    let node = lower_math_expression(arena.dag_mut(), graph, root)?;
+    // `brand_node`/`key` can only fail for a node minted by a DIFFERENT arena; `node` was just
+    // minted by `arena.dag_mut()`, so a failure here is a broken arena, not bad input.
+    let handle = arena
+        .brand_node(node)
+        .expect("a node this arena's own DAG just minted is one of its live slots");
+    let key = arena
+        .key(handle)
+        .expect("a node this arena's own DAG just minted is one of its live slots");
+    Ok((handle, key))
 }
 
 #[cfg(test)]
@@ -100,6 +88,17 @@ mod tests {
 
     /// `plus(1, 2)` as a `math:ApplicationExpression`, and the same expression authored a
     /// second time with different blank-node labels and reversed slot order.
+    /// Parse `turtle` and intern the expression rooted at `root` — the two steps the deleted
+    /// Turtle-bytes wrapper used to bundle, spelled out at the one place that needs them.
+    fn intern_turtle(
+        arena: &mut TermArena,
+        turtle: &[u8],
+        root: &str,
+    ) -> gmeow_errors::Result<(StructNode, ContentKey)> {
+        let graph = crate::physical::lower::MathGraph::from_turtle(turtle)?;
+        Ok(intern_math_root(arena, &graph, root)?)
+    }
+
     fn application_turtle(labels: (&str, &str, &str), reversed: bool) -> Vec<u8> {
         let (root, s0, s1) = labels;
         let slots = if reversed {
@@ -133,13 +132,16 @@ _:{s1}v a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
     /// different blank-node labels, different serialization order — collapses to ONE node
     /// and ONE content key, and the second lift mints nothing.
     #[test]
-    fn intern_math_graph_is_content_addressed_and_hash_consed() {
+    fn intern_math_root_is_content_addressed_and_hash_consed() {
         let mut arena = TermArena::new();
 
         let first_mark = arena.snapshot();
-        let (first, first_key) = arena
-            .intern_math_graph(&application_turtle(("e", "a", "b"), false), "_:e")
-            .expect("well-formed math application");
+        let (first, first_key) = intern_turtle(
+            &mut arena,
+            &application_turtle(("e", "a", "b"), false),
+            "_:e",
+        )
+        .expect("well-formed math application");
         let first_delta = first_mark.delta_to(&arena);
         assert!(
             first_delta.distinct_nodes > 0,
@@ -147,9 +149,12 @@ _:{s1}v a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
         );
 
         let second_mark = arena.snapshot();
-        let (second, second_key) = arena
-            .intern_math_graph(&application_turtle(("z", "y", "x"), true), "_:z")
-            .expect("well-formed math application");
+        let (second, second_key) = intern_turtle(
+            &mut arena,
+            &application_turtle(("z", "y", "x"), true),
+            "_:z",
+        )
+        .expect("well-formed math application");
         let second_delta = second_mark.delta_to(&arena);
 
         assert_eq!(first, second, "the same expression is ONE node");
@@ -166,7 +171,7 @@ _:{s1}v a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
 
     /// An unliftable expression graph is a typed hard failure, never a partial lift.
     #[test]
-    fn intern_math_graph_hard_fails_on_a_malformed_slot_sequence() {
+    fn intern_math_root_hard_fails_on_a_malformed_slot_sequence() {
         // slotIndex 0 and 2 — non-contiguous, so the argument order is undecidable.
         let turtle = format!(
             r#"@prefix math: <{MATH}> .
@@ -184,17 +189,15 @@ _:bv a math:NumberLiteral ; math:literalValue "2"^^xsd:integer .
         .into_bytes();
 
         let mut arena = TermArena::new();
-        arena
-            .intern_math_graph(&turtle, "_:e")
+        intern_turtle(&mut arena, &turtle, "_:e")
             .expect_err("a non-contiguous slot sequence must hard-fail");
     }
 
     /// Unparsable bytes are a typed hard failure too — no empty-graph fallback.
     #[test]
-    fn intern_math_graph_hard_fails_on_unparsable_turtle() {
+    fn intern_math_root_hard_fails_on_unparsable_turtle() {
         let mut arena = TermArena::new();
-        arena
-            .intern_math_graph(b"this is not turtle {{{", "_:e")
+        intern_turtle(&mut arena, b"this is not turtle {{{", "_:e")
             .expect_err("unparsable input must hard-fail");
     }
 }

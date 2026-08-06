@@ -7,6 +7,7 @@
 # on sh:minCount 1 for math:fittedToData, so validation MUST emit
 # shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel).
 # Bound by ex:ecFittedModelUnfitted.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
@@ -15,4 +16,13 @@ ex:fit a math:FittedModel ;
 ex:formula a math:ModelFormula ;
     math:argumentSlot ex:slot0 .
 ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:respVar .
-ex:respVar a math:VariableExpression .
+# Scaffolding, not the defect under test: a formula term is a FREE variable, so its
+# occurrence resolves to a declaration with a domain. Left bare, it is separately
+# math:UnscopedVariableOccurrence, which would cost this counter-example its isolation.
+ex:respVar a math:VariableExpression ; math:variableOccurrence ex:respVarOccurrence .
+ex:respVarOccurrence a math:VariableOccurrence ; math:declaredVariable ex:respVarDeclaration .
+ex:respVarDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:respVarDomain ;
+    rdfs:label "the model response variable"@x-gmeow-english .
+ex:respVarDomain a math:Set ;
+    rdfs:label "the observed value set of the model response variable"@x-gmeow-english .

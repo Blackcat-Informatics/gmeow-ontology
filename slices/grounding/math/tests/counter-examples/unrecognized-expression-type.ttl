@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::UnrecognizedExpressionType):
+# ex:root is a well-formed math:ApplicationExpression whose single operand
+# (ex:badChild) carries a `math:`-namespaced type — math:NotARecognizedExpressionType —
+# that is NONE of the four recognized expression types
+# (math:ApplicationExpression / math:BindingExpression / math:VariableExpression /
+# math:NumberLiteral) and not the recognized constant-operand type
+# math:SymbolReference either. A named node under a `math:` type the lowering does not
+# recognize is a HARD FAIL, never a silently-accepted opaque leaf. The authored
+# math:structuralKey on the root lets the reasoned-graph gate
+# (check_structural_key_on_rejected_expression) also reach this fixture.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:ApplicationExpression ;
+    math:operator ex:op ;
+    math:argumentSlot ex:slot0 ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:badChild .
+
+ex:badChild a math:NotARecognizedExpressionType .
