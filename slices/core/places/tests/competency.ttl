@@ -91,3 +91,26 @@ ex:ppHasGeometry a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] .
 ex:ppPlaceType a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:placeType ] .
+
+# ── Geospatial index disclosure (issue #1677) ─────────────────────────────────
+ex:cqIndexProjectionDisclosure a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/index-projection-disclosure.rq" ;
+    gmeow:cqRationale "GMEOW must name which properties a geospatial index may derive cells from, and under which disclosure marks: an index built over a gmeow:coarsenGuarded key-source property inherits the guard, so a gmeow:consumerPublicSite projection of that index must coarsen first (Principle 10; the normative coarsen-guard ruling for issue #1677)." ;
+    gmeow:cqResultShape ex:cqIndexProjectionDisclosureShape ;
+    gmeow:cqExpectRow ex:ipdHasCoordinates, ex:ipdHasGeometry, ex:ipdCoordinateFrame .
+
+ex:cqIndexProjectionDisclosureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "guarded" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:ipdHasCoordinates a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasCoordinates ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "true" ] .
+ex:ipdHasGeometry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "true" ] .
+ex:ipdCoordinateFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:coordinateFrame ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "false" ] .

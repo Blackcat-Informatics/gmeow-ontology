@@ -105,9 +105,15 @@ confidence, and standpoint when the bare value is not enough (Principle 3).
 
 `gmeow:containedInPlace` is the transitive nesting spine (room ⊂ building ⊂ city ⊂ country),
 inverse `gmeow:containsPlace`; closure is solver work, not asserted triples. Alternative
-geocodes (geocoding design — Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) are
-`gmeow:Geocode` strings in an explicit `gmeow:geocodeFrame` attached by `gmeow:hasGeocode`;
-conversion to WGS84 is solver-layer.
+geocodes (geocoding design — Plus Code, what3words, geohash, H3, MGRS, UN/LOCODE, mile-marker)
+are `gmeow:Geocode` strings in an explicit `gmeow:geocodeFrame` attached by `gmeow:hasGeocode`;
+conversion to WGS84 is solver-layer. `gmeow:h3` carries the H3 hierarchical hexagonal cell
+index; its resolution (0-15) is homed on `gmeow:h3Resolution`, not folded into the index
+string, because resolution is itself precision-bearing — `gmeow:h3Resolution` is `coarsenGuarded`
+and `avoidForConsumer gmeow:consumerPublicSite`. A high (fine) resolution sits at or near
+`gmeow:granularityPoint` on the spatial `gmeow:GranularityLevel` disclosure ladder; a public
+projection must not emit a resolution finer than the declared disclosure granularity permits,
+the H3-native analogue of coarsening `gmeow:hasCoordinates` before publication.
 
 ## Time-scoped and contested situations
 

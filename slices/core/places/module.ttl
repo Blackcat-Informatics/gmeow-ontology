@@ -735,6 +735,7 @@ gmeow:asGeoJSON
     gmeow:avoidWhen "Avoid typing the range as geo:geoJSONLiteral in the core (kept rdfs:Literal for OWL 2 DL) and avoid duplicating WKT and GeoJSON when one suffices."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Put gmeow:asGeoJSON on a Geometry; data may tag the literal ^^geo:geoJSONLiteral."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to carry a GeoJSON serialization of a geometry; aligns to geo:asGeoJSON for spatial engines."@x-gmeow-english .
 
 gmeow:asWKT
@@ -748,6 +749,7 @@ gmeow:asWKT
     gmeow:avoidWhen "Avoid typing the range as geo:wktLiteral in the core (kept rdfs:Literal for OWL 2 DL) and avoid duplicating the same shape as both WKT and GeoJSON when one suffices."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Put gmeow:asWKT on a Geometry; data may tag the literal ^^geo:wktLiteral, and gmeow:geometryType records its structural kind."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to carry a Well-Known Text serialization of a geometry; aligns to geo:asWKT for spatial engines."@x-gmeow-english .
 
 gmeow:axisAddressLocality
@@ -994,6 +996,13 @@ gmeow:axisGreen
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "green channel"@x-gmeow-english ;
     skos:definition "The green axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:axisH3Cell
+    a gmeow:Axis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "H3 cell index"@x-gmeow-english ;
+    skos:definition "The H3 cell index axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:axisHeading
@@ -1650,6 +1659,7 @@ gmeow:coordinateFrame
     gmeow:avoidWhen "Avoid omitting it (the frame gate warns) and avoid using it outside SpatialCoordinates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set one gmeow:coordinateFrame per SpatialCoordinates; for celestial points use it on CelestialCoordinates too."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to declare the single frame a SpatialCoordinates value is expressed in; functional, a subproperty of gmeow:hasReferenceFrame."@x-gmeow-english .
 
 gmeow:coordinateObservationOf
@@ -1679,7 +1689,8 @@ gmeow:coordinateResult
     gmeow:avoidWhen "Avoid carrying the frame on the result literal — the frame is on the observation and propagates via the isResultOf chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:coordinateResult at a GeoCoordinates; the flat gmeow:hasCoordinates is its property-chain projection."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive ,
+    gmeow:useForConsumer gmeow:consumerIndexProjection ,
+        gmeow:consumerInternalArchive ,
         gmeow:consumerResearchQueue ;
     gmeow:useWhen "Use for the GeoCoordinates result of a coordinate observation; a subproperty of gmeow:observationResult."@x-gmeow-english .
 
@@ -2111,7 +2122,8 @@ gmeow:geometryResult
     gmeow:avoidWhen "Avoid carrying the frame on the result — it propagates from the observation via the property chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:geometryResult at a Geometry; the flat gmeow:hasGeometry is its property-chain projection."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive ,
+    gmeow:useForConsumer gmeow:consumerIndexProjection ,
+        gmeow:consumerInternalArchive ,
         gmeow:consumerResearchQueue ;
     gmeow:useWhen "Use for the Geometry result of a coordinate observation; a subproperty of gmeow:observationResult."@x-gmeow-english .
 
@@ -2212,6 +2224,35 @@ gmeow:granularityRegion
     skos:definition "The region granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
     gmeow:coarserThan gmeow:granularityCity ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:h3
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "H3 cell index"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff')."@x-gmeow-english ;
+    skos:example "ex:h3Loc gmeow:h3 \"8928308280fffff\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing an H3 cell index with another geocoding system (e.g. geohash, MGRS) on one Geocode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:h3 on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameH3; pair with gmeow:h3Resolution for the cell's declared resolution."@x-gmeow-english ;
+    gmeow:useWhen "Use for an H3 cell index string on a Geocode."@x-gmeow-english .
+
+gmeow:h3Resolution
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "H3 resolution"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The H3 resolution of a gmeow:h3 cell index — an integer from 0 (coarsest, ~1107 km average hexagon edge) to 15 (finest, ~0.5 m average hexagon edge) fixing the granularity of the addressed cell."@x-gmeow-english ;
+    skos:example "ex:h3Loc gmeow:h3Resolution \"9\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    skos:scopeNote "Relates the H3 resolution ladder to the spatial gmeow:GranularityLevel disclosure ladder (gmeow:granularityPoint … gmeow:granularityCountry, Principle 10): a high H3 resolution (fine cells) sits at or near gmeow:granularityPoint and is precision-bearing, while a low resolution (coarse cells) corresponds to coarser GranularityLevel steps. Coarsening to a lower resolution is the H3-native analogue of stepping up the GranularityLevel ladder; a public projection MUST NOT emit a resolution finer than the declared disclosure granularity permits."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite ;
+    gmeow:avoidWhen "Avoid emitting a fine (high) resolution to a public consumer without first coarsening — finer resolutions are precision-bearing derivatives of the underlying coordinates."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:h3Resolution on a Geocode alongside gmeow:h3; choose the resolution (0-15) matching the intended granularity, and coarsen (lower the resolution) before disclosing to gmeow:consumerPublicSite."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the resolution (0-15) of an H3 cell index; coarsenGuarded, so guard it before public projection."@x-gmeow-english .
 
 gmeow:hasAxis
     a owl:ObjectProperty ;
@@ -2324,7 +2365,8 @@ gmeow:hasCoordinates
     gmeow:coarsenGuarded true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Use the flat gmeow:hasCoordinates for one trusted point; otherwise reify via gmeow:hasCoordinateObservation → gmeow:coordinateResult, and pair with gmeow:coarsenTo + gmeow:hasSensitivity for disclosure control."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive ,
+    gmeow:useForConsumer gmeow:consumerIndexProjection ,
+        gmeow:consumerInternalArchive ,
         gmeow:consumerResearchQueue ;
     gmeow:useWhen "Use as the flat shortcut to attach a place's point coordinates for the common, single-survey case."@x-gmeow-english .
 
@@ -2355,7 +2397,8 @@ gmeow:hasGeometry
     gmeow:coarsenGuarded true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Use flat gmeow:hasGeometry for one trusted shape; otherwise reify via gmeow:hasCoordinateObservation → gmeow:geometryResult, and coarsen via gmeow:coarsenTo for sensitive extents."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive ,
+    gmeow:useForConsumer gmeow:consumerIndexProjection ,
+        gmeow:consumerInternalArchive ,
         gmeow:consumerResearchQueue ;
     gmeow:useWhen "Use as the flat shortcut to attach a place's geometry (point, line, polygon) for the common, single-survey case."@x-gmeow-english .
 
@@ -3971,6 +4014,20 @@ gmeow:referenceFrameGregorian
         gmeow:axisYear ;
     gmeow:requiresHost false .
 
+gmeow:referenceFrameH3
+    a gmeow:ReferenceFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "H3 Reference Frame"@x-gmeow-english ;
+    skos:definition "The H3 reference frame — Uber's hierarchical hexagonal geospatial indexing system, partitioning the Earth's surface into hexagonal (and pentagonal) cells at sixteen resolutions (0-15), each cell addressed by a single 64-bit index string."@x-gmeow-english ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasAxis gmeow:axisH3Cell ;
+    gmeow:hasMetricKind gmeow:metricGeodesic ;
+    gmeow:requiresHost false .
+
 gmeow:referenceFrameHilbertSpace
     a gmeow:ReferenceFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
@@ -5495,7 +5552,7 @@ gmeow:CadastralReference logic:subClassOf
 
 # --- Wave B2 shape-drain: places procedural residue (logic: canon; project to generated/shapes) ---
 
-# gmeow:GeocodeShape — a Geocode carries exactly one code value across the eight code systems: a
+# gmeow:GeocodeShape — a Geocode carries exactly one code value across the nine code systems: a
 # choice-group exclusive-disjunction (sh:xone). Its datatype/node-kind facets ride each predicate's
 # rdfs:range (xsd:string / rdfs:Literal), so the choice group is over predicate presence.
 gmeow:GeocodeCodeChoiceConstraint
@@ -5503,12 +5560,12 @@ gmeow:GeocodeCodeChoiceConstraint
     rdfs:label "Geocode code-value choice constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:Geocode binds exactly one of gmeow:geocodeValue, gmeow:plusCode, gmeow:what3words, gmeow:geohash, gmeow:mgrs, gmeow:unLocode, gmeow:mileMarker or gmeow:hasCoordinateMatrix — one code in one system per Geocode instance (Principle 9)."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Geocode binds exactly one of gmeow:geocodeValue, gmeow:plusCode, gmeow:what3words, gmeow:geohash, gmeow:h3, gmeow:mgrs, gmeow:unLocode, gmeow:mileMarker or gmeow:hasCoordinateMatrix — one code in one system per Geocode instance (Principle 9)."@x-gmeow-english ;
     logic:onClass gmeow:Geocode ;
-    logic:choicePredicate gmeow:geocodeValue , gmeow:plusCode , gmeow:what3words , gmeow:geohash , gmeow:mgrs , gmeow:unLocode , gmeow:mileMarker , gmeow:hasCoordinateMatrix ;
+    logic:choicePredicate gmeow:geocodeValue , gmeow:plusCode , gmeow:what3words , gmeow:geohash , gmeow:h3 , gmeow:mgrs , gmeow:unLocode , gmeow:mileMarker , gmeow:hasCoordinateMatrix ;
     logic:choiceMode "exactly-one" ;
     logic:formalizes gmeow:GeocodeShape ;
-    logic:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .
+    logic:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, h3, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .
 
 # gmeow:OrientationShape — an Orientation carries at least one representation: a complete unit
 # quaternion (x,y,z,w), complete Euler angles with eulerOrder (yaw,pitch,roll,order), a heading, a
