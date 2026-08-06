@@ -462,3 +462,19 @@ ASK {
         gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
 }""" ;
     gmeow:saRationale "Each of the four seed geologic-boundary measurements MUST be a gmeow:TemporalMeasurement carrying a gmeow:vantage (the dating agent), a gmeow:observedFeature (the dated period), and a gmeow:observationMethod — the standpoint-indexed-claim shape (P9), never a bare ground-truth value." .
+
+# ===========================================================================
+# Observation cutoff / stricter-than-slice pattern (issue #1678)
+# ===========================================================================
+
+# --- 36. observationCutoff / observationWindowRequired are AnnotationProperties (MUST) --
+ex:saObservationCutoffTermsAreAnnotationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:observationCutoff         a owl:AnnotationProperty .
+    gmeow:observationWindowRequired a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "gmeow:observationCutoff (the derived COALESCE(assertedAt, recordedNoLaterThan) handle) and gmeow:observationWindowRequired (the downstream-profile stricter-than-slice marker) MUST each be an owl:AnnotationProperty — statement-layer/term-level annotations, joining validFrom/validUntil/assertedAt/recordedNoLaterThan as the temporal slice's clock family, never first-class object/datatype edges." .

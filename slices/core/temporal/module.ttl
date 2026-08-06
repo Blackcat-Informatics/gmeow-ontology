@@ -228,7 +228,8 @@ gmeow:assertedAt
     gmeow:docsConcern gmeow:concernProvenanceEvidence ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
-        gmeow:boxRBox .
+        gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:atTime
     a owl:DatatypeProperty ;
@@ -240,6 +241,7 @@ gmeow:atTime
     gmeow:avoidWhen "Avoid for a bounded span (use a gmeow:TimeInterval) and for the time a claim was asserted or recorded (use the statement-layer clocks gmeow:assertedAt / gmeow:recordedNoLaterThan); domain-free, so it carries no implied subject type."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write a full xsd:dateTime (P3, never xsd:date) interpreted in the subject's temporal frame; for a point that needs its own frame or EDTF expression, model a gmeow:Instant instead."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to stamp a zero-duration occurrence — an event, a reading, a snapshot observation — with a single crisp dateTime, when no interval boundary is involved."@x-gmeow-english .
 
 gmeow:calendarChinese
@@ -488,6 +490,7 @@ gmeow:endedAtTime
     gmeow:avoidWhen "Avoid when the end needs its own frame, granularity, or EDTF value (promote to gmeow:hasEndInstant) and avoid an xsd:date literal — base-triple time is xsd:dateTime (P3)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write a full xsd:dateTime in the interval's gmeow:hasTemporalFrame; absence (not a sentinel value) is how an open-ended interval is expressed."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to stamp the close of a gmeow:TimeInterval as a single crisp dateTime; omit it entirely to model an interval that is still running."@x-gmeow-english .
 
 gmeow:frameCalendarSystem
@@ -543,6 +546,7 @@ gmeow:granularityDay
     rdfs:label "day level"@x-gmeow-english ;
     skos:definition "The day granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
     skos:exactMatch time:unitDay ;
+    gmeow:coarserThan gmeow:granularityHour ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:granularityDecade
@@ -553,6 +557,24 @@ gmeow:granularityDecade
     gmeow:coarserThan gmeow:granularityYear ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:granularityHour
+    a gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "hour level"@x-gmeow-english ;
+    skos:definition "The hour granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    skos:exactMatch time:unitHour ;
+    gmeow:coarserThan gmeow:granularityMinute ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:granularityMinute
+    a gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "minute level"@x-gmeow-english ;
+    skos:definition "The minute granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    skos:exactMatch time:unitMinute ;
+    gmeow:coarserThan gmeow:granularitySecond ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:granularityMonth
     a gmeow:GranularityLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
@@ -560,6 +582,14 @@ gmeow:granularityMonth
     skos:definition "The month granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
     skos:exactMatch time:unitMonth ;
     gmeow:coarserThan gmeow:granularityDay ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:granularitySecond
+    a gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "second level"@x-gmeow-english ;
+    skos:definition "The second granularity level — the finest resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    skos:exactMatch time:unitSecond ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:granularityYear
@@ -651,6 +681,7 @@ gmeow:instantValue
     gmeow:avoidWhen "Avoid for approximate, uncertain, or open-ended points (use gmeow:edtfValue) and avoid an xsd:date literal — base-triple time is xsd:dateTime (P3); functional, so an instant has at most one crisp value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write a full xsd:dateTime interpreted in the instant's gmeow:inTemporalFrame; when the point is only known to a coarser resolution, set it to the canonical start of the period and record the real resolution with gmeow:hasGranularity."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to carry the crisp, machine-computable value of a gmeow:Instant — the single xsd:dateTime the solver and renderers read."@x-gmeow-english .
 
 gmeow:intervalAfter
@@ -958,6 +989,30 @@ gmeow:measurementUncertainty
     gmeow:howToUse "Write an xsd:decimal in the measurement's unit; the fuzzy/probabilistic interval arithmetic that consumes it lives in the solver layer (P12)."@x-gmeow-english ;
     gmeow:useWhen "Use to record the spread (e.g. ±1σ) of a temporal measurement's age, in the same unit as gmeow:measuredAge — the quantitative error bar on a dating claim."@x-gmeow-english .
 
+gmeow:observationCutoff
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "observation cutoff"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The derived observation cutoff of a claim = COALESCE(gmeow:assertedAt, gmeow:recordedNoLaterThan) — prefer assertedAt, else the recordedNoLaterThan terminus ante quem — canonically derived by the bitemporal as-of query (queries/tql/bitemporal.rq); cite this single IRI instead of re-deriving the COALESCE. Never asserted directly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid ever writing a gmeow:observationCutoff triple: it is a derived handle for the COALESCE(assertedAt, recordedNoLaterThan) result, not a clock to assert — assert gmeow:assertedAt or gmeow:recordedNoLaterThan on the claim instead and let the as-of query derive this value."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Never populate it: read it off the bitemporal as-of query's COALESCE(?assertedAt, ?recordedNoLaterThan) binding, and cite this IRI in documentation and downstream schema wherever that derived value is meant."@x-gmeow-english ;
+    gmeow:useWhen "Use to REFER to the derived observation-cutoff concept — in documentation, competency questions, or a downstream profile's marker — never to assert a value on a claim."@x-gmeow-english .
+
+gmeow:observationWindowRequired
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "observation window required"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The marker a downstream profile asserts on itself to declare that it REQUIRES a bound gmeow:observationCutoff — the sanctioned stricter-than-slice pattern: the temporal slice's own as-of semantics keep a claim with no observation cutoff (open-world, Principle 9), but a profile that asserts gmeow:observationWindowRequired true opts into a narrower, profile-local reading in which such a claim is classified into that profile's typed exclusion set instead. The exclusion is applied and owned by the downstream profile; the slice ships only this marker and the pattern it names."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this on a claim or clock term — it is asserted on the PROFILE that opts into the stricter reading, never on a gmeow:assertedAt/gmeow:recordedNoLaterThan annotation or on the claim itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:observationWindowRequired true on the downstream profile individual, then have that profile's own projection or query layer classify any claim whose gmeow:observationCutoff is unbound (neither gmeow:assertedAt nor gmeow:recordedNoLaterThan bound) into its typed exclusion set; the temporal slice does not enforce this itself (see the honest expressiveness-boundary record below)."@x-gmeow-english ;
+    gmeow:useWhen "Use on a downstream profile that must reject or exclude claims with no derivable observation cutoff — a stricter-than-slice-default requirement the profile opts into explicitly rather than one the slice imposes globally."@x-gmeow-english .
+
 gmeow:periodCenozoic
     a gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
@@ -1132,7 +1187,8 @@ gmeow:recordedNoLaterThan
     skos:definition "A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernProvenanceEvidence ,
         gmeow:concernStatementMetadata ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:startedAtTime
     a owl:DatatypeProperty ;
@@ -1145,6 +1201,7 @@ gmeow:startedAtTime
     gmeow:avoidWhen "Avoid when the start needs its own frame, granularity, or EDTF value (promote to gmeow:hasStartInstant on a gmeow:Instant) and avoid an xsd:date literal — base-triple time is xsd:dateTime (P3)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write a full xsd:dateTime including the offset interpreted by the interval's gmeow:hasTemporalFrame; pair with gmeow:endedAtTime, or omit the end to leave the interval open."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to stamp the start of a gmeow:TimeInterval as a single crisp dateTime when no separate gmeow:Instant object is needed — the lightweight inline bound."@x-gmeow-english .
 
 gmeow:temporalFrameBeforePresent
@@ -1507,7 +1564,8 @@ gmeow:validFrom
     skos:definition "The instant from which the annotated statement is asserted to hold."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:validUntil
     a owl:AnnotationProperty ;
@@ -1518,7 +1576,8 @@ gmeow:validUntil
     gmeow:docsConcern gmeow:concernDisclosure ,
         gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 <https://blackcatinformatics.ca/gmeow/slices/temporal>
     a owl:Ontology ;
@@ -1598,6 +1657,34 @@ gmeow:TemporalMeasurement logic:subClassOf
 # core-observation shape requires is carried alongside the finer DatingMethod bound.
 gmeow:TemporalMeasurement logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
+
+# --- Observation-window requirement: sanctioned downstream-profile pattern, honestly
+# NOT a slice-level closed-world constraint (issue #1678) ---
+# gmeow:observationWindowRequired sanctions a stricter-than-slice pattern: a downstream
+# profile MAY require every claim it reads to carry a bound gmeow:observationCutoff
+# (COALESCE(assertedAt, recordedNoLaterThan)), classifying claims that lack one into its
+# own typed exclusion set. That enforcement is deliberately NOT authored here as a
+# temporal-slice logic:Constraint: quantifying over the ABSENCE of a bound annotation-layer
+# clock on every reified claim exceeds the range-restricted guarded fragment the native
+# coherence gate certifies (gmeow:assertedAt / gmeow:recordedNoLaterThan are
+# owl:AnnotationProperty statement-layer clocks, not object/datatype edges the guarded
+# existential/counting deciders reach). Improvising an unsupported constraint here would be
+# a fake certification; the honest disclosure is this logic:expressivenessBoundary record,
+# mirroring logic:rdf12-nested-triple-term's retained-withhold idiom exactly
+# (slices/grounding/logic/module.ttl).
+gmeow:ObservationWindowClosedWorldBoundary
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Observation Window Closed-World Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "Enforcing 'every claim conforms to a required observation window' as a slice-level closed-world constraint would quantify, for every reified claim (an owl:Axiom), over the ABSENCE of a bound gmeow:assertedAt or gmeow:recordedNoLaterThan value. Those statement-layer clocks are owl:AnnotationProperty annotations, not the object/datatype edges the guarded description-logic fragment's existential and counting deciders reach, so a slice-wide closed-world negation-as-failure rule over them cannot be certified as a native logic:Formula obligation. The requirement is therefore sanctioned only as a downstream-profile pattern (gmeow:observationWindowRequired): the profile that opts in applies the typed exclusion classification itself, at its own enforcement boundary, never as a temporal-slice constraint." ;
+    skos:definition "The retained-withhold record for the temporal slice's observation-window requirement: certifying 'a claim's gmeow:observationCutoff must be bound' as a closed-world logic:Constraint over the statement-layer annotation clocks (gmeow:assertedAt / gmeow:recordedNoLaterThan) exceeds the range-restricted guarded fragment the native coherence gate decides. The requirement is instead sanctioned as a downstream-profile pattern (gmeow:observationWindowRequired) and this honest boundary is recorded here rather than an unsupported constraint being improvised."@x-gmeow-english ;
+    skos:example "A profile asserts itself gmeow:observationWindowRequired true and classifies, in its OWN downstream projection, any claim whose gmeow:observationCutoff is unbound as excluded/nonconforming for that profile — the temporal slice never asserts this exclusion itself (cf. logic:rdf12-nested-triple-term for the parallel form of this retained-withhold idiom)."@x-gmeow-english ;
+    gmeow:useWhen "Cite it when explaining why the temporal slice ships gmeow:observationWindowRequired as a marker only, with no accompanying closed-world logic:Constraint — the enforcement is a downstream-profile responsibility and this record is the honest disclosure of why it stops there."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid citing it as if it forbade the stricter-than-slice pattern itself — the marker term and the typed-exclusion-set pattern ARE sanctioned; only the ATTEMPT to certify the enforcement as a slice-level closed-world constraint over the annotation clocks is the withheld construct."@x-gmeow-english ;
+    gmeow:howToUse "Read it alongside gmeow:observationWindowRequired and gmeow:observationCutoff: those two are what the slice DOES ship (the marker and the derived-cutoff handle), and this record is the honest residue explaining why enforcement is not a third, slice-authored constraint."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record discloses ONE withheld construct — a slice-level closed-world constraint over the presence/absence of the statement-layer annotation clocks. It says nothing about validity-time (validFrom/validUntil) or any other temporal construct, and it does not withdraw the sanctioned observationWindowRequired marker pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
