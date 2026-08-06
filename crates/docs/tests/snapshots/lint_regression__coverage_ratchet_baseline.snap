@@ -14,7 +14,7 @@ expression: coverage
   "docs/missing-realized-state": 79,
   "docs/missing-scope-note": 5508,
   "docs/missing-test-reach": 5642,
-  "docs/missing-translation-coverage": 4151,
+  "docs/missing-translation-coverage": 4150,
   "docs/missing-usage-advice": 3712,
   "docs/missing-worked-instance": 5657
 }

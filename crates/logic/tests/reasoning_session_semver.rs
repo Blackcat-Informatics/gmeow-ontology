@@ -354,8 +354,26 @@ use session_common::*;
 /// — and keying it on a shared opaque constant would have made two DIFFERENT undecomposed
 /// operands interchangeable. `physical/lower.rs` is a `BACKWARD_SOURCE` member; the fixed
 /// edge-only input carries no `math:` expression graph, so only the identity moved.
+/// Re-blessed once more for reaching the datatype value-space sub-decider's facet
+/// analysis from production coverage. Two wirings changed in `reason/dl.rs` (a folded
+/// engine component). First, `reason/refute/datatype.rs`'s obligation discovery now
+/// follows the asserted `rdfs:subClassOf` chain from an individual's types to a
+/// datatype-property restriction, which is how a production ontology authors a value
+/// restriction (an anonymous superclass filler on a named class, never a direct
+/// `rdf:type` on the individual) — without the step the decider engaged on no
+/// production obligation at all. Second, coverage now asks the sub-decider a
+/// PER-OBLIGATION question (`definitively_evaluated_obligations`) rather than the
+/// whole-case `decided`, whose predicate allowlist is false as soon as ordinary
+/// domain vocabulary is present and so could never widen coverage on a real bundle.
+/// Membership in an intersection of several constraining datatypes is also decided
+/// now — it is the exact pointwise conjunction of membership in each conjunct —
+/// while emptiness/cardinality under an intersection stays an honest obstruction.
+/// This DOES change reasoning verdicts: an `xsd:` facet a literal actually satisfies
+/// is now DECIDED instead of reported as an out-of-fragment construct, and a literal
+/// that violates one produces a value-space clash the kernel materializes. The fixed
+/// edge-only input carries no datatype facet, so only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "0957330e9113f4549bc4135167f06dd29f4627801c1fb2c00bc3289e064ec8bb";
+    "5ae6582aefbb423e015393972568488a77430a514a892d080a4ebee76c2ccb7b";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -532,8 +550,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// folded identity axes and `physical/lower.rs` is a `BACKWARD_SOURCE` member, so this
 /// fixed-input session identity moves with it. The fixed edge-only input carries no `math:`
 /// expression graph, so its reasoning verdict is unchanged.
+/// Re-blessed once more for reaching the datatype value-space sub-decider's facet analysis
+/// from production coverage (see the engine-descriptor golden above): the native contract
+/// hash is one of the seven folded identity axes and `native_contract_hash()`
+/// `include_str!`s the whole of `reason/dl.rs`, so this fixed-input session identity moves
+/// with it. The fixed edge-only input carries no datatype facet, so its reasoning verdict
+/// is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "c241816bcaa631b1d85feda2953ea84f95ddfd5e20366b1da93838f4ef54b936";
+    "e39ec9d3784922dbd2a655df4421673c3191e478f9990dd8b053640fd0c18adf";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

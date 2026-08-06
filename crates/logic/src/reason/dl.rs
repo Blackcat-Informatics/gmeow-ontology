@@ -116,7 +116,7 @@ const CHASE_INCOMPLETE_MARKER_SUBJECT: &str =
 // constrains no asserted/inferred literal is INERT (it cannot cause an
 // inconsistency), so `classify_coverage` decides the datatype-facet families in
 // that case and only withholds when a literal is actually subject to a facet
-// (see `datatype_facet_has_live_obligation`). The universal top
+// (see `datatype_facet_live_obligations`). The universal top
 // properties (`owl:topObjectProperty`/`owl:topDataProperty`) are NEVER decided.
 //
 // NOTE — property irreflexivity/asymmetry (`owl:IrreflexiveProperty`,
@@ -375,7 +375,7 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
     // range) is invisible to it. A facet is withheld (honest gap) ONLY when it
     // actually constrains an asserted/inferred literal; a facet-restricted
     // datatype that is merely DEFINED but constrains no literal is inert and
-    // decided (see `datatype_facet_has_live_obligation`). The universal
+    // decided (see `datatype_facet_live_obligations`). The universal
     // top properties below are always `unsupported`, never `decided`.
     (
         OWL_DATATYPE_COMPLEMENT_OF,
@@ -417,7 +417,7 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
 /// chase carries no datatype value-space reasoning, so these are undecidable ONLY
 /// when a facet actually constrains a literal; a facet-restricted datatype that is
 /// merely DEFINED is inert and decided (see
-/// [`datatype_facet_has_live_obligation`]). Deliberately EXCLUDES the
+/// [`datatype_facet_live_obligations`]). Deliberately EXCLUDES the
 /// universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`), which
 /// are never decided.
 const DATATYPE_FACET_FAMILIES: &[&str] = &[
@@ -4348,17 +4348,10 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     // Datatype-facet family: PRECISE withhold. A facet-restricted datatype that is
     // merely DEFINED but constrains no asserted/inferred literal is INERT — it
     // cannot cause an inconsistency, so the native path decides it and the facet
-    // families stay out of `gaps`. Only when a literal is actually subject to a
-    // facet-restricted datatype (a value the native chase cannot validate) is the
-    // family left UNDECIDED (→ honest gap). See
-    // `datatype_facet_has_live_obligation`.
-    // The datatype value-space refutation sub-decider (Family 5) COMPLETELY decides
-    // a precise fragment of these live obligations (facet emptiness / membership,
-    // `owl:datatypeComplementOf` value-space membership). When it does, the facet
-    // families it accounts for are promoted to `decided` — coverage agreeing with
-    // the decider exactly. The `!live` disjunct keeps this inert on a bundle with no
-    // live obligation (the subsolver result cannot widen coverage there).
-    if !datatype_facet_has_live_obligation(edb) || crate::reason::refute::datatype::decided(edb) {
+    // families stay out of `gaps`. Only a LIVE obligation the value-space
+    // sub-decider does not settle leaves the family UNDECIDED (→ honest gap). See
+    // `datatype_facet_live_obligations`.
+    if datatype_facet_live_obligations(edb).settled_by_value_space_subsolver(edb) {
         for family in DATATYPE_FACET_FAMILIES {
             if present_set.contains(family) {
                 decided.insert((*family).to_owned());
@@ -4403,31 +4396,89 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     decided
 }
 
-/// True iff the EDB contains a LIVE undecidable datatype-facet obligation — a
-/// facet-restricted datatype the native chase would actually have to reason over
-/// to decide (in)consistency. There are two live shapes.
-///
-/// SHAPE 1, an existential into a facet datatype: a facet-restricted datatype as
-/// the filler of an `owl:someValuesFrom` restriction (`∃p.D`). The existential
-/// forces a datatype value to EXIST; native cannot decide the datatype's
-/// (non)emptiness (e.g. the discrete `xsd:float` range `(0.0, 1.4e-45)` is empty),
-/// so an instance typed into it is undecidable — regardless of any asserted literal.
-///
-/// SHAPE 2, a constrained literal: an asserted (or inferred) literal value on a
-/// property whose `rdfs:range` or an `owl:allValuesFrom`/`owl:someValuesFrom`
-/// restriction resolves to a facet-restricted datatype, or a literal directly typed
-/// to such a datatype. Native cannot validate the literal against the facet.
+/// The LIVE datatype-facet obligations in an EDB — the places a facet-restricted
+/// datatype would actually have to be reasoned over to decide (in)consistency,
+/// separated by whether the value-space sub-decider can be held to account for
+/// them one by one.
 ///
 /// A facet-restricted datatype — an `rdfs:Datatype` node carrying both
 /// `owl:onDatatype` and `owl:withRestrictions`, or an `owl:datatypeComplementOf`
-/// datatype — that is
-/// merely DEFINED, or used only in a UNIVERSAL (`owl:allValuesFrom`) position with
-/// no asserted value, is INERT: `∀p.D` over an empty value set is trivially
-/// satisfied, so it cannot make the ontology inconsistent and the native path
-/// decides it soundly (the datatype-facet families stay out of `gaps`). Matching
-/// is name-scoped (world-agnostic) — a facet definition in a TBox world still
-/// withholds against an obligation in any ABox world (soundness-first).
-fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
+/// datatype — that is merely DEFINED, or used only in a UNIVERSAL
+/// (`owl:allValuesFrom`) position with no asserted value, is INERT: `∀p.D` over an
+/// empty value set is trivially satisfied, so it cannot make the ontology
+/// inconsistent and the native path decides it soundly (the datatype-facet families
+/// stay out of `gaps`).
+#[derive(Debug, Default)]
+struct FacetLiveness {
+    /// SHAPE 1 — a facet-restricted datatype as the filler of an
+    /// `owl:someValuesFrom` restriction (`∃p.D`). The existential forces a datatype
+    /// value to EXIST and native cannot decide the datatype's (non)emptiness (e.g.
+    /// the discrete `xsd:float` range `(0.0, 1.4e-45)` is empty), regardless of any
+    /// asserted literal. The obligation belongs to the restriction CLASS, whose
+    /// inhabitants an `owl:equivalentClass` definition can force without any
+    /// `rdf:type` edge this scan could see, so there is no per-individual witness to
+    /// check the sub-decider against: its presence alone keeps the families
+    /// withheld unless the sub-decider decides the WHOLE case.
+    existential: bool,
+    /// SHAPE 2b — a literal whose OWN datatype IRI names a facet-restricted
+    /// datatype. Same reasoning: no `(subject, property)` obligation carries it.
+    directly_typed_literal: bool,
+    /// SHAPE 2a — the `(world, subject, property)` witnesses: an asserted (or
+    /// inferred) literal value on a property whose `rdfs:range`, or an
+    /// `owl:allValuesFrom`/`owl:someValuesFrom` restriction, resolves to a
+    /// facet-restricted datatype. These are exactly the keys the value-space
+    /// sub-decider reports through
+    /// [`crate::reason::refute::datatype::definitively_evaluated_obligations`], so
+    /// each one can be checked individually.
+    constrained_literals: BTreeSet<(String, String, String)>,
+}
+
+impl FacetLiveness {
+    /// No live obligation at all — every facet in the EDB is merely defined.
+    fn is_inert(&self) -> bool {
+        !self.existential && !self.directly_typed_literal && self.constrained_literals.is_empty()
+    }
+
+    /// Whether the datatype value-space refutation sub-decider (Family 5) settles
+    /// every live obligation, so the facet families may be promoted to `decided`.
+    ///
+    /// Two routes, both sound, checked in widening order:
+    ///
+    /// 1. The sub-decider decides the WHOLE case
+    ///    ([`crate::reason::refute::datatype::decided`]) — it proved the entire
+    ///    ontology in-fragment, which covers every shape including the ones with no
+    ///    per-individual witness.
+    /// 2. Every live obligation is a Shape-2a witness AND every one of those
+    ///    witnesses is an obligation the sub-decider evaluated definitively. Route 1
+    ///    is unreachable on a real bundle — its whole-case predicate allowlist is
+    ///    false as soon as ordinary domain vocabulary is present — so without this
+    ///    route the sub-decider's facet analysis could never widen coverage on
+    ///    anything but a toy fixture, and a facet the engine demonstrably decides
+    ///    would still be reported as an out-of-fragment construct.
+    ///
+    /// A witness the sub-decider did NOT evaluate (its property is not a declared
+    /// `owl:DatatypeProperty`, its literal is unparsable, its value space carries a
+    /// `xsd:pattern` facet, …) leaves the families UNDECIDED — the honest gap.
+    fn settled_by_value_space_subsolver(&self, edb: &RdfDataset) -> bool {
+        if self.is_inert() {
+            return true;
+        }
+        if crate::reason::refute::datatype::decided(edb) {
+            return true;
+        }
+        if self.existential || self.directly_typed_literal {
+            return false;
+        }
+        let evaluated = crate::reason::refute::datatype::definitively_evaluated_obligations(edb);
+        self.constrained_literals.is_subset(&evaluated)
+    }
+}
+
+/// Scan the EDB for the [`FacetLiveness`] shapes. Matching is name-scoped
+/// (world-agnostic) — a facet definition in a TBox world still constrains an
+/// obligation in any ABox world (soundness-first).
+fn datatype_facet_live_obligations(edb: &RdfDataset) -> FacetLiveness {
+    let mut liveness = FacetLiveness::default();
     // Facet-restricted datatype node keys (world-agnostic: a datatype's identity is
     // its node, and a constrained property may reference it from any world).
     let mut facet_dt: BTreeSet<String> = BTreeSet::new();
@@ -4440,19 +4491,18 @@ fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
         }
     }
     if facet_dt.is_empty() {
-        return false;
+        return liveness;
     }
 
     // Shape 1 — an existential (`someValuesFrom`) into a facet datatype forces a
-    // value to exist; the datatype's (non)emptiness is undecidable natively.
-    // (`allValuesFrom` is universal and is NOT a standalone obligation — it only
-    // constrains values that are actually asserted, handled by Shape 2.)
+    // value to exist. (`allValuesFrom` is universal and is NOT a standalone
+    // obligation — it only constrains values that are actually asserted, Shape 2.)
     let restrictions = read_restrictions(edb);
     for r in restrictions.values() {
         if let Some(filler) = r.some_values_from.as_ref()
             && facet_dt.contains(filler)
         {
-            return true;
+            liveness.existential = true;
         }
     }
 
@@ -4479,22 +4529,29 @@ fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
         }
     }
 
-    // A live obligation: an asserted literal on a constrained property, or a literal
-    // directly typed to a facet-restricted (named) datatype.
+    // A live obligation: an asserted literal on a constrained property (a witness
+    // keyed exactly as the sub-decider keys its obligations), or a literal directly
+    // typed to a facet-restricted (named) datatype.
     for quad in edb.owned_quads() {
         let RdfTerm::Literal(lit) = &quad.object else {
             continue;
         };
-        if constrained_props.contains(&quad.predicate) {
-            return true;
+        if constrained_props.contains(&quad.predicate)
+            && let Some(subject) = term_resource_key(&quad.subject)
+        {
+            liveness.constrained_literals.insert((
+                graph_world_key(&quad.graph_name),
+                subject,
+                quad.predicate.clone(),
+            ));
         }
         if let Some(dt) = lit.datatype.as_deref()
             && facet_dt.contains(dt)
         {
-            return true;
+            liveness.directly_typed_literal = true;
         }
     }
-    false
+    liveness
 }
 
 /// True iff some `owl:FunctionalProperty` carries two lexically-distinct
@@ -4622,14 +4679,14 @@ fn all_property_chains_are_binary(
 ///
 /// A datatype-qualified cardinality counts LITERAL fillers, which the
 /// IRI-individual chase does not carry. Like a merely-defined datatype facet
-/// ([`datatype_facet_has_live_obligation`]), such a restriction is INERT when no
+/// ([`datatype_facet_live_obligations`]), such a restriction is INERT when no
 /// instance can violate it — a maximum on a datatype property can only clash when a
 /// subject carries MORE value-distinct literals of that datatype than the bound
 /// allows, and a datatype MINIMUM is an existential into a non-empty datatype
 /// (always satisfiable). Only a genuine max overflow is a live obligation the
 /// native path cannot decide; absent one, the datatype-qualified families are
 /// decided soundly (incomplete-never-wrong). Matching is exact on the literal's
-/// datatype, mirroring [`datatype_facet_has_live_obligation`].
+/// datatype, mirroring [`datatype_facet_live_obligations`].
 fn datatype_qualified_cardinality_has_live_obligation(edb: &RdfDataset) -> bool {
     let restrictions = read_restrictions(edb);
     // Datatype-qualified maxima: `(on_property, datatype, max)`. An exact
@@ -6751,6 +6808,153 @@ mod tests {
                 verdict.coverage
             );
         }
+    }
+
+    /// The PRODUCTION facet shape: a named class carries its value restriction as an
+    /// anonymous `rdfs:subClassOf` filler (`C ⊑ ∀p.D`), an individual is typed to the
+    /// NAMED class, and the property additionally has a plain `rdfs:range`. The
+    /// literal satisfies the facet, and the value-space sub-decider proves it, so the
+    /// facet families are DECIDED — no gap. Nothing here reaches the individual
+    /// through a direct `rdf:type` on the restriction, and the property is
+    /// constrained by TWO datatypes at once; before both were wired the decider saw
+    /// no obligation at all and the facets were reported out-of-fragment even though
+    /// the engine can settle them.
+    #[test]
+    fn datatype_facet_through_subclass_restriction_is_decided_when_satisfied() {
+        let verdict = subclass_facet_verdict("0.3");
+        assert!(
+            verdict.consistent,
+            "a literal inside the facet range is consistent: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "a satisfied facet the sub-decider proves must NOT be a gap: {:?}",
+            verdict.gaps
+        );
+        for family in [
+            "onDatatype",
+            "withRestrictions",
+            "minInclusive",
+            "maxInclusive",
+        ] {
+            assert!(
+                verdict.coverage.decided.contains(&family.to_owned()),
+                "{family} must be decided for a proven-satisfied facet: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// The falsifiable twin: the SAME shape with a literal OUTSIDE the facet range is
+    /// decided INCONSISTENT — the value-space clash is materialized as an
+    /// `owl:Nothing` witness — never a silent pass. A promotion to `decided` that
+    /// could not also catch the violation would be the wrong-`consistent` this
+    /// coverage machinery exists to prevent.
+    #[test]
+    fn datatype_facet_through_subclass_restriction_is_decided_inconsistent_when_violated() {
+        let verdict = subclass_facet_verdict("1.5");
+        assert!(
+            !verdict.consistent,
+            "a literal outside the facet range must be decided INCONSISTENT: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the violation is DECIDED, so it is a verdict and not a gap: {:?}",
+            verdict.gaps
+        );
+    }
+
+    /// A `xsd:pattern` facet in the same production shape stays an honest gap: sound
+    /// XSD-pattern value-space reasoning is outside the sub-decider's certified
+    /// fragment, so the witness is never definitively evaluated and the families are
+    /// NOT promoted. This is the falsifiable control on the per-obligation coverage
+    /// check — it promotes exactly what the sub-decider settles, never a whole family
+    /// because a sibling obligation happened to be settled.
+    #[test]
+    fn datatype_pattern_facet_through_subclass_restriction_stays_an_honest_gap() {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const PATTERN: &str = super::XSD_PATTERN;
+        const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let dt = "http://gmeow.example/CodeString";
+        let cell = "http://gmeow.example/facetCell";
+        let facet = "http://gmeow.example/facet0";
+        let restriction = "http://gmeow.example/restr";
+        let store = dataset(vec![
+            quad(dt, ON_DATATYPE, XSD_STRING),
+            quad(dt, WITH_RESTRICTIONS, cell),
+            quad(cell, RDF_FIRST, facet),
+            quad(cell, RDF_REST, RDF_NIL),
+            literal_quad(facet, PATTERN, "^[A-Z]+$", XSD_STRING),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(C, SUBCLASS, restriction),
+            quad(restriction, ON_PROPERTY, P),
+            quad(restriction, ALL_VALUES_FROM, dt),
+            quad(X, TYPE, C),
+            literal_quad(X, P, "AB", XSD_STRING),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.gaps.is_empty(),
+            "a pattern facet is outside the certified fragment ⇒ honest gap: {:?}",
+            verdict.coverage
+        );
+        for family in ["onDatatype", "withRestrictions", "pattern"] {
+            assert!(
+                verdict.coverage.unsupported.contains(&family.to_owned()),
+                "{family} must stay unsupported under a pattern facet: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// The shared production-shaped fixture for the two facet tests above:
+    /// `C ⊑ ∀p.(xsd:decimal[0,1])`, `p rdfs:range xsd:decimal`, `x a C`, `x p value`.
+    fn subclass_facet_verdict(value: &str) -> DlVerdict {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const MIN_INCLUSIVE: &str = super::XSD_MIN_INCLUSIVE;
+        const MAX_INCLUSIVE: &str = super::XSD_MAX_INCLUSIVE;
+        const RANGE: &str = super::RDFS_RANGE;
+        const DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let dt = "http://gmeow.example/UnitInterval";
+        let cell1 = "http://gmeow.example/facetCell1";
+        let cell2 = "http://gmeow.example/facetCell2";
+        let lo = "http://gmeow.example/facetLo";
+        let hi = "http://gmeow.example/facetHi";
+        let restriction = "http://gmeow.example/restr";
+        let store = dataset(vec![
+            // dt = xsd:decimal restricted to [0, 1] through a two-cell facet list.
+            quad(dt, ON_DATATYPE, DECIMAL),
+            quad(dt, WITH_RESTRICTIONS, cell1),
+            quad(cell1, RDF_FIRST, lo),
+            quad(cell1, RDF_REST, cell2),
+            quad(cell2, RDF_FIRST, hi),
+            quad(cell2, RDF_REST, RDF_NIL),
+            literal_quad(lo, MIN_INCLUSIVE, "0", DECIMAL),
+            literal_quad(hi, MAX_INCLUSIVE, "1", DECIMAL),
+            // p is a datatype property with a plain range AND a class-local ∀p.dt.
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, DECIMAL),
+            quad(C, SUBCLASS, restriction),
+            quad(restriction, ON_PROPERTY, P),
+            quad(restriction, ALL_VALUES_FROM, dt),
+            // The individual is typed to the NAMED class, never to the restriction.
+            quad(X, TYPE, C),
+            literal_quad(X, P, value, DECIMAL),
+        ]);
+        dl_consistency(store.as_ref()).expect("dl consistency should succeed")
     }
 
     /// The typed `ReasoningResult` fold: an out-of-fragment bundle with no derived

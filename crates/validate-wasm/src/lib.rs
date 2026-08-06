@@ -79,8 +79,25 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// [`GmnDictionary::from_dataset`] and [`gmn1_read`] actually resolve (`gmeow:gmnDictV3` and the
 /// glyph/prefix tables are untouched), so the codebook this wasm image validates against is
 /// unchanged in every way [`gmn_validate`] observes — only the raw carrier bytes moved.
+///
+/// Re-blessed again when the eight "exactly one" upper bounds that migration had left
+/// unenforced were restored. The `owl:FunctionalProperty` typing it introduced on
+/// `lang:inSignSystem`, `lang:analysisLevel`, `lang:featureKey`, `lang:denotationKind`,
+/// `lang:renderingKind`, `lang:translationCorrespondence` and `lang:paraphraseSamenessKind`
+/// is an object-property characteristic OUTSIDE the EL profile the slice's own
+/// `ex:saNoForbiddenCharacteristics` structural assertion protects, and the pipeline projects
+/// no `sh:maxCount` from it — so the marker silently dropped the upper half of the obligation.
+/// The seven markers are removed and, together with `gmeow:gmnSecurityRing`, each property now
+/// carries a class-scoped `logic:Restriction` with `logic:maxQualifiedCardinality 1` and
+/// `logic:onClass owl:Thing` (the `owl:Thing` qualifier is what degrades the qualified bound to
+/// the BARE `sh:maxCount 1` the retired shapes had). The whole diff is those seven `a
+/// owl:ObjectProperty , owl:FunctionalProperty` lines, eight added restriction bodies, and the
+/// note that explains them: 31 lines added, 10 removed, no other subject touched. Once more it
+/// leaves `gmeow:gmnDictV3`, `gmeow:gmnCodebookCurrent`, the `gmeow:references` inventory and
+/// the grapheme/prefix tables — everything [`GmnDictionary::from_dataset`] and [`gmn1_read`]
+/// resolve — untouched, so only the carrier bytes moved.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "5b82edd3b1819ef59db9dc881d5b07cdd1728172be1053be237c028988bf0c97";
+    "7f261effd735fd847d78a3631daf26199ec34602c70c614422438532bb89e797";
 
 /// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
 ///
