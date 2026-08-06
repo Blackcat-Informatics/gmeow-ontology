@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 130
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -161,7 +162,7 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:08f6ea0e1d56e4d7be9f40666f4f1ab219b52b201df46d16ec84834a875a57be`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:50555411cbaed535dcd924ae2340fc9e04babc3d89d2f3544e15a9c22b80f82b`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

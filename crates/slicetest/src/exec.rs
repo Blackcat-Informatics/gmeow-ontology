@@ -1213,7 +1213,7 @@ fn message_class_tokens(message: &str) -> BTreeSet<String> {
 /// mechanism that reaches native (non-SHACL) failure classes, and it closes two gaps at
 /// once: a SPARQL-derived gate's shared generic component code letting an unrelated
 /// cross-fire finding hide beside the intended one, and a purely native class (no SHACL
-/// derivation exists at all, e.g. `math:MalformedStructuralKey`) having no
+/// derivation exists at all, e.g. `math:StructuralKeyDrift`) having no
 /// conformance-cell mechanism to assert against whatsoever.
 ///
 /// The four channels, and why each is here:

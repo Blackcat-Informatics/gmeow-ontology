@@ -1615,6 +1615,69 @@ fn derived_shape_failure_class_dedupes_identical_values() {
     );
 }
 
+/// A domain shape's focus set is "every subject of P", so the PROPERTY is the only authored
+/// term the shape belongs to — the failure identity must be readable there, exactly as a
+/// class-targeted shape reads it off its class. Without this, the findings of a
+/// property-scoped law resolve to no failure class at all, and a conformance cell pinning
+/// `gmeow:expectedFailureClass` cannot say which class the gate just proved.
+#[test]
+fn derived_domain_shape_carries_the_propertys_failure_class() {
+    let ds = shape_dataset(
+        "g:lowersTo g:enforcesFailureClass g:UndeclaredLowering ;
+             rdfs:domain [ a owl:Restriction ; owl:onProperty g:kind ; owl:minCardinality 1 ] .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(
+            |shape| matches!(&shape.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo")),
+        )
+        .expect("lowersTo domain shape");
+    assert_eq!(
+        shape.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/UndeclaredLowering")
+    );
+}
+
+/// The range (`sh:targetObjectsOf`) counterpart reads the same term for the same reason.
+#[test]
+fn derived_range_shape_carries_the_propertys_failure_class() {
+    let ds = shape_dataset(
+        "g:Formula a owl:Class .
+         g:lowersTo g:enforcesFailureClass g:UndeclaredLowering ; rdfs:range g:Formula .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|shape| matches!(&shape.target, ShapeTarget::ObjectsOf(p) if p.ends_with("lowersTo")))
+        .expect("lowersTo range shape");
+    assert_eq!(
+        shape.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/UndeclaredLowering")
+    );
+}
+
+/// A property carrying two distinct failure identities is as malformed as a class carrying
+/// two: the shape would have to claim it proves both, so it is a hard error, never a pick.
+#[test]
+fn derived_domain_shape_rejects_distinct_property_failure_classes() {
+    let ds = shape_dataset(
+        "g:lowersTo g:enforcesFailureClass g:FailureA, g:FailureB ;
+             rdfs:domain [ a owl:Restriction ; owl:onProperty g:kind ; owl:minCardinality 1 ] .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let err = derive_validation_shapes(ds.as_ref()).expect_err("distinct metadata must fail");
+    assert!(err.message().contains("distinct"), "{err}");
+}
+
 #[test]
 fn derived_shape_failure_class_rejects_distinct_values() {
     let ds = shape_dataset(
@@ -2422,9 +2485,16 @@ fn functional_carrier_integrity_flags_duplicate_carrier() {
 #[test]
 fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
     // Prove the completeness ledger is NON-VACUOUS: a small store carries NONE of the frozen
-    // ledger's 724 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
+    // ledger's properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
     // the exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
     // (g:unexpectedProp, absent from the ledger) surfaces as a LedgerUnexpected that names it.
+    //
+    // The expected count is READ FROM THE LEDGER, never restated as a literal here. The claim is
+    // "EVERY entry surfaces", which is a statement about the ledger's own size; a second copy of
+    // that size drifts silently the moment the ledger is re-blessed (it did, and this test then
+    // failed for a reason that had nothing to do with the behaviour it guards). Non-vacuity is
+    // carried by the two assertions below — a non-empty ledger naming a specific property — not
+    // by a hand-copied number.
     let ds = shape_dataset(
         "g:unexpectedProp a owl:ObjectProperty . \
          [] a logic:PropertyCharacteristicAssertion ; \
@@ -2439,9 +2509,14 @@ fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
             _ => None,
         })
         .collect();
+    let ledger_size = super::functional_carrier_ledger().len();
+    assert!(
+        ledger_size > 0,
+        "non-vacuity: the frozen functional-carrier ledger must not be empty"
+    );
     assert_eq!(
         missing.len(),
-        724,
+        ledger_size,
         "every frozen ledger entry with no live carrier is named as LedgerMissing"
     );
     assert!(

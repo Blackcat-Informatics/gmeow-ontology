@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 454
 expression: summary
 ---
 {
@@ -27,5 +28,5 @@ expression: summary
     ],
     "url": "terms/zigzagpersistence/index.html"
   },
-  "record_count": 7140
+  "record_count": 7180
 }

@@ -2884,12 +2884,26 @@ pub fn derive_validation_shapes(
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
-        // node. Collapse repeated identical values; hard-fail distinct values.
-        if let ShapeTarget::Class(class) = &target {
-            let failure_classes = distinct_failure_classes(store, &Subject::Iri(class.clone()))?;
+        // node. For a class-targeted shape that term is the CLASS; for the domain/range shapes
+        // derived from `rdfs:domain P …` / `rdfs:range P …` it is the PROPERTY — the shape's whole
+        // focus set is "the subjects (objects) of P", so P is the only authored term the shape
+        // belongs to, and without this a property-scoped law's findings resolve to no failure class
+        // at all (`<unmapped>`), leaving a conformance cell unable to say which class it just
+        // proved. Collapse repeated identical values; hard-fail distinct values.
+        let failure_source = match &target {
+            ShapeTarget::Class(class) => Some(("class", class)),
+            ShapeTarget::SubjectsOf(predicate) | ShapeTarget::ObjectsOf(predicate) => {
+                Some(("property", predicate))
+            }
+            ShapeTarget::ValueKeyed { .. }
+            | ShapeTarget::DirectClass(_)
+            | ShapeTarget::Sparql(_) => None,
+        };
+        if let Some((kind, term)) = failure_source {
+            let failure_classes = distinct_failure_classes(store, &Subject::Iri(term.clone()))?;
             if failure_classes.len() > 1 {
                 return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("class {class} has distinct gmeow:enforcesFailureClass values"),
+                    detail: format!("{kind} {term} has distinct gmeow:enforcesFailureClass values"),
                 }));
             }
             if let Some(failure_class) = failure_classes.first() {

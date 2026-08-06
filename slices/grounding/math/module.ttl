@@ -3166,7 +3166,7 @@ math:MalformedStructuralKey
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression's math:structuralKey predicate carries two or more asserted values (of any kind), or a single value that is not a literal — any usage that is not a clean singleton literal."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a single, well-formed literal value that merely disagrees with the recomputed digest — that is math:StructuralKeyDrift, the sibling drift failure; this failure is specific to a math:structuralKey usage that is not a well-formed singleton literal in the first place."@x-gmeow-english ;
-    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage / check_malformed_structural_key); there is no SHACL/Datalog derivation to point at it — classifying a predicate's usage shape across every object it carries is a whole-population computation, not a flat relational join."@x-gmeow-english ;
+    gmeow:howToUse "CLASSIFIED only by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage / check_malformed_structural_key): reading a predicate's usage shape across every object it carries is a whole-population computation, not a flat relational join, so no SHACL/Datalog derivation decides it. Its flat CONSEQUENCES are nonetheless stated declaratively on math:MathematicalExpression (math:structuralKey allValuesFrom xsd:string; its max-qualified-1 sibling) and derived to math:MathematicalExpression-shape, which carries the class-scoped gmeow:enforcesFailureClass naming this class — so a non-literal key (shacl.DatatypeConstraintComponent) and a plural key (shacl.MaxCountConstraintComponent) resolve here too, and the two arms agree."@x-gmeow-english ;
     skos:example "exf:e math:structuralKey \"k1\" , \"k2\" . # exf:e carries TWO math:structuralKey values -> math:MalformedStructuralKey"@x-gmeow-english ;
     skos:scopeNote "Concerns the SHAPE of an authored key — absent, repeated, or not a literal — never its VALUE. A key whose value disagrees with the digest recomputed from the expression's own structure is math:StructuralKeyDrift, and a key authored on an expression the lowering rejects outright is math:StructuralKeyOnRejectedExpression."@x-gmeow-english .
 
@@ -11041,9 +11041,26 @@ math:FreeVariableDeclaration logic:subClassOf
 # without it the derived shape carries an sh:maxCount with no sh:datatype at all,
 # exactly the same "no flat relational join" reasoning that idiom's own
 # math:manifoldDimension sibling further down in this file already follows.
+#
+# The gmeow:enforcesFailureClass binding names the failure the DERIVED shape
+# (math:MathematicalExpression-shape) proves, exactly as math:SymbolReference's group above
+# binds math:UnresolvedSymbolReference: a non-literal key raises shacl.DatatypeConstraintComponent
+# and a plural key shacl.MaxCountConstraintComponent, and BOTH are the one class the native
+# classifier already names — math:MalformedStructuralKey, "a math:structuralKey usage that is not
+# a well-formed singleton literal". Without it those two findings resolve to no class at all
+# (`<unmapped>`) and ex:ecMalformedStructuralKey cannot say which class it just proved.
+#
+# The binding is CLASS-scoped, so it also covers the math:alphaEquivalenceClass group that
+# follows, which merges into the same one-shape-per-target node shape. That is the honest
+# reading, not a convenient one: an math:AlphaEquivalenceClass individual's IRI is minted
+# DIRECTLY from the expression's own math:structuralKey digest (see math:alphaEquivalenceClass's
+# own definition), so a plural or wrongly-typed alpha-class usage is a malformed usage of the
+# very same structural key, one projection over — the same class-scoped sharing
+# math:DimensionExponent's four restrictions already make under one math:MalformedDimension.
 math:MathematicalExpression logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
+    gmeow:enforcesFailureClass math:MalformedStructuralKey .
 
 # math:alphaEquivalenceClass carries the SAME single-valued discipline its own definition
 # promises ("Single-valued, exactly as math:structuralKey is"), stated here rather than left to
@@ -15490,8 +15507,18 @@ math:pdnIri a logic:Formula ; logic:relation logic:termIsIri ;
 # The lowering declares its denotation and preservation (retires
 # math:LogicLoweringShape's declarative arm): the anonymous-restriction domains give
 # every subject of math:compilesToLogicFormula its two required companions, read
-# closed-world under the explicit opt-in below (the procedural twin,
-# math:LogicLoweringDeclaredConstraint, already carries the typed failure identity).
+# closed-world under the explicit opt-in below.
+#
+# The failure identity is bound on the PROPERTY, because the derived shape
+# (math:compilesToLogicFormula-domain-shape) is targeted by sh:targetSubjectsOf: its whole focus
+# set is "the subjects of math:compilesToLogicFormula", so the property is the only authored term
+# the shape belongs to, and the deriver reads it from exactly there (the class/property split in
+# crates/logic-compile/src/frontend.rs's derive_validation_shapes). Both minCount components on
+# that shape prove the SAME thing the procedural twin math:LogicLoweringDeclaredConstraint proves
+# and already names — a lowering with a missing companion is silent promotion — so the two arms
+# of the one law now agree on one class instead of the declarative arm reporting `<unmapped>`
+# and breaking ex:ecUndeclaredLogicLowering's single-class isolation.
+math:compilesToLogicFormula gmeow:enforcesFailureClass math:UndeclaredLogicLowering .
 math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:denotationKind ; owl:minCardinality "1"^^xsd:integer ] .
 math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:logicLoweringPreservation ; owl:minCardinality "1"^^xsd:integer ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/math/compilesToLogicFormula" ; logic:closureValue logic:ClosedWorldClosure ] .
