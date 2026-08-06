@@ -130,3 +130,130 @@ ex:saAttachesGraphIsNotAStage a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { ?stage gmeow:attachesGraph ?g . ?g a gmeow:PipelineStage . }""" ;
     gmeow:saRationale "gmeow:attachesGraph relates a stage to a carrier NAMED-GRAPH IRI (its attach delta), never to another pipeline stage; a stage object here would mean the run-time delta compare is checking against a stage, not a graph." .
+
+# =========================================================================== #
+# Runtime-DAG vocabulary (issue #1674) — TBox spine + closed value seeds.       #
+# =========================================================================== #
+
+# --- 8. The runtime-DAG class spine (MUST hold) ------------------------------
+ex:saRuntimeDagKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:FlowReason      a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
+    gmeow:StageDisposition a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
+    gmeow:StageObligation a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
+    gmeow:StageStability  a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
+    gmeow:StageExecution  a owl:Class , logic:Kind ; rdfs:subClassOf logic:Event .
+    gmeow:PipelineRun     a owl:Class , logic:Kind ; rdfs:subClassOf logic:Event .
+    gmeow:StageBudget     a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
+    gmeow:StageReceipt    a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
+}""" ;
+    gmeow:saRationale "The general runtime-DAG vocabulary (issue #1674) MUST carry its TBox spine: gmeow:FlowReason / gmeow:StageDisposition / gmeow:StageObligation / gmeow:StageStability are QualityValue vocabularies (closed value classes); gmeow:StageExecution and gmeow:PipelineRun are perdurant occurrences (logic:Event) — one run of a stage and one run of a whole DAG; gmeow:StageBudget and gmeow:StageReceipt are reified SocialObject records (a per-stage budget and a content-addressed receipt)." .
+
+# --- 9. The closed FlowReason value vocabulary (MUST hold) --------------------
+ex:saFlowReasonSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:flowReasonDataflow  a gmeow:FlowReason .
+    gmeow:flowReasonAuthority a gmeow:FlowReason .
+    gmeow:flowReasonCost      a gmeow:FlowReason .
+}""" ;
+    gmeow:saRationale "The FlowReason value vocabulary MUST seed exactly the three declared edge reasons: gmeow:flowReasonDataflow (bytes flow), gmeow:flowReasonAuthority (a first-class ordering a pure-dataflow reasoner must not drop), and gmeow:flowReasonCost (resource-serialization). The set is closed at three." .
+
+# --- 9b. No FlowReason individual outside the closed three (MUST NOT) ----------
+ex:saFlowReasonClosed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?r a gmeow:FlowReason .
+    FILTER(?r NOT IN (gmeow:flowReasonDataflow, gmeow:flowReasonAuthority, gmeow:flowReasonCost))
+}""" ;
+    gmeow:saRationale "The FlowReason set is CLOSED: a fourth reason individual would let an edge be typed with an unrecognized reason the admission constraint does not account for, silently weakening the dataflow/authority/cost distinction." .
+
+# --- 10. The closed StageDisposition value vocabulary (MUST hold) -------------
+ex:saDispositionSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:dispositionCompleted        a gmeow:StageDisposition .
+    gmeow:dispositionTypedAbsence     a gmeow:StageDisposition .
+    gmeow:dispositionRejectedCandidate a gmeow:StageDisposition .
+    gmeow:dispositionRetryable        a gmeow:StageDisposition .
+    gmeow:dispositionFatalToCandidate a gmeow:StageDisposition .
+    gmeow:dispositionTimedOut         a gmeow:StageDisposition .
+}""" ;
+    gmeow:saRationale "The StageDisposition vocabulary MUST seed exactly the six declared per-execution outcomes: completed, typed-absence (an explicit typed nothing — a valid answer), rejected-candidate, retryable, fatal-to-candidate, and timed-out. Typed dispositions replace an untyped success/failure boolean; the set is closed at six." .
+
+# --- 11. The closed StageObligation and StageStability seeds (MUST hold) ------
+ex:saObligationStabilitySeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:obligationMandatory     a gmeow:StageObligation .
+    gmeow:obligationDegradable    a gmeow:StageObligation .
+    gmeow:stabilityStablePrefix   a gmeow:StageStability .
+    gmeow:stabilityPerTurnVariance a gmeow:StageStability .
+}""" ;
+    gmeow:saRationale "The stage-level declarations MUST seed their closed sets: gmeow:StageObligation over {mandatory, degradable} ('this stage's absence invalidates the run' is a declared property), and gmeow:StageStability over {stablePrefix (byte-identical across turns — enables prefix-cache ordering), perTurnVariance}." .
+
+# --- 12. The runtime-DAG property shapes (MUST hold) -------------------------
+ex:saRuntimeDagProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:flowReason       a owl:ObjectProperty ;   rdfs:domain gmeow:BuildDataFlow ;  rdfs:range gmeow:FlowReason .
+    gmeow:stageDisposition a owl:ObjectProperty ;   rdfs:domain gmeow:StageExecution ; rdfs:range gmeow:StageDisposition .
+    gmeow:stageObligation  a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageObligation .
+    gmeow:stageStability   a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageStability .
+    gmeow:hasStageBudget   a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageBudget .
+    gmeow:budgetDeadline   a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ;    rdfs:range xsd:duration .
+    gmeow:budgetMaxSteps   a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ;    rdfs:range xsd:nonNegativeInteger .
+    gmeow:budgetMaxAnswers a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ;    rdfs:range xsd:nonNegativeInteger .
+    gmeow:budgetMaxInputBytes  a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:budgetMaxMemoryBytes a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:hasStageReceipt  a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineRun ;    rdfs:range gmeow:StageReceipt .
+    gmeow:receiptOfStage   a owl:ObjectProperty ;   rdfs:domain gmeow:StageReceipt ;   rdfs:range gmeow:PipelineStage .
+    gmeow:receiptDigest    a owl:DatatypeProperty ; rdfs:domain gmeow:StageReceipt ;   rdfs:range xsd:string .
+}""" ;
+    gmeow:saRationale "The runtime-DAG properties MUST hold their shapes: the required edge reason (gmeow:flowReason: BuildDataFlow→FlowReason), the per-execution disposition (StageExecution→StageDisposition), the stage-level obligation and stability (PipelineStage→StageObligation/StageStability), the per-stage budget (gmeow:hasStageBudget plus the five typed-literal ceilings on gmeow:StageBudget), and the run receipts (gmeow:hasStageReceipt: PipelineRun→StageReceipt, gmeow:receiptOfStage: StageReceipt→PipelineStage, gmeow:receiptDigest: StageReceipt→xsd:string)." .
+
+# --- 13. Every gmeow:BuildDataFlow carries a flow reason (MUST NOT be absent) --
+# gmeow:flowReason is REQUIRED on gmeow:BuildDataFlow, so no reified edge (including
+# the build DAG's own five) may lack it; the five build edges are byte dependencies.
+ex:saEveryBuildEdgeHasFlowReason a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { ?e a gmeow:BuildDataFlow . FILTER NOT EXISTS { ?e gmeow:flowReason ?r } }""" ;
+    gmeow:saRationale "gmeow:flowReason is REQUIRED on gmeow:BuildDataFlow (min-qualified-cardinality 1): an edge with no reason is indistinguishable from a droppable dataflow dependency, so the build DAG's own five reified edges each declare gmeow:flowReasonDataflow and no edge may be reason-less." .
+
+# --- 14. The runtime-DAG admission constraint is authored in logic: (MUST) ----
+# A logic:Constraint carrying an integrity formula and a message, NOT a hand-authored
+# SHACL shape (projection-purity: validation is authored in logic: only).
+ex:saAdmissionConstraint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:RuntimeDagAdmissionConstraint a logic:Constraint ;
+        logic:integrity ?f ;
+        logic:message ?m ;
+        logic:severity "Violation" .
+    ?f logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
+}""" ;
+    gmeow:saRationale "The admission law MUST be authored as a logic:Constraint + logic:Formula (never a hand-authored SHACL shape): its logic:integrity conjoins the dataflow-producer-existence and authority-edge-retention first-order arms, its logic:message states all four expectations (acyclicity, connectivity, dataflow satisfaction, authority satisfaction), and the transitive-closure arms are disclosed via the honest gmeow:runtimeDagAdmissionBoundary rather than faked." .

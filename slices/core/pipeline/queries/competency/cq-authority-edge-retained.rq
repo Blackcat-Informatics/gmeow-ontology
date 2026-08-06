@@ -1,0 +1,12 @@
+# Competency question: "In an in-rush enrichment DAG, which edges are AUTHORITY
+# orderings — the ones a pure-dataflow reasoner would wrongly drop because no bytes
+# ride them, but which admission (gmeow:RuntimeDagAdmissionConstraint (d)) must keep?"
+# Expected: exactly the one authority edge ex:edge-gate-authority.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?edge WHERE {
+    ?edge a gmeow:BuildDataFlow ;
+          gmeow:flowReason gmeow:flowReasonAuthority .
+}
+ORDER BY ?edge
