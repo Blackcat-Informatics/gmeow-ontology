@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the canonicalization/analyzer-profile competency question. Unioned
+# onto the merged ontology by gmeow:cqDataFile. It mints one lang:AnalyzerProfile with
+# its declared (script, encoding, normalization, collation) frame and four ordered,
+# implementation-pinned stages, then cites it from one lang:AnalysisOutput. A second
+# analysis output names no profile at all — the unattributed-canonicalization case the
+# lang:ProfileAttributionConstraint rejects — so the exact-row pinning proves it does
+# not answer.
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:latin a lang:Script .
+
+# The minted, versionable analyzer profile: frame identity + ordered pipeline.
+ex:profileNfcEn a lang:AnalyzerProfile ;
+    lang:profileScript ex:latin ;
+    lang:profileEncoding "UTF-8" ;
+    lang:profileNormalization "NFC" ;
+    lang:profileCollation "en" ;
+    lang:profileVersion "1.0.0" ;
+    lang:hasStage ex:stageSeg , ex:stageNorm , ex:stageStem , ex:stagePhon .
+
+ex:stageSeg a lang:ProfileStage ; lang:stageKind lang:stageKindSegmentation ; lang:stageOrder 0 ;
+    lang:stageImplementation ex:icuSeg ; lang:stageVersion "74.2" ; lang:stageDigest "blake3:aa00" .
+ex:stageNorm a lang:ProfileStage ; lang:stageKind lang:stageKindNormalization ; lang:stageOrder 1 ;
+    lang:stageImplementation ex:icuNorm ; lang:stageVersion "74.2" ; lang:stageDigest "blake3:bb11" .
+ex:stageStem a lang:ProfileStage ; lang:stageKind lang:stageKindStemming ; lang:stageOrder 2 ;
+    lang:stageImplementation ex:snowball ; lang:stageVersion "2.2.0" ; lang:stageDigest "blake3:cc22" .
+ex:stagePhon a lang:ProfileStage ; lang:stageKind lang:stageKindPhonetic ; lang:stageOrder 3 ;
+    lang:stageImplementation ex:metaphone ; lang:stageVersion "3.0" ; lang:stageDigest "blake3:dd33" .
+
+# The attributed analysis output: cites the profile it was produced under. It answers.
+ex:outputAttributed a lang:AnalysisOutput ; lang:analyzedUnderProfile ex:profileNfcEn .
+
+# The unattributed analysis output: names no profile. The lang:ProfileAttributionConstraint
+# rejects it, and it does not answer the attribution query.
+ex:outputOrphan a lang:AnalysisOutput .

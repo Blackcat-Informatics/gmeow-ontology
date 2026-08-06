@@ -1,0 +1,17 @@
+# Competency question: "Which analysis outputs cite a canonicalization/analyzer
+# profile whose pipeline is declared, and which profile?"  This exercises the
+# profile-attribution discipline: an analysis output cites the lang:CanonicalizationProfile
+# it was produced under through lang:analyzedUnderProfile, and the cited profile's
+# (IRI, lang:profileVersion) pair is the comparability key. Scoped to the fixture
+# namespace so the answer is exactly the one attributed output {outputAttributed ->
+# profileNfcEn}; the sibling output naming no profile is rejected (it does not answer),
+# the same case the lang:ProfileAttributionConstraint hard-fails.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?output ?profile WHERE {
+    ?output a lang:AnalysisOutput ;
+        lang:analyzedUnderProfile ?profile .
+    FILTER EXISTS { ?profile lang:hasStage ?stage }
+    FILTER(STRSTARTS(STR(?output), "http://example.org/lang/"))
+}
+ORDER BY ?output ?profile

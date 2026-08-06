@@ -1129,6 +1129,201 @@ lang:analysisLevel
     skos:definition "Names how far a surface form has been analyzed. Domain lang:SurfaceForm, range lang:AnalysisLevel (stated in prose). Exactly one per surface, and the surface's structure must match the declared level."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# =========================================================================== #
+# Canonicalization & analyzer profiles                                        #
+# =========================================================================== #
+# A canonicalization profile reifies the very frame the surface stratum
+# carries per-surface (script, encoding, Unicode normalization, collation
+# locale) into a single, first-class, versionable individual. Downstream
+# engines (lillith_memetics) mint a profile individual, pin its exact
+# substrate, and cite it from analysis outputs through lang:analyzedUnderProfile
+# so a surface or output declares P rather than repeating the four-tuple. The
+# frame is held on profile-scoped twins of the surface properties rather than
+# by reusing lang:encoding / lang:unicodeNormalization / lang:collationLocale /
+# lang:inScript, whose domain is the lang:SurfaceForm stratum (stated in prose):
+# reusing them on a profile would fold the surface stratum and the profile
+# stratum together, so the profile carries lang:profileScript / lang:profileEncoding
+# / lang:profileNormalization / lang:profileCollation with rdfs:domain
+# lang:CanonicalizationProfile instead. The analyzer specialization adds the
+# ordered stage pipeline (segmentation, normalization, stemming/folding,
+# phonetic), each stage naming and pinning its implementation the same
+# oracle-not-authority way lang:interpretationEngine pins an NLP engine.
+
+lang:CanonicalizationProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Canonicalization Profile"@x-gmeow-english ;
+    skos:definition "A first-class, versionable canonicalization frame held as an individual: the declared (script, encoding, Unicode normalization, collation locale) tuple a text is folded under, carried through lang:profileScript, lang:profileEncoding, lang:profileNormalization, and lang:profileCollation as IDENTITY-bearing properties. Canonicalization is sign-system-relative, so the well-defined hash a surface takes names the frame it folds under; a profile makes that frame a citable individual a downstream engine can mint, pin, and reference from its analysis outputs through lang:analyzedUnderProfile rather than repeating the four-tuple on every surface. The profile IRI plus its declared version (lang:profileVersion) is the comparability key: two outputs produced under the same profile IRI at the same version are comparable, and outputs under any other profile-or-version are comparable ONLY through a DECLARED lang:TranslationUnit correspondence, never silently — the 'no silent normalization of variants' rule (design/LANG-TRANSLATION.md), where en-US/en-GB and every other frame variant is a declared map, not noise to collapse."@x-gmeow-english ;
+    skos:scopeNote "Comparability is IRI-and-version equality, never structural coincidence: equal profile IRI AND equal lang:profileVersion entails the outputs share a substrate and are directly comparable; any mismatch of IRI or version is a distinct substrate whose outputs may be related ONLY by an explicit correspondence carrying its preservation judgment. A profile is versioned, not mutated in place: changing any frame value or stage mints a new version (or a new profile), so a cited (IRI, version) pin resolves to exactly one substrate forever."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:AnalyzerProfile
+    a owl:Class ;
+    rdfs:subClassOf lang:CanonicalizationProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Analyzer Profile"@x-gmeow-english ;
+    skos:definition "The analyzer specialization of lang:CanonicalizationProfile: a canonicalization frame extended with the ordered analysis pipeline an analyzer runs over the folded text — segmentation, normalization, stemming/folding, and phonetic stages — carried as lang:ProfileStage individuals through lang:hasStage and totally ordered by lang:stageOrder. It inherits the frame identity of its parent and adds stage identity: each stage names and version-pins its implementation the same oracle-not-authority way an interpretation act pins its engine, so an analyzer output cites one profile whose substrate AND whose pipeline are both fully declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:ProfileStage
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Profile Stage"@x-gmeow-english ;
+    skos:definition "A single pipeline stage of a lang:AnalyzerProfile: one step of the analysis pipeline, naming its kind through lang:stageKind (one of the closed set segmentation / normalization / stemming-folding / phonetic), its position in the profile's total order through lang:stageOrder, and its exact implementation identity through lang:stageImplementation with lang:stageVersion and lang:stageDigest. The stage's implementation is an ORACLE that produces the stage's output, named and pinned rather than treated as authoritative: a stage names the tool and the exact version/digest that ran, so a re-run under a different implementation is a different stage of a different profile version, never a silent substitution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:StageKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Stage Kind"@x-gmeow-english ;
+    skos:definition "The kind of an analyzer pipeline stage — segmentation, normalization, stemming/folding, or phonetic. Its instances are the named individuals lang:stageKindSegmentation, lang:stageKindNormalization, lang:stageKindStemming, and lang:stageKindPhonetic; a lang:ProfileStage points at exactly one through lang:stageKind. The closed kind-individual set keeps the TBox small and the ABox expressive, the same discipline as lang:SignSystemKind and lang:AnalysisLevel, rather than minting an OWL class per stage kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:AnalysisOutput
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Analysis Output"@x-gmeow-english ;
+    skos:definition "A first-class analyzer-produced result — a segmentation, a folded collation key, a stem, a phonetic code, or any comparable output of running a lang:CanonicalizationProfile — that MUST cite the profile it was produced under through lang:analyzedUnderProfile. The typed marker that makes profile attribution a hard rule: an output is comparable to another only through its cited profile's (IRI, version) identity, so an output that names no profile, or names a profile whose pipeline is undeclared, has entered the graph as an unattributed canonicalization claim (lang:UnattributedAnalysisProfile) — the analyzer-stratum twin of lang:UnattributedEngineClaim, where an engine reading with no vantage is an unattributed fact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Profile frame identity (script/encoding/normalization/collation) ------- #
+
+lang:profileScript
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "profile script"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range lang:Script ;
+    skos:definition "The script a canonicalization profile folds under — the profile-stratum twin of lang:inScript, scoped to lang:CanonicalizationProfile rather than lang:SurfaceForm. An IDENTITY-bearing frame property: two profiles differing in script are distinct substrates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:profileEncoding
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "profile encoding"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range xsd:string ;
+    skos:definition "The character encoding a canonicalization profile folds under, such as UTF-8 — the profile-stratum twin of lang:encoding, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:profileNormalization
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "profile normalization"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range xsd:string ;
+    skos:definition "The Unicode normalization form a canonicalization profile folds under — NFC, NFD, NFKC, or NFKD (UAX #15) — the profile-stratum twin of lang:unicodeNormalization, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property: two profiles differing only in normalization are distinct substrates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:profileCollation
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "profile collation"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range xsd:string ;
+    skos:definition "The collation locale a canonicalization profile folds under, such as a CLDR/ICU locale identifier — the profile-stratum twin of lang:collationLocale, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property: canonicalization is locale-relative, so the profile names the locale it folds under."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:profileVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "profile version"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range xsd:string ;
+    skos:definition "The declared version of a canonicalization profile — the second half of the comparability key alongside the profile IRI. Two analysis outputs are directly comparable exactly when they cite the same profile IRI at the same lang:profileVersion; a profile is versioned rather than mutated in place, so any frame or pipeline change mints a new version and a cited (IRI, version) pin resolves to one substrate forever."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- The ordered stage pipeline --------------------------------------------- #
+
+lang:hasStage
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "has stage"@x-gmeow-english ;
+    rdfs:domain lang:CanonicalizationProfile ;
+    rdfs:range lang:ProfileStage ;
+    skos:definition "Relates a canonicalization profile to one pipeline stage it runs. Domain lang:CanonicalizationProfile, range lang:ProfileStage. A profile's stages are totally ordered by lang:stageOrder; the analyzer specialization declares segmentation, normalization, stemming/folding, and phonetic stages this way, and a profile with no declared stage is an undeclared pipeline (lang:UnattributedAnalysisProfile when an output cites it)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:stageOrder
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stage order"@x-gmeow-english ;
+    rdfs:domain lang:ProfileStage ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The position of a lang:ProfileStage in its profile's total order. Domain lang:ProfileStage, range xsd:nonNegativeInteger. The pipeline is an ordered program, not a set: two stages of one profile never share a stageOrder, and the analyzer runs them in ascending order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:stageKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stage kind"@x-gmeow-english ;
+    rdfs:domain lang:ProfileStage ;
+    rdfs:range lang:StageKind ;
+    skos:definition "Names the kind of a pipeline stage. Domain lang:ProfileStage, range lang:StageKind — one of the closed set lang:stageKindSegmentation, lang:stageKindNormalization, lang:stageKindStemming, lang:stageKindPhonetic. Exactly one per stage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:stageImplementation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stage implementation"@x-gmeow-english ;
+    rdfs:domain lang:ProfileStage ;
+    skos:definition "Relates a lang:ProfileStage to the implementation (a tokenizer, normalizer, stemmer, or phonetic coder) that runs it, carrying the implementation identity as provenance. Domain lang:ProfileStage, range an implementation agent (stated in prose). The SAME oracle-not-authority discipline as lang:interpretationEngine: the implementation is NAMED and PINNED — through lang:stageVersion and lang:stageDigest — as the oracle that produced the stage's output, never an authority whose output is a fact; a stage naming an implementation with no exact version-or-digest pin has entered the pipeline as an unpinned substrate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:stageVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stage version"@x-gmeow-english ;
+    rdfs:domain lang:ProfileStage ;
+    rdfs:range xsd:string ;
+    skos:definition "The exact version string of a stage's lang:stageImplementation. Domain lang:ProfileStage, range a version string literal. Part of the stage's substrate pin: a re-run under a different implementation version is a different stage of a different profile version, never a silent substitution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:stageDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stage digest"@x-gmeow-english ;
+    rdfs:domain lang:ProfileStage ;
+    rdfs:range xsd:string ;
+    skos:definition "The content-addressed digest of a stage's lang:stageImplementation (and its data, such as a stemmer's rule table) — a \"blake3:<hex>\" reference literal. Domain lang:ProfileStage, range a digest string literal. The tightest substrate pin: where a version string is a claim, the digest is a proof, so two stages with the same digest ran identical bytes and produced comparable output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Attribution: a surface or output cites the profile it ran under -------- #
+
+lang:analyzedUnderProfile
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:range lang:CanonicalizationProfile ;
+    rdfs:label "analyzed under profile"@x-gmeow-english ;
+    skos:definition "Relates a lang:SurfaceForm or a lang:AnalysisOutput to the lang:CanonicalizationProfile it was canonicalized or analyzed under. Domain a surface or an analysis output, range lang:CanonicalizationProfile (stated in prose). A surface MAY carry it to declare its frame P once rather than repeating the (script, encoding, normalization, collation) four-tuple; an lang:AnalysisOutput MUST carry it, and the cited profile's (IRI, lang:profileVersion) pair is the comparability key. This COMPOSES WITH, and never replaces, lang:InterpretationAct provenance: the profile records the CANONICALIZATION substrate a text was folded under (which script/encoding/normalization/collation, which ordered analyzer stages), while the interpretation act and its lang:interpretationEngine record the vantage-held READING an engine produced over that substrate — an output cites both, the profile for what it was comparable under and the act for who read it and from what vantage, and neither subsumes the other."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Stage-kind individuals (the closed pipeline-kind value set) ------------- #
+
+lang:stageKindSegmentation
+    a owl:NamedIndividual , lang:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "segmentation"@x-gmeow-english ;
+    skos:definition "The pipeline-stage kind that splits folded text into units — graphemes, tokens, or words. The first stage kind of a typical analyzer pipeline."@x-gmeow-english .
+
+lang:stageKindNormalization
+    a owl:NamedIndividual , lang:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "normalization"@x-gmeow-english ;
+    skos:definition "The pipeline-stage kind that normalizes units — case folding, Unicode normalization applied per-unit, accent stripping, or width folding — under the profile's declared frame."@x-gmeow-english .
+
+lang:stageKindStemming
+    a owl:NamedIndividual , lang:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "stemming/folding"@x-gmeow-english ;
+    skos:definition "The pipeline-stage kind that reduces a unit to a stem or fold key — a stemmer, a lemmatizer used as a folder, or a collation-key folder — collapsing inflectional variants for comparison."@x-gmeow-english .
+
+lang:stageKindPhonetic
+    a owl:NamedIndividual , lang:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "phonetic"@x-gmeow-english ;
+    skos:definition "The pipeline-stage kind that maps a unit to a phonetic code — Soundex, Metaphone, or a comparable coder — so two spellings that sound alike share a key."@x-gmeow-english .
+
 lang:levelRank
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -2290,6 +2485,14 @@ lang:UnattributedEngineClaim
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Unattributed Engine Claim"@x-gmeow-english ;
     skos:definition "The failure raised when an external engine's output enters the graph as unattributed structure rather than a vantage-held reading — a lang:Reading produced by a lang:InterpretationAct (through lang:producedReading) that carries no gmeow:vantage. Parsers, taggers, and MT systems are oracles that produce claims, never authorities that produce facts: every engine reading is held from the engine's vantage, so an engine reading with no vantage has been folded as an unattributed fact, and two engines that disagree can no longer be told apart."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnattributedAnalysisProfile
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unattributed Analysis Profile"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:AnalysisOutput enters the graph as an unattributed canonicalization claim — an output that names NO lang:CanonicalizationProfile through lang:analyzedUnderProfile, or that names a profile whose pipeline is UNDECLARED (no lang:hasStage). The analyzer-stratum twin of lang:UnattributedEngineClaim: a canonicalizer or analyzer is an oracle that produces a fold key under a declared substrate, never an authority whose output is comparable by coincidence, so an output whose profile — or whose profile's stages — is undeclared can no longer be told apart from an output produced under any other substrate, and its comparability claim is fabricated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:SilentPromotion
@@ -9639,6 +9842,40 @@ lang:cnpModel a logic:Formula ;
 lang:cnpModelAtom a logic:Formula ; logic:relation logic:probabilityModel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
 
+# A lang:AnalysisOutput MUST cite the canonicalization profile it was produced
+# under, and that profile's pipeline MUST be declared. The analyzer-stratum twin
+# of the engine-vantage rule (lang:UnattributedEngineClaim): an output that names
+# no profile — or names a profile with no declared lang:hasStage — is an
+# unattributed canonicalization claim whose comparability is fabricated. Guarded
+# universal (rd:type lang:AnalysisOutput) → existential body binding the cited
+# profile AND at least one of its stages, so BOTH failure arms (names none / names
+# an undeclared-pipeline profile) collapse to one missing existential witness.
+lang:ProfileAttributionConstraint
+    a logic:Constraint ;
+    rdfs:label "Profile attribution constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every lang:AnalysisOutput names, through lang:analyzedUnderProfile, a lang:CanonicalizationProfile that declares at least one lang:hasStage. An output naming no profile, or naming a profile with an undeclared pipeline, is rejected — the analyzer-stratum mirror of the engine-vantage rule, so a fold key's comparability is never a silent coincidence."@x-gmeow-english ;
+    logic:formalizes lang:ProfileAttributionShape ;
+    logic:message "A lang:AnalysisOutput must cite a lang:CanonicalizationProfile (through lang:analyzedUnderProfile) whose pipeline is declared (at least one lang:hasStage); an output naming no profile, or a profile with no declared stage, is an unattributed canonicalization claim." ;
+    logic:integrity lang:paForall .
+lang:paForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:paImpl .
+lang:paImpl a logic:Formula ; logic:antecedent lang:paGuard ; logic:consequent lang:paCited .
+lang:paGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:AnalysisOutput ] .
+lang:paCited a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "stage" ] ;
+    logic:exists lang:paCitedBody .
+lang:paCitedBody a logic:Formula ; logic:and lang:paProfileEdge , lang:paProfileType , lang:paStageEdge .
+lang:paProfileEdge a logic:Formula ; logic:relation lang:analyzedUnderProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "profile" ] .
+lang:paProfileType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termIri lang:CanonicalizationProfile ] .
+lang:paStageEdge a logic:Formula ; logic:relation lang:hasStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "stage" ] .
+
 # No two distinct graphemes of gmeow:gmnScript are related by
 # gmeow:gmnConfusableWith — the confusables blocklist of the GMN orthography.
 lang:GmnConfusableGlyphConstraint
@@ -10355,6 +10592,7 @@ lang:FregeDisjointSenseConstraint gmeow:enforcesFailureClass lang:FregeConflatio
 lang:FregeDisjointDenotationConstraint gmeow:enforcesFailureClass lang:FregeConflation .
 lang:RenderingNotIdentityConstraint gmeow:enforcesFailureClass lang:RenderingAsIdentity .
 lang:MachineTranslationProvenanceConstraint gmeow:enforcesFailureClass lang:UnattributedTranslation .
+lang:ProfileAttributionConstraint gmeow:enforcesFailureClass lang:UnattributedAnalysisProfile .
 lang:GmnScriptCodepointPresenceConstraint gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint .
 
 # Declarative shape failures ride the OWL class antecedent itself.  Where
@@ -10390,7 +10628,10 @@ lang:MorphFeature gmeow:enforcesFailureClass lang:UntypedMorphology .
 # Kind
 
 lang:Analysis a logic:Kind .
+lang:AnalysisOutput a logic:Kind .
+lang:CanonicalizationProfile a logic:Kind .
 lang:CompositionRule a logic:Kind .
+lang:ProfileStage a logic:Kind .
 lang:DiscourseReferent a logic:Kind .
 lang:FeatureInventory a logic:Kind .
 lang:Form a logic:Kind .
@@ -10418,6 +10659,7 @@ lang:Ungrammaticality a logic:Kind .
 
 # SubKind
 
+lang:AnalyzerProfile a logic:SubKind .
 lang:ComposedForm a logic:SubKind .
 lang:CovertForm a logic:SubKind .
 lang:Lexeme a logic:SubKind .
@@ -10447,6 +10689,7 @@ lang:PartOfSpeech a logic:AbstractIndividualType .
 lang:RenderingKind a logic:AbstractIndividualType .
 lang:SenseRelationKind a logic:AbstractIndividualType .
 lang:SignSystemKind a logic:AbstractIndividualType .
+lang:StageKind a logic:AbstractIndividualType .
 lang:TranslationMethod a logic:AbstractIndividualType .
 
 # Event
@@ -10515,6 +10758,7 @@ lang:UnanchoredGrammar a logic:Situation .
 lang:UnanchoredIndexical a logic:Situation .
 lang:UnanchoredOffset a logic:Situation .
 lang:UnanchoredTransliteration a logic:Situation .
+lang:UnattributedAnalysisProfile a logic:Situation .
 lang:UnattributedEngineClaim a logic:Situation .
 lang:UnattributedTranslation a logic:Situation .
 lang:UndeclaredLoweringStage a logic:Situation .

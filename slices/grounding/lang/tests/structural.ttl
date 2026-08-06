@@ -370,3 +370,52 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "Every graph-derived GMN glyph denotation MUST attach to a generic lang:Form in the notation sign system, never a lang:WordForm. A WordForm is an inflection of a lexeme and therefore requires lang:lexemeOf; logical, mathematical, IPA, gloss, and boundary signs are notation forms rather than fabricated lexical inflections." .
+
+# --- 18. The canonicalization/analyzer profile family is typed (MUST) --------- #
+ex:saProfileFamilyTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:CanonicalizationProfile a owl:Class .
+    lang:AnalyzerProfile a owl:Class ; rdfs:subClassOf lang:CanonicalizationProfile .
+    lang:ProfileStage a owl:Class .
+    lang:AnalysisOutput a owl:Class .
+    lang:StageKind a owl:Class .
+    lang:UnattributedAnalysisProfile rdfs:subClassOf lang:LangConformanceFailure .
+    lang:hasStage a owl:ObjectProperty ; rdfs:domain lang:CanonicalizationProfile ; rdfs:range lang:ProfileStage .
+    lang:analyzedUnderProfile a owl:ObjectProperty ; rdfs:range lang:CanonicalizationProfile .
+    lang:stageOrder a owl:DatatypeProperty ; rdfs:domain lang:ProfileStage .
+    lang:profileScript a owl:ObjectProperty ; rdfs:domain lang:CanonicalizationProfile .
+}""" ;
+    gmeow:saRationale "The versionable canonicalization-profile family MUST be present and typed: lang:AnalyzerProfile subclasses lang:CanonicalizationProfile, the profile carries a first-class ordered stage (lang:hasStage -> lang:ProfileStage), an analysis output cites its profile (lang:analyzedUnderProfile -> lang:CanonicalizationProfile), and the unattributed-profile failure is a typed lang:LangConformanceFailure subclass, so profile attribution is a queryable contract rather than prose." .
+
+# --- 19. The stage-kind value vocabulary is closed and typed (MUST) ---------- #
+ex:saStageKindClosed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+ASK {
+    lang:stageKindSegmentation a lang:StageKind .
+    lang:stageKindNormalization a lang:StageKind .
+    lang:stageKindStemming a lang:StageKind .
+    lang:stageKindPhonetic a lang:StageKind .
+}""" ;
+    gmeow:saRationale "The pipeline-stage-kind vocabulary MUST be a closed set of named lang:StageKind individuals — segmentation, normalization, stemming/folding, phonetic — so a stage's kind is always one of the four the analyzer pipeline reasons over, the same kind-individual discipline as lang:SignSystemKind and lang:AnalysisLevel." .
+
+# --- 20. The profile-attribution constraint has a canonical authority (MUST) -- #
+ex:saProfileAttributionAuthority a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    lang:ProfileAttributionConstraint a logic:Constraint ;
+        logic:formalizes lang:ProfileAttributionShape ;
+        logic:integrity ?formula ;
+        gmeow:enforcesFailureClass lang:UnattributedAnalysisProfile .
+}""" ;
+    gmeow:saRationale "The rule that an analysis output MUST cite a canonicalization profile with a declared pipeline is authored in logic: as lang:ProfileAttributionConstraint carrying a logic:Formula integrity body and enforcing the typed lang:UnattributedAnalysisProfile failure — never a hand-authored shape — mirroring the lang:UnattributedEngineClaim discipline for engine readings." .
