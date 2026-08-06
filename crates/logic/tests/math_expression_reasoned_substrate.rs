@@ -231,7 +231,7 @@ ex:refB1 a math:SymbolReference ; math:hasMathematicalSymbol ex:symR .
 /// The SHIPPED twin example resolves its two independently authored expressions to ONE class.
 ///
 /// Same property as the inline twin case above, but over the file the bundle actually carries,
-/// so the corpus folded into `graph/math-examples` can itself fail if the digest ever goes back
+/// so the corpus folded into `graph/examples` can itself fail if the digest ever goes back
 /// to keying on occurrence-wrapper IRIs.
 #[test]
 fn the_shipped_twin_example_resolves_both_authorings_to_one_class() {

@@ -35,6 +35,14 @@
 //!    charter's own declared tier fed back to itself.
 //! 4. **Fixture-discharged** — a reachable class has a counter-example fixture on disk
 //!    (`tests/counter-examples/*.ttl`) whose execution trips it.
+//! 5. **Fixture-registered** — every fixture in that directory is bound by a
+//!    `gmeow:ExampleConformance` cell in `tests/example-conformance.ttl`, which is read here
+//!    as the fixture REGISTRY ([`registered_counter_examples`]). This harness reads the
+//!    directory for COMPLETENESS ("some channel trips this class"); the corpus + the
+//!    slicetest runner assert ISOLATION ("this fixture raises EXACTLY its
+//!    `gmeow:expectedFailureClass`"). Two authorities over one corpus that never compared
+//!    notes let a fixture satisfy the first while the second never executed it at all — so
+//!    an unregistered fixture is a hard gap here, exactly as an uncited phantom class is.
 //!
 //! Every channel this file drives — the native structural lint, the reasoned-graph gate,
 //! the native DL owl-axiom disjointness gate, the native SHACL engine over the generated
@@ -135,6 +143,17 @@ fn charter_path() -> PathBuf {
 fn counter_example_dir() -> PathBuf {
     math_root().join("tests").join("counter-examples")
 }
+
+/// The declarative conformance corpus (`tests/example-conformance.ttl`) — the slice's
+/// `gmeow:ExampleConformance` registry, read here as the REGISTRY OF FIXTURES.
+fn conformance_corpus_path() -> PathBuf {
+    math_root().join("tests").join("example-conformance.ttl")
+}
+
+/// The `tests/counter-examples/` prefix a cell's `gmeow:exampleFile` carries. Slice-relative
+/// by the test-DSL's own convention (`gmeow_slicetest::paths::example_file`), so a bare
+/// prefix match is exact rather than a heuristic.
+const COUNTER_EXAMPLE_PREFIX: &str = "tests/counter-examples/";
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // The `ConformanceSection` descriptor + the (generalized) registry of all 13 sections.
@@ -600,6 +619,212 @@ fn unauthored_reachable_classes(
             )
         })
         .collect()
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────
+// The fixture REGISTRY: `tests/example-conformance.ttl` ⋈ `tests/counter-examples/*.ttl`.
+// ─────────────────────────────────────────────────────────────────────────────────────────
+
+/// One counter-example registration recovered from the conformance corpus: the bare file
+/// name the cell binds through `gmeow:exampleFile`, the cell IRI that binds it, and
+/// whether that cell declares `gmeow:violates`.
+#[derive(Debug, Clone)]
+struct CounterExampleRegistration {
+    cell_iri: String,
+    violates: bool,
+}
+
+/// Read `tests/example-conformance.ttl` as the fixture REGISTRY: every
+/// `gmeow:ExampleConformance` cell whose `gmeow:exampleFile` names a file under
+/// `tests/counter-examples/`, keyed by that file's bare name.
+///
+/// This is the join the two authorities over one corpus were missing. THIS harness scans
+/// `tests/counter-examples/` from disk and credits a failure class from any finding a
+/// channel produces — a COMPLETENESS reading. The corpus + the slicetest runner
+/// (`gmeow_slicetest::exec::run_conformance_file`) assert ISOLATION: that a counter-example
+/// raises EXACTLY its `gmeow:expectedFailureClass` and nothing else. With no join between
+/// them a fixture could satisfy the completeness harness while never being checked for
+/// isolation at all, which is precisely the promise the charter's own "The conformance
+/// corpus" section makes ("one negative fixture — a minimal violation that raises EXACTLY
+/// the named failure class").
+fn registered_counter_examples() -> BTreeMap<String, CounterExampleRegistration> {
+    let spec = gmeow_slicetest::dsl::load_spec(&conformance_corpus_path())
+        .expect("tests/example-conformance.ttl parses");
+    let mut out = BTreeMap::new();
+    for cell in &spec.conformance {
+        let Some(name) = cell.file.strip_prefix(COUNTER_EXAMPLE_PREFIX) else {
+            continue;
+        };
+        out.insert(
+            name.to_owned(),
+            CounterExampleRegistration {
+                cell_iri: cell.iri.clone(),
+                violates: matches!(cell.outcome, gmeow_slicetest::dsl::Outcome::Violates),
+            },
+        );
+    }
+    out
+}
+
+/// Reconcile the on-disk counter-example corpus against its registry, in BOTH directions
+/// plus the polarity of each registration — the same shape, and the same standing, as
+/// [`unauthored_reachable_classes`]'s phantom sweep and
+/// [`every_charter_gate_matrix_section_is_registered`]'s two-way heading check.
+///
+/// Three distinct gaps, each with its own diagnostic:
+///
+/// * **UNREGISTERED** — a fixture on disk that no cell binds. It can trip a class through
+///   this harness's channels and be credited as "discharged" while the isolation authority
+///   never sees it, so its rationale ("raises exactly X") is a claim nothing can falsify.
+///   This is the hole the two non-communicating authorities left open.
+/// * **DANGLING** — a cell binding a `tests/counter-examples/` file that is not on disk. The
+///   slicetest runner would fail to read it, but only THIS side knows the real corpus, and a
+///   registration that names nothing is the mirror image of a fixture that nothing names.
+/// * **MIS-POLARIZED** — a counter-example registered by a `gmeow:conforms` cell. The
+///   directory's whole contract is that its files are intentional violations kept out of the
+///   global validation graph; a cell asserting one of them CONFORMS registers it while
+///   asserting the opposite of what it is, which reads as coverage and is worse than absence.
+fn unregistered_counter_example_fixtures(
+    on_disk: &BTreeSet<String>,
+    registry: &BTreeMap<String, CounterExampleRegistration>,
+) -> Vec<String> {
+    let mut gaps = Vec::new();
+    for name in on_disk {
+        if !registry.contains_key(name) {
+            gaps.push(format!(
+                "{COUNTER_EXAMPLE_PREFIX}{name}: NOT REGISTERED — no gmeow:ExampleConformance \
+                 cell in tests/example-conformance.ttl binds it through gmeow:exampleFile, so \
+                 the isolation authority (the slicetest runner) never executes it and its \
+                 \"raises exactly one class\" contract is unfalsifiable. This harness can still \
+                 credit a class from it, which is how a fixture reaches \"0 HARD GAPS\" while \
+                 being checked by only one of the two authorities. Author a cell binding \
+                 \"{COUNTER_EXAMPLE_PREFIX}{name}\" with gmeow:expectedOutcome gmeow:violates, \
+                 pinning gmeow:expectedFailureClass to the class it actually isolates"
+            ));
+        }
+    }
+    for (name, registration) in registry {
+        if !on_disk.contains(name) {
+            gaps.push(format!(
+                "{COUNTER_EXAMPLE_PREFIX}{name}: DANGLING REGISTRATION — cell {} binds it through \
+                 gmeow:exampleFile but no such file exists in tests/counter-examples/. A \
+                 registration naming nothing is the mirror of a fixture nothing names: it reads \
+                 as coverage and carries none",
+                registration.cell_iri
+            ));
+        } else if !registration.violates {
+            gaps.push(format!(
+                "{COUNTER_EXAMPLE_PREFIX}{name}: MIS-POLARIZED REGISTRATION — cell {} binds this \
+                 counter-example with gmeow:expectedOutcome gmeow:conforms. Every file in \
+                 tests/counter-examples/ is an intentional violation (that is why the global \
+                 validate gate never loads the directory as data), so a cell asserting one \
+                 CONFORMS registers it while claiming the opposite of what it is",
+                registration.cell_iri
+            ));
+        }
+    }
+    gaps
+}
+
+#[cfg(test)]
+mod counter_example_registry_regression {
+    use super::*;
+
+    fn reg(iri: &str, violates: bool) -> CounterExampleRegistration {
+        CounterExampleRegistration {
+            cell_iri: iri.to_owned(),
+            violates,
+        }
+    }
+
+    /// The hole this join exists to close: a fixture on disk that no cell binds.
+    #[test]
+    fn an_unregistered_on_disk_fixture_is_a_hard_gap() {
+        let on_disk: BTreeSet<String> = ["orphan-fixture.ttl".to_owned()].into_iter().collect();
+        let gaps = unregistered_counter_example_fixtures(&on_disk, &BTreeMap::new());
+        assert_eq!(gaps.len(), 1, "exactly one gap expected: {gaps:?}");
+        assert!(
+            gaps[0].contains("orphan-fixture.ttl") && gaps[0].contains("NOT REGISTERED"),
+            "the gap must name the fixture and its kind: {gaps:?}"
+        );
+    }
+
+    /// The mirror direction: a registration naming a file that is not there.
+    #[test]
+    fn a_registration_with_no_file_on_disk_is_a_hard_gap() {
+        let registry: BTreeMap<String, CounterExampleRegistration> =
+            [("gone.ttl".to_owned(), reg("ex:ecGone", true))]
+                .into_iter()
+                .collect();
+        let gaps = unregistered_counter_example_fixtures(&BTreeSet::new(), &registry);
+        assert_eq!(gaps.len(), 1, "exactly one gap expected: {gaps:?}");
+        assert!(
+            gaps[0].contains("gone.ttl")
+                && gaps[0].contains("DANGLING")
+                && gaps[0].contains("ex:ecGone"),
+            "the gap must name the file AND the cell that dangles: {gaps:?}"
+        );
+    }
+
+    /// A registration that exists but asserts the wrong polarity is not coverage.
+    #[test]
+    fn a_counter_example_registered_as_conforming_is_a_hard_gap() {
+        let on_disk: BTreeSet<String> = ["violation.ttl".to_owned()].into_iter().collect();
+        let registry: BTreeMap<String, CounterExampleRegistration> =
+            [("violation.ttl".to_owned(), reg("ex:ecBackwards", false))]
+                .into_iter()
+                .collect();
+        let gaps = unregistered_counter_example_fixtures(&on_disk, &registry);
+        assert_eq!(gaps.len(), 1, "exactly one gap expected: {gaps:?}");
+        assert!(
+            gaps[0].contains("MIS-POLARIZED") && gaps[0].contains("ex:ecBackwards"),
+            "the gap must name the polarity and the cell: {gaps:?}"
+        );
+    }
+
+    /// A correctly registered fixture is never flagged.
+    #[test]
+    fn a_registered_violating_fixture_is_clean() {
+        let on_disk: BTreeSet<String> = ["violation.ttl".to_owned()].into_iter().collect();
+        let registry: BTreeMap<String, CounterExampleRegistration> =
+            [("violation.ttl".to_owned(), reg("ex:ecViolation", true))]
+                .into_iter()
+                .collect();
+        assert!(unregistered_counter_example_fixtures(&on_disk, &registry).is_empty());
+    }
+
+    /// The LOAD-BEARING half: the real corpus read actually populates the registry.
+    ///
+    /// The three set-difference checks above stay green while the wiring beneath them rots —
+    /// if `registered_counter_examples` stopped recovering anything (a renamed corpus file, a
+    /// changed `gmeow:exampleFile` convention, a `strip_prefix` that no longer matches), the
+    /// registry would be empty, EVERY fixture would be reported as unregistered, and the
+    /// three unit tests would still pass. Pin the real read: it must recover the corpus's own
+    /// registrations, all of them polarized as violations, and each naming a file that is
+    /// actually there.
+    #[test]
+    fn the_real_corpus_read_recovers_registrations_that_resolve_on_disk() {
+        let registry = registered_counter_examples();
+        assert!(
+            registry.len() > 100,
+            "the corpus registers the whole counter-example directory; got {}",
+            registry.len()
+        );
+        let dir = counter_example_dir();
+        for (name, registration) in &registry {
+            assert!(
+                dir.join(name).is_file(),
+                "registration {} names {name}, which must resolve under {}",
+                registration.cell_iri,
+                dir.display()
+            );
+            assert!(
+                registration.violates,
+                "counter-example registration {} must declare gmeow:violates",
+                registration.cell_iri
+            );
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1634,6 +1859,17 @@ fn total_math_conformance_matrix_is_discharged() {
         .filter_map(|f| f.file_name().and_then(|n| n.to_str()))
         .map(str::to_owned)
         .collect();
+    // The REGISTRY reconciliation: every on-disk counter-example must be bound by a
+    // `gmeow:ExampleConformance` cell (and every such binding must resolve, as a
+    // violation). Without it this harness and the isolation authority read the same
+    // directory and never compare notes, so a fixture can be credited here while never
+    // being checked for the isolation its rationale claims.
+    let registry = registered_counter_examples();
+    hard_gaps.extend(unregistered_counter_example_fixtures(
+        &all_fixture_names,
+        &registry,
+    ));
+
     let unused: Vec<&String> = all_fixture_names.difference(&fixture_used).collect();
     if !unused.is_empty() {
         hard_gaps.push(format!(
@@ -1763,13 +1999,15 @@ fn total_math_conformance_matrix_is_discharged() {
          prose (no-class) rows: {}\n\
          authored failure classes: {}\n\
          reachable failure classes: {}\n\
-         on-disk counter-example fixtures: {}\n\n",
+         on-disk counter-example fixtures: {}\n\
+         registered by a conformance cell: {}\n\n",
         SECTIONS.len(),
         matrix_classes.len(),
         prose_rows.len(),
         authored.len(),
         reachable.len(),
         fixtures.len(),
+        registry.len(),
     ));
 
     report.push_str(&format!("--- HARD GAPS ({}) ---\n", hard_gaps.len()));

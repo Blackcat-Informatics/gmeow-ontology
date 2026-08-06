@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Raw structural fixture (NOT a conformance fixture — no example-conformance.ttl cell;
-# a later Rust property test loads this file via include_str!()). Half A of an
+# Conformance fixture (bound by ex:ecAlphaEquivalentPairA) that is ALSO loaded verbatim
+# by crates/logic/src/physical/lower.rs through include_str!(): the digest-equality
+# property is a claim about the PAIR, which no single cell can express, while each half
+# is on its own a well-formed math: expression that must validate clean. Half A of an
 # α-equivalence pair: ∑ᵢ i, a summation binder over a bound variable declaration named
 # ex:iDecl, with its bound occurrence — wrapped in the math:VariableExpression AST leaf,
 # since math:VariableOccurrence is not itself a math:MathematicalExpression and enters

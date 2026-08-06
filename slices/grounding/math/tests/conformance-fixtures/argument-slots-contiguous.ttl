@@ -12,6 +12,13 @@ ex:contiguousApplication a math:ApplicationExpression ;
 ex:contiguousSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:operand0 .
 ex:contiguousSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:operand1 .
 ex:contiguousSlot2 a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:operand2 .
-ex:operand0 a math:MathematicalExpression .
-ex:operand1 a math:MathematicalExpression .
-ex:operand2 a math:MathematicalExpression .
+# Three operands named but not decomposed. The honest AST leaf for that is a
+# math:SymbolReference resolving to a SYMBOL, which is real content; the abstract
+# math:MathematicalExpression base names no concrete form and so carries no structural
+# identity at all (math:UnrecognizedExpressionType).
+ex:operand0 a math:SymbolReference ; math:hasMathematicalSymbol ex:operandSymbol0 .
+ex:operand1 a math:SymbolReference ; math:hasMathematicalSymbol ex:operandSymbol1 .
+ex:operand2 a math:SymbolReference ; math:hasMathematicalSymbol ex:operandSymbol2 .
+ex:operandSymbol0 a math:MathematicalSymbol .
+ex:operandSymbol1 a math:MathematicalSymbol .
+ex:operandSymbol2 a math:MathematicalSymbol .

@@ -41,6 +41,13 @@ use purrdf::RdfDataset;
 /// Namespace root for the `math:` measure-and-dimension vocabulary.
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 
+/// `math:alphaEquivalenceClass` — the expression → α-class edge.
+pub const MATH_ALPHA_EQUIVALENCE_CLASS: &str =
+    "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+/// `math:AlphaEquivalenceClass` — the content-addressed individual that edge resolves to.
+pub const MATH_ALPHA_EQUIVALENCE_CLASS_TYPE: &str =
+    "https://blackcatinformatics.ca/math/AlphaEquivalenceClass";
+
 /// The finding code for a drifted `math:structuralKey` (authored value disagrees with
 /// the recomputed digest).
 const CODE_STRUCTURAL_KEY_DRIFT: &str = "verify.math.structural-key-drift";
@@ -370,12 +377,57 @@ fn check_surface_leak_in_normal_form(index: &TripleIndex, findings: &mut Vec<Fin
 #[cfg(test)]
 mod tests;
 
+/// The `math:alphaEquivalenceClass` edges of `asserted` — one `(expression IRI, α-class IRI)`
+/// pair per IRI-named `math:` expression root the lowering ACCEPTS, sorted by expression IRI.
+///
+/// This is the SINGLE derivation of the α-equivalence edge. Both materializations read it:
+/// [`crate::verify::materialize_reasoned_graph`] splices these pairs into the in-process
+/// reasoned graph the `verify` / `validate --deep` gates evaluate over, and the pipeline's
+/// reasoning stage serializes the SAME pairs into the shipped closure
+/// ([`crate::reason::artifacts::build_inferred_closure_ttl`]), so the edge a consumer joins
+/// on off-line and the edge the gate decides over are one derivation, never two that happen
+/// to agree.
+///
+/// Three properties are load-bearing, and each is a rejected alternative:
+///
+/// * **Lowered from the ASSERTED graph, never a closure.** The DL chase invents a filler for
+///   an unsatisfied existential obligation, so a root the grammar refutes for a MISSING
+///   operand lowers cleanly over a closure — and would be handed an identity computed over a
+///   Skolem witness nobody authored, disagreeing with the digest
+///   [`check_math_expression_findings`] cites for that same root. Two substrates would mint
+///   two class IRIs for one expression, which is the opposite of a node to JOIN on.
+/// * **ACCEPTED roots only.** A structural identity cannot be claimed for an expression the
+///   grammar refutes — the same reason `math:StructuralKeyOnRejectedExpression` exists.
+///   Emitting the edge only alongside a drift finding would invert the relation entirely: two
+///   WRONG expressions would share a joinable node and two CONFORMING ones never would.
+/// * **IRI-named roots only.** The edge exists to be joined on from outside the process that
+///   derived it. A blank-node-rooted expression has no name that survives serialization —
+///   dataset union standardizes blank labels apart — so an edge minted on it would name a
+///   different node in every consumer, which is not an identity claim at all.
+#[must_use]
+pub fn alpha_equivalence_edges(asserted: &RdfDataset) -> Vec<(String, String)> {
+    crate::physical::lower::math_expression_structural_keys(asserted)
+        .into_iter()
+        .filter(|(root, _)| !root.starts_with("_:"))
+        .filter_map(|(root, keyed)| {
+            keyed.ok().map(|digest| {
+                (
+                    root,
+                    crate::physical::lower::alpha_class_iri_for_digest(&digest),
+                )
+            })
+        })
+        .collect()
+}
+
 /// Surface the α-equivalence class of every expression the lowering ACCEPTS, as a note.
 ///
 /// Without this the identity edge reaches a consumer only on the DRIFT branch, through a
 /// failure's `cited_iris` — so two WRONG expressions could be joined and two RIGHT ones could
-/// not, which is backwards for an identity. The materialized edge lives in the reasoned graph
-/// this gate reads, and the reasoned graph is internal; a note is how a CLI consumer sees it.
+/// not, which is backwards for an identity. The note is how a CLI consumer reading a report
+/// sees the class; the joinable RDF edge itself ships in the reasoned closure
+/// ([`alpha_equivalence_edges`]), so a consumer holding only `gmeow.gts` or
+/// `generated/logic/inferred-closure.rdf12.ttl` can join on it without running this gate.
 ///
 /// The message deliberately does NOT open with a `math:<Class>: ` token. That prefix is the
 /// native channel's convention for "this finding reports FAILURE class X", and the conformance

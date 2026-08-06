@@ -14,4 +14,10 @@ ex:undeclaredSource a math:NumberLiteral ;
     math:normalForm ex:undeclaredTarget ;
     math:literalValue "1"^^xsd:integer .
 
-ex:undeclaredTarget a math:MathematicalExpression .
+# The normal-form TARGET is incidental here, not the defect. It is a math:SymbolReference so
+# the ONLY class this fixture raises is math:UndeclaredNormalForm — the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:undeclaredTarget a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:undeclaredTargetSymbol .
+ex:undeclaredTargetSymbol a math:MathematicalSymbol .

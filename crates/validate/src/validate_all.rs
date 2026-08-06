@@ -1186,47 +1186,19 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
         })
     })?;
 
-    // The math: dimensional-homogeneity + math: expression-identity reasoned gates
-    // the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
-    // build time over the pipeline's own `assemble_object_level_edb`, now reachable
-    // from `gmeow validate --deep` / `gmeow verify --deep` over an ARBITRARY shipped
-    // bundle — a consumer's own math AST graph gets `math:StructuralKeyDrift` /
-    // `math:FalseStructuralNormalizationClaim` findings from the `gmeow` CLI, not
-    // only from the MCP `verify_graph` tool. Deliberately narrower than the FULL
-    // `gmeow_logic::verify::verify_with_reasoning_result` battery: that also runs the
-    // embedded `queries/verify/*.rq` bad-example queries, several of which check for
-    // FIXED gmeow vocabulary (e.g. `axis-not-disjoint`'s seven identity-axis
-    // classes) that only the real production bundle carries — misfiring on any
-    // OTHER (synthetic/partial) bundle passed to this same function. The math:
-    // gates carry no such fixed-vocabulary assumption: they read whatever
-    // `math:MathematicalExpression` / `math:GramMatrix` individuals the reasoned
-    // graph actually has, so they are safe to run unconditionally here. Runs over
-    // the SAME `edb` + `result` the consistency fold above just used, so both
-    // halves agree on what "object-level" means.
-    match gmeow_logic::verify::materialize_reasoned_graph(edb.as_ref(), &result).map_err(|e| {
+    // Shared with `crate::data_validate::deep_consistency_findings` via
+    // `run_math_reasoned_gates` (see its doc comment for why this is safe to run
+    // unconditionally, and why the two callers deliberately map its failure
+    // differently). Runs over the SAME `edb` + `result` the consistency fold above
+    // just used, so both halves agree on what "object-level" means. A failure here
+    // means this dev bundle-only pass's own EDB projection produced a graph the
+    // shared gate could not materialize — an internal invariant violation, so it
+    // hard-fails rather than degrading to an advisory note.
+    run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
         Diag::of_kind(crate::error::Engine {
             detail: format!("validate --deep: reasoned-graph materialization failed: {e}"),
         })
-    })? {
-        gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
-            for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
-                reasoned.dataset.as_ref(),
-            ) {
-                report.add_finding(finding);
-            }
-            for finding in gmeow_logic::math_expression::check_math_expression_findings(
-                edb.as_ref(),
-                reasoned.dataset.as_ref(),
-            ) {
-                report.add_finding(finding);
-            }
-        }
-        gmeow_logic::verify::ReasonedGraphOutcome::IncompleteClosure(findings) => {
-            for finding in findings {
-                report.add_finding(finding);
-            }
-        }
-    }
+    })?;
 
     // Build the scoped coherence certificate from the SAME reasoning result, under
     // the SAME resolved policy and bundle hash, and attach it to the report metadata
@@ -1547,6 +1519,68 @@ pub(crate) fn fold_reasoning_result(
         );
     }
 
+    Ok(())
+}
+
+/// Run the `math:` dimensional-homogeneity + `math:` expression-identity reasoned
+/// gates: the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
+/// build time over the pipeline's own `assemble_object_level_edb`, now reachable
+/// from the `gmeow` CLI's deep passes — both the dev bundle-only pass
+/// ([`deep_semantic_findings`]) and the consumer user-data-merge pass
+/// ([`crate::data_validate::deep_consistency_findings`]) call this ONE helper so
+/// the two surfaces can never drift. A consumer with their own math AST graph gets
+/// `math:StructuralKeyDrift` / `math:FalseStructuralNormalizationClaim` findings
+/// directly from the `gmeow` CLI, not only from the MCP `verify_graph` tool.
+///
+/// Deliberately narrower than the FULL
+/// [`gmeow_logic::verify::verify_with_reasoning_result`] battery: that also runs
+/// the embedded `queries/verify/*.rq` bad-example queries, several of which check
+/// for FIXED gmeow vocabulary (e.g. `axis-not-disjoint`'s seven identity-axis
+/// classes) that only the real production bundle carries — misfiring on a
+/// caller-supplied `edb` that is a non-production bundle, or a production bundle
+/// unioned with a consumer's own PARTIAL data graph. The math: gates carry no such
+/// fixed-vocabulary assumption: they read whatever `math:MathematicalExpression` /
+/// `math:GramMatrix` individuals the reasoned graph actually has, so they are safe
+/// to run unconditionally here.
+///
+/// `edb` and `result` MUST be the same pair the caller's own `fold_reasoning_result`
+/// fold just ran over, so both halves of the deep pass agree on what
+/// "object-level" means.
+///
+/// # Errors
+///
+/// Returns `Err` if reasoned-graph materialization
+/// ([`gmeow_logic::verify::materialize_reasoned_graph`]) fails. The two callers
+/// intentionally map this failure differently (a caller-supplied-data pass
+/// degrades it to an advisory note; the dev bundle-only pass hard-fails on it,
+/// since a failure there can only mean the bundle itself is broken) — that
+/// divergence is deliberately left to each call site's own `.map_err`, not hidden
+/// in here.
+pub(crate) fn run_math_reasoned_gates(
+    edb: &RdfDataset,
+    result: &gmeow_logic::result::ReasoningResult,
+    report: &mut Report,
+) -> gmeow_errors::Result<()> {
+    match gmeow_logic::verify::materialize_reasoned_graph(edb, result)? {
+        gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
+            for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+            for finding in gmeow_logic::math_expression::check_math_expression_findings(
+                edb,
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+        }
+        gmeow_logic::verify::ReasonedGraphOutcome::IncompleteClosure(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+        }
+    }
     Ok(())
 }
 

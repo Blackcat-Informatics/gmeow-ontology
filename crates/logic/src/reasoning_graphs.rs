@@ -39,16 +39,15 @@ pub const GRAPH_DEMO_SUPER_WEAKLY_ACYCLIC: &str =
 pub const GRAPH_DEMO_MODEL_SUMMARIZING: &str =
     "https://blackcatinformatics.ca/gmeow/graph/demo/model-summarizing-acyclic";
 
-/// The `math:` slice's positive-demonstrator ABox corpus — every
-/// `slices/grounding/math/examples/*.ttl` file, parsed and unioned by
-/// `stage-math-producers` (`crates/pipeline/src/stages/math_producers.rs`) into this one
-/// named world. Admitted to object-level reasoning so the corpus's authored
-/// `math:structuralKey` / `math:NormalizationDeclaration` instances actually reach the
-/// shipped bundle's reasoned closure — the expression-identity gate
-/// (`gmeow_logic::math_expression::check_math_expression_findings`) has a real witness
-/// to decide over instead of running vacuously against an EDB that never carries any
-/// slice's worked examples.
-pub const GRAPH_MATH_EXAMPLES: &str = "https://blackcatinformatics.ca/gmeow/graph/math-examples";
+/// EVERY slice's positive-demonstrator ABox corpus — every
+/// `slices/<group>/<slice>/examples/*.ttl` file in the repository, parsed and unioned by
+/// `stage-source-load` (`crates/pipeline/src/stages/source_load.rs`) into this one named
+/// world. Admitted to object-level reasoning so each slice's authored worked examples
+/// actually reach the shipped bundle's reasoned closure, and every reasoned-graph gate has
+/// a real witness to decide over instead of running vacuously against an EDB that carries
+/// no slice's demonstrators at all. The corpus is authored source, so it loads with the
+/// rest of the authored sources rather than off a computed-graph producer.
+pub const GRAPH_EXAMPLES: &str = "https://blackcatinformatics.ca/gmeow/graph/examples";
 
 /// Every named graph admitted to the object-level reasoning EDB. The default graph is also
 /// admitted, but has no IRI and therefore is not represented in this list.
@@ -60,7 +59,7 @@ pub const OBJECT_LEVEL_NAMED_GRAPHS: [&str; 8] = [
     GRAPH_DEMO_JOINTLY_ACYCLIC,
     GRAPH_DEMO_SUPER_WEAKLY_ACYCLIC,
     GRAPH_DEMO_MODEL_SUMMARIZING,
-    GRAPH_MATH_EXAMPLES,
+    GRAPH_EXAMPLES,
 ];
 
 /// Whether a named graph belongs to the object-level reasoning EDB.

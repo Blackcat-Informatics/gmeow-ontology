@@ -157,10 +157,11 @@ fn spine() -> PipelineSpec {
                 "compile_logic",
                 &["stage-source-load"],
             ),
-            // Leaf compute: the six math producers (five flagship producers plus the
-            // probability-model seam producer), folded into the snapshot (mirrors
+            // Leaf compute: the ten math producers, folded into the snapshot (mirrors
             // `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
-            // consumes-agreement check holds for `stage-snapshot`).
+            // consumes-agreement check holds for `stage-snapshot`). `stage-reason` does
+            // NOT consume it: every graph it attaches is a computed producer graph, never
+            // object-level axiom source.
             spec("stage-math-producers", "math_producers", &[]),
             spec("stage-mappings", "mappings", &["stage-compile-logic"]),
             spec(
@@ -168,7 +169,6 @@ fn spine() -> PipelineSpec {
                 "reason",
                 &[
                     "stage-compile-logic",
-                    "stage-math-producers",
                     "stage-source-load",
                     "stage-statements",
                 ],
@@ -244,9 +244,8 @@ fn spine() -> PipelineSpec {
             // leaf, never re-rendered in the presenter (the transform-once razor).
             spec("stage-export-profiles", "profiles", &[]),
             spec("stage-export-evals", "evals", &[]),
-            // The six math producer graphs (five flagship producers plus the
-            // probability-model seam producer) the snapshot folds into gmeow.gts
-            // as their own bundle-internal named graphs (mirrors `SnapshotStage::consumes()`).
+            // The ten math producer graphs the snapshot folds into gmeow.gts as their own
+            // bundle-internal named graphs (mirrors `SnapshotStage::consumes()`).
             spec("stage-math-producers", "math_producers", &[]),
             spec(
                 "stage-export-research-objects",

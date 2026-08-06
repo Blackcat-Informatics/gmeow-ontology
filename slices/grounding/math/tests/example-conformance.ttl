@@ -966,14 +966,11 @@ ex:ecIngestRunUngrounded a gmeow:ExampleConformance ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example carries the process-layer witness (logic:instantiatesSchema / logic:instantiatesPlan) but omits math:parseSource (sh:minCount 1 on math:IngestRunShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedIngestRun)." .
 
-# math:UnliftableIngest is a NATIVE Rust gate (crates/validate structural_lint, keyed on a
-# math:parseSource-retaining math:IngestRun that produces no gmeow:wasGeneratedBy codomain),
-# NOT a SHACL shape, so it has no example-conformance cell here — the conformance harness only
-# asserts SHACL findings. Its slice-resident counter-example
-# (tests/counter-examples/ingest-run-unliftable.ttl — a produced-nothing run that still passes
-# math:IngestRunShape) is exercised by the native lint test
-# unliftable_ingest_fires_when_run_produces_no_codomain, distinguishing the produced-nothing case
-# from the source-dropping math:UngroundedIngestRun SHACL grounding shape above.
+ex:ecIngestRunUnliftable a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ingest-run-unliftable.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnliftableIngest ;
+    gmeow:conformanceRationale "The counter-example's math:RIngestRun retains its source through math:parseSource and carries the full grounding frame (logic:instantiatesSchema / logic:instantiatesPlan and its math:ingestCorrespondence), so math:IngestRunShape is satisfied and it is NOT math:UngroundedIngestRun — yet nothing is gmeow:wasGeneratedBy it, so the put leg silently dropped everything it was meant to lift. Decided by the native ingest lint (crates/validate/src/lint.rs), a produced-nothing join with no SHACL target shape, which is what distinguishes this case from the source-dropping grounding shape above. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UnliftableIngest." .
 
 # === Bridges: fitted-model data-and-specification =========================== #
 
@@ -1973,7 +1970,7 @@ ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:StringOnlyComputableExpression ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:MathematicalExpression carries a math:normalForm trigger edge but none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, math:literalValue) — represented only by a string — so math:StringOnlyComputableExpressionConstraint's existential structured-child witness cannot be found. Isolation is carried by a FULLY ATTRIBUTED declaration at math:commutativeNormalization (procedure, holding gmeow:Observation with observed feature and vantage, logic:preservationKind), never by hand-written keys: the two expressions are distinct undecomposed nodes, so a structural claim between them would be false, and the equal invented math:structuralKey literals the earlier form used to keep the false-structural gate quiet only looked clean while the grammar had no digest to compare them against. The declaration discharges math:UndeclaredNormalForm and math:UnattributedNormalization, engages neither math:FalseStructuralNormalizationClaim nor math:UndeclaredNormalizationStrength, and authors no key to drift from. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:StringOnlyComputableExpression." .
+    gmeow:conformanceRationale "The counter-example's math:MathematicalExpression carries a math:normalForm trigger edge but none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, math:literalValue) — represented only by a string — so math:StringOnlyComputableExpressionConstraint's existential structured-child witness cannot be found. It is a NULLARY math:ApplicationExpression: the operator is named and no operand is, which is the exact minimal pair against computable-expression-structured.ttl (the same application WITH its operand authored), and the slice puts no minimum on an application's math:argumentSlot count, so the grammar accepts the node. Naming a concrete form is what keeps the isolation true: the abstract math:MathematicalExpression base names no form the lowering has a production for, so a node carrying it alone is math:UnrecognizedExpressionType and would fire beside the pinned class. Isolation is otherwise carried by a FULLY ATTRIBUTED declaration at math:commutativeNormalization (procedure, holding gmeow:Observation with observed feature and vantage, logic:preservationKind), never by hand-written keys: the two expressions apply different operators, so a structural claim between them would be false, and the equal invented math:structuralKey literals the earlier form used to keep the false-structural gate quiet only looked clean while the grammar had no digest to compare them against. The declaration discharges math:UndeclaredNormalForm and math:UnattributedNormalization, engages neither math:FalseStructuralNormalizationClaim nor math:UndeclaredNormalizationStrength, and authors no key to drift from. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:StringOnlyComputableExpression." .
 
 # =========================================================================== #
 # Native-channel classes — math:expectedFailureClass reaches every one of these
@@ -2206,12 +2203,213 @@ ex:ecChartUnderspecified a gmeow:ExampleConformance ;
     gmeow:conformanceRationale "The counter-example's math:Chart names none of its math:chartDomain, math:coordinateMap, or math:targetCoordinateSpace (sh:minCount 1 on math:ChartShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedChart)." .
 
 # =========================================================================== #
-# Measure-and-dimension reasoned-gate carve-out: math:DimensionalInhomogeneity is
-# decided by the reasoner-derived forward chase over the authored
-# math:dimensionalHomogeneityLaw / math:integralDimensionCompositionLaw
-# (crates/logic/src/reason/math_gate.rs), never a flat SHACL/Datalog join, so it is
-# discharged by the whole-matrix execution-discharge harness's own reasoned-graph
-# channel (crates/pipeline/tests/math_conformance_discharge.rs) rather than a bound
-# gmeow:ExampleConformance cell here — exactly as the expression-identity native-gate
-# carve-out above.
+# THE RUST-VALIDATOR AND REASONED-GATE TIERS.
+#
+# This file is the REGISTRY of tests/counter-examples/: the execution-discharge
+# harness (crates/pipeline/tests/math_conformance_discharge.rs) reads the
+# gmeow:exampleFile bindings below and reports any counter-example on disk with no
+# cell as a HARD GAP, the same standing it gives a phantom failure class. A fixture
+# can therefore no longer satisfy the completeness harness while never being checked
+# for the ISOLATION the charter promises ("one negative fixture that raises EXACTLY
+# the named failure class").
+#
+# The cells below are the ones that registry rule required, and they are reachable
+# because the conformance runner executes the two channels it previously did not:
+#
+#  * THE NATIVE STRUCTURAL LINT (crates/validate/src/lint.rs) — the slice's
+#    arithmetic and cross-node-join tier: probability magnitude bounds, distribution
+#    parameter positivity and dimension, dependency-model completeness,
+#    exact-preservation mass, the projection loss ledger, ingest liftability. These
+#    rules have no SHACL target shape at all, so before the runner read this channel
+#    a cell naming their class could only fail.
+#  * THE REASONER-DERIVED MEASURE-AND-DIMENSION GATE
+#    (crates/logic/src/reason/math_gate.rs), which decides
+#    math:DimensionalInhomogeneity by exact ℚ⁷ exponent arithmetic. Its projected
+#    shape targets math:homogeneousOperandRel, a reified relation that exists only in
+#    a reasoned closure, so over asserted fixture data it can never fire — which is
+#    why this section used to carry a prose carve-out excusing the class from having
+#    a cell at all. It has two now.
+#
+# gmeow:expectedFailureClass is checked with isolation across EVERY channel, so a
+# cell here that pins a class asserts that the fixture raises that class and nothing
+# else anywhere — SHACL, expression gate, structural lint, dimension gate alike.
 # =========================================================================== #
+
+# === Rule: a probability magnitude lies in the closed unit interval [0,1] ==== #
+
+ex:ecProbabilityOutOfBounds a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-out-of-bounds.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
+    gmeow:expectedSourceShape math:ProbabilityValue-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example's math:ProbabilityValue carries math:quantityValue 1.5, outside the closed unit interval, and carries a gmeow:hasReferenceFrame and math:dimensionless so the framing and dimension arms stay satisfied — the out-of-range magnitude is its ONLY defect. Two authorities decide it: math:ProbabilityValueRangeConstraint's declarative projection (sh:minInclusive 0 / sh:maxInclusive 1) and the native probability lint, which names math:ProbabilityOutOfBounds. This cell does NOT bind gmeow:expectedFailureClass, and the reason is the class ATTRIBUTION rather than the fixture: the value-range constraint lowers onto the shared math:ProbabilityValue-shape, which hosts the scale-conflation, framing, dimension and range laws under ONE gmeow:enforcesFailureClass annotation (math:ProbabilityScaleConflation), so a SHACL range violation resolves to the class of the shape rather than of the law. Pinning the class would claim an isolation the annotation granularity cannot deliver. What IS pinned is exact and checked: the range component, the shape it comes from, and gmeow:expectedSoleFinding — every violation-severity result originates from math:ProbabilityValue-shape and no second law fires." .
+
+ex:ecProbabilityOutOfBoundsSigned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-out-of-bounds-signed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
+    gmeow:expectedSourceShape math:ProbabilityValue-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The lexical-form twin of ex:ecProbabilityOutOfBounds: the same out-of-range magnitude written with an explicit leading '+' (\"+1.5\"), a valid xsd:decimal lexical form the exact-rational reader must strip exactly as it strips '-'. It carries the same reference frame and dimension, so the out-of-range magnitude is again the only defect, and it is pinned the same way and for the same reason — the range law lowers onto the multi-law math:ProbabilityValue-shape, whose single gmeow:enforcesFailureClass annotation names math:ProbabilityScaleConflation, so the class the native lint decides (math:ProbabilityOutOfBounds) is not the class a SHACL finding resolves to. gmeow:expectedSoleFinding holds: one shape, no second law." .
+
+# === Rule: a probability model referenced for reasoning declares its logic: lowering === #
+
+ex:ecMissingProbabilityModelLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/missing-probability-model-lowering.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MissingProbabilityModelLowering ;
+    gmeow:conformanceRationale "The counter-example's reasoning request references a probability model that declares no math:probabilityModelLowering into logic:, so a reasoner would consume a model with no declared logic: semantics. Decided by the native probability lint's cross-node join (crates/validate/src/lint.rs), which carries no SHACL target shape. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:MissingProbabilityModelLowering." .
+
+# === Rule: a dependency model declares the structure its semantics quantify over === #
+
+ex:ecIncompleteDependencyModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incomplete-dependency-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompleteDependencyModel ;
+    gmeow:conformanceRationale "The counter-example's math:MarkovKernel is missing its math:kernelCodomain, so the kernel names no target measurable space to assign mass over. Decided by the native dependency-model lint, a completeness join with no SHACL target shape. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:IncompleteDependencyModel." .
+
+ex:ecFactorGraphIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/factor-graph-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompleteDependencyModel ;
+    gmeow:conformanceRationale "The factor-graph arm of the same law: the counter-example's math:FactorGraph declares no math:dependencyGraph, so there is no factor structure for its semantics to quantify over. Decided by the native dependency-model lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:IncompleteDependencyModel." .
+
+# === Rule: a logic:ExactPreservation claim over a probability model is EARNED === #
+
+ex:ecExactPreservationViolated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/exact-preservation-violated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExactPreservationViolated ;
+    gmeow:conformanceRationale "The counter-example's math:JointProbabilityTable declares logic:ExactPreservation while its outcome mass sums to 9/10, not 1 — an exactness claim its own arithmetic refutes. Decided by the native probability lint's exact-rational summation, which is arithmetic rather than a flat-triple join and so carries no SHACL derivation. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ExactPreservationViolated." .
+
+ex:ecBayesianNetworkExactPreservationViolated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/bayesian-network-exact-preservation-violated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExactPreservationViolated ;
+    gmeow:conformanceRationale "The Bayesian-network arm of the same law: the counter-example declares logic:ExactPreservation while declaring no math:dependencyGraph, so DAG and CPT completeness — the conditions exactness would rest on — cannot hold over an undeclared graph. Decided by the native probability lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ExactPreservationViolated." .
+
+ex:ecFactorGraphExactPreservationViolated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/factor-graph-exact-preservation-violated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExactPreservationViolated ;
+    gmeow:conformanceRationale "The factor-graph arm of the same law: the counter-example declares logic:ExactPreservation while declaring no math:dependencyGraph, so finite normalized factors cannot hold over an undeclared factor structure. Decided by the native probability lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ExactPreservationViolated." .
+
+ex:ecMarkovKernelExactPreservationViolated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/markov-kernel-exact-preservation-violated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExactPreservationViolated ;
+    gmeow:conformanceRationale "The Markov-kernel arm of the same law: the counter-example declares logic:ExactPreservation while missing its declared domain or codomain, so kernel totality cannot hold over an undeclared domain/codomain. Decided by the native probability lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ExactPreservationViolated." .
+
+# === Rule: a distribution parameter satisfies its role's positivity and dimension === #
+
+ex:ecDistributionParameterNegative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-parameter-negative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:DistributionParameterConstraint ;
+    gmeow:conformanceRationale "The positivity arm: the counter-example's parameter fills a role declaring math:requiresPositiveValue while its quantity magnitude is −1, which is not > 0. Decided by the native distribution lint's exact-rational comparison — arithmetic over a rational magnitude, outside the flat-triple SHACL fragment. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:DistributionParameterConstraint." .
+
+ex:ecDistributionParameterWrongDimension a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-parameter-wrong-dimension.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:DistributionParameterConstraint ;
+    gmeow:conformanceRationale "The ABSOLUTE-dimension arm: the counter-example's parameter fills a role declaring math:quantityDimension of an area dimension while its quantity carries a different one. Decided by the native distribution lint's exact ℚ⁷ exponent-vector comparison. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:DistributionParameterConstraint." .
+
+ex:ecDistributionParameterRelationalDimension a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-parameter-relational-dimension.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:DistributionParameterConstraint ;
+    gmeow:conformanceRationale "The RELATIONAL-dimension arm: the counter-example's variance-role parameter declares math:quantityDimension math:squareOfRandomVariableDimension, so its quantity must carry the SQUARE of the random variable's dimension (dimProduct of the exponent vector with itself); the supplied quantity carries the linear dimension instead. The gate resolves the random variable through the parameter → distribution → random-variable traversal, which is why the carriers on that path are fully specified here — the random variable names its domain and codomain and the distribution names its family and parameterization — so that the relational mismatch is the fixture's single defect. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:DistributionParameterConstraint." .
+
+# === Rule: a projection records what it drops and never silently retypes ===== #
+
+ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-missing-preservation-kind.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MissingPreservationKind ;
+    gmeow:conformanceRationale "The counter-example's math:ProjectionRecord enters the loss ledger declaring no logic:preservationKind, so its preservation judgment is undeclared. It is a fixture this rule needed and did not have: the class was previously credited only as a side effect of two OTHER counter-examples that happened to omit the same edge while testing something else, so repairing their isolation left the rule with no fixture of its own at all. Nothing else can fire here — with no preservation kind declared the record is not lossy, its source is a plain math:MathematicalObject rather than a math:Distribution or an expression AST, and it declares no math:projectsConfidenceAsProbability. Decided by the native projection lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:MissingPreservationKind." .
+
+ex:ecProjectionUndeclaredUnsupportedConstruct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-undeclared-unsupported-construct.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UndeclaredUnsupportedConstruct ;
+    gmeow:conformanceRationale "The counter-example's math:ProjectionRecord declares a logic:preservationKind other than logic:ExactPreservation — it claims loss — while enumerating no logic:unsupportedConstruct at all: a lossy projection drops nothing or names everything it drops. Its source is a plain math:MathematicalObject, so the two FINER unrecorded-drop gates (math:ProjectionDroppedParameterization, math:UnrecordedProjectionLoss) have nothing to key on and the coarse obligation stands alone. Like the cell above, this rule had been credited only by another fixture's incidental omission. Decided by the native projection lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UndeclaredUnsupportedConstruct." .
+
+ex:ecProjectionConfidenceAsProbability a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-confidence-as-probability.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ProjectionConfidenceAsProbability ;
+    gmeow:conformanceRationale "The counter-example's math:ProjectionRecord declares math:projectsConfidenceAsProbability true but names no math:declaredConfidenceMapping, so it erodes the logic: probability/confidence boundary at the projection seam with nothing licensing the conversion. It declares logic:ExactPreservation — the numeric value crosses unchanged, so the loss-ledger obligations are satisfied and nothing else fires. Decided by the native projection lint, which has no SHACL target shape. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ProjectionConfidenceAsProbability." .
+
+ex:ecProjectionDroppedParameterization a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-dropped-parameterization.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ProjectionDroppedParameterization ;
+    gmeow:conformanceRationale "The counter-example's LOSSY math:ProjectionRecord projects a math:Distribution carrying a math:distributionParameterization and does not enumerate that parameterization among its logic:unsupportedConstruct drops. It DOES enumerate an unrelated drop, which satisfies the coarser obligation that a lossy record name something (math:UndeclaredUnsupportedConstruct) and leaves the finer claim under test alone: this specific drop went unrecorded. Decided by the native projection lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ProjectionDroppedParameterization." .
+
+ex:ecProjectionUnrecordedExpressionLoss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-unrecorded-expression-loss.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnrecordedProjectionLoss ;
+    gmeow:conformanceRationale "The counter-example's LOSSY math:ProjectionRecord flattens a math:MathematicalExpression source to a string-only external target while its logic:unsupportedConstruct enumeration names an UNRELATED drop, never the expression's own structural flattening — the one loss the ledger exists to record. The source names a concrete expression form, so the grammar accepts it and math:UnrecognizedExpressionType does not fire beside this class. Decided by the native projection lint. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UnrecordedProjectionLoss." .
+
+# === Rule: a held result claim is an Observation with a vantage ============== #
+
+ex:ecStatisticalResultClaimNoVantage a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/statistical-result-claim-no-vantage.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UngroundedResultClaim ;
+    gmeow:conformanceRationale "The counter-example's gmeow:Observation names a statistical result through gmeow:observationResult but carries no gmeow:vantage, so a held result claim floats free of the standpoint that holds it. The result object itself is fully specified (it names its estimand and its estimator), so math:UnderspecifiedEstimate does not fire beside this class. Decided by the native result-claim lint, a cross-node join with no SHACL target shape. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UngroundedResultClaim." .
+
+# === Rule: a process, its observation, and its result occupy distinct roles == #
+
+ex:ecProcessObservationConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/process-observation-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ProcessObservationConflation ;
+    gmeow:conformanceRationale "The counter-example co-types one individual both math:InferenceRun and gmeow:Observation, which the module declares owl:disjointWith: the process that computes a result is not the observation that holds it. The disjointness projects to math:InferenceRun-shape as sh:not, so the SHACL channel reports it and the shape's own gmeow:enforcesFailureClass resolves it. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ProcessObservationConflation." .
+
+ex:ecResultRoleConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/result-role-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ResultRoleConflation ;
+    gmeow:conformanceRationale "The result-role arm of the same separation: the counter-example co-types one individual both math:Estimand and the result role the module declares owl:disjointWith it — the quantity being estimated is not the estimate of it. Reported through math:Estimand-shape's projected sh:not and resolved through that shape's gmeow:enforcesFailureClass. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ResultRoleConflation." .
+
+# === Rule: dimensional homogeneity and integral dimension composition ======== #
+
+ex:ecDimensionalExpressionInhomogeneousMixed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimensional-expression-inhomogeneous-mixed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:DimensionalInhomogeneity ;
+    gmeow:conformanceRationale "The HOMOGENEITY arm: the counter-example's math:DimensionalExpression combines two math:homogeneousOperand quantities carrying math:lengthDimension and math:massDimension, whose ℚ⁷ exponent vectors are unit vectors on distinct axes and so are not equal. Decided by the reasoner-derived measure-and-dimension gate over the authored math:dimensionalHomogeneityLaw; both operands resolve to real base-dimension vectors, so no math:MalformedDimension noise rides along. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:DimensionalInhomogeneity." .
+
+ex:ecForceDimensionInhomogeneous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/force-dimension-inhomogeneous.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:DimensionalInhomogeneity ;
+    gmeow:conformanceRationale "The INTEGRAL-COMPOSITION arm: the force = ∫ a dm scene with one exponent perturbed — acceleration (L¹T⁻²) ⊕ mass (M¹) = M¹L¹T⁻², but the integral declares M¹L¹T⁻³ — so dim(result) = dim(integrand) ⊕ dim(measure) fails by exact ℚ⁷ addition. Decided by the reasoner-derived measure-and-dimension gate over the authored math:integralDimensionCompositionLaw. Because math:Integral is a math:BindingExpression, the integral is authored as the binder it is (operator, bound integration variable, indexed body slot); without those parts it would also be math:MalformedBindingExpression and the isolation claimed here would be false. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:DimensionalInhomogeneity." .
+
+# =========================================================================== #
+# α-equivalence pair fixtures: registered, not exempted.
+#
+# alpha-equivalent-pair-a.ttl and alpha-equivalent-pair-b.ttl are ∑ᵢ i and ∑ⱼ j —
+# structurally identical binders differing only in the IRI of their bound-variable
+# declaration. crates/logic/src/physical/lower.rs loads both through include_str!()
+# and asserts they digest to the SAME math:structuralKey, which is what makes them
+# α-equivalence witnesses. That is a property over the PAIR, and no conformance cell
+# can express it; but each half is ALSO a well-formed math: expression on its own,
+# and their file headers used to say they were "NOT a conformance fixture" while
+# sitting in tests/conformance-fixtures/. They are conforming fixtures — they
+# validate clean on every channel — so they say so here rather than carrying an
+# exemption whose only ground was that nobody had written the cell.
+# =========================================================================== #
+
+ex:ecAlphaEquivalentPairA a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/alpha-equivalent-pair-a.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Half A of the α-equivalence pair, ∑ᵢ i: a math:BindingExpression naming its math:summationBinder operator, its math:VariableDeclaration through math:boundVariable, that declaration's use site through math:bindsOccurrence, and its body through one indexed math:argumentSlot whose math:slotExpression is the math:VariableExpression leaf carrying the bound occurrence. Every binder, slot, occurrence and scope obligation is satisfied and it authors no math:structuralKey to drift from, so it validates with no findings." .
+
+ex:ecAlphaEquivalentPairB a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/alpha-equivalent-pair-b.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Half B of the α-equivalence pair, ∑ⱼ j: structurally identical to half A — same operator, same single slot-indexed operand, same binding shape — differing ONLY in the IRI of its bound-variable declaration, which is exactly what makes the pair an α-equivalence witness. It satisfies the same obligations and validates with no findings." .

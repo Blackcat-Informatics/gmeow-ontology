@@ -375,11 +375,13 @@ const M_NUMBER_LITERAL: &str = "https://blackcatinformatics.ca/math/NumberLitera
 /// fallback would wrongly reject every committed `math:SymbolReference` leaf (e.g.
 /// `slices/grounding/math/examples/reference-ast-act.ttl`'s `ex:leftMatrixRef`).
 const M_SYMBOL_REFERENCE: &str = "https://blackcatinformatics.ca/math/SymbolReference";
-/// The ABSTRACT expression base. A node typed with it and nothing more concrete is an
-/// expression whose FORM is deliberately unspecified — the shipped tensor/learning examples
-/// use it for an operand they name but do not decompose. It has no structure to walk, so it
-/// interns on its own IRI: that is the only content it has, and two distinct unspecified
-/// operands are genuinely distinct terms.
+/// The ABSTRACT expression base ("the abstract root", per the slice's own
+/// `MATHEMATICS-EXPRESSIONS.md`). A node typed with it and nothing more concrete has no
+/// concrete form for the lowering to walk and no content of its own to key on, so it is
+/// `UnrecognizedExpressionType` in an expression position — see
+/// [`lower_math_node_dispatch`]'s trailing branch. It stays named here because
+/// [`MathGraph::expression_typed_nodes`] must still SEE such a node (it is
+/// `math:structuralKey`'s declared domain) in order to report it.
 const M_MATHEMATICAL_EXPRESSION: &str =
     "https://blackcatinformatics.ca/math/MathematicalExpression";
 /// The edge a `math:SymbolReference` occurrence resolves through to its symbol — the
@@ -791,11 +793,11 @@ impl MathGraph {
                     // leaving it out of the root population meant an authored key on such a node
                     // reached no digest to compare against: `check_structural_key_drift` found no
                     // entry and skipped it, so a hand-guessed digest — the exact thing the
-                    // property's own `gmeow:avoidWhen` forbids — passed the gate in silence. An
-                    // UNDECOMPOSED one lowers to its IRI leaf and has its key checked like any
-                    // other root; one carrying structure the abstract type gives no production to
-                    // walk is rejected and reported, rather than interned over content the
-                    // lowering never read.
+                    // property's own `gmeow:avoidWhen` forbids — passed the gate in silence.
+                    // Every such node is REJECTED by the lowering (it names no concrete form, so
+                    // it has no structural identity), and being in this population is what turns
+                    // that rejection into a reported `math:UnrecognizedExpressionType` instead of
+                    // an unexamined node.
                     || self.has_type(subject, M_MATHEMATICAL_EXPRESSION)
             })
             .cloned()
@@ -1088,45 +1090,35 @@ fn lower_math_node_dispatch(
         // A blank node NEVER qualifies (it has no identity outside this graph to serve as
         // a bare constant), and a named node carrying one or more `math:` types NONE of
         // which is recognized — a typo'd class, a `math:MathematicalStatement`, a bare
-        // `math:VariableOccurrence` used where an expression belongs, ... — is a HARD
-        // FAIL rather than a silently-degraded opaque leaf: letting an ill-typed AST
+        // `math:VariableOccurrence` used where an expression belongs, the ABSTRACT
+        // `math:MathematicalExpression` base with no concrete form beneath it, ... — is a
+        // HARD FAIL rather than a silently-degraded opaque leaf: letting an ill-typed AST
         // through here would mean `math:StructuralKeyOnRejectedExpression` never fires
         // and `math:StructuralKeyDrift` compares a declared key against a digest computed
         // over garbage.
         let math_types: Vec<&String> = types.iter().filter(|t| t.starts_with(MATH_NS)).collect();
-        // `math:MathematicalExpression` alone is the abstract base — an operand named but not
-        // decomposed. That is a POSITIVE typing meaning "unspecified form", not the unknown
-        // typing the hard fail exists for, so it interns on its own IRI. Rejecting it reported
-        // the slice's own conforming examples as ill-typed.
+        // `math:MathematicalExpression` alone — the ABSTRACT base, with no concrete form
+        // beneath it — is NOT a constant operand. It is an AST node of this language (that is
+        // what the typing asserts) whose form the author declined to give, and an AST node's
+        // own IRI is never content: an `ApplicationExpression`'s subject IRI does not enter the
+        // digest, and neither may this one. Interning it on its IRI is the SAME defect the
+        // `math:SymbolReference` branch below names — it makes the digest a LABEL, so two
+        // independently authored copies of one expression over undecomposed operands never
+        // intern to one key and never share a `math:AlphaEquivalenceClass`. Interning it on a
+        // shared opaque constant instead is no better: every undecomposed operand would then be
+        // interchangeable, so `App(op, [a, b])` and `App(op, [b, a])` over two DIFFERENT named
+        // operands would collapse into one class, and the key would identify expressions the
+        // author distinguished.
         //
-        // ONLY when it really is undecomposed. A node carrying one of the four structured-child
-        // edges — the same four `math:StringOnlyComputableExpression` names — HAS structure the
-        // abstract type gives the lowering no production to walk. Interning it on its IRI would
-        // silently DROP that subtree, and two expressions differing only inside it would share
-        // one digest and one `math:AlphaEquivalenceClass`: a content key computed over content
-        // the lowering refused to read. Structure present with no concrete form to interpret it
-        // is exactly `UnrecognizedExpressionType`.
-        const STRUCTURED_CHILD_EDGES: [&str; 4] = [
-            M_ARGUMENT_SLOT,
-            M_BOUND_VARIABLE,
-            M_HAS_MATHEMATICAL_SYMBOL,
-            M_LITERAL_VALUE,
-        ];
-        let is_abstract_expression = !math_types.is_empty()
-            && math_types
-                .iter()
-                .all(|t| t.as_str() == M_MATHEMATICAL_EXPRESSION)
-            && STRUCTURED_CHILD_EDGES.iter().all(|edge| {
-                // IRI/blank objects AND literal objects both count as structure: a
-                // `math:literalValue "4"^^xsd:integer` is content, and `refs` alone (which
-                // sees only IRI/blank objects) would let a value-bearing node through as
-                // "undecomposed" and intern it on its IRI — dropping the value, so two such
-                // nodes carrying 4 and 5 would be told apart only by their names.
-                graph.refs(node, edge).is_empty() && graph.first_lit_typed(node, edge).is_none()
-            });
+        // Neither reading is a content key, so the abstract base carries no structural identity
+        // at all and is `UnrecognizedExpressionType` — with or without structured children.
+        // Structure present with no concrete form to interpret it is uninterpretable; structure
+        // ABSENT with no concrete form is equally so, and only fails more quietly. The slice
+        // already ships the honest way to name an operand without decomposing it: a
+        // `math:SymbolReference` to a `math:MathematicalSymbol`, whose identity is the SYMBOL —
+        // real content, shared by every author who names the same symbol.
         let is_constant_operand = !node.starts_with("_:")
             && (math_types.is_empty()
-                || is_abstract_expression
                 || math_types.iter().any(|t| t.as_str() == M_SYMBOL_REFERENCE));
         if is_constant_operand {
             // A `math:SymbolReference` is an OCCURRENCE wrapper: its identity is the symbol it

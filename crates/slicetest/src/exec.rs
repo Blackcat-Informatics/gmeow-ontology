@@ -24,8 +24,10 @@ use std::sync::Arc;
 
 use gmeow_errors::{Diag, Result, Severity};
 use gmeow_logic::math_expression::check_math_expression_findings;
+use gmeow_logic::reason::math_gate::dimension_gate_markers;
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_validate::findings::finding_from_shacl;
+use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::{RdfDataset, RdfTerm, SparqlResult, TermValue};
@@ -235,6 +237,9 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             },
         )?,
     );
+    // The module's own constant reading of the two whole-dataset native channels,
+    // measured ONCE and subtracted per cell (see `NativeChannelBaseline`).
+    let baseline = NativeChannelBaseline::measure(&module)?;
     let local_shapes = slice_dir.join("shapes.ttl");
     let shapes = scope_shapes_to_slice(
         shapes,
@@ -255,6 +260,7 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             let shapes = &shapes;
             let module = &module;
             let failure_class_index = &failure_class_index;
+            let baseline = &baseline;
             handles.push(scope.spawn(move || {
                 let mut out = Vec::new();
                 for (i, ec) in cells.iter().enumerate() {
@@ -267,6 +273,7 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
                                 module,
                                 shapes,
                                 failure_class_index,
+                                baseline,
                             ),
                         ));
                     }
@@ -757,6 +764,7 @@ fn run_conformance_cell(
     module: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
     failure_class_index: &BTreeMap<String, String>,
+    baseline: &NativeChannelBaseline,
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
     // Lowered onto the shape set's own OWL/RDFS surface for the same reason the
@@ -882,6 +890,7 @@ fn run_conformance_cell(
                     &data,
                     expected_class,
                     failure_class_index,
+                    baseline,
                 );
             }
             let expected = ec.violation_code.as_deref().ok_or_else(|| {
@@ -1082,6 +1091,79 @@ fn shape_failure_class_index(shapes_ttl: &str) -> Result<BTreeMap<String, String
     Ok(index)
 }
 
+/// The MODULE's own contribution to the two whole-dataset native channels, computed
+/// ONCE per spec file and subtracted from every cell's reading of them.
+///
+/// Both the native structural lint and the reasoner-derived dimension gate are run over
+/// the validated graph — `module ∪ example` — because that is the graph the other two
+/// channels see and the graph a native check needs in order to resolve a fixture node's
+/// peer-owned types. But the module is in that union for EVERY cell, so whatever those
+/// channels say about the module alone is a constant, identical for all 286 cells, and
+/// says nothing whatever about the fixture under test. (The `math:` module's own
+/// structural lint reports eight dangling-subsumption-target diagnostics about
+/// `gmeow:`-owned superclasses it does not itself declare; counted per cell, they would
+/// red every isolation claim in the slice while naming a defect no fixture caused.)
+///
+/// Subtracting a measured baseline is the exact way to attribute the remainder to the
+/// fixture: it is not a token filter, a severity carve-out, or an allow-list — it drops
+/// EXACTLY the findings the module produces with no example loaded at all, so a fixture
+/// that genuinely trips one of those same checks still shows up (its finding names the
+/// fixture's own node, so it is a different message and survives the difference).
+struct NativeChannelBaseline {
+    /// Error-severity structural-lint messages the module alone produces.
+    lint_errors: BTreeSet<String>,
+    /// `(subject, failure-class)` dimension-gate markers the module alone produces.
+    dimension_markers: BTreeSet<(String, String)>,
+}
+
+impl NativeChannelBaseline {
+    /// Measure the module-only reading of both native channels.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a dimension-gate chase failure, which its own contract defines as a
+    /// genuine internal-invariant violation (non-stratifiable rules, or a declined native
+    /// forward chase) rather than a missing-data condition — never silently swallowed,
+    /// because an empty baseline would over-report every cell instead of under-reporting.
+    fn measure(module: &Arc<RdfDataset>) -> Result<Self> {
+        Ok(Self {
+            lint_errors: structural_lint_dataset(module, &conformance_lint_config())
+                .errors()
+                .into_iter()
+                .collect(),
+            dimension_markers: dimension_gate_markers(module, &[])
+                .map_err(|e| {
+                    Diag::of_kind(ShapeValidation {
+                        detail: format!(
+                            "the reasoner-derived math: dimension gate failed over the slice \
+                             module alone: {e}"
+                        ),
+                    })
+                })?
+                .into_iter()
+                .collect(),
+        })
+    }
+}
+
+/// The lint configuration the conformance channel runs under: the GMEOW vocabulary
+/// namespace and ontology IRI, and no selector-token / core-slice grading.
+///
+/// The checks this channel exists to reach — the `math:` probability, distribution,
+/// dependency-model, projection and ingest invariants — are decided from the data's own
+/// asserted types and values, so they are namespace-grading-independent and a bare config
+/// exercises them fully. It is the same shape `gmeow_validate`'s own integration tests
+/// and the pipeline execution-discharge harnesses build.
+fn conformance_lint_config() -> LintConfig {
+    LintConfig {
+        namespace: gmeow_ns::GMEOW_NS.to_owned(),
+        ontology_iri: "https://blackcatinformatics.ca/gmeow".to_owned(),
+        selector_tokens: BTreeSet::new(),
+        core_slice_iris: std::collections::HashSet::new(),
+        annotation_predicates: std::collections::HashSet::new(),
+    }
+}
+
 /// Every `<prefix>:<ClassName>:` class-token embedded in a native Rust finding's
 /// message, resolved to full IRIs against the namespace prefixes the native
 /// validators (`crates/logic/src/math_expression.rs`, `crates/validate/src/lint.rs`)
@@ -1126,24 +1208,54 @@ fn message_class_tokens(message: &str) -> BTreeSet<String> {
     tokens
 }
 
-/// `gmeow:expectedFailureClass` isolation check: EVERY finding produced across BOTH
-/// channels — native SHACL Violation-severity results (resolved to a class through
-/// `failure_class_index`) and native Rust findings from
-/// [`check_math_expression_findings`] (resolved via [`message_class_tokens`]) — must
-/// name `expected_class`. This is the ONLY conformance-cell mechanism that reaches
-/// native (non-SHACL) failure classes, and it closes two gaps at once: a SPARQL-derived
-/// gate's shared generic component code letting an unrelated cross-fire finding hide
-/// beside the intended one, and a purely native class (no SHACL derivation exists at
-/// all, e.g. `math:MalformedStructuralKey`) having no conformance-cell mechanism to
-/// assert against whatsoever.
+/// `gmeow:expectedFailureClass` isolation check: EVERY finding produced across ALL FOUR
+/// executed channels must name `expected_class`. This is the ONLY conformance-cell
+/// mechanism that reaches native (non-SHACL) failure classes, and it closes two gaps at
+/// once: a SPARQL-derived gate's shared generic component code letting an unrelated
+/// cross-fire finding hide beside the intended one, and a purely native class (no SHACL
+/// derivation exists at all, e.g. `math:MalformedStructuralKey`) having no
+/// conformance-cell mechanism to assert against whatsoever.
+///
+/// The four channels, and why each is here:
+///
+/// 1. **native SHACL** Violation-severity results, resolved to a class through the
+///    generated shape's own `gmeow:enforcesFailureClass` (`failure_class_index`).
+/// 2. **the native `math:` expression-identity gate**
+///    ([`check_math_expression_findings`]), resolved via [`message_class_tokens`] — the
+///    only reader of `math:structuralKey` / normal-form identity, which carries no SHACL
+///    derivation at all.
+/// 3. **the native structural lint** (`gmeow_validate::lint::structural_lint_dataset`),
+///    resolved the same way. Without it a whole tier of the slice's authored rules —
+///    every obligation decided by arithmetic or by a cross-node join with no SHACL target
+///    shape: probability-magnitude bounds, distribution-parameter positivity and
+///    dimension, dependency-model completeness, exact-preservation mass, the projection
+///    loss ledger, ingest liftability — was invisible to the isolation authority. Their
+///    counter-examples could therefore not be celled AT ALL: no SHACL finding exists to
+///    pin, so a cell naming their class would have failed with "no finding matched it"
+///    while the rule was in fact firing, one channel over.
+/// 4. **the reasoner-derived measure-and-dimension gate**
+///    (`gmeow_logic::reason::math_gate::dimension_gate_markers`), which decides
+///    `math:DimensionalInhomogeneity` by exact ℚ⁷ exponent arithmetic. Its projected
+///    SHACL shape targets `math:homogeneousOperandRel`, a reified relation that exists
+///    only in a reasoned closure, so over asserted fixture data it can never fire and the
+///    class was likewise uncellable.
+///
+/// Channels 3 and 4 read the validated `module ∪ example` graph, with the module's own
+/// constant contribution subtracted ([`NativeChannelBaseline`]); channel 2 reads the
+/// asserted graph as both substrates, because conformance cells pin the fixture AS
+/// AUTHORED and a cell expecting a derived surface leak would be pinning an entailment
+/// rather than a fixture. Channel 4 is likewise given no derived edges for the same
+/// reason: the marker it credits must be one the fixture's own asserted structure
+/// entails.
 fn check_failure_class_isolation(
     ec: &ExampleConformance,
     report: &purrdf::shapes::report::ValidationReport,
     data: &Arc<RdfDataset>,
     expected_class: &str,
     failure_class_index: &BTreeMap<String, String>,
+    baseline: &NativeChannelBaseline,
 ) -> Result<()> {
-    // One (description, matches-expected) pair per finding across both channels.
+    // One (description, matches-expected) pair per finding across every channel.
     let mut findings: Vec<(String, bool)> = Vec::new();
 
     for r in report
@@ -1189,6 +1301,47 @@ fn check_failure_class_isolation(
         ));
     }
 
+    // The native structural lint: the slice's arithmetic / cross-node-join tier. Only the
+    // messages the EXAMPLE adds over the module's own constant reading are the fixture's.
+    for message in structural_lint_dataset(data, &conformance_lint_config()).errors() {
+        if baseline.lint_errors.contains(&message) {
+            continue;
+        }
+        let tokens = message_class_tokens(&message);
+        let matches = tokens.contains(expected_class);
+        let token_list = if tokens.is_empty() {
+            "<no class token>".to_owned()
+        } else {
+            tokens.into_iter().collect::<Vec<_>>().join(", ")
+        };
+        findings.push((format!("lint ({token_list}): {message}"), matches));
+    }
+
+    // The reasoner-derived measure-and-dimension gate. Each marker IS a failure-class
+    // IRI, so it needs no message-token convention to resolve.
+    let markers = dimension_gate_markers(data, &[]).map_err(|e| {
+        Diag::of_kind(ShapeValidation {
+            detail: format!(
+                "cell {}: the reasoner-derived math: dimension gate failed — its own contract \
+                 makes this a genuine internal-invariant violation (non-stratifiable rules or a \
+                 declined native forward chase), never a missing-fixture condition, so it is a \
+                 hard failure rather than an empty marker set the isolation check would read as \
+                 \"the gate found nothing\": {e}",
+                ec.iri
+            ),
+        })
+    })?;
+    for (subject, class) in markers {
+        if baseline
+            .dimension_markers
+            .contains(&(subject.clone(), class.clone()))
+        {
+            continue;
+        }
+        let matches = class == expected_class;
+        findings.push((format!("dimension-gate {subject} (class {class})"), matches));
+    }
+
     let matched = findings.iter().filter(|(_, m)| *m).count();
     let unmatched: Vec<&str> = findings
         .iter()
@@ -1199,8 +1352,9 @@ fn check_failure_class_isolation(
     if matched == 0 {
         return Err(Diag::of_kind(ConformanceCell {
             detail: format!(
-                "cell {} expected failure class {expected_class}, but no finding (SHACL or \
-                 native) matched it; findings observed: [{}]",
+                "cell {} expected failure class {expected_class}, but no finding (SHACL, native \
+                 expression gate, structural lint, or dimension gate) matched it; findings \
+                 observed: [{}]",
                 ec.iri,
                 findings
                     .iter()
@@ -1720,7 +1874,18 @@ mod tests {
             rationale: None,
         };
 
-        run_conformance_cell(&cell(None), &slice_dir, &module, &shapes, &BTreeMap::new()).expect(
+        let baseline =
+            NativeChannelBaseline::measure(&module).expect("the logic module measures cleanly");
+
+        run_conformance_cell(
+            &cell(None),
+            &slice_dir,
+            &module,
+            &shapes,
+            &BTreeMap::new(),
+            &baseline,
+        )
+        .expect(
             "without the flag the cell passes on the existence checks alone — which is the \
              behaviour every unmigrated cell keeps",
         );
@@ -1731,6 +1896,7 @@ mod tests {
             &module,
             &shapes,
             &BTreeMap::new(),
+            &baseline,
         )
         .expect_err("the cascade must be caught once the cell claims sole-ness");
         let message = err.message();
@@ -1795,11 +1961,21 @@ mod tests {
             rationale: None,
         };
 
-        let err = run_conformance_cell(&cell(None), &slice_dir, &module, &shapes, &BTreeMap::new())
-            .expect_err(
-                "a soleness claim with no named law must be rejected outright — under the old \
+        let baseline =
+            NativeChannelBaseline::measure(&module).expect("the lang module measures cleanly");
+
+        let err = run_conformance_cell(
+            &cell(None),
+            &slice_dir,
+            &module,
+            &shapes,
+            &BTreeMap::new(),
+            &baseline,
+        )
+        .expect_err(
+            "a soleness claim with no named law must be rejected outright — under the old \
              fallback this very cell passed while the fixture tripped two laws",
-            );
+        );
         let message = err.message();
         assert!(
             message.contains("expectedSoleFinding")
@@ -1816,6 +1992,7 @@ mod tests {
             &module,
             &shapes,
             &BTreeMap::new(),
+            &baseline,
         )
         .expect_err("once the law is named, the SECOND law raising the same code is an intruder");
         let message = err.message();

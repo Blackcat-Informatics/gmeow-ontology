@@ -8,10 +8,25 @@
 //
 // The property is carried by a GENERATOR (`gen_expr`) driven through `proptest`,
 // exercised through the REAL
-// production entry points (`MathGraph::from_turtle` → `arena_structural_key`, the same
+// production entry points (`MathGraph::from_dataset` → `arena_structural_key`, the same
 // route `math_expression_structural_keys` publishes the shipped key through) over generated
 // `math:`-vocabulary Turtle text — never a
 // hand-built `TermDag`/`NodeId`.
+//
+// ## The substrate these properties run on
+//
+// Every property below lowers a MULTI-GRAPH dataset ([`multi_graph_dataset`]), not the
+// single-graph bare parse this module used to build. Production does not hand the gate a
+// single-graph parse: `gmeow validate --deep` assembles an EDB whose graphs can each carry a
+// slice's triples, and the gate's obligations are cardinality claims over that dataset. The
+// difference is not theoretical — counting ASSERTIONS rather than DISTINCT triples in the
+// expression index made the shipped validator reject this slice's own conforming example
+// `alpha-equivalent-twins.ttl` (every composite expression came back carrying one
+// `math:operator` per graph it appeared in), and every property in this file stayed green
+// throughout, because a single-graph parse cannot express the failure. The same construction
+// is used by `crates/logic/tests/math_expression_reasoned_substrate.rs`'s
+// `shipped_examples_are_clean_over_a_multi_graph_substrate`; here it runs under generation
+// rather than over three fixed files.
 //
 
 use std::collections::BTreeSet;
@@ -69,6 +84,30 @@ enum GenExpr {
     /// resolution — never its rendered declaration IRI/label, which [`Mint`]
     /// controls independently), and the boxed body is its single body slot.
     Bind(u8, String, Box<GenExpr>),
+    /// The ABSTRACT `math:MathematicalExpression` base with no concrete form beneath it —
+    /// an operand named but never decomposed. Rendered on a node IRI minted by [`Mint`]
+    /// exactly like every other AST node, because that is what it is: a node of this AST
+    /// whose form the author declined to give. It carries NO content of its own, so it is
+    /// [`MathLoweringError::UnrecognizedExpressionType`] and never reaches a digest — see
+    /// [`the_lowering_verdict_is_invariant_under_wholesale_ast_node_renaming`], which is the
+    /// property that pins it.
+    ///
+    /// Generated ONLY by [`gen_expr_with_abstract_base`], never by [`gen_expr`]: the
+    /// reference-model cross-check and the determinism/arity/shadowing properties all
+    /// require a term the grammar ACCEPTS, and this one it must not.
+    AbstractBase,
+}
+
+/// Whether `expr` contains an [`GenExpr::AbstractBase`] leaf anywhere — the predicate
+/// [`the_lowering_verdict_is_invariant_under_wholesale_ast_node_renaming`] branches on to
+/// decide which half of its contract applies to a generated case.
+fn contains_abstract_base(expr: &GenExpr) -> bool {
+    match expr {
+        GenExpr::AbstractBase => true,
+        GenExpr::Const(_) | GenExpr::Var(_) => false,
+        GenExpr::App(_, args) => args.iter().any(contains_abstract_base),
+        GenExpr::Bind(_, _, body) => contains_abstract_base(body),
+    }
 }
 
 /// A deliberately SMALL variable-name pool. With `prop_recursive` nesting, a
@@ -91,6 +130,29 @@ fn gen_expr() -> impl Strategy<Value = GenExpr> {
         (0u8..3).prop_map(GenExpr::Const),
         var_name().prop_map(GenExpr::Var),
     ];
+    recursive_over(leaf)
+}
+
+/// The same grammar, with [`GenExpr::AbstractBase`] in the leaf pool. Roughly a third of
+/// generated leaves are an undecomposed abstract base, so a generated case is comfortably
+/// likely to contain one AND comfortably likely to contain none — both halves of
+/// [`the_lowering_verdict_is_invariant_under_wholesale_ast_node_renaming`]'s contract are
+/// exercised without either being hand-selected.
+fn gen_expr_with_abstract_base() -> impl Strategy<Value = GenExpr> {
+    let leaf = prop_oneof![
+        (0u8..3).prop_map(GenExpr::Const),
+        var_name().prop_map(GenExpr::Var),
+        Just(GenExpr::AbstractBase),
+    ];
+    recursive_over(leaf)
+}
+
+/// The shared recursive envelope both leaf pools are grown through, so the two generators
+/// differ in EXACTLY one respect (which leaves exist) rather than in nesting depth, branching
+/// factor, or arity range as well.
+fn recursive_over(
+    leaf: impl Strategy<Value = GenExpr> + 'static,
+) -> impl Strategy<Value = GenExpr> {
     leaf.prop_recursive(4, 24, 4, |inner| {
         prop_oneof![
             (0u8..3, prop::collection::vec(inner.clone(), 0..=4))
@@ -138,18 +200,35 @@ fn canonicalize(expr: &GenExpr, scope: &[String]) -> Canon {
             inner_scope.push(name.clone());
             Canon::Bind(*tag, Box::new(canonicalize(body, &inner_scope)))
         }
+        // Deliberately no arm: an undecomposed abstract base has no alpha-equivalence
+        // identity to model, because the grammar refuses to lower it at all. Only
+        // `gen_expr_with_abstract_base` can produce one, and the property that consumes that
+        // generator asserts a REJECTION rather than comparing against this model.
+        GenExpr::AbstractBase => unreachable!(
+            "canonicalize is only ever reached from gen_expr, which has no AbstractBase leaf"
+        ),
     }
 }
 
 // ── rendering: GenExpr -> real math: Turtle text ───────────────────────────
 
-/// Mints a [`GenExpr::Bind`]'s declaration IRI + `rdfs:label`, keyed by the
-/// bind's pre-order index in the tree. Two DIFFERENT `Mint`s over the IDENTICAL
-/// `GenExpr` tree exercise bound-variable RENAMING: the tree shape (and
-/// therefore its [`Canon`] identity) is unchanged — only the surface IRI/label
-/// text each `Bind` happens to be authored with.
+/// Mints the two families of NAME a rendering is free to choose:
+///
+/// - [`Mint::decl`] — a [`GenExpr::Bind`]'s declaration IRI + `rdfs:label`, keyed by the
+///   bind's pre-order index in the tree. Two `Mint`s that differ here over the IDENTICAL
+///   `GenExpr` tree exercise bound-variable RENAMING.
+/// - [`Mint::node`] — an AST NODE's own IRI (an application, a binder, an argument slot, a
+///   variable expression, a variable occurrence, an undecomposed abstract base), keyed by the
+///   order [`fresh`] mints it in. Two `Mint`s that differ here exercise a wholesale AST-node
+///   renaming: not one name in the term is content, so not one of them may reach the digest.
+///
+/// The two axes are minted separately and varied SEPARATELY by the properties below, so a
+/// failure names which family of name leaked into the key rather than "some name did". What
+/// is NOT mintable is deliberate: a constant operand's IRI and a free variable's declaration
+/// IRI are RIGID content, and renaming them SHOULD move the digest.
 trait Mint {
     fn decl(&self, bind_index: usize) -> (String, String);
+    fn node(&self, node_index: usize) -> String;
 }
 
 struct PrimaryMint;
@@ -160,10 +239,15 @@ impl Mint for PrimaryMint {
             format!("n{bind_index}"),
         )
     }
+    fn node(&self, node_index: usize) -> String {
+        format!("https://example.org/interning/n{node_index}")
+    }
 }
 
 /// A second mint scheme, salted so distinct proptest cases mint distinct
-/// declaration IRIs/labels — never the SAME rename twice by accident.
+/// declaration IRIs/labels — never the SAME rename twice by accident. AST node IRIs are
+/// held at [`PrimaryMint`]'s, so a failure under this mint is unambiguously a
+/// bound-variable-name leak.
 struct RenamedMint<'a>(&'a str);
 impl Mint for RenamedMint<'_> {
     fn decl(&self, bind_index: usize) -> (String, String) {
@@ -173,6 +257,27 @@ impl Mint for RenamedMint<'_> {
                 self.0
             ),
             format!("alt-{}-{bind_index}", self.0),
+        )
+    }
+    fn node(&self, node_index: usize) -> String {
+        PrimaryMint.node(node_index)
+    }
+}
+
+/// The third mint scheme: every AST NODE IRI is minted under a salted namespace, while
+/// declarations are held at [`PrimaryMint`]'s. Rendering one [`GenExpr`] through
+/// [`PrimaryMint`] and again through this one produces two documents in which NO AST node
+/// shares an IRI with its counterpart and everything else is identical — the exact
+/// perturbation a CONTENT key must ignore and a LABEL cannot.
+struct RelabelledNodeMint<'a>(&'a str);
+impl Mint for RelabelledNodeMint<'_> {
+    fn decl(&self, bind_index: usize) -> (String, String) {
+        PrimaryMint.decl(bind_index)
+    }
+    fn node(&self, node_index: usize) -> String {
+        format!(
+            "https://example.org/interning/relabelled/{}/n{node_index}",
+            self.0
         )
     }
 }
@@ -189,9 +294,13 @@ fn free_decl_iri(name: &str) -> String {
     format!("https://example.org/interning/free/{name}")
 }
 
-fn fresh(counter: &mut usize) -> String {
+/// Mint the next AST node IRI THROUGH the rendering's [`Mint`], so the whole node-naming
+/// axis is under the mint's control. It used to format a fixed namespace directly, which
+/// meant both renderings of one `GenExpr` shared every AST node IRI and no property could
+/// ever vary one — precisely the axis a digest keyed on a node's own name leaks through.
+fn fresh(counter: &mut usize, mint: &dyn Mint) -> String {
     *counter += 1;
-    format!("https://example.org/interning/n{}", *counter)
+    mint.node(*counter)
 }
 
 /// Render `expr` as a standalone `math:` Turtle document through the REAL
@@ -236,6 +345,15 @@ fn render_node(
 ) -> String {
     match expr {
         GenExpr::Const(tag) => format!("https://example.org/interning/const{tag}"),
+        // The ABSTRACT base, on a minted AST node IRI: `math:MathematicalExpression` and
+        // nothing more concrete. Note what is NOT authored here — no operator, no slot, no
+        // symbol, no value: the node's own IRI is all there is, which is exactly why the
+        // grammar must refuse it rather than key on it.
+        GenExpr::AbstractBase => {
+            let subject = fresh(node_counter, mint);
+            ttl.push_str(&format!("<{subject}> a math:MathematicalExpression .\n"));
+            subject
+        }
         GenExpr::Var(name) => {
             let decl_iri = match env.iter().rev().find(|(n, _)| n == name) {
                 Some((_, iri)) => iri.clone(),
@@ -244,8 +362,8 @@ fn render_node(
                     free_decl_iri(name)
                 }
             };
-            let var_expr = fresh(node_counter);
-            let occ = fresh(node_counter);
+            let var_expr = fresh(node_counter, mint);
+            let occ = fresh(node_counter, mint);
             ttl.push_str(&format!(
                 "<{var_expr}> a math:VariableExpression ; math:variableOccurrence <{occ}> .\n\
                  <{occ}> a math:VariableOccurrence ; math:declaredVariable <{decl_iri}> .\n"
@@ -253,12 +371,13 @@ fn render_node(
             var_expr
         }
         GenExpr::App(tag, args) => {
-            let subject = fresh(node_counter);
+            let subject = fresh(node_counter, mint);
             let children: Vec<String> = args
                 .iter()
                 .map(|arg| render_node(arg, ttl, node_counter, bind_counter, env, free_decls, mint))
                 .collect();
-            let slot_iris: Vec<String> = children.iter().map(|_| fresh(node_counter)).collect();
+            let slot_iris: Vec<String> =
+                children.iter().map(|_| fresh(node_counter, mint)).collect();
             ttl.push_str(&format!(
                 "<{subject}> a math:ApplicationExpression ; \
                  math:operator <https://example.org/interning/appOp{tag}> "
@@ -276,7 +395,7 @@ fn render_node(
             subject
         }
         GenExpr::Bind(tag, name, body) => {
-            let subject = fresh(node_counter);
+            let subject = fresh(node_counter, mint);
             let bind_index = *bind_counter;
             *bind_counter += 1;
             let (decl_iri, label) = mint.decl(bind_index);
@@ -284,7 +403,7 @@ fn render_node(
             let body_subject =
                 render_node(body, ttl, node_counter, bind_counter, env, free_decls, mint);
             env.pop();
-            let body_slot = fresh(node_counter);
+            let body_slot = fresh(node_counter, mint);
             ttl.push_str(&format!(
                 "<{subject}> a math:BindingExpression ;\n\
                  \x20 math:operator <https://example.org/interning/bindOp{tag}> ;\n\
@@ -299,19 +418,61 @@ fn render_node(
     }
 }
 
-/// Parse `rendered` and lower it through the REAL production entry points,
-/// panicking (never silently skipping) on a parse/lowering failure — a
-/// generated term this grammar can produce must ALWAYS be well-formed `math:`,
-/// so any failure here is a bug in the generator/renderer, not an expected
-/// rejection.
-fn lower_rendered(rendered: &Rendered) -> String {
-    let graph = MathGraph::from_turtle(rendered.ttl.as_bytes()).unwrap_or_else(|e| {
-        panic!(
-            "generated math: Turtle must parse: {e}\n\n--- generated Turtle ---\n{}",
-            rendered.ttl
-        )
+/// The named graph a second copy of every generated triple is pushed into, so the dataset
+/// every property lowers really does hold each triple in MORE THAN ONE graph.
+const PROBE_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/probe";
+
+/// Build the MULTI-GRAPH dataset production hands the gate, from a generated Turtle
+/// document: the parsed triples in the default graph, PLUS a copy of every one of them in a
+/// named graph.
+///
+/// This is the substrate half of the file header's note. A bare
+/// `MathGraph::from_turtle` builds a single-graph parse, and an expression index that counts
+/// per-graph ASSERTIONS instead of DISTINCT triples is indistinguishable from a correct one
+/// on that substrate — it reports the right operator count because there is only ever one
+/// graph to count in. Over this dataset it reports two, and every cardinality obligation the
+/// lowering makes (`exactly one math:operator`, `exactly one math:boundVariable`, `exactly
+/// one math:variableOccurrence`, `exactly one math:declaredVariable`, `exactly one
+/// math:slotIndex`) fails on a conforming term. The properties can therefore SEE that class
+/// of defect, which is what they could not do before.
+fn multi_graph_dataset(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    let single = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap_or_else(|e| {
+        panic!("generated math: Turtle must parse: {e}\n\n--- generated Turtle ---\n{ttl}")
     });
-    arena_structural_key(&graph, &rendered.root).unwrap_or_else(|e| {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    builder.push_dataset(&single);
+    for quad in single.owned_quads() {
+        builder.push_owned_quad(
+            &purrdf::RdfQuad::new(
+                quad.subject.clone(),
+                quad.predicate.clone(),
+                quad.object.clone(),
+            )
+            .in_graph(purrdf::RdfTerm::iri(PROBE_GRAPH)),
+        );
+    }
+    builder
+        .freeze()
+        .expect("the generated document plus a named-graph copy of itself is a valid dataset")
+}
+
+/// Lower `rendered` through the REAL production entry points over the multi-graph substrate,
+/// returning the lowering's VERDICT — the digest when the grammar accepts, the typed
+/// rejection when it refuses. The properties that expect acceptance unwrap this through
+/// [`lower_rendered`]; the one that pins the abstract base compares the verdicts directly.
+fn lower_rendered_verdict(rendered: &Rendered) -> Result<String, MathLoweringError> {
+    let dataset = multi_graph_dataset(&rendered.ttl);
+    let graph = MathGraph::from_dataset(&dataset);
+    arena_structural_key(&graph, &rendered.root)
+}
+
+/// Lower `rendered`, panicking (never silently skipping) on a lowering failure — a
+/// term [`gen_expr`] can produce must ALWAYS be well-formed `math:`, so any failure here is
+/// a bug in the generator/renderer, not an expected rejection. (Terms from
+/// [`gen_expr_with_abstract_base`] may legitimately be refused, and go through
+/// [`lower_rendered_verdict`] instead.)
+fn lower_rendered(rendered: &Rendered) -> String {
+    lower_rendered_verdict(rendered).unwrap_or_else(|e| {
         panic!(
             "generated math: expression must lower: {e:?}\n\n--- generated Turtle ---\n{}",
             rendered.ttl
@@ -354,6 +515,113 @@ proptest! {
             "renaming a bound variable's declaration IRI/label must not change \
              its structural digest"
         );
+    }
+
+    /// **Wholesale AST-node renaming — the content-key proof.** Rendering the SAME
+    /// [`GenExpr`] shape through two [`Mint`]s that agree on every declaration and differ on
+    /// EVERY AST node IRI — the application nodes, the binder nodes, the argument slots, the
+    /// variable expressions, the occurrence nodes — must yield the IDENTICAL
+    /// [`arena_structural_key`].
+    ///
+    /// This is the property that separates a CONTENT key from a LABEL, and it is the one the
+    /// generator could not previously express at all: [`render`] minted node IRIs from a
+    /// fixed namespace, so both renderings of one tree shared every node IRI and the axis was
+    /// held constant by construction. What remains rigid is deliberate and asserted by the
+    /// sibling injectivity property: a constant operand's IRI and a free variable's
+    /// declaration IRI are CONTENT, and they are not renamed here.
+    #[test]
+    fn wholesale_ast_node_renaming_does_not_change_digest(
+        inner in gen_expr(),
+        wrap_tag in 0u8..3,
+        salt in "[a-z0-9]{1,8}",
+    ) {
+        // The wrapping application guarantees at least one MINTED AST node exists (its own
+        // subject, plus the slot cell), so the "the rename actually changed something" guard
+        // below is never vacuous. A bare constant leaf mints no node at all — its IRI is
+        // rigid content, not a name the renderer chooses — and would otherwise render
+        // identically under both mints and prove nothing.
+        let expr = GenExpr::App(wrap_tag, vec![inner]);
+
+        let primary = render(&expr, &PrimaryMint);
+        let relabelled = render(&expr, &RelabelledNodeMint(&salt));
+        prop_assert_ne!(
+            &primary.ttl, &relabelled.ttl,
+            "the two mint schemes must actually author different AST node IRIs, or this \
+             case proves nothing"
+        );
+
+        prop_assert_eq!(
+            lower_rendered(&primary), lower_rendered(&relabelled),
+            "renaming every AST node IRI must not change the structural digest — a digest \
+             that moves with a node's own name is a LABEL, not a content key"
+        );
+    }
+
+    /// **The abstract expression base has no structural identity, under ANY naming.**
+    ///
+    /// `math:MathematicalExpression` alone — the abstract base with no concrete form beneath
+    /// it — is an AST node whose form the author declined to give. It carries no content, so
+    /// the lowering must REFUSE it (`math:UnrecognizedExpressionType`) rather than key on the
+    /// only thing it has, its own node IRI.
+    ///
+    /// The property states that as verdict-invariance under a wholesale AST-node renaming,
+    /// which covers both branches at once: a term with no abstract base must yield the same
+    /// DIGEST under either naming, and a term containing one must be refused with the same
+    /// CLASS under either naming. Keying the abstract base on its own IRI fails the second
+    /// branch loudly — the two renderings return two different `Ok` digests for one term —
+    /// which is precisely the defect this pins. Keying it on a shared opaque constant would
+    /// pass verdict-invariance, so the rejection is asserted directly rather than inferred
+    /// from it: two DIFFERENT undecomposed operands are not interchangeable, and a key that
+    /// made them so would identify expressions their author distinguished.
+    #[test]
+    fn the_lowering_verdict_is_invariant_under_wholesale_ast_node_renaming(
+        inner in gen_expr_with_abstract_base(),
+        wrap_tag in 0u8..3,
+        salt in "[a-z0-9]{1,8}",
+    ) {
+        // Wrapped for the same reason as the property above: at least one minted AST node
+        // must exist for the rename to have anything to change.
+        let expr = GenExpr::App(wrap_tag, vec![inner]);
+
+        let primary = render(&expr, &PrimaryMint);
+        let relabelled = render(&expr, &RelabelledNodeMint(&salt));
+        prop_assert_ne!(
+            &primary.ttl, &relabelled.ttl,
+            "the two mint schemes must actually author different AST node IRIs, or this \
+             case proves nothing"
+        );
+
+        let verdict_primary = lower_rendered_verdict(&primary);
+        let verdict_relabelled = lower_rendered_verdict(&relabelled);
+
+        if contains_abstract_base(&expr) {
+            let (Err(left), Err(right)) = (&verdict_primary, &verdict_relabelled) else {
+                return Err(TestCaseError::fail(format!(
+                    "a term containing an undecomposed math:MathematicalExpression has no \
+                     structural identity and must be REFUSED, but the lowering returned \
+                     {verdict_primary:?} / {verdict_relabelled:?} — if those are two \
+                     different Ok digests, the abstract base was interned on its own node \
+                     IRI and the digest is a label\n\n--- generated Turtle ---\n{}",
+                    primary.ttl
+                )));
+            };
+            prop_assert_eq!(
+                left.failure_class(), right.failure_class(),
+                "the rejection CLASS must be a function of the term, never of the AST node \
+                 names it happens to be authored with"
+            );
+            prop_assert_eq!(
+                left.failure_class(),
+                "https://blackcatinformatics.ca/math/UnrecognizedExpressionType",
+                "an undecomposed abstract base names no concrete form, which is exactly \
+                 math:UnrecognizedExpressionType"
+            );
+        } else {
+            prop_assert_eq!(
+                lower_rendered(&primary), lower_rendered(&relabelled),
+                "renaming every AST node IRI must not change the structural digest"
+            );
+        }
     }
 
     /// **Injectivity, both directions — the reference-model cross-check.** Two
@@ -484,8 +752,8 @@ proptest! {
     #[test]
     fn lowering_is_deterministic_across_independent_dags(expr in gen_expr()) {
         let rendered = render(&expr, &PrimaryMint);
-        let graph = MathGraph::from_turtle(rendered.ttl.as_bytes())
-            .unwrap_or_else(|e| panic!("generated math: Turtle must parse: {e}"));
+        let dataset = multi_graph_dataset(&rendered.ttl);
+        let graph = MathGraph::from_dataset(&dataset);
 
         let mut dag = TermDag::new();
         let node_1 = lower_math_expression(&mut dag, &graph, &rendered.root)

@@ -21,7 +21,11 @@ ex:zetaSeriesSlot0 a math:ArgumentSlot ;
     math:slotExpression ex:zetaTerm .
 
 ex:seriesIndexDecl a math:VariableDeclaration .
-ex:zetaTerm a math:MathematicalExpression .
+# The series term is named, not decomposed: a math:SymbolReference resolving to a SYMBOL is the
+# concrete form for that. The abstract math:MathematicalExpression base names no form and
+# carries no structural identity (math:UnrecognizedExpressionType).
+ex:zetaTerm a math:SymbolReference ; math:hasMathematicalSymbol ex:zetaTermSymbol .
+ex:zetaTermSymbol a math:MathematicalSymbol .
 ex:zetaConvergence a math:Convergence ;
     math:convergesTo ex:zetaValue ;
     math:convergenceMode math:absoluteConvergence .

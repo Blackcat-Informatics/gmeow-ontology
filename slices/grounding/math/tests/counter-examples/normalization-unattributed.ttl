@@ -17,7 +17,13 @@ ex:unattributedSource a math:NumberLiteral ;
     math:normalForm ex:unattributedTarget ;
     math:literalValue "3"^^xsd:integer .
 
-ex:unattributedTarget a math:MathematicalExpression .
+# The normal-form TARGET is incidental here, not the defect. It is a math:SymbolReference so
+# the ONLY class this fixture raises is the unattributed normalization — the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:unattributedTarget a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:unattributedTargetSymbol .
+ex:unattributedTargetSymbol a math:MathematicalSymbol .
 
 ex:unattributedDecl a math:NormalizationDeclaration ;
     math:normalizes ex:unattributedSource ;

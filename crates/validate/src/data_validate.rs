@@ -688,42 +688,17 @@ fn deep_consistency_findings(
     crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
         .map_err(|e| DeepPassError::Derivation(e.message))?;
 
-    // The math: dimensional-homogeneity + math: expression-identity reasoned gates
-    // the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
-    // build time over the pipeline's own `assemble_object_level_edb`, now reachable
-    // from `gmeow validate --deep` over the CALLER'S OWN data merged with the bundle
-    // — a consumer with their own math AST graph gets `math:StructuralKeyDrift` /
-    // `math:FalseStructuralNormalizationClaim` findings directly from the `gmeow`
-    // CLI, not only from the MCP `verify_graph` tool. Deliberately narrower than the
-    // FULL `gmeow_logic::verify::verify_with_reasoning_result` battery: that also
-    // runs the embedded `queries/verify/*.rq` bad-example queries, several of which
-    // check for FIXED gmeow vocabulary (e.g. `axis-not-disjoint`'s seven
-    // identity-axis classes) that only the real production bundle carries —
-    // misfiring on a caller's own PARTIAL data graph unioned with a non-production
-    // bundle. The math: gates carry no such fixed-vocabulary assumption. Runs over
-    // the SAME `edb` + `result` the consistency fold above just used.
-    match gmeow_logic::verify::materialize_reasoned_graph(edb.as_ref(), &result).map_err(|e| {
+    // Shared with `crate::validate_all::deep_semantic_findings` via
+    // `crate::validate_all::run_math_reasoned_gates` (see its doc comment for why
+    // this is safe to run unconditionally over the CALLER'S OWN data merged with
+    // the bundle, and why the two callers deliberately map its failure
+    // differently). Runs over the SAME `edb` + `result` the consistency fold above
+    // just used. Unlike the dev bundle-only pass, a failure here can be caused by
+    // the CALLER's own merged data, not just the bundle, so it degrades
+    // gracefully to the `Unavailable` advisory rather than hard-failing.
+    crate::validate_all::run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
         DeepPassError::Unavailable(format!("reasoned-graph materialization failed: {e}"))
-    })? {
-        gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
-            for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
-                reasoned.dataset.as_ref(),
-            ) {
-                report.add_finding(finding);
-            }
-            for finding in gmeow_logic::math_expression::check_math_expression_findings(
-                edb.as_ref(),
-                reasoned.dataset.as_ref(),
-            ) {
-                report.add_finding(finding);
-            }
-        }
-        gmeow_logic::verify::ReasonedGraphOutcome::IncompleteClosure(findings) => {
-            for finding in findings {
-                report.add_finding(finding);
-            }
-        }
-    }
+    })?;
     Ok(())
 }
 

@@ -487,6 +487,24 @@ section registry is compared against this document's own headings in both direct
 row here without a class, a gate, and a fixture reds that test — which is what keeps this charter
 from drifting away from the ontology it charters.
 
+"Raises **exactly** the named failure class" is a claim about isolation, and isolation is asserted
+by a different authority: `tests/example-conformance.ttl` binds each counter-example to a
+`gmeow:expectedFailureClass`, and the slicetest runner requires that class to be the ONLY one any
+channel raises over that fixture. The two authorities read one corpus, so they are joined:
+`example-conformance.ttl` is the fixture **registry**, and a file under `tests/counter-examples/`
+that no cell binds — or a cell binding a file that is not there, or binding one as *conforming* — is
+a hard gap in the discharge harness. Without that join a fixture could be credited for completeness
+by one authority while the other never executed it, and the sentence above would be unfalsifiable
+for exactly the fixtures nobody had registered.
+
+The isolation runner executes four channels, because four decide `math:` failure classes: the
+generated SHACL surface, the native expression-identity gate, the native structural lint (the
+arithmetic and cross-node-join tier — probability bounds, distribution parameters,
+dependency-model completeness, exact-preservation mass, the projection loss ledger), and the
+reasoner-derived measure-and-dimension gate (`math:DimensionalInhomogeneity`, decided by exact ℚ⁷
+exponent arithmetic). A rule whose channel the runner cannot see is a rule whose counter-example
+cannot be celled at all.
+
 ## What conformance does not claim
 
 Conformance establishes that the *ontology source and its projections* satisfy their gates. It does

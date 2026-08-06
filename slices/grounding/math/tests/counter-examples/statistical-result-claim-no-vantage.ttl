@@ -6,6 +6,11 @@
 # names a result object through gmeow:observationResult but carries no gmeow:vantage —
 # a held statistical/probabilistic result claim floats free of the standpoint that
 # holds it. The native gate MUST emit math:UngroundedResultClaim.
+#
+# The result object itself is FULLY SPECIFIED — it names what it estimates
+# (math:estimatesEstimand) and the procedure that produced it (math:estimator) — so the
+# missing vantage on the CLAIM is the fixture's only defect. An underspecified estimate
+# would raise math:UnderspecifiedEstimate beside it and falsify the isolation.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <http://example.org/math/> .
@@ -14,4 +19,9 @@ ex:bareResultClaim a gmeow:Observation ;
     gmeow:observedFeature ex:someEstimate ;
     gmeow:observationResult ex:someEstimate .
 
-ex:someEstimate a math:Estimate .
+ex:someEstimate a math:Estimate ;
+    math:estimatesEstimand ex:someEstimand ;
+    math:estimator ex:someEstimator .
+
+ex:someEstimand a math:Estimand .
+ex:someEstimator a math:Estimator .

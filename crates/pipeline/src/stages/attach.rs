@@ -82,12 +82,14 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
     // `gmeow:attachesGraph` declarations and the empirical run dump).
     let mut t = BTreeMap::new();
 
-    // stage-source-load — the authored self-description graphs + the source-span blob.
+    // stage-source-load — the authored self-description graphs, every slice's authored
+    // examples/*.ttl ABox corpus, + the source-span blob.
     entry(
         &mut t,
         "stage-source-load",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
+            "https://blackcatinformatics.ca/gmeow/graph/examples",
             "https://blackcatinformatics.ca/gmeow/graph/grounding-seams",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
             "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
@@ -123,13 +125,12 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
 
     // stage-math-producers — the five flagship producer graphs (the rBridge one being the
     // executable r-lift) plus the probability-model seam, p-value tri-slice, and exact
-    // Clifford producer graphs, the ONNX / proof lift producer graphs, and the
-    // math-examples positive-demonstrator ABox corpus.
+    // Clifford producer graphs, and the ONNX / proof lift producer graphs. Every one is
+    // COMPUTED; the authored examples corpus is stage-source-load's graph/examples.
     entry(
         &mut t,
         "stage-math-producers",
         &[
-            "https://blackcatinformatics.ca/gmeow/graph/math-examples",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",

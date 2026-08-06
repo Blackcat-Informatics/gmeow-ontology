@@ -345,8 +345,17 @@ use session_common::*;
 /// kept, and no rule, decider, or profile capability changed. The fixed input here is
 /// edge-only and authors no subsumption edge in either spelling, so its reasoning verdict is
 /// unchanged — only the identity moved.
+/// Re-blessed once more for the abstract expression base LEAVING the accepted population.
+/// `math:MathematicalExpression` with no concrete form beneath it is the slice's abstract
+/// root; it names no production the lowering can walk and carries no content of its own, so
+/// it is now `math:UnrecognizedExpressionType` in an expression position instead of interning
+/// on its own node IRI. Keying it on that IRI made the structural digest a LABEL — two
+/// independent authorings of one expression over undecomposed operands never reached one key
+/// — and keying it on a shared opaque constant would have made two DIFFERENT undecomposed
+/// operands interchangeable. `physical/lower.rs` is a `BACKWARD_SOURCE` member; the fixed
+/// edge-only input carries no `math:` expression graph, so only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "dca3d7d68e78cac2c694112ae5099713cdaa52f5b52e1d5e7b56b31cd8855208";
+    "0957330e9113f4549bc4135167f06dd29f4627801c1fb2c00bc3289e064ec8bb";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -518,8 +527,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// the seven folded identity axes, so this fixed-input session identity moves with it. The
 /// fixed edge-only input authors no subsumption edge in either spelling, so its reasoning
 /// verdict is unchanged.
+/// Re-blessed once more for the abstract expression base LEAVING the accepted population
+/// (see the engine-descriptor golden above): the native contract hash is one of the seven
+/// folded identity axes and `physical/lower.rs` is a `BACKWARD_SOURCE` member, so this
+/// fixed-input session identity moves with it. The fixed edge-only input carries no `math:`
+/// expression graph, so its reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "d0e06525f88cd8401dbf194a6bafde1b0b757b925c893ec3ef3cee75d939de10";
+    "c241816bcaa631b1d85feda2953ea84f95ddfd5e20366b1da93838f4ef54b936";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

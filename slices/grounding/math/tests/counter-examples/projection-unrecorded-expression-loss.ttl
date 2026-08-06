@@ -15,7 +15,14 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/math/> .
 
-ex:sumExpr a math:MathematicalExpression .
+# The projection SOURCE has to stay an asserted math:MathematicalExpression — that asserted
+# typing is exactly what math:UnrecordedProjectionLoss triggers on ("a structured AST, not a
+# bare display string"). It also names a concrete form, math:SymbolReference, because the
+# abstract base alone names none and would raise math:UnrecognizedExpressionType beside the
+# one class this fixture isolates.
+ex:sumExpr a math:SymbolReference , math:MathematicalExpression ;
+    math:hasMathematicalSymbol ex:sumExprSymbol .
+ex:sumExprSymbol a math:MathematicalSymbol .
 
 ex:exprProjection a math:ProjectionRecord ;
     math:projectionSource ex:sumExpr ;

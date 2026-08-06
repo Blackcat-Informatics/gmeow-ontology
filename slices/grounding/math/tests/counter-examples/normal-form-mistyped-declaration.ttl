@@ -19,7 +19,12 @@ ex:mistypedSource a math:NumberLiteral ;
     math:normalForm ex:mistypedTarget ;
     math:literalValue "7"^^xsd:integer .
 
-ex:mistypedTarget a math:MathematicalExpression .
+# The normal-form TARGET is incidental here, not the defect. It is a math:SymbolReference so
+# the ONLY class this fixture raises is math:UndeclaredNormalForm — the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:mistypedTarget a math:SymbolReference ; math:hasMathematicalSymbol ex:mistypedTargetSymbol .
+ex:mistypedTargetSymbol a math:MathematicalSymbol .
 
 ex:notADeclaration
     math:normalizes ex:mistypedSource ;

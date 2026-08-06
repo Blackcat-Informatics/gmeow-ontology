@@ -4779,6 +4779,19 @@ logic:besSortalBody a logic:Formula ;
     logic:and logic:besSortalType , logic:besSortalUnderEntity , logic:besSortalDistinct .
 logic:besSortalType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sortal" ] .
+# The membership atom names rdfs:subClassOf, not logic:subClassOf — the OPPOSITE choice from
+# logic:fsfcMembership below, and deliberately so, not a drifted inconsistency. This formula's
+# derived sh:SPARQLConstraint is evaluated by `purrdf::shapes::engine` directly over Tier-1
+# CONSUMER data (no native reasoner in that path at all), whose only subclass edges are the
+# `rdfs:subClassOf` shortcuts `inject_subclass_shortcuts`
+# (`crates/validate/src/data_validate.rs`) synthesizes from the bundle's class hierarchy for
+# `sh:targetClass`/`sh:class` focus selection — it hard-codes that spelling and never emits
+# `logic:subClassOf`. `logic:fsfcMembership`'s formula instead runs over the AUTHORED TBox
+# itself, which asserts subsumption on the canonical `logic:` predicate and carries no
+# `rdfs:subClassOf` at all. Each names the predicate its OWN validated graph actually has; the
+# native reasoner's EDB-boundary `logic:subClassOf`/`rdfs:subClassOf` lowering
+# (`edb_predicate_spellings` in `crates/logic/src/reason/mod.rs`) governs neither — this
+# SHACL/SPARQL derivation path never runs the native reasoner.
 logic:besSortalUnderEntity a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sortal" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
 logic:besSortalDistinct a logic:Formula ; logic:relation logic:termDistinct ;
@@ -19040,7 +19053,11 @@ logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
 # Membership is tested against logic:subClassOf, the predicate the failure classes are
 # actually authored with. Testing rdfs:subClassOf here asked for the PROJECTED form of an
 # axiom the module states canonically, so the gate stopped recognizing its own slice's
-# failure classes and reported a conforming flagship scenario as a violation.
+# failure classes and reported a conforming flagship scenario as a violation. This is the
+# opposite spelling from logic:besSortalUnderEntity above (which correctly names
+# rdfs:subClassOf, for its own, different reason recorded there) — the two formulas are
+# validated over different graphs, so naming the same predicate in both would be the actual
+# bug, not the fix.
 logic:fsfcMembership a logic:Formula ; logic:relation logic:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 

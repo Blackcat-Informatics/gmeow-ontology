@@ -172,13 +172,22 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
 # The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
 # close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
-# `schema_org_procedures_projection` belongs to the same class and was left on the 60s x2
-# default: it assembles the bundle and projects the whole prescription spine, measured at
-# ~360s here, so it timed out on every try under gate load and passed only intermittently on
-# a quiet machine. The assertions are untouched — only the budget, which never matched the
-# work the test actually does.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) | binary(schema_org_procedures_projection) )'
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# `schema_org_procedures_projection` is a plain budget correction: it never fit its 60s x2
+# default and was simply never given one. It is NOT a member of the whole-bundle-proof class
+# above — it projects one small worked instance, not the bundle — its own cost is
+# `stage-mappings::compile_mappings`, the real production mapping-compile entry point (slice
+# catalog discovery, the prefix/purity lints, and — the dominant share — an executed
+# get/put law discharge for every authored correspondence in the repo), which this test must
+# call unmodified to stay the real compiled query rather than a re-implementation. Measured
+# test time (excluding the crate build) on this shared, concurrently-loaded host: 181.6s,
+# comfortably past the 120s default kill and rising under load, so the same 300s backstop as
+# its neighbours is warranted on the numbers alone. Assertions untouched; only the budget.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(schema_org_procedures_projection)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 # `math_conformance_discharge` gets its own backstop, and its history is the clearest

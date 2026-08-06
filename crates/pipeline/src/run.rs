@@ -209,9 +209,8 @@ pub fn full_spec() -> PipelineSpec {
         // one being the executable r_lift — plus the probability-model seam, p-value
         // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
-        // stage-snapshot). Also reads the math slice's examples/*.ttl positive-demonstrator
-        // ABox corpus into graph/math-examples, which BOTH stage-snapshot folds into
-        // gmeow.gts and stage-reason admits to the object-level reasoning EDB.
+        // stage-snapshot). It reads nothing off disk: every slice's examples/*.ttl
+        // positive-demonstrator ABox is loaded by stage-source-load into graph/examples.
         st("stage-math-producers", "math_producers", &[]),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
         // #21/#20). A productive functor over the glyph signature: it consumes
@@ -254,7 +253,6 @@ pub fn full_spec() -> PipelineSpec {
             "reason",
             &[
                 "stage-compile-logic",
-                "stage-math-producers",
                 "stage-source-load",
                 "stage-statements",
             ],
@@ -378,9 +376,8 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-mappings",
                 // The ten math producer graphs (five flagship producers — the rBridge one
                 // being the executable r_lift — plus the probability-model seam, p-value
-                // tri-slice, Clifford, and the ONNX / proof lift producers), plus
-                // graph/math-examples (the math slice's examples/*.ttl positive-demonstrator
-                // corpus), folded into gmeow.gts.
+                // tri-slice, Clifford, and the ONNX / proof lift producers), folded into
+                // gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
                 // The authoring-packet corpus (graph/authoring-briefs), folded into

@@ -68,7 +68,16 @@ ex:dfdtSlot0 a math:ArgumentSlot ;
     math:slotIndex 0 ;
     math:slotExpression ex:worldlineExpr .
 
-ex:worldlineExpr a math:MathematicalExpression .
+# The worldline is named, not decomposed. The honest AST leaf for that is a
+# math:SymbolReference occurrence resolving to the SYMBOL γ — real content, shared by every
+# author who writes over the same symbol. The abstract math:MathematicalExpression base is
+# NOT an alternative: it names no concrete form, so it has no structural identity at all
+# (math:UnrecognizedExpressionType), and interning it on its own node IRI would make the
+# structural digest a label.
+ex:worldlineExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:worldlineSymbol .
+ex:worldlineSymbol a math:MathematicalSymbol ;
+    rdfs:label "the worldline γ"@x-gmeow-english .
 ex:properTimeDecl a math:VariableDeclaration .
 
 # --- A two-sided limit ------------------------------------------------------ #
@@ -94,7 +103,10 @@ ex:lorentzFactorResult a math:LimitResult ;
     math:limitOutcome math:divergesToPositiveInfinity ;
     math:limitResultValue math:PositiveInfinity .
 
-ex:lorentzFactorExpr a math:MathematicalExpression .
+ex:lorentzFactorExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:lorentzFactorSymbol .
+ex:lorentzFactorSymbol a math:MathematicalSymbol ;
+    rdfs:label "the Lorentz factor γ(v)"@x-gmeow-english .
 ex:lightSpeed a math:MathematicalObject .
 
 # A convergent limit: the result names math:convergesFinitely and carries a finite
@@ -110,7 +122,10 @@ ex:properTimeRateResult a math:LimitResult ;
     math:limitOutcome math:convergesFinitely ;
     math:limitResultValue "1.0"^^xsd:double .
 
-ex:properTimeRateExpr a math:MathematicalExpression .
+ex:properTimeRateExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:properTimeRateSymbol .
+ex:properTimeRateSymbol a math:MathematicalSymbol ;
+    rdfs:label "the proper-time rate dτ/dt"@x-gmeow-english .
 ex:restVelocity a math:MathematicalObject .
 
 # --- An absolutely convergent series ---------------------------------------- #
@@ -120,7 +135,10 @@ ex:properTimeSeries a math:Series ;
     math:seriesTerm ex:properTimeTerm ;
     math:hasConvergence ex:properTimeConvergence .
 
-ex:properTimeTerm a math:MathematicalExpression .
+ex:properTimeTerm a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:properTimeTermSymbol .
+ex:properTimeTermSymbol a math:MathematicalSymbol ;
+    rdfs:label "the summand aₙ of the proper-time series"@x-gmeow-english .
 ex:properTimeConvergence a math:Convergence ;
     math:convergesTo ex:properTimeSum ;
     math:convergenceMode math:absoluteConvergence .

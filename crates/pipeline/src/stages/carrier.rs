@@ -986,18 +986,17 @@ fn assemble_carrier(
     for graph_iri in MATH_PRODUCER_GRAPHS {
         datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
     }
-    // graph/math-examples — the math slice's authored positive-demonstrator ABox
-    // corpus (every slices/grounding/math/examples/*.ttl file), read off the SAME
-    // `stage-math-producers` product's attached named graph. UNLIKE the eight producer
-    // graphs above, this one IS admitted to the object-level reasoning EDB (see
-    // `assemble_object_level_edb`), so it ships here both as a queryable bundle graph AND
-    // as reasoned-closure input: the expression-identity gate
-    // (`gmeow_logic::math_expression::check_math_expression_findings`) has a real witness
-    // to decide over the shipped bundle instead of running vacuously.
-    datasets.push(producer_graph(
+    // graph/examples — EVERY slice's authored positive-demonstrator ABox corpus (every
+    // slices/<group>/<slice>/examples/*.ttl file), read off the `stage-source-load`
+    // product's attached named graph. UNLIKE the producer graphs above, this one IS
+    // admitted to the object-level reasoning EDB (see `assemble_object_level_edb`), so it
+    // ships here both as a queryable bundle graph AND as reasoned-closure input: every
+    // reasoned-graph gate — the expression-identity gate
+    // (`gmeow_logic::math_expression::check_math_expression_findings`) among them — has a
+    // real witness to decide over the shipped bundle instead of running vacuously.
+    datasets.push(source_load_graph(
         upstream,
-        "stage-math-producers",
-        gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES,
+        gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
     )?);
     datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -1320,12 +1319,12 @@ fn rdf_fanout_members(
 /// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends on the
-/// `stage-statements`, `stage-compile-logic`, `stage-source-load` products (the authored
-/// / imports self-description graphs) and `stage-math-producers`' math-examples
-/// graph (the math slice's authored positive-demonstrator ABox corpus — see
-/// [`gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES`]) — never on mapping/
+/// `stage-statements`, `stage-compile-logic` and `stage-source-load` products (the latter
+/// supplying the authored / imports self-description graphs AND every slice's authored
+/// positive-demonstrator ABox corpus — see
+/// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]) — never on mapping/
 /// correspondence projections or the snapshot, so reasoning need not wait on either.
-/// `stage-reason` consumes exactly those four producers (see `run.rs`).
+/// `stage-reason` consumes exactly those three producers (see `run.rs`).
 pub(crate) fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
@@ -1347,15 +1346,10 @@ pub(crate) fn assemble_object_level_edb(
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
-        // The math slice's positive-demonstrator ABox — the authored
-        // `math:structuralKey` / `math:NormalizationDeclaration` instances under
-        // `slices/grounding/math/examples/` — admitted to object-level reasoning so the
-        // expression-identity gate has a real witness to decide over the shipped bundle.
-        producer_graph(
-            upstream,
-            "stage-math-producers",
-            gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES,
-        )?,
+        // EVERY slice's positive-demonstrator ABox — the authored worked examples under
+        // `slices/<group>/<slice>/examples/` — admitted to object-level reasoning so each
+        // reasoned-graph gate has a real witness to decide over the shipped bundle.
+        source_load_graph(upstream, gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES)?,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     // The termination-class ladder demonstrators: one general existential program per
@@ -1385,7 +1379,7 @@ fn without_recovery_case_envelopes(
 
 /// Project a shipped snapshot back to the exact object-level EDB admitted by
 /// [`assemble_object_level_edb`]. The authored default graph remains default-world;
-/// statement/import/logic/relational-core/math-examples worlds retain their graph
+/// statement/import/logic/relational-core/examples worlds retain their graph
 /// names. Every mapping, correspondence, report, documentation, and fanout graph is
 /// excluded.
 ///
@@ -3904,13 +3898,13 @@ impl Stage for SnapshotStage {
         // reaches no committed artifact without this fold) AND the executable-lift folds
         // above. Both change the bundle's content, so neither version string alone busts the
         // cache correctly for the merged product.
-        // v33 folds a THIRD independent line on top of v32: `stage-math-producers`'
-        // graph/math-examples — the math slice's whole examples/*.ttl positive-demonstrator
-        // corpus — so that corpus reaches the shipped bundle (and, through
+        // v33 folds a THIRD independent line on top of v32: `stage-source-load`'s
+        // graph/examples — EVERY slice's whole examples/*.ttl positive-demonstrator corpus —
+        // so that corpus reaches the shipped bundle (and, through
         // `assemble_object_level_edb`, the reasoned closure) instead of being read only by
         // the docs/competency-question harvest. Same reasoning as v32: the merged product
         // differs from either line alone, so it needs its own key.
-        "snapshot.v33-grounding-seams-executable-lifts-and-math-examples"
+        "snapshot.v33-grounding-seams-executable-lifts-and-examples"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

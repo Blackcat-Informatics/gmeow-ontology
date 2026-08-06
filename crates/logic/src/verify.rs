@@ -24,6 +24,7 @@ use purrdf::{
     SparqlRequest, SparqlResult, TermValue,
 };
 
+use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENCE_CLASS_TYPE};
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
 use crate::result::ReasoningResult;
@@ -359,39 +360,17 @@ pub fn materialize_reasoned_graph(
         })
     })?;
 
-    // Materialize `math:alphaEquivalenceClass` for every expression that LOWERS CLEANLY.
+    // Splice `math:alphaEquivalenceClass` into the reasoned graph this gate evaluates over,
+    // for every expression that LOWERS CLEANLY — an ordinary triple, exactly as the
+    // dimension-gate markers are spliced above, not a Rust side-channel.
     //
-    // The term's own definition says it is "materialized by the math: expression-identity
-    // reasoned gate, never an independently authored edge", and that its purpose is to give a
-    // consumer a node to JOIN on where math:structuralKey offers only a literal to compare.
-    // Emitting it solely alongside a drift finding would invert that: two WRONG expressions
-    // would share a joinable node and two CONFORMING ones never would, which is precisely
-    // backwards for an identity edge. So it is spliced here for every successfully lowered
-    // root, exactly as the dimension-gate markers are spliced above — an ordinary triple in
-    // the reasoned graph, not a Rust side-channel.
-    //
-    // Rejected roots get no edge: a structural identity cannot be claimed for an expression
-    // the grammar refutes (the same reason math:StructuralKeyOnRejectedExpression exists).
-    //
-    // Lowered from `edb`, NEVER from `dataset`. The DL chase invents a filler for an unsatisfied
-    // existential obligation, so a root the grammar refutes for a MISSING operand lowers cleanly
-    // over the closure — it would be handed an identity edge computed over a Skolem witness
-    // nobody authored, contradicting the sentence above and disagreeing with the digest
-    // `check_math_expression_findings` cites for the same root (it reads the asserted graph).
-    // Two substrates would mint two class IRIs for one expression, which is the opposite of a
-    // node to JOIN on.
-    let alpha_edges: Vec<(String, String)> =
-        crate::physical::lower::math_expression_structural_keys(edb)
-            .into_iter()
-            .filter_map(|(root, keyed)| {
-                keyed.ok().map(|digest| {
-                    (
-                        root,
-                        crate::physical::lower::alpha_class_iri_for_digest(&digest),
-                    )
-                })
-            })
-            .collect();
+    // The edges come from the ONE derivation, `math_expression::alpha_equivalence_edges`
+    // (asserted substrate, accepted roots, IRI-named roots — the rationale for each lives
+    // there). The pipeline's reasoning stage serializes the SAME derivation into the shipped
+    // closure, so the joinable node a consumer reaches off `gmeow.gts` /
+    // `generated/logic/inferred-closure.rdf12.ttl` is the identical individual this in-process
+    // reasoned graph carries; there is no second, independently-computed identity.
+    let alpha_edges = crate::math_expression::alpha_equivalence_edges(edb);
     if alpha_edges.is_empty() {
         return Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
             dataset,
@@ -423,13 +402,6 @@ pub fn materialize_reasoned_graph(
         derived_predicates,
     }))
 }
-
-/// `math:alphaEquivalenceClass` — the expression-to-identity edge the gate materializes.
-const MATH_ALPHA_EQUIVALENCE_CLASS: &str =
-    "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
-/// `math:AlphaEquivalenceClass` — the content-addressed individual that edge resolves to.
-const MATH_ALPHA_EQUIVALENCE_CLASS_TYPE: &str =
-    "https://blackcatinformatics.ca/math/AlphaEquivalenceClass";
 
 /// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
 ///
