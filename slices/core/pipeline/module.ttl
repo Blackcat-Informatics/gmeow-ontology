@@ -2302,8 +2302,7 @@ gmeow:receiptDigest
 # ── Occurrence wiring: execution ↔ stage, run ↔ execution, receipt ↔ execution ─ #
 
 gmeow:executesStage
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "executes stage"@x-gmeow-english ;
     rdfs:domain gmeow:StageExecution ;
@@ -2329,8 +2328,7 @@ gmeow:hasStageExecution
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:receiptOfExecution
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receipt of execution"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
@@ -2522,4 +2520,36 @@ gmeow:stageImplFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:stageImpl and nothing else. It is not a definition of gmeow:stageImpl (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:executesStageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "executesStage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:executesStage is functional: a gmeow:StageExecution enacts exactly one gmeow:PipelineStage — one occurrence is a run of a single standing unit of work, so an execution bound to two stages is two executions, not one. This record is not a definition of the term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:executesStage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:executesStage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:executesStage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:executesStage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:executesStage and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:executesStageFunctionality logic:characterizes gmeow:executesStage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:receiptOfExecutionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receiptOfExecution is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptOfExecution is functional: a gmeow:StageReceipt records exactly one gmeow:StageExecution — the single occurrence whose product it content-addresses, so a receipt bound to two executions is two receipts, not one. This record is not a definition of the term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:receiptOfExecution ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:receiptOfExecution ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:receiptOfExecution names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptOfExecution, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:receiptOfExecution and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:receiptOfExecutionFunctionality logic:characterizes gmeow:receiptOfExecution ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
