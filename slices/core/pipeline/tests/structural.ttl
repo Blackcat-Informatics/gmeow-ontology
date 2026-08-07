@@ -257,3 +257,42 @@ ASK {
     ?f logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
 }""" ;
     gmeow:saRationale "The admission law MUST be authored as a logic:Constraint + logic:Formula (never a hand-authored SHACL shape): its logic:integrity conjoins the dataflow-producer-existence and authority-edge-retention first-order arms, its logic:message states all four expectations (acyclicity, connectivity, dataflow satisfaction, authority satisfaction), and the transitive-closure arms are disclosed via the honest gmeow:runtimeDagAdmissionBoundary rather than faked." .
+
+# --- 15. The runtime-DAG value vocabularies are CLOSED declaratively (MUST) ----
+# The declarative derive-source axioms the projected SHACL/ShEx read: gmeow:BuildDataFlow
+# carries EXACTLY ONE gmeow:flowReason (owl min- AND max-qualified-cardinality 1 on
+# gmeow:FlowReason), and gmeow:flowReason / gmeow:stageDisposition / gmeow:stageObligation /
+# gmeow:stageStability are each closed to their declared individuals via logic:oneOf. These
+# axioms MUST remain present (projection-purity: the sh:in / sh:qualifiedMaxCount surfaces
+# are DERIVED from them, never hand-authored), so their disappearance is a structural regression.
+ex:saRuntimeDagClosedAxioms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    # BuildDataFlow carries EXACTLY ONE flowReason: min-1 AND max-1 qualified on FlowReason.
+    gmeow:BuildDataFlow rdfs:subClassOf ?minR , ?maxR .
+    ?minR owl:onProperty gmeow:flowReason ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason .
+    ?maxR owl:onProperty gmeow:flowReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason .
+    # flowReason is closed to its three declared individuals via logic:oneOf.
+    gmeow:BuildDataFlow logic:subClassOf ?frR .
+    ?frR logic:onProperty gmeow:flowReason ; logic:allValuesFrom ?frOne .
+    ?frOne logic:oneOf/rdf:rest*/rdf:first gmeow:flowReasonAuthority .
+    # stageDisposition is closed on StageExecution via logic:oneOf.
+    gmeow:StageExecution logic:subClassOf ?sdR .
+    ?sdR logic:onProperty gmeow:stageDisposition ; logic:allValuesFrom ?sdOne .
+    ?sdOne logic:oneOf/rdf:rest*/rdf:first gmeow:dispositionTypedAbsence .
+    # stageObligation is closed on PipelineStage via logic:oneOf.
+    gmeow:PipelineStage logic:subClassOf ?soR .
+    ?soR logic:onProperty gmeow:stageObligation ; logic:allValuesFrom ?soOne .
+    ?soOne logic:oneOf/rdf:rest*/rdf:first gmeow:obligationMandatory .
+    # stageStability is closed on PipelineStage via logic:oneOf.
+    gmeow:PipelineStage logic:subClassOf ?ssR .
+    ?ssR logic:onProperty gmeow:stageStability ; logic:allValuesFrom ?ssOne .
+    ?ssOne logic:oneOf/rdf:rest*/rdf:first gmeow:stabilityStablePrefix .
+}""" ;
+    gmeow:saRationale "The runtime-DAG value vocabularies MUST stay closed by declarative axioms in module.ttl, because the projected sh:in enumerations and the sh:qualifiedMinCount/qualifiedMaxCount-1 on gmeow:flowReason are DERIVED from exactly these (projection-purity: never hand-authored on a shape surface). This assertion pins their presence: gmeow:BuildDataFlow's exact-one gmeow:flowReason (owl min- and max-qualified-cardinality 1 onClass gmeow:FlowReason) and the four logic:oneOf closures (gmeow:flowReason, gmeow:stageDisposition, gmeow:stageObligation, gmeow:stageStability), so a dropped closure is caught as a structural regression rather than silently widening a value set." .
