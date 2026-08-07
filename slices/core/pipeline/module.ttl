@@ -2299,6 +2299,49 @@ gmeow:receiptDigest
     skos:example "gmeow:receipt-canon gmeow:receiptDigest \"blake3:1f9c0a…\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ── Occurrence wiring: execution ↔ stage, run ↔ execution, receipt ↔ execution ─ #
+
+gmeow:executesStage
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "executes stage"@x-gmeow-english ;
+    rdfs:domain gmeow:StageExecution ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:StageExecution to the ONE gmeow:PipelineStage it is a run of — the standing unit of work this occurrence enacts. Functional: an execution enacts exactly one stage. Where gmeow:PipelineStage is the run-invariant description of a unit of work, gmeow:executesStage names the stage a single gmeow:StageExecution attempted, so a run's occurrences join back to the DAG's stages."@x-gmeow-english ;
+    skos:example "gmeow:exec-annotate-42 gmeow:executesStage gmeow:stage-annotate ."@x-gmeow-english ;
+    gmeow:useWhen "Record on every gmeow:StageExecution the gmeow:PipelineStage it enacts, so each occurrence joins to its standing stage in the DAG."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it to gather a run's executions (that is gmeow:hasStageExecution on the gmeow:PipelineRun) and do NOT point it at a gmeow:StageReceipt or gmeow:PipelineRun — its range is the standing gmeow:PipelineStage."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:executesStage per gmeow:StageExecution naming the stage it ran; combined with gmeow:hasStageExecution on the run it links occurrence, run, and standing stage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasStageExecution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "has stage execution"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineRun ;
+    rdfs:range gmeow:StageExecution ;
+    skos:definition "Relates a gmeow:PipelineRun to each gmeow:StageExecution it gathered — the perdurant occurrences of its stages, one per attempt. Multi-valued, the occurrence-level companion to gmeow:hasStageReceipt (which gathers the content-addressed records): where a receipt is the immutable fingerprint of what a stage produced, an execution is the run of the stage carrying how the attempt ENDED (gmeow:stageDisposition). Gathering the executions on the run makes the run the replayable record of what happened."@x-gmeow-english ;
+    skos:example "gmeow:run-2026-08-05 gmeow:hasStageExecution gmeow:exec-annotate-42 ."@x-gmeow-english ;
+    gmeow:useWhen "Attach every gmeow:StageExecution to the gmeow:PipelineRun it occurred in, so the run gathers its occurrences alongside their receipts."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT put executions on the standing gmeow:Pipeline plan (a run is one enactment) and do NOT conflate it with gmeow:hasStageReceipt — an execution is the occurrence, a receipt is its content-addressed record."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:StageExecution per stage attempt (with its gmeow:executesStage and gmeow:stageDisposition) and gather them on the gmeow:PipelineRun with gmeow:hasStageExecution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:receiptOfExecution
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receipt of execution"@x-gmeow-english ;
+    rdfs:domain gmeow:StageReceipt ;
+    rdfs:range gmeow:StageExecution ;
+    skos:definition "Relates a gmeow:StageReceipt to the ONE gmeow:StageExecution whose contribution it records — the occurrence that produced the receipt's gmeow:receiptDigest. Functional: a receipt records exactly one execution. Where gmeow:receiptOfStage anchors the receipt to the standing gmeow:PipelineStage (for topological ordering), gmeow:receiptOfExecution anchors it to the specific occurrence, so a receipt joins to how that attempt ENDED (gmeow:stageDisposition), not only to which stage it was."@x-gmeow-english ;
+    skos:example "gmeow:receipt-canon gmeow:receiptOfExecution gmeow:exec-canon-42 ."@x-gmeow-english ;
+    gmeow:useWhen "Record on a gmeow:StageReceipt the gmeow:StageExecution it is the receipt of, so the content-addressed record joins to the occurrence's disposition."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it in place of gmeow:receiptOfStage (which anchors the receipt to the standing stage for topological ordering) — a receipt carries both its stage AND its execution."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:receiptOfExecution per receipt naming the execution it records, alongside gmeow:receiptOfStage and gmeow:receiptDigest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # =========================================================================== #
 # (6) Runtime-DAG admission constraint — the declared law the graph satisfies. #
 #                                                                             #

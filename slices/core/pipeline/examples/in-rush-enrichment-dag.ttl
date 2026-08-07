@@ -103,11 +103,14 @@ ex:edge-gate-authority a gmeow:BuildDataFlow ;
 
 # ── One run of the DAG, with a per-execution disposition and ordered receipts ──
 ex:run-42 a gmeow:PipelineRun ;
+    gmeow:hasStageExecution ex:exec-enrich-42 ;
     gmeow:hasStageReceipt ex:receipt-canonicalize , ex:receipt-enrich .
 
 # The enrichment execution produced an explicit typed "nothing" — a valid answer,
-# not a failure — which its degradable obligation tolerates.
+# not a failure — which its degradable obligation tolerates. It enacts the
+# ex:enrich stage (gmeow:executesStage) within run ex:run-42 (gmeow:hasStageExecution).
 ex:exec-enrich-42 a gmeow:StageExecution ;
+    gmeow:executesStage ex:enrich ;
     gmeow:stageDisposition gmeow:dispositionTypedAbsence .
 
 # Receipts serialize in TOPOLOGICAL order (canonicalize precedes enrich), regardless
@@ -118,4 +121,5 @@ ex:receipt-canonicalize a gmeow:StageReceipt ;
 
 ex:receipt-enrich a gmeow:StageReceipt ;
     gmeow:receiptOfStage ex:enrich ;
+    gmeow:receiptOfExecution ex:exec-enrich-42 ;
     gmeow:receiptDigest "blake3:77aa31b2" .
