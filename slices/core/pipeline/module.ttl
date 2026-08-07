@@ -2375,17 +2375,26 @@ gmeow:RuntimeDagAdmissionConstraint
 # (d) authority-edge well-formedness / retention.
 gmeow:radConj a logic:Formula ; logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
 
-# (c) Every gmeow:dataflowConsumes edge is satisfied by a producing stage: the
-# consumed relatum is itself a gmeow:PipelineStage (a real producer, not a dangling
-# reference) — the first-order shadow of "satisfied by some producer on a preceding path".
+# (c) Every gmeow:dataflowConsumes edge is satisfied by a producing stage that is an
+# ASSERTED member of an enclosing pipeline: some gmeow:Pipeline names the producer through
+# gmeow:hasStage. This is the first-order shadow of "satisfied by some producer on a
+# preceding path" — and it must be an asserted membership, NOT merely producer rdf:type
+# gmeow:PipelineStage: gmeow:dataflowConsumes has rdfs:range gmeow:PipelineStage, so a bare
+# type check is ENTAILED by RDFS range inference for every consumed relatum and verifies
+# nothing. Requiring an explicit gmeow:hasStage membership triple cannot be satisfied by
+# that range inference, so the edge must point at a real, declared member stage.
 gmeow:radDataflowForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] ;
     logic:forall gmeow:radDataflowImpl .
-gmeow:radDataflowImpl a logic:Formula ; logic:antecedent gmeow:radConsumes ; logic:consequent gmeow:radProducerIsStage .
+gmeow:radDataflowImpl a logic:Formula ; logic:antecedent gmeow:radConsumes ; logic:consequent gmeow:radProducerMember .
 gmeow:radConsumes a logic:Formula ; logic:relation gmeow:dataflowConsumes ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
-gmeow:radProducerIsStage a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "producer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PipelineStage ] .
+# The producer is an ASSERTED member stage of some pipeline: ∃ pipeline . pipeline gmeow:hasStage producer.
+gmeow:radProducerMember a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pipeline" ] ;
+    logic:exists gmeow:radProducerHasStage .
+gmeow:radProducerHasStage a logic:Formula ; logic:relation gmeow:hasStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pipeline" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
 
 # (d) Every AUTHORITY edge is a well-formed, RETAINED ordering constraint: an edge
 # typed gmeow:BuildDataFlow whose gmeow:flowReason is gmeow:flowReasonAuthority and which
