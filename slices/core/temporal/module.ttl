@@ -1673,7 +1673,8 @@ gmeow:TemporalMeasurement logic:subClassOf
 # mirroring logic:rdf12-nested-triple-term's retained-withhold idiom exactly
 # (slices/grounding/logic/module.ttl).
 gmeow:ObservationWindowClosedWorldBoundary
-    a owl:NamedIndividual ;
+    a owl:NamedIndividual ,
+        gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Observation Window Closed-World Boundary"@x-gmeow-english ;
     logic:expressivenessBoundary logic:FirstOrder ;

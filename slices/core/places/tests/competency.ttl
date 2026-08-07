@@ -97,7 +97,8 @@ ex:cqIndexProjectionDisclosure a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/index-projection-disclosure.rq" ;
     gmeow:cqRationale "GMEOW must name which properties a geospatial index may derive cells from, and under which disclosure marks: an index built over a gmeow:coarsenGuarded key-source property inherits the guard, so a gmeow:consumerPublicSite projection of that index must coarsen first (Principle 10; the normative coarsen-guard ruling)." ;
     gmeow:cqResultShape ex:cqIndexProjectionDisclosureShape ;
-    gmeow:cqExpectRow ex:ipdHasCoordinates, ex:ipdHasGeometry, ex:ipdCoordinateFrame .
+    gmeow:cqExpectRow ex:ipdAsGeoJSON, ex:ipdAsWKT, ex:ipdCoordinateFrame,
+        ex:ipdCoordinateResult, ex:ipdGeometryResult, ex:ipdHasCoordinates, ex:ipdHasGeometry .
 
 ex:cqIndexProjectionDisclosureShape a logic:ResultShape ;
     logic:declaresColumn
@@ -105,12 +106,29 @@ ex:cqIndexProjectionDisclosureShape a logic:ResultShape ;
         [ logic:columnVariable "guarded" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsContains .
 
-ex:ipdHasCoordinates a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasCoordinates ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "true" ] .
-ex:ipdHasGeometry a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "true" ] .
+# ?guarded is bound by BIND(EXISTS { … gmeow:coarsenGuarded true } AS ?guarded), an
+# xsd:boolean effective value, so the expected cell is a Turtle boolean (xsd:boolean),
+# not the string "true"/"false". Every gmeow:useForConsumer gmeow:consumerIndexProjection
+# property in the places module appears; the guarded mark is true iff it also carries
+# gmeow:coarsenGuarded true (issue #1679 index-consumer disclosure).
+ex:ipdAsGeoJSON a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:asGeoJSON ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral false ] .
+ex:ipdAsWKT a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:asWKT ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral false ] .
 ex:ipdCoordinateFrame a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:coordinateFrame ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral "false" ] .
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral false ] .
+ex:ipdCoordinateResult a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:coordinateResult ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral true ] .
+ex:ipdGeometryResult a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:geometryResult ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral true ] .
+ex:ipdHasCoordinates a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasCoordinates ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral true ] .
+ex:ipdHasGeometry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral true ] .
