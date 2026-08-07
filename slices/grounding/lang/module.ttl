@@ -9443,6 +9443,23 @@ lang:TranslationUnit logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:translationCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:allValuesFrom lang:TranslationMethod ] .
 
+# The canonicalization/analyzer profile declares its frame identity (script, encoding,
+# normalization, collation) and its version as single-valued properties; each is bounded
+# maxQualifiedCardinality 1, the same idiom as lang:Denotation's denotationKind bound —
+# logic:onClass owl:Thing for the object-valued lang:profileScript, logic:onDataRange
+# xsd:string for the string-valued frame and version properties.
+lang:CanonicalizationProfile logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:profileScript ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileEncoding ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileNormalization ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileCollation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+
+# One pipeline stage names exactly one lang:StageKind; the stage-kind bound mirrors the
+# same idiom (logic:onClass owl:Thing for the object-valued lang:stageKind).
+lang:ProfileStage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:stageKind ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
 lang:TransliterationMap rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:transliterationSourceOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty lang:transliterationTargetOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -9763,6 +9780,17 @@ lang:FormSlotIndexUniquenessConstraint
     logic:sharedPredicate lang:slotIndex ;
     logic:formalizes lang:SlotIndexUniqueShape ;
     logic:message "No two distinct lang:formSlot cells of one lang:ComposedForm may share the same lang:slotIndex." .
+
+# No two distinct lang:hasStage stages of one lang:CanonicalizationProfile may share
+# the same lang:stageOrder — the pipeline is an ordered program, not a set (a self-join
+# uniqueness constraint, mirroring lang:FormSlotIndexUniquenessConstraint).
+lang:ProfileStageOrderUniquenessConstraint
+    a logic:SelfJoinUniquenessConstraint ;
+    logic:onClass lang:CanonicalizationProfile ;
+    logic:siblingPredicate lang:hasStage ;
+    logic:sharedPredicate lang:stageOrder ;
+    logic:formalizes lang:ProfileStageOrderUniqueShape ;
+    logic:message "No two distinct lang:hasStage stages of one lang:CanonicalizationProfile may share the same lang:stageOrder." .
 
 # A lang:FeatureValue must be dispositioned in the symbology plane: it must be the
 # lang:denotationTarget of some lang:Denotation (an inverse-existence constraint).
