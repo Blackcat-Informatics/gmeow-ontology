@@ -110,7 +110,7 @@ ex:cqIndexProjectionDisclosureShape a logic:ResultShape ;
 # xsd:boolean effective value, so the expected cell is a Turtle boolean (xsd:boolean),
 # not the string "true"/"false". Every gmeow:useForConsumer gmeow:consumerIndexProjection
 # property in the places module appears; the guarded mark is true iff it also carries
-# gmeow:coarsenGuarded true (issue #1679 index-consumer disclosure).
+# gmeow:coarsenGuarded true (the index-consumer disclosure guard).
 ex:ipdAsGeoJSON a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:asGeoJSON ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral false ] .
