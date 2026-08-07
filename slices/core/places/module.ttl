@@ -2233,7 +2233,7 @@ gmeow:h3
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "H3 cell index"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff')."@x-gmeow-english ;
+    skos:definition "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff'). It names a whole hexagonal cell, not a raw latitude/longitude point, and is not interchangeable with a geohash or an MGRS string — unlike those grids, an H3 address is hexagonal and hierarchical, and encodes its own resolution in the index itself."@x-gmeow-english ;
     skos:example "ex:h3Loc gmeow:h3 \"8928308280fffff\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
     gmeow:avoidWhen "Avoid mixing an H3 cell index with another geocoding system (e.g. geohash, MGRS) on one Geocode, and avoid emitting a fine (high) resolution index to a public consumer — the 64-bit index encodes its resolution, so coarsen (re-cell to a lower resolution) before disclosure."@x-gmeow-english ;
@@ -2248,7 +2248,7 @@ gmeow:h3Resolution
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "H3 resolution"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The H3 resolution of a gmeow:h3 cell index — an integer from 0 (coarsest, ~1107 km average hexagon edge) to 15 (finest, ~0.5 m average hexagon edge) fixing the granularity of the addressed cell."@x-gmeow-english ;
+    skos:definition "The H3 resolution of a gmeow:h3 cell index — an integer from 0 (coarsest, ~1107 km average hexagon edge) to 15 (finest, ~0.5 m average hexagon edge) fixing the granularity of the addressed cell. It is a discrete cell-resolution level, not a metric distance and not a count of cells — a coarser resolution names a larger hexagon rather than a more precise point."@x-gmeow-english ;
     skos:example "ex:h3Loc gmeow:h3Resolution \"9\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     skos:scopeNote "Relates the H3 resolution ladder to the spatial gmeow:GranularityLevel disclosure ladder (gmeow:granularityPoint … gmeow:granularityCountry, Principle 10): a high H3 resolution (fine cells) sits at or near gmeow:granularityPoint and is precision-bearing, while a low resolution (coarse cells) corresponds to coarser GranularityLevel steps. Coarsening to a lower resolution is the H3-native analogue of stepping up the GranularityLevel ladder; a public projection MUST NOT emit a resolution finer than the declared disclosure granularity permits."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
