@@ -108,9 +108,11 @@ inverse `gmeow:containsPlace`; closure is solver work, not asserted triples. Alt
 geocodes (geocoding design — Plus Code, what3words, geohash, H3, MGRS, UN/LOCODE, mile-marker)
 are `gmeow:Geocode` strings in an explicit `gmeow:geocodeFrame` attached by `gmeow:hasGeocode`;
 conversion to WGS84 is solver-layer. `gmeow:h3` carries the H3 hierarchical hexagonal cell
-index; its resolution (0-15) is homed on `gmeow:h3Resolution`, not folded into the index
-string, because resolution is itself precision-bearing — `gmeow:h3Resolution` is `coarsenGuarded`
-and `avoidForConsumer gmeow:consumerPublicSite`. A high (fine) resolution sits at or near
+index; its resolution (0-15) is encoded directly in the 64-bit cell index and mirrored
+declaratively on `gmeow:h3Resolution`. Because the index itself carries the resolution it is
+precision-bearing — both `gmeow:h3` and `gmeow:h3Resolution` are `coarsenGuarded` and
+`avoidForConsumer gmeow:consumerPublicSite`, so the index must be coarsened (re-celled to a
+lower resolution) or otherwise guarded before disclosure. A high (fine) resolution sits at or near
 `gmeow:granularityPoint` on the spatial `gmeow:GranularityLevel` disclosure ladder; a public
 projection must not emit a resolution finer than the declared disclosure granularity permits,
 the H3-native analogue of coarsening `gmeow:hasCoordinates` before publication.

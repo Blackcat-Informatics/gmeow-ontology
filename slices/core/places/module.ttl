@@ -1687,6 +1687,7 @@ gmeow:coordinateResult
     skos:example "ex:obs2023 gmeow:coordinateResult ex:pt ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
     gmeow:avoidWhen "Avoid carrying the frame on the result literal — the frame is on the observation and propagates via the isResultOf chain."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:coordinateResult at a GeoCoordinates; the flat gmeow:hasCoordinates is its property-chain projection."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerIndexProjection ,
@@ -2120,6 +2121,7 @@ gmeow:geometryResult
     skos:example "ex:obs2023 gmeow:geometryResult ex:shape ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
     gmeow:avoidWhen "Avoid carrying the frame on the result — it propagates from the observation via the property chain."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:geometryResult at a Geometry; the flat gmeow:hasGeometry is its property-chain projection."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerIndexProjection ,
@@ -2233,7 +2235,9 @@ gmeow:h3
     rdfs:range xsd:string ;
     skos:definition "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff')."@x-gmeow-english ;
     skos:example "ex:h3Loc gmeow:h3 \"8928308280fffff\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing an H3 cell index with another geocoding system (e.g. geohash, MGRS) on one Geocode."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite ;
+    gmeow:avoidWhen "Avoid mixing an H3 cell index with another geocoding system (e.g. geohash, MGRS) on one Geocode, and avoid emitting a fine (high) resolution index to a public consumer — the 64-bit index encodes its resolution, so coarsen (re-cell to a lower resolution) before disclosure."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:h3 on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameH3; pair with gmeow:h3Resolution for the cell's declared resolution."@x-gmeow-english ;
     gmeow:useWhen "Use for an H3 cell index string on a Geocode."@x-gmeow-english .
