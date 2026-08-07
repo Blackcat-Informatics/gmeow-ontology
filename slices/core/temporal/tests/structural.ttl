@@ -464,7 +464,7 @@ ASK {
     gmeow:saRationale "Each of the four seed geologic-boundary measurements MUST be a gmeow:TemporalMeasurement carrying a gmeow:vantage (the dating agent), a gmeow:observedFeature (the dated period), and a gmeow:observationMethod — the standpoint-indexed-claim shape (P9), never a bare ground-truth value." .
 
 # ===========================================================================
-# Observation cutoff / stricter-than-slice pattern (issue #1678)
+# Observation cutoff / stricter-than-slice pattern
 # ===========================================================================
 
 # --- 36. observationCutoff / observationWindowRequired are AnnotationProperties (MUST) --

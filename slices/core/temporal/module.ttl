@@ -1659,7 +1659,7 @@ gmeow:TemporalMeasurement logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
 
 # --- Observation-window requirement: sanctioned downstream-profile pattern, honestly
-# NOT a slice-level closed-world constraint (issue #1678) ---
+# NOT a slice-level closed-world constraint ---
 # gmeow:observationWindowRequired sanctions a stricter-than-slice pattern: a downstream
 # profile MAY require every claim it reads to carry a bound gmeow:observationCutoff
 # (COALESCE(assertedAt, recordedNoLaterThan)), classifying claims that lack one into its

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example — a small SCHEDULED ENRICHMENT ("in-rush") DAG declared in the
-# general runtime-DAG vocabulary of issue #1674. It exercises the six families:
+# general runtime-DAG vocabulary. It exercises the six families:
 # edge reasons (gmeow:FlowReason), a per-stage failure disposition on an execution
 # (gmeow:StageDisposition), stage obligations (gmeow:StageObligation), output
 # stability (gmeow:StageStability), a per-stage budget (gmeow:StageBudget), and a

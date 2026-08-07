@@ -92,10 +92,10 @@ ex:ppHasGeometry a gmeow:ExpectedRow ;
 ex:ppPlaceType a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:placeType ] .
 
-# ── Geospatial index disclosure (issue #1677) ─────────────────────────────────
+# ── Geospatial index disclosure ───────────────────────────────────────────────
 ex:cqIndexProjectionDisclosure a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/index-projection-disclosure.rq" ;
-    gmeow:cqRationale "GMEOW must name which properties a geospatial index may derive cells from, and under which disclosure marks: an index built over a gmeow:coarsenGuarded key-source property inherits the guard, so a gmeow:consumerPublicSite projection of that index must coarsen first (Principle 10; the normative coarsen-guard ruling for issue #1677)." ;
+    gmeow:cqRationale "GMEOW must name which properties a geospatial index may derive cells from, and under which disclosure marks: an index built over a gmeow:coarsenGuarded key-source property inherits the guard, so a gmeow:consumerPublicSite projection of that index must coarsen first (Principle 10; the normative coarsen-guard ruling)." ;
     gmeow:cqResultShape ex:cqIndexProjectionDisclosureShape ;
     gmeow:cqExpectRow ex:ipdHasCoordinates, ex:ipdHasGeometry, ex:ipdCoordinateFrame .
 

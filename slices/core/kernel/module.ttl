@@ -411,7 +411,7 @@ gmeow:consumerIndexProjection
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "index/retrieval projection"@x-gmeow-english ;
-    skos:definition "The consumer is a rebuildable, generation-pinned index/retrieval projection (lexical/BM25, phonetic, temporal, geospatial, vector) that reads the published typed literals and frame edges to build supersession-managed accelerators. It NEVER writes derived facts back as asserted triples (Principle 12): an index is a computation over the canon, not new canon. An index built over gmeow:coarsenGuarded key-source properties INHERITS their disclosure guard — the index is itself guarded, and any projection of it disclosed to gmeow:consumerPublicSite MUST coarsen to the guarded granularity first (the normative coarsen-guard ruling for issue #1677)."@x-gmeow-english ;
+    skos:definition "The consumer is a rebuildable, generation-pinned index/retrieval projection (lexical/BM25, phonetic, temporal, geospatial, vector) that reads the published typed literals and frame edges to build supersession-managed accelerators. It NEVER writes derived facts back as asserted triples (Principle 12): an index is a computation over the canon, not new canon. An index built over gmeow:coarsenGuarded key-source properties INHERITS their disclosure guard — the index is itself guarded, and any projection of it disclosed to gmeow:consumerPublicSite MUST coarsen to the guarded granularity first (the normative coarsen-guard ruling)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerInternalArchive

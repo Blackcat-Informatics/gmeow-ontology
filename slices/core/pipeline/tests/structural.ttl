@@ -132,7 +132,7 @@ ASK { ?stage gmeow:attachesGraph ?g . ?g a gmeow:PipelineStage . }""" ;
     gmeow:saRationale "gmeow:attachesGraph relates a stage to a carrier NAMED-GRAPH IRI (its attach delta), never to another pipeline stage; a stage object here would mean the run-time delta compare is checking against a stage, not a graph." .
 
 # =========================================================================== #
-# Runtime-DAG vocabulary (issue #1674) — TBox spine + closed value seeds.       #
+# Runtime-DAG vocabulary — TBox spine + closed value seeds.                     #
 # =========================================================================== #
 
 # --- 8. The runtime-DAG class spine (MUST hold) ------------------------------
@@ -153,7 +153,7 @@ ASK {
     gmeow:StageBudget     a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
     gmeow:StageReceipt    a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "The general runtime-DAG vocabulary (issue #1674) MUST carry its TBox spine: gmeow:FlowReason / gmeow:StageDisposition / gmeow:StageObligation / gmeow:StageStability are QualityValue vocabularies (closed value classes); gmeow:StageExecution and gmeow:PipelineRun are perdurant occurrences (logic:Event) — one run of a stage and one run of a whole DAG; gmeow:StageBudget and gmeow:StageReceipt are reified SocialObject records (a per-stage budget and a content-addressed receipt)." .
+    gmeow:saRationale "The general runtime-DAG vocabulary MUST carry its TBox spine: gmeow:FlowReason / gmeow:StageDisposition / gmeow:StageObligation / gmeow:StageStability are QualityValue vocabularies (closed value classes); gmeow:StageExecution and gmeow:PipelineRun are perdurant occurrences (logic:Event) — one run of a stage and one run of a whole DAG; gmeow:StageBudget and gmeow:StageReceipt are reified SocialObject records (a per-stage budget and a content-addressed receipt)." .
 
 # --- 9. The closed FlowReason value vocabulary (MUST hold) --------------------
 ex:saFlowReasonSeeds a gmeow:StructuralAssertion ;

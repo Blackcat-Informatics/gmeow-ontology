@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Competency cells for the pipeline slice — the runtime-DAG vocabulary (issue #1674).
+# Competency cells for the pipeline slice — the runtime-DAG vocabulary.
 #
 # The central conformance claim of the vocabulary is executable here: an AUTHORITY
 # edge is a first-class ordering constraint that survives admission even though no

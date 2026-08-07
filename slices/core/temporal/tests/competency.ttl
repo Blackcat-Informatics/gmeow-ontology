@@ -73,7 +73,7 @@ ex:twcSunday a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:daySunday ] .
 
-# The index-consumer contract (issue #1677): the eight scope/point/interval clocks
+# The index-consumer contract: the eight scope/point/interval clocks
 # (instantValue, startedAtTime, endedAtTime, atTime, validFrom, validUntil, assertedAt,
 # recordedNoLaterThan) each declare gmeow:useForConsumer gmeow:consumerIndexProjection,
 # naming which typed literals and frame edges a rebuildable interval/temporal index may
