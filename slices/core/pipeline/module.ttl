@@ -203,7 +203,7 @@ gmeow:buildFlowFrom
     rdfs:label "build flow from"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator. Distinct from gmeow:buildFlowTo, which names the consumer leg, not this producer end."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowFrom gmeow:stage-compile-logic ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -214,7 +214,7 @@ gmeow:buildFlowTo
     rdfs:label "build flow to"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom. Distinct from gmeow:buildFlowFrom, which names the producer leg, not this consumer end."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowTo gmeow:stage-reason ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1954,7 +1954,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/transcode-matrix.json" .
 
 # =========================================================================== #
-# Runtime-DAG vocabulary (issue #1674) — the GENERAL scheduled-enrichment DAG.  #
+# Runtime-DAG vocabulary — the GENERAL scheduled-enrichment DAG.               #
 #                                                                             #
 # gmeow:pipeline-build above is ONE consumer of the pipeline vocabulary: the   #
 # project's own build. This section adds the general runtime-DAG surface a     #
@@ -1988,7 +1988,7 @@ gmeow:flowReason
     rdfs:label "flow reason"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
     rdfs:range gmeow:FlowReason ;
-    skos:definition "The REQUIRED reason a gmeow:BuildDataFlow edge exists: every reified edge carries exactly one gmeow:FlowReason (gmeow:minQualifiedCardinality 1, closed to the three declared individuals). It names whether the edge is a byte dependency (gmeow:flowReasonDataflow), a pure ordering authority (gmeow:flowReasonAuthority — retained even when no bytes flow), or a resource-serialization cost edge (gmeow:flowReasonCost). Required because an untyped edge is indistinguishable from a droppable dataflow dependency, and an admission reasoner that reduced the graph to its byte-flow skeleton would silently delete every authority edge — the exact corruption gmeow:RuntimeDagAdmissionConstraint forbids."@x-gmeow-english ;
+    skos:definition "The REQUIRED reason a gmeow:BuildDataFlow edge exists: every reified edge carries exactly one gmeow:FlowReason (gmeow:minQualifiedCardinality 1, closed to the three declared individuals). It names whether the edge is a byte dependency (gmeow:flowReasonDataflow), a pure ordering authority (gmeow:flowReasonAuthority — retained even when no bytes flow), or a resource-serialization cost edge (gmeow:flowReasonCost). Required because an untyped edge is indistinguishable from a droppable dataflow dependency, and an admission reasoner that reduced the graph to its byte-flow skeleton would silently delete every authority edge — the exact corruption gmeow:RuntimeDagAdmissionConstraint forbids. It types WHY the edge exists, distinct from gmeow:flowEntity, which names WHAT flows on it, not the edge's reason."@x-gmeow-english ;
     skos:example "gmeow:edge-annotate-after-canon gmeow:flowReason gmeow:flowReasonAuthority ."@x-gmeow-english ;
     gmeow:useWhen "Declare, on every gmeow:BuildDataFlow edge, why the consumer depends on the producer — byte flow, ordering authority, or resource-cost serialization — so admission keeps the edge for the right reason."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT leave an authority-only edge with the default gmeow:flowReasonDataflow (that invites a dataflow reducer to drop it because no bytes flow), and do NOT mint a new reason value — the set is closed at three; a genuinely new reason is a vocabulary change, not an inline addition."@x-gmeow-english ;
@@ -1999,7 +1999,7 @@ gmeow:flowReasonDataflow
     a gmeow:FlowReason ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reason: dataflow"@x-gmeow-english ;
-    skos:definition "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; the build DAG's own edges all carry it."@x-gmeow-english ;
+    skos:definition "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; the build DAG's own edges all carry it. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:flowReasonAuthority
@@ -2044,7 +2044,7 @@ gmeow:stageDisposition
     rdfs:label "stage disposition"@x-gmeow-english ;
     rdfs:domain gmeow:StageExecution ;
     rdfs:range gmeow:StageDisposition ;
-    skos:definition "Relates a gmeow:StageExecution to the one gmeow:StageDisposition it ended in — the typed outcome of that run (completed, typed-absence, rejected-candidate, retryable, fatal-to-candidate, timed-out). Closed to the six declared individuals. The enrichment planner reads it to decide retry, candidate eviction, or acceptance of a typed absence; a missing disposition is an incomplete execution record."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:StageExecution to the one gmeow:StageDisposition it ended in — the typed outcome of that run (completed, typed-absence, rejected-candidate, retryable, fatal-to-candidate, timed-out). Closed to the six declared individuals. The enrichment planner reads it to decide retry, candidate eviction, or acceptance of a typed absence; a missing disposition is an incomplete execution record. It types a per-execution outcome, distinct from gmeow:stageObligation, which is the stage's standing policy, not this per-run result."@x-gmeow-english ;
     skos:example "gmeow:exec-canonicalize gmeow:stageDisposition gmeow:dispositionCompleted ."@x-gmeow-english ;
     gmeow:useWhen "Record on every gmeow:StageExecution how the attempt ended, so the planner can tell a typed absence apart from a retryable failure apart from a candidate-fatal one."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT use it to declare a stage's standing failure policy (that is gmeow:stageObligation on the stage) and do NOT mint a seventh outcome — the disposition set is closed at six."@x-gmeow-english ;
@@ -2055,7 +2055,7 @@ gmeow:dispositionCompleted
     a gmeow:StageDisposition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "disposition: completed"@x-gmeow-english ;
-    skos:definition "The stage execution ran to completion and produced its normal product — the ordinary success outcome."@x-gmeow-english ;
+    skos:definition "The stage execution ran to completion and produced its normal product — the ordinary success outcome. Distinct from gmeow:dispositionTypedAbsence, which also ran successfully but produced an explicit typed 'nothing', not a positive product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dispositionTypedAbsence
@@ -2090,7 +2090,7 @@ gmeow:dispositionTimedOut
     a gmeow:StageDisposition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "disposition: timed out"@x-gmeow-english ;
-    skos:definition "The stage execution exceeded a declared budget deadline (gmeow:budgetDeadline) and was stopped before completing — a resource-bound outcome the planner treats per the stage's gmeow:stageObligation (mandatory ⇒ the run is invalid; degradable ⇒ the absence is tolerated)."@x-gmeow-english ;
+    skos:definition "The stage execution exceeded a declared budget deadline (gmeow:budgetDeadline) and was stopped before completing — a resource-bound outcome the planner treats per the stage's gmeow:stageObligation (mandatory ⇒ the run is invalid; degradable ⇒ the absence is tolerated). A resource-bound stop, distinct from gmeow:dispositionFatalToCandidate, which is an intrinsic fault rather than an exhausted budget."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:StageObligation
@@ -2109,7 +2109,7 @@ gmeow:stageObligation
     rdfs:label "stage obligation"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:StageObligation ;
-    skos:definition "Relates a gmeow:PipelineStage to its run-invariant obligation level: gmeow:obligationMandatory (absence invalidates the run) or gmeow:obligationDegradable (absence is tolerated with declared degradation). Closed to the two declared individuals. The declarative replacement for a scheduler special-case: the planner reads it to decide whether a missing or absent stage product is a hard run failure or an accepted degradation."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PipelineStage to its run-invariant obligation level: gmeow:obligationMandatory (absence invalidates the run) or gmeow:obligationDegradable (absence is tolerated with declared degradation). Closed to the two declared individuals. The declarative replacement for a scheduler special-case: the planner reads it to decide whether a missing or absent stage product is a hard run failure or an accepted degradation. It declares the stage's run-invariant policy, distinct from gmeow:stageDisposition, which records one execution's outcome rather than a standing obligation."@x-gmeow-english ;
     skos:example "gmeow:stage-enrich-authority gmeow:stageObligation gmeow:obligationMandatory ."@x-gmeow-english ;
     gmeow:useWhen "Declare, per stage, whether the run is invalid without this stage's product (mandatory) or may proceed degraded (degradable)."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT conflate it with a per-execution outcome (gmeow:stageDisposition) — obligation is the stage's standing policy, independent of any one run — and do NOT add a third level; the set is closed at two."@x-gmeow-english ;
@@ -2187,7 +2187,7 @@ gmeow:hasStageBudget
     rdfs:label "has stage budget"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:StageBudget ;
-    skos:definition "Relates a gmeow:PipelineStage to the gmeow:StageBudget declaring its per-run resource ceilings. The planner reads it to admit or throttle the stage and to detect a budget breach (which yields a gmeow:dispositionTimedOut for the deadline, or a candidate-fatal outcome for a hard resource ceiling)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PipelineStage to the gmeow:StageBudget declaring its per-run resource ceilings. The planner reads it to admit or throttle the stage and to detect a budget breach (which yields a gmeow:dispositionTimedOut for the deadline, or a candidate-fatal outcome for a hard resource ceiling). It relates a stage to its standing pre-run permit, distinct from gmeow:hasStageReceipt, which gathers a run's after-the-fact records rather than a budget."@x-gmeow-english ;
     skos:example "gmeow:stage-enrich gmeow:hasStageBudget gmeow:budget-enrich ."@x-gmeow-english ;
     gmeow:useWhen "Attach a budget to a stage whose resource consumption must be bounded — a deadline, a step/answer count, an input size, or a memory peak."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT scatter the individual budget literals directly on the stage — group them in one gmeow:StageBudget record so the whole budget is addressable — and do NOT use it to model the exclusive-resource conflict lane (that is gmeow:requiresResource)."@x-gmeow-english ;
@@ -2200,7 +2200,7 @@ gmeow:budgetDeadline
     rdfs:label "budget deadline"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:duration ;
-    skos:definition "The wall-clock time budget a stage is permitted to run before it is stopped — an xsd:duration RELATIVE to the stage's start, deliberately chosen over an absolute xsd:dateTime: a relative budget is turn-invariant and replayable (the same declared budget yields the same admission decision on every run and in a replayed interleaved trace), whereas an absolute deadline would bake a specific run's clock into the canon and defeat deterministic replay. Exceeding it yields a gmeow:dispositionTimedOut execution."@x-gmeow-english ;
+    skos:definition "The wall-clock time budget a stage is permitted to run before it is stopped — an xsd:duration RELATIVE to the stage's start, deliberately chosen over an absolute xsd:dateTime: a relative budget is turn-invariant and replayable (the same declared budget yields the same admission decision on every run and in a replayed interleaved trace), whereas an absolute deadline would bake a specific run's clock into the canon and defeat deterministic replay. Exceeding it yields a gmeow:dispositionTimedOut execution. A ceiling on elapsed time, distinct from gmeow:budgetMaxSteps, which bounds internal iterations rather than wall-clock duration."@x-gmeow-english ;
     skos:example "gmeow:budget-enrich gmeow:budgetDeadline \"PT30S\"^^xsd:duration ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2210,7 +2210,7 @@ gmeow:budgetMaxSteps
     rdfs:label "budget max steps"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The maximum number of internal steps (iterations, reasoning rounds, sub-calls) a stage may take before it is stopped — an xsd:nonNegativeInteger ceiling. Zero means the stage may take no steps (a pure pass-through); an unset value means unbounded on this axis."@x-gmeow-english ;
+    skos:definition "The maximum number of internal steps (iterations, reasoning rounds, sub-calls) a stage may take before it is stopped — an xsd:nonNegativeInteger ceiling. Zero means the stage may take no steps (a pure pass-through); an unset value means unbounded on this axis. It bounds internal iterations, distinct from gmeow:budgetMaxAnswers, which bounds emitted results rather than steps taken."@x-gmeow-english ;
     skos:example "gmeow:budget-enrich gmeow:budgetMaxSteps 1000 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2220,7 +2220,7 @@ gmeow:budgetMaxAnswers
     rdfs:label "budget max answers"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The maximum number of answers (result rows, enrichment candidates, emitted records) a stage may produce before it stops — an xsd:nonNegativeInteger ceiling bounding output cardinality. An unset value means unbounded."@x-gmeow-english ;
+    skos:definition "The maximum number of answers (result rows, enrichment candidates, emitted records) a stage may produce before it stops — an xsd:nonNegativeInteger ceiling bounding output cardinality. An unset value means unbounded. It caps emitted results, distinct from gmeow:budgetMaxSteps, which caps internal work rather than answers produced."@x-gmeow-english ;
     skos:example "gmeow:budget-enrich gmeow:budgetMaxAnswers 50 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2230,7 +2230,7 @@ gmeow:budgetMaxInputBytes
     rdfs:label "budget max input bytes"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The maximum size, in bytes, of the input a stage will accept before it rejects the candidate — an xsd:nonNegativeInteger ceiling guarding against oversized inputs. An unset value means unbounded."@x-gmeow-english ;
+    skos:definition "The maximum size, in bytes, of the input a stage will accept before it rejects the candidate — an xsd:nonNegativeInteger ceiling guarding against oversized inputs. An unset value means unbounded. It caps accepted input size, distinct from gmeow:budgetMaxMemoryBytes, which caps resident memory rather than input volume."@x-gmeow-english ;
     skos:example "gmeow:budget-enrich gmeow:budgetMaxInputBytes 1048576 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2240,7 +2240,7 @@ gmeow:budgetMaxMemoryBytes
     rdfs:label "budget max memory bytes"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The maximum resident memory, in bytes, a stage's execution may occupy before it is stopped — an xsd:nonNegativeInteger peak-residency ceiling, the per-stage analogue of the whole-dataset gmeow:serializationBufferResource peak the build DAG guards. An unset value means unbounded."@x-gmeow-english ;
+    skos:definition "The maximum resident memory, in bytes, a stage's execution may occupy before it is stopped — an xsd:nonNegativeInteger peak-residency ceiling, the per-stage analogue of the whole-dataset gmeow:serializationBufferResource peak the build DAG guards. An unset value means unbounded. It caps peak resident memory, distinct from gmeow:budgetMaxInputBytes, which caps accepted input size, not runtime residency."@x-gmeow-english ;
     skos:example "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes 2147483648 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2285,7 +2285,7 @@ gmeow:receiptOfStage
     rdfs:label "receipt of stage"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:StageReceipt to the gmeow:PipelineStage it is the receipt of — the anchor that makes the run's receipts orderable TOPOLOGICALLY over the DAG. Exactly one per receipt: a receipt records one stage's contribution."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:StageReceipt to the gmeow:PipelineStage it is the receipt of — the anchor that makes the run's receipts orderable TOPOLOGICALLY over the DAG. Exactly one per receipt: a receipt records one stage's contribution. Distinct from gmeow:receiptOfExecution, which anchors the receipt to the specific occurrence, not the standing stage."@x-gmeow-english ;
     skos:example "gmeow:receipt-canon gmeow:receiptOfStage gmeow:stage-canon ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2307,7 +2307,7 @@ gmeow:executesStage
     rdfs:label "executes stage"@x-gmeow-english ;
     rdfs:domain gmeow:StageExecution ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:StageExecution to the ONE gmeow:PipelineStage it is a run of — the standing unit of work this occurrence enacts. Functional: an execution enacts exactly one stage. Where gmeow:PipelineStage is the run-invariant description of a unit of work, gmeow:executesStage names the stage a single gmeow:StageExecution attempted, so a run's occurrences join back to the DAG's stages."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:StageExecution to the ONE gmeow:PipelineStage it is a run of — the standing unit of work this occurrence enacts. Functional: an execution enacts exactly one stage. Where gmeow:PipelineStage is the run-invariant description of a unit of work, gmeow:executesStage names the stage a single gmeow:StageExecution attempted, so a run's occurrences join back to the DAG's stages. Distinct from gmeow:hasStageExecution, which relates the run to its executions, not an execution to its stage."@x-gmeow-english ;
     skos:example "gmeow:exec-annotate-42 gmeow:executesStage gmeow:stage-annotate ."@x-gmeow-english ;
     gmeow:useWhen "Record on every gmeow:StageExecution the gmeow:PipelineStage it enacts, so each occurrence joins to its standing stage in the DAG."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT use it to gather a run's executions (that is gmeow:hasStageExecution on the gmeow:PipelineRun) and do NOT point it at a gmeow:StageReceipt or gmeow:PipelineRun — its range is the standing gmeow:PipelineStage."@x-gmeow-english ;
@@ -2320,7 +2320,7 @@ gmeow:hasStageExecution
     rdfs:label "has stage execution"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineRun ;
     rdfs:range gmeow:StageExecution ;
-    skos:definition "Relates a gmeow:PipelineRun to each gmeow:StageExecution it gathered — the perdurant occurrences of its stages, one per attempt. Multi-valued, the occurrence-level companion to gmeow:hasStageReceipt (which gathers the content-addressed records): where a receipt is the immutable fingerprint of what a stage produced, an execution is the run of the stage carrying how the attempt ENDED (gmeow:stageDisposition). Gathering the executions on the run makes the run the replayable record of what happened."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PipelineRun to each gmeow:StageExecution it gathered — the perdurant occurrences of its stages, one per attempt. Multi-valued, the occurrence-level companion to gmeow:hasStageReceipt (which gathers the content-addressed records): where a receipt is the immutable fingerprint of what a stage produced, an execution is the run of the stage carrying how the attempt ENDED (gmeow:stageDisposition). Gathering the executions on the run makes the run the replayable record of what happened. Distinct from gmeow:hasStageReceipt, which gathers the content-addressed receipt records rather than the live occurrences."@x-gmeow-english ;
     skos:example "gmeow:run-2026-08-05 gmeow:hasStageExecution gmeow:exec-annotate-42 ."@x-gmeow-english ;
     gmeow:useWhen "Attach every gmeow:StageExecution to the gmeow:PipelineRun it occurred in, so the run gathers its occurrences alongside their receipts."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT put executions on the standing gmeow:Pipeline plan (a run is one enactment) and do NOT conflate it with gmeow:hasStageReceipt — an execution is the occurrence, a receipt is its content-addressed record."@x-gmeow-english ;
@@ -2371,7 +2371,12 @@ gmeow:RuntimeDagAdmissionConstraint
 
 # The first-order core: a conjunction of (c) dataflow-producer existence and
 # (d) authority-edge well-formedness / retention.
-gmeow:radConj a logic:Formula ; logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
+gmeow:radConj a logic:Formula ;
+    rdfs:label "Runtime-DAG admission core conjunction"@x-gmeow-english ;
+    skos:definition "The first-order core of the runtime-DAG admission law: the conjunction of arm (c) dataflow-producer membership and arm (d) authority-edge retention that logic:integrity carries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
 
 # (c) Every gmeow:dataflowConsumes edge is satisfied by a producing stage that is an
 # ASSERTED member of an enclosing pipeline: some gmeow:Pipeline names the producer through
@@ -2382,16 +2387,39 @@ gmeow:radConj a logic:Formula ; logic:and gmeow:radDataflowForall , gmeow:radAut
 # nothing. Requiring an explicit gmeow:hasStage membership triple cannot be satisfied by
 # that range inference, so the edge must point at a real, declared member stage.
 gmeow:radDataflowForall a logic:Formula ;
+    rdfs:label "Dataflow producer-membership universal"@x-gmeow-english ;
+    skos:definition "The universal over (consumer, producer) asserting arm (c): every consumed producer must be an asserted gmeow:hasStage member of some pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] ;
     logic:forall gmeow:radDataflowImpl .
-gmeow:radDataflowImpl a logic:Formula ; logic:antecedent gmeow:radConsumes ; logic:consequent gmeow:radProducerMember .
-gmeow:radConsumes a logic:Formula ; logic:relation gmeow:dataflowConsumes ;
+gmeow:radDataflowImpl a logic:Formula ;
+    rdfs:label "Dataflow producer-membership implication"@x-gmeow-english ;
+    skos:definition "The implication of arm (c): if a consumer gmeow:dataflowConsumes a producer, then that producer is an asserted member stage of some pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:radConsumes ; logic:consequent gmeow:radProducerMember .
+gmeow:radConsumes a logic:Formula ;
+    rdfs:label "Dataflow-consumes antecedent atom"@x-gmeow-english ;
+    skos:definition "The antecedent atom of arm (c): the consumer stands in gmeow:dataflowConsumes to the producer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:dataflowConsumes ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
 # The producer is an ASSERTED member stage of some pipeline: ∃ pipeline . pipeline gmeow:hasStage producer.
 gmeow:radProducerMember a logic:Formula ;
+    rdfs:label "Producer pipeline-membership existential"@x-gmeow-english ;
+    skos:definition "The existential of arm (c): some gmeow:Pipeline asserts the producer as a member stage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pipeline" ] ;
     logic:exists gmeow:radProducerHasStage .
-gmeow:radProducerHasStage a logic:Formula ; logic:relation gmeow:hasStage ;
+gmeow:radProducerHasStage a logic:Formula ;
+    rdfs:label "Producer gmeow:hasStage atom"@x-gmeow-english ;
+    skos:definition "The consequent atom of arm (c): some pipeline names the producer through gmeow:hasStage, an asserted membership no RDFS range inference can supply."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:hasStage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "pipeline" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
 
 # (d) Every AUTHORITY edge is a well-formed, RETAINED ordering constraint: an edge
@@ -2400,20 +2428,58 @@ gmeow:radProducerHasStage a logic:Formula ; logic:relation gmeow:hasStage ;
 # i.e. it is a complete ordering both of whose ends survive, never a half-edge a
 # dataflow reduction could collapse because no entity rides it.
 gmeow:radAuthorityForall a logic:Formula ;
+    rdfs:label "Authority-edge retention universal"@x-gmeow-english ;
+    skos:definition "The universal over (edge, from) asserting arm (d): every authority edge that names a producer must also name a consumer, so the ordering is retained whole."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] ;
     logic:forall gmeow:radAuthorityImpl .
-gmeow:radAuthorityImpl a logic:Formula ; logic:antecedent gmeow:radAuthorityGuard ; logic:consequent gmeow:radAuthorityConsumer .
-gmeow:radAuthorityGuard a logic:Formula ; logic:and gmeow:radEdgeType , gmeow:radEdgeAuthority , gmeow:radEdgeFrom .
-gmeow:radEdgeType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:radAuthorityImpl a logic:Formula ;
+    rdfs:label "Authority-edge retention implication"@x-gmeow-english ;
+    skos:definition "The implication of arm (d): if an edge is a guarded authority edge naming a producer, then it also names a consumer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:radAuthorityGuard ; logic:consequent gmeow:radAuthorityConsumer .
+gmeow:radAuthorityGuard a logic:Formula ;
+    rdfs:label "Authority-edge guard conjunction"@x-gmeow-english ;
+    skos:definition "The antecedent guard of arm (d): the conjunction that an edge is typed gmeow:BuildDataFlow, has gmeow:flowReason gmeow:flowReasonAuthority, and names a producer via gmeow:buildFlowFrom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:radEdgeType , gmeow:radEdgeAuthority , gmeow:radEdgeFrom .
+gmeow:radEdgeType a logic:Formula ;
+    rdfs:label "Authority-edge type atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge is rdf:type gmeow:BuildDataFlow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termIri gmeow:BuildDataFlow ] .
-gmeow:radEdgeAuthority a logic:Formula ; logic:relation gmeow:flowReason ;
+gmeow:radEdgeAuthority a logic:Formula ;
+    rdfs:label "Authority-edge reason atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge's gmeow:flowReason is gmeow:flowReasonAuthority, marking it an authority ordering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:flowReason ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termIri gmeow:flowReasonAuthority ] .
-gmeow:radEdgeFrom a logic:Formula ; logic:relation gmeow:buildFlowFrom ;
+gmeow:radEdgeFrom a logic:Formula ;
+    rdfs:label "Authority-edge producer atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge names its producer end via gmeow:buildFlowFrom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:buildFlowFrom ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] .
 gmeow:radAuthorityConsumer a logic:Formula ;
+    rdfs:label "Authority-edge consumer existential"@x-gmeow-english ;
+    skos:definition "The consequent existential of arm (d): the authority edge must name some consumer end, so the ordering survives whole rather than as a half-edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "to" ] ;
     logic:exists gmeow:radEdgeTo .
-gmeow:radEdgeTo a logic:Formula ; logic:relation gmeow:buildFlowTo ;
+gmeow:radEdgeTo a logic:Formula ;
+    rdfs:label "Authority-edge consumer atom"@x-gmeow-english ;
+    skos:definition "The consequent atom of arm (d): the authority edge names its consumer end via gmeow:buildFlowTo."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:buildFlowTo ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
 
 # The honest boundary for the transitive-closure arms (a) acyclicity and (b)
@@ -2451,7 +2517,7 @@ gmeow:PipelineStage logic:subClassOf
 gmeow:Pipeline logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:hasStage ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-# Runtime-DAG vocabulary (issue #1674) declarative axioms. A gmeow:BuildDataFlow
+# Runtime-DAG vocabulary declarative axioms. A gmeow:BuildDataFlow
 # carries EXACTLY ONE gmeow:flowReason (required + closed to the three individuals);
 # the per-stage/per-execution value properties are closed to their declared sets via
 # logic:oneOf (projected declaratively to sh:in), matching the sibling-slice idiom.
