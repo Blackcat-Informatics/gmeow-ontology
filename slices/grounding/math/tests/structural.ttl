@@ -1198,7 +1198,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The closed-form scene carries the same four ring measure evaluations as its qualitative twin, so the same dominance MUST hold: Ring 2's math:measureResult strictly exceeds every other radial-cf ring's, executed as the numeric FILTER inequality. Pinning the dominance on BOTH paths proves the two co-equal demonstrators agree on the volume-dominant plateau — the equation entails what the qualitative markers assert." .
 
-# --- Reference layer, expression AST, ACT, and quantity authority (#1557) -- #
+# --- Reference layer, expression AST, ACT, and quantity authority ------------ #
 
 ex:saMathematicalReferenceLayer a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

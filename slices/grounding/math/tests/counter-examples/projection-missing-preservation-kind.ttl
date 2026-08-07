@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:MissingPreservationKind gate
+# (crates/validate/src/lint.rs, check_math_missing_preservation_kind): a
+# math:ProjectionRecord that enters the loss ledger declaring NO logic:preservationKind, so
+# its preservation judgment is undeclared — the ledger records a projection without saying
+# whether anything survived it. The native gate MUST emit math:MissingPreservationKind.
+#
+# Everything the other four projection gates key on is deliberately absent, so this is a
+# minimal violation of exactly one rule: the record declares no preservation kind at all, so
+# it is not LOSSY and neither math:UndeclaredUnsupportedConstruct nor
+# math:ProjectionDroppedParameterization nor math:UnrecordedProjectionLoss can apply; its
+# source is a plain math:MathematicalObject rather than a math:Distribution or a
+# math:MathematicalExpression; and it declares no math:projectsConfidenceAsProbability.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:unjudgedProjection a math:ProjectionRecord ;
+    math:projectionSource ex:someObject ;
+    math:projectionTargetName "OWL annotation (label only)" .
+
+ex:someObject a math:MathematicalObject .

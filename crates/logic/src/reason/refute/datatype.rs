@@ -47,6 +47,7 @@ use super::{
 // ── IRI constants (local to the subsolver) ──────────────────────────────────────
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
@@ -264,6 +265,37 @@ pub(crate) fn decide(edb: &RdfDataset) -> Option<RefutationCertificate> {
 /// them, keeping coverage in agreement with the decider (never wider).
 pub(crate) fn decided(edb: &RdfDataset) -> bool {
     matches!(decide(edb), Some(RefutationCertificate::InFragment { .. }))
+}
+
+/// The `(world, subject, property)` obligation keys this sub-decider evaluates
+/// DEFINITIVELY — every obligation whose evaluation produced a decision (the
+/// asserted values satisfy the value space, or a proven value-space clash) rather
+/// than an obstruction.
+///
+/// The per-obligation twin of [`decided`], and the two answer different questions.
+/// [`decided`] answers the WHOLE-CASE question the refutation kernel must answer
+/// before it may certify an ENTIRE ontology `Consistent`; its predicate allowlist
+/// ([`ALLOWED_DATATYPE_PREDICATES`]) therefore makes it false for any ontology that
+/// also carries class-construction, identity, or ordinary domain vocabulary — that
+/// is, for every real bundle. Construct COVERAGE asks something strictly narrower:
+/// did the native path decide what the datatype-facet axioms CONTRIBUTE? That is a
+/// per-obligation question, so the coverage coordinator ([`crate::reason::dl`])
+/// checks its live facet witnesses against this set.
+///
+/// A proven CLASH counts as definitively evaluated: [`decide`] returns it as an
+/// `InFragment{Inconsistent}` certificate regardless of any obstruction elsewhere,
+/// and the coordinator materializes its `owl:Nothing` witness into the closure, so
+/// the axiom is decided rather than silently ignored.
+pub(crate) fn definitively_evaluated_obligations(
+    edb: &RdfDataset,
+) -> BTreeSet<(String, String, String)> {
+    let model = Model::scan(edb);
+    model
+        .obligations()
+        .iter()
+        .filter(|ob| !matches!(ob.evaluate(&model), Outcome::Obstructed(_)))
+        .map(|ob| (ob.world.clone(), ob.individual.clone(), ob.property.clone()))
+        .collect()
 }
 
 /// True iff every `owl:oneOf` node in `edb` is a DATATYPE enumeration — an
@@ -817,6 +849,11 @@ struct Model {
     restrictions: BTreeMap<String, Restr>,
     /// `property → rdfs:range datatype node(s)` (world-agnostic).
     range: BTreeMap<String, BTreeSet<String>>,
+    /// `class → asserted rdfs:subClassOf superclass node(s)` (world-agnostic, like
+    /// [`Model::restrictions`]: a class expression's identity is its node, and a
+    /// TBox axiom in one world still constrains an ABox individual in another —
+    /// soundness-first, mirroring the coverage coordinator's facet scan).
+    sub_class_of: BTreeMap<String, BTreeSet<String>>,
     /// datatype-def node → its raw datatype-def edges.
     on_datatype: BTreeMap<String, String>,
     with_restrictions: BTreeMap<String, String>,
@@ -841,6 +878,7 @@ impl Model {
             datatype_props: BTreeSet::new(),
             restrictions: BTreeMap::new(),
             range: BTreeMap::new(),
+            sub_class_of: BTreeMap::new(),
             on_datatype: BTreeMap::new(),
             with_restrictions: BTreeMap::new(),
             complement_of: BTreeMap::new(),
@@ -857,7 +895,13 @@ impl Model {
 
         for quad in edb.owned_quads() {
             let world = world_key(&quad.graph_name);
-            let predicate = quad.predicate.as_str();
+            // The one lowering point of this scan: a canonical `logic:` class-expression
+            // term becomes the `owl:` spelling every arm below matches
+            // ([`crate::reason::calculus_term`], the shared table). It
+            // must happen BEFORE `m.predicates` / `m.type_objects` are recorded, because
+            // those two sets are the whole-case completeness gate: an unlowered
+            // `logic:onDatatype` would read as an unknown construct and refuse the case.
+            let predicate = crate::reason::calculus_term(&quad.predicate);
             let subject = match resource_key(&quad.subject) {
                 Some(s) => s,
                 None => continue,
@@ -871,6 +915,7 @@ impl Model {
                         m.datatype_props.insert(subject.clone());
                     }
                     if let Some(class) = resource_key(&quad.object) {
+                        let class = crate::reason::calculus_term(&class).to_owned();
                         m.type_objects.insert(class.clone());
                         m.types
                             .entry((world.clone(), subject.clone()))
@@ -922,6 +967,11 @@ impl Model {
                 RDFS_RANGE => {
                     if let Some(v) = resource_key(&quad.object) {
                         m.range.entry(subject.clone()).or_default().insert(v);
+                    }
+                }
+                RDFS_SUB_CLASS_OF => {
+                    if let Some(v) = resource_key(&quad.object) {
+                        m.sub_class_of.entry(subject.clone()).or_default().insert(v);
                     }
                 }
                 OWL_ON_DATATYPE => {
@@ -1079,6 +1129,36 @@ impl Model {
             || self.one_of.contains_key(node)
     }
 
+    /// The datatype-property RESTRICTION nodes `seed` inherits: the nodes reachable
+    /// from it under asserted `rdfs:subClassOf` (reflexively) that carry an
+    /// `owl:onProperty` naming a declared `owl:DatatypeProperty`. Cycle-safe — the
+    /// visited set is the frontier guard, so a `C ⊑ D ⊑ C` cycle terminates.
+    ///
+    /// Only the restriction nodes are returned, not the whole superclass closure: the
+    /// result is cached per class across every individual of that class, and the
+    /// filtered set is orders of magnitude smaller than the closure on a real
+    /// taxonomy.
+    fn inherited_datatype_restrictions(&self, seed: &str) -> BTreeSet<String> {
+        let mut found: BTreeSet<String> = BTreeSet::new();
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut frontier: Vec<String> = vec![seed.to_owned()];
+        while let Some(class) = frontier.pop() {
+            if !seen.insert(class.clone()) {
+                continue;
+            }
+            if let Some(r) = self.restrictions.get(&class)
+                && let Some(p) = &r.on_property
+                && self.datatype_props.contains(p)
+            {
+                found.insert(class.clone());
+            }
+            if let Some(supers) = self.sub_class_of.get(&class) {
+                frontier.extend(supers.iter().cloned());
+            }
+        }
+        found
+    }
+
     /// The datatype value-space obligations present in the EDB — one per
     /// `(world, subject, datatype-property)` that carries a value-space constraint
     /// (a type-restriction, or an `rdfs:range` to a constrained datatype) plus any
@@ -1089,16 +1169,33 @@ impl Model {
         // range-membership obligation).
         let mut keys: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
 
-        // Source 1 — an individual directly typed to a datatype-property restriction.
+        // Source 1 — an individual typed to a datatype-property restriction, either
+        // DIRECTLY or through the asserted `rdfs:subClassOf` chain of one of its
+        // types. The chain step is the plain RDFS/DL semantics — `x ∈ C` and
+        // `C ⊑ R` give `x ∈ R` — and it is the shape production ontologies actually
+        // author: a named class carries its value restriction as an anonymous
+        // `rdfs:subClassOf` filler, never as a direct `rdf:type` on the individual.
+        // Without the step this decider engaged on no production obligation at all
+        // and the value-space analysis below was unreachable.
+        // The walk is memoized per class: a taxonomy has far fewer classes than
+        // individuals, and every individual of a class inherits the same restrictions.
+        let mut inherited: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         for ((world, individual), classes) in &self.types {
             for class in classes {
-                if let Some(r) = self.restrictions.get(class)
-                    && let Some(p) = &r.on_property
-                    && self.datatype_props.contains(p)
-                {
+                let restrictions = inherited
+                    .entry(class.clone())
+                    .or_insert_with(|| self.inherited_datatype_restrictions(class));
+                for node in restrictions.iter() {
+                    let Some(p) = self
+                        .restrictions
+                        .get(node)
+                        .and_then(|r| r.on_property.as_ref())
+                    else {
+                        continue;
+                    };
                     keys.entry((world.clone(), individual.clone(), p.clone()))
                         .or_default()
-                        .insert(class.clone());
+                        .insert(node.clone());
                 }
             }
         }
@@ -1229,9 +1326,8 @@ impl Obligation {
             ));
         }
 
-        // Resolve the effective value space. Zero constraints ⇒ the universe
-        // (rdfs:Literal, infinite). More than one distinct constraining datatype ⇒
-        // a real intersection we do not compute soundly ⇒ obstruction.
+        // Resolve every constraining value space. Zero constraints ⇒ the universe
+        // (rdfs:Literal, infinite); the effective space is their INTERSECTION.
         //
         // `named_card` is the `math:`-grounded finite cardinality of the sole
         // NAMED datatype constraint, when it has one (e.g. `xsd:byte` = 256). It is
@@ -1242,24 +1338,22 @@ impl Obligation {
         } else {
             None
         };
-        let space = match spaces.len() {
-            0 => None,
-            1 => match model.resolve(&spaces[0]) {
-                Ok(dt) => Some(dt),
+        let mut resolved: Vec<Dt> = Vec::with_capacity(spaces.len());
+        for node in &spaces {
+            match model.resolve(node) {
+                Ok(dt) => resolved.push(dt),
                 Err(reason) => return Outcome::Obstructed(reason.message().to_string()),
-            },
-            _ => {
-                return Outcome::Obstructed(format!(
-                    "intersection of {} distinct datatype constraints on <{}> is outside the \
-                     certified fragment",
-                    spaces.len(),
-                    self.property
-                ));
             }
-        };
+        }
 
-        // Membership: every asserted literal value must lie in the value space.
-        if let Some(space) = &space
+        // MEMBERSHIP: every asserted literal value must lie in EVERY constraining
+        // value space. Membership in an intersection is the pointwise conjunction of
+        // membership in each conjunct — exact and complete, so several constraints
+        // are decided here rather than refused. (A production class routinely carries
+        // both an `rdfs:range` and a class-local `∀p.D` on the same property; refusing
+        // every such pair left the real facet check unreachable.) `No` on any conjunct
+        // is decisive; `Unknown` on any (with no `No`) withholds.
+        if !resolved.is_empty()
             && let Some(lits) = model.values.get(&value_key)
         {
             for lit in lits {
@@ -1269,24 +1363,37 @@ impl Obligation {
                         self.property
                     ));
                 };
-                match space.contains(&v) {
-                    Tri::Yes => {}
-                    Tri::No => {
-                        return self.clash(model, None);
+                let mut unknown = false;
+                for space in &resolved {
+                    match space.contains(&v) {
+                        Tri::Yes => {}
+                        Tri::No => return self.clash(model, None),
+                        Tri::Unknown => unknown = true,
                     }
-                    Tri::Unknown => {
-                        return Outcome::Obstructed(format!(
-                            "literal membership in the value space of <{}> is undecidable",
-                            self.property
-                        ));
-                    }
+                }
+                if unknown {
+                    return Outcome::Obstructed(format!(
+                        "literal membership in the value space of <{}> is undecidable",
+                        self.property
+                    ));
                 }
             }
         }
 
-        // Counting: the value space must hold `required` distinct values.
+        // Counting: the value space must hold `required` distinct values. The
+        // EMPTINESS and CARDINALITY of an intersection are NOT pointwise — two
+        // individually non-empty spaces can intersect to nothing — so a counting
+        // obligation under more than one constraint stays an honest obstruction.
         if required >= 1 {
-            let Some(space) = &space else {
+            if resolved.len() > 1 {
+                return Outcome::Obstructed(format!(
+                    "intersection of {} distinct datatype constraints on <{}> is outside the \
+                     certified fragment for a counting obligation",
+                    resolved.len(),
+                    self.property
+                ));
+            }
+            let Some(space) = resolved.first() else {
                 // No value-space constraint ⇒ the infinite literal universe holds
                 // any finite number of distinct values.
                 return Outcome::Consistent;

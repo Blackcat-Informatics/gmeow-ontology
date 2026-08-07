@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the OWL-axiom gate backing math:ResultRoleConflation: a node typed
+# BOTH math:Estimand (a structured result object — the result half of the process / result
+# / claim separation) AND gmeow:Observation (the held claim). module.ttl asserts
+# `math:Estimand owl:disjointWith gmeow:Observation` directly, so the native DL reasoner
+# forces this individual into owl:Nothing — an inconsistency the reasoned closure decides,
+# not a structural heuristic. The generated `math:Estimand-shape` (`sh:not [ sh:class
+# gmeow:Observation ]`) is the SHACL projection of the same axiom and also fires
+# (shacl.NotConstraintComponent), a documented secondary gate.
+# Back-reference: math:Estimand owl:disjointWith gmeow:Observation /
+# math:ResultRoleConflation (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:conflatedEstimand a math:Estimand , gmeow:Observation .

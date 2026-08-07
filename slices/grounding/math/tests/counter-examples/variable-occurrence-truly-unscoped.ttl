@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::UnscopedOccurrence): a
+# math:VariableExpression root whose single math:VariableOccurrence resolves, through
+# math:declaredVariable, to ex:notFreeNotBound — a declaration that is NEITHER bound by
+# an enclosing math:BindingExpression (the root has no enclosing binder at all) NOR a
+# math:FreeVariableDeclaration. Distinct from
+# tests/counter-examples/variable-occurrence-unscoped.ttl (a standalone occurrence with
+# NO math:declaredVariable at all — that trips OccurrenceMissingDeclaredVariable, a
+# different variant, and is never reached by the lowering in the first place since it
+# carries no parent math:VariableExpression root). The authored math:structuralKey lets
+# the reasoned-graph gate (check_structural_key_on_rejected_expression) also reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:VariableExpression ;
+    math:variableOccurrence ex:occ ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:occ a math:VariableOccurrence ;
+    math:declaredVariable ex:notFreeNotBound .
+
+ex:notFreeNotBound a math:VariableDeclaration .

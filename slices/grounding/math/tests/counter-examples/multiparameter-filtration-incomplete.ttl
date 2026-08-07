@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MultiparameterFiltrationShape (derived from the min-1
+# qualified restrictions on math:MultiparameterFiltration's math:filtrationIndexPoset
+# and math:hasFiltrationStage): a math:MultiparameterFiltration naming neither its
+# index poset nor a single filtration stage. Validation MUST emit
+# shacl.MinCountConstraintComponent (math:IncompleteMultiparameterFiltration).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareFiltration a math:MultiparameterFiltration .

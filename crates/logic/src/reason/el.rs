@@ -229,6 +229,54 @@ mod tests {
         assert!(!xb.is_edb, "x : B is derived, must be is_edb == false");
     }
 
+    /// The CANONICAL `logic:` subsumption spelling drives the fixed RDFS-vocabulary
+    /// EL calculus, so a taxonomy authored the way every `module.ttl` authors it is
+    /// live in the SHIPPED closure — not merely parsed and then dropped.
+    ///
+    /// This is the EL/DL twin of `rl::tests::canonical_logic_subsumption_drives_the_rdfs_vocabulary_calculus`.
+    /// It is the lane that matters to a consumer: `generated/logic/inferred-closure.rdf12.ttl`,
+    /// the `graph/reasoning` projection folded into `gmeow.gts`, the `DlVerdict`, and
+    /// `gmeow entails` all fold from this chase. Without the
+    /// [`crate::reason::edb_predicate_spellings`] lowering in
+    /// [`crate::reason::build_edb_facts`], a class authored
+    /// `logic:subClassOf math:MathConformanceFailure` yields NO entailment at all: the
+    /// enforcement fires but the taxonomy is dark to anyone consuming the bundle.
+    #[test]
+    fn canonical_logic_subsumption_drives_the_rdfs_vocabulary_el_calculus() {
+        let logic_subclass = gmeow_ns::LOGIC_SUB_CLASS_OF;
+        let store = dataset(vec![
+            quad(X, TYPE, A),
+            quad(A, logic_subclass, B),
+            quad(B, logic_subclass, C),
+            // A MIXED chain closes as ONE taxonomy: the canonical edge and its rdfs:
+            // projection are the same edge, so D ⊑ E (canonical) ⊑ ... composes.
+            quad(D, SUBCLASS, E),
+            quad(E, logic_subclass, A),
+        ]);
+        let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
+
+        let ac = find(&closure, A, SUBCLASS, C).expect("A ⊑ C must be inferred");
+        assert!(!ac.is_edb, "A ⊑ C is derived from the canonical chain");
+        let xb = find(&closure, X, TYPE, B).expect("x : B must be inferred");
+        assert!(!xb.is_edb, "x : B is derived over logic:subClassOf");
+        find(&closure, X, TYPE, C).expect("x : C must be inferred transitively");
+        find(&closure, D, SUBCLASS, C)
+            .expect("the rdfs: and logic: spellings compose into one taxonomy");
+
+        // The projection ADDS the RDFS view rather than rewriting the authored edge
+        // away, and it is ASSERTED — a projection of an asserted axiom is asserted,
+        // not derived. (The authored `logic:` spelling itself is present in the chase
+        // but filtered off THIS surface by [`SUBSUMPTION_PREDICATES`]; its survival is
+        // asserted directly over the unfiltered RL encoding in
+        // `rl::tests::canonical_logic_subsumption_drives_the_rdfs_vocabulary_calculus`.)
+        let projected = find(&closure, A, SUBCLASS, B)
+            .expect("the canonical edge is materialized under its rdfs: projection");
+        assert!(
+            projected.is_edb,
+            "a projection of an asserted axiom is asserted, not derived"
+        );
+    }
+
     #[test]
     fn gaps_names_the_predicate_as_symbol_limitation() {
         let store = dataset(vec![quad(A, SUBCLASS, B)]);

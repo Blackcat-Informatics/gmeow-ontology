@@ -7,12 +7,18 @@
 # math:declaredConfidenceMapping to license the conversion. The native gate MUST emit
 # math:ProjectionConfidenceAsProbability (and no other projection failure class): a
 # projection may never erode the logic: probability/confidence boundary silently.
-# Single violation: the confidence→probability conversion has no declared mapping.
+# Single violation: the confidence→probability conversion has no declared mapping. The
+# record declares logic:ExactPreservation — the numeric value crosses the seam unchanged,
+# so nothing is dropped and there is nothing to enumerate — which keeps the loss-ledger
+# obligations (math:MissingPreservationKind, math:UndeclaredUnsupportedConstruct)
+# satisfied and leaves the unlicensed retyping as the fixture's only defect.
 # Back-reference: math:projectsConfidenceAsProbability / math:ProjectionConfidenceAsProbability (slices/grounding/math/module.ttl).
 @prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/math/> .
 
 ex:confidenceProjection a math:ProjectionRecord ;
     math:projectionSource ex:extractionScore ;
     math:projectionTargetName "OWL annotation (probability literal)" ;
+    logic:preservationKind logic:ExactPreservation ;
     math:projectsConfidenceAsProbability true .

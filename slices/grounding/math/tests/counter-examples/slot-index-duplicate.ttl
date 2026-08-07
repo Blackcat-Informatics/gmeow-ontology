@@ -4,7 +4,7 @@
 # Counter-example for math:SlotIndexUniquenessShape: two math:argumentSlot cells of one
 # binder share math:slotIndex 0, so operand order is ambiguous. Each slot is otherwise
 # well-formed (index + expression), isolating the SPARQL uniqueness violation. Validation
-# MUST emit shacl.SPARQLConstraintComponent (math:MalformedArgumentSlot). Bound by
+# MUST emit shacl.SPARQLConstraintComponent (math:DuplicateArgumentSlotIndex). Bound by
 # ex:ecSlotIndexDuplicate.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

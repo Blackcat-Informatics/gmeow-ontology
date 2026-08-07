@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs,
+# MathLoweringError::OccurrenceMissingDeclaredVariable): a math:VariableExpression root
+# whose single math:VariableOccurrence names NO math:declaredVariable at all. Distinct
+# from tests/counter-examples/variable-occurrence-unscoped.ttl (a standalone,
+# unreferenced math:VariableOccurrence authored purely to trip the SHACL shape — never
+# reached by the lowering, since a bare math:VariableOccurrence is not one of the four
+# recognized expression-root types): THIS fixture wires the occurrence under a real
+# math:VariableExpression root, so the native lowering actually reaches and rejects it.
+# The authored math:structuralKey lets the reasoned-graph gate
+# (check_structural_key_on_rejected_expression) also reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:VariableExpression ;
+    math:variableOccurrence ex:occ ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:occ a math:VariableOccurrence .

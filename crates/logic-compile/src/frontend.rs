@@ -285,8 +285,9 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "roleA" | "roleB" | "crossMode"
             // P7 forbidden-pattern.
             | "forbiddenPredicate" | "forbiddenValue"
-            // P8 value-range (inclusive numeric bounds over a path).
+            // P8 value-range (inclusive OR exclusive numeric bounds over a path).
             | "minInclusiveBound" | "maxInclusiveBound"
+            | "minExclusiveBound" | "maxExclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
             // Join-aggregate satellite (multi-hop join + product aggregate + threshold).
@@ -2807,6 +2808,12 @@ pub fn derive_validation_shapes(
     let p_valuepath = nn(&logic_iri("valuePath"));
     let p_min_bound = nn(&logic_iri("minInclusiveBound"));
     let p_max_bound = nn(&logic_iri("maxInclusiveBound"));
+    // Exclusive peers (`logic:minExclusiveBound` / `logic:maxExclusiveBound`) lower to
+    // `sh:minExclusive` / `sh:maxExclusive` — the faithful record for a legacy shape whose bound
+    // was authored open (e.g. `sh:minExclusive 0` for a strictly-positive denominator). An
+    // inclusive bound wins over an exclusive one on the same endpoint (the tighter closed reading).
+    let p_min_excl = nn(&logic_iri("minExclusiveBound"));
+    let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
     for record in subjects_with(store, &nn(RDF_TYPE), &range_ty) {
         let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
             continue;
@@ -2823,7 +2830,15 @@ pub fn derive_validation_shapes(
                 _ => None,
             }
         };
-        let (lo, hi) = (bound_of(&p_min_bound), bound_of(&p_max_bound));
+        // Inclusive bound wins over the exclusive peer on the same endpoint.
+        let (lo, lo_incl) = match bound_of(&p_min_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_min_excl), false),
+        };
+        let (hi, hi_incl) = match bound_of(&p_max_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_max_excl), false),
+        };
         if lo.is_none() && hi.is_none() {
             continue;
         }
@@ -2835,8 +2850,8 @@ pub fn derive_validation_shapes(
             vec![ConstraintComponent::NumericRange {
                 min: lo,
                 max: hi,
-                min_inclusive: true,
-                max_inclusive: true,
+                min_inclusive: lo_incl,
+                max_inclusive: hi_incl,
             }],
         )?;
         entry_for(&mut acc, ShapeTarget::Class(class_iri))
@@ -2869,12 +2884,26 @@ pub fn derive_validation_shapes(
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
-        // node. Collapse repeated identical values; hard-fail distinct values.
-        if let ShapeTarget::Class(class) = &target {
-            let failure_classes = distinct_failure_classes(store, &Subject::Iri(class.clone()))?;
+        // node. For a class-targeted shape that term is the CLASS; for the domain/range shapes
+        // derived from `rdfs:domain P …` / `rdfs:range P …` it is the PROPERTY — the shape's whole
+        // focus set is "the subjects (objects) of P", so P is the only authored term the shape
+        // belongs to, and without this a property-scoped law's findings resolve to no failure class
+        // at all (`<unmapped>`), leaving a conformance cell unable to say which class it just
+        // proved. Collapse repeated identical values; hard-fail distinct values.
+        let failure_source = match &target {
+            ShapeTarget::Class(class) => Some(("class", class)),
+            ShapeTarget::SubjectsOf(predicate) | ShapeTarget::ObjectsOf(predicate) => {
+                Some(("property", predicate))
+            }
+            ShapeTarget::ValueKeyed { .. }
+            | ShapeTarget::DirectClass(_)
+            | ShapeTarget::Sparql(_) => None,
+        };
+        if let Some((kind, term)) = failure_source {
+            let failure_classes = distinct_failure_classes(store, &Subject::Iri(term.clone()))?;
             if failure_classes.len() > 1 {
                 return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("class {class} has distinct gmeow:enforcesFailureClass values"),
+                    detail: format!("{kind} {term} has distinct gmeow:enforcesFailureClass values"),
                 }));
             }
             if let Some(failure_class) = failure_classes.first() {
@@ -5617,15 +5646,19 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
     let mut cmps: Vec<Formula> = Vec::with_capacity(2);
     if let Some(min) = bound("minInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termGreaterEqual"), t_var("v"), min)?);
+    } else if let Some(min) = bound("minExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termGreater"), t_var("v"), min)?);
     }
     if let Some(max) = bound("maxInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termLessEqual"), t_var("v"), max)?);
+    } else if let Some(max) = bound("maxExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termLess"), t_var("v"), max)?);
     }
     let consequent = match cmps.len() {
         0 => {
             return Err(sugar_err(
-                "logic:ValueRangeConstraint requires logic:minInclusiveBound and/or \
-                 logic:maxInclusiveBound",
+                "logic:ValueRangeConstraint requires logic:minInclusiveBound / \
+                 logic:minExclusiveBound and/or logic:maxInclusiveBound / logic:maxExclusiveBound",
             ));
         }
         1 => cmps.pop().expect("one bound"),

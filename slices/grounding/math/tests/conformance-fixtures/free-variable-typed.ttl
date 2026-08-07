@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a free variable declares its math:variableDomain.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:typedFreeVariable a math:FreeVariableDeclaration ;
+    math:variableDomain ex:realNumberSet .
+
+ex:realNumberSet a math:Set .

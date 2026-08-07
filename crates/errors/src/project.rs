@@ -32,6 +32,9 @@ impl DiagNode {
         // The documented-term attributions (a SHACL violation's constrained property,
         // etc.) ride onto the finding for the docs per-term diagnostics join.
         finding.documented_terms = self.documented_terms.clone();
+        // The typed conformance-failure class the violated law declares — the SPECIFIC
+        // failure the generic `code` (a shared SHACL component name) cannot name.
+        finding.failure_class = self.failure_class.clone();
         // The flat text-only suggestion twin (kept so the existing suggestion
         // renderers are unchanged) AND the faithful structured projection that
         // preserves each advice's standpoint + outward help URI (the lossy step

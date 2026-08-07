@@ -234,6 +234,13 @@ pub struct DiagNode {
     /// when empty so non-attributed nodes are byte-unchanged.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub documented_terms: Vec<String>,
+    /// The TYPED conformance-failure class this witness instantiates (the IRI the
+    /// violated law declares through `gmeow:enforcesFailureClass`) — payload, NOT
+    /// part of the identity fingerprint, projected onto
+    /// [`Finding::failure_class`](crate::model::Finding). `skip_serializing_if` keeps
+    /// it out of the node wire form when absent so class-less nodes are byte-unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_class: Option<String>,
     /// The Belnap knowledge value; [`Belnap::Both`] flags a merged glut.
     pub knowledge: Belnap,
     pub emitted_at: SerLocation,
@@ -508,6 +515,35 @@ impl DiagLedger {
                 slot.documented_terms.push(term);
             }
         }
+        // The typed failure class. Two witnesses hash-cons onto ONE node when they
+        // share `(code, category, anchor)` — which for SHACL means two DISTINCT laws
+        // raising the SAME generic component code at the SAME focus node, so the two
+        // may legitimately declare different classes. The slot keeps the
+        // lexicographic minimum (a total, attach-order-independent choice, matching
+        // the stage collapse above) and the loser is NOT dropped: it rides on as a
+        // context frame, which `to_finding` folds into the finding detail — the same
+        // treatment a merged witness's extra observations get.
+        match (&mut slot.failure_class, incoming.failure_class) {
+            (slot_class @ None, incoming_class) => *slot_class = incoming_class,
+            (Some(_), None) => {}
+            (Some(resident), Some(incoming_class)) if *resident == incoming_class => {}
+            (Some(resident), Some(incoming_class)) => {
+                let (kept, folded) = if incoming_class < *resident {
+                    let displaced = std::mem::replace(resident, incoming_class);
+                    (resident.clone(), displaced)
+                } else {
+                    (resident.clone(), incoming_class)
+                };
+                debug_assert_ne!(kept, folded);
+                let note = format!("also enforces failure class {folded}");
+                if !slot.frames.iter().any(|f| f.message == note) {
+                    slot.frames.push(SerFrame {
+                        message: note,
+                        at: None,
+                    });
+                }
+            }
+        }
     }
 
     /// A node must not be its own ancestor — the witness structure is a DAG.
@@ -702,6 +738,7 @@ mod tests {
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
+            failure_class: None,
             knowledge: Belnap::Supported,
             emitted_at: SerLocation {
                 file: "x".to_owned(),
@@ -746,6 +783,7 @@ mod tests {
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
+            failure_class: None,
             knowledge: Belnap::Supported,
             emitted_at: SerLocation {
                 file: "x".to_owned(),

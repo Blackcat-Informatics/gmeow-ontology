@@ -11,6 +11,7 @@
 # Back-reference: math:UnanchoredDiagnostic (slices/grounding/math/module.ttl).
 # Negative counterpart of conformance-fixtures/diagnostic-anchored.ttl.
 # Bound by tests/example-conformance.ttl (ex:ecDiagnosticUnanchored).
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <http://example.org/math/> .
 
@@ -29,4 +30,13 @@ ex:trialFormula a math:ModelFormula ;
 ex:trialSlot0 a math:ArgumentSlot ;
     math:slotIndex 0 ;
     math:slotExpression ex:trialResponse .
-ex:trialResponse a math:VariableExpression .
+# Scaffolding, not the defect under test: a formula term is a FREE variable, so its
+# occurrence resolves to a declaration with a domain. Left bare, it is separately
+# math:UnscopedVariableOccurrence, which would cost this counter-example its isolation.
+ex:trialResponse a math:VariableExpression ; math:variableOccurrence ex:trialResponseOccurrence .
+ex:trialResponseOccurrence a math:VariableOccurrence ; math:declaredVariable ex:trialResponseDeclaration .
+ex:trialResponseDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:trialResponseDomain ;
+    rdfs:label "the trial response variable"@x-gmeow-english .
+ex:trialResponseDomain a math:Set ;
+    rdfs:label "the observed value set of the trial response variable"@x-gmeow-english .

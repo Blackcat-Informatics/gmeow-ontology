@@ -210,5 +210,13 @@ purrdf.workspace = true
 #     (tests/logic_flagship_discharge.rs) RUNS and pins: reason::reason_all,
 #     correspondence_exec::leg_pair_verdict, counterfactual::construct_and_resolve,
 #     conjecture::conjecture_test, and materialize::materialize_routed (with its surfaced
-#     ChaseAdmission termination certificate + explain::assert_faithful trace).
+#     ChaseAdmission termination certificate + explain::assert_faithful trace). The math
+#     execution-discharge harness (tests/math_conformance_discharge.rs) additionally RUNS
+#     two reasoned-graph gate producers directly, over the SAME merged-fixture dataset it
+#     drives every other channel with: math_expression::check_math_expression_findings
+#     (also a genuine cross-crate production dependency of gmeow-slicetest) and
+#     reason::math_gate::dimension_gate_markers (whose only OTHER caller is verify.rs,
+#     same-crate) — `pub` on both, mirroring correspondence_exec::leg_pair_verdict's own
+#     precedent above (a same-crate production function additionally pinned by a
+#     cross-crate discharge harness), not an unjustified visibility widening.
 gmeow-logic = { path = "../logic" }

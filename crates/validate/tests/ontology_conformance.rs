@@ -172,13 +172,19 @@ ex:customRealm a gmeow:FrameRealm .
         ])
 )]
 #[case::wellformed_expertise_fixture_conforms(Case::file("shapes", "expertise-wellformed"))]
+// `gmeow:credentialIssuer`'s Organization-range bound (`logic:allValuesFrom
+// gmeow:Organization` on `gmeow:Credential`) rides the same kind of projected,
+// message-less declarative surface as the cardinality bounds in
+// conformance_music_time.rs — witnessed separately on the production shape union
+// by `malformed_expertise_credential_issuer_organization_bound_on_union` below,
+// not by message text here (the other two checks below ARE authored
+// `logic:Constraint` prose and keep their message-substring assertions).
 #[case::malformed_expertise_fixture_is_flagged(
     Case::file("shapes", "expertise-malformed")
         .fails()
         .messages(&[
-            "must reference exactly one Skill",
+            "must reference a Skill",
             "levelScale should match",
-            "must be an Organization",
             "should reference a gmeow:Attestation",
         ])
 )]
@@ -238,6 +244,26 @@ fn malformed_relator_gender_value_bounds_on_union() {
         .fails_on_path(
             "https://blackcatinformatics.ca/gmeow/genderValue",
             "MaxCountConstraintComponent",
+        )
+        .run();
+}
+
+/// `gmeow:Credential`'s issuer-range bound (`logic:allValuesFrom gmeow:Organization`
+/// on `gmeow:credentialIssuer` in `slices/core/expertise/module.ttl`) also rides the
+/// projected declarative surface (`generated/shapes/validation-shapes.ttl`,
+/// `sh:class gmeow:Organization` on `gmeow:credentialIssuer`), which the fixture
+/// corpus deliberately excludes — witness it by path on the LIVE production shape
+/// union (projected shapes carry no `sh:message`). The `expertise-malformed`
+/// fixture's `ex:badCert` points `gmeow:credentialIssuer` at `ex:bob`, a bare
+/// `gmeow:Agent`, not a `gmeow:Organization`.
+#[test]
+fn malformed_expertise_credential_issuer_organization_bound_on_union() {
+    Case::file("shapes", "expertise-malformed")
+        .shape_union()
+        .fails()
+        .fails_on_path(
+            "https://blackcatinformatics.ca/gmeow/credentialIssuer",
+            "ClassConstraintComponent",
         )
         .run();
 }

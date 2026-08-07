@@ -244,10 +244,21 @@ where
 
     if !result.is_decided_consistent() {
         return if result.is_consistent() {
+            // Name them. The sibling refusal in `run_reason` lists the constructs, and a
+            // refusal that reports only a COUNT cannot be acted on: it says an axiom took
+            // the ontology out of the decided fragment without saying which one, which is
+            // the whole content of the diagnosis.
             Err(error::reasoning(format!(
                 "cannot decide consistency: {n} out-of-fragment construct(s) the native \
-                 path does not decide; refusing to verify",
+                 path does not decide; refusing to verify ({constructs})",
                 n = result.preservation.unsupported_constructs.len(),
+                constructs = result
+                    .preservation
+                    .unsupported_constructs
+                    .iter()
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", "),
             )))
         } else {
             Err(error::reasoning("inconsistent ontology"))
@@ -329,6 +340,11 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     }
     if !evaluation.report.ok() {
+        // Emit the findings, exactly as the standalone `verify` command does. A
+        // refusal that reports only a COUNT cannot be acted on: it says the reasoned
+        // graph carries a violation without saying WHICH, and the whole content of
+        // the diagnosis is which obligation, query, or gate produced it.
+        emit_report(&evaluation.report);
         return fail(format!(
             "verify: {} violation(s) on the reasoned graph",
             evaluation.report.error_count()

@@ -88,11 +88,11 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
-    // wired here yet: it is activated at the terminal migration increment once the legacy shape
-    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
-    // Its production semantics are proven now over the live tree by
-    // `declarative_gate_flags_the_live_legacy_corpus`.
+    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
+    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
+    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
+    // single-source-of-truth invariant (Principle 17).
+    check_declarative_shape_purity(root, &mut report);
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
@@ -195,7 +195,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -314,7 +314,7 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
 /// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl"] {
+    for sub in ["shapes", "slices", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -417,19 +417,36 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
 /// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
 /// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-// Not yet reachable from a non-test build (activation is deferred to the terminal migration
-// increment); its live-tree production semantics are exercised by the gate test below.
-#[allow(dead_code)]
+///
+/// One exemption applies: a file's construct subjects are skipped when the file itself is a
+/// registered `gmeow:saFailWitness` for its enclosing slice ([`registered_fail_witnesses`]). A
+/// `mustNot` structural assertion (e.g. `ex:saNoHandAuthoredShapes`) proves its ban is non-vacuous
+/// by committing a fixture that DELIBERATELY hand-authors the banned shape; without the fixture the
+/// ban would pass whether or not its pattern is even correct. The exemption is keyed on the
+/// REGISTRATION, not a blanket `tests/counter-examples/` directory skip, so an unregistered
+/// hand-authored shape parked in the same directory is still caught.
+// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
+// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
+// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
 fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
         }
     }
     ttl_files.sort();
+    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
     for path in ttl_files {
+        if let Some(slice_dir) = enclosing_slice_dir(&path) {
+            let witnesses = witness_cache
+                .entry(slice_dir.clone())
+                .or_insert_with(|| registered_fail_witnesses(&slice_dir));
+            if witnesses.contains(&path) {
+                continue;
+            }
+        }
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
             Err(err) => {
@@ -473,6 +490,55 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
                 parents.entry(q.o).or_default().insert(q.s);
             }
         }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut node = Some(head);
+            let mut guard = 0usize;
+            while let Some(n) = node {
+                if Some(n) == rdf_nil || guard > 100_000 {
+                    break;
+                }
+                guard += 1;
+                if let Some(q) = ds
+                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
+                    .next()
+                {
+                    out.push(q.o);
+                }
+                node = ds
+                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
+                    .next()
+                    .map(|q| q.o);
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        construct_subjects.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
         if construct_subjects.is_empty() {
             continue;
         }
@@ -507,7 +573,7 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// it enforces the invariant going forward.
 fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_shex_files(&dir, report, &mut shex_files);
@@ -744,6 +810,75 @@ fn check_slice_ttl_trailing_newline(root: &Path, report: &mut RepoStaticReport) 
 /// Resolve an IRI to its interned [`TermId`] in `ds`, if present.
 fn iri_id_static(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
+}
+
+/// The predicate a `gmeow:StructuralAssertion` cell uses to name the fixture that DELIBERATELY
+/// commits the pattern its `mustNot` polarity bans — the fail-witness that proves the ban is
+/// non-vacuous (a ban over a module that, by construction, never contains the banned pattern
+/// would otherwise pass whether or not the pattern is even correctly stated). Its object is a
+/// literal path relative to the assertion's OWN slice root, e.g.
+/// `"tests/counter-examples/hand-authored-shape.ttl"`.
+const GMEOW_SA_FAIL_WITNESS_IRI: &str = "https://blackcatinformatics.ca/gmeow/saFailWitness";
+
+/// The enclosing slice directory of `start` — the nearest ancestor carrying a `manifest.ttl` — or
+/// `None` when `start` is outside any slice. A `gmeow:saFailWitness` registration is authored
+/// relative to its OWN slice, so a registration lookup must first resolve which slice `start`
+/// belongs to rather than assume a single repo-wide `tests/` root.
+///
+/// Shared by [`registered_fail_witnesses`]'s two callers — the `crate-check` projection-purity
+/// scan ([`check_declarative_shape_purity`]) and `gmeow-validate`'s `shape_census` test — so the
+/// two gates the same failing fixture must satisfy agree on exactly one exemption rule rather
+/// than drifting into two independently-maintained ones.
+pub fn enclosing_slice_dir(start: &Path) -> Option<PathBuf> {
+    let mut cursor = if start.is_dir() {
+        Some(start.to_path_buf())
+    } else {
+        start.parent().map(Path::to_path_buf)
+    };
+    while let Some(dir) = cursor {
+        if dir.join("manifest.ttl").is_file() {
+            return Some(dir);
+        }
+        cursor = dir.parent().map(Path::to_path_buf);
+    }
+    None
+}
+
+/// Every path `slice_dir`'s `tests/*.ttl` cells register as a `gmeow:saFailWitness`, resolved to
+/// absolute paths under `slice_dir` so callers can test scanned-file membership directly.
+///
+/// This is the ONLY legitimate exemption from the shape-purity scans: keyed on the REGISTRATION,
+/// never on a blanket `tests/counter-examples/` directory skip. A blanket directory exclusion
+/// would make any unregistered hand-authored shape parked in that same directory invisible to the
+/// gate; keying on the specific fixture a structural assertion actually cites as its witness
+/// closes that hole while still letting the assertion prove its ban is exercised.
+pub fn registered_fail_witnesses(slice_dir: &Path) -> BTreeSet<PathBuf> {
+    let mut out = BTreeSet::new();
+    let Ok(entries) = fs::read_dir(slice_dir.join("tests")) else {
+        return out;
+    };
+    let mut cells: Vec<PathBuf> = entries
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("ttl"))
+        .collect();
+    cells.sort();
+    for cell in cells {
+        let Ok(bytes) = fs::read(&cell) else {
+            continue;
+        };
+        let Ok(ds) = purrdf::parse_dataset(&bytes, "text/turtle", None) else {
+            continue;
+        };
+        let Some(p) = iri_id_static(&ds, GMEOW_SA_FAIL_WITNESS_IRI) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                out.insert(slice_dir.join(lexical));
+            }
+        }
+    }
+    out
 }
 
 fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
@@ -3426,24 +3561,21 @@ mod tests {
     }
 
     #[test]
-    fn declarative_gate_flags_the_live_legacy_corpus() {
-        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
-        // activates at the terminal migration increment). This test proves its PRODUCTION
-        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
-        // shapes that carry no `logic:formalizes` back-reference.
+    fn declarative_gate_is_clean_on_the_migrated_tree() {
+        // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
+        // migration increment): the hand-authored shape corpus has been retired to the `logic:`
+        // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
+        // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
+        // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
+        // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
         let mut report = RepoStaticReport::default();
         check_declarative_shape_purity(live_repo_root(), &mut report);
         assert!(
-            !report.errors.is_empty(),
-            "the blanket declarative-shape gate must red on the live legacy corpus"
-        );
-        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
-        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
-        let legacy = "slices/core/inhabitation/shapes.ttl";
-        assert!(
-            report.errors.iter().any(|e| e.contains(legacy)),
-            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-            report.errors.len()
+            report.errors.is_empty(),
+            "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
+             authored shape remains (ground it in logic: and re-project, or add a \
+             logic:formalizes back-reference to the boundary-kept residue): {:?}",
+            report.errors
         );
     }
 
@@ -3485,6 +3617,51 @@ mod tests {
             backed.errors.is_empty(),
             "a logic:formalizes-backed node shape must pass; got {:?}",
             backed.errors
+        );
+    }
+
+    #[test]
+    fn declarative_gate_exempts_only_a_registered_fail_witness() {
+        // Two hand-authored node shapes in the SAME `counter-examples/` directory. One is
+        // registered as the slice's `gmeow:saFailWitness` for a `mustNot` structural assertion,
+        // one is not. The registration is the whole difference: a witness that proves the ban
+        // has teeth must not be punished by the scan, and a shape nobody registered must not
+        // hide behind sharing its directory with one that was.
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let ce = root.join("slices/z/tests/counter-examples");
+        std::fs::create_dir_all(&ce).unwrap();
+        write(
+            &root.join("slices/z/manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/slice> a gmeow:Slice .\n",
+        );
+        write(
+            &root.join("slices/z/tests/structural.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/saNoShapes> a gmeow:StructuralAssertion ;\n\
+             \x20\x20gmeow:saFailWitness \"tests/counter-examples/registered.ttl\" .\n",
+        );
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ; sh:targetClass ex:C .\n";
+        write(&ce.join("registered.ttl"), declarer);
+        write(&ce.join("smuggled.ttl"), declarer);
+
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+
+        assert!(
+            report.errors.iter().any(|e| e.contains("smuggled.ttl")),
+            "an UNREGISTERED hand-authored shape in counter-examples/ must still be flagged — a \
+             blanket directory exclusion is exactly the hole this closes: {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("registered.ttl")),
+            "a REGISTERED gmeow:saFailWitness must stay exempt, or a mustNot structural \
+             assertion could never carry non-vacuous evidence of its own ban: {:?}",
+            report.errors
         );
     }
 

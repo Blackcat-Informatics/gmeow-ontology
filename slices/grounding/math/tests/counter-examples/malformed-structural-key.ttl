@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoned-graph math: expression-identity gate
+# (crates/logic/src/math_expression.rs, classify_structural_key_usage /
+# check_malformed_structural_key): TWO well-formed math:NumberLiteral roots, each
+# carrying a math:structuralKey usage that is NOT a well-formed singleton literal —
+# ex:twoKeys asserts two literal values (a plural key: which one is "the" digest?),
+# ex:nonLiteralKey asserts one value that is an IRI rather than a literal at all. Both
+# lower cleanly (NumberLiteral needs only math:literalValue), so neither is a rejected
+# expression, and neither carries a single clean literal a drift check could compare —
+# both MUST raise ONLY math:MalformedStructuralKey (never math:StructuralKeyDrift or
+# math:StructuralKeyOnRejectedExpression).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:twoKeys a math:NumberLiteral ;
+    math:literalValue 1 ;
+    math:structuralKey "not-the-real-digest-1" , "not-the-real-digest-2" .
+
+ex:nonLiteralKey a math:NumberLiteral ;
+    math:literalValue 2 ;
+    math:structuralKey ex:notALiteral .
+
+ex:notALiteral a ex:Placeholder .

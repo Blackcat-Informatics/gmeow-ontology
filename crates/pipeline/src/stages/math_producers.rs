@@ -30,15 +30,25 @@
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
 //! rather than living only behind a test-side equality gate.
 //!
-//! The graph content comes ONLY from the producers: no hand-typed constant, no disk read, no
-//! clock, no randomness (the producers are pure), so the attached dataset is byte-deterministic.
+//! The producer graph content comes ONLY from the producers: no hand-typed constant, no disk
+//! read, no clock, no randomness (the producers are pure), so those graphs are byte-deterministic.
 //! That holds for the three lift producers precisely BECAUSE their sources are `include_str!` /
 //! `include_bytes!` compile-time embeddings — the bytes ride the binary, never the machine that
 //! ran the build, and every IRI they mint is a content digest of those bytes.
 //! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
+//!
+//! Every attached graph here is COMPUTED: this stage reads no corpus off disk, so its inputs
+//! are the workspace sources its producers compile from and nothing else. The authored
+//! `examples/*.ttl` ABox of every slice — the math slice's included — is loaded by
+//! `stage-source-load` into [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`], where an
+//! authored corpus belongs: with the loader that reads the slices, for every slice at once,
+//! rather than as one grounding slice's special case bolted onto a producer stage.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+
+use purrdf::RdfDataset;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
@@ -91,16 +101,16 @@ fn producer_turtles() -> [(&'static str, String); 10] {
     ]
 }
 
-/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream product
-/// (the producers are self-contained native functions) and attaches the ten producer graphs to
-/// its carrier dataset.
+/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream STAGE
+/// product (the producers are self-contained native functions) and attaches the ten producer
+/// graphs to its carrier dataset.
 pub struct MathProducersStage {
     consumes: Vec<String>,
 }
 
 impl MathProducersStage {
-    /// Construct the stage. It reads nothing upstream — the producers compute from pinned
-    /// in-code constants.
+    /// Construct the stage. It consumes no upstream product: the producers compute from
+    /// pinned in-code constants and compile-time-embedded artifact bytes.
     pub fn new() -> Self {
         Self {
             consumes: Vec::new(),
@@ -147,20 +157,28 @@ impl Stage for MathProducersStage {
         // parsed nothing — it pushed a fixed Turtle string — and r_lift, which runs the real
         // R front-end over a committed script and emits a strictly richer math:RIngestRun,
         // fully subsumes it. Ten graphs now, and the rBridge flagship names r_lift.
-        "math_producers.v6"
+        // v7: RELEASE the examples-corpus read. An authored `examples/*.ttl` ABox is source,
+        // not a computed producer graph, and admitting only the math slice's made every other
+        // slice's demonstrators unreachable from the bundle. `stage-source-load` now loads
+        // EVERY slice's corpus into graph/examples; this stage is once more purely the ten
+        // native producers, with no disk read at all.
+        "math_producers.v7-producers-only"
     }
-    fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // No source files: the producers are self-contained native functions whose bytes ride
-        // the workspace-source BUILD_FINGERPRINT (any code change to `crates/math` yields fresh
-        // cache keys), so there is nothing to declare here.
+    fn input_files(&self, _root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+        // The ten producers are self-contained native functions whose bytes ride the
+        // workspace-source BUILD_FINGERPRINT (any code change to `crates/math` yields fresh
+        // cache keys), including the three lifts' `include_str!` / `include_bytes!`
+        // compile-time embeddings. This stage reads nothing off disk, so it declares no
+        // input file.
         Ok(Vec::new())
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        // Parse each producer's deterministic Turtle into its own named carrier graph and union
-        // them into one frozen dataset the snapshot presenter folds into the bundle. The content
-        // is the producers' output ALONE — a parse failure hard-fails (propagated).
+        // Parse each producer's deterministic Turtle into its own named carrier graph and
+        // fold them into one frozen dataset the snapshot presenter folds into the bundle. A
+        // producer/parse failure is a HARD FAIL — propagated, never swallowed
+        // (no-optionality).
         let turtles = producer_turtles();
-        let mut graphs: Vec<std::sync::Arc<purrdf::RdfDataset>> = Vec::with_capacity(turtles.len());
+        let mut graphs: Vec<Arc<RdfDataset>> = Vec::with_capacity(turtles.len());
         for (graph_iri, turtle) in &turtles {
             graphs.push(parse_into_graph(
                 turtle.as_bytes(),
@@ -168,8 +186,8 @@ impl Stage for MathProducersStage {
                 graph_iri,
             )?);
         }
-        let refs: Vec<&purrdf::RdfDataset> = graphs.iter().map(|g| g.as_ref()).collect();
-        let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&refs));
+        let refs: Vec<&RdfDataset> = graphs.iter().map(|g| g.as_ref()).collect();
+        let dataset = Arc::new(RdfDataset::union(&refs));
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,
@@ -182,6 +200,16 @@ impl Stage for MathProducersStage {
 mod tests {
     use super::*;
 
+    /// Repo root (the workspace, two levels up from this crate's manifest). `StageInput`
+    /// carries a root; this stage reads nothing under it, and `input_files` declares that.
+    fn repo_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
     /// The stage attaches EXACTLY the ten producer graphs, each non-empty and carrying its
     /// producer's pinned content — the proof the producer output reaches the carrier (and thence
     /// `gmeow.gts`), not merely a test.
@@ -189,9 +217,10 @@ mod tests {
     fn run_attaches_the_ten_producer_graphs() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
+        let root = repo_root();
         let out = stage
             .run(StageInput {
-                root: Path::new("."),
+                root: &root,
                 upstream: &upstream,
             })
             .expect("math_producers stage runs");
@@ -205,21 +234,22 @@ mod tests {
         }
     }
 
-    /// Determinism: two runs attach byte-identical carrier datasets (the producers are pure —
-    /// no clock, no RNG, no HashMap iteration order).
+    /// Determinism: two runs attach byte-identical carrier datasets — the producers are pure
+    /// (no clock, no RNG, no HashMap iteration order, no disk read at all).
     #[test]
     fn run_is_deterministic() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
+        let root = repo_root();
         let a = stage
             .run(StageInput {
-                root: Path::new("."),
+                root: &root,
                 upstream: &upstream,
             })
             .expect("run a");
         let b = stage
             .run(StageInput {
-                root: Path::new("."),
+                root: &root,
                 upstream: &upstream,
             })
             .expect("run b");

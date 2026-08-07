@@ -285,28 +285,11 @@ fn resource_term(term: &RdfTerm, interner: &mut Interner) -> Option<TermValue> {
 ///
 /// # The canonical subsumption edge is materialized into its RDFS projection
 ///
-/// The RL/RDF calculus in [`super::rl_rules`] is the FIXED W3C rule set: every
-/// subsumption rule (`cax-sco`, `scm-sco`, `scm-spo`, `prp-spo1`, …) matches the
-/// `rdfs:subClassOf` / `rdfs:subPropertyOf` spelling *by specification*, and is
-/// not GMEOW's to re-author. But GMEOW's authored surface is the CANONICAL
-/// `logic:` vocabulary (Principle 17: `rdfs:` is one of its lossy projections),
-/// so a chase fed authored `module.ttl` sources sees a taxonomy spelled
-/// `logic:subClassOf` and would derive nothing from it — silently, with an empty
-/// closure rather than an error.
-///
-/// So the projection is materialized here, at the EDB boundary, exactly where the
-/// shipped OWL/RDFS projection surface performs it: a canonical
-/// `logic:subClassOf`/`logic:subPropertyOf` quad is encoded a second time under
-/// its `rdfs:` spelling ([`gmeow_ns::SUB_CLASS_OF`] / [`gmeow_ns::SUB_PROPERTY_OF`],
-/// canonical first, projected second), in the same world. The canonical quad is
-/// kept too — the projection ADDS the RDFS view, it never replaces the authored
-/// edge — and both are asserted (`is_edb`), because a projection of an asserted
-/// axiom is asserted, not derived.
-///
-/// When the `rdfs:` projection ceilings reach zero corpus-wide and the `rdfs:`
-/// arm of the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the
-/// lowering (canonical → RL's fixed RDFS vocabulary) is what the calculus needs,
-/// not a transitional read of two authored spellings.
+/// A canonical `logic:subClassOf` / `logic:subPropertyOf` quad is encoded a second
+/// time under the `rdfs:` spelling the fixed RL rule set matches, via the shared
+/// [`super::edb_predicate_spellings`] — the SAME EDB-boundary lowering
+/// [`super::build_edb_facts`] applies to the EL/DL path. See that helper for why
+/// the lowering belongs at the EDB boundary rather than in the fixed rules.
 fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactSet {
     let mut facts = TypedFactSet::new();
     for quad in store.owned_quads() {
@@ -325,29 +308,12 @@ fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactS
         let s = facts.intern(&subj);
         let o = facts.intern(&obj);
         let w = facts.intern(&TermValue::simple_literal(&world));
-        for predicate in rl_predicate_spellings(&quad.predicate) {
+        for predicate in super::edb_predicate_spellings(&quad.predicate) {
             let p = facts.intern(&TermValue::iri(predicate));
             facts.push_fact(TRIPLE_RELATION, vec![s, p, o, w]);
         }
     }
     facts
-}
-
-/// The predicate spellings one authored quad contributes to the RL EDB: the
-/// authored predicate itself, plus — for a canonical `logic:` subsumption edge —
-/// the `rdfs:` spelling the fixed RL calculus matches on. See
-/// [`encode_generic_edb`] for why the lowering lives at the EDB boundary.
-fn rl_predicate_spellings(predicate: &str) -> Vec<&str> {
-    match predicate {
-        gmeow_ns::LOGIC_SUB_CLASS_OF => {
-            vec![gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF]
-        }
-        gmeow_ns::LOGIC_SUB_PROPERTY_OF => vec![
-            gmeow_ns::LOGIC_SUB_PROPERTY_OF,
-            gmeow_ns::RDFS_SUB_PROPERTY_OF,
-        ],
-        other => vec![other],
-    }
 }
 
 /// The bare IRI string of a typed generic-triple argument.

@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:MathematicalExpression carrying a math:normalForm trigger edge
+# but none of the four structured-child edges (math:argumentSlot, math:boundVariable,
+# math:hasMathematicalSymbol, math:literalValue) — represented only by a string
+# (math:StringOnlyComputableExpression).
+#
+# Both ends name a CONCRETE form — the exact minimal pair against
+# computable-expression-structured.ttl, which is the same nullary application WITH its operand
+# authored. A concrete form is what keeps this fixture isolated: the abstract
+# math:MathematicalExpression base names no form the lowering has a production for, so a node
+# carrying it and nothing more is math:UnrecognizedExpressionType and would fire beside the one
+# class this fixture exists to pin. The operator is named and the operands are not; the operand
+# structure lives only in whatever string the author had in mind, which is exactly what
+# math:StringOnlyComputableExpression names. The slice puts no minimum on an application's
+# math:argumentSlot count (only a binder carries that obligation), so a nullary application is
+# a well-formed AST node and the grammar accepts it.
+#
+# Isolation is carried by a FULLY ATTRIBUTED declaration at a strength ABOVE structural,
+# never by hand-written keys. The two expressions apply DIFFERENT operators, so they are not
+# structurally identical and a math:structuralNormalization claim between them would be false —
+# the earlier form asserted one and papered over it with EQUAL invented math:structuralKey
+# literals on both ends, which only looked clean while the grammar had no digest to compare them
+# against. Held at math:commutativeNormalization with its procedure, its holding
+# gmeow:Observation and vantage, and its logic:preservationKind, the declaration discharges
+# math:UndeclaredNormalForm and math:UnattributedNormalization, engages neither
+# math:FalseStructuralNormalizationClaim (not a structural claim) nor
+# math:UndeclaredNormalizationStrength (exactly one ladder rung, named by IRI), and authors
+# no key to drift from.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The abstract base is asserted ALONGSIDE the concrete form because
+# math:StringOnlyComputableExpressionConstraint is guarded on that typing — dropping it would
+# not fix the fixture, it would silence the gate the fixture exists to trip.
+ex:stringOnlyExpr a math:ApplicationExpression , math:MathematicalExpression ;
+    math:operator math:Addition ;
+    math:normalForm ex:stringOnlyExprNormalForm .
+
+ex:stringOnlyExprNormalForm a math:ApplicationExpression , math:MathematicalExpression ;
+    math:operator math:Multiplication .
+
+ex:stringOnlyExprDeclaration a math:NormalizationDeclaration ;
+    math:normalizes ex:stringOnlyExpr ;
+    math:normalizesTo ex:stringOnlyExprNormalForm ;
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:stringOnlyRewrite ;
+    logic:preservationKind logic:preservesSatisfiability .
+
+ex:stringOnlyRewrite a math:NormalizationProcedure .
+
+ex:stringOnlyObservation a gmeow:Observation ;
+    gmeow:observationResult ex:stringOnlyExprDeclaration ;
+    gmeow:observedFeature ex:stringOnlyExpr ;
+    gmeow:vantage ex:stringOnlyStandpoint .
+
+ex:stringOnlyStandpoint a gmeow:Standpoint , gmeow:Entity .
