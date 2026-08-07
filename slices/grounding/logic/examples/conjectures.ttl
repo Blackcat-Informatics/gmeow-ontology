@@ -142,13 +142,19 @@ ex:witnessParthoodIncomparablePair
         "<https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> <http://www.w3.org/2002/07/owl#differentFrom> <https://blackcatinformatics.ca/gmeow/examples/logic/rightHand>"^^xsd:string .
 
 # The symmetric anti-conjecture promotion leg: the refuted formula becomes a candidate
-# NonEntailmentObligation the foundation must never draw.
+# NonEntailmentObligation the foundation must never draw. Its discharge condition is the
+# NARROWEST one the checker actually implements (logic:obligationDischargeCondition's own
+# howToUse): syntactic reachability over the rule strata settles this obligation, because
+# the forbidden predicate is no rule head, so the verdict is logic:ObligationDischarged.
+# Naming logic:DischargeBoundedCorpus here instead — a member of the closed condition set
+# that is named but NOT engine-backed — would give the obligation no executable discharge
+# path, which the governance check hard-fails rather than record as a silent pass.
 ex:obligationForbidTotalParthood
     a logic:NonEntailmentObligation ;
     rdfs:label "parthood must not be derived as a total order"@x-gmeow-english ;
     logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/examples/logic/parthoodTotallyComparable"^^xsd:anyURI ;
-    logic:obligationDischargeCondition logic:DischargeBoundedCorpus ;
-    logic:obligationDischargeVerdict logic:ObligationUnknown .
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
 
 # The Lakatos refinement successor: a strictly weaker claim (parthood is a PARTIAL
 # order) that excludes the incomparable-pair witness. It links back through

@@ -236,3 +236,11 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:GTSSegment, et rien d'autre. Ce n'est pas une définition de gmeow:GTSSegment (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS head-id canonical pattern constraint"
+msgstr "contrainte de motif canonique de l'identifiant de tête GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
+msgstr "Une contrainte d'intégrité en monde clos : une valeur de gmeow:gtsHeadId doit être canonique — le préfixe littéral « blake3: » suivi d'exactement 64 chiffres hexadécimaux minuscules (spécification GTS §3.1, §9.1)."

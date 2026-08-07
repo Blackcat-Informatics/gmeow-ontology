@@ -2008,19 +2008,6 @@ gmeow:pcc-tags-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-c
 # absorbed at the merge base is STALE and reds until deleted.
 #################################################################
 
-gmeow:reloc-organization-to-temporal-week-cycle
-    a gmeow:CeilingRelocation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
-    rdfs:label "ceiling relocation — the week cycle, organization to temporal"@x-gmeow-english ;
-    skos:definition "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."@x-gmeow-english ;
-    skos:example "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:relocationTerm gmeow:DayOfWeek ;
-    gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:relocationVocabulary gmeow:projVocab-rdfs ;
-    gmeow:relocationDate "2026-07-28"^^xsd:date .
-
 #################################################################
 # The owned partition of the ISO 19157 quality vocabulary
 #################################################################

@@ -21,6 +21,7 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # --------------------------------------------------------------------------- #
 # (a) Numeric credence must lie in [0,1].
@@ -32,6 +33,7 @@ gmeow:ClaimCredenceRangeShape
     rdfs:label "Claim credence range shape"@x-gmeow-english ;
     skos:definition "The numeric gmeow:claimCredence value must be an xsd:decimal in [0.0, 1.0]. A decimal outside this range is malformed; there is no valid credence below 0 or above 1."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    logic:formalizes gmeow:ClaimCredenceLowerBoundConstraint, gmeow:ClaimCredenceUpperBoundConstraint, gmeow:ClaimCredenceRangeConstraint ;
     sh:targetSubjectsOf gmeow:claimCredence ;
     sh:property [
         sh:path gmeow:claimCredence ;
@@ -47,6 +49,7 @@ gmeow:StandpointCredenceRangeShape
     rdfs:label "Standpoint credence range shape"@x-gmeow-english ;
     skos:definition "The numeric gmeow:standpointCredence value must be an xsd:decimal in [0.0, 1.0]. A decimal outside this range is malformed; there is no valid credence below 0 or above 1."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    logic:formalizes gmeow:StandpointCredenceLowerBoundConstraint, gmeow:StandpointCredenceUpperBoundConstraint ;
     sh:targetSubjectsOf gmeow:standpointCredence ;
     sh:property [
         sh:path gmeow:standpointCredence ;
@@ -79,6 +82,7 @@ gmeow:CredenceBandConsistencyShape
     rdfs:label "Credence band consistency shape"@x-gmeow-english ;
     skos:definition "When a node asserts both a qualitative credence band (gmeow:claimCredenceLevel or gmeow:standpointCredenceLevel) and a numeric decimal (gmeow:claimCredence or gmeow:standpointCredence), the decimal must fall within the band's canonical threshold range: credencePossible [0.0, 0.5), credenceLikely [0.5, 0.9), credenceCertain [0.9, 1.0]. Asserting gmeow:credenceUnspecified alongside any decimal is contradictory — that band means no graded belief is present."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    logic:formalizes gmeow:ClaimCredenceBandConsistencyConstraint ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """

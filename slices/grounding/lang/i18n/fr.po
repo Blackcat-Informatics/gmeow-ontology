@@ -1446,3 +1446,39 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSymbolDispositionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:gmnSymbolDisposition and nothing else. It is not a definition of gmeow:gmnSymbolDisposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gmnSymbolDisposition, et rien d'autre. Ce n'est pas une définition de gmeow:gmnSymbolDisposition (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn envelope security-ring closure"
+msgstr "clôture de l'anneau de sécurité d'une enveloppe gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnSecurityRing; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnEnvelope porte un gmeow:gmnSecurityRing ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondenceClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn envelope correspondence closure"
+msgstr "clôture de la correspondance d'une enveloppe gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondenceClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnEnvelopeCorrespondence; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnEnvelope porte une gmeow:gmnEnvelopeCorrespondence ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRingLevelClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn ring level closure"
+msgstr "clôture du niveau d'anneau gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRingLevelClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnSecurityRing to carry gmeow:gmnRingLevel; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnSecurityRing porte un gmeow:gmnRingLevel ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmnSecurityRing is functional"
+msgstr "gmnSecurityRing est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gmnSecurityRing is functional: a gmeow:GmnEnvelope names exactly one admission ring, because the ring IS the single boundary class the serializer checked the payload against — two rings on one envelope would leave the admission decision undetermined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gmnSecurityRing est fonctionnelle : une gmeow:GmnEnvelope nomme exactement un anneau d'admission, car l'anneau EST l'unique classe frontière contre laquelle le sérialiseur a vérifié la charge utile — deux anneaux sur une même enveloppe laisseraient indéterminée la décision d'admission. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gmnSecurityRing and nothing else. It is not a definition of gmeow:gmnSecurityRing (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gmnSecurityRing, et rien d'autre. Il n'est pas une définition de gmeow:gmnSecurityRing (celle-ci réside sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

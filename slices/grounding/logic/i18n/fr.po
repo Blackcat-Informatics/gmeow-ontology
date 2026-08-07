@@ -18502,6 +18502,78 @@ msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeatExcludesReviseCo
 msgid "The logic:Constraint rejecting a continuation record typed as BOTH logic:ContinuationRepeat and logic:ContinuationRevise. It completes the pairwise disjointness of the three continuation kinds, whose resume leg logic:ContinuationKindDisjointnessConstraint carries: repeat mints a new logic:Enactment against a new snapshot and leaves the prescription untouched, revise mints a new logic:PrescriptionVersion and leaves in-flight enactments on the version they pinned, and a record asserting both has said neither which occurrence continued nor which prescription governs it."
 msgstr "La logic:Constraint qui rejette un relevé de continuation typé À LA FOIS logic:ContinuationRepeat et logic:ContinuationRevise. Elle achève la disjonction deux à deux des trois genres de continuation, dont logic:ContinuationKindDisjointnessConstraint porte le volet « reprise » : la répétition frappe un nouveau logic:Enactment sur un nouvel instantané et laisse la prescription intacte, la révision frappe une nouvelle logic:PrescriptionVersion et laisse les exécutions en vol sur la version qu'elles ont épinglée, et un relevé affirmant les deux n'a dit ni quelle occurrence s'est poursuivie ni quelle prescription la régit."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence justification requiredness constraint"
+msgstr "contrainte d'obligation de justification pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement une gmeow:justification à valeur d'IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence source-endpoint requiredness constraint"
+msgstr "contrainte d'obligation d'extrémité source pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement une logic:sourceEndpoint à valeur d'IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence target-endpoint requiredness constraint"
+msgstr "contrainte d'obligation d'extrémité cible pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement une logic:targetEndpoint à valeur d'IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismClass requiredness constraint"
+msgstr "contrainte d'obligation de morphismClass pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismClass."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement un logic:morphismClass."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismKind requiredness constraint"
+msgstr "contrainte d'obligation de morphismKind pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismKind."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement un logic:morphismKind."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence preservationKind requiredness constraint"
+msgstr "contrainte d'obligation de preservationKind pour GroundingCorrespondence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:preservationKind."
+msgstr "Une contrainte d'obligation en monde clos : une logic:GroundingCorrespondence doit déclarer explicitement un logic:preservationKind."
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "String Pattern Constraint"
+msgstr "Contrainte de motif de chaîne"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Compact sugar for a per-value string-pattern constraint: a logic:onClass target (optional — omitted, the guard is the value path's own presence), a logic:valuePath predicate, a logic:stringOp mode (regexRequired / regexForbidden / prefixRequired / prefixForbidden), and a literal logic:stringPattern every (or no) value on that path must satisfy. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity using logic:termRegex / logic:termStrStarts, lowered to a sh:SPARQLConstraint — regex is out of the EL/OWL restriction fragment, so this stays procedural rather than a native declarative sh:pattern facet. Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de motif de chaîne appliquée valeur par valeur : une cible logic:onClass (facultative — omise, la garde devient la seule présence du chemin de valeur), un prédicat logic:valuePath, un mode logic:stringOp (regexRequired / regexForbidden / prefixRequired / prefixForbidden) et un littéral logic:stringPattern que chaque valeur (ou aucune valeur) de ce chemin doit satisfaire. Il se développe en une logic:Constraint canonique portant une intégrité logique du premier ordre réifiée et honnête au moyen de logic:termRegex / logic:termStrStarts, abaissée en sh:SPARQLConstraint — les expressions rationnelles sortent du fragment de restriction EL/OWL, si bien que cette forme demeure procédurale plutôt qu'une facette déclarative native sh:pattern. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "min exclusive bound"
+msgstr "borne exclusive minimale"
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly greater than this literal (projected to sh:minExclusive on the target class shape). The open-bound peer of logic:minInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "La borne littérale inférieure exclusive d'une logic:ValueRangeConstraint : chaque valeur sur le logic:valuePath de la contrainte doit être strictement supérieure à ce littéral (projeté vers sh:minExclusive sur la forme de la classe cible). Pendant à borne ouverte de logic:minInclusiveBound ; sur une même extrémité, une borne inclusive l'emporte sur la borne exclusive."
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "max exclusive bound"
+msgstr "borne exclusive maximale"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly less than this literal (projected to sh:maxExclusive on the target class shape). The open-bound peer of logic:maxInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "La borne littérale supérieure exclusive d'une logic:ValueRangeConstraint : chaque valeur sur le logic:valuePath de la contrainte doit être strictement inférieure à ce littéral (projeté vers sh:maxExclusive sur la forme de la classe cible). Pendant à borne ouverte de logic:maxInclusiveBound ; sur une même extrémité, une borne inclusive l'emporte sur la borne exclusive."
+
 msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a selected pin was in the roster it was selected from"
 msgstr "un épinglage retenu figurait bien dans la liste dont il a été retenu"

@@ -1602,10 +1602,13 @@ gmeow:validUntil
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
-gmeow:TemporalFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeScale ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameRealm ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameKind ] .
+gmeow:TemporalFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:frameTimeScale ; logic:allValuesFrom gmeow:TimeScale ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:frameRealm ; logic:allValuesFrom gmeow:FrameRealm ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:frameKind ; logic:allValuesFrom gmeow:FrameKind ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameTimeScale" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameRealm" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # Closed-world cardinality axiom backing the hand-authored core observation
 # method well-formedness shape (a temporal measurement records exactly one method).
@@ -1615,9 +1618,6 @@ gmeow:TemporalMeasurement rdfs:subClassOf
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
-<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameTimeScale> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeScale> ] .
-<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameRealm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
-<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/DatingMethod> ] .
@@ -1685,6 +1685,63 @@ gmeow:ObservationWindowClosedWorldBoundary
     gmeow:howToUse "Read it alongside gmeow:observationWindowRequired and gmeow:observationCutoff: those two are what the slice DOES ship (the marker and the derived-cutoff handle), and this record is the honest residue explaining why enforcement is not a third, slice-authored constraint."@x-gmeow-english ;
     skos:scopeNote "Scope: this record discloses ONE withheld construct — a slice-level closed-world constraint over the presence/absence of the statement-layer annotation clocks. It says nothing about validity-time (validFrom/validUntil) or any other temporal construct, and it does not withdraw the sanctioned observationWindowRequired marker pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# Shape-migration grounding: procedural disjunctive-requiredness constraints    #
+# for the two node-level sh:or shapes in shapes.ttl (InstantShape,              #
+# NamedPeriodShape). Both anchor a point/span to a value via an OR of          #
+# alternative property groups; neither has a plain OWL cardinality/class       #
+# antecedent, so they ground as logic:Constraint procedural residues.          #
+# =========================================================================== #
+
+# An Instant must anchor to a value: at least one of gmeow:instantValue or
+# gmeow:edtfValue (the disjunctive-requiredness image of the retired
+# gmeow:InstantShape node-level sh:or).
+gmeow:InstantValueOrEdtfConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Instant value-or-EDTF constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Instant carries at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal) — a point in time with no stated value is not an Instant."@x-gmeow-english ;
+    logic:onClass gmeow:Instant ;
+    logic:anyOf gmeow:instantValue , gmeow:edtfValue ;
+    logic:formalizes gmeow:InstantShape ;
+    logic:message "An Instant must have either gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (EDTF literal), or both." .
+
+# A NamedPeriod must be bounded: either both gmeow:periodStart and
+# gmeow:periodEnd, or at least one gmeow:hasTemporalMeasurement (the OR-of-an-
+# AND-group-or-a-single-predicate image of the retired gmeow:NamedPeriodShape
+# node-level sh:or; the AND-grouped alternative has no logic:DisjunctiveRequirednessConstraint
+# sugar form, so it is authored as a raw logic:Formula integrity tree).
+gmeow:NamedPeriodBoundsOrMeasurementConstraint
+    a logic:Constraint ;
+    rdfs:label "Named period bounds-or-measurement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."@x-gmeow-english ;
+    logic:formalizes gmeow:NamedPeriodShape ;
+    logic:message "A NamedPeriod must have either (periodStart + periodEnd) or at least one gmeow:hasTemporalMeasurement." ;
+    logic:integrity logic:npbForall .
+logic:npbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:npbImpl .
+logic:npbImpl a logic:Formula ; logic:antecedent logic:npbGuard ; logic:consequent logic:npbPhi .
+logic:npbGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NamedPeriod ] .
+logic:npbPhi a logic:Formula ; logic:or logic:npbBounded , logic:npbMeasured .
+logic:npbBounded a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] ;
+    logic:exists logic:npbBoundedBody .
+logic:npbBoundedBody a logic:Formula ; logic:and logic:npbStart , logic:npbEnd .
+logic:npbStart a logic:Formula ; logic:relation gmeow:periodStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:npbEnd a logic:Formula ; logic:relation gmeow:periodEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:npbMeasured a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ;
+    logic:exists logic:npbMeasuredBody .
+logic:npbMeasuredBody a logic:Formula ; logic:relation gmeow:hasTemporalMeasurement ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

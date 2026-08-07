@@ -176,6 +176,42 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# `schema_org_procedures_projection` is a plain budget correction: it never fit its 60s x2
+# default and was simply never given one. It is NOT a member of the whole-bundle-proof class
+# above — it projects one small worked instance, not the bundle — its own cost is
+# `stage-mappings::compile_mappings`, the real production mapping-compile entry point (slice
+# catalog discovery, the prefix/purity lints, and — the dominant share — an executed
+# get/put law discharge for every authored correspondence in the repo), which this test must
+# call unmodified to stay the real compiled query rather than a re-implementation. Measured
+# test time (excluding the crate build) on this shared, concurrently-loaded host: 181.6s,
+# comfortably past the 120s default kill and rising under load, so the same 300s backstop as
+# its neighbours is warranted on the numbers alone. Assertions untouched; only the budget.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(schema_org_procedures_projection)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# `math_conformance_discharge` gets its own backstop, and its history is the clearest
+# statement of why that is not a concession. It used to finish almost instantly because its
+# SHACL channel degraded to a non-failing "unverified" bucket when the generated shape
+# surface was absent, and its owl-axiom tier had no execution channel at all. A missing shape
+# surface now hard-fails, the disjointness conflations are decided from the reasoned closure,
+# and — the dominant cost — the reasoned-graph channel takes a REAL DL closure per
+# counter-example instead of reading the asserted graph. It has to: the kernel authors an
+# existential restriction on `math:withRespectTo`, so the chase invents dimension read-set
+# edges no asserted read can see, and the surface-leak half needs the same closure.
+#
+# Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
+# folded in the fixtures' own sorted order — ~235s on the bounded pool it uses (a quarter of
+# the host's parallelism, eight threads on a 32-core machine), down from ~720s sequential,
+# which had overrun even a 2400s ceiling under concurrent gate load. The pool is bounded on
+# purpose: nextest already runs tests in parallel, and seizing
+# every core starved two sibling pipeline tests into timing out. A test that reds on machine
+# load is broken rather than flaky, so the work got cheaper instead of the ceiling higher;
+# this budget is the sibling bundle-proof one, not a special case.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
 # from gmeow.gts twice — once directly for the projection assertions, once more inside
 # `check_superset` (the production entry point, kept so the gate's own composition is

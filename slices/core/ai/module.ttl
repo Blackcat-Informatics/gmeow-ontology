@@ -837,6 +837,31 @@ gmeow:RetrievalEvent rdfs:subClassOf
 # (Principle 17). The authored shapes stay (additive).                         #
 # =========================================================================== #
 
+gmeow:ClaimNeedsEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim needs evidence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: an LLM-extracted claim (gmeow:observationMethod gmeow:methodLlmExtraction) with no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10)."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:ClaimNeedsEvidenceShape ;
+    logic:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
+    logic:integrity logic:cneForall .
+logic:cneForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cneImpl .
+logic:cneImpl a logic:Formula ; logic:antecedent logic:cneGuard ; logic:consequent logic:cneExists .
+logic:cneGuard a logic:Formula ; logic:and logic:cneType , logic:cneMethod .
+logic:cneType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointClaim ] .
+logic:cneMethod a logic:Formula ; logic:relation gmeow:observationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:methodLlmExtraction ] .
+logic:cneExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "span" ] ;
+    logic:exists logic:cneBody .
+logic:cneBody a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] .
+
 gmeow:SpanEndAfterStartConstraint
     a logic:Constraint ;
     rdfs:label "Span end-after-start constraint"@x-gmeow-english ;
@@ -857,6 +882,34 @@ logic:seaEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 logic:seaGt a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+# gmeow:SpanSanityShape is sh:targetSubjectsOf gmeow:spanStart (not sh:targetClass):
+# gmeow:SpanEndAfterStartConstraint above formalizes the shape's end>start
+# comparison but its guard is a conjunction (spanStart AND spanEnd), which never
+# resolves to a clean SubjectsOf(spanStart) shape target — leaving the legacy
+# shape with NO-PROJECTED-PEER. This sibling constraint's guard is the single
+# atom gmeow:spanStart(this,s) (matching the legacy shape's own target exactly)
+# and requires the paired gmeow:spanEnd to be present, closing the peer gap.
+gmeow:SpanRequiresEndConstraint
+    a logic:Constraint ;
+    rdfs:label "Span requires end constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span carrying a gmeow:spanStart must also carry a gmeow:spanEnd — a span with only one boundary is not a well-formed span."@x-gmeow-english ;
+    logic:formalizes gmeow:SpanSanityShape ;
+    logic:message "A span with a gmeow:spanStart must also carry a gmeow:spanEnd." ;
+    logic:integrity logic:sreForall .
+logic:sreForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall logic:sreImpl .
+logic:sreImpl a logic:Formula ; logic:antecedent logic:sreStart ; logic:consequent logic:sreExists .
+logic:sreStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:sreExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:sreBody .
+logic:sreBody a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 
 gmeow:StaleSourceConstraint
     a logic:Constraint ;
@@ -885,6 +938,42 @@ logic:stsSrcMod a logic:Formula ; logic:relation gmeow:sourceModifiedAt ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "srcMod" ] .
 logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "srcMod" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
+
+# gmeow:GroundingSpanShape targets $this via a raw sh:SPARQLTarget select
+# (every span reached through gmeow:groundedIn from a claim), not sh:targetClass
+# or sh:targetSubjectsOf — a shape target no ChoiceGroup/Disjunctive sugar's
+# logic:onClass can express. The check is authored as a raw logic:Formula
+# integrity tree in the SpanEndAfterStart/StaleSource idiom: the guard atom
+# gmeow:groundedIn(claim,this) and the four required-facet atoms share the
+# outer forall's free variables (implicit join/existential-import), exactly
+# mirroring how logic:stsForall above joins span → chunk → source without a
+# nested sh:exists. It does not encode the shape's per-facet sh:maxCount 1
+# ceiling (no procedural builtin tests upper cardinality here, matching every
+# other migrated existence obligation in this file).
+gmeow:GroundingSpanConstraint
+    a logic:Constraint ;
+    rdfs:label "Grounding span completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."@x-gmeow-english ;
+    logic:formalizes gmeow:GroundingSpanShape ;
+    logic:message "A grounding span (reached via gmeow:groundedIn) must carry gmeow:spanOfChunk, gmeow:spanStart, gmeow:spanEnd, and gmeow:supportPolarity." ;
+    logic:integrity logic:gscForall .
+logic:gscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] , [ logic:termIndex 2 ; logic:termVariable "chunk" ] , [ logic:termIndex 3 ; logic:termVariable "s" ] , [ logic:termIndex 4 ; logic:termVariable "e" ] , [ logic:termIndex 5 ; logic:termVariable "p" ] ;
+    logic:forall logic:gscImpl .
+logic:gscImpl a logic:Formula ; logic:antecedent logic:gscGuard ; logic:consequent logic:gscAnd .
+logic:gscGuard a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:gscAnd a logic:Formula ; logic:and logic:gscChunk , logic:gscStart , logic:gscEnd , logic:gscPolarity .
+logic:gscChunk a logic:Formula ; logic:relation gmeow:spanOfChunk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunk" ] .
+logic:gscStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:gscEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:gscPolarity a logic:Formula ; logic:relation gmeow:supportPolarity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

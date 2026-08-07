@@ -568,3 +568,27 @@ msgstr "将被表示的对象（通常是 gmeow:Chunk）关联到该 gmeow:Embed
 msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
 msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim needs evidence constraint"
+msgstr "主张须有证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity warning: an LLM-extracted claim (gmeow:observationMethod gmeow:methodLlmExtraction) with no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10)."
+msgstr "闭世界完整性警告：由大语言模型抽取的主张（gmeow:observationMethod gmeow:methodLlmExtraction）若没有任何 gmeow:groundedIn 证据跨度，即是一处被标记的幻觉——予以呈现、予以保留，绝不删除（P10）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SpanRequiresEndConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Span requires end constraint"
+msgstr "跨度须有终点约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SpanRequiresEndConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every span carrying a gmeow:spanStart must also carry a gmeow:spanEnd — a span with only one boundary is not a well-formed span."
+msgstr "闭世界完整性约束：凡携带 gmeow:spanStart 的跨度都必须同时携带 gmeow:spanEnd——只有单侧边界的跨度不是良构的跨度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grounding span completeness constraint"
+msgstr "支撑跨度完备性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."
+msgstr "闭世界完整性约束：凡从主张经 gmeow:groundedIn 到达的跨度（即支撑跨度）都必须锚定到某个分块（gmeow:spanOfChunk）、以偏移量定位（gmeow:spanStart、gmeow:spanEnd）并按极性归类（gmeow:supportPolarity）——字节若不可还原、不以偏移定位、未按极性归类，那便只是感觉，而非支撑。"

@@ -241,8 +241,6 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:Teaching rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
@@ -261,7 +259,7 @@ gmeow:TeachingSelfTeachConstraint
     logic:roleA gmeow:teacher ;
     logic:roleB gmeow:learner ;
     logic:crossMode "differ" ;
-    logic:formalizes gmeow:Teaching ;
+    logic:formalizes gmeow:TeachingShape ;
     logic:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." .
 
 # =========================================================================== #
@@ -300,7 +298,10 @@ logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 <https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/learner> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Teaching> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/learner" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Teaching> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/teacher" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

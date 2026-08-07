@@ -12,11 +12,20 @@ gmeow:Credential
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Credential"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Entity ,
+    rdfs:subClassOf gmeow:Entity ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:credentialIssuer ;
-            owl:allValuesFrom gmeow:Organization ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:credentialIssuer ;
+            logic:allValuesFrom gmeow:Organization ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:credentialFor ;
+            logic:someValuesFrom [
+                a owl:Class ;
+                owl:unionOf ( gmeow:Skill gmeow:Occupation ) ;
+            ] ;
         ] ;
     skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
     skos:example "ex:rnLicense a gmeow:Credential ; gmeow:credentialIssuer ex:nursingBoard ; gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
@@ -45,26 +54,27 @@ gmeow:SkillProficiency
     rdfs:label "Skill Proficiency"@x-gmeow-english ;
     logic:mediates gmeow:skillProficiencyAgent ,
         gmeow:skillProficiencyOf ;
-    rdfs:subClassOf logic:Relator ,
+    rdfs:subClassOf logic:Relator ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyAgent ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyAgent ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyOf ;
-            owl:someValuesFrom gmeow:Skill ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyOf ;
+            logic:someValuesFrom gmeow:Skill ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyLevel ;
-            owl:someValuesFrom gmeow:ProficiencyLevel ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyLevel ;
+            logic:someValuesFrom gmeow:ProficiencyLevel ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyScale ;
-            owl:someValuesFrom gmeow:ProficiencyScale ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyScale ;
+            logic:someValuesFrom gmeow:ProficiencyScale ;
         ] ;
     skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@x-gmeow-english ;
     skos:example "ex:aliceWeldingProf a gmeow:SkillProficiency ; gmeow:skillProficiencyAgent ex:alice ; gmeow:skillProficiencyOf ex:welding ; gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;
@@ -78,11 +88,11 @@ gmeow:credentialFor
     rdfs:domain gmeow:Credential ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "credential for"@x-gmeow-english ;
-    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@x-gmeow-english ;
+    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. The union range (Skill|Occupation) is an EL-safe existential restriction on gmeow:Credential (owl:someValuesFrom an anonymous owl:unionOf class), never a direct rdfs:range union, which would violate OWL 2 RL/EL; the pipeline derives the projected sh:or shape from it (Principle 17)."@x-gmeow-english ;
     skos:example "ex:rnLicense gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and do not rely on an OWL range to type the value — the Skill|Occupation union is a SHACL shape (shapes/expertise-shapes.ttl), so a bad target is caught there, not by the reasoner."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and avoid asserting a direct rdfs:range union — the Skill|Occupation union is carried by the existential restriction on gmeow:Credential instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the SHACL shape enforces the union range."@x-gmeow-english ;
+    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the derived SHACL shape enforces the union range."@x-gmeow-english ;
     gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english .
 
 gmeow:credentialIssuer
@@ -343,6 +353,45 @@ gmeow:SkillProficiencyLevelRequiredConstraint
     logic:anyOf gmeow:skillProficiencyLevel ;
     logic:formalizes gmeow:SkillProficiency ;
     logic:message "A SkillProficiency must carry a ProficiencyLevel (gmeow:skillProficiencyLevel)." .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# migrated from the hand-authored gmeow:SkillProficiencyScaleMismatchShape      #
+# projected to a sh:SPARQLConstraint keyed onto gmeow:SkillProficiency.          #
+# =========================================================================== #
+
+# A SkillProficiency's level should be read on the same scale the relator
+# itself names — a level from one scale bound alongside a different declared
+# scale is a mismatch. Warning.
+gmeow:SkillProficiencyScaleMismatchConstraint
+    a logic:Constraint ;
+    rdfs:label "SkillProficiency level/scale mismatch constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: a gmeow:SkillProficiency's gmeow:skillProficiencyLevel must be read on the gmeow:ProficiencyScale the relator itself names via gmeow:skillProficiencyScale — a level whose gmeow:levelScale differs from the relator's declared scale is a mismatch."@x-gmeow-english ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:severity "Warning" ;
+    logic:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
+    logic:integrity logic:spsmForall .
+logic:spsmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:spsmImpl .
+logic:spsmImpl a logic:Formula ; logic:antecedent logic:spsmGuard ; logic:consequent logic:spsmNot .
+logic:spsmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SkillProficiency ] .
+logic:spsmNot a logic:Formula ; logic:not logic:spsmExists .
+logic:spsmExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] , [ logic:termIndex 2 ; logic:termVariable "expected" ] ;
+    logic:exists logic:spsmBody .
+logic:spsmBody a logic:Formula ; logic:and logic:spsmLevel , logic:spsmScale , logic:spsmLevelScale , logic:spsmDistinct .
+logic:spsmLevel a logic:Formula ; logic:relation gmeow:skillProficiencyLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] .
+logic:spsmScale a logic:Formula ; logic:relation gmeow:skillProficiencyScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:spsmLevelScale a logic:Formula ; logic:relation gmeow:levelScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+logic:spsmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

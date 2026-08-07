@@ -865,6 +865,23 @@ logic:ccuGuard a logic:Formula ; logic:relation gmeow:claimCredence ;
 logic:ccuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
 
+# Additional DECLARATIVE backing for the same [0,1] range, class-scoped on gmeow:claimCredence's
+# own rdfs:domain gmeow:StandpointClaim (unlike gmeow:standpointCredence, an owl:AnnotationProperty
+# with no domain, gmeow:claimCredence IS a domain-bearing owl:DatatypeProperty, so a class-scoped
+# logic:ValueRangeConstraint is legitimate here). Lowers to sh:minInclusive/sh:maxInclusive on the
+# StandpointClaim shape declaratively, alongside the subjectsOf-scoped procedural pair above.
+gmeow:ClaimCredenceRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "ClaimCredence declarative range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A validation-only integrity constraint: a StandpointClaim's gmeow:claimCredence is an xsd:decimal in [0.0, 1.0]."@x-gmeow-english ;
+    logic:formalizes gmeow:ClaimCredenceRangeShape ;
+    logic:onClass gmeow:StandpointClaim ;
+    logic:valuePath gmeow:claimCredence ;
+    logic:minInclusiveBound 0.0 ;
+    logic:maxInclusiveBound 1.0 .
+
 # gmeow:standpointCredence must be an xsd:decimal >= 0.0.
 gmeow:StandpointCredenceLowerBoundConstraint
     a logic:Constraint ;

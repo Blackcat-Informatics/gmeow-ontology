@@ -4738,7 +4738,7 @@ gmeow:BareEntitySortalAdviceConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "prefer a specific sortal over bare gmeow:Entity"@x-gmeow-english ;
-    skos:definition "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual is typed bare gmeow:Entity without a more-specific top sortal (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject or gmeow:SocialObject). Its data-matching guard formalizes gmeow:Entity, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."@x-gmeow-english ;
+    skos:definition "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual carries gmeow:Entity and no sortal strictly beneath it. The consequent is discharged by naming one of the four canonical top sortals OR by exhibiting any type that is a proper specialization of gmeow:Entity. The enumeration alone would advise properly-typed individuals to specialize a type they have already specialized, since gmeow:Entity's children are not a fixed partition (the moment/relator branch sits beside the substantial sortals and further slices add their own); the subclass-edge existential alone would mis-advise a properly-typed individual in a bare instance graph that carries no class hierarchy for it to consult. Its data-matching guard formalizes gmeow:Entity, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Info" ;
     logic:formalizes gmeow:Entity ;
@@ -4751,7 +4751,67 @@ logic:besForall a logic:Formula ;
 logic:besImpl a logic:Formula ; logic:antecedent logic:besGuard ; logic:consequent logic:besCons .
 logic:besGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
-logic:besCons a logic:Formula ; logic:or logic:besAgent , logic:besInfo , logic:besPhys , logic:besSoc .
+# The consequent is discharged by EITHER naming one of the four canonical top sortals OR
+# exhibiting any type that is a proper specialization of gmeow:Entity. Both branches are load
+# bearing and neither alone is correct.
+#
+# The enumeration alone is a proxy that silently mis-fires: gmeow:Entity's specializations are
+# not a four-way partition — the moment/relator branch (gmeow:IntentionalMoment and its kinds,
+# e.g. gmeow:Commitment) sits directly under gmeow:Entity beside the substantial sortals, and
+# further slices add their own direct children, so every such descendant would be advised to
+# "specialize" a type it has already specialized.
+#
+# The existential alone is not enough either, because it can only see a specialization when the
+# subclass edge is present in the graph being validated. That holds wherever the class hierarchy
+# travels with the data, but not for a bare instance graph carrying no TBox — there the
+# enumeration is what still recognizes a properly-typed individual.
+#
+# Note the existential deliberately tests membership BELOW gmeow:Entity rather than merely "some
+# other type": an individual typed gmeow:Event is an occurrent, not a specialization of the
+# endurant spine, so it must still be advised (and separately caught by
+# gmeow:EndurantAsEventAdviceConstraint).
+logic:besCons a logic:Formula ;
+    logic:or logic:besAgent , logic:besInfo , logic:besPhys , logic:besSoc , logic:besSortalExists .
+logic:besSortalExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sortal" ] ;
+    logic:exists logic:besSortalBody .
+logic:besSortalBody a logic:Formula ;
+    logic:and logic:besSortalType , logic:besSortalUnderEntity , logic:besSortalDistinct .
+logic:besSortalType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sortal" ] .
+# The membership atom names rdfs:subClassOf, not logic:subClassOf — the OPPOSITE choice from
+# logic:fsfcMembership below, and deliberately so, not a drifted inconsistency. This formula's
+# derived sh:SPARQLConstraint is evaluated by `purrdf::shapes::engine` directly over Tier-1
+# CONSUMER data (no native reasoner in that path at all), whose only subclass edges are the
+# `rdfs:subClassOf` shortcuts `inject_subclass_shortcuts`
+# (`crates/validate/src/data_validate.rs`) synthesizes from the bundle's class hierarchy for
+# `sh:targetClass`/`sh:class` focus selection — it hard-codes that spelling and never emits
+# `logic:subClassOf`. `logic:fsfcMembership`'s formula instead runs over the AUTHORED TBox
+# itself, which asserts subsumption on the canonical `logic:` predicate and carries no
+# `rdfs:subClassOf` at all. Each names the predicate its OWN validated graph actually has; the
+# native reasoner's EDB-boundary `logic:subClassOf`/`rdfs:subClassOf` lowering
+# (`edb_predicate_spellings` in `crates/logic/src/reason/mod.rs`) governs neither — this
+# SHACL/SPARQL derivation path never runs the native reasoner.
+logic:besSortalUnderEntity a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sortal" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
+logic:besSortalDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sortal" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
+
+# The constructive-repair wing needs an ENUMERATED candidate set: "specialize to sortal X" is
+# only actionable if X is named, and the abductive engine reads those names off this formula's
+# disjunction branches. The advice guard above needs the opposite — completeness over EVERY
+# specialization, including ones no enumeration can anticipate. Sharing one formula for both
+# made the guard only as correct as the candidate list, which is exactly how a properly-typed
+# gmeow:Commitment came to be advised to specialize itself. They are two obligations and they
+# get two formulas: the guard quantifies over the subclass edge, and this one names the top
+# sortals the repair proposes. The engine still keeps only the candidates consistent with the
+# subject's other assertions, so naming a bounded set here costs no soundness.
+logic:besSortalCandidateForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:besSortalCandidateImpl .
+logic:besSortalCandidateImpl a logic:Formula ;
+    logic:antecedent logic:besGuard ; logic:consequent logic:besSortalCandidateCons .
+logic:besSortalCandidateCons a logic:Formula ; logic:or logic:besAgent , logic:besInfo , logic:besPhys , logic:besSoc .
 logic:besAgent a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] .
 logic:besInfo a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
@@ -4861,7 +4921,7 @@ logic:StrategySortalSpecialization
     a logic:AbductiveRepairStrategy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "sortal specialization"@x-gmeow-english ;
-    skos:definition "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations the completeness disjunction offers (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."@x-gmeow-english ;
+    skos:definition "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:StrategyFrameDeclaration
@@ -4962,12 +5022,12 @@ logic:BareEntitySortalAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "bare-entity sortal abductive schema"@x-gmeow-english ;
-    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. It reuses the gmeow:BareEntitySortalAdviceConstraint's completeness disjunction (logic:besForall) as its warrant target, so the engine keeps only the specializations consistent with the subject's other assertions."@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The engine keeps only the specializations consistent with the subject's other assertions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Entity ;
     logic:repairsDiscipline gmeow:BareEntitySortalAdviceConstraint ;
     logic:repairStrategy logic:StrategySortalSpecialization ;
-    logic:completenessFormula logic:besForall .
+    logic:completenessFormula logic:besSortalCandidateForall .
 
 logic:WemiChainAbductiveSchema
     a logic:AbductiveSchema ;
@@ -7156,7 +7216,121 @@ logic:GroundingCorrespondence
     gmeow:useWhen "Use for a reviewed cross-vocabulary bridge whose source is owned by lang:, math:, or logic:."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use for an ordinary domain projection or for a row whose external term is presented as the canonical source."@x-gmeow-english ;
     gmeow:howToUse "Name one grounding source and one external target, then declare the morphism class, morphism kind, and preservation kind explicitly."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf [
+        a logic:Restriction ; logic:onProperty gmeow:justification ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:sourceEndpoint ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:targetEndpoint ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:morphismClass ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:morphismClass ;
+        logic:allValuesFrom [ owl:oneOf ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ] ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:morphismKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:morphismKind ;
+        logic:allValuesFrom [ owl:oneOf ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ] ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:preservationKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] ,
+    [
+        a logic:Restriction ; logic:onProperty logic:preservationKind ;
+        logic:allValuesFrom [ owl:oneOf ( logic:ExactPreservation logic:SoundUnderApproximation
+            logic:CompleteOverApproximation logic:InconsistencyPreserving
+            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ] ;
+    ] .
+
+# Migrated declarative requiredness (shapes/mapping-dsl-shapes.ttl
+# logic:GroundingCorrespondenceShape, Principle 17): the six per-property
+# ∃-requirements. The shape's compound sh:xone frontend-selection, the
+# BridgeView/CommitmentShiftingBridge pairing sh:or, and the two sh:sparql
+# endpoint-agreement / anti-equivalence checks are NOT re-authored here — they
+# are a genuine multi-level disjunctive class-membership + cross-property
+# equality expressiveness gap over an already-large, widely-shared module, left
+# as an honest boundary for a follow-up pass rather than a fragile
+# under-tested reproduction.
+gmeow:GroundingCorrespondenceJustificationRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence justification requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf gmeow:justification ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceSourceEndpointRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence source-endpoint requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:sourceEndpoint ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceTargetEndpointRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence target-endpoint requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:targetEndpoint ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceMorphismClassRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence morphismClass requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismClass."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:morphismClass ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismClass"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence morphismKind requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismKind."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:morphismKind ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismKind"@x-gmeow-english .
+
+gmeow:GroundingCorrespondencePreservationKindRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence preservationKind requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:preservationKind."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:preservationKind ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:preservationKind"@x-gmeow-english .
 
 logic:CorrespondenceRelation
     a owl:Class ;
@@ -15532,6 +15706,18 @@ logic:ValueRangeConstraint
     gmeow:howToUse "Name the target class, the value path, and at least one inclusive literal bound; the compiled condition flags any value outside the closed interval."@x-gmeow-english ;
     gmeow:useWhen "Use when every numeric value of one direct predicate on a class must lie in a closed interval under closed-world validation."@x-gmeow-english .
 
+logic:StringPatternConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "String Pattern Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a per-value string-pattern constraint: a logic:onClass target (optional — omitted, the guard is the value path's own presence), a logic:valuePath predicate, a logic:stringOp mode (regexRequired / regexForbidden / prefixRequired / prefixForbidden), and a literal logic:stringPattern every (or no) value on that path must satisfy. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity using logic:termRegex / logic:termStrStarts, lowered to a sh:SPARQLConstraint — regex is out of the EL/OWL restriction fragment, so this stays procedural rather than a native declarative sh:pattern facet. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a numeric bound (use logic:ValueRangeConstraint) or a fixed forbidden value (use logic:ForbiddenPatternConstraint); this is a regex/prefix test over every present value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class (or omit it for a domain-scoped guard), the value path, the string-op mode, and the literal pattern; the compiled condition flags any value failing the regex or prefix test."@x-gmeow-english ;
+    gmeow:useWhen "Use when every (or no) value of one direct predicate must match a regex or share a required/forbidden prefix under closed-world validation — the canonical-identifier and codepoint-pattern idiom."@x-gmeow-english .
+
 logic:UniqueLangConstraint
     a owl:Class ;
     logic:subClassOf logic:ConstraintSugar ;
@@ -15774,6 +15960,20 @@ logic:maxInclusiveBound
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "max inclusive bound"@x-gmeow-english ;
     skos:definition "The inclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be less than or equal to this literal (projected to sh:maxInclusive on the target class shape). At least one of the two inclusive bounds must be present."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:minExclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "min exclusive bound"@x-gmeow-english ;
+    skos:definition "The exclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly greater than this literal (projected to sh:minExclusive on the target class shape). The open-bound peer of logic:minInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:maxExclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "max exclusive bound"@x-gmeow-english ;
+    skos:definition "The exclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly less than this literal (projected to sh:maxExclusive on the target class shape). The open-bound peer of logic:maxInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:aggFunction
@@ -18491,60 +18691,60 @@ logic:candidateNoOverTyping
 [ a logic:ClosureEntry ; logic:onClass logic:RefutationAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/namesContradictionWitness" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ChaseAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/carriesTerminationCertificate" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-logic:FormalizationCandidate rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:candidateSourceHash ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateExtractionProvenance ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateScope ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateContract ; owl:allValuesFrom logic:ReasoningContract ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateCategory ; owl:allValuesFrom logic:FormalizationCategory ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateLifecycle ; owl:allValuesFrom logic:CandidateLifecycleState ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateProjectionBehavior ; owl:allValuesFrom logic:PreservationKind ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateSemanticRisk ; owl:allValuesFrom logic:SemanticRiskClass ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateSourceField ; owl:allValuesFrom logic:ProseField ] .
+logic:FormalizationCandidate logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:candidateSourceHash ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateExtractionProvenance ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateScope ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateContract ; logic:allValuesFrom logic:ReasoningContract ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateCategory ; logic:allValuesFrom logic:FormalizationCategory ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateLifecycle ; logic:allValuesFrom logic:CandidateLifecycleState ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateProjectionBehavior ; logic:allValuesFrom logic:PreservationKind ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateSemanticRisk ; logic:allValuesFrom logic:SemanticRiskClass ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateSourceField ; logic:allValuesFrom logic:ProseField ] .
 
-logic:Plan rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:allValuesFrom gmeow:Goal ] ,
-    [ a owl:Restriction ; owl:onProperty logic:planSuccessMode ; owl:allValuesFrom logic:PlanSuccessMode ] .
+logic:Plan logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:planGoal ; logic:allValuesFrom gmeow:Goal ] ,
+    [ a logic:Restriction ; logic:onProperty logic:planSuccessMode ; logic:allValuesFrom logic:PlanSuccessMode ] .
 
-logic:GoalEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:satisfactionStatus ; owl:allValuesFrom logic:SatisfactionStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:feasibilityStatus ; owl:allValuesFrom logic:FeasibilityStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:lifecycleStatus ; owl:allValuesFrom logic:LifecycleStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:goalEvaluationStatus ; owl:allValuesFrom logic:GoalEvaluationStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:evaluatesGoal ; owl:allValuesFrom gmeow:Goal ] .
+logic:GoalEvaluation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:satisfactionStatus ; logic:allValuesFrom logic:SatisfactionStatus ] ,
+    [ a logic:Restriction ; logic:onProperty logic:feasibilityStatus ; logic:allValuesFrom logic:FeasibilityStatus ] ,
+    [ a logic:Restriction ; logic:onProperty logic:lifecycleStatus ; logic:allValuesFrom logic:LifecycleStatus ] ,
+    [ a logic:Restriction ; logic:onProperty logic:goalEvaluationStatus ; logic:allValuesFrom logic:GoalEvaluationStatus ] ,
+    [ a logic:Restriction ; logic:onProperty logic:evaluatesGoal ; logic:allValuesFrom gmeow:Goal ] .
 
-logic:ActionSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:allValuesFrom owl:Thing ] .
+logic:ActionSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:precondition ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:capability ; logic:allValuesFrom owl:Thing ] .
 
-logic:McpActionSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:compensation ; owl:allValuesFrom owl:Thing ] .
+logic:McpActionSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:capability ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:precondition ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:compensation ; logic:allValuesFrom owl:Thing ] .
 
-logic:NotificationWaitSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:awaitsSignal ; owl:allValuesFrom logic:ExternalSignal ] .
+logic:NotificationWaitSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:awaitsSignal ; logic:allValuesFrom logic:ExternalSignal ] .
 
-logic:FreshnessGuard rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:guardsPrecondition ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessHorizon ; owl:allValuesFrom xsd:duration ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowStart ; owl:allValuesFrom xsd:dateTime ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowEnd ; owl:allValuesFrom xsd:dateTime ] .
+logic:FreshnessGuard logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:guardsPrecondition ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:freshnessHorizon ; logic:allValuesFrom xsd:duration ] ,
+    [ a logic:Restriction ; logic:onProperty logic:freshnessWindowStart ; logic:allValuesFrom xsd:dateTime ] ,
+    [ a logic:Restriction ; logic:onProperty logic:freshnessWindowEnd ; logic:allValuesFrom xsd:dateTime ] .
 
-logic:NonEntailmentObligation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:obligationForbiddenPredicate ; owl:allValuesFrom xsd:anyURI ] ,
-    [ a owl:Restriction ; owl:onProperty logic:obligationDischargeCondition ; owl:allValuesFrom logic:DischargeCondition ] .
+logic:NonEntailmentObligation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:obligationForbiddenPredicate ; logic:allValuesFrom xsd:anyURI ] ,
+    [ a logic:Restriction ; logic:onProperty logic:obligationDischargeCondition ; logic:allValuesFrom logic:DischargeCondition ] .
 
-logic:Conjecture rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:conjectureFormula ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:conjectureStandpoint ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:conjectureLifecycleState ; owl:allValuesFrom logic:ConjectureLifecycleState ] ,
-    [ a owl:Restriction ; owl:onProperty logic:verdictProvenance ; owl:allValuesFrom logic:VerdictProvenanceKind ] .
+logic:Conjecture logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:conjectureFormula ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:conjectureStandpoint ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:conjectureLifecycleState ; logic:allValuesFrom logic:ConjectureLifecycleState ] ,
+    [ a logic:Restriction ; logic:onProperty logic:verdictProvenance ; logic:allValuesFrom logic:VerdictProvenanceKind ] .
 
-logic:ContradictionWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:witnessIndividual ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:allValuesFrom xsd:string ] .
+logic:ContradictionWitness logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:witnessIndividual ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:witnessWorld ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:witnessPremise ; logic:allValuesFrom xsd:string ] .
 
 logic:RecoveryCase logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:recoveryTransform ; logic:allValuesFrom logic:Formula ] .
@@ -18554,19 +18754,19 @@ logic:RecoveryCase logic:subClassOf
 # Flagship acceptance witnesses: each required carrier is canonical, typed, and retains its
 # exact failure class through the generated validation-shape projection.
 logic:ClosureAcceptanceWitness
-    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:closureEntailedAtom ; owl:allValuesFrom xsd:string ] ;
+    logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:closureEntailedAtom ; logic:allValuesFrom xsd:string ] ;
     gmeow:enforcesFailureClass logic:IncompleteClosure .
 logic:SectionAcceptanceWitness
-    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:dischargesSectionObligation ; owl:allValuesFrom owl:Thing ] ;
+    logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:dischargesSectionObligation ; logic:allValuesFrom owl:Thing ] ;
     gmeow:enforcesFailureClass logic:SectionObligationViolated .
 logic:CounterfactualAcceptanceWitness
-    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:selectedByEntrenchment ; owl:allValuesFrom owl:Thing ] ;
+    logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:selectedByEntrenchment ; logic:allValuesFrom owl:Thing ] ;
     gmeow:enforcesFailureClass logic:UnentrenchedCounterfactual .
 logic:RefutationAcceptanceWitness
-    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:namesContradictionWitness ; owl:allValuesFrom logic:ContradictionWitness ] ;
+    logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:namesContradictionWitness ; logic:allValuesFrom logic:ContradictionWitness ] ;
     gmeow:enforcesFailureClass logic:UnwitnessedRefutation .
 logic:ChaseAcceptanceWitness
-    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:carriesTerminationCertificate ; owl:allValuesFrom xsd:string ] ;
+    logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:carriesTerminationCertificate ; logic:allValuesFrom xsd:string ] ;
     gmeow:enforcesFailureClass logic:UncertifiedChase .
 
 # =========================================================================== #
@@ -18850,6 +19050,14 @@ logic:fsfcFailurePath a logic:Formula ; logic:relation gmeow:enforcesFailureClas
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
 logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/logic/" ] .
+# Membership is tested against logic:subClassOf, the predicate the failure classes are
+# actually authored with. Testing rdfs:subClassOf here asked for the PROJECTED form of an
+# axiom the module states canonically, so the gate stopped recognizing its own slice's
+# failure classes and reported a conforming flagship scenario as a violation. This is the
+# opposite spelling from logic:besSortalUnderEntity above (which correctly names
+# rdfs:subClassOf, for its own, different reason recorded there) — the two formulas are
+# validated over different graphs, so naming the same predicate in both would be the actual
+# bug, not the fix.
 logic:fsfcMembership a logic:Formula ; logic:relation logic:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 

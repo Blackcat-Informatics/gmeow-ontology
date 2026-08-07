@@ -20,16 +20,17 @@
 # it must come from (gmeow:expectedSourceShape), which the harness enforces — a fixture
 # that reds a DIFFERENT rule of the same component no longer passes.
 #
-# WHY NO CELL DECLARES gmeow:expectedSoleFinding. These cells used to claim "and NO other
-# finding". Measured against the harness, all four are false, and for one structural
-# reason: this slice has not finished migrating, so it still ships a residual
-# hand-authored shapes.ttl (gmeow:ConceptCategorizationShape, gmeow:ConceptTenureShape)
-# ALONGSIDE the derived gmeow:ConceptCategorization-shape / gmeow:ConceptTenure-shape the
-# pipeline projects from the same module axioms. One defect is therefore reported TWICE,
-# by two sh:sourceShapes — which is what soleness measures, and it counts two authorities
-# as two even when they say the same thing. The duplication is the defect, not the
-# fixtures: soleness becomes declarable here the moment the residual shapes.ttl is retired
-# and the derived surface is the only authority.
+# SOLENESS IS NOW DECLARABLE. These cells long carried a prose "and NO other finding"
+# claim that could not be turned into gmeow:expectedSoleFinding, for one structural
+# reason: the slice shipped a residual hand-authored shapes.ttl
+# (gmeow:ConceptCategorizationShape, gmeow:ConceptTenureShape) ALONGSIDE the derived
+# gmeow:ConceptCategorization-shape / gmeow:ConceptTenure-shape the pipeline projects
+# from the same module axioms, so one defect was reported TWICE, by two sh:sourceShapes
+# — which is what soleness measures, and it counts two authorities as two even when they
+# say the same thing. That residual shapes.ttl has been retired: the derived surface is
+# now the ONLY authority, every cell pins it by IRI through gmeow:expectedSourceShape,
+# and each violating cell declares gmeow:expectedSoleFinding with the finding set
+# actually measured.
 #
 # The two CONFORMING fixtures live under tests/conformance-fixtures/ (NOT
 # examples/) and the four counter-examples under tests/counter-examples/, so the
@@ -46,21 +47,22 @@
 ex:ecCategorizationConforms a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/categorization-wellformed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:observedFeature (a gmeow:Entity), one gmeow:observationResult (a gmeow:Concept), a gmeow:observationMethod, and an in-range gmeow:typicality, so it satisfies gmeow:ConceptCategorizationShape and validates with no findings. Mirrors test_wellformed_concept_categorization_conforms." .
+    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:observedFeature (a gmeow:Entity), one gmeow:observationResult (a gmeow:Concept), a gmeow:observationMethod, and an in-range gmeow:typicality, so it satisfies gmeow:ConceptCategorization-shape and validates with no findings. Mirrors test_wellformed_concept_categorization_conforms." .
 
 # --- Conforming: a well-formed ConceptTenure --------------------------------
 ex:ecTenureConforms a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/tenure-wellformed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:conceptHoldsFor (a gmeow:Concept) and one gmeow:duringInterval (a gmeow:TimeInterval), so it satisfies gmeow:ConceptTenureShape and validates with no findings. Mirrors test_wellformed_concept_tenure_conforms." .
+    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:conceptHoldsFor (a gmeow:Concept) and one gmeow:duringInterval (a gmeow:TimeInterval), so it satisfies gmeow:ConceptTenure-shape and validates with no findings. Mirrors test_wellformed_concept_tenure_conforms." .
 
 # --- Violating: ConceptCategorization missing observedFeature ----------------
 ex:ecCategorizationMissingFeature a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/categorization-missing-feature.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSourceShape gmeow:ConceptCategorizationShape ;
-    gmeow:conformanceRationale "The counter-example omits gmeow:observedFeature (sh:minCount 1 on gmeow:ConceptCategorizationShape), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:ConceptCategorizationShape, which gmeow:expectedSourceShape pins by IRI. The derived gmeow:ConceptCategorization-shape reports the SAME missing member as shacl.QualifiedMinCountConstraintComponent, so the cell cannot declare gmeow:expectedSoleFinding while the residual shapes.ttl duplicates the derived authority (see the header note). Mirrors test_categorization_missing_feature_is_flagged." .
+    gmeow:expectedSourceShape gmeow:ConceptCategorization-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example omits gmeow:observedFeature (sh:minCount 1 on gmeow:ConceptCategorization-shape, derived from the module's logic:Restriction over gmeow:observedFeature), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:ConceptCategorization-shape, which gmeow:expectedSourceShape pins by IRI. That derived shape is the only authority over the class since the residual hand-authored shapes.ttl was retired, so the cell declares gmeow:expectedSoleFinding. Mirrors test_categorization_missing_feature_is_flagged." .
 
 # --- Violating: observationResult is not a Concept ---------------------------
 ex:ecCategorizationResultNotConcept a gmeow:ExampleConformance ;
@@ -68,7 +70,8 @@ ex:ecCategorizationResultNotConcept a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:ConceptCategorization-shape ;
-    gmeow:conformanceRationale "The counter-example's gmeow:observationResult (ex:vehicle) is a gmeow:Entity but NOT a gmeow:Concept (sh:class gmeow:Concept), so validation MUST emit shacl.ClassConstraintComponent from gmeow:ConceptCategorization-shape, which gmeow:expectedSourceShape pins by IRI. The residual gmeow:ConceptCategorizationShape reports the same class violation a second time, and the derived shape additionally reports shacl.QualifiedMinCountConstraintComponent because a non-Concept value cannot satisfy the qualified result restriction; the cell therefore does not declare gmeow:expectedSoleFinding (see the header note). Mirrors test_categorization_result_not_concept_is_flagged." .
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example's gmeow:observationResult (ex:vehicle) is a gmeow:Entity but NOT a gmeow:Concept (sh:class gmeow:Concept), so validation MUST emit shacl.ClassConstraintComponent from gmeow:ConceptCategorization-shape, which gmeow:expectedSourceShape pins by IRI. Since the residual hand-authored gmeow:ConceptCategorizationShape was retired the derived shape is the only authority over the class, so the cell declares gmeow:expectedSoleFinding. Mirrors test_categorization_result_not_concept_is_flagged." .
 
 # --- Violating: typicality out of the closed interval [0,1] ------------------
 ex:ecCategorizationTypicalityOutOfRange a gmeow:ExampleConformance ;
@@ -76,12 +79,14 @@ ex:ecCategorizationTypicalityOutOfRange a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:ConceptCategorization-shape ;
-    gmeow:conformanceRationale "The counter-example's gmeow:typicality is 1.5, above sh:maxInclusive 1 (sh:minInclusive 0 and sh:datatype xsd:decimal are both satisfied), so validation MUST emit shacl.MaxInclusiveConstraintComponent from gmeow:ConceptCategorization-shape, which gmeow:expectedSourceShape pins by IRI. The residual gmeow:ConceptCategorizationShape reports the identical range violation a second time, so the cell does not declare gmeow:expectedSoleFinding (see the header note). Mirrors test_categorization_typicality_out_of_range_is_flagged." .
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example's gmeow:typicality is 1.5, above sh:maxInclusive 1 (sh:minInclusive 0 and sh:datatype xsd:decimal are both satisfied), so validation MUST emit shacl.MaxInclusiveConstraintComponent from gmeow:ConceptCategorization-shape, which gmeow:expectedSourceShape pins by IRI. Since the residual hand-authored gmeow:ConceptCategorizationShape was retired the derived shape is the only authority over the class, so the cell declares gmeow:expectedSoleFinding. Mirrors test_categorization_typicality_out_of_range_is_flagged." .
 
 # --- Violating: ConceptTenure missing duringInterval -------------------------
 ex:ecTenureMissingInterval a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/tenure-missing-interval.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:expectedSourceShape gmeow:ConceptTenureShape ;
-    gmeow:conformanceRationale "The counter-example omits gmeow:duringInterval (sh:minCount 1 on gmeow:ConceptTenureShape), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:ConceptTenureShape, which gmeow:expectedSourceShape pins by IRI. The derived gmeow:ConceptTenure-shape reports the SAME missing interval as shacl.QualifiedMinCountConstraintComponent, so the cell does not declare gmeow:expectedSoleFinding (see the header note). Mirrors test_tenure_missing_interval_is_flagged." .
+    gmeow:expectedSourceShape gmeow:ConceptTenure-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example omits gmeow:duringInterval (sh:minCount 1 on gmeow:ConceptTenure-shape, derived from the module's logic:Restriction over gmeow:duringInterval), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:ConceptTenure-shape, which gmeow:expectedSourceShape pins by IRI. That derived shape is the only authority over the class since the residual hand-authored shapes.ttl was retired, so the cell declares gmeow:expectedSoleFinding. Mirrors test_tenure_missing_interval_is_flagged." .

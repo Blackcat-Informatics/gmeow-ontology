@@ -165,16 +165,15 @@ ex:saSkillProficiencySomeValuesFrom a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:SkillProficiency rdfs:subClassOf ?r1 , ?r2 , ?r3 , ?r4 .
-    ?r1 owl:onProperty gmeow:skillProficiencyAgent ; owl:someValuesFrom gmeow:Agent .
-    ?r2 owl:onProperty gmeow:skillProficiencyOf    ; owl:someValuesFrom gmeow:Skill .
-    ?r3 owl:onProperty gmeow:skillProficiencyLevel ; owl:someValuesFrom gmeow:ProficiencyLevel .
-    ?r4 owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale .
+    gmeow:SkillProficiency logic:subClassOf ?r1 , ?r2 , ?r3 , ?r4 .
+    ?r1 a logic:Restriction ; logic:onProperty gmeow:skillProficiencyAgent ; logic:someValuesFrom gmeow:Agent .
+    ?r2 a logic:Restriction ; logic:onProperty gmeow:skillProficiencyOf    ; logic:someValuesFrom gmeow:Skill .
+    ?r3 a logic:Restriction ; logic:onProperty gmeow:skillProficiencyLevel ; logic:someValuesFrom gmeow:ProficiencyLevel .
+    ?r4 a logic:Restriction ; logic:onProperty gmeow:skillProficiencyScale ; logic:someValuesFrom gmeow:ProficiencyScale .
 }""" ;
-    gmeow:saRationale "gmeow:SkillProficiency MUST carry OWL someValuesFrom restrictions on each of its four core roles (Agent, Skill, ProficiencyLevel, ProficiencyScale) — the open-world EL axiomatisation mirrors gmeow:LanguageProficiency." .
+    gmeow:saRationale "gmeow:SkillProficiency MUST carry someValuesFrom restrictions on each of its four core roles (Agent, Skill, ProficiencyLevel, ProficiencyScale) — the open-world EL axiomatisation mirrors gmeow:LanguageProficiency. The restrictions are authored in the canonical logic: vocabulary (logic:subClassOf over a logic:Restriction with logic:onProperty / logic:someValuesFrom), never as owl: restriction bodies, so the ASK pins that spelling exactly; an owl: re-spelling would be an authoring-vocabulary regression and MUST red this cell." .
 
 # --- 9. hasSkill is NOT a subproperty of knowsAbout (MUST-NOT) ----------------
 ex:saHasSkillNotSubpropertyOfKnowsAbout a gmeow:StructuralAssertion ;
