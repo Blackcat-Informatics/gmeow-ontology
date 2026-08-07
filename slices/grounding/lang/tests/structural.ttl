@@ -378,6 +378,7 @@ ex:saProfileFamilyTyped a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     lang:CanonicalizationProfile a owl:Class .
     lang:AnalyzerProfile a owl:Class ; rdfs:subClassOf lang:CanonicalizationProfile .
@@ -389,8 +390,9 @@ ASK {
     lang:analyzedUnderProfile a owl:ObjectProperty ; rdfs:range lang:CanonicalizationProfile .
     lang:stageOrder a owl:DatatypeProperty ; rdfs:domain lang:ProfileStage .
     lang:profileScript a owl:ObjectProperty ; rdfs:domain lang:CanonicalizationProfile .
+    lang:profileVersion a owl:DatatypeProperty ; rdfs:domain lang:CanonicalizationProfile ; rdfs:range xsd:string .
 }""" ;
-    gmeow:saRationale "The versionable canonicalization-profile family MUST be present and typed: lang:AnalyzerProfile subclasses lang:CanonicalizationProfile, the profile carries a first-class ordered stage (lang:hasStage -> lang:ProfileStage), an analysis output cites its profile (lang:analyzedUnderProfile -> lang:CanonicalizationProfile), and the unattributed-profile failure is a typed lang:LangConformanceFailure subclass, so profile attribution is a queryable contract rather than prose." .
+    gmeow:saRationale "The versionable canonicalization-profile family MUST be present and typed: lang:AnalyzerProfile subclasses lang:CanonicalizationProfile, the profile carries a first-class ordered stage (lang:hasStage -> lang:ProfileStage), an analysis output cites its profile (lang:analyzedUnderProfile -> lang:CanonicalizationProfile), the profile declares its comparability-key version (lang:profileVersion -> xsd:string on lang:CanonicalizationProfile), and the unattributed-profile failure is a typed lang:LangConformanceFailure subclass, so profile attribution is a queryable contract rather than prose." .
 
 # --- 19. The stage-kind value vocabulary is closed and typed (MUST) ---------- #
 ex:saStageKindClosed a gmeow:StructuralAssertion ;
@@ -417,5 +419,6 @@ ASK {
         logic:formalizes lang:ProfileAttributionShape ;
         logic:integrity ?formula ;
         gmeow:enforcesFailureClass lang:UnattributedAnalysisProfile .
+    ?formula a logic:Formula .
 }""" ;
     gmeow:saRationale "The rule that an analysis output MUST cite a canonicalization profile with a declared pipeline is authored in logic: as lang:ProfileAttributionConstraint carrying a logic:Formula integrity body and enforcing the typed lang:UnattributedAnalysisProfile failure — never a hand-authored shape — mirroring the lang:UnattributedEngineClaim discipline for engine readings." .

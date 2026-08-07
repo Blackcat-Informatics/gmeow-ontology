@@ -8,9 +8,10 @@
 # the same case the lang:ProfileAttributionConstraint hard-fails.
 PREFIX lang: <https://blackcatinformatics.ca/lang/>
 
-SELECT ?output ?profile WHERE {
+SELECT ?output ?profile ?version WHERE {
     ?output a lang:AnalysisOutput ;
         lang:analyzedUnderProfile ?profile .
+    ?profile lang:profileVersion ?version .
     FILTER EXISTS { ?profile lang:hasStage ?stage }
     FILTER(STRSTARTS(STR(?output), "http://example.org/lang/"))
 }

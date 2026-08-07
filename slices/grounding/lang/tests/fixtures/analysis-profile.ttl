@@ -4,10 +4,11 @@
 # ABox fixture for the canonicalization/analyzer-profile competency question. Unioned
 # onto the merged ontology by gmeow:cqDataFile. It mints one lang:AnalyzerProfile with
 # its declared (script, encoding, normalization, collation) frame and four ordered,
-# implementation-pinned stages, then cites it from one lang:AnalysisOutput. A second
-# analysis output names no profile at all — the unattributed-canonicalization case the
-# lang:ProfileAttributionConstraint rejects — so the exact-row pinning proves it does
-# not answer.
+# implementation-pinned stages, then cites it from one lang:AnalysisOutput. Two further
+# analysis outputs are rejected by the lang:ProfileAttributionConstraint and do not
+# answer: one names no profile at all (the unattributed case), and one cites a profile
+# that declares its frame and version but NO lang:hasStage (the undeclared-pipeline case,
+# lang:paStageEdge). The exact-row pinning proves neither answers.
 
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
@@ -39,3 +40,19 @@ ex:outputAttributed a lang:AnalysisOutput ; lang:analyzedUnderProfile ex:profile
 # The unattributed analysis output: names no profile. The lang:ProfileAttributionConstraint
 # rejects it, and it does not answer the attribution query.
 ex:outputOrphan a lang:AnalysisOutput .
+
+# A profile that declares its frame and version but NO lang:hasStage — an undeclared
+# pipeline. It exercises the lang:paStageEdge branch of lang:ProfileAttributionConstraint:
+# an output citing it satisfies lang:paProfileEdge/lang:paProfileType yet fails the
+# stage-existence conjunct, so it is an unattributed canonicalization claim.
+ex:profileNoPipeline a lang:AnalyzerProfile ;
+    lang:profileScript ex:latin ;
+    lang:profileEncoding "UTF-8" ;
+    lang:profileNormalization "NFC" ;
+    lang:profileCollation "en" ;
+    lang:profileVersion "1.0.0" .
+
+# The undeclared-pipeline analysis output: cites a profile whose pipeline is undeclared.
+# The lang:ProfileAttributionConstraint rejects it (no lang:hasStage on the cited profile),
+# and it does not answer the attribution query (which requires a declared stage).
+ex:outputUndeclaredPipeline a lang:AnalysisOutput ; lang:analyzedUnderProfile ex:profileNoPipeline .

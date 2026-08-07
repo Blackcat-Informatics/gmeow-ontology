@@ -518,9 +518,11 @@ ex:cqAnalysisUnderProfile a gmeow:CompetencyQuestion ;
 ex:cqAnalysisUnderProfileShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "output" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "profile" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "profile" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowAnalysisUnderProfile a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "output" ; gmeow:cellValueIri exf:outputAttributed ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "profile" ; gmeow:cellValueIri exf:profileNfcEn ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "profile" ; gmeow:cellValueIri exf:profileNfcEn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "1.0.0" ] .
