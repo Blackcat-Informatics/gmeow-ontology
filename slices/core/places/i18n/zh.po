@@ -1300,3 +1300,41 @@ msgstr "范围：该记录仅承载关于 gmeow:utilizationOf 的一项完整性
 msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:what3words and nothing else. It is not a definition of gmeow:what3words (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:what3words 的一项完整性义务，别无其他。它不是 gmeow:what3words 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+# H3 geospatial-index terms (H3 cell index, resolution, axis, reference frame).
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisH3Cell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 cell index"
+msgstr "H3 单元索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisH3Cell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 cell index axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."
+msgstr "参考系的 H3 单元索引轴——一个坐标轴，参考系用它来命名某个值空间的一个维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 cell index"
+msgstr "H3 单元索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff'). It names a whole hexagonal cell, not a raw latitude/longitude point, and is not interchangeable with a geohash or an MGRS string — unlike those grids, an H3 address is hexagonal and hierarchical, and encodes its own resolution in the index itself."
+msgstr "一个 H3 单元索引字符串——Uber 的分层六边形空间索引系统，将某个位置编码为在声明分辨率下的单个 64 位单元地址（例如 '8928308280fffff'）。它命名的是整个六边形单元，而非原始的纬度/经度点，也不能与 geohash 或 MGRS 字符串互换——与那些网格不同，H3 地址是六边形且分层的，并在索引本身中编码其自身的分辨率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 resolution"
+msgstr "H3 分辨率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 resolution of a gmeow:h3 cell index — an integer from 0 (coarsest, ~1107 km average hexagon edge) to 15 (finest, ~0.5 m average hexagon edge) fixing the granularity of the addressed cell. It is a discrete cell-resolution level, not a metric distance and not a count of cells — a coarser resolution names a larger hexagon rather than a more precise point."
+msgstr "gmeow:h3 单元索引的 H3 分辨率——一个从 0（最粗，六边形平均边长约 1107 公里）到 15（最细，平均边长约 0.5 米）的整数，用以固定所寻址单元的粒度。它是一个离散的单元分辨率级别，而非度量距离，也不是单元的计数——较粗的分辨率命名的是更大的六边形，而不是更精确的点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Relates the H3 resolution ladder to the spatial gmeow:GranularityLevel disclosure ladder (gmeow:granularityPoint … gmeow:granularityCountry, Principle 10): a high H3 resolution (fine cells) sits at or near gmeow:granularityPoint and is precision-bearing, while a low resolution (coarse cells) corresponds to coarser GranularityLevel steps. Coarsening to a lower resolution is the H3-native analogue of stepping up the GranularityLevel ladder; a public projection MUST NOT emit a resolution finer than the declared disclosure granularity permits."
+msgstr "将 H3 分辨率阶梯与空间的 gmeow:GranularityLevel 披露阶梯（gmeow:granularityPoint … gmeow:granularityCountry，原则 10）相关联：较高的 H3 分辨率（细单元）位于或接近 gmeow:granularityPoint，并承载精度，而较低的分辨率（粗单元）对应更粗的 GranularityLevel 阶梯级别。粗化到更低的分辨率是 H3 原生的、等同于在 GranularityLevel 阶梯上上升一级的操作；公共投影绝不得发出比所声明的披露粒度所允许的更细的分辨率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 Reference Frame"
+msgstr "H3 参考系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 reference frame — Uber's hierarchical hexagonal geospatial indexing system, partitioning the Earth's surface into hexagonal (and pentagonal) cells at sixteen resolutions (0-15), each cell addressed by a single 64-bit index string."
+msgstr "H3 参考系——Uber 的分层六边形地理空间索引系统，将地球表面划分为十六种分辨率（0-15）下的六边形（及五边形）单元，每个单元由单个 64 位索引字符串寻址。"

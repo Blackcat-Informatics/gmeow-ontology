@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:AnalysisOutput that names NO lang:CanonicalizationProfile
+# through lang:analyzedUnderProfile — an orphan analyzer result whose comparability
+# claim is fabricated because the substrate it was folded under is undeclared. The
+# analyzer-stratum twin of ingestion-unattributed-engine-claim.ttl (an engine reading
+# with no vantage): here a fold key enters the graph with no cited profile at all, so
+# lang:ProfileAttributionConstraint MUST reject it (fires lang:UnattributedAnalysisProfile
+# via the sh:sparql of the projected lang:ProfileAttributionConstraintProceduralConstraintShape,
+# whose FILTER NOT EXISTS body finds no analyzedUnderProfile edge to a stage-declaring
+# profile). The node carries only its type, so no other lang shape is in scope.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:orphanFoldKey a lang:AnalysisOutput .

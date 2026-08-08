@@ -496,3 +496,33 @@ ex:rowGlossLossTbxTermIri a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the gmeow:glossaryTerm IRI grounding (TBX terms are plain strings)" ] .
+
+# === Q — analysis outputs cite the canonicalization profile they ran under ==== #
+# The profile-attribution discipline as queryable data: a lang:AnalysisOutput cites the
+# lang:CanonicalizationProfile (here a lang:AnalyzerProfile with its four ordered,
+# implementation-pinned stages) it was produced under through lang:analyzedUnderProfile,
+# and the cited profile's (IRI, lang:profileVersion) pair is the comparability key. Over
+# the profile fixture the answer is exactly the one attributed output paired with its
+# profile; the sibling output naming no profile is rejected — it does not answer — the
+# same unattributed-canonicalization case the lang:ProfileAttributionConstraint hard-fails.
+
+ex:cqAnalysisUnderProfile a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/analysis-under-profile.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-profile.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An analysis output cites the versionable canonicalization/analyzer profile it was produced under, so downstream engines can pin the exact substrate and compare outputs by profile (IRI, version) identity. Over the profile fixture the answer is exactly {outputAttributed -> profileNfcEn}; the sibling output naming no profile is rejected and does not answer — comparability is never a silent coincidence." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqAnalysisUnderProfileShape ;
+    gmeow:cqExpectRow ex:rowAnalysisUnderProfile .
+
+ex:cqAnalysisUnderProfileShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "output" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "profile" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowAnalysisUnderProfile a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "output" ; gmeow:cellValueIri exf:outputAttributed ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "profile" ; gmeow:cellValueIri exf:profileNfcEn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "1.0.0" ] .

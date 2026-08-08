@@ -462,3 +462,59 @@ ASK {
         gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
 }""" ;
     gmeow:saRationale "Each of the four seed geologic-boundary measurements MUST be a gmeow:TemporalMeasurement carrying a gmeow:vantage (the dating agent), a gmeow:observedFeature (the dated period), and a gmeow:observationMethod — the standpoint-indexed-claim shape (P9), never a bare ground-truth value." .
+
+# ===========================================================================
+# Observation cutoff / stricter-than-slice pattern
+# ===========================================================================
+
+# --- 36. observationCutoff / observationWindowRequired are AnnotationProperties (MUST) --
+ex:saObservationCutoffTermsAreAnnotationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:observationCutoff         a owl:AnnotationProperty .
+    gmeow:observationWindowRequired a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "gmeow:observationCutoff (the derived COALESCE(assertedAt, recordedNoLaterThan) handle) and gmeow:observationWindowRequired (the downstream-profile stricter-than-slice marker) MUST each be an owl:AnnotationProperty — statement-layer/term-level annotations, joining validFrom/validUntil/assertedAt/recordedNoLaterThan as the temporal slice's clock family, never first-class object/datatype edges." .
+
+# --- 37. Sub-day granularity levels exist (MUST) -----------------------------
+ex:saSubDayGranularityLevelsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:granularityDay    a gmeow:GranularityLevel .
+    gmeow:granularityHour   a gmeow:GranularityLevel .
+    gmeow:granularityMinute a gmeow:GranularityLevel .
+    gmeow:granularitySecond a gmeow:GranularityLevel .
+}""" ;
+    gmeow:saRationale "The four sub-day granularity levels (Day, Hour, Minute, Second) MUST exist as gmeow:GranularityLevel individuals — the finest resolutions at which a temporal value may be disclosed or coarsened (Principle 10)." .
+
+# --- 38. Sub-day granularity levels exact-match OWL-Time units (MUST) ---------
+ex:saSubDayGranularityExactMatchesOwlTimeUnits a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX time: <http://www.w3.org/2006/time#>
+ASK {
+    gmeow:granularityDay    skos:exactMatch time:unitDay .
+    gmeow:granularityHour   skos:exactMatch time:unitHour .
+    gmeow:granularityMinute skos:exactMatch time:unitMinute .
+    gmeow:granularitySecond skos:exactMatch time:unitSecond .
+}""" ;
+    gmeow:saRationale "Each sub-day granularity level MUST carry a skos:exactMatch to its corresponding OWL-Time unit (time:unitDay / time:unitHour / time:unitMinute / time:unitSecond) — grounding the gmeow granularity vocabulary in the W3C Time ontology's temporal units." .
+
+# --- 39. coarserThan sub-day ladder Day → Hour → Minute → Second (MUST) -------
+ex:saSubDayGranularityCoarserThanLadder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:granularityDay    gmeow:coarserThan gmeow:granularityHour .
+    gmeow:granularityHour   gmeow:coarserThan gmeow:granularityMinute .
+    gmeow:granularityMinute gmeow:coarserThan gmeow:granularitySecond .
+}""" ;
+    gmeow:saRationale "The sub-day granularity levels MUST be linked by gmeow:coarserThan in the complete ladder (Day → Hour → Minute → Second) — each coarser level names the next-finer one, so a coarsening walk can descend from day resolution down to second resolution." .
