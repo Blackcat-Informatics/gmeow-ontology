@@ -12,7 +12,7 @@ expression: coverage
   "docs/missing-prose-quality": 6403,
   "docs/missing-realized-state": 79,
   "docs/missing-scope-note": 5557,
-  "docs/missing-test-reach": 5687,
+  "docs/missing-test-reach": 5686,
   "docs/missing-translation-coverage": 4202,
   "docs/missing-usage-advice": 3749,
   "docs/missing-worked-instance": 5704
