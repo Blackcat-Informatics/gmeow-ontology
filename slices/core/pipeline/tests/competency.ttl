@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency cells for the pipeline slice — the runtime-DAG vocabulary.
+#
+# The central conformance claim of the vocabulary is executable here: an AUTHORITY
+# edge is a first-class ordering constraint that survives admission even though no
+# bytes flow across it. The cell pins the exact edge BY IRI, so a data change that
+# retyped the authority edge as a plain dataflow edge (the exact reduction a pure-
+# dataflow reasoner performs) drops the pinned row and fails, and a change that
+# silently added a second authority edge also fails — closed-set drift in both
+# directions, which is what the question exists to catch.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/tests/> .
+@prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/pipeline/> .
+
+ex:cqAuthorityEdgeRetained a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/pipeline/queries/competency/cq-authority-edge-retained.rq" ;
+    gmeow:cqDataFile "examples/in-rush-enrichment-dag.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The in-rush enrichment DAG ships one authority edge, exd:edge-gate-authority, from the admission gate to the receipt writer. No bytes flow across it — the writer reads its data from ex:enrich through a plain gmeow:dataflowConsumes edge — so a reasoner that reduced the DAG to its byte-flow skeleton would find no dependency between the gate and the writer and drop the ordering, letting a receipt be written before the admission verdict exists. That is precisely the corruption gmeow:RuntimeDagAdmissionConstraint (d) forbids and gmeow:flowReasonAuthority exists to prevent. Pinning the authority edge BY IRI rather than by a bare count is what makes the question probative: a count of one survives a retype that quietly turns the authority edge into a gmeow:flowReasonDataflow edge and adds an unrelated authority edge elsewhere, and that retype is the drift a pure-dataflow reduction performs. The single expected row is the admission law's promise made executable — the authority ordering is kept, not dropped."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqAuthorityEdgeRetainedShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqAuthorityEdgeRow .
+
+ex:cqAuthorityEdgeRetainedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "edge" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqAuthorityEdgeRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "edge" ; gmeow:cellValueIri exd:edge-gate-authority ] .

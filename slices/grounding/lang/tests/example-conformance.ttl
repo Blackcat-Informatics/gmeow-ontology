@@ -479,7 +479,20 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # (tests/conformance-fixtures/ambiguity-saw-her-duck.ttl) are exercised by the native
 # lint tests. lang:SilentDisambiguation (the co-resident-reading collapse) is likewise
 # a native gate, noted with the meaning-stratum fixtures above.
+#
+# The analyzer-stratum twin, lang:ProfileAttributionConstraint, is NOT native: it is a
+# logic:Constraint that projects to a sh:sparql shape
+# (lang:ProfileAttributionConstraintProceduralConstraintShape, targetClass
+# lang:AnalysisOutput, gmeow:enforcesFailureClass lang:UnattributedAnalysisProfile), so
+# its rejection IS a SHACL finding and DOES get a cell below.
 # =========================================================================== #
+
+ex:ecAnalysisOutputUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/analysis-output-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:ProfileAttributionConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A lang:AnalysisOutput names NO lang:CanonicalizationProfile through lang:analyzedUnderProfile (the FILTER NOT EXISTS body of lang:ProfileAttributionConstraint's projected sh:sparql, lang:ProfileAttributionConstraintProceduralConstraintShape, targetClass lang:AnalysisOutput), so the output is an unattributed canonicalization claim and validation MUST emit shacl.SPARQLConstraintComponent from that shape, which gmeow:expectedSourceShape pins by IRI (lang:UnattributedAnalysisProfile) — the analyzer-stratum twin of the native lang:UnattributedEngineClaim gate (ingestion-unattributed-engine-claim.ttl). The cell does NOT declare gmeow:expectedSoleFinding: see the header note on why this slice's reports are wider than one shape." .
 
 # =========================================================================== #
 # GMN dialect fixtures — the gmeow:gmn* graft's eight SHACL gates: canonical
