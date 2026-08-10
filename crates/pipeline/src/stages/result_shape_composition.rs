@@ -26,7 +26,7 @@ use crate::stages::result_shapes::competency_files;
 
 // ── Namespace constants ────────────────────────────────────────────────────────
 
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 // ── Internal SPARQL helpers ────────────────────────────────────────────────────
 

@@ -11,7 +11,7 @@ members = [
     # Shared CLI foundation (console modes, reporters, tracing, exit codes) both
     # the consumer `gmeow` and the maintenance `gmeow-dev` binaries build on.
     "crates/cli-core",
-    # Native logic-conformance harness (#785): datatest-stable over the corpus.
+    # Native logic-conformance harness: datatest-stable over the corpus.
     "crates/conformance",
     # Engine-vs-engine benchmark harness (dedicated LEAF bin). It is the ONLY
     # installer of the gmeow-cost-measure counting #[global_allocator]; as a leaf
@@ -23,22 +23,32 @@ members = [
     # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
     "crates/cost-measure",
     "crates/errors",
-    # Rust-owned typed documentation model built from the slice catalog (#853).
+    # Rust-owned typed documentation model built from the slice catalog.
     "crates/docs",
     # Deterministic Typst-source renderer + in-memory byte-reproducible PDF
     # compiler for the print documentation projection.
     "crates/docs-print",
-    # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
-    # budget report + six lossy projections; the consumer child of EPICs #358/#364.
+    # Foundation-corpus importer: narrative JSONL corpus → RDF graph +
+    # budget report + six lossy projections.
     "crates/foundation-corpus",
+    # Off-gate GMN token-cost matrix: runs the five mandated tokenizer families
+    # (o200k/cl100k embedded, Qwen vendored, Llama/Gemma fetched-at-maint-time) over the
+    # emitted GMN/Turtle/JSON-LD serializations of the grounding corpus and flags
+    # byte-fragmenting glyphs per vocab. A LEAF crate — nothing depends on it, so the heavy
+    # `tokenizers` dependency never reaches gmeow-cli. Driven by `make maint-gmn-cost-matrix`.
+    "crates/gmn-cost-matrix",
+    # The mandatory GMEOW GTS authorship profile: the ONE production entry to
+    # `purrdf::gts_compose::emit_gts` plus the wire-level audit that every
+    # payload-bearing frame carries zstd-rsyncable at level 12. A LEAF (purrdf +
+    # gmeow-errors + ciborium) precisely so every bundle author can sit above it —
+    # the profile used to live in `gmeow-pipeline`, which `gmeow-math` cannot depend
+    # on (the pipeline depends on math), so math and music called the writer directly
+    # and the single-entry claim was false.
+    "crates/gts-profile",
     # The consumer/wheel-only `gmeow` command surface (runs without the repo).
     "crates/gmeow-cli",
     # The repo-maintenance `gmeow-dev` command surface (needs the working tree).
     "crates/gmeow-dev-cli",
-    # Native IRI/URI value space (RFC-3987 IRI + RFC-3986 URI parse/validate,
-    # reference resolution, syntax normalization, CURIE/prefix expansion): the
-    # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
-
     # The lang: form AST, content keys, and interning (FORMS): a pure rlib peer of
     # logic-compile with no reasoning-runtime deps, keying forms by structural content.
     "crates/lang-form",
@@ -49,11 +59,22 @@ members = [
     # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
     "crates/license",
     "crates/logic",
-    # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
+    # The pure, wasm-able logic compiler: the parse(RDF 1.2)→IR→project
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
     # deps. gmeow-logic depends on it.
     "crates/logic-compile",
-    # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
+    # THE one structured-term representation: the persistent hash-consed, binder-aware,
+    # content-addressed term arena (ContentKey / TermArena / InterningStats), relocated
+    # out of the reasoning runtime so a front-end can intern terms without linking the
+    # native DL engine. Reasoner-free and wasm-clean; gmeow-logic and
+    # gmeow-logic-compile depend on it.
+    "crates/term-arena",
+    # The executable math: ingestion front-ends: R scripts, ONNX graphs, and TSTP proof
+    # derivations parsed into math: structures. It sits BESIDE crates/math rather than
+    # inside it because the in-bundle producers are pinned pure and no-disk-read, so a
+    # file-reading lifter cannot live among them — the same split as affect-ingest/affect.
+    "crates/math-lift",
+    # Synchronous LSP server for .ttl and .logic files + sarif CLI.
     "crates/lsp",
     # Reusable exact-rational geometry: an inner-product-space over a metric Gram
     # matrix + the pure math: graph loaders, shared by affect + the native math:
@@ -71,23 +92,15 @@ members = [
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
     "crates/music",
-    # DAG-driven single-pass build executor (#861): typed stages over an
+    # The registered ontology term namespaces (gmeow/logic/lang/math) and the ONE
+    # purrdf SliceVocab / OntologyProfile built from them. Depends on `purrdf`
+    # alone so every consumer — validate, docs, slice-brief, pipeline, dev-cli —
+    # can sit above it; a namespace GMEOW mints into but never declares here is
+    # invisible to purrdf's ownership analyzer.
+    "crates/ns",
+    # DAG-driven single-pass build executor: typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
-
-    # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +
-    # staticlib) via cargo-c — a SemVer-disciplined extern "C" surface over the
-    # gmeow-rdf semantic layer. Statically reuses gmeow-gts so a language shim
-    # links a single .so. The rich companion to the permissive libgts C-ABI.
-
-
-    # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
-    # the zero-dep event seam both the container and the engine depend ON.
-
-    # The wasm32, in-memory RDF/JS engine (purrdf P10, #846): compiles the
-    # oxigraph-free gmeow-rdf kernel to wasm + an idiomatic DataFactory/Dataset/
-    # Stream surface, packaged for npm/ESM as `purrdf`.
-
 
 
     # Authoring-packet brief assembler: gathers, for one batch of a slice's
@@ -101,36 +114,40 @@ members = [
     # that reads the ontology-resident slice-quality rubric and scores a slice
     # across the quality axes, bound by both the dev CLI and the pipeline MCP.
     "crates/slice-quality",
-    # Native SPARQL 1.1/1.2 parser → RDF 1.2-native query algebra AST: the
-    # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
-    # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
-
-    # Native, RDF-1.2-first multiset SPARQL evaluator over the rdf-core DatasetView
-    # in TermId space: consumes `crates/sparql-algebra` and replaces the
-    # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
-
-    # Native W3C SPARQL 1.1 conformance harness: runs mf: manifests
-    # against gmeow-sparql-eval and diffs SPARQL Results / canonical N-Quads;
-    # federated SERVICE resolves through an in-memory source (no network).
-
-    # Native, wasm-clean serializer for the SPARQL result model → SPARQL Results
-    # JSON/XML/CSV/TSV + a provenance-carrying gmeow extension: the canonical
-    # results-serialization authority replacing oxigraph-family `sparesults`
-    # (purrdf S9, EPIC #906). Depends only on `crates/rdf-core`.
-
     "crates/validate",
     # wasm32 bindings for the repo-free Tier-1 validator: client-side conformance in
     # editors / browsers / LLM clients, over the wasm-clean gmeow-validate core.
     "crates/validate-wasm",
-    # Native XSD value space (parse / value-space equality+ordering / canonical
-    # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
-    # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).
-
+    # wasm32 bindings for the native logic reasoner (browser entailment panel).
+    "crates/reason-wasm",
+    "crates/gmn-wasm",
+    # wasm32 bindings for the RDF 1.2 / SPARQL engine behind the offline documentation
+    # query playground and bundle explorer. Built HERE from the workspace purrdf pin,
+    # replacing a prebuilt blob vendored from the sibling repository that carried no
+    # version or revision — only a digest of its bytes — and whose refresh target did
+    # not exist, so it could drift from the pin with nothing detecting it.
+    "crates/query-wasm",
 ]
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.7.0" }
+# EXACT, not a caret range. Every docs wasm engine statically links this crate and records
+# the resolved version it was built against; a range lets `cargo update` relink the RDF core
+# while the manifest still reads the same, which is precisely the drift the substrate record
+# exists to catch.
+purrdf = "=0.12.0"
+
+# EXACT, and declared ONCE. The wasm-bindgen CLI that generates the JS bindings refuses to
+# run against a library version it does not match byte for byte, and one CLI is on PATH for
+# the whole build — so two wasm crates pinned differently cannot both be built by
+# `make wasm-parity`. Declaring it per-crate made that agreement a coincidence four
+# manifests had to keep; declaring it here makes disagreement unrepresentable. The CI step
+# that installs `wasm-bindgen-cli` must name this same version.
+wasm-bindgen = "=0.2.125"
+# Declared once: thirteen crates hash bytes with blake3, and the docs site verifies the
+# fetched bundle against a manifest content address the renderer minted — the minting and
+# verifying sides must agree on the algorithm version, so the version has one home.
+blake3 = "1"
 
 [workspace.package]
 version = "0.2.0"
@@ -212,7 +229,7 @@ lto = "thin"
 # already Cargo's release default (no DWARF); `strip` is not.
 strip = "symbols"
 
-# === First-party release tuning (#630 acceleration, Phase 1) ===
+# === First-party release tuning ===
 # Our own crates carry the runtime hot paths (logic chase, SHACL evaluation,
 # validation lints). The default release profile splits each crate into 16
 # codegen units, which forfeits cross-function inlining WITHIN the crate.
@@ -227,7 +244,7 @@ strip = "symbols"
 # within-crate optimization unit.
 # Workspace-wide thin-LTO IS now enabled (see `[profile.release]` above) — its
 # peak link RSS was measured at 7.37 GB, well within the 16 GB wheel-runner
-# budget (#828 item 3). codegen-units = 1 below still matters: it sets the
+# budget. codegen-units = 1 below still matters: it sets the
 # per-crate optimization unit; thin-LTO then inlines ACROSS crate boundaries on
 # top of that.
 [profile.release.package.gmeow-logic]
@@ -260,7 +277,7 @@ codegen-units = 1
 [profile.release.package.gmeow-conformance]
 codegen-units = 1
 
-# The wasm cdylib (purrdf P10, #846). codegen-units = 1 for a single optimization
+# The wasm cdylib. codegen-units = 1 for a single optimization
 # unit; binary-size reduction (opt-level "z" + wasm-opt) is applied by the
 # wasm-pack build in the crate's own package metadata, not the workspace release
 # profile (which native wheels share).
@@ -272,7 +289,7 @@ codegen-units = 1
 # Our own crates bench at the release base (opt-level 3); criterion deltas across
 # phases are relative, so codegen-units fidelity to the wheel is not required here.
 #
-# Thin-LTO is the one base-release setting we DROP for bench (#828 item 3): bench
+# Thin-LTO is the one base-release setting we DROP for bench: bench
 # deltas are relative, so wheel fidelity is explicitly not required here, and a
 # cross-crate LTO link on every `make bench` would add build time for no
 # measurement benefit. Release/wheel artifacts still get thin-LTO via the base.
@@ -298,12 +315,3 @@ lto = false
 # above — `bench` does not inherit `[profile.release]`'s settings (Cargo profile
 # overrides are per-profile), so it needs its own `strip` closing the same gap.
 strip = "symbols"
-
-# TEMPORARY (remove when purrdf ships structured-zstd > 0.0.40 — see purrdf#142):
-# purrdf 0.7.0 hard-pins `structured-zstd = "0.0.40"`, whose huff0 encoder panics
-# ("internal error", huff0_encoder.rs:643) compressing the gmeow.gts bundle. This
-# vendors structured-zstd 0.0.49 (whose huff0 encoder limits code lengths instead of
-# panicking) relabelled 0.0.40 so purrdf's exact pin is satisfied. Drop this patch and
-# the vendor/ tree once purrdf bumps structured-zstd upstream.
-[patch.crates-io]
-structured-zstd = { path = "vendor/structured-zstd-0.0.49" }

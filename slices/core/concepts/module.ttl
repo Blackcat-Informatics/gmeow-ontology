@@ -29,16 +29,6 @@ gmeow:ConceptCategorization
     rdfs:subClassOf gmeow:StandpointClaim ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:observedFeature ;
-            owl:someValuesFrom gmeow:Entity ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:observationResult ;
-            owl:someValuesFrom gmeow:Concept ;
-        ] ,
-        [
-            a owl:Restriction ;
             owl:onProperty gmeow:typicality ;
             owl:allValuesFrom [
                 a rdfs:Datatype ;
@@ -62,17 +52,7 @@ gmeow:ConceptTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "Concept Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:conceptHoldsFor ;
-            owl:someValuesFrom gmeow:Concept ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:duringInterval ;
-            owl:someValuesFrom gmeow:TimeInterval ;
-        ] ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
     skos:definition "The reified, time-scoped fact that a concept had a particular intension over an interval — conceptual change made first-class. When an agent community revises the definition or applicability of a concept, the old intension is retained as a closed tenure suppressed with gmeow:displayable false, never deleted (Principle 10). Carries its scope via gmeow:duringInterval (temporal module) and links to the concept via gmeow:conceptHoldsFor."@x-gmeow-english ;
     skos:example "ex:mammalTenure a gmeow:ConceptTenure ; gmeow:conceptHoldsFor ex:mammal ; gmeow:duringInterval ex:preDnaEra ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for timeless concept hierarchies and for the lightweight case where a bare categorization claim with validFrom/validUntil suffices; reify on demand (Principle 4)."@x-gmeow-english ;
@@ -176,17 +156,93 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:ConceptCategorization rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Concept ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:typicality ; owl:allValuesFrom xsd:decimal ] .
 
-gmeow:ConceptTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Concept ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
+# gmeow:observationResult is genuinely non-functional at its canonical home
+# (slices/core/observations/module.ttl: "a single observation may yield several
+# results"), so a global owl:FunctionalProperty axiom would wrongly cap every
+# gmeow:Observation to one result. The class-local sh:maxCount 1 on
+# ConceptCategorizationShape is instead achieved with a CLASS-SCOPED qualified
+# max-cardinality restriction whose onClass is owl:Thing (never the specific
+# class) — onClass owl:Thing degrades a qualified count to the bare
+# sh:maxCount, unlike onClass <SpecificClass> which projects only
+# sh:qualifiedMaxCount (frontend.rs derive_validation_shapes). Proven pattern:
+# slices/core/citations/module.ttl (CitationAct, fully migrated).
+gmeow:ConceptCategorization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
-# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/ConceptCategorization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observedFeature> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Entity> ] .
-<https://blackcatinformatics.ca/gmeow/ConceptCategorization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationResult> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Concept> ] .
-<https://blackcatinformatics.ca/gmeow/ConceptTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/conceptHoldsFor> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Concept> ] .
-<https://blackcatinformatics.ca/gmeow/ConceptTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:ConceptCategorizationShape: gmeow:observationResult is canonically defined
+# in slices/core/observations/module.ttl with the deliberately OPEN rdfs:range
+# logic:Individual (it is reused across many classes) — so the Concept class
+# restriction is genuinely absent here and must be authored class-locally
+# (Pattern 2). allValuesFrom + a class-scoped ClosureEntry supplies the bare
+# min1+class half (Pattern 3, the proven graphrag Embedding idiom); the max1
+# half is the class-scoped owl:Thing-qualified restriction above.
+#
+# gmeow:observedFeature is globally owl:FunctionalProperty (slices/core/observations/module.ttl)
+# so max1 already rides its own SubjectsOf(observedFeature) shape; its own range is
+# deliberately open (owl:Thing — "anything can be observed"), so the gmeow:Entity class
+# obligation is genuinely class-local here too. The PRIOR authoring used a
+# `owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Entity` restriction (the #1194
+# "restoration" pattern) — a SPECIFIC-class-qualified restriction projects ONLY a
+# `sh:qualifiedMinCount`, which never matches the legacy BARE `sh:minCount 1`
+# (frontend.rs derive_validation_shapes). Replaced with the proven allValuesFrom +
+# class-scoped ClosureEntry recipe (bare min1 + sh:class), matching citations/graphrag.
+gmeow:ConceptCategorization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:Concept ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:Entity ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConceptCategorization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConceptCategorization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:ConceptTenureShape: gmeow:conceptHoldsFor is already owl:FunctionalProperty
+# with rdfs:range gmeow:Concept, but the global FunctionalProperty fact rides its
+# own SubjectsOf(conceptHoldsFor) shape target and never merges into the
+# Class(ConceptTenure) property shape the bare min1 below lands in — so the
+# class-scoped max1 is authored explicitly (owl:Thing-qualified, same idiom as
+# ConceptCategorization above) to land in the SAME per-class shape as the min1.
+# allValuesFrom + a class-scoped ClosureEntry below supplies the min1 half
+# (Pattern 3 — the proven graphrag Embedding idiom).
+#
+# gmeow:duringInterval is ALSO globally owl:FunctionalProperty with rdfs:range
+# gmeow:TimeInterval (slices/core/temporal/module.ttl) — max1 already rides its own
+# SubjectsOf(duringInterval) shape, so (like conceptHoldsFor) only the class-scoped
+# min1+class half needs authoring here. The PRIOR authoring used a
+# SPECIFIC-class-qualified `owl:onClass gmeow:TimeInterval` restriction for BOTH the
+# min and max side (the #1194 pattern) — replaced with allValuesFrom + ClosureEntry
+# (no scoped max restriction needed: the property is already globally functional).
+gmeow:ConceptTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:conceptHoldsFor ; logic:allValuesFrom gmeow:Concept ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:conceptHoldsFor ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:allValuesFrom gmeow:TimeInterval ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConceptTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/conceptHoldsFor" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConceptTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/duringInterval" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:conceptHoldsForFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "conceptHoldsFor is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:conceptHoldsFor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conceptHoldsFor ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:conceptHoldsFor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conceptHoldsFor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:conceptHoldsFor and nothing else. It is not a definition of gmeow:conceptHoldsFor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:conceptHoldsForFunctionality logic:characterizes gmeow:conceptHoldsFor ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -6,7 +6,7 @@
 //! The Rust port of `gmeow_tools.okf_import`, the mirror of the OKF *export* leaf
 //! ([`crate::stages::okf`], which projects GMEOW → OKF). Here an OKF Markdown bundle
 //! (the form an LLM or human authors) is lifted back into GMEOW. The fold from
-//! Markdown to RDF is purrdf 0.7.0's native, in-process OKF codec
+//! Markdown to RDF is purrdf's native, in-process OKF codec
 //! ([`purrdf::lift_okf_bundle`]) — there is no external binary in this path any
 //! more (the former `gts from-okf` subprocess seam is retired: purrdf now ships
 //! the codec directly). This module builds the [`purrdf::OkfBundle`] from the

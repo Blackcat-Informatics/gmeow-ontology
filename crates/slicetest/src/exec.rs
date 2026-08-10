@@ -22,9 +22,12 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_errors::{Diag, Result};
+use gmeow_errors::{Diag, Result, Severity};
+use gmeow_logic::math_expression::check_math_expression_findings;
+use gmeow_logic::reason::math_gate::dimension_gate_markers;
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
-use gmeow_validate::findings::finding_from_shacl;
+use gmeow_validate::findings::{FailureClassIndex, finding_from_shacl};
+use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::{RdfDataset, RdfTerm, SparqlResult, TermValue};
@@ -197,6 +200,14 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?
         .join("\n");
+    // Built ONCE from the raw (unscoped) shapes text: a `sh:NodeShape IRI ->
+    // gmeow:enforcesFailureClass IRI` index, so a `gmeow:expectedFailureClass` cell can
+    // resolve a reported `sh:sourceShape` to the semantic class it enforces. See
+    // `shape_failure_class_index`'s own doc comment for why this reads unscoped.
+    // It is the SAME index type the shipped validator resolves its findings through
+    // (`gmeow_validate::findings::FailureClassIndex`), so the harness and the consumer
+    // surface can never disagree about which class a shape enforces.
+    let failure_class_index = shape_failure_class_index(&shapes_ttl)?;
     // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
     let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
         Diag::of_kind(ShapeValidation {
@@ -215,12 +226,23 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
                 detail: format!("building module dataset: {e}"),
             })
         })?;
-    let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-        .map_err(|e| {
-            Diag::of_kind(DatasetRead {
-                detail: format!("building conformance module dataset: {e}"),
-            })
-        })?;
+    // The shape set is the GENERATED SHACL projection, written against the OWL/RDFS
+    // surface; the module is the CANONICAL authored surface. Lower the module's
+    // canonical subsumption edges into their `rdfs:` projection (once, shared by
+    // every cell) so both sides of the validation speak the same surface — see
+    // `native_query::with_rdfs_subsumption_projection`.
+    let module = native_query::with_rdfs_subsumption_projection(
+        &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir)).map_err(
+            |e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("building conformance module dataset: {e}"),
+                })
+            },
+        )?,
+    );
+    // The module's own constant reading of the two whole-dataset native channels,
+    // measured ONCE and subtracted per cell (see `NativeChannelBaseline`).
+    let baseline = NativeChannelBaseline::measure(&module)?;
     let local_shapes = slice_dir.join("shapes.ttl");
     let shapes = scope_shapes_to_slice(
         shapes,
@@ -240,11 +262,23 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             let slice_dir = &slice_dir;
             let shapes = &shapes;
             let module = &module;
+            let failure_class_index = &failure_class_index;
+            let baseline = &baseline;
             handles.push(scope.spawn(move || {
                 let mut out = Vec::new();
                 for (i, ec) in cells.iter().enumerate() {
                     if i % workers == w {
-                        out.push((i, run_conformance_cell(ec, slice_dir, module, shapes)));
+                        out.push((
+                            i,
+                            run_conformance_cell(
+                                ec,
+                                slice_dir,
+                                module,
+                                shapes,
+                                failure_class_index,
+                                baseline,
+                            ),
+                        ));
                     }
                 }
                 out
@@ -732,41 +766,96 @@ fn run_conformance_cell(
     slice_dir: &Path,
     module: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_class_index: &FailureClassIndex,
+    baseline: &NativeChannelBaseline,
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
-    let example = native_query::dataset_from_file(&example_path).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("parsing example {}: {e}", example_path.display()),
-        })
-    })?;
+    // Lowered onto the shape set's own OWL/RDFS surface for the same reason the
+    // module is (`native_query::with_rdfs_subsumption_projection`): an example that
+    // authors a canonical subsumption edge must be visible to a shape written
+    // against the projection.
+    let example = native_query::with_rdfs_subsumption_projection(
+        &native_query::dataset_from_file(&example_path).map_err(|e| {
+            Diag::of_kind(DatasetRead {
+                detail: format!("parsing example {}: {e}", example_path.display()),
+            })
+        })?,
+    );
 
     // Validate (module + example) against the slice shapes. The IR is immutable, so
     // instead of an in-place insert/remove overlay we UNION the module and example
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
     let data = union(&[module.clone(), example]);
-    let report = validate_dataset(&data, shapes).map_err(|e| {
+    let mut report = validate_dataset(&data, shapes).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("native SHACL validation failed: {e}"),
         })
     })?;
+    // A cell's rationale counts findings ("MUST emit exactly one …"), so it must count
+    // the same result SET the shipped validator reports. This harness calls the engine
+    // directly (it needs the raw report for the per-shape soleness reading below), so it
+    // applies the same collapse `gmeow_validate::store::shacl_validate_dataset` does:
+    // a violation the engine reports N times over is ONE violation, and a cell counting
+    // findings against an uncollapsed report counts binding combinations instead.
+    gmeow_validate::store::dedupe_validation_results(&mut report);
 
     let codes: BTreeSet<String> = report
         .results
         .iter()
-        .map(|r| finding_from_shacl(r).code)
+        .map(|r| finding_from_shacl(r, failure_class_index).code)
         .collect();
 
     match ec.outcome {
         Outcome::Conforms => {
-            if codes.is_empty() {
-                Ok(())
-            } else {
-                let locations = report
+            // SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/
+            // `Warning` results (e.g. the advisory-tier `logic:severity "Info"`
+            // constraints) are non-gating per spec, so an advisory finding must
+            // NOT turn an "expected conformance" cell into a failure. Filter to
+            // Violation-severity results before deciding (mirrors
+            // `gmeow_validate::advisory::split_advisory_results`'s recomputed
+            // `conforms`, and `crates/validate/tests/example_sweep.rs`'s
+            // `conforms_to_shacl`).
+            let violations = || {
+                report
                     .results
                     .iter()
+                    .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            };
+            // The NATIVE channel counts here too. A "conforms" cell that consults only
+            // SHACL is green while `check_math_expression_findings` reports an error over
+            // the very same fixture — which is how three positive fixtures for the
+            // content-key contract shipped carrying hand-guessed `math:structuralKey`
+            // literals that `gmeow validate --deep` rejects. A fixture the native
+            // expression-identity gate ERRORS on does not conform, whichever channel
+            // decided it — this arm adds that channel, and claims nothing about SHACL
+            // parity between the harness's module-unioned graph and a bare CLI run.
+            let native: Vec<gmeow_errors::Finding> = check_math_expression_findings(&data, &data)
+                .into_iter()
+                .filter(|f| f.severity == Severity::Error)
+                .collect();
+            if violations().next().is_none() && native.is_empty() {
+                Ok(())
+            } else if violations().next().is_none() {
+                Err(Diag::of_kind(ConformanceCell {
+                    detail: format!(
+                        "expected conformance, and SHACL agrees, but the native math: \
+                         expression gate reports {} error(s): {}",
+                        native.len(),
+                        native
+                            .iter()
+                            .map(|f| format!("{} {}", f.code, f.message))
+                            .collect::<Vec<_>>()
+                            .join("; ")
+                    ),
+                }))
+            } else {
+                let codes: BTreeSet<String> = violations()
+                    .map(|r| finding_from_shacl(r, failure_class_index).code)
+                    .collect();
+                let locations = violations()
                     .map(|result| {
-                        let finding = finding_from_shacl(result);
+                        let finding = finding_from_shacl(result, failure_class_index);
                         let path = result
                             .result_path
                             .as_ref()
@@ -778,9 +867,21 @@ fn run_conformance_cell(
                     })
                     .collect::<Vec<_>>()
                     .join("; ");
+                let native_detail = if native.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "; native math: expression gate also reports: {}",
+                        native
+                            .iter()
+                            .map(|f| format!("{} {}", f.code, f.message))
+                            .collect::<Vec<_>>()
+                            .join("; ")
+                    )
+                };
                 Err(Diag::of_kind(ConformanceCell {
                     detail: format!(
-                        "expected conformance, got finding(s): {}; {}",
+                        "expected conformance, got finding(s): {}; {}{native_detail}",
                         join_codes(&codes),
                         locations
                     ),
@@ -788,6 +889,21 @@ fn run_conformance_cell(
             }
         }
         Outcome::Violates => {
+            // `gmeow:expectedFailureClass` is a wholly alternative, STRONGER check: it
+            // reaches native (non-SHACL) failure classes that carry no finding code at
+            // all, and it requires ISOLATION across BOTH channels (no unmatched finding
+            // anywhere), not merely "the expected code is present somewhere". A cell
+            // that sets it does not also need `gmeow:expectedViolationCode`.
+            if let Some(expected_class) = ec.expected_failure_class.as_deref() {
+                return check_failure_class_isolation(
+                    ec,
+                    &report,
+                    &data,
+                    expected_class,
+                    failure_class_index,
+                    baseline,
+                );
+            }
             let expected = ec.violation_code.as_deref().ok_or_else(|| {
                 Diag::of_kind(ConformanceCell {
                     detail: "outcome 'violates' but no gmeow:expectedViolationCode".to_owned(),
@@ -814,7 +930,7 @@ fn run_conformance_cell(
                 let from_shapes: Vec<String> = report
                     .results
                     .iter()
-                    .filter(|r| finding_from_shacl(r).code == expected)
+                    .filter(|r| finding_from_shacl(r, failure_class_index).code == expected)
                     .map(|r| strip_angle(&r.source_shape.to_string()).to_owned())
                     .collect();
                 if !from_shapes
@@ -827,6 +943,104 @@ fn run_conformance_cell(
                              but the {expected} finding(s) came from shape(s): [{}]",
                             ec.iri,
                             from_shapes.join(", ")
+                        ),
+                    }));
+                }
+            }
+            // EXHAUSTIVENESS. Everything above is an EXISTENCE check: some finding
+            // carries the expected code, and some finding carrying it comes from the
+            // pinned shape. Neither can fail on a fixture that ALSO trips three other
+            // laws — which is exactly what a rationale saying "and NO other finding"
+            // claims it does not. That claim was therefore unfalsifiable: it could
+            // only ever have been established by measuring the fixture once, by hand,
+            // and nothing kept it true afterwards. `gmeow:expectedSoleFinding true`
+            // makes it checkable. Deliberately opt-in: the phrase appeared on 238 cells
+            // across nine slices, and turning the check on for all of them by default
+            // would red slices whose fixtures were never measured — the check has to be
+            // adopted cell by cell, with the finding set actually read.
+            //
+            // "Sole" is per-LAW, and the LAW is the `sh:sourceShape` — not the finding
+            // code and not the result count. The unit matters:
+            //
+            // * Per-RESULT would forbid ONE shape from reporting one defect at several
+            //   focus nodes, which a class shape targeting a class legitimately does.
+            // * Per-CODE would split ONE shape's report of ONE defect into a failure
+            //   whenever the shape raises two components over it (a class shape reporting
+            //   a missing member as both sh:minCount and sh:qualifiedMinCount is one law
+            //   saying one thing twice).
+            //
+            // Per-SHAPE is therefore the STRICTEST unit that does not misfire on one law
+            // speaking more than once, and it is deliberately strict in the other
+            // direction: when one defect is reported by a class shape AND by that class's
+            // superclass shape, or by a derived shape AND by the residual hand-authored
+            // twin a partially-migrated slice still ships in its `shapes.ttl`, that IS two
+            // shapes and the cell may not claim soleness. Those are real duplications of
+            // authority, and a cell that wants to stay honest about them pins the law with
+            // `gmeow:expectedSourceShape` and says in its rationale what else speaks.
+            //
+            // So: every violation-severity result must originate from the ONE shape the
+            // cell names. Any second shape is a second authored law, which is exactly the
+            // claim "and NO other finding" makes and could not previously fail on.
+            //
+            // NAMING THE LAW IS PART OF THE CLAIM, so `gmeow:expectedSourceShape` is
+            // REQUIRED here rather than optional. The first cut let an unpinned cell fall
+            // back to "no OTHER shape raised a finding carrying the expected code", and
+            // that reading is vacuous on every generic component: `MinCountConstraintComponent`
+            // and `SPARQLConstraintComponent` are each raised by dozens of shapes, so the
+            // fallback accepted any second law that happened to raise the same code — it
+            // asserted almost nothing on 151 of the 175 cells that had adopted the flag,
+            // and 30 of those cells were in fact tripping two or three distinct laws. Two
+            // further reasons the fallback had to go rather than be repaired into "any
+            // second shape is an intruder":
+            //
+            // * A soleness claim is a claim about WHICH law is the only one. "Exactly one
+            //   law fired" without naming it still cannot fail when a fixture drifts onto
+            //   a DIFFERENT single law raising the same generic component — GAP 4 above,
+            //   which is the whole reason `gmeow:expectedSourceShape` exists.
+            // * It would give one term two meanings, selected silently by whether a
+            //   sibling property happens to be bound. A declared claim whose strength
+            //   depends on an absent input is exactly the silent degradation the
+            //   no-optionality rule forbids: a missing input is a HARD FAIL.
+            //
+            // `shapes/test-dsl-shapes.ttl` states the same requirement declaratively, so
+            // the pairing is rejected at DSL-lint time as well as here.
+            if ec.expected_sole_finding == Some(true) {
+                let pinned = ec.expected_source_shape.as_deref().ok_or_else(|| {
+                    Diag::of_kind(ConformanceCell {
+                        detail: format!(
+                            "cell {} declares gmeow:expectedSoleFinding true without \
+                             gmeow:expectedSourceShape: soleness is a claim about WHICH law is \
+                             the only one, so the law must be named. Bind \
+                             gmeow:expectedSourceShape to the sh:sourceShape IRI the {expected} \
+                             finding originates from.",
+                            ec.iri
+                        ),
+                    })
+                })?;
+                let intruders: Vec<String> = report
+                    .results
+                    .iter()
+                    .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+                    .filter(|r| {
+                        !source_shape_matches(strip_angle(&r.source_shape.to_string()), pinned)
+                    })
+                    .map(|r| {
+                        format!(
+                            "{} on {} (shape {})",
+                            finding_from_shacl(r, failure_class_index).code,
+                            r.focus_node,
+                            r.source_shape
+                        )
+                    })
+                    .collect();
+                if !intruders.is_empty() {
+                    return Err(Diag::of_kind(ConformanceCell {
+                        detail: format!(
+                            "cell {} declares gmeow:expectedSoleFinding, so the shape raising \
+                             {expected} ({pinned}) must be the ONLY law this fixture trips; it \
+                             also raised: [{}]",
+                            ec.iri,
+                            intruders.join(", "),
                         ),
                     }));
                 }
@@ -854,6 +1068,310 @@ fn strip_angle(term: &str) -> &str {
     term.strip_prefix('<')
         .and_then(|t| t.strip_suffix('>'))
         .unwrap_or(term)
+}
+
+/// Build a `sh:NodeShape IRI -> gmeow:enforcesFailureClass IRI` index from the raw
+/// (repository-wide, unscoped) shapes Turtle text. The derive pipeline projects
+/// `gmeow:enforcesFailureClass` directly onto the generated shape node itself — the
+/// SAME IRI a SHACL engine reports as a violation's `sh:sourceShape` — for both
+/// `logic:Constraint`-derived procedural shapes and plain OWL-restriction-derived
+/// validation shapes alike, so one generic query over either generated surface reaches
+/// every annotated shape regardless of which derive path produced it. Read unscoped
+/// (not through `scope_shapes_to_slice`'s slice-owned filter) because a finding's
+/// reported source shape may legitimately belong to a co-foundational grounding module
+/// (`logic:`/`lang:`/`math:`) the cell's own slice does not own.
+fn shape_failure_class_index(shapes_ttl: &str) -> Result<FailureClassIndex> {
+    let dataset = native_query::dataset_from_turtle(shapes_ttl)?;
+    Ok(FailureClassIndex::from_shapes_dataset(&dataset))
+}
+
+/// The MODULE's own contribution to the two whole-dataset native channels, computed
+/// ONCE per spec file and subtracted from every cell's reading of them.
+///
+/// Both the native structural lint and the reasoner-derived dimension gate are run over
+/// the validated graph — `module ∪ example` — because that is the graph the other two
+/// channels see and the graph a native check needs in order to resolve a fixture node's
+/// peer-owned types. But the module is in that union for EVERY cell, so whatever those
+/// channels say about the module alone is a constant, identical for all 286 cells, and
+/// says nothing whatever about the fixture under test. (The `math:` module's own
+/// structural lint reports eight dangling-subsumption-target diagnostics about
+/// `gmeow:`-owned superclasses it does not itself declare; counted per cell, they would
+/// red every isolation claim in the slice while naming a defect no fixture caused.)
+///
+/// Subtracting a measured baseline is the exact way to attribute the remainder to the
+/// fixture: it is not a token filter, a severity carve-out, or an allow-list — it drops
+/// EXACTLY the findings the module produces with no example loaded at all, so a fixture
+/// that genuinely trips one of those same checks still shows up (its finding names the
+/// fixture's own node, so it is a different message and survives the difference).
+struct NativeChannelBaseline {
+    /// Error-severity structural-lint messages the module alone produces.
+    lint_errors: BTreeSet<String>,
+    /// `(subject, failure-class)` dimension-gate markers the module alone produces.
+    dimension_markers: BTreeSet<(String, String)>,
+}
+
+impl NativeChannelBaseline {
+    /// Measure the module-only reading of both native channels.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a dimension-gate chase failure, which its own contract defines as a
+    /// genuine internal-invariant violation (non-stratifiable rules, or a declined native
+    /// forward chase) rather than a missing-data condition — never silently swallowed,
+    /// because an empty baseline would over-report every cell instead of under-reporting.
+    fn measure(module: &Arc<RdfDataset>) -> Result<Self> {
+        Ok(Self {
+            lint_errors: structural_lint_dataset(module, &conformance_lint_config())
+                .errors()
+                .into_iter()
+                .collect(),
+            dimension_markers: dimension_gate_markers(module, &[])
+                .map_err(|e| {
+                    Diag::of_kind(ShapeValidation {
+                        detail: format!(
+                            "the reasoner-derived math: dimension gate failed over the slice \
+                             module alone: {e}"
+                        ),
+                    })
+                })?
+                .into_iter()
+                .collect(),
+        })
+    }
+}
+
+/// The lint configuration the conformance channel runs under: the GMEOW vocabulary
+/// namespace and ontology IRI, and no selector-token / core-slice grading.
+///
+/// The checks this channel exists to reach — the `math:` probability, distribution,
+/// dependency-model, projection and ingest invariants — are decided from the data's own
+/// asserted types and values, so they are namespace-grading-independent and a bare config
+/// exercises them fully. It is the same shape `gmeow_validate`'s own integration tests
+/// and the pipeline execution-discharge harnesses build.
+fn conformance_lint_config() -> LintConfig {
+    LintConfig {
+        namespace: gmeow_ns::GMEOW_NS.to_owned(),
+        ontology_iri: "https://blackcatinformatics.ca/gmeow".to_owned(),
+        selector_tokens: BTreeSet::new(),
+        core_slice_iris: std::collections::HashSet::new(),
+        annotation_predicates: std::collections::HashSet::new(),
+    }
+}
+
+/// Every `<prefix>:<ClassName>:` class-token embedded in a native Rust finding's
+/// message, resolved to full IRIs against the namespace prefixes the native
+/// validators (`crates/logic/src/math_expression.rs`, `crates/validate/src/lint.rs`)
+/// use in their `<prefix>:<LocalName>: ` message-token convention documented on
+/// `crate::math_expression::failure_class_local_name` — the ONLY place a native
+/// (non-SHACL) finding names the semantic failure class(es) it decided, since its
+/// `Finding::code` is one stable string per gate FUNCTION, shared by every class that
+/// function can raise (e.g. `math:StructuralKeyOnRejectedExpression`'s code is shared
+/// with whichever `MathLoweringError` variant rejected the underlying expression, so a
+/// finding routed through that gate embeds BOTH its own class token and the inner
+/// rejection's class token).
+fn message_class_tokens(message: &str) -> BTreeSet<String> {
+    const PREFIXES: &[(&str, &str)] = &[
+        ("math:", "https://blackcatinformatics.ca/math/"),
+        ("logic:", "https://blackcatinformatics.ca/logic/"),
+        ("lang:", "https://blackcatinformatics.ca/lang/"),
+        ("gmeow:", "https://blackcatinformatics.ca/gmeow/"),
+    ];
+    let mut tokens = BTreeSet::new();
+    for (prefix, ns) in PREFIXES {
+        let mut rest = message;
+        while let Some(idx) = rest.find(prefix) {
+            let after = &rest[idx + prefix.len()..];
+            let end = after
+                .find(|c: char| !c.is_ascii_alphanumeric())
+                .unwrap_or(after.len());
+            let name = &after[..end];
+            let starts_upper = name.chars().next().is_some_and(|c| c.is_ascii_uppercase());
+            if starts_upper && after[end..].starts_with(':') {
+                tokens.insert(format!("{ns}{name}"));
+            }
+            rest = if end < after.len() {
+                &after[end + 1..]
+            } else {
+                ""
+            };
+            if rest.is_empty() {
+                break;
+            }
+        }
+    }
+    tokens
+}
+
+/// `gmeow:expectedFailureClass` isolation check: EVERY finding produced across ALL FOUR
+/// executed channels must name `expected_class`. This is the ONLY conformance-cell
+/// mechanism that reaches native (non-SHACL) failure classes, and it closes two gaps at
+/// once: a SPARQL-derived gate's shared generic component code letting an unrelated
+/// cross-fire finding hide beside the intended one, and a purely native class (no SHACL
+/// derivation exists at all, e.g. `math:StructuralKeyDrift`) having no
+/// conformance-cell mechanism to assert against whatsoever.
+///
+/// The four channels, and why each is here:
+///
+/// 1. **native SHACL** Violation-severity results, resolved to a class through the
+///    generated shape's own `gmeow:enforcesFailureClass` (`failure_class_index`).
+/// 2. **the native `math:` expression-identity gate**
+///    ([`check_math_expression_findings`]), resolved via [`message_class_tokens`] — the
+///    only reader of `math:structuralKey` / normal-form identity, which carries no SHACL
+///    derivation at all.
+/// 3. **the native structural lint** (`gmeow_validate::lint::structural_lint_dataset`),
+///    resolved the same way. Without it a whole tier of the slice's authored rules —
+///    every obligation decided by arithmetic or by a cross-node join with no SHACL target
+///    shape: probability-magnitude bounds, distribution-parameter positivity and
+///    dimension, dependency-model completeness, exact-preservation mass, the projection
+///    loss ledger, ingest liftability — was invisible to the isolation authority. Their
+///    counter-examples could therefore not be celled AT ALL: no SHACL finding exists to
+///    pin, so a cell naming their class would have failed with "no finding matched it"
+///    while the rule was in fact firing, one channel over.
+/// 4. **the reasoner-derived measure-and-dimension gate**
+///    (`gmeow_logic::reason::math_gate::dimension_gate_markers`), which decides
+///    `math:DimensionalInhomogeneity` by exact ℚ⁷ exponent arithmetic. Its projected
+///    SHACL shape targets `math:homogeneousOperandRel`, a reified relation that exists
+///    only in a reasoned closure, so over asserted fixture data it can never fire and the
+///    class was likewise uncellable.
+///
+/// Channels 3 and 4 read the validated `module ∪ example` graph, with the module's own
+/// constant contribution subtracted ([`NativeChannelBaseline`]); channel 2 reads the
+/// asserted graph as both substrates, because conformance cells pin the fixture AS
+/// AUTHORED and a cell expecting a derived surface leak would be pinning an entailment
+/// rather than a fixture. Channel 4 is likewise given no derived edges for the same
+/// reason: the marker it credits must be one the fixture's own asserted structure
+/// entails.
+fn check_failure_class_isolation(
+    ec: &ExampleConformance,
+    report: &purrdf::shapes::report::ValidationReport,
+    data: &Arc<RdfDataset>,
+    expected_class: &str,
+    failure_class_index: &FailureClassIndex,
+    baseline: &NativeChannelBaseline,
+) -> Result<()> {
+    // One (description, matches-expected) pair per finding across every channel.
+    let mut findings: Vec<(String, bool)> = Vec::new();
+
+    for r in report
+        .results
+        .iter()
+        .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+    {
+        let finding = finding_from_shacl(r, failure_class_index);
+        let shape = strip_angle(&r.source_shape.to_string()).to_owned();
+        let class = failure_class_index
+            .for_shape(&shape)
+            .map(std::borrow::ToOwned::to_owned);
+        let matches = class.as_deref() == Some(expected_class);
+        findings.push((
+            format!(
+                "shacl {} at {} (shape {shape}, class {})",
+                finding.code,
+                r.focus_node,
+                class.as_deref().unwrap_or("<unmapped>")
+            ),
+            matches,
+        ));
+    }
+
+    // Conformance cells validate the fixture as AUTHORED, so the asserted graph is both
+    // substrates here: the grammar half is what these cells pin, and a cell that expected a
+    // derived surface leak would be pinning an entailment, not a fixture.
+    for finding in check_math_expression_findings(data, data) {
+        if finding.severity != Severity::Error {
+            continue;
+        }
+        let tokens = message_class_tokens(&finding.message);
+        let matches = tokens.contains(expected_class);
+        let token_list = if tokens.is_empty() {
+            "<no class token>".to_owned()
+        } else {
+            tokens.into_iter().collect::<Vec<_>>().join(", ")
+        };
+        findings.push((
+            format!(
+                "native {} ({token_list}): {}",
+                finding.code, finding.message
+            ),
+            matches,
+        ));
+    }
+
+    // The native structural lint: the slice's arithmetic / cross-node-join tier. Only the
+    // messages the EXAMPLE adds over the module's own constant reading are the fixture's.
+    for message in structural_lint_dataset(data, &conformance_lint_config()).errors() {
+        if baseline.lint_errors.contains(&message) {
+            continue;
+        }
+        let tokens = message_class_tokens(&message);
+        let matches = tokens.contains(expected_class);
+        let token_list = if tokens.is_empty() {
+            "<no class token>".to_owned()
+        } else {
+            tokens.into_iter().collect::<Vec<_>>().join(", ")
+        };
+        findings.push((format!("lint ({token_list}): {message}"), matches));
+    }
+
+    // The reasoner-derived measure-and-dimension gate. Each marker IS a failure-class
+    // IRI, so it needs no message-token convention to resolve.
+    let markers = dimension_gate_markers(data, &[]).map_err(|e| {
+        Diag::of_kind(ShapeValidation {
+            detail: format!(
+                "cell {}: the reasoner-derived math: dimension gate failed — its own contract \
+                 makes this a genuine internal-invariant violation (non-stratifiable rules or a \
+                 declined native forward chase), never a missing-fixture condition, so it is a \
+                 hard failure rather than an empty marker set the isolation check would read as \
+                 \"the gate found nothing\": {e}",
+                ec.iri
+            ),
+        })
+    })?;
+    for (subject, class) in markers {
+        if baseline
+            .dimension_markers
+            .contains(&(subject.clone(), class.clone()))
+        {
+            continue;
+        }
+        let matches = class == expected_class;
+        findings.push((format!("dimension-gate {subject} (class {class})"), matches));
+    }
+
+    let matched = findings.iter().filter(|(_, m)| *m).count();
+    let unmatched: Vec<&str> = findings
+        .iter()
+        .filter(|(_, m)| !*m)
+        .map(|(d, _)| d.as_str())
+        .collect();
+
+    if matched == 0 {
+        return Err(Diag::of_kind(ConformanceCell {
+            detail: format!(
+                "cell {} expected failure class {expected_class}, but no finding (SHACL, native \
+                 expression gate, structural lint, or dimension gate) matched it; findings \
+                 observed: [{}]",
+                ec.iri,
+                findings
+                    .iter()
+                    .map(|(d, _)| d.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            ),
+        }));
+    }
+    if !unmatched.is_empty() {
+        return Err(Diag::of_kind(ConformanceCell {
+            detail: format!(
+                "cell {} expected ONLY failure class {expected_class}, but {} other finding(s) \
+                 also fired: [{}]",
+                ec.iri,
+                unmatched.len(),
+                unmatched.join("; ")
+            ),
+        }));
+    }
+    Ok(())
 }
 
 /// Restrict the repository-wide generated shape union to the authority owned by
@@ -1125,9 +1643,8 @@ mod tests {
     /// pattern). This is the teeth of the teeth check.
     #[test]
     fn structural_fail_witness_requires_the_ban_to_trip() {
-        let dir =
-            std::env::temp_dir().join(format!("slicetest-failwitness-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        let tmp = tempfile::tempdir().expect("temp slice dir");
+        let dir = tmp.path();
         // The real module never carries the banned triple.
         std::fs::write(
             dir.join("module.ttl"),
@@ -1165,7 +1682,7 @@ mod tests {
         };
         // A tripping witness: normal check passes (module clean) AND the teeth check passes.
         let (mut mo, mut mae) = (None, None);
-        run_structural_cell(&tripping, &dir, &mut mo, &mut mae)
+        run_structural_cell(&tripping, dir, &mut mo, &mut mae)
             .expect("a witness that supplies the banned pattern trips the mustNot ban");
 
         // An inert witness: the teeth check must hard-fail.
@@ -1174,7 +1691,7 @@ mod tests {
             ..tripping.clone()
         };
         let (mut mo2, mut mae2) = (None, None);
-        let err = run_structural_cell(&inert, &dir, &mut mo2, &mut mae2)
+        let err = run_structural_cell(&inert, dir, &mut mo2, &mut mae2)
             .expect_err("a witness that fails to supply the banned pattern must hard-fail");
         assert!(
             err.message().contains("did NOT trip") && err.message().contains("vacuous"),
@@ -1250,8 +1767,8 @@ mod tests {
     /// untouched by construction), and (c) be rejected outright in the RDFS lane.
     #[test]
     fn cq_data_file_overlay_applies_and_is_removed() {
-        let dir = std::env::temp_dir().join(format!("slicetest-overlay-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        let tmp = tempfile::tempdir().expect("temp slice dir");
+        let dir = tmp.path();
         let fixture = "@prefix ex: <https://example.org/test/> .\n\
                        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
                        ex:event1 a gmeow:Event .\n";
@@ -1285,7 +1802,7 @@ mod tests {
             rationale: None,
         };
 
-        run_competency_cell(&store, &cq, &dir).expect("overlay cell must pass");
+        run_competency_cell(&store, &cq, dir).expect("overlay cell must pass");
         assert_eq!(
             store.quad_count(),
             0,
@@ -1295,13 +1812,256 @@ mod tests {
         // Same cell in the RDFS lane: hard-fail, never silently under-answer.
         let mut rdfs_cq = cq.clone();
         rdfs_cq.reasoning = ReasoningProfile::Rdfs;
-        let err = run_competency_cell(&store, &rdfs_cq, &dir)
+        let err = run_competency_cell(&store, &rdfs_cq, dir)
             .expect_err("cqDataFile + reasoningRdfs must be rejected");
         assert!(
             err.message().contains("reasoningNone"),
             "unexpected error: {err}"
         );
+    }
 
-        std::fs::remove_dir_all(&dir).ok();
+    /// `gmeow:expectedSoleFinding` can FAIL, on the production conformance surface.
+    ///
+    /// The red half drives the shipped `compensation-typed-as-its-forward-receipt.ttl`
+    /// counter-example — the one fixture in the enactment corpus whose single authored
+    /// defect is MEASURED to cascade into three laws — through the real
+    /// `run_conformance_cell`, against the real generated shape surface, with the
+    /// sole-finding flag set. Without the flag the cell passes, because every check
+    /// before it is an EXISTENCE check: some finding carries the code, and some finding
+    /// carrying it came from the pinned shape. That is precisely the gap that made
+    /// "and NO other finding" unfalsifiable everywhere it is written, so the green half
+    /// is the SAME cell with the flag unbound, and the difference between them is the
+    /// whole of what the new field buys.
+    #[test]
+    fn the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law() {
+        let slice_dir = paths::repo_root().join("slices/grounding/logic");
+        let shape_paths = paths::shapes_files(&slice_dir);
+        let shapes_ttl = shape_paths
+            .iter()
+            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
+        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
+            .expect("the logic module parses");
+        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+            .expect("the grounding kernel modules parse");
+        let local_shapes = slice_dir.join("shapes.ttl");
+        let shapes = scope_shapes_to_slice(
+            shapes,
+            &shapes_ttl,
+            &owned_module,
+            local_shapes.is_file().then_some(local_shapes.as_path()),
+        )
+        .expect("shape ownership scopes to the logic slice");
+
+        let cell = |sole: Option<bool>| ExampleConformance {
+            iri: "https://example.org/ecSoleFindingProbe".to_owned(),
+            file: "tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl".to_owned(),
+            outcome: Outcome::Violates,
+            violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
+            expected_source_shape: Some(
+                "https://blackcatinformatics.ca/logic/\
+                 CompensationNotInverseConstraintProceduralConstraintShape"
+                    .to_owned(),
+            ),
+            expected_sole_finding: sole,
+            expected_failure_class: None,
+            rationale: None,
+        };
+
+        let baseline =
+            NativeChannelBaseline::measure(&module).expect("the logic module measures cleanly");
+
+        run_conformance_cell(
+            &cell(None),
+            &slice_dir,
+            &module,
+            &shapes,
+            &FailureClassIndex::empty(),
+            &baseline,
+        )
+        .expect(
+            "without the flag the cell passes on the existence checks alone — which is the \
+             behaviour every unmigrated cell keeps",
+        );
+
+        let err = run_conformance_cell(
+            &cell(Some(true)),
+            &slice_dir,
+            &module,
+            &shapes,
+            &FailureClassIndex::empty(),
+            &baseline,
+        )
+        .expect_err("the cascade must be caught once the cell claims sole-ness");
+        let message = err.message();
+        assert!(
+            message.contains("expectedSoleFinding") && message.contains("also raised"),
+            "the failure must name the flag and enumerate the intruding findings, so an \
+             author can see WHICH other law fired; got: {message}"
+        );
+        assert!(
+            message.contains("ReceiptRequiresAttemptConstraint")
+                || message.contains("CompensationBindsExactForwardEffectConstraint"),
+            "the intruder list must name the cascading laws by shape; got: {message}"
+        );
+    }
+
+    /// An UNPINNED `gmeow:expectedSoleFinding` is a hard failure, and the fixture that
+    /// proves why is one the old fallback could not fail on.
+    ///
+    /// `translation-unanalyzed-overclaim.ttl` trips TWO distinct lang laws —
+    /// `lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape` and
+    /// `lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape` — and BOTH raise
+    /// `shacl.SPARQLConstraintComponent`. The first cut's unpinned reading asked only
+    /// whether some OTHER shape raised a finding carrying the expected code, so on this
+    /// fixture every violating shape answered "yes, I am one of them" and the intruder set
+    /// came back empty: the cell claimed soleness, tripped two laws, and went green. That
+    /// is the vacuity, and it is why the pin is now REQUIRED rather than a fallback.
+    ///
+    /// The two halves are the same cell differing only in the pin: unpinned is rejected as
+    /// a cell-configuration failure that names the missing property, and pinned is rejected
+    /// for the real reason, naming the SECOND law by shape.
+    #[test]
+    fn an_unpinned_sole_finding_claim_is_a_hard_failure() {
+        let slice_dir = paths::repo_root().join("slices/grounding/lang");
+        let shape_paths = paths::shapes_files(&slice_dir);
+        let shapes_ttl = shape_paths
+            .iter()
+            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
+        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
+            .expect("the lang module parses");
+        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+            .expect("the grounding kernel modules parse");
+        let local_shapes = slice_dir.join("shapes.ttl");
+        let shapes = scope_shapes_to_slice(
+            shapes,
+            &shapes_ttl,
+            &owned_module,
+            local_shapes.is_file().then_some(local_shapes.as_path()),
+        )
+        .expect("shape ownership scopes to the lang slice");
+
+        let cell = |pin: Option<&str>| ExampleConformance {
+            iri: "https://example.org/ecUnpinnedSoleProbe".to_owned(),
+            file: "tests/counter-examples/translation-unanalyzed-overclaim.ttl".to_owned(),
+            outcome: Outcome::Violates,
+            violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
+            expected_source_shape: pin.map(ToOwned::to_owned),
+            expected_sole_finding: Some(true),
+            expected_failure_class: None,
+            rationale: None,
+        };
+
+        let baseline =
+            NativeChannelBaseline::measure(&module).expect("the lang module measures cleanly");
+
+        let err = run_conformance_cell(
+            &cell(None),
+            &slice_dir,
+            &module,
+            &shapes,
+            &FailureClassIndex::empty(),
+            &baseline,
+        )
+        .expect_err(
+            "a soleness claim with no named law must be rejected outright — under the old \
+             fallback this very cell passed while the fixture tripped two laws",
+        );
+        let message = err.message();
+        assert!(
+            message.contains("expectedSoleFinding")
+                && message.contains("without gmeow:expectedSourceShape"),
+            "the failure must name both properties so an author knows what to bind; got: {message}"
+        );
+
+        let err = run_conformance_cell(
+            &cell(Some(
+                "https://blackcatinformatics.ca/lang/\
+                 UnmarkedSourceOverclaimConstraintProceduralConstraintShape",
+            )),
+            &slice_dir,
+            &module,
+            &shapes,
+            &FailureClassIndex::empty(),
+            &baseline,
+        )
+        .expect_err("once the law is named, the SECOND law raising the same code is an intruder");
+        let message = err.message();
+        assert!(
+            message.contains("also raised")
+                && message.contains("UnmarkedTargetOverclaimConstraintProceduralConstraintShape"),
+            "the intruder list must name the second law by shape, not merely by component code \
+             (both laws raise shacl.SPARQLConstraintComponent); got: {message}"
+        );
+    }
+
+    /// The DECLARATIVE half of the same requirement has teeth.
+    ///
+    /// `shapes/test-dsl-shapes.ttl` states the pin requirement as SHACL so a cell is
+    /// rejected at DSL-lint time, not only when the harness reaches it. That file is on
+    /// the `EXCLUDED` list of every shape union in the repository (it lints the test DSL,
+    /// never the data graph), and `dev_validate` does not yet populate
+    /// `test_dsl_shapes_ttl`, so nothing else executes it — which is exactly the shape a
+    /// rule takes when it is decorative. This runs the SHIPPED file against a synthetic
+    /// `gmeow:ExampleConformance` cell and requires it to red, so the rule cannot rot into
+    /// prose. The green half is the same cell with the pin bound.
+    #[test]
+    fn the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration() {
+        let shapes_ttl =
+            std::fs::read_to_string(paths::repo_root().join("shapes/test-dsl-shapes.ttl"))
+                .expect("the test-DSL shape file is readable");
+        let shapes = parse_shapes(&shapes_ttl).expect("the test-DSL shape file parses");
+
+        let cell = |pin: &str| {
+            format!(
+                r#"
+                @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+                @prefix ex: <https://example.org/> .
+                ex:ec a gmeow:ExampleConformance ;
+                    gmeow:exampleFile "tests/counter-examples/x.ttl" ;
+                    gmeow:expectedOutcome gmeow:violates ;
+                    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+                    {pin}
+                    gmeow:expectedSoleFinding true .
+                "#
+            )
+        };
+        let report = validate_dataset(&store_from_turtle(&cell("")), &shapes)
+            .expect("validating the DSL cell succeeds");
+        let unpinned: Vec<String> = report
+            .results
+            .iter()
+            .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            .filter_map(|r| r.message.clone())
+            .collect();
+        assert!(
+            unpinned
+                .iter()
+                .any(|m| m.contains("must also bind gmeow:expectedSourceShape")),
+            "the shape rule must reject a soleness declaration with no pinned law; got: \
+             {unpinned:?}"
+        );
+
+        let pinned = validate_dataset(
+            &store_from_turtle(&cell("gmeow:expectedSourceShape ex:SomeConstraintShape ;")),
+            &shapes,
+        )
+        .expect("validating the pinned DSL cell succeeds");
+        let remaining: Vec<String> = pinned
+            .results
+            .iter()
+            .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            .filter_map(|r| r.message.clone())
+            .collect();
+        assert!(
+            remaining.is_empty(),
+            "a pinned soleness declaration is well-formed and must raise nothing; got: \
+             {remaining:?}"
+        );
     }
 }

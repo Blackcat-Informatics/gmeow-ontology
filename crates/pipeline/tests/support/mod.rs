@@ -10,3 +10,4 @@
 //! its own head rather than here.
 
 pub mod flagship_discharge;
+pub mod math_projection_producer;

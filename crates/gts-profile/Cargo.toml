@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-gts-profile"
+description = "The mandatory GMEOW GTS authorship profile: the single production entry that emits a GMEOW bundle, and the wire-level audit that every payload-bearing frame carries zstd-rsyncable at level 12"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["gmeow", "gts", "bundle", "zstd", "profile"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The GTS writer/wire surface this crate narrows: `gts_compose::emit_gts` is called
+# from exactly one place in the workspace (this crate), and `gts::wire` supplies the
+# cheap frame introspection the audit reads.
+purrdf.workspace = true
+# The diagnostic substrate: every profile violation is a typed `Diag` under the
+# `gts-profile.*` code namespace, not a bare string.
+gmeow-errors = { path = "../errors" }
+# CBOR value inspection for the wire-level frame audit. A GTS bundle IS a CBOR
+# sequence, so the audit reads it as one rather than re-parsing the RDF payload.
+ciborium = "0.2"

@@ -6,7 +6,7 @@
 //! the freshly-materialized staged tree.
 //!
 //! `generated/` is NOT git-tracked: it is a git-ignored LOCAL PRODUCT that
-//! `make sync` materializes on disk (PIPELINE_SPINE §6 fanout). So the reference
+//! `make check` materializes on disk (PIPELINE_SPINE §6 fanout). So the reference
 //! this gate compares against is that MATERIALIZED staged tree (the bytes `make
 //! sync` last wrote), never "historical Git bytes" and never the git index — the
 //! test only ever reads the on-disk product. Its distinct value is the SEMANTIC
@@ -30,7 +30,7 @@
 //!    CBOR has encoding skew, so byte parity is not the contract; the fold
 //!    is. A fold mismatch here is a real regression (modulo the self-describing
 //!    pipeline-DAG triples the `fold_parity.rs` filter excludes for the
-//!    stale-vs-fresh window before `make sync` reruns the terminal).
+//!    stale-vs-fresh window before `make check` reruns the terminal).
 //!  * Every other declared artifact (`generated/**`) — reconciled against the
 //!    materialized bytes: byte-deterministic text/CSV/JSON/etc. by BYTES,
 //!    RDF/Turtle leaves by GRAPH ISOMORPHISM (RDF text carries serializer skew, so
@@ -113,9 +113,9 @@ fn full_run_reproduces_every_materialized_artifact() {
     );
     let fold_mismatches = compare_folds(&regen, &materialized_fold);
 
-    // ── 2. Every non-schemas leaf: reconcile in the pre-sink DAG. ──
+    // ── 2. Every non-schemas leaf: reconcile over the production DAG. ──
     //
-    // Run the pre-schemas DAG and compare every artifact it produces
+    // Run the full production DAG and compare every artifact it produces
     // (excluding `generated/schemas/*`, the internal `pipeline/`
     // dataflow, the reference-less `dist/*`, and `gmeow.gts` itself — compared by
     // fold above) against the materialized bytes, classifying any drift against
@@ -164,25 +164,28 @@ fn full_run_reproduces_every_materialized_artifact() {
     );
 }
 
-/// Run the pre-schemas full DAG over a fresh ephemeral cache and reconcile every
+/// Run the full production DAG over a fresh ephemeral cache and reconcile every
 /// artifact it produces against the MATERIALIZED staged bytes on disk, returning the
 /// drifted logical paths. Skips the gated `generated/schemas/*`, the internal
 /// `pipeline/` dataflow, the reference-less `dist/*`, and `gmeow.gts` (folded above).
 /// Byte-deterministic text compares by bytes; RDF leaves by graph isomorphism.
 fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
-    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
-    let spec = full_spec();
-    let pre = PipelineSpec {
-        id: spec.id.clone(),
-        stages: spec
-            .stages
-            .into_iter()
-            .filter(|s| s.id != "stage-export-schemas")
-            .collect(),
-    };
-    let graph = pre.validate().expect("pre-sink DAG validates");
+    use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
+    // The FULL production DAG. The schemas leaf used to be filtered out of the spec
+    // here; it cannot be any more — `stage-gts-sink` DECLARES it in `consumes()`, so
+    // removing it leaves a dangling dependency and `validate()` HARD-fails. The filter
+    // was also redundant: every comparison below already skips `generated/schemas/*` by
+    // PATH, which is the exclusion that was ever actually wanted.
+    let pre = full_spec();
+    let graph = pre.validate().expect("production DAG validates");
     let bound = bind(&pre, &graph, &default_registry()).expect("binds");
     let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    // The PRODUCER's retention profile, over the REAL DAG. `run_full` releases each
+    // stage's carrier once its last declared consumer has run; this reconcile compares
+    // exactly what that reconcile compares (every committed artifact, `pipeline/` skipped
+    // below), so running it under the same profile is what proves the release changes no
+    // produced byte on the real graph rather than only on a synthetic fixture.
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs");
 
     let mut drifted: Vec<String> = Vec::new();
@@ -276,17 +279,14 @@ fn dist_determinism_mismatches(root: &Path) -> Vec<String> {
 /// Run the pre-schemas full DAG over a fresh ephemeral cache and collect every
 /// `dist/**` artifact (the export leaves' on-disk-only outputs).
 fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
-    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
-    let spec = full_spec();
-    let pre = PipelineSpec {
-        id: spec.id.clone(),
-        stages: spec
-            .stages
-            .into_iter()
-            .filter(|s| s.id != "stage-export-schemas")
-            .collect(),
-    };
-    let graph = pre.validate().expect("validates");
+    use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+    // The FULL production DAG. The schemas leaf used to be filtered out of the spec
+    // here; it cannot be any more — `stage-gts-sink` DECLARES it in `consumes()`, so
+    // removing it leaves a dangling dependency and `validate()` HARD-fails. The filter
+    // was also redundant: every comparison below already skips `generated/schemas/*` by
+    // PATH, which is the exclusion that was ever actually wanted.
+    let pre = full_spec();
+    let graph = pre.validate().expect("production DAG validates");
     let bound = bind(&pre, &graph, &default_registry()).expect("binds");
     let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
     let result = run(&graph, &bound, &mut ctx).expect("runs");
@@ -314,7 +314,7 @@ struct FoldShape {
 /// `fold_parity.rs::is_pipeline_self_triple`. Re-authoring the dogfooded build DAG
 /// (e.g. re-adding `gmeow:stage-export-logic`) legitimately changes these triples
 /// in the freshly-composed fold while the materialized bundle still carries the old
-/// DAG (until `make sync` reruns the terminal), so they are excluded from the fold
+/// DAG (until `make check` reruns the terminal), so they are excluded from the fold
 /// comparison.
 fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -393,19 +393,18 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
 /// Re-derive the snapshot fold the way `run_full` does (the pre-sink spine over a
 /// fresh ephemeral cache), without writing into the repo tree.
 fn regen_gts_fold(root: &Path) -> FoldShape {
-    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
-    let spec = full_spec();
-    let pre = PipelineSpec {
-        id: spec.id.clone(),
-        stages: spec
-            .stages
-            .into_iter()
-            .filter(|s| s.id != "stage-export-schemas")
-            .collect(),
-    };
-    let graph = pre.validate().expect("pre-sink DAG validates");
+    use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+    // The FULL production DAG. The schemas leaf used to be filtered out of the spec
+    // here; it cannot be any more — `stage-gts-sink` DECLARES it in `consumes()`, so
+    // removing it leaves a dangling dependency and `validate()` HARD-fails. The filter
+    // was also redundant: every comparison below already skips `generated/schemas/*` by
+    // PATH, which is the exclusion that was ever actually wanted.
+    let pre = full_spec();
+    let graph = pre.validate().expect("production DAG validates");
     let bound = bind(&pre, &graph, &default_registry()).expect("binds");
     let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    // Same as above: the terminal bundle is folded under the producer's retention profile.
+    ctx.carrier_retention = gmeow_pipeline::CarrierRetention::DropAfterLastConsumer;
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs");
     let sink = result.products.get("stage-gts-sink").expect("sink product");
     let bytes = sink

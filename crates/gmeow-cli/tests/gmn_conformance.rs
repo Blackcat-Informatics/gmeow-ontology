@@ -48,6 +48,11 @@ fn grammar() -> PathBuf {
     repo_root().join("slices/grounding/lang/grammars/gmn.ebnf")
 }
 
+/// The ring-tagged consume-path demonstrator (four claims at four security rings).
+fn ring_consume_ttl() -> PathBuf {
+    repo_root().join("slices/grounding/lang/examples/gmn-ring-consume.ttl")
+}
+
 /// A committed positive vector whose `.gmn` decodes standalone (all-IRI claim, no
 /// out-of-band `r_<hash>` by-reference tokens).
 fn claim_basic_ttl() -> PathBuf {
@@ -153,6 +158,97 @@ fn gmn_decode_reconstructs_the_source() {
             "<https://blackcatinformatics.ca/gmeow/gate1> \
              <https://blackcatinformatics.ca/gmeow/hasState> \
              <https://blackcatinformatics.ca/gmeow/doorGate1> .",
+        ));
+}
+
+// ── project: the consume-path security-ring filter on the real CLI surface ───────
+
+/// `gmeow gmn project --ring gmnRingTrusted` over the demonstrator admits core + trusted +
+/// nato content and EXCLUDES the out-of-ring restricted claim — the filter runs end-to-end on
+/// the shipped binary, not just the library. stdout carries the ring-filtered GMN-1 payload.
+#[test]
+fn gmn_project_excludes_out_of_ring_content_on_the_cli() {
+    gmeow()
+        .args([
+            "gmn",
+            "project",
+            ring_consume_ttl().to_str().unwrap(),
+            "--ring",
+            "gmnRingTrusted",
+            "--lang-module",
+            lang_module().to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        // admitted content is present in the projected GMN-1 …
+        .stdout(predicate::str::contains("ringDemoCoreDatum"))
+        .stdout(predicate::str::contains("ringDemoTrustedDatum"))
+        .stdout(predicate::str::contains("ringDemoNatoDatum"))
+        // … and the out-of-ring restricted claim is EXCLUDED (absent from stdout).
+        .stdout(predicate::str::contains("ringDemoRestrictedDatum").not())
+        .stderr(predicate::str::contains("admitted 3/4 claims, excluded 1"));
+}
+
+/// `gmeow gmn project --ring gmnRingNato` exercises the compartment axis: only nato-compartmented
+/// content is admitted; plain same-level trusted content is EXCLUDED.
+#[test]
+fn gmn_project_compartment_axis_excludes_plain_content_on_the_cli() {
+    gmeow()
+        .args([
+            "gmn",
+            "project",
+            ring_consume_ttl().to_str().unwrap(),
+            "--ring",
+            "gmnRingNato",
+            "--lang-module",
+            lang_module().to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("ringDemoNatoDatum"))
+        .stdout(predicate::str::contains("ringDemoTrustedDatum").not())
+        .stdout(predicate::str::contains("ringDemoCoreDatum").not())
+        .stderr(predicate::str::contains("admitted 1/4 claims, excluded 3"));
+}
+
+/// A tiny `--budget` forces whole-claim elision, disclosed on stderr — never a silent cut.
+#[test]
+fn gmn_project_budget_discloses_elision_on_the_cli() {
+    gmeow()
+        .args([
+            "gmn",
+            "project",
+            ring_consume_ttl().to_str().unwrap(),
+            "--ring",
+            "gmnRingTrusted",
+            "--budget",
+            "20",
+            "--lang-module",
+            lang_module().to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("admitted claims elided"))
+        .stderr(predicate::str::contains("never silently dropped"));
+}
+
+/// An unresolvable `--ring` hard-fails (`lang:GmnRingLatticeMalformed`) — no degraded default.
+#[test]
+fn gmn_project_unknown_ring_hard_fails_on_the_cli() {
+    gmeow()
+        .args([
+            "gmn",
+            "project",
+            ring_consume_ttl().to_str().unwrap(),
+            "--ring",
+            "gmnRingNotAThing",
+            "--lang-module",
+            lang_module().to_str().unwrap(),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "not a resolvable gmeow:GmnSecurityRing",
         ));
 }
 

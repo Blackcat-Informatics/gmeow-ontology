@@ -62,7 +62,7 @@ There is **one** producer — the Rust `gmeow-bench-engines --emit-cost` path:
 
 ```sh
 make maint-bench-cost-baseline   # emits bench/cost-baseline.json (offline; twice-diffed for byte-stability)
-make sync                  # re-projects generated/bench/cost-ledger.md
+make check-sync SYNC_MODE=update   # re-projects generated/bench/cost-ledger.md
 git add bench/cost-baseline.json generated/bench/cost-ledger.md
 ```
 

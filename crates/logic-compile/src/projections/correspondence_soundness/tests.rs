@@ -245,6 +245,34 @@ fn domain_range_synthetic() {
     );
 }
 
+/// G9 canonical-subsumption sweep: `build_class_bridge` scans `onto` — the merged
+/// AUTHORED ontology view (never a lowered `rdfs:`-only projection) — for
+/// class-subsumption edges. It must traverse the canonical `logic:subClassOf`
+/// spelling, not only its `rdfs:` projection (gmeow_ns::SUB_CLASS_OF doctrine;
+/// crates/ns/src/lib.rs:106-166), or a re-authored GMEOW class hierarchy goes
+/// invisible to the domain-range / inverse-direction alignment checks.
+#[test]
+fn class_bridge_traverses_canonical_logic_subclass_of() {
+    let onto_ds = ds("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         gmeow:Cyborg a owl:Class ; logic:subClassOf gmeow:Animal .\n\
+         gmeow:Animal a owl:Class .\n");
+    let onto = DslView::new(&onto_ds);
+    let targets: BTreeMap<String, DslView<'_>> = BTreeMap::new();
+    let mappings: Vec<Mapping> = Vec::new();
+
+    let bridge = build_class_bridge(&mappings, &onto, &targets);
+    let cyborg = "https://blackcatinformatics.ca/gmeow/Cyborg";
+    let animal = "https://blackcatinformatics.ca/gmeow/Animal";
+    assert!(
+        bridge
+            .get(cyborg)
+            .is_some_and(|supers| supers.contains(animal)),
+        "build_class_bridge must traverse the canonical logic:subClassOf edge: {bridge:?}"
+    );
+}
+
 /// Property-character: object-vs-datatype conflict is ERROR, characteristic mismatch is
 /// WARNING, and a schema.org-like target with no OWL characteristics is skipped.
 #[test]

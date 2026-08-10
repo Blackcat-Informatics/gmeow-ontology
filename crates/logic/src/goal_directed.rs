@@ -34,12 +34,12 @@ use crate::physical::proof::{check, structured_derivation_iri};
 use crate::physical::resolve_fol::{
     FolClause, FolControl, FolLit, FolProgram, Truth, render, resolve_fol,
 };
-use crate::physical::term_dag::TermDag;
 use crate::physical::unify::{SortContext, SortOrder};
 use crate::query_ir::Budget;
 use crate::rule_ir::{
     EvalAtom, EvalRule, EvalTerm, Fact, FactStore, Solution, least_model_of_reduct, match_atom,
 };
+use gmeow_term_arena::engine::TermDag;
 
 /// The gmeow namespace every projected goal-directed IRI/predicate lives under.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -126,17 +126,21 @@ pub struct GoalDirectedEvaluation {
 /// resolve it under (`SortContext::default()` for the unsorted demonstrators), and the ground
 /// atoms whose three-valued WFS verdict is projected. Building interns everything into one
 /// fresh [`TermDag`] so every returned [`NodeId`] belongs to `dag`.
-struct BuiltDemonstrator {
+///
+/// `pub(crate)` so [`crate::proof_tree`]'s structured proof view resolves a compiled
+/// `logic:ReasoningProgram` through THIS lowering rather than forking a second one — there is
+/// exactly one `ReasoningProgramIr` → `FolProgram` compiler and it lives here.
+pub(crate) struct BuiltDemonstrator {
     /// The demonstrator's own term arena.
-    dag: TermDag,
+    pub(crate) dag: TermDag,
     /// The structured backward program (clauses + goal + goal vars + meta-sorts).
-    program: FolProgram,
+    pub(crate) program: FolProgram,
     /// The order-sorted lattice/tagging the resolver consults (empty ⇒ the unsorted path).
-    ctx: SortContext,
+    pub(crate) ctx: SortContext,
     /// Ground atoms whose SLG-WFS verdict is projected (`true`/`false`/`undefined`). Empty for
     /// a purely-positive demonstrator; non-empty for the negation demonstrator so its
     /// `undefined` loop atoms and founded atoms are both observable.
-    verdict_probes: Vec<NodeId>,
+    pub(crate) verdict_probes: Vec<NodeId>,
 }
 
 /// Evaluate one built program (lowered from a compiled `logic:ReasoningProgram` by
@@ -486,7 +490,7 @@ fn local_name(iri: &str) -> &str {
 /// Every clause, the query, and every verdict probe lowers under its OWN fresh [`VarScope`]
 /// (see the module-level note above): a variable name is shared only within the ONE
 /// clause/query/probe that authored it.
-fn lower_reasoning_program(
+pub(crate) fn lower_reasoning_program(
     program: &ReasoningProgramIr,
     subsort_edges: &[(String, String)],
 ) -> gmeow_errors::Result<BuiltDemonstrator> {
@@ -875,6 +879,7 @@ fn oracle_eval_rule(idx: usize, clause: &Formula) -> gmeow_errors::Result<EvalRu
         rule_iri: format!("{GMEOW}goal-directed/oracle-rule/{idx}"),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        constraint_tag: None,
     })
 }
 

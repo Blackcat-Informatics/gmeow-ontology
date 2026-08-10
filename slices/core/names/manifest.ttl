@@ -16,14 +16,16 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     gmeow:sliceConsumer "Every named entity across the ontology (P9 anti-colonial, co-equal naming); the mail corpus and contact graph; FOAF / schema.org / Wikidata name exports (via gmeow:hasName); gazetteer and place-naming projections; display-safety / deadname-suppression projections (gmeow:displayable false); and persona-expression register reuse (norms slice) through the gmeow:Register umbrella."@x-gmeow-english .

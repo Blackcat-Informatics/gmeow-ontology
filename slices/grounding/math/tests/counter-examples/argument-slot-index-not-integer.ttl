@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::ArgumentSlotIndexNotInteger):
+# a math:ApplicationExpression root whose one math:ArgumentSlot's math:slotIndex
+# lexical form ("first") does not parse as an integer — operand position must be a
+# zero-based integer, never an arbitrary string. The authored math:structuralKey lets
+# the reasoned-graph gate (check_structural_key_on_rejected_expression) also reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:ApplicationExpression ;
+    math:operator ex:op ;
+    math:argumentSlot ex:slot0 ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex "first" ;
+    math:slotExpression ex:operand .
+
+ex:operand a math:NumberLiteral ;
+    math:literalValue 1 .

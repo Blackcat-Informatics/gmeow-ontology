@@ -1,0 +1,182 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inhabitation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationEmbodiment is functional"
+msgstr "configurationEmbodiment 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:configurationEmbodiment 是函数式的：一个 gmeow:InhabitationConfiguration 恰好有一个活跃的核心体现，即在该配置子区间内保持恒定的唯一 gmeow:EmbodimentAssignment。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationOfTenure is functional"
+msgstr "configurationOfTenure 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:configurationOfTenure 是函数式的：每个 gmeow:InhabitationConfiguration 都是恰好一个 gmeow:InhabitationTenure 的恒定配置子区间，并对其进行划分。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an inhabitation tenure's interval carries its temporal frame"
+msgstr "居留任期的区间承载其时间框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "断言某 gmeow:InhabitationTenure 经由 gmeow:duringInterval 所界定的每个 gmeow:TimeInterval 都必须声明至少一个 gmeow:hasTemporalFrame——不带其框架而被断言的区间是不良构的（原则 11：区间承载其框架）。当某界定区间缺少框架时，原生融贯闸门引发一项违规。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationLocusKind is functional"
+msgstr "inhabitationLocusKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationLocusKind is functional: a gmeow:InhabitationTenure has exactly one locus kind, either gmeow:locusSelf or gmeow:locusVessel, while tenancy cardinality is derived from overlapping tenures rather than set here."
+msgstr "在规范载体上断言 gmeow:inhabitationLocusKind 是函数性的:一个 gmeow:InhabitationTenure 恰好有一种场所类型,或为 gmeow:locusSelf,或为 gmeow:locusVessel,而占用的基数是从重叠的租期中派生得出,而非在此设定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationSubject is functional"
+msgstr "inhabitationSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationSubject is functional: a gmeow:InhabitationTenure has exactly one inhabiting subject, and because that single slot has a gmeow:Agent range a contested inhabitation must use gmeow:InhabitationClaim rather than assert a rival subject here."
+msgstr "在规范载体上断言 gmeow:inhabitationSubject 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个占用主体,并且由于这个单一槽位的值域为 gmeow:Agent,存在争议的占用必须使用 gmeow:InhabitationClaim,而不是在此断言一个相竞争的主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitedHost is functional"
+msgstr "inhabitedHost 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:inhabitedHost 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个被占用的宿主,因此同一主体占用第二个宿主即构成一个不同的租期。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationEmbodiment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:configurationEmbodiment 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+msgstr "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationOfTenure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:configurationOfTenure 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+msgstr "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationLocusKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitationLocusKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+msgstr "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitationSubject 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+msgstr "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitedHost names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitedHost 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+msgstr "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InhabitationTenure; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:InhabitationTenure 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:InhabitationTenure no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:InhabitationTenure 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:InhabitationTenure and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:InhabitationTenure 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."
+msgstr "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:configurationEmbodiment and nothing else. It is not a definition of gmeow:configurationEmbodiment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:configurationEmbodiment 的一项完整性义务，别无其他。它不是 gmeow:configurationEmbodiment 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:configurationOfTenure and nothing else. It is not a definition of gmeow:configurationOfTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:configurationOfTenure 的一项完整性义务，别无其他。它不是 gmeow:configurationOfTenure 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitationLocusKind and nothing else. It is not a definition of gmeow:inhabitationLocusKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:inhabitationLocusKind 的一项完整性义务，别无其他。它不是 gmeow:inhabitationLocusKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitationSubject and nothing else. It is not a definition of gmeow:inhabitationSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:inhabitationSubject 的一项完整性义务，别无其他。它不是 gmeow:inhabitationSubject 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:inhabitedHost and nothing else. It is not a definition of gmeow:inhabitedHost (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:inhabitedHost 的一项完整性义务，别无其他。它不是 gmeow:inhabitedHost 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:InhabitationTenure 的一项完整性义务，别无其他。它不是 gmeow:InhabitationTenure 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

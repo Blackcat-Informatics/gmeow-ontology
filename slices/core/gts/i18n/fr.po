@@ -1,0 +1,246 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: gts, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "codecClass is functional"
+msgstr "codecClass est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:codecClass is functional: a gmeow:TransformCodec has exactly one capability class — the single kind of thing a reader must hold to reverse it, a library or a key, never both at once."
+msgstr "Affirme sur le porteur canonique que gmeow:codecClass est fonctionnelle : un gmeow:TransformCodec possède exactement une classe de capacité — l'unique type de chose qu'un lecteur doit posséder pour l'inverser, une bibliothèque ou une clé, jamais les deux à la fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsHeadId is functional"
+msgstr "gtsHeadId est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsHeadId est fonctionnelle : un gmeow:GTSSegment possède exactement une tête de chaîne — l'identifiant de contenu unique de sa dernière trame, noté 'blake3:<hex>', qui engage de manière transitive tout l'historique des trames du segment. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsProfile is functional"
+msgstr "gtsProfile est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsProfile is functional: a gmeow:GTSSegment declares exactly one profile — a single value-vocabulary individual naming its purpose and requirement set, while a multi-segment document's effective requirements are the derived union of its segments' profiles rather than a second value on one segment."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsProfile est fonctionnelle : un gmeow:GTSSegment déclare exactement un profil — un individu unique du vocabulaire de valeurs nommant son but et son ensemble d'exigences — tandis que les exigences effectives d'un document multi-segments sont l'union dérivée des profils de ses segments, plutôt qu'une seconde valeur sur un seul segment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a GTS segment is keyed by its chain head"
+msgstr "un segment GTS est identifié par sa tête de chaîne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:GTSSegment is identified by its gmeow:gtsHeadId: the chain head is a BLAKE3 content-id committing transitively to the segment's entire frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction. The head therefore uniquely identifies its segment (content-addressing IS the identity), and the native DL consistency gate forces two segments asserted distinct yet sharing a head into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property gmeow:gtsHeadId would be OWL 2 Full."
+msgstr "Affirme qu'un gmeow:GTSSegment est identifié par son gmeow:gtsHeadId : la tête de chaîne est un identifiant de contenu BLAKE3 qui engage de manière transitive tout l'historique des trames du segment, de sorte que deux segments distincts partageant une même tête constitueraient une collision BLAKE3 sur l'historique complet — impossible par construction. La tête identifie donc de façon unique son segment (l'adressage par contenu EST l'identité), et la porte de cohérence DL native force dans owl:Nothing deux segments affirmés distincts mais partageant une tête. Énoncé comme une clé (l'analogue logic: de owl:hasKey, OWL 2 DL) plutôt que comme une caractéristique inverse-fonctionnelle, qui sur la propriété de type de donnée gmeow:gtsHeadId relèverait d'OWL 2 Full."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsSegmentIndex is functional"
+msgstr "gtsSegmentIndex est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsSegmentIndex est fonctionnelle : un gmeow:GTSSegment occupe exactement une position, indexée à partir de zéro, dans l'ordre des fichiers de son document — un index unique, dont la liste ordonnée forme l'identité composite du document. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsSegmentOf is functional"
+msgstr "gtsSegmentOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentOf is functional: a gmeow:GTSSegment instance belongs to exactly one document — the same bytes appearing in another file are a different segment instance of the same content, not a second document on one segment."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsSegmentOf est fonctionnelle : une instance de gmeow:GTSSegment appartient à exactement un document — les mêmes octets apparaissant dans un autre fichier constituent une instance de segment différente du même contenu, et non un second document pour un seul segment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opacityReason is functional"
+msgstr "opacityReason est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:opacityReason est fonctionnelle : un gmeow:OpaqueFrame a exactement une raison à son opacité — une cause unique, un codec de classe chiffrement sans clé, un codec dont le lecteur ne dispose pas, ou un dommage, puisqu'une opacité sans raison énoncée serait indiscernable d'une perte de données. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opaqueFrameIn is functional"
+msgstr "opaqueFrameIn est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:opaqueFrameIn est fonctionnelle : un gmeow:OpaqueFrame appartient à exactement un segment — une trame occupe une position unique dans la chaîne d'un seul segment. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:codecClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:codecClass nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:codecClass, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:codecClass, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."
+msgstr "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsHeadId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:gtsHeadId nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsHeadId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:gtsHeadId, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."
+msgstr "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsProfile names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:gtsProfile nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsProfile, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:gtsProfile, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."
+msgstr "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsSegmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:gtsSegmentIndex nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:gtsSegmentIndex, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."
+msgstr "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsSegmentOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:gtsSegmentOf nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:gtsSegmentOf, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."
+msgstr "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:opacityReason names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:opacityReason nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opacityReason, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:opacityReason, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."
+msgstr "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:opaqueFrameIn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:opaqueFrameIn nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opaqueFrameIn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:opaqueFrameIn, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."
+msgstr "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:GTSSegment; the record is the canonical carrier the gate joins."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir la condition d'intégrité de cet enregistrement sur gmeow:GTSSegment ; l'enregistrement est le porteur canonique que le portail joint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:GTSSegment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque gmeow:GTSSegment ne porte plus la condition — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:GTSSegment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "Lisez ensemble les champs logic: de l'enregistrement : ils nomment gmeow:GTSSegment et la condition affirmée à son sujet, et la vue de fondement OWL en projette l'axiome correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
+msgstr "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:codecClass and nothing else. It is not a definition of gmeow:codecClass (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:codecClass, et rien d'autre. Ce n'est pas une définition de gmeow:codecClass (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsHeadId and nothing else. It is not a definition of gmeow:gtsHeadId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gtsHeadId, et rien d'autre. Ce n'est pas une définition de gmeow:gtsHeadId (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsProfile and nothing else. It is not a definition of gmeow:gtsProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gtsProfile, et rien d'autre. Ce n'est pas une définition de gmeow:gtsProfile (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentIndex and nothing else. It is not a definition of gmeow:gtsSegmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gtsSegmentIndex, et rien d'autre. Ce n'est pas une définition de gmeow:gtsSegmentIndex (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentOf and nothing else. It is not a definition of gmeow:gtsSegmentOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gtsSegmentOf, et rien d'autre. Ce n'est pas une définition de gmeow:gtsSegmentOf (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:opacityReason and nothing else. It is not a definition of gmeow:opacityReason (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:opacityReason, et rien d'autre. Ce n'est pas une définition de gmeow:opacityReason (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:opaqueFrameIn and nothing else. It is not a definition of gmeow:opaqueFrameIn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:opaqueFrameIn, et rien d'autre. Ce n'est pas une définition de gmeow:opaqueFrameIn (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:GTSSegment, et rien d'autre. Ce n'est pas une définition de gmeow:GTSSegment (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS head-id canonical pattern constraint"
+msgstr "contrainte de motif canonique de l'identifiant de tête GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
+msgstr "Une contrainte d'intégrité en monde clos : une valeur de gmeow:gtsHeadId doit être canonique — le préfixe littéral « blake3: » suivi d'exactement 64 chiffres hexadécimaux minuscules (spécification GTS §3.1, §9.1)."

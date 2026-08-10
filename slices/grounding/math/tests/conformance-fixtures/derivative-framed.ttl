@@ -20,5 +20,9 @@ ex:velocitySlot0 a math:ArgumentSlot ;
     math:slotIndex 0 ;
     math:slotExpression ex:positionFn .
 
-ex:positionFn a math:MathematicalExpression .
+# The differentiated function is named, not decomposed: a math:SymbolReference resolving to a
+# SYMBOL is the concrete form for that. The abstract math:MathematicalExpression base names no
+# form and carries no structural identity (math:UnrecognizedExpressionType).
+ex:positionFn a math:SymbolReference ; math:hasMathematicalSymbol ex:positionFnSymbol .
+ex:positionFnSymbol a math:MathematicalSymbol .
 ex:timeDecl a math:VariableDeclaration .

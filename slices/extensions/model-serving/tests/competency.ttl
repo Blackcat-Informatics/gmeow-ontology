@@ -6,15 +6,18 @@
 # ontology, asserted lane (gmeow:reasoningNone). Each instance-classifier question
 # overlays its ABox fixture with gmeow:cqDataFile (slice-relative). This is the
 # executable half of the INHABITED-COMPETENCY.md conformance contract for the
-# three questions Package 1 (core/inhabitation) ledger-deferred to this slice:
-# CQ3 (two-sessions), CQ5 (tool-usage), CQ6 (provenance-chain) — each of which
-# needs the gmeow:ModelArtifact / gmeow:ModelDeployment / gmeow:RuntimeExecution
-# identities minted here.
+# two questions Package 1 (core/inhabitation) ledger-deferred to this slice that
+# this slice can answer ALONE: CQ3 (two-sessions) and CQ6 (provenance-chain) —
+# each of which needs the gmeow:ModelArtifact / gmeow:ModelDeployment /
+# gmeow:RuntimeExecution identities minted here.
 #
-# Because the harness runs over the MERGED ontology, the CQ5 fixture may reference
-# gmeow:ToolCall / gmeow:usedTool (defined by the agentic slice) as instance data
-# without model-serving taking a TBox dependency on agentic (which would be an
-# illegal extension → extension edge).
+# CQ5 (tool-usage) is NOT here. Its discriminator needs this slice's
+# gmeow:usedCapability AND the agentic slice's gmeow:ToolCall / gmeow:usedTool,
+# and an extension may not depend on a sibling extension (Principle 16) — a
+# competency query IS a semantic dependency edge, whatever lane it runs in. It
+# therefore lives in slices/profile/agent-runtime, the profile that selects both
+# and mints nothing, alongside the end-to-end query that is here for the same
+# reason.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -47,29 +50,6 @@ ex:cqTwoSessionsRowAlice a gmeow:ExpectedRow ;
 ex:cqTwoSessionsRowBob a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "session" ; gmeow:cellValueIri exd:sessionBob ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subjectStage" ; gmeow:cellValueIri exd:stageBob ] .
-
-# --- CQ5 / tool call: passive capability or delegated agent? -------------------
-# A gmeow:usedCapability edge to a logic:ActionSchema is passive; a gmeow:ToolCall
-# whose gmeow:usedTool points to a distinct gmeow:SoftwareAgent is delegation.
-# RowsExact: one row binding the delegated tool agent and the passive capability.
-ex:cqToolUsage a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/tool-usage.rq" ;
-    gmeow:cqDataFile "examples/tool-usage.ttl" ;
-    gmeow:cqExactRows true ;
-    gmeow:cqResultShape ex:cqToolUsageShape ;
-    gmeow:cqRationale "GMEOW must answer 'was a tool call made through a passive capability or delegated to another agent?' — without a wrapper class. The passive use is a gmeow:usedCapability edge from ex:invSort to the logic:ActionSchema ex:sortSchema; the delegation is a gmeow:ToolCall (ex:tcSearch) whose gmeow:usedTool is the distinct gmeow:SoftwareAgent ex:webSearchAgent. The asserted answer binds both structurally distinct forms in one row." ;
-    gmeow:cqExpectRow ex:cqToolUsageRow .
-
-ex:cqToolUsageShape a logic:ResultShape ;
-    logic:declaresColumn
-        [ logic:columnVariable "delegatedTool" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:declaresColumn
-        [ logic:columnVariable "passiveCapability" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsExact .
-
-ex:cqToolUsageRow a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "delegatedTool" ; gmeow:cellValueIri exd:webSearchAgent ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "passiveCapability" ; gmeow:cellValueIri exd:sortSchema ] .
 
 # --- CQ6 / provenance chain: which artifact/…/invocation produced an output? ---
 # The de-conflation chain resolves end to end. RowsExact: one row binding the

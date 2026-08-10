@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-slicetest"
-description = "GMEOW native slice-test harness (#784): discovers and executes the slice-resident declarative test-DSL specs (competency questions, structural assertions, example-conformance) under cargo-nextest, off rdflib."
+description = "GMEOW native slice-test harness: discovers and executes the slice-resident declarative test-DSL specs (competency questions, structural assertions, example-conformance) under cargo-nextest, off rdflib."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -18,10 +18,11 @@ path = "src/lib.rs"
 # typed `gmeow_errors::Diag` (the `DiagKind` catalog in `src/error.rs`), never a bare
 # string. Non-optional — a hard dependency of the harness's error contract.
 gmeow-errors = { path = "../errors" }
-# OXIGRAPH-FREE native SPARQL substrate (EPIC #906): parse slice Turtle through the
+# OXIGRAPH-FREE native SPARQL substrate: parse slice Turtle through the
 # canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
 # (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
 # the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
+gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the
 # example-conformance executor.
@@ -33,7 +34,7 @@ gmeow-validate = { path = "../validate" }
 # pulling the full reasoning crate into its build graph.
 gmeow-logic-compile = { path = "../logic-compile" }
 # The native `logic:` reasoner (`reason_program_closure_dataset`) for the
-# gmeow:reasoningLogic competency lane (#1294): the four math: algebra laws run as LIVE
+# gmeow:reasoningLogic competency lane: the four math: algebra laws run as LIVE
 # entailment consumers, deriving their consequents through fixed-arity n-ary predication.
 # This pulls the full native reasoner into the build graph for this one lane; the
 # default (reasoningNone) and reasoningRdfs lanes stay lightweight (native SPARQL / CONSTRUCT
@@ -41,8 +42,14 @@ gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-logic = { path = "../logic" }
 
 [dev-dependencies]
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
+tempfile = "3"
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec
-# file, run in parallel. The headline speed win of #784 (T3).
+# file, run in parallel. The headline speed win of the native harness.
 datatest-stable = "0.3"
 # The flagship acceptance-manifest cross-check names the frozen dataset and
 # term types directly to walk the manifest ⋈ competency union; the same native codec

@@ -85,6 +85,47 @@ pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, gmeow
     reason_over_dataset(edb.as_ref())
 }
 
+/// Build a `stage-reason` [`StageProduct`] by reasoning over `composed_nquads` — the
+/// real dual-carriage product a downstream consumer reads: the closure in the default
+/// graph, the `graph/reasoning` projection, and the pinned typed Reasoning handle. This
+/// is the SAME construction [`ReasonStage::run`] performs (minus the committed byte-lane
+/// artifacts a consumer never reads off the handle), exposed so a harness driving a
+/// single consumer stage in isolation can supply a genuine reasoned upstream rather than
+/// a hand-built stand-in. An empty EDB yields an empty closure (a valid "no entailments"
+/// reasoned product).
+///
+/// # Errors
+///
+/// Returns `Err` if reasoning, the dual-carriage dataset build, or the handle pin fails.
+pub fn reason_product(composed_nquads: &[u8]) -> Result<StageProduct, gmeow_errors::Diag> {
+    let reasoned = reason_artifacts(composed_nquads)?;
+    let dataset = reason_dataset(
+        &reasoned.closure,
+        &reasoned.result,
+        &reasoned.chase_report,
+        &reasoned.witness_derivations,
+    )?;
+    let mut bundle = crate::bundle::bundle_from_artifacts_over(
+        dataset,
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+    );
+    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    bundle
+        .pin_handle(
+            GRAPH_REASONING,
+            PipelineHandle::Reasoning(Arc::new(reasoned.result)),
+            pinned,
+        )
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+            })
+        })?;
+    Ok(StageProduct::from_bundle("stage-reason", Arc::new(bundle)))
+}
+
 /// Reason over an in-memory EDB and return the three artifacts plus the typed
 /// [`ReasoningResult`]. Canonicalizes the EDB (RDFC-1.0) BEFORE reasoning so the
 /// content-addressed Skolem witnesses are transport-independent (carrier vs a
@@ -169,8 +210,17 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         chase_report.add_finding(finding);
     }
     chase_report.normalize();
-    // Non-merge (the regenerate path): the closure is told-vs-inferred only.
-    let closure = build_inferred_closure_ttl(&result, None).map_err(|e| {
+    // The `math:` expression-identity derivation over the SAME asserted EDB this closure was
+    // reasoned from. Lowered from `edb`, not `canon` and not the closure: the derivation is a
+    // claim about the structure an author WROTE, and
+    // `gmeow_logic::math_expression::alpha_equivalence_edges` is the one place that rule
+    // lives (it is also what the reason-verify / `validate --deep` gates splice into their
+    // in-process reasoned graph). Serializing it here is what puts the joinable α-class node
+    // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
+    // file — instead of only inside a gate process.
+    let alpha_edges = gmeow_logic::math_expression::alpha_equivalence_edges(edb);
+    // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
+    let closure = build_inferred_closure_ttl(&result, None, &alpha_edges).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-reason".to_string(),
             message: format!("closure serialization failed: {e}"),
@@ -395,11 +445,16 @@ pub struct ReasonStage {
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
-    /// compile-logic / source-load / statements producers (plus the on-disk authored /
-    /// imports sources); the slice DAG's `stage-reason`
+    /// compile-logic / source-load / statements producers; the slice DAG's `stage-reason`
     /// `dataflowConsumes` mirrors this set. It requires the exclusive
     /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
     /// serializes it against any stage competing for the reasoning engine.
+    ///
+    /// There is no `stage-math-producers` edge: every graph that stage attaches is a
+    /// COMPUTED producer graph the presenter folds into the bundle, and none of them is
+    /// object-level axiom source. The authored positive-demonstrator ABox every gate needs a
+    /// witness from (`graph/examples`) arrives on the `stage-source-load` product, with the
+    /// rest of the authored sources.
     ///
     /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
     /// `logic` and `relational-core` named graphs (see
@@ -467,7 +522,11 @@ impl Stage for ReasonStage {
         // the structured existential/DL chase became the sole production authority.
         // Bumping the stage version prevents a pre-removal closure from surviving in
         // the content-addressed pipeline cache when its RDF inputs are unchanged.
-        "reason.v3"
+        // v4: the closure additionally carries the math: expression-identity derivation's
+        // math:alphaEquivalenceClass edges, so the α-equivalence class is a joinable node in
+        // the shipped bundle and the committed closure rather than a value that exists only
+        // inside a gate process.
+        "reason.v4"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Reason ONCE over the object-level EDB (ontology + imports + statements +

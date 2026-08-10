@@ -29,12 +29,13 @@
 //! reader untars `shapes-archive` and applies the exclusion set) rather than in
 //! the Python CLI surface, which passes only raw bytes.
 
+use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use gmeow_errors::Report;
 use gmeow_errors::model::Location;
-use purrdf::RdfDataset;
 use purrdf::shapes::shape_union::EXCLUDED;
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
@@ -125,6 +126,39 @@ pub fn run_tier1(
 /// over raw bundle bytes. Wasm-clean, like the [`run_tier1`] core it carries.
 pub struct Tier1Shapes {
     shapes: purrdf::shapes::shapes::Shapes,
+    /// The same data-graph shape union parsed as an [`RdfDataset`], read for each
+    /// advisory shape's `logic:formalizes` provenance term during the advisory
+    /// split ([`crate::advisory::split_advisory_results`]) and — cross-platform —
+    /// for the `gmeow:enforcesFailureClass` scan that builds
+    /// [`failure_classes`](Tier1Shapes::failure_classes).
+    shapes_dataset: Arc<RdfDataset>,
+    /// The shapes graph's `sh:NodeShape → gmeow:enforcesFailureClass` index, built
+    /// ONCE per bundle. Every Tier-1 finding is resolved through it so it NAMES the
+    /// typed conformance failure its violated law declares, instead of shipping only
+    /// the generic constraint-component code (which every gate of that shape shares).
+    failure_classes: crate::findings::FailureClassIndex,
+    /// The bundle's imported RDF (the ontology): the source of the formalized terms'
+    /// `gmeow:howToUse` / `gmeow:useWhen` prose the native-only advisory split reads, AND
+    /// (cross-platform) the class-hierarchy authority [`inject_subclass_shortcuts`] walks
+    /// via [`gufo::proper_ancestors`].
+    ///
+    /// Tier-1 validates an external data graph IN ISOLATION (see [`Tier1Shapes::validate`]):
+    /// the user's file need not restate the bundle's TBox, so it typically carries no
+    /// `rdfs:subClassOf` triples at all. purrdf's SHACL engine resolves `sh:targetClass`
+    /// (and value-node `sh:class`) ONLY over `rdfs:subClassOf` edges present in the graph it
+    /// is validating — it never reaches into the bundle for them — so a shape targeting a
+    /// superclass (e.g. `sh:targetClass math:MathematicalExpression`) silently selects NO
+    /// focus node when every real instance is typed with a subclass
+    /// (`math:ApplicationExpression`, `math:BindingExpression`, …). `validate` reads this
+    /// field to synthesize the missing shortcut edges for exactly the classes the data graph
+    /// actually uses, so the bundle's class hierarchy governs focus selection without the
+    /// user needing to restate it.
+    ///
+    /// Unlike `shapes_dataset` above (native-only: it exists solely for the advisory-split
+    /// feature), this field is NOT gated to native — every Tier-1 consumer, wasm included,
+    /// needs the bundle's class hierarchy to select `sh:targetClass` focus nodes correctly
+    /// over subclass-typed data.
+    ontology: Arc<RdfDataset>,
 }
 
 impl Tier1Shapes {
@@ -141,7 +175,28 @@ impl Tier1Shapes {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
         })?;
-        Ok(Self { shapes })
+        // The shape union as an RdfDataset, parsed here once per bundle so a resident
+        // consumer never re-parses per payload. Two readers: the native-only advisory
+        // split (each advisory shape's `logic:formalizes` provenance) and — on every
+        // platform — the `gmeow:enforcesFailureClass` scan below, without which no
+        // Tier-1 finding can name the typed failure its law declares.
+        let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    detail: format!("bundled SHACL shapes failed to parse as a dataset: {e}"),
+                })
+            })?;
+        let failure_classes =
+            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
+        // Cross-platform (native AND wasm — see the `ontology` field doc): the bundle's
+        // ontology, the class-hierarchy authority the subclass-shortcut injection reads.
+        let ontology = crate::store::dataset_from_gts(gts_bytes)?;
+        Ok(Self {
+            shapes,
+            shapes_dataset,
+            failure_classes,
+            ontology,
+        })
     }
 
     /// Run Tier-1 conformance of `data_bytes` (an RDF graph in `data_format`)
@@ -159,9 +214,32 @@ impl Tier1Shapes {
         origin: &str,
     ) -> gmeow_errors::Result<Report> {
         let dataset = data_dataset_flat(data_bytes, data_format)?;
+        // Inject the bundle's class-hierarchy shortcuts for exactly the classes this data
+        // graph uses, so `sh:targetClass` (and any SPARQL-embedded `a/<rdfs:subClassOf>*`
+        // path) selects a subclass-typed focus node without the user needing to restate the
+        // bundle's TBox. See the `ontology` field doc for why this is necessary.
+        let dataset = inject_subclass_shortcuts(dataset, &self.ontology)?;
 
         let shacl_report = store::shacl_validate_dataset(&dataset, &self.shapes);
-        let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
+
+        // Split the advisory tier out of the raw SHACL results BEFORE building the flat
+        // findings: an Info-severity result whose source shape carries a
+        // `logic:formalizes` comes from a `logic:severity "Info"` advisory constraint
+        // whose data-matching guard matched an individual. Its raw `shacl.*` finding is
+        // SUPPRESSED and re-projected below as a Note + deonticRecommendation advisory
+        // (the exact split the pipeline `ValidateStage` and the dev `validate_all` gate
+        // apply, so the consumer `gmeow validate <file>` / MCP `validate_local` output
+        // carries the same advice, not a raw `shacl.* Info` finding). Native-only: the
+        // advisory bridge is a native module; the wasm surface keeps the raw report.
+        #[cfg(not(target_arch = "wasm32"))]
+        let (shacl_report, advisories) = crate::advisory::split_advisory_results(
+            shacl_report,
+            &self.shapes_dataset,
+            &self.ontology,
+        );
+
+        let shacl_findings =
+            shacl_findings_from_report(&shacl_report, Some(origin), &self.failure_classes);
 
         let cfg = GufoConfig {
             namespace: namespace.to_owned(),
@@ -179,6 +257,72 @@ impl Tier1Shapes {
                 });
             }
             report.add_finding(f);
+        }
+
+        // Project each split advisory into a Note finding through a `DiagLedger` and
+        // register its soft `Rule` (help URI) — the same dual projection the pipeline
+        // `ValidateStage` and `validate_all` perform, so all three validate surfaces emit
+        // identical advice from a data match. `findings("validate")` reads the whole
+        // batch, so the ledger is fully attached before the flat findings are drained.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            use gmeow_errors::{DiagLedger, StageId};
+            let mut advisory_ledger = DiagLedger::new();
+            for advisory in &advisories {
+                let projection = advisory.project();
+                advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+                report.add_rule(advisory.rule());
+            }
+
+            // D5 abductive tier (consumer-path twin of the pipeline / `validate_all` wiring):
+            // the constructive "what to ADD" wing. The producer is ENGINE-FREE (the relatum
+            // path warrants by construction, the sortal path by a sound class-disjointness
+            // lookup) and only READS the graph, so it never mutates the base graph nor gates
+            // the pass — every suggestion is a `Severity::Note` advisory.
+            //
+            // ASSERTED-VS-REASONED CONTRACT (validate_all.rs:869): a raw `gmeow validate <rdf>`
+            // run is honestly ASSERTED-ONLY for the user's individuals — no reasoner is run over
+            // the user graph. The producer still needs its authored `logic:AbductiveSchema`
+            // vocabulary and the TBox disjointness/subclass/howToUse axioms, which live in the
+            // bundle, so the abductive input is the user's parsed A-Box UNIONED with the bundle
+            // ontology (`self.ontology`, the bundle's already-folded reason-stage closure). This
+            // supplies the vocabulary WITHOUT fabricating any entailment over the user's data.
+            let abductive_input = union_for_abductive(&self.ontology, &dataset)?;
+            for suggestion in crate::abductive::abductive_advisories(&abductive_input) {
+                // Attach the warrant Diag first, capturing its DiagRef, then attach the advisory
+                // Diag carrying a genuine finding→finding antecedent to that warrant — the same
+                // dual projection `validate_all` performs, so the abductive findings carry real
+                // ledger identity (finding_iri/anchor + the findingAntecedent warrant edge) and
+                // the warrant join resolves non-DARK.
+                let warrant_ref =
+                    advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+                let projection = suggestion.advisory.project();
+                advisory_ledger.attach(
+                    projection.diag.with_antecedents([warrant_ref]),
+                    StageId::new("validate.advisory"),
+                );
+                report.add_rule(suggestion.advisory.rule());
+            }
+
+            for mut note in advisory_ledger.findings("validate") {
+                // The advisory dual-projection only ever carries the focus node's
+                // LOGICAL anchor (`build_advisory` sets `logical`, never `path` — it has
+                // no `origin` to hand it), so patch in the physical artifact path the
+                // same way the gUFO discipline findings above do. Without this, an
+                // advisory Note is the one finding on this surface with no SARIF
+                // `artifactLocation.uri`, which only became observable once the bundle
+                // class hierarchy let a `sh:targetClass`-targeted advisory shape match a
+                // subclass-typed individual instead of silently never firing.
+                if let Some(loc) = note.locations.first_mut() {
+                    loc.path = Some(origin.to_owned());
+                } else {
+                    note.add_location(Location {
+                        path: Some(origin.to_owned()),
+                        ..Location::default()
+                    });
+                }
+                report.add_finding(note);
+            }
         }
 
         Ok(report)
@@ -229,7 +373,10 @@ pub fn shacl_report_via_ledger(
     // so each finding gains the `related_labels` the bare `finding_from_shacl` lacks.
     let mut ledger = DiagLedger::new();
     for result in &shacl_report.results {
-        ledger.attach(diag_from_shacl(result), StageId::new("validate.data.shacl"));
+        ledger.attach(
+            diag_from_shacl(result, &tier1.failure_classes),
+            StageId::new("validate.data.shacl"),
+        );
     }
     Ok(ledger.project_report(tool))
 }
@@ -502,7 +649,27 @@ fn deep_consistency_findings(
         .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
     let user = data_dataset(data_bytes, data_format)
         .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
-    let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
+    // Narrow the bundle side to the object-level reasoning EDB — the SAME
+    // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
+    // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`)
+    // — BEFORE merging in the caller's own data, so `gmeow validate <data> --deep`
+    // reasons the consumer's data against byte-identical bundle worlds to the
+    // pipeline's own `make reason-verify` gate rather than also reasoning over
+    // meta/report graphs (documentation, diagnostics, correspondence, …) that assert
+    // no object-level axioms.
+    let bundle_edb = gmeow_logic::reasoning_graphs::project_object_level_edb(
+        bundle.dataset.as_ref(),
+    )
+    .map_err(|e| DeepPassError::Unavailable(format!("object-level EDB projection failed: {e}")))?;
+    let edb = {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(bundle_edb.as_ref());
+        builder.push_dataset(user.as_ref());
+        builder
+            .freeze()
+            .map_err(|e| DeepPassError::Unavailable(format!("freeze merged EDB: {e}")))?
+    };
+    let result = gmeow_logic::reason::reason_all(edb.as_ref())
         .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
     // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
     // A build failure AFTER the reasoner produced a real verdict is an internal
@@ -530,6 +697,18 @@ fn deep_consistency_findings(
     .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
     crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
         .map_err(|e| DeepPassError::Derivation(e.message))?;
+
+    // Shared with `crate::validate_all::deep_semantic_findings` via
+    // `crate::validate_all::run_math_reasoned_gates` (see its doc comment for why
+    // this is safe to run unconditionally over the CALLER'S OWN data merged with
+    // the bundle, and why the two callers deliberately map its failure
+    // differently). Runs over the SAME `edb` + `result` the consistency fold above
+    // just used. Unlike the dev bundle-only pass, a failure here can be caused by
+    // the CALLER's own merged data, not just the bundle, so it degrades
+    // gracefully to the `Unavailable` advisory rather than hard-failing.
+    crate::validate_all::run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
+        DeepPassError::Unavailable(format!("reasoned-graph materialization failed: {e}"))
+    })?;
     Ok(())
 }
 
@@ -616,6 +795,107 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<Rd
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Dataset {
             detail: format!("flatten data graph to default graph: {e}"),
+        })
+    })
+}
+
+/// Synthesize and merge the bundle's class-hierarchy shortcut edges for exactly the
+/// distinct `rdf:type` classes `dataset` uses, so `sh:targetClass` (SHACL's own
+/// `rdfs:subClassOf` closure) selects a subclass-typed focus node without the data graph
+/// needing to restate the bundle's TBox.
+///
+/// For each distinct type IRI `C` the flattened data graph asserts via `rdf:type`, this
+/// walks `C`'s full transitive superclass set in `ontology` (via [`gufo::proper_ancestors`],
+/// which follows BOTH `rdfs:subClassOf` and `logic:subClassOf`) and adds one direct
+/// `C rdfs:subClassOf A` SHORTCUT edge per ancestor `A` — collapsing any multi-hop bundle
+/// chain to a single hop, so the engine's own `sh:targetClass` resolution selects
+/// `C`-typed focus nodes for every shape targeting any ancestor of `C`, exactly as the
+/// merged-dataset dev-authoring gate (`validate_all`) already does.
+///
+/// Cost is proportional to the number of DISTINCT types the data graph actually uses (not
+/// to the bundle's whole class hierarchy, and never per focus node): `ontology` is already
+/// decoded once per bundle load, so this pays one ancestor walk per distinct type, not one
+/// per instance.
+///
+/// # Errors
+///
+/// Returns `Err` if the synthesized shortcut Turtle fails to parse (an internal invariant
+/// violation — every synthesized IRI is a term the ontology dataset already accepted) or
+/// the merge fails to freeze.
+fn inject_subclass_shortcuts(
+    dataset: Arc<RdfDataset>,
+    ontology: &RdfDataset,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let Some(type_id) = dataset.term_id_by_value(&TermValue::iri(crate::model::rdf::TYPE)) else {
+        return Ok(dataset);
+    };
+    let mut used_types: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(class_iri) = dataset.resolve(quad.o) {
+            used_types.insert(class_iri.to_owned());
+        }
+    }
+    if used_types.is_empty() {
+        return Ok(dataset);
+    }
+
+    let mut shortcuts = String::new();
+    for class_iri in &used_types {
+        let mut ancestors: Vec<String> = gufo::proper_ancestors(ontology, class_iri)
+            .into_iter()
+            .collect();
+        ancestors.sort();
+        for ancestor in ancestors {
+            shortcuts.push('<');
+            shortcuts.push_str(class_iri);
+            shortcuts.push_str("> <");
+            shortcuts.push_str(gmeow_ns::RDFS_SUB_CLASS_OF);
+            shortcuts.push_str("> <");
+            shortcuts.push_str(&ancestor);
+            shortcuts.push_str("> .\n");
+        }
+    }
+    if shortcuts.is_empty() {
+        return Ok(dataset);
+    }
+
+    let shortcut_dataset = purrdf::parse_dataset(shortcuts.as_bytes(), "text/turtle", None)
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("internal subclass-shortcut synthesis failed to parse: {e}"),
+            })
+        })?;
+
+    use purrdf::RdfDatasetBuilder;
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(&dataset);
+    builder.push_dataset(&shortcut_dataset);
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!("subclass-shortcut merge failed: {e}"),
+        })
+    })
+}
+
+/// Build the abductive producer's input graph: the bundle `ontology` (its authored
+/// `logic:AbductiveSchema` vocabulary + the TBox disjointness/subclass/howToUse axioms,
+/// carrying the folded reason-stage closure) UNIONED with the user's parsed A-Box
+/// `data` graph. The union supplies the producer the vocabulary it needs to discover
+/// schemas and refute sortals WITHOUT running any reasoner over the user's data — the
+/// honest ASSERTED-ONLY consumer surface (validate_all.rs:869). Each side is pushed
+/// under a fresh blank scope; the frozen result is only READ by the producer.
+#[cfg(not(target_arch = "wasm32"))]
+fn union_for_abductive(
+    ontology: &RdfDataset,
+    data: &RdfDataset,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    use purrdf::RdfDatasetBuilder;
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(ontology);
+    builder.push_dataset(data);
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!("union bundle ontology with user data for the abductive tier: {e}"),
         })
     })
 }
@@ -923,6 +1203,112 @@ logic:c rdf:type logic:ReasoningContract ;
         );
     }
 
+    /// Build a `Tier1Shapes` directly from hand-authored shape + ontology Turtle,
+    /// bypassing the bundle decode — a self-contained fixture proving
+    /// [`Tier1Shapes::validate`] WIRES the advisory split without needing a real
+    /// `gmeow.gts`. `shapes_ttl` feeds BOTH the SHACL engine (`shapes`) and the
+    /// `logic:formalizes` provenance reader (`shapes_dataset`); `ontology_ttl` carries
+    /// the formalized term's howToUse/useWhen prose.
+    fn tier1_from_ttl(shapes_ttl: &str, ontology_ttl: &str) -> Tier1Shapes {
+        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).expect("shapes parse");
+        let shapes_dataset =
+            purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).expect("shapes ds");
+        let ontology = purrdf::parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
+            .expect("ontology ds");
+        let failure_classes =
+            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
+        Tier1Shapes {
+            shapes,
+            shapes_dataset,
+            failure_classes,
+            ontology,
+        }
+    }
+
+    /// The consumer-path wiring proof (F1): `Tier1Shapes::validate` — the shared core
+    /// `gmeow validate <file>` and the MCP `validate_local` tool both reach — applies the
+    /// advisory split. A bare `gmeow:Entity` individual (the anti-pattern the Info-severity
+    /// advisory guard matches) must surface as a `Severity::Note`, `advice.*` finding
+    /// carrying the formalized term's howToUse suggestion and a "Use when:" useWhen entry —
+    /// NOT a raw `shacl.* Info` finding for that shape.
+    #[test]
+    fn validate_wires_the_advisory_split_for_a_bare_entity() {
+        const SHAPES: &str = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+<https://ex.test/EntityAdviceShape> a sh:NodeShape ;
+    logic:formalizes gmeow:Entity ;
+    sh:targetClass gmeow:Entity ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Info ;
+        sh:message "prefer a more specific sortal than bare gmeow:Entity" ;
+        sh:select "SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Entity> }" ;
+    ] .
+"#;
+        const ONTOLOGY: &str = "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\"@x-gmeow-english ;
+    gmeow:useWhen \"Use for a genuinely category-neutral resource.\"@x-gmeow-english .
+";
+        let tier1 = tier1_from_ttl(SHAPES, ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://blackcatinformatics.ca/gmeow/Entity> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://blackcatinformatics.ca/gmeow/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        // The advisory is a Note, code in the advice.* family.
+        let advice: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY))
+            .collect();
+        assert_eq!(
+            advice.len(),
+            1,
+            "exactly one advice.* Note finding must be wired in by validate: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        let advice = advice[0];
+        assert_eq!(advice.severity, Severity::Note);
+
+        // The raw shacl.* Info finding for the advisory shape must have been SUPPRESSED.
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)
+                    && f.severity == Severity::Info),
+            "the raw shacl.* Info finding must be suppressed once split into advice: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // howToUse populates the suggestions verbatim; useWhen surfaces as guidance.
+        assert!(
+            advice
+                .suggestions
+                .iter()
+                .any(|s| s == "Type each instance with its most specific sortal."),
+            "the advice must carry the term's gmeow:howToUse as a suggestion: {:?}",
+            advice.suggestions
+        );
+        assert!(
+            advice
+                .suggestions
+                .iter()
+                .any(|s| s == "Use when: Use for a genuinely category-neutral resource."),
+            "the advice must carry the term's gmeow:useWhen as a \"Use when:\" entry: {:?}",
+            advice.suggestions
+        );
+    }
+
     #[test]
     fn cbor_text_field_reads_rep_label() {
         use ciborium::value::Value;
@@ -939,5 +1325,139 @@ logic:c rdf:type logic:ReasoningContract ;
         assert_eq!(cbor_text_field(&meta, "rep"), Some("shapes-archive"));
         assert_eq!(cbor_text_field(&meta, "absent"), None);
         assert_eq!(cbor_text_field(&Value::Null, "rep"), None);
+    }
+
+    /// The shared subclass-hierarchy fixture for the [`inject_subclass_shortcuts`] proofs
+    /// below: `ex:A ⊑ ex:B ⊑ ex:C` (a two-hop chain, so a one-hop-only fix would fail the
+    /// transitivity proof), plus an unrelated `ex:D` with no subsumption edge to `ex:A`.
+    const SUBCLASS_ONTOLOGY: &str = "\
+@prefix ex: <https://ex.test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:A rdfs:subClassOf ex:B .
+ex:B rdfs:subClassOf ex:C .
+";
+
+    /// A `sh:targetClass` shape requiring `ex:name` on instances of `class_local`
+    /// (e.g. `C`, `D`) — the pattern that is dead when every real instance is
+    /// typed with a proper subclass rather than the targeted class itself.
+    fn subclass_probe_shapes(class_local: &str) -> String {
+        format!(
+            "\
+@prefix ex: <https://ex.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+<https://ex.test/{class_local}Shape> a sh:NodeShape ;
+    sh:targetClass ex:{class_local} ;
+    sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+"
+        )
+    }
+
+    /// Bundle-hierarchy regression: a focus node typed ONLY as a proper subclass (`ex:x a
+    /// ex:A`, never `ex:x a ex:C` directly) IS selected by a shape whose `sh:targetClass`
+    /// names an ANCESTOR (`ex:C`) the isolated data graph never restates — the exact defect
+    /// the shipped `gmeow validate <file>` CLI hit on `math:ArgumentSlotContiguityConstraint`
+    /// (`sh:targetClass math:MathematicalExpression` never selecting an
+    /// `math:ApplicationExpression`-typed root). Without [`inject_subclass_shortcuts`], this
+    /// finding is silently absent because the isolated data graph carries no
+    /// `rdfs:subClassOf` triple at all.
+    #[test]
+    fn subclass_typed_focus_node_is_selected_across_the_bundle_hierarchy() {
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a node typed only as a proper subclass of the shape's sh:targetClass must still \
+             be selected as a focus node (missing ex:name must be flagged): {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    /// Bundle-hierarchy regression, the negative twin: a shape targeting an UNRELATED class
+    /// (`ex:D`, no subsumption edge to/from `ex:A` in [`SUBCLASS_ONTOLOGY`]) must NOT select
+    /// an `ex:A`-typed focus node — the shortcut injection must not over-approximate and
+    /// select every instance for every shape regardless of its real class.
+    #[test]
+    fn unrelated_class_shape_is_not_selected() {
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("D"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a shape targeting an unrelated, unconnected class must select NO focus node: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    /// Bundle-hierarchy regression, the transitivity proof: the shape targets `ex:C`, the data
+    /// is typed only `ex:A`, and [`SUBCLASS_ONTOLOGY`] connects them ONLY via the two-hop
+    /// chain `ex:A ⊑ ex:B ⊑ ex:C` — `ex:A` carries no DIRECT `rdfs:subClassOf ex:C` edge, so
+    /// this fails if the shortcut injection only walked one hop instead of the full
+    /// transitive ancestor set ([`gufo::proper_ancestors`], the same BFS the OntoUML
+    /// disciplines already trust).
+    #[test]
+    fn subclass_shortcut_injection_is_transitive_across_two_hops() {
+        // Sanity: the fixture really is two hops, not a direct edge (guards against a
+        // fixture typo silently turning this into the single-hop test above).
+        let ontology = purrdf::parse_dataset(SUBCLASS_ONTOLOGY.as_bytes(), "text/turtle", None)
+            .expect("ontology parses");
+        assert!(
+            !gufo::proper_ancestors(&ontology, "https://ex.test/A").is_empty(),
+            "fixture sanity: ex:A must have at least one ancestor"
+        );
+        assert!(
+            SUBCLASS_ONTOLOGY
+                .lines()
+                .filter(|l| l.contains("ex:A") && l.contains("ex:C"))
+                .count()
+                == 0,
+            "fixture sanity: ex:A must NOT carry a direct edge to ex:C"
+        );
+
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a two-hop transitive ancestor (ex:A ⊑ ex:B ⊑ ex:C) must still be reached by the \
+             shortcut injection: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
     }
 }

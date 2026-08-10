@@ -1,0 +1,246 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: gts, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "codecClass is functional"
+msgstr "codecClass 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:codecClass is functional: a gmeow:TransformCodec has exactly one capability class — the single kind of thing a reader must hold to reverse it, a library or a key, never both at once."
+msgstr "在规范载体上断言 gmeow:codecClass 是函数式的：一个 gmeow:TransformCodec 恰好有一个能力类别——读取者要将其还原所必须持有的唯一一种事物，即一个库或一把密钥，而绝不会同时是两者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsHeadId is functional"
+msgstr "gtsHeadId 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:gtsHeadId 是函数性的:一个 gmeow:GTSSegment 恰好有一个链头——其最后一帧的唯一内容标识,记作 'blake3:<hex>',它以传递方式承诺该分段的整个帧历史。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsProfile is functional"
+msgstr "gtsProfile 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsProfile is functional: a gmeow:GTSSegment declares exactly one profile — a single value-vocabulary individual naming its purpose and requirement set, while a multi-segment document's effective requirements are the derived union of its segments' profiles rather than a second value on one segment."
+msgstr "在规范载体上断言 gmeow:gtsProfile 是函数性的:一个 gmeow:GTSSegment 恰好声明一个配置——一个值词汇表中的单一个体,用于命名其目的和需求集合——而一份多分段文档的有效需求是其各分段配置的派生并集,而不是在单个分段上设置第二个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a GTS segment is keyed by its chain head"
+msgstr "GTS 分段以其链头作为键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:GTSSegment is identified by its gmeow:gtsHeadId: the chain head is a BLAKE3 content-id committing transitively to the segment's entire frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction. The head therefore uniquely identifies its segment (content-addressing IS the identity), and the native DL consistency gate forces two segments asserted distinct yet sharing a head into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property gmeow:gtsHeadId would be OWL 2 Full."
+msgstr "断言一个 gmeow:GTSSegment 由其 gmeow:gtsHeadId 标识:链头是一个 BLAKE3 内容标识,它以传递方式承诺该分段的整个帧历史,因此两个共享同一链头的不同分段将构成一次覆盖全部历史的 BLAKE3 碰撞——依构造而言这是不可能的。因此链头唯一标识其分段(内容寻址即身份),原生 DL 一致性关卡会将两个被断言为不同却共享链头的分段强制归入 owl:Nothing。此处以键(logic: 中 owl:hasKey 的对应物,OWL 2 DL)的形式表述,而非逆函数特性——若用于数据类型属性 gmeow:gtsHeadId 上,逆函数特性将属于 OWL 2 Full。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsSegmentIndex is functional"
+msgstr "gtsSegmentIndex 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:gtsSegmentIndex 是函数性的:一个 gmeow:GTSSegment 在其文档的文件顺序中恰好占据一个从零开始的位置——一个单一的索引,这些索引的有序列表构成文档的复合身份。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gtsSegmentOf is functional"
+msgstr "gtsSegmentOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentOf is functional: a gmeow:GTSSegment instance belongs to exactly one document — the same bytes appearing in another file are a different segment instance of the same content, not a second document on one segment."
+msgstr "在规范载体上断言 gmeow:gtsSegmentOf 是函数性的:一个 gmeow:GTSSegment 实例恰好属于一个文档——同样的字节出现在另一个文件中,是同一内容的另一个分段实例,而不是一个分段对应两个文档。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opacityReason is functional"
+msgstr "opacityReason 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:opacityReason 是函数性的:一个 gmeow:OpaqueFrame 恰好有一个不透明原因——单一成因,可能是缺少密钥的加密类编解码器、读取方所不具备的编解码器,或是损坏,因为没有说明原因的不透明将与数据丢失无法区分。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opaqueFrameIn is functional"
+msgstr "opaqueFrameIn 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:opaqueFrameIn 是函数性的:一个 gmeow:OpaqueFrame 恰好属于一个片段——一帧在某一个片段的链中占据单一位置。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:codecClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:codecClass 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:codecClass, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:codecClass, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."
+msgstr "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsHeadId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:gtsHeadId 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsHeadId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:gtsHeadId, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."
+msgstr "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsProfile names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:gtsProfile 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsProfile, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:gtsProfile, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."
+msgstr "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsSegmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:gtsSegmentIndex 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:gtsSegmentIndex, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."
+msgstr "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:gtsSegmentOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:gtsSegmentOf 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:gtsSegmentOf, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."
+msgstr "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:opacityReason names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:opacityReason 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opacityReason, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:opacityReason, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."
+msgstr "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:opaqueFrameIn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:opaqueFrameIn 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opaqueFrameIn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:opaqueFrameIn, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."
+msgstr "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:GTSSegment; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:GTSSegment 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:GTSSegment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:GTSSegment 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:GTSSegment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:GTSSegment 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
+msgstr "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:codecClass and nothing else. It is not a definition of gmeow:codecClass (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:codecClass 的一项完整性义务，别无其他。它不是 gmeow:codecClass 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsHeadId and nothing else. It is not a definition of gmeow:gtsHeadId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:gtsHeadId 的一项完整性义务，别无其他。它不是 gmeow:gtsHeadId 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsProfile and nothing else. It is not a definition of gmeow:gtsProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:gtsProfile 的一项完整性义务，别无其他。它不是 gmeow:gtsProfile 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentIndex and nothing else. It is not a definition of gmeow:gtsSegmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:gtsSegmentIndex 的一项完整性义务，别无其他。它不是 gmeow:gtsSegmentIndex 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentOf and nothing else. It is not a definition of gmeow:gtsSegmentOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:gtsSegmentOf 的一项完整性义务，别无其他。它不是 gmeow:gtsSegmentOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:opacityReason and nothing else. It is not a definition of gmeow:opacityReason (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:opacityReason 的一项完整性义务，别无其他。它不是 gmeow:opacityReason 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:opaqueFrameIn and nothing else. It is not a definition of gmeow:opaqueFrameIn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:opaqueFrameIn 的一项完整性义务，别无其他。它不是 gmeow:opaqueFrameIn 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:GTSSegment 的一项完整性义务，别无其他。它不是 gmeow:GTSSegment 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS head-id canonical pattern constraint"
+msgstr "GTS 头部标识规范模式约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
+msgstr "闭世界完整性约束：gmeow:gtsHeadId 的取值必须是规范形式——字面前缀 blake3: 之后紧跟恰好 64 位小写十六进制数字（GTS 规范 §3.1、§9.1）。"

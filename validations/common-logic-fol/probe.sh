@@ -71,7 +71,7 @@ szs_status() {
 # ── Check A — foundation consistency. ──────────────────────────────────────
 echo "Check A: translating the exported foundation CLIF ..."
 FOUNDATION_CLIF="$REPO_ROOT/generated/cl/gmeow.clif"
-[ -f "$FOUNDATION_CLIF" ] || fail_boundary "check-a-missing-input: $FOUNDATION_CLIF not found (run \`make sync\` in the main worktree first)"
+[ -f "$FOUNDATION_CLIF" ] || fail_boundary "check-a-missing-input: $FOUNDATION_CLIF not found (run \`make check\` in the main worktree first)"
 
 FOUNDATION_TPTP="$WORKDIR/foundation.p"
 # stdout carries the TPTP (→ the .p file); stderr carries any translator

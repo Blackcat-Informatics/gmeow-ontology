@@ -848,3 +848,507 @@ msgstr "Contrainte de nombre de membres de LogicalConstraint"
 msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|skos:definition"
 msgid "A closed-world integrity constraint: a gmeow:LogicalConstraint combines at least two gmeow:logicConstraintMember constraints."
 msgstr "Une contrainte d'intégrité en monde clos : une gmeow:LogicalConstraint combine au moins deux contraintes gmeow:logicConstraintMember."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conflictStrategy is functional"
+msgstr "conflictStrategy est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:conflictStrategy est fonctionnelle : un énoncé de droits règle un conflit permission-contre-interdiction portant sur la même action par exactement une règle de résolution — la permission l'emporte, l'interdiction l'emporte, ou la politique est nulle — car deux stratégies concurrentes entreraient elles-mêmes en conflit sur la façon de trancher le conflit, laissant le résultat de la politique indéfini. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "constraintLogic is functional"
+msgstr "constraintLogic est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:constraintLogic est fonctionnelle : une contrainte logique combine ses membres sous exactement un opérateur booléen — AND, OR, XONE, ou une séquence AND ordonnée — car un même ensemble de membres replié sous deux opérateurs différents produirait deux conditions de vérité incompatibles pour une seule contrainte. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "constraintOperator is functional"
+msgstr "constraintOperator est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:constraintOperator is functional: an atomic constraint is a single leftOperand-operator-rightOperand comparison, so it applies exactly one operator between its two operands; a second operator would make it two comparisons rather than one atom, which is properly modelled as a gmeow:LogicalConstraint over several members."
+msgstr "Affirme sur le porteur canonique que gmeow:constraintOperator est fonctionnelle : une contrainte atomique est une unique comparaison leftOperand-operator-rightOperand, de sorte qu'elle applique exactement un opérateur entre ses deux opérandes ; un second opérateur en ferait deux comparaisons plutôt qu'un seul atome, ce qui doit être modélisé correctement comme un gmeow:LogicalConstraint portant sur plusieurs membres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightNotice is functional"
+msgstr "copyrightNotice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightNotice est fonctionnelle : un relateur de droit d'auteur porte une seule chaîne canonique de mention © prête à afficher, puisqu'un unique Copyright portant sur une œuvre, un titulaire et une année ne possède qu'une seule mention lisible mise en forme ; deux lignes de mention divergentes sur le même relateur présenteraient des revendications de droit d'auteur contradictoires. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightStatus is functional"
+msgstr "copyrightStatus est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightStatus is functional: a work stands in exactly one copyright condition at a time — in-copyright, public-domain, no-known-copyright, or not-evaluated — because these RightsStatements.org / PREMIS states are mutually exclusive and a work cannot be both protected and free of copyright at once."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightStatus est fonctionnelle : une œuvre se trouve à un instant donné dans exactement une condition de droit d'auteur — protégée, domaine public, absence de droit d'auteur connu, ou non évaluée — car ces états RightsStatements.org / PREMIS sont mutuellement exclusifs et une œuvre ne peut être à la fois protégée et libre de droits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightWork is functional"
+msgstr "copyrightWork est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightWork is functional: a copyright relator reifies the protection of a single work, so it points at exactly one information object; a second protected work is modelled as its own gmeow:Copyright relator rather than as a second work bound to the same one."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightWork est fonctionnelle : un relateur de droit d'auteur réifie la protection d'une seule œuvre, de sorte qu'il pointe vers exactement un objet d'information ; une seconde œuvre protégée est modélisée par son propre relateur gmeow:Copyright plutôt que comme une seconde œuvre liée au même relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightYear is functional"
+msgstr "copyrightYear est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightYear is functional: a copyright relator records the single year the copyright was asserted, since one Copyright is about one work and its assertion has one first-assertion year; a span of years across editions belongs to distinct works with their own Copyright relators, not to two years on one."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightYear est fonctionnelle : un relateur de droit d'auteur enregistre l'unique année où le droit d'auteur a été revendiqué, puisqu'un Copyright porte sur une seule œuvre et que sa revendication possède une seule année de première revendication ; une plage d'années couvrant plusieurs éditions relève d'œuvres distinctes ayant chacune leur propre relateur Copyright, et non de deux années sur un seul relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "leftOperand is functional"
+msgstr "leftOperand est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:leftOperand is functional: an atomic constraint tests exactly one dimension — dateTime, spatial, count, purpose, recipient, … — because it is a single comparison over one operand; testing a second dimension is a second atomic constraint combined via a gmeow:LogicalConstraint, not two operands on one atom."
+msgstr "Affirme sur le porteur canonique que gmeow:leftOperand est fonctionnelle : une contrainte atomique teste exactement une dimension — dateTime, spatiale, comptage, finalité, destinataire, etc. — car il s'agit d'une comparaison unique portant sur un seul opérande ; tester une seconde dimension constitue une seconde contrainte atomique combinée via une gmeow:LogicalConstraint, et non deux opérandes sur un même atome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licenseFamily is functional"
+msgstr "licenseFamily est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:licenseFamily is functional: a licence belongs to exactly one coarse family — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual — a single classification of the one licence document; even a multi-licence offer is captured by the single 'dual' family value rather than by two family assignments."
+msgstr "Affirme sur le porteur canonique que gmeow:licenseFamily est fonctionnelle : une licence appartient à exactement une famille générale — domaine public, Creative Commons, permissive, copyleft, propriétaire ou double — une classification unique pour un seul document de licence ; même une offre à double licence est saisie par la seule valeur de famille 'dual' plutôt que par deux affectations de famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licensedWork is functional"
+msgstr "licensedWork est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:licensedWork is functional: a License relator grants rights in exactly one work, so several works under the same terms each carry their own License relator (or reference one shared SPDX-identified licence per work) rather than crowding two works onto a single grant."
+msgstr "Affirme sur le porteur canonique que gmeow:licensedWork est fonctionnelle : un relateur License accorde des droits sur exactement une œuvre, de sorte que plusieurs œuvres soumises aux mêmes conditions portent chacune leur propre relateur License (ou référencent chacune une licence partagée identifiée par SPDX) plutôt que d'entasser deux œuvres dans une seule concession de droits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "markText is functional"
+msgstr "markText est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:markText is functional: a mark has one canonical word form — its brand name as registered or used — so a single gmeow:Mark carries exactly one mark-text string; a differently-worded sign is a distinct mark with its own gmeow:Mark rather than a second text on the same one."
+msgstr "Affirme sur le porteur canonique que gmeow:markText est fonctionnelle : une marque possède une forme verbale canonique unique — son nom de marque tel qu'enregistré ou utilisé — de sorte qu'une seule gmeow:Mark porte exactement une chaîne de texte de marque ; un signe formulé différemment constitue une marque distincte avec sa propre gmeow:Mark plutôt qu'un second texte sur la même marque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "registrationNumber is functional"
+msgstr "registrationNumber est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:registrationNumber est fonctionnelle : un droit de marque porte l'unique numéro d'enregistrement que son registre émetteur lui a attribué, de sorte qu'un relateur gmeow:Trademark en porte exactement un ; une marque enregistrée séparément dans un autre registre (CIPO, USPTO, WIPO) constitue un droit de marque distinct, avec son propre numéro et son propre relateur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rightOperand is functional"
+msgstr "rightOperand est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:rightOperand is functional: an atomic constraint compares its one dimension against exactly one literal value, so it carries a single tested value; a set of acceptable values is expressed with an isAnyOf-style gmeow:constraintOperator over one operand rather than by two right-operand literals."
+msgstr "Affirme sur le porteur canonique que gmeow:rightOperand est fonctionnelle : une contrainte atomique compare sa dimension unique à exactement une valeur littérale, de sorte qu'elle porte une seule valeur testée ; un ensemble de valeurs acceptables s'exprime au moyen d'un gmeow:constraintOperator de type isAnyOf sur un seul opérande, plutôt que par deux littéraux d'opérande droit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ruleAction is functional"
+msgstr "ruleAction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ruleAction is functional: a deontic rule regulates exactly one action, so a permission, prohibition, or duty points at a single gmeow:RightsAction value; several regulated actions are modelled as several rules rather than as several actions crowded onto one."
+msgstr "Affirme sur le porteur canonique que gmeow:ruleAction est fonctionnelle : une règle déontique régule exactement une action, de sorte qu'une permission, une interdiction ou une obligation pointe vers une unique valeur gmeow:RightsAction ; plusieurs actions régulées sont modélisées comme plusieurs règles plutôt que comme plusieurs actions entassées sur une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ruleTarget is functional"
+msgstr "ruleTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ruleTarget is functional: when a rule overrides the target it inherits from its enclosing statement, it narrows to exactly one asset, so the target — where set — is a single entity; a permission covering several distinct assets is several rules rather than several targets on one."
+msgstr "Affirme sur le porteur canonique que gmeow:ruleTarget est fonctionnelle : lorsqu'une règle remplace la cible qu'elle hérite de l'énoncé englobant, elle se restreint à exactement un actif, de sorte que la cible — lorsqu'elle est définie — est une entité unique ; une permission couvrant plusieurs actifs distincts constitue plusieurs règles plutôt que plusieurs cibles sur une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "spdxLicenseId is functional"
+msgstr "spdxLicenseId est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:spdxLicenseId is functional: a licence has one canonical SPDX List identifier, so the property binds exactly one machine-readable id per licence; a dual or compound grant is a single SPDX licence expression carried within that one literal, not two separate ids on the same licence."
+msgstr "Affirme sur le porteur canonique que gmeow:spdxLicenseId est fonctionnelle: une licence a un identifiant canonique unique de la liste SPDX, de sorte que la propriété lie exactement un identifiant lisible par machine par licence; une concession double ou composée est une seule expression de licence SPDX portée dans ce littéral unique, et non deux identifiants distincts sur la même licence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trademarkMark is functional"
+msgstr "trademarkMark est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trademarkMark is functional: a trademark right reifies protection of a single sign, so it points at exactly one gmeow:Mark; protecting a second mark is a second gmeow:Trademark relator rather than two marks bound to the same right."
+msgstr "Affirme sur le porteur canonique que gmeow:trademarkMark est fonctionnelle : un droit de marque réifie la protection d'un signe unique, de sorte qu'il pointe vers exactement un gmeow:Mark ; protéger une seconde marque constitue un second relateur gmeow:Trademark plutôt que deux marques liées au même droit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trademarkStatus is functional"
+msgstr "trademarkStatus est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trademarkStatus is functional: a trademark occupies exactly one registration status at any time — unregistered ™, registered ®, pending, expired, or cancelled — mutually exclusive lifecycle states, so on lapse the single value changes (with gmeow:validUntil recorded) rather than a second status being added."
+msgstr "Affirme sur le porteur canonique que gmeow:trademarkStatus est fonctionnelle : une marque occupe exactement un statut d'enregistrement à tout instant — non enregistrée ™, enregistrée ®, en instance, expirée ou annulée — des états de cycle de vie mutuellement exclusifs, de sorte qu'en cas de déchéance, la valeur unique change (avec gmeow:validUntil enregistré) plutôt qu'un second statut ne soit ajouté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:conflictStrategy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:conflictStrategy nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conflictStrategy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:conflictStrategy, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:conflictStrategyFunctionality logic:characterizes gmeow:conflictStrategy ."
+msgstr "gmeow:conflictStrategyFunctionality logic:characterizes gmeow:conflictStrategy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:constraintLogic names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:constraintLogic nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:constraintLogic, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:constraintLogic, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:constraintLogicFunctionality logic:characterizes gmeow:constraintLogic ."
+msgstr "gmeow:constraintLogicFunctionality logic:characterizes gmeow:constraintLogic ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:constraintOperator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:constraintOperator nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:constraintOperator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:constraintOperator, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:constraintOperatorFunctionality logic:characterizes gmeow:constraintOperator ."
+msgstr "gmeow:constraintOperatorFunctionality logic:characterizes gmeow:constraintOperator ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:copyrightNotice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:copyrightNotice nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightNotice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:copyrightNotice, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:copyrightNoticeFunctionality logic:characterizes gmeow:copyrightNotice ."
+msgstr "gmeow:copyrightNoticeFunctionality logic:characterizes gmeow:copyrightNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:copyrightStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:copyrightStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:copyrightStatus, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:copyrightStatusFunctionality logic:characterizes gmeow:copyrightStatus ."
+msgstr "gmeow:copyrightStatusFunctionality logic:characterizes gmeow:copyrightStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:copyrightWork names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:copyrightWork nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightWork, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:copyrightWork, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:copyrightWorkFunctionality logic:characterizes gmeow:copyrightWork ."
+msgstr "gmeow:copyrightWorkFunctionality logic:characterizes gmeow:copyrightWork ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:copyrightYear names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:copyrightYear nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightYear, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:copyrightYear, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:copyrightYearFunctionality logic:characterizes gmeow:copyrightYear ."
+msgstr "gmeow:copyrightYearFunctionality logic:characterizes gmeow:copyrightYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:leftOperand names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:leftOperand nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:leftOperand, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:leftOperand, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:leftOperandFunctionality logic:characterizes gmeow:leftOperand ."
+msgstr "gmeow:leftOperandFunctionality logic:characterizes gmeow:leftOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:licensedWork names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:licensedWork nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:licensedWork, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:licensedWork, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:licensedWorkFunctionality logic:characterizes gmeow:licensedWork ."
+msgstr "gmeow:licensedWorkFunctionality logic:characterizes gmeow:licensedWork ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:licenseFamily names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:licenseFamily nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:licenseFamily, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:licenseFamily, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:licenseFamilyFunctionality logic:characterizes gmeow:licenseFamily ."
+msgstr "gmeow:licenseFamilyFunctionality logic:characterizes gmeow:licenseFamily ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:markText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:markText nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:markText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:markText, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:markTextFunctionality logic:characterizes gmeow:markText ."
+msgstr "gmeow:markTextFunctionality logic:characterizes gmeow:markText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:registrationNumber names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:registrationNumber nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:registrationNumber, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:registrationNumber, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:registrationNumberFunctionality logic:characterizes gmeow:registrationNumber ."
+msgstr "gmeow:registrationNumberFunctionality logic:characterizes gmeow:registrationNumber ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:rightOperand names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:rightOperand nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:rightOperand, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:rightOperand, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rightOperandFunctionality logic:characterizes gmeow:rightOperand ."
+msgstr "gmeow:rightOperandFunctionality logic:characterizes gmeow:rightOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ruleAction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:ruleAction nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ruleAction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:ruleAction, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ruleActionFunctionality logic:characterizes gmeow:ruleAction ."
+msgstr "gmeow:ruleActionFunctionality logic:characterizes gmeow:ruleAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ruleTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:ruleTarget nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ruleTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:ruleTarget, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ruleTargetFunctionality logic:characterizes gmeow:ruleTarget ."
+msgstr "gmeow:ruleTargetFunctionality logic:characterizes gmeow:ruleTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:spdxLicenseId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:spdxLicenseId nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spdxLicenseId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:spdxLicenseId, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:spdxLicenseIdFunctionality logic:characterizes gmeow:spdxLicenseId ."
+msgstr "gmeow:spdxLicenseIdFunctionality logic:characterizes gmeow:spdxLicenseId ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:trademarkMark names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:trademarkMark nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:trademarkMark, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:trademarkMark, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:trademarkMarkFunctionality logic:characterizes gmeow:trademarkMark ."
+msgstr "gmeow:trademarkMarkFunctionality logic:characterizes gmeow:trademarkMark ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:trademarkStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:trademarkStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:trademarkStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:trademarkStatus, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:trademarkStatusFunctionality logic:characterizes gmeow:trademarkStatus ."
+msgstr "gmeow:trademarkStatusFunctionality logic:characterizes gmeow:trademarkStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:conflictStrategy and nothing else. It is not a definition of gmeow:conflictStrategy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:conflictStrategy, et rien d'autre. Ce n'est pas une définition de gmeow:conflictStrategy (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:constraintLogic and nothing else. It is not a definition of gmeow:constraintLogic (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:constraintLogic, et rien d'autre. Ce n'est pas une définition de gmeow:constraintLogic (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:constraintOperator and nothing else. It is not a definition of gmeow:constraintOperator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:constraintOperator, et rien d'autre. Ce n'est pas une définition de gmeow:constraintOperator (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:copyrightNotice and nothing else. It is not a definition of gmeow:copyrightNotice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:copyrightNotice, et rien d'autre. Ce n'est pas une définition de gmeow:copyrightNotice (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:copyrightStatus and nothing else. It is not a definition of gmeow:copyrightStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:copyrightStatus, et rien d'autre. Ce n'est pas une définition de gmeow:copyrightStatus (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:copyrightWork and nothing else. It is not a definition of gmeow:copyrightWork (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:copyrightWork, et rien d'autre. Ce n'est pas une définition de gmeow:copyrightWork (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:copyrightYear and nothing else. It is not a definition of gmeow:copyrightYear (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:copyrightYear, et rien d'autre. Ce n'est pas une définition de gmeow:copyrightYear (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:leftOperand and nothing else. It is not a definition of gmeow:leftOperand (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:leftOperand, et rien d'autre. Ce n'est pas une définition de gmeow:leftOperand (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:licensedWork and nothing else. It is not a definition of gmeow:licensedWork (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:licensedWork, et rien d'autre. Ce n'est pas une définition de gmeow:licensedWork (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:licenseFamily and nothing else. It is not a definition of gmeow:licenseFamily (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:licenseFamily, et rien d'autre. Ce n'est pas une définition de gmeow:licenseFamily (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:markText and nothing else. It is not a definition of gmeow:markText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:markText, et rien d'autre. Ce n'est pas une définition de gmeow:markText (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:registrationNumber and nothing else. It is not a definition of gmeow:registrationNumber (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:registrationNumber, et rien d'autre. Ce n'est pas une définition de gmeow:registrationNumber (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:rightOperand and nothing else. It is not a definition of gmeow:rightOperand (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:rightOperand, et rien d'autre. Ce n'est pas une définition de gmeow:rightOperand (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ruleAction and nothing else. It is not a definition of gmeow:ruleAction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:ruleAction, et rien d'autre. Ce n'est pas une définition de gmeow:ruleAction (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:ruleTarget and nothing else. It is not a definition of gmeow:ruleTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:ruleTarget, et rien d'autre. Ce n'est pas une définition de gmeow:ruleTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:spdxLicenseId and nothing else. It is not a definition of gmeow:spdxLicenseId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:spdxLicenseId, et rien d'autre. Ce n'est pas une définition de gmeow:spdxLicenseId (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:trademarkMark and nothing else. It is not a definition of gmeow:trademarkMark (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:trademarkMark, et rien d'autre. Ce n'est pas une définition de gmeow:trademarkMark (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:trademarkStatus and nothing else. It is not a definition of gmeow:trademarkStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:trademarkStatus, et rien d'autre. Ce n'est pas une définition de gmeow:trademarkStatus (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

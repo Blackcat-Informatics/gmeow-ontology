@@ -9,43 +9,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
-# Finding well-formedness: a projected finding carries exactly one
-# severity, exactly one code, and exactly one message — closed-world checks the
-# EL someValuesFrom mediation in module.ttl cannot express.
-# =========================================================================== #
-
-gmeow:FindingShape
-    a sh:NodeShape ;
-    rdfs:label "Finding well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:Finding: exactly one gmeow:findingSeverity (a gmeow:DiagnosticSeverity), exactly one xsd:string gmeow:findingCode, and exactly one xsd:string gmeow:findingMessage, so every projected finding is renderable to SARIF/CLI without holes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
-    sh:targetClass gmeow:Finding ;
-    sh:property [
-        sh:path gmeow:findingSeverity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:DiagnosticSeverity ;
-        sh:severity sh:Violation ;
-        sh:message "A Finding must carry exactly one gmeow:findingSeverity (a gmeow:DiagnosticSeverity)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:findingCode ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "A Finding must carry exactly one xsd:string gmeow:findingCode." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:findingMessage ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "A Finding must carry exactly one xsd:string gmeow:findingMessage." ;
-    ] .
-
-# =========================================================================== #
 # The gate-fatal up-set projection (Principle 17): the closed-world SHACL image
 # of logic:ruleGateFatalVerdict. A gmeow:Finding on the principal up-set
 # ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding) — its
@@ -69,7 +32,7 @@ gmeow:GateFatalUpsetShape
         sh:select """
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT ?this WHERE {
-                ?this a gmeow:Finding ;
+                ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* gmeow:Finding ;
                       gmeow:findingSeverity gmeow:severityError ;
                       gmeow:findingStandpoint gmeow:standpointBinding ;
                       gmeow:findingCategory ?cat .
@@ -84,7 +47,7 @@ gmeow:GateFatalUpsetShape
         sh:select """
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT $this WHERE {
-                $this a gmeow:Finding ;
+                $this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* gmeow:Finding ;
                       gmeow:findingSeverity gmeow:severityError ;
                       gmeow:findingStandpoint gmeow:standpointBinding ;
                       gmeow:findingCategory ?cat .
@@ -92,27 +55,4 @@ gmeow:GateFatalUpsetShape
                 FILTER NOT EXISTS { $this gmeow:findingGateVerdict gmeow:gateFatal . }
             }
         """ ;
-    ] .
-
-# =========================================================================== #
-# Cross-node glut witness INTEGRITY (not presence): a reasoner-minted
-# gmeow:CrossNodeGlutWitness records a two-sided coherence conflict, so it must
-# carry EXACTLY two gmeow:glutWitnessOf links — one per conflicting finding. This
-# gates the STRUCTURE of the meta-finding, never its presence (root-cause / glut
-# meta-findings are informational, never gate-failing).
-# =========================================================================== #
-
-gmeow:CrossNodeGlutWitnessShape
-    a sh:NodeShape ;
-    rdfs:label "Cross-node glut witness integrity shape"@x-gmeow-english ;
-    skos:definition "SHACL structural integrity for gmeow:CrossNodeGlutWitness: a cross-node glut witness records a two-sided coherence conflict, so it must carry EXACTLY two gmeow:glutWitnessOf links, each to a gmeow:Finding. This gates the SHAPE of the reasoner-minted meta-finding only — never its presence, since a cross-node glut is informational and never gate-failing."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
-    sh:targetClass gmeow:CrossNodeGlutWitness ;
-    sh:property [
-        sh:path gmeow:glutWitnessOf ;
-        sh:minCount 2 ;
-        sh:maxCount 2 ;
-        sh:class gmeow:Finding ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." ;
     ] .

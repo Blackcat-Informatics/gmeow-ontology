@@ -4,8 +4,11 @@ Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech sta
 
 The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
 
-"make sync" is VERY expensive - you make ONLY run it if required or as part of stage3.
-"make check" is VERY expensive - run it ONLY when you have to - ideally once in each stage.
+"make check" is VERY expensive AND it holds a host-global lock - run it ONLY when
+you have to, ideally ONCE per stage. It materializes `generated/` itself (its DAG
+runs the single producer, `check-sync`, in update mode) and then gates, so there is
+never a separate regenerate step to run first: doing so executes the whole pipeline
+twice and queues the machine behind you. `make regen` refuses for exactly that reason.
 
 Rust optimization and advanced-language-feature work is governed by
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
@@ -33,9 +36,10 @@ and the no-debug-symbol policy intact.
 
 ## Regenerate & gates
 
-* Synchronize with `make sync`. The target delegates one **single, idempotent pass** to `gmeow-dev sync`; local runs default to update mode and all outputs, while CI defaults to strict read-only checking. The Rust command uses every available CPU unless `--jobs N` is explicitly supplied. A clean whole-run manifest skips a fixed-point run; an input miss executes the pipeline once. Use `make sync SYNC_VERBOSE=1` to stream live DAG stages during a miss. There is no separate diagnostics or docs pipeline.
-* `generated/dist/gmeow.gts` is now a git-ignored local product (not tracked, no merge driver); after integrating `main`, run `make sync` once to re-materialize it from the merged sources. A stale local bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle projection + the declared inventory against the materialized tree semantically because it is CBOR and cannot use a byte-only comparison.
+* Synchronize with `make check`. There is exactly ONE producer target — `check-sync` — and `make check`'s DAG runs it (in update mode) before anything reads `generated/`; it delegates one **single, idempotent pass** to `gmeow-dev sync`. Never materialize separately and then gate: both invocations take the same host-global lock, so the pipeline runs twice, serially. When you genuinely want artifacts WITHOUT the gate, the narrow path is `make check-sync SYNC_MODE=update` (scope with `SYNC_OUTPUTS={generated,docs,all}`; read-only `check` is the default mode). The Rust command uses every available CPU unless `--jobs N` is explicitly supplied. A clean whole-run manifest skips a fixed-point run; an input miss executes the pipeline once. Add `SYNC_VERBOSE=1` to stream live DAG stages during a miss. There is no separate diagnostics or docs pipeline.
+* `generated/dist/gmeow.gts` is now a git-ignored local product (not tracked, no merge driver); after integrating `main`, run `make check` once to re-materialize it from the merged sources and gate in the same pass. A stale local bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle projection + the declared inventory against the materialized tree semantically because it is CBOR and cannot use a byte-only comparison.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
+* The doctrine governing all of the above is [`docs/GATE-AND-PIPELINE.md`](./docs/GATE-AND-PIPELINE.md): one producer and one run, the host-global lock as a fairness queue with no override, the pipeline records while the gate grades, when a gate may read a recorded result instead of recomputing it (and the freshness stamp it must refuse without), what puts a lane on `make heavy` rather than `make check`, why a test that reds on machine load is broken rather than flaky, why ratchets move down only, and why a false claim in help text or a comment is itself a defect. Every rule cites the real defect in this repository that produced it, and the document ends with checklists for adding a gate task or a pipeline stage — read it before touching `CHECK_DAG`, `.config/nextest.toml`, a ratchet baseline, or a `meta:makeTarget` claim.
 
 ## Canonical sources & forward direction
 
@@ -52,9 +56,9 @@ and the no-debug-symbol policy intact.
 * Run format: `make fmt`
 * Run lint: `make lint`
 * Validate Turtle & SHACL: `make validate`
-* Validate bundled GTS snapshot: `make validate-gts`
-* Regenerate generated artifacts: `make sync`
-* Check generated artifacts: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
+* Materialize generated artifacts AND gate (the normal path): `make check`
+* Materialize generated artifacts only, no gate: `make check-sync SYNC_MODE=update`
+* Check generated artifacts read-only: `make check-sync`
 * Run native reasoning: `make reason`
 * Run native verification: `make verify`
 * Run native reasoning + verification together: `make reason-verify`
@@ -68,7 +72,7 @@ and the no-debug-symbol policy intact.
 
 ## Generated and Release Outputs
 
-* Regenerate docs: `make sync SYNC_OUTPUTS=docs`
+* Regenerate docs: `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`
 * Build dist serializations: `make build`
 * Run release build: `make release`
 * Sign a release GTS: `make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts`

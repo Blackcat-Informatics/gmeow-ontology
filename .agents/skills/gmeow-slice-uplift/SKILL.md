@@ -114,6 +114,23 @@ authority for why the top row is the right next move.
    `mappings/…`), per [`gmeow-ontology-authoring`](../../gmeow-ontology-authoring/SKILL.md);
    never satisfy a projection finding with a new hand-authored shape (Principle 17).
 
+   > **Exception — `gmeow:axisAdviceCoverage` is uplifted CENTRALLY, not slice-locally.**
+   > When the capping (or any deficient) axis is advice-harvest coverage, the advisor
+   > names each unharvested `avoidWhen` / `useWhen` cell. For each one, author a central
+   > `logic:Constraint` (for an unharvested `avoidWhen`) or `logic:AdviceGuidance` (for an
+   > unharvested `useWhen`) that `logic:formalizes` the term, names its
+   > `logic:adviceSourceField` (`logic:ProseFieldAvoidWhen` / `logic:ProseFieldUseWhen`),
+   > and sets `logic:message` to the term's **verbatim** source-language prose (a
+   > `logic:Constraint` also carries `logic:severity "Info"` and a `logic:integrity`
+   > guard formula). There is no source hash to precompute — the native verify gate
+   > `check_advice_message_prose_binding` holds the carrier's `logic:message` to the
+   > term's current prose directly. Author these carriers in
+   > `slices/grounding/logic/module.ttl` — NOT in the target slice — so the domain slice
+   > asserts no `logic:` triple. This is the one axis whose uplift diff lands in the
+   > central logic slice; note it in the PR (the "keep the diff inside the slice" rule in
+   > §4 yields here to the projection-purity rule). See
+   > [`SLICE_QA.md`](../../../docs/SLICE_QA.md) § the advice-harvest-coverage axis.
+
 ---
 
 ## 4. Land
@@ -129,7 +146,7 @@ authority for why the top row is the right next move.
    uplifted; do not fan out edits across unrelated slices.
 3. If any canonical source changed the bundle, regenerate under the
    land-one-at-a-time discipline: `generated/dist/gmeow.gts` is a git-ignored
-   product re-materialized by `make sync`, so `make sync` it in-PR and let
+   product re-materialized by `make check`, so run `make check` in-PR and let
    bundle-touching PRs land **one at a time** — and re-sync after integrating
    main — to avoid a stale-bundle race (Principle 7).
 

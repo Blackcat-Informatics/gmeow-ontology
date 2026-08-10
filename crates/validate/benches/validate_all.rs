@@ -6,8 +6,9 @@
 //! Exercises the parse-once refactor: each source Turtle file is read and
 //! parsed exactly once (instead of ~3× under the old per-phase `parse_file`
 //! calls). The benchmark is hermetic — it writes a handful of synthetic Turtle
-//! files to `std::env::temp_dir()` and tears them down after setup, so no
-//! real ontology files are required.
+//! files into a `tempfile::TempDir` that is held for the whole measurement and
+//! removed when it drops (on success and on panic alike), so no real ontology
+//! files are required and nothing is left behind in the system temp dir.
 //!
 //! Measured: end-to-end `ValidationRun::run` over the per-file path with 8
 //! synthetic Turtle files (a realistic small-to-medium slice count).
@@ -64,34 +65,38 @@ fn synthetic_ttl(n: usize) -> String {
     s
 }
 
-/// Write `count` synthetic Turtle files to temp dir and return their paths.
+/// Write `count` synthetic Turtle files into a fresh RAII temp directory and
+/// return the directory alongside their paths.
 ///
-/// Each file contains `triples_per_file` triples. Files are named with the
-/// bench process id plus index/count so concurrent bench processes (e.g.
-/// parallel worktrees) never collide in the shared temp dir.
-fn write_bench_files(count: usize, triples_per_file: usize) -> Vec<PathBuf> {
+/// Each file contains `triples_per_file` triples. The private directory makes
+/// the old process-id filename salt unnecessary: concurrent bench processes
+/// (e.g. parallel worktrees) each get their own directory and cannot collide.
+/// The caller MUST hold the returned [`tempfile::TempDir`] in a named binding
+/// for the whole measurement — a bare `_` would drop it immediately and delete
+/// the files out from under the benchmark.
+fn write_bench_files(count: usize, triples_per_file: usize) -> (tempfile::TempDir, Vec<PathBuf>) {
     let ttl = synthetic_ttl(triples_per_file);
-    let pid = std::process::id();
-    (0..count)
+    let dir = tempfile::tempdir().expect("create bench temp dir");
+    let paths = (0..count)
         .map(|i| {
-            let path = std::env::temp_dir()
-                .join(format!("gmeow_bench_validate_all_{pid}_{i}_{count}.ttl"));
+            let path = dir
+                .path()
+                .join(format!("gmeow_bench_validate_all_{i}_{count}.ttl"));
             std::fs::write(&path, &ttl).expect("write bench Turtle file");
             path
         })
-        .collect()
-}
-
-fn remove_bench_files(paths: &[PathBuf]) {
-    for p in paths {
-        std::fs::remove_file(p).ok();
-    }
+        .collect();
+    (dir, paths)
 }
 
 fn bench_validate_all(c: &mut Criterion) {
     // 8 files × 50 triples each — representative of a small-to-medium slice
     // set (the real GMEOW core currently has ~20 source files).
-    let paths = write_bench_files(8, 50);
+    //
+    // `_bench_tmp` is the RAII owner of the fixture directory: it must stay
+    // bound for the whole function so the files survive the measurement and are
+    // removed only once `group.finish()` has returned.
+    let (_bench_tmp, paths) = write_bench_files(8, 50);
     let source_paths: Vec<String> = paths
         .iter()
         .map(|p| p.to_string_lossy().into_owned())
@@ -109,8 +114,6 @@ fn bench_validate_all(c: &mut Criterion) {
         });
     });
     group.finish();
-
-    remove_bench_files(&paths);
 }
 
 criterion_group!(benches, bench_validate_all);

@@ -942,3 +942,1498 @@ ex:rowGroundingOnDataRange a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:Expecte
 ex:rowGroundingOneOf a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:oneOf ] .
 ex:rowGroundingOnDatatype a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:onDatatype ] .
 ex:rowGroundingWithRestrictions a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:withRestrictions ] .
+
+# =========================================================================== #
+# === Enactment-kernel roster questions                                   === #
+# =========================================================================== #
+#
+# The kernel's lifecycle axes are CLOSED value vocabularies, and its records are
+# fixed carrier sets. Both are contracts, and both fail SILENTLY: a dropped axis
+# position leaves a real situation with no name to record it under, and a dropped
+# carrier leaves a record that reads as complete while omitting the one field the
+# reader needed. Each question below pins its roster BY IRI under cqExactRows, so
+# a rename, a quiet addition, or a silent removal fails on diff instead of
+# surviving as a tidier-looking vocabulary. They share one result shape, because
+# every one of them asks the same shape of question — name the complete roster —
+# and only the roster differs.
+
+ex:cqKernelRosterShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqStepStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:StepState } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A step lifecycle is eight positions, and the split between pending, ready and waiting carries the axis: pending means the step has not been reached, ready means it has been reached and may run, waiting means it has been reached and may not. A three-state todo/doing/done reading collapses those into one, and that collapse is exactly what makes a stalled enactment indistinguishable from an unstarted one. Skipped and cancelled are likewise separate terminal positions — a skipped step was decided about, a cancelled one was abandoned — so a roster that lost either would let an audit read a decision where none was made." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqStepStatesRowStepCancelled , ex:cqStepStatesRowStepCompleted , ex:cqStepStatesRowStepFailed , ex:cqStepStatesRowStepPending , ex:cqStepStatesRowStepReady , ex:cqStepStatesRowStepRunning , ex:cqStepStatesRowStepSkipped , ex:cqStepStatesRowStepWaiting  .
+
+ex:cqStepStatesRowStepCancelled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepCancelled ] .
+ex:cqStepStatesRowStepCompleted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepCompleted ] .
+ex:cqStepStatesRowStepFailed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepFailed ] .
+ex:cqStepStatesRowStepPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepPending ] .
+ex:cqStepStatesRowStepReady a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepReady ] .
+ex:cqStepStatesRowStepRunning a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepRunning ] .
+ex:cqStepStatesRowStepSkipped a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepSkipped ] .
+ex:cqStepStatesRowStepWaiting a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:StepWaiting ] .
+
+ex:cqEnactmentStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:EnactmentState } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An enactment as a whole occupies six positions, and they are not the step axis with a different label: paused is a position no step has, because pausing is something an operator does to the run rather than to any one of its steps. Cancelled and failed stay apart for the same reason they do on a step — cancellation is a decision and failure is an outcome — and an enactment that reported the two under one name would make every post-incident review start by guessing which had happened." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqEnactmentStatesRowEnactmentCancelled , ex:cqEnactmentStatesRowEnactmentCompleted , ex:cqEnactmentStatesRowEnactmentFailed , ex:cqEnactmentStatesRowEnactmentPaused , ex:cqEnactmentStatesRowEnactmentPending , ex:cqEnactmentStatesRowEnactmentRunning  .
+
+ex:cqEnactmentStatesRowEnactmentCancelled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentCancelled ] .
+ex:cqEnactmentStatesRowEnactmentCompleted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentCompleted ] .
+ex:cqEnactmentStatesRowEnactmentFailed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentFailed ] .
+ex:cqEnactmentStatesRowEnactmentPaused a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentPaused ] .
+ex:cqEnactmentStatesRowEnactmentPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentPending ] .
+ex:cqEnactmentStatesRowEnactmentRunning a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentRunning ] .
+
+ex:cqApprovalStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:ApprovalState } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Approval is its own axis with eight positions, not a boolean. Null is the position of an action policy never gated, and it is genuinely different from discharged, which is the position of an action that WAS gated and has since been cleared: a surface that showed both as approved would report an ungated dispatch as an authorized one. Detached, released, expired, cancelled and violated then separate the ways an approval stops governing, and each licenses a different next move, which is why the roster refuses to fold them into a single revoked." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqApprovalStatesRowApprovalCancelled , ex:cqApprovalStatesRowApprovalCreated , ex:cqApprovalStatesRowApprovalDetached , ex:cqApprovalStatesRowApprovalDischarged , ex:cqApprovalStatesRowApprovalExpired , ex:cqApprovalStatesRowApprovalNull , ex:cqApprovalStatesRowApprovalReleased , ex:cqApprovalStatesRowApprovalViolated  .
+
+ex:cqApprovalStatesRowApprovalCancelled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalCancelled ] .
+ex:cqApprovalStatesRowApprovalCreated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalCreated ] .
+ex:cqApprovalStatesRowApprovalDetached a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalDetached ] .
+ex:cqApprovalStatesRowApprovalDischarged a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalDischarged ] .
+ex:cqApprovalStatesRowApprovalExpired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalExpired ] .
+ex:cqApprovalStatesRowApprovalNull a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalNull ] .
+ex:cqApprovalStatesRowApprovalReleased a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalReleased ] .
+ex:cqApprovalStatesRowApprovalViolated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ApprovalViolated ] .
+
+ex:cqEffectProtocolPositions a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:EffectProtocolPosition } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An external effect walks eight positions, and the roster exists so that no-blind-retry is a readable position rather than a rule someone must remember. Attempted is the undetermined position — dispatched, no receipt — and it is separated from both intended and receipted precisely because the safe action differs in all three. Reconciling and reconciled, compensating and compensated are likewise kept apart: the in-flight position of a recovery is not its settled one, and collapsing them is how a half-finished compensation gets read as a finished one." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqEffectProtocolPositionsRowEffectAbandoned , ex:cqEffectProtocolPositionsRowEffectAttempted , ex:cqEffectProtocolPositionsRowEffectCompensated , ex:cqEffectProtocolPositionsRowEffectCompensating , ex:cqEffectProtocolPositionsRowEffectIntended , ex:cqEffectProtocolPositionsRowEffectReceipted , ex:cqEffectProtocolPositionsRowEffectReconciled , ex:cqEffectProtocolPositionsRowEffectReconciling  .
+
+ex:cqEffectProtocolPositionsRowEffectAbandoned a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectAbandoned ] .
+ex:cqEffectProtocolPositionsRowEffectAttempted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectAttempted ] .
+ex:cqEffectProtocolPositionsRowEffectCompensated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectCompensated ] .
+ex:cqEffectProtocolPositionsRowEffectCompensating a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectCompensating ] .
+ex:cqEffectProtocolPositionsRowEffectIntended a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectIntended ] .
+ex:cqEffectProtocolPositionsRowEffectReceipted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectReceipted ] .
+ex:cqEffectProtocolPositionsRowEffectReconciled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectReconciled ] .
+ex:cqEffectProtocolPositionsRowEffectReconciling a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EffectReconciling ] .
+
+# --- Every lifecycle axis has exactly one carrier ----------------------------
+ex:cqAxisCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqAxisCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?axis ?term WHERE { VALUES ?axis { logic:ApprovalBindingFault logic:ApprovalState logic:ContinuationKind logic:DeliverySemantics logic:EffectProtocolPosition logic:EnactmentState logic:FrontierLabel logic:IncompleteCause logic:InformationState logic:IntegrityFault logic:OperationOutcome logic:PrescriptionKind logic:RebuildReason logic:ReconciliationVerdict logic:RecurrenceState logic:RejectionKind logic:SearchFragment logic:SkipReason logic:StepState logic:UnsupportedFragmentCondition } ?term rdfs:range ?axis . FILTER NOT EXISTS { ?term rdfs:domain ?axis } } ORDER BY ?axis ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A closed axis vocabulary is worth nothing unless exactly one property carries it: two carriers let a record sit at two positions of one axis at once, and none leaves the vocabulary decorative. This question reads the carrier off rdfs:range rather than off prose, and the filter is what makes it an answer about carriers — a relation whose domain is the axis itself relates two positions to each other (logic:knowledgePrecedes orders the knowledge states) and is not a way for a record to occupy one. Nineteen of the twenty axes have exactly one carrier. The twentieth, the pre-existing information-state axis, has two — an enactment reads it as the knowledge held about an effect, and the epistemics surface reads it as a category polarity — which is why the pin is over PAIRS and not over a count: a count of twenty-one cannot tell a legitimate second reader of one axis apart from a second carrier accidentally minted for another." ;
+    gmeow:cqResultShape ex:cqAxisCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqAxisCarriersRowApprovalBindingFaultapprovalBindingFault , ex:cqAxisCarriersRowApprovalStateapprovalState , ex:cqAxisCarriersRowContinuationKindcontinuationKind , ex:cqAxisCarriersRowDeliverySemanticsidempotencyDuplicateSemantics , ex:cqAxisCarriersRowEffectProtocolPositioneffectProtocolPosition , ex:cqAxisCarriersRowEnactmentStateenactmentState , ex:cqAxisCarriersRowFrontierLabelentryLabel , ex:cqAxisCarriersRowIncompleteCauseincompleteCause , ex:cqAxisCarriersRowInformationStatecategoryPolarity ,
+        ex:cqAxisCarriersRowInformationStateeffectKnowledge , ex:cqAxisCarriersRowIntegrityFaultintegrityFault , ex:cqAxisCarriersRowOperationOutcomeoperationOutcome , ex:cqAxisCarriersRowPrescriptionKindprescriptionKind , ex:cqAxisCarriersRowRebuildReasonrebuildReason , ex:cqAxisCarriersRowReconciliationVerdictreconciliationVerdict , ex:cqAxisCarriersRowRecurrenceStaterecurrenceState , ex:cqAxisCarriersRowRejectionKindrejectionKind , ex:cqAxisCarriersRowSearchFragmentsearchFragment , ex:cqAxisCarriersRowSkipReasonskipReason , ex:cqAxisCarriersRowStepStatestepState , ex:cqAxisCarriersRowUnsupportedFragmentConditionunsupportedCondition  .
+
+ex:cqAxisCarriersRowApprovalBindingFaultapprovalBindingFault a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:ApprovalBindingFault ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalBindingFault ] .
+ex:cqAxisCarriersRowApprovalStateapprovalState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:ApprovalState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalState ] .
+ex:cqAxisCarriersRowContinuationKindcontinuationKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:ContinuationKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:continuationKind ] .
+ex:cqAxisCarriersRowDeliverySemanticsidempotencyDuplicateSemantics a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:DeliverySemantics ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyDuplicateSemantics ] .
+ex:cqAxisCarriersRowEffectProtocolPositioneffectProtocolPosition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:EffectProtocolPosition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:effectProtocolPosition ] .
+ex:cqAxisCarriersRowEnactmentStateenactmentState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:EnactmentState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactmentState ] .
+ex:cqAxisCarriersRowFrontierLabelentryLabel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:FrontierLabel ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryLabel ] .
+ex:cqAxisCarriersRowIncompleteCauseincompleteCause a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:IncompleteCause ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:incompleteCause ] .
+ex:cqAxisCarriersRowInformationStateeffectKnowledge a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:InformationState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:effectKnowledge ] .
+ex:cqAxisCarriersRowIntegrityFaultintegrityFault a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:IntegrityFault ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:integrityFault ] .
+ex:cqAxisCarriersRowOperationOutcomeoperationOutcome a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:OperationOutcome ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:operationOutcome ] .
+ex:cqAxisCarriersRowPrescriptionKindprescriptionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:PrescriptionKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKind ] .
+ex:cqAxisCarriersRowRebuildReasonrebuildReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:RebuildReason ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rebuildReason ] .
+ex:cqAxisCarriersRowReconciliationVerdictreconciliationVerdict a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:ReconciliationVerdict ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reconciliationVerdict ] .
+ex:cqAxisCarriersRowRecurrenceStaterecurrenceState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:RecurrenceState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:recurrenceState ] .
+ex:cqAxisCarriersRowRejectionKindrejectionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:RejectionKind ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rejectionKind ] .
+ex:cqAxisCarriersRowSearchFragmentsearchFragment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:SearchFragment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:searchFragment ] .
+ex:cqAxisCarriersRowSkipReasonskipReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:SkipReason ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:skipReason ] .
+ex:cqAxisCarriersRowStepStatestepState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:StepState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:stepState ] .
+ex:cqAxisCarriersRowUnsupportedFragmentConditionunsupportedCondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:UnsupportedFragmentCondition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:unsupportedCondition ] .
+
+ex:cqAxisCarriersRowInformationStatecategoryPolarity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axis" ; gmeow:cellValueIri logic:InformationState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:categoryPolarity ] .
+
+ex:cqPrescriptionKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:PrescriptionKind } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Twelve kinds, and the roster is the slice.s claim that one prescription vocabulary spans a recipe, a lab protocol, a CI build and a curriculum rather than each domain minting its own. The value of pinning it is negative: if a thirteenth kind can be added without a fight, the kinds have stopped being a closed classification of repeatable work and become a free-text label with extra steps. They are individuals, never subclasses, so a new domain is a new individual and never a new class (Principle 9)." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqPrescriptionKindsRowprescriptionKindAgentFlow , ex:cqPrescriptionKindsRowprescriptionKindBusinessProcess , ex:cqPrescriptionKindsRowprescriptionKindCiBuild , ex:cqPrescriptionKindsRowprescriptionKindControlPlan , ex:cqPrescriptionKindsRowprescriptionKindCurriculum , ex:cqPrescriptionKindsRowprescriptionKindDataPipeline , ex:cqPrescriptionKindsRowprescriptionKindIngestion , ex:cqPrescriptionKindsRowprescriptionKindLabProtocol , ex:cqPrescriptionKindsRowprescriptionKindOrganizationalGuide , ex:cqPrescriptionKindsRowprescriptionKindRecipe , ex:cqPrescriptionKindsRowprescriptionKindRepeatableGuide , ex:cqPrescriptionKindsRowprescriptionKindResearchPlan  .
+
+ex:cqPrescriptionKindsRowprescriptionKindAgentFlow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindAgentFlow ] .
+ex:cqPrescriptionKindsRowprescriptionKindBusinessProcess a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindBusinessProcess ] .
+ex:cqPrescriptionKindsRowprescriptionKindCiBuild a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindCiBuild ] .
+ex:cqPrescriptionKindsRowprescriptionKindControlPlan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindControlPlan ] .
+ex:cqPrescriptionKindsRowprescriptionKindCurriculum a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindCurriculum ] .
+ex:cqPrescriptionKindsRowprescriptionKindDataPipeline a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindDataPipeline ] .
+ex:cqPrescriptionKindsRowprescriptionKindIngestion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindIngestion ] .
+ex:cqPrescriptionKindsRowprescriptionKindLabProtocol a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindLabProtocol ] .
+ex:cqPrescriptionKindsRowprescriptionKindOrganizationalGuide a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindOrganizationalGuide ] .
+ex:cqPrescriptionKindsRowprescriptionKindRecipe a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindRecipe ] .
+ex:cqPrescriptionKindsRowprescriptionKindRepeatableGuide a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindRepeatableGuide ] .
+ex:cqPrescriptionKindsRowprescriptionKindResearchPlan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionKindResearchPlan ] .
+
+ex:cqSkipReasons a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:SkipReason } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A skipped step must say WHY, and the four reasons are not interchangeable: already-satisfied means the work was done elsewhere, not-applicable means it never applied, policy-excluded means a rule removed it, and operator-declined means a person refused it. Only the last two are decisions someone can be asked about, and an untyped skip erases that difference, which is precisely how a declined step later reads as an inapplicable one in a review." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqSkipReasonsRowSkipAlreadySatisfied , ex:cqSkipReasonsRowSkipNotApplicable , ex:cqSkipReasonsRowSkipOperatorDeclined , ex:cqSkipReasonsRowSkipPolicyExcluded  .
+
+ex:cqSkipReasonsRowSkipAlreadySatisfied a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:SkipAlreadySatisfied ] .
+ex:cqSkipReasonsRowSkipNotApplicable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:SkipNotApplicable ] .
+ex:cqSkipReasonsRowSkipOperatorDeclined a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:SkipOperatorDeclined ] .
+ex:cqSkipReasonsRowSkipPolicyExcluded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:SkipPolicyExcluded ] .
+
+ex:cqRejectionKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:RejectionKind } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A refinement that discards a candidate must record which of the four gates it failed, because each has a different remedy: a precondition can be established, a capability can be acquired, a resource can be waited for, and an approval can be sought. A single rejected flag makes all four look like the same dead end and hides the fact that three of them are actionable. The roster is pinned by IRI so that folding, say, capability and resource into one unavailable value fails here rather than silently halving the advice a planner can give." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRejectionKindsRowRejectedApproval , ex:cqRejectionKindsRowRejectedCapability , ex:cqRejectionKindsRowRejectedPrecondition , ex:cqRejectionKindsRowRejectedResource  .
+
+ex:cqRejectionKindsRowRejectedApproval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RejectedApproval ] .
+ex:cqRejectionKindsRowRejectedCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RejectedCapability ] .
+ex:cqRejectionKindsRowRejectedPrecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RejectedPrecondition ] .
+ex:cqRejectionKindsRowRejectedResource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RejectedResource ] .
+
+ex:cqIntegrityFaults a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:IntegrityFault } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The four integrity faults name the ways a derived artifact can betray the inputs it claims to derive from: its content hash disagrees, it was built from the wrong generation of data, its identity does not match the record pointing at it, or it was rematerialized rather than restored. They are not severities of one fault; they have different repairs, and only the rematerialization case is ever benign. An untyped integrity error would put all four behind one alarm, which is how the benign one trains an operator to ignore the other three." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqIntegrityFaultsRowFaultContentIntegrity , ex:cqIntegrityFaultsRowFaultDataGeneration , ex:cqIntegrityFaultsRowFaultIdentityMismatch , ex:cqIntegrityFaultsRowFaultRematerialization  .
+
+ex:cqIntegrityFaultsRowFaultContentIntegrity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultContentIntegrity ] .
+ex:cqIntegrityFaultsRowFaultDataGeneration a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultDataGeneration ] .
+ex:cqIntegrityFaultsRowFaultIdentityMismatch a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultIdentityMismatch ] .
+ex:cqIntegrityFaultsRowFaultRematerialization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultRematerialization ] .
+
+ex:cqIncompleteCauses a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:IncompleteCause } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "When a derivation stops short, the cause decides whether the result may be trusted at all: a step or page budget cut is a resource limit that a rerun can lift, a deadline is a wall-clock limit that a rerun may hit again, and a cancellation is a decision that a rerun would override. Reporting only that the run was incomplete leaves a reader unable to tell a recoverable truncation from a deliberate stop, and it is that ambiguity, not the truncation itself, that lets a cut roster pass for a closed one." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqIncompleteCausesRowIncompleteCancellation , ex:cqIncompleteCausesRowIncompleteDeadline , ex:cqIncompleteCausesRowIncompletePageBudget , ex:cqIncompleteCausesRowIncompleteStepBudget  .
+
+ex:cqIncompleteCausesRowIncompleteCancellation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:IncompleteCancellation ] .
+ex:cqIncompleteCausesRowIncompleteDeadline a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:IncompleteDeadline ] .
+ex:cqIncompleteCausesRowIncompletePageBudget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:IncompletePageBudget ] .
+ex:cqIncompleteCausesRowIncompleteStepBudget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:IncompleteStepBudget ] .
+
+ex:cqApprovalBindingFaults a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:ApprovalBindingFault } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An approval binds to one intent of one enactment inside one window under one operator policy, and the four faults are exactly the four ways that binding can be broken. They are kept apart because only one of them is an attack: a digest mismatch means the approved intent is not the dispatched one, which is approval laundering, whereas an expired window is ordinary staleness. A generic invalid approval would hide the laundering case among three innocuous ones." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqApprovalBindingFaultsRowFaultDifferentEnactment , ex:cqApprovalBindingFaultsRowFaultDigestMismatch , ex:cqApprovalBindingFaultsRowFaultExpiredWindow , ex:cqApprovalBindingFaultsRowFaultOperatorPolicyMismatch  .
+
+ex:cqApprovalBindingFaultsRowFaultDifferentEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultDifferentEnactment ] .
+ex:cqApprovalBindingFaultsRowFaultDigestMismatch a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultDigestMismatch ] .
+ex:cqApprovalBindingFaultsRowFaultExpiredWindow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultExpiredWindow ] .
+ex:cqApprovalBindingFaultsRowFaultOperatorPolicyMismatch a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FaultOperatorPolicyMismatch ] .
+
+ex:cqRecurrenceStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:RecurrenceState } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A recurring commitment is not the same object as the run it spawns, and its five states are about the SCHEDULE rather than about any occurrence: suspended means the schedule stands but is not firing, skipped means one occurrence was passed over while the schedule kept running, and ended means the schedule itself is finished. Collapsing suspended into ended is how a paused weekly job silently stops being expected to return." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRecurrenceStatesRowRecurrenceActive , ex:cqRecurrenceStatesRowRecurrenceEnded , ex:cqRecurrenceStatesRowRecurrenceScheduled , ex:cqRecurrenceStatesRowRecurrenceSkipped , ex:cqRecurrenceStatesRowRecurrenceSuspended  .
+
+ex:cqRecurrenceStatesRowRecurrenceActive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RecurrenceActive ] .
+ex:cqRecurrenceStatesRowRecurrenceEnded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RecurrenceEnded ] .
+ex:cqRecurrenceStatesRowRecurrenceScheduled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RecurrenceScheduled ] .
+ex:cqRecurrenceStatesRowRecurrenceSkipped a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RecurrenceSkipped ] .
+ex:cqRecurrenceStatesRowRecurrenceSuspended a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RecurrenceSuspended ] .
+
+ex:cqOperationOutcomes a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:OperationOutcome } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Six outcomes, and the distinction that earns the roster is between invalid, unsupported and engine failure: the first blames the request, the second blames the fragment the engine was asked to handle, and the third blames the engine. A single error outcome routes all three to the same place, which is how an unsupported-construct report gets triaged as a bug in the caller. Incomplete and requires-full-rebuild are likewise not failures at all — they are results that name their own remedy." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqOperationOutcomesRowOutcomeApplied , ex:cqOperationOutcomesRowOutcomeEngineFailure , ex:cqOperationOutcomesRowOutcomeIncomplete , ex:cqOperationOutcomesRowOutcomeInvalid , ex:cqOperationOutcomesRowOutcomeRequiresFullRebuild , ex:cqOperationOutcomesRowOutcomeUnsupportedFragment  .
+
+ex:cqOperationOutcomesRowOutcomeApplied a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeApplied ] .
+ex:cqOperationOutcomesRowOutcomeEngineFailure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeEngineFailure ] .
+ex:cqOperationOutcomesRowOutcomeIncomplete a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeIncomplete ] .
+ex:cqOperationOutcomesRowOutcomeInvalid a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeInvalid ] .
+ex:cqOperationOutcomesRowOutcomeRequiresFullRebuild a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeRequiresFullRebuild ] .
+ex:cqOperationOutcomesRowOutcomeUnsupportedFragment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:OutcomeUnsupportedFragment ] .
+
+ex:cqReconciliationVerdicts a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:ReconciliationVerdict } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A reconciliation probe returns one of three verdicts, and the third is the point: still-unknown is a POSITIVE result, not a missing one. A two-valued committed/not-committed reading has nowhere to put the answer the provider actually gave, so it must guess, and the guess is what authorizes the blind retry the protocol exists to forbid. Pinning all three by IRI is what stops still-unknown being quietly re-read as not-committed the next time the roster is edited." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqReconciliationVerdictsRowReconciledCommitted , ex:cqReconciliationVerdictsRowReconciledNotCommitted , ex:cqReconciliationVerdictsRowReconciledStillUnknown  .
+
+ex:cqReconciliationVerdictsRowReconciledCommitted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ReconciledCommitted ] .
+ex:cqReconciliationVerdictsRowReconciledNotCommitted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ReconciledNotCommitted ] .
+ex:cqReconciliationVerdictsRowReconciledStillUnknown a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ReconciledStillUnknown ] .
+
+ex:cqRebuildReasons a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:RebuildReason } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An incremental engine that gives up must say why it gave up, because the three reasons predict different futures: a changed fragment or rule set will recur every time that input changes, whereas a non-incremental retraction is a one-off. Reporting a bare full rebuild leaves a maintainer unable to tell a systematic cost from an occasional one, and it is the systematic one that is worth engineering away." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRebuildReasonsRowRebuildFragmentChanged , ex:cqRebuildReasonsRowRebuildNonIncrementalRetraction , ex:cqRebuildReasonsRowRebuildRuleSetChanged  .
+
+ex:cqRebuildReasonsRowRebuildFragmentChanged a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RebuildFragmentChanged ] .
+ex:cqRebuildReasonsRowRebuildNonIncrementalRetraction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RebuildNonIncrementalRetraction ] .
+ex:cqRebuildReasonsRowRebuildRuleSetChanged a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:RebuildRuleSetChanged ] .
+
+ex:cqDeliverySemantics a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:DeliverySemantics } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Three delivery semantics, recorded on the idempotency contract rather than assumed by the caller. The roster matters because at-most-once and at-least-once fail in opposite directions — one loses effects, the other duplicates them — and a system that does not write down which one a provider offers will pick the recovery strategy for the other. Exactly-once is included as a claim a provider may make, not as a default, which is what keeps it falsifiable." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqDeliverySemanticsRowDeliveryAtLeastOnce , ex:cqDeliverySemanticsRowDeliveryAtMostOnce , ex:cqDeliverySemanticsRowDeliveryExactlyOnce  .
+
+ex:cqDeliverySemanticsRowDeliveryAtLeastOnce a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:DeliveryAtLeastOnce ] .
+ex:cqDeliverySemanticsRowDeliveryAtMostOnce a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:DeliveryAtMostOnce ] .
+ex:cqDeliverySemanticsRowDeliveryExactlyOnce a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:DeliveryExactlyOnce ] .
+
+ex:cqContinuationKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:ContinuationKind } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "When an enactment picks up again, exactly one of three things is happening: it resumes where it stopped, it repeats work it already did, or it continues under a revised prescription. These are not shades of restart — resume and repeat differ on whether committed effects are re-issued, and revise differs from both on whether the plan being followed is still the one that was approved. A single continued flag would let a repeat pass for a resume, which is the duplicate-effect bug stated in vocabulary form." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqContinuationKindsRowContinuationRepeat , ex:cqContinuationKindsRowContinuationResume , ex:cqContinuationKindsRowContinuationRevise  .
+
+ex:cqContinuationKindsRowContinuationRepeat a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContinuationRepeat ] .
+ex:cqContinuationKindsRowContinuationResume a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContinuationResume ] .
+ex:cqContinuationKindsRowContinuationRevise a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContinuationRevise ] .
+
+ex:cqSearchFragments a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:SearchFragment } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Means-end refinement is undecidable in general, so the kernel names the three decidable fragments a search may declare itself inside — a totally ordered method set, an acyclic method graph, or a depth bound. The roster is what turns termination from a hope into a declared property: a search that names no fragment is claiming nothing, and a search that names one has made a checkable promise. Pinning the three by IRI stops a fourth being added without the termination argument that would justify it." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqSearchFragmentsRowFragmentAcyclicMethod , ex:cqSearchFragmentsRowFragmentBoundedDepth , ex:cqSearchFragmentsRowFragmentTotallyOrdered  .
+
+ex:cqSearchFragmentsRowFragmentAcyclicMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FragmentAcyclicMethod ] .
+ex:cqSearchFragmentsRowFragmentBoundedDepth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FragmentBoundedDepth ] .
+ex:cqSearchFragmentsRowFragmentTotallyOrdered a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FragmentTotallyOrdered ] .
+
+ex:cqUnsupportedFragmentConditions a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?term WHERE { ?term a logic:UnsupportedFragmentCondition } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "When an engine refuses a fragment it must say which of three conditions it hit: a construct it does not implement, a method set it cannot order, or a rule set it cannot show terminating. The first is a gap in the engine and the other two are properties of the input, so routing all three to one unsupported message sends a user to fix their data when the engine is at fault, or the reverse." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqUnsupportedFragmentConditionsRowUnsupportedConstruct , ex:cqUnsupportedFragmentConditionsRowUnsupportedMethodSet , ex:cqUnsupportedFragmentConditionsRowUnsupportedNonTerminating  .
+
+ex:cqUnsupportedFragmentConditionsRowUnsupportedConstruct a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnsupportedConstruct ] .
+ex:cqUnsupportedFragmentConditionsRowUnsupportedMethodSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnsupportedMethodSet ] .
+ex:cqUnsupportedFragmentConditionsRowUnsupportedNonTerminating a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnsupportedNonTerminating ] .
+
+# --- Per-record carrier rosters ----------------------------------------------
+#
+# The eight questions below read each kernel record's DECLARED carrier set off
+# rdfs:domain and pin it as (record, carrier) pairs. A record whose carrier set
+# has quietly lost a member still validates, still renders, and still reads as
+# complete — the omission is invisible to exactly the reader it misleads — so
+# the pin is over pairs rather than over a count per record: a count survives a
+# swap that drops one carrier and adds another, and the swap is the drift these
+# questions exist to catch. The VALUES block is what scopes each question to one
+# named subsystem instead of to every domained property in the merged canon.
+
+ex:cqRecordCarriersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqEnactmentCoreCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:Enactment logic:TransitionJournal logic:JournalEntry logic:InputSnapshot logic:SnapshotDelta } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The five records that make an enactment auditable: the run itself, its journal and journal entries, the input snapshot it was launched over, and the delta that relates one snapshot generation to the next. The pin matters most on the journal entry, whose five carriers are the whole append-only argument — a previous head, a new head, a delta identity, an outcome tag and a link to the predecessor entry. Drop any one and the chain stops being verifiable while still looking like a log; drop the guard formula on the enactment and a version can be revised under a running enactment with nothing to say so." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqEnactmentCoreCarriersRowEnactmentenactmentContextAssembly , ex:cqEnactmentCoreCarriersRowEnactmentenactmentInputSnapshot , ex:cqEnactmentCoreCarriersRowEnactmentenactmentJournal , ex:cqEnactmentCoreCarriersRowEnactmentenactmentState , ex:cqEnactmentCoreCarriersRowEnactmentenactsPrescriptionVersion , ex:cqEnactmentCoreCarriersRowEnactmentenactedPrescriptionDigest , ex:cqEnactmentCoreCarriersRowInputSnapshotsnapshotDigest , ex:cqEnactmentCoreCarriersRowJournalEntryjournalPredecessor , ex:cqEnactmentCoreCarriersRowJournalEntryjournalDeltaIdentity , ex:cqEnactmentCoreCarriersRowJournalEntryjournalNewHead , ex:cqEnactmentCoreCarriersRowJournalEntryjournalOutcomeTag , ex:cqEnactmentCoreCarriersRowJournalEntryjournalPrevHead , ex:cqEnactmentCoreCarriersRowSnapshotDeltadeltaAddition , ex:cqEnactmentCoreCarriersRowSnapshotDeltadeltaSuppression , ex:cqEnactmentCoreCarriersRowTransitionJournaljournalHead  .
+
+ex:cqEnactmentCoreCarriersRowEnactmentenactmentContextAssembly a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:enactmentContextAssembly ] .
+ex:cqEnactmentCoreCarriersRowEnactmentenactmentInputSnapshot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactmentInputSnapshot ] .
+ex:cqEnactmentCoreCarriersRowEnactmentenactmentJournal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactmentJournal ] .
+ex:cqEnactmentCoreCarriersRowEnactmentenactmentState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactmentState ] .
+ex:cqEnactmentCoreCarriersRowEnactmentenactsPrescriptionVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactsPrescriptionVersion ] .
+ex:cqEnactmentCoreCarriersRowEnactmentenactedPrescriptionDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Enactment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactedPrescriptionDigest ] .
+ex:cqEnactmentCoreCarriersRowInputSnapshotsnapshotDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:InputSnapshot ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:snapshotDigest ] .
+ex:cqEnactmentCoreCarriersRowJournalEntryjournalPredecessor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:JournalEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalPredecessor ] .
+ex:cqEnactmentCoreCarriersRowJournalEntryjournalDeltaIdentity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:JournalEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalDeltaIdentity ] .
+ex:cqEnactmentCoreCarriersRowJournalEntryjournalNewHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:JournalEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalNewHead ] .
+ex:cqEnactmentCoreCarriersRowJournalEntryjournalOutcomeTag a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:JournalEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalOutcomeTag ] .
+ex:cqEnactmentCoreCarriersRowJournalEntryjournalPrevHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:JournalEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalPrevHead ] .
+ex:cqEnactmentCoreCarriersRowSnapshotDeltadeltaAddition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:SnapshotDelta ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:deltaAddition ] .
+ex:cqEnactmentCoreCarriersRowSnapshotDeltadeltaSuppression a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:SnapshotDelta ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:deltaSuppression ] .
+ex:cqEnactmentCoreCarriersRowTransitionJournaljournalHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:TransitionJournal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalHead ] .
+
+ex:cqFrontierCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:ActionableFrontier logic:FrontierEntry logic:SaturationWitness logic:Deviation } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The frontier is the operator-facing surface, and these four records are what make a row on it answerable rather than merely displayable. An entry carries its label, the axis positions that produced the label, what it awaits, what it excludes, its vantage and, if skipped, a typed reason. The frontier itself carries the enactment it is of, its entries, and — mandatory — the saturation witness that separates a closed roster from a truncated one. The witness carries the predicates it settled. A deviation carries the step it departs from. Losing the witness carrier is the failure this pin is really guarding: without it, closedness is an assertion no reader can check." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqFrontierCarriersRowActionableFrontierfrontierCandidateSet , ex:cqFrontierCarriersRowActionableFrontierfrontierComparisonContext , ex:cqFrontierCarriersRowActionableFrontierfrontierOfEnactment , ex:cqFrontierCarriersRowActionableFrontierfrontierSaturationWitness , ex:cqFrontierCarriersRowActionableFrontierhasFrontierEntry , ex:cqFrontierCarriersRowDeviationdeviationFromStep , ex:cqFrontierCarriersRowFrontierEntryentryHardFailure , ex:cqFrontierCarriersRowFrontierEntryentryAction , ex:cqFrontierCarriersRowFrontierEntryentryAwaits , ex:cqFrontierCarriersRowFrontierEntryentryAxisWitness , ex:cqFrontierCarriersRowFrontierEntryentryExcludes , ex:cqFrontierCarriersRowFrontierEntryentryLabel , ex:cqFrontierCarriersRowFrontierEntryfrontierVantage , ex:cqFrontierCarriersRowFrontierEntryskipReason , ex:cqFrontierCarriersRowSaturationWitnesssettledPredicate  .
+
+ex:cqFrontierCarriersRowActionableFrontierfrontierCandidateSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ActionableFrontier ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:frontierCandidateSet ] .
+ex:cqFrontierCarriersRowActionableFrontierfrontierComparisonContext a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ActionableFrontier ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:frontierComparisonContext ] .
+ex:cqFrontierCarriersRowActionableFrontierfrontierOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ActionableFrontier ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:frontierOfEnactment ] .
+ex:cqFrontierCarriersRowActionableFrontierfrontierSaturationWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ActionableFrontier ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:frontierSaturationWitness ] .
+ex:cqFrontierCarriersRowActionableFrontierhasFrontierEntry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ActionableFrontier ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasFrontierEntry ] .
+ex:cqFrontierCarriersRowDeviationdeviationFromStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Deviation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:deviationFromStep ] .
+ex:cqFrontierCarriersRowFrontierEntryentryHardFailure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:entryHardFailure ] .
+ex:cqFrontierCarriersRowFrontierEntryentryAction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAction ] .
+ex:cqFrontierCarriersRowFrontierEntryentryAwaits a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAwaits ] .
+ex:cqFrontierCarriersRowFrontierEntryentryAxisWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAxisWitness ] .
+ex:cqFrontierCarriersRowFrontierEntryentryExcludes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryExcludes ] .
+ex:cqFrontierCarriersRowFrontierEntryentryLabel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryLabel ] .
+ex:cqFrontierCarriersRowFrontierEntryfrontierVantage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:frontierVantage ] .
+ex:cqFrontierCarriersRowFrontierEntryskipReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:FrontierEntry ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:skipReason ] .
+ex:cqFrontierCarriersRowSaturationWitnesssettledPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:SaturationWitness ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:settledPredicate ] .
+
+ex:cqApprovalCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:ApprovalCommitment logic:Advisory logic:AuthorizationProof } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Approval, advice and proof are three different things and the carrier sets say so. A commitment carries the enactment and intent digest it binds to, the operator and policy that issued it, its validity window, its decision and the governing norm — seven carriers, and it is the intent digest that makes it an approval of a specific action rather than a general blessing. An advisory carries only what it is about, because advice authorizes nothing. An authorization proof carries what it establishes. A surface that gave the advisory an approval-shaped carrier set would be one edit away from laundering advice into authorization." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqApprovalCarriersRowAdvisoryadvisoryAbout , ex:cqApprovalCarriersRowApprovalCommitmentapprovalGoverningNorm , ex:cqApprovalCarriersRowApprovalCommitmentapprovalDecision , ex:cqApprovalCarriersRowApprovalCommitmentapprovalEnactment , ex:cqApprovalCarriersRowApprovalCommitmentapprovalIntentDigest , ex:cqApprovalCarriersRowApprovalCommitmentapprovalOperator , ex:cqApprovalCarriersRowApprovalCommitmentapprovalPolicy , ex:cqApprovalCarriersRowApprovalCommitmentapprovalValidityWindow , ex:cqApprovalCarriersRowAuthorizationProofproofEstablishes  .
+
+ex:cqApprovalCarriersRowAdvisoryadvisoryAbout a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:Advisory ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:advisoryAbout ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalGoverningNorm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:approvalGoverningNorm ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalDecision a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalDecision ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalEnactment ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalIntentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalIntentDigest ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalOperator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalOperator ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalPolicy ] .
+ex:cqApprovalCarriersRowApprovalCommitmentapprovalValidityWindow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ApprovalCommitment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalValidityWindow ] .
+ex:cqApprovalCarriersRowAuthorizationProofproofEstablishes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:AuthorizationProof ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proofEstablishes ] .
+
+ex:cqDispatchCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:DispatchIntent logic:IdempotencyContract logic:ResourceLease logic:ArgumentNormalization } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Dispatch is where an intent becomes an external effect, and the four records here are the ones that decide whether that crossing is safe to repeat. The intent carries its target, policy, digest, normalized arguments, action-schema version, approval requirement, the enactment and step it belongs to, its idempotency contract and the journal head it expects — ten carriers, and the expected journal head is the fencing check that makes the whole set a compare-and-swap rather than a hope. The contract carries its key, scope, retention, duplicate semantics and provider evidence; the lease carries its owner, scope, expiry and fencing identity; normalization carries its recipe. Lose the recipe and two runs that normalized differently produce two digests for one intent." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqDispatchCarriersRowArgumentNormalizationnormalizationRecipe , ex:cqDispatchCarriersRowDispatchIntentexpectedJournalHead , ex:cqDispatchCarriersRowDispatchIntentintentActionSchemaVersion , ex:cqDispatchCarriersRowDispatchIntentintentApprovalRequired , ex:cqDispatchCarriersRowDispatchIntentintentDigest , ex:cqDispatchCarriersRowDispatchIntentintentIdempotency , ex:cqDispatchCarriersRowDispatchIntentintentNormalizedArguments , ex:cqDispatchCarriersRowDispatchIntentintentOfEnactment , ex:cqDispatchCarriersRowDispatchIntentintentOfStep , ex:cqDispatchCarriersRowDispatchIntentintentPolicy , ex:cqDispatchCarriersRowDispatchIntentintentTarget , ex:cqDispatchCarriersRowIdempotencyContractidempotencyDuplicateSemantics , ex:cqDispatchCarriersRowIdempotencyContractidempotencyKey , ex:cqDispatchCarriersRowIdempotencyContractidempotencyProviderEvidence , ex:cqDispatchCarriersRowIdempotencyContractidempotencyRetention , ex:cqDispatchCarriersRowIdempotencyContractidempotencyScope , ex:cqDispatchCarriersRowResourceLeasefencingIdentity , ex:cqDispatchCarriersRowResourceLeaseleaseExpiry , ex:cqDispatchCarriersRowResourceLeaseleaseOwner , ex:cqDispatchCarriersRowResourceLeaseleaseScope  .
+
+ex:cqDispatchCarriersRowArgumentNormalizationnormalizationRecipe a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ArgumentNormalization ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:normalizationRecipe ] .
+ex:cqDispatchCarriersRowDispatchIntentexpectedJournalHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:expectedJournalHead ] .
+ex:cqDispatchCarriersRowDispatchIntentintentActionSchemaVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentActionSchemaVersion ] .
+ex:cqDispatchCarriersRowDispatchIntentintentApprovalRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentApprovalRequired ] .
+ex:cqDispatchCarriersRowDispatchIntentintentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentDigest ] .
+ex:cqDispatchCarriersRowDispatchIntentintentIdempotency a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentIdempotency ] .
+ex:cqDispatchCarriersRowDispatchIntentintentNormalizedArguments a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentNormalizedArguments ] .
+ex:cqDispatchCarriersRowDispatchIntentintentOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentOfEnactment ] .
+ex:cqDispatchCarriersRowDispatchIntentintentOfStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentOfStep ] .
+ex:cqDispatchCarriersRowDispatchIntentintentPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentPolicy ] .
+ex:cqDispatchCarriersRowDispatchIntentintentTarget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DispatchIntent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentTarget ] .
+ex:cqDispatchCarriersRowIdempotencyContractidempotencyDuplicateSemantics a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:IdempotencyContract ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyDuplicateSemantics ] .
+ex:cqDispatchCarriersRowIdempotencyContractidempotencyKey a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:IdempotencyContract ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyKey ] .
+ex:cqDispatchCarriersRowIdempotencyContractidempotencyProviderEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:IdempotencyContract ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyProviderEvidence ] .
+ex:cqDispatchCarriersRowIdempotencyContractidempotencyRetention a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:IdempotencyContract ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyRetention ] .
+ex:cqDispatchCarriersRowIdempotencyContractidempotencyScope a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:IdempotencyContract ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyScope ] .
+ex:cqDispatchCarriersRowResourceLeasefencingIdentity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ResourceLease ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:fencingIdentity ] .
+ex:cqDispatchCarriersRowResourceLeaseleaseExpiry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ResourceLease ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:leaseExpiry ] .
+ex:cqDispatchCarriersRowResourceLeaseleaseOwner a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ResourceLease ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:leaseOwner ] .
+ex:cqDispatchCarriersRowResourceLeaseleaseScope a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ResourceLease ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:leaseScope ] .
+
+ex:cqEffectProtocolCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:EffectAttempt logic:ExternalEffectReceipt logic:CompensationAttempt logic:CompensationOutcome logic:ExternalOutcomeUnknown logic:ReconciliationProbe logic:ReconciliationResult logic:ReconciliationImpossible logic:RetryDispatch logic:ContradictionAdjudication logic:InformationState } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Ten records, and every one of them points back at the attempt it is about. That is the design: an attempt is the only thing an external effect is ever known through, so a receipt, an unknown outcome, a probe, an impossibility, a retry and an adjudication all carry an edge to it rather than to the step or the enactment. Compensation is the exception that proves it — a compensation attempt compensates a RECEIPT, not an attempt, because you can only undo an effect you have evidence actually happened. Pinning these pairs is what stops that one edge being quietly re-pointed at the attempt, which would license compensating an effect that may never have occurred. The information-state axis is in the group because it is the one member that carries a relation on ITSELF rather than an edge into the protocol: knowledge precedence orders the positions, and an axis whose ordering lived only in prose could not be checked against the moves the protocol makes." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqEffectProtocolCarriersRowCompensationAttemptcompensatesEffect , ex:cqEffectProtocolCarriersRowCompensationOutcomecompensationReceipt , ex:cqEffectProtocolCarriersRowCompensationOutcomeoutcomeOfCompensation , ex:cqEffectProtocolCarriersRowInformationStateknowledgePrecedes ,
+        ex:cqEffectProtocolCarriersRowContradictionAdjudicationadjudicatesAttempt , ex:cqEffectProtocolCarriersRowEffectAttemptattemptOfIntent , ex:cqEffectProtocolCarriersRowEffectAttemptproviderCorrelationId , ex:cqEffectProtocolCarriersRowExternalEffectReceiptreceiptEvidence , ex:cqEffectProtocolCarriersRowExternalEffectReceiptreceiptOfAttempt , ex:cqEffectProtocolCarriersRowExternalOutcomeUnknownunknownOfAttempt , ex:cqEffectProtocolCarriersRowReconciliationImpossibleimpossibleOfAttempt , ex:cqEffectProtocolCarriersRowReconciliationProbeprobesAttempt , ex:cqEffectProtocolCarriersRowReconciliationResultreconciliationVerdict , ex:cqEffectProtocolCarriersRowReconciliationResultresultOfProbe , ex:cqEffectProtocolCarriersRowRetryDispatchretryOfAttempt  .
+
+ex:cqEffectProtocolCarriersRowCompensationAttemptcompensatesEffect a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CompensationAttempt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:compensatesEffect ] .
+ex:cqEffectProtocolCarriersRowCompensationOutcomecompensationReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CompensationOutcome ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:compensationReceipt ] .
+ex:cqEffectProtocolCarriersRowCompensationOutcomeoutcomeOfCompensation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CompensationOutcome ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:outcomeOfCompensation ] .
+ex:cqEffectProtocolCarriersRowContradictionAdjudicationadjudicatesAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContradictionAdjudication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:adjudicatesAttempt ] .
+ex:cqEffectProtocolCarriersRowEffectAttemptattemptOfIntent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:EffectAttempt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:attemptOfIntent ] .
+ex:cqEffectProtocolCarriersRowEffectAttemptproviderCorrelationId a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:EffectAttempt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:providerCorrelationId ] .
+ex:cqEffectProtocolCarriersRowExternalEffectReceiptreceiptEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ExternalEffectReceipt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:receiptEvidence ] .
+ex:cqEffectProtocolCarriersRowExternalEffectReceiptreceiptOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ExternalEffectReceipt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:receiptOfAttempt ] .
+ex:cqEffectProtocolCarriersRowExternalOutcomeUnknownunknownOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ExternalOutcomeUnknown ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:unknownOfAttempt ] .
+ex:cqEffectProtocolCarriersRowReconciliationImpossibleimpossibleOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ReconciliationImpossible ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:impossibleOfAttempt ] .
+ex:cqEffectProtocolCarriersRowReconciliationProbeprobesAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ReconciliationProbe ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:probesAttempt ] .
+ex:cqEffectProtocolCarriersRowReconciliationResultreconciliationVerdict a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ReconciliationResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reconciliationVerdict ] .
+ex:cqEffectProtocolCarriersRowReconciliationResultresultOfProbe a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ReconciliationResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:resultOfProbe ] .
+ex:cqEffectProtocolCarriersRowRetryDispatchretryOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RetryDispatch ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:retryOfAttempt ] .
+
+ex:cqRefinementCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:RefinementEpisode logic:RefinementCandidateSet logic:RefinementRejection logic:DecompositionMethod logic:PinnedExecutableSubgraph logic:LivenessCertificate logic:CapabilityGapProposal } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Means-end search, recorded rather than performed silently. An episode carries the step it refines, the goal it serves, the world snapshot it searched, its budget, the decidable fragment it declared itself inside, the candidate set it produced and the pin it selected. A candidate set carries its candidates and its rejections; a rejection carries the candidate, the typed kind and the witness. A method carries its applicability, what it decomposes, its digest, its steps and the ordered sequence it yields; a pin carries the method it instantiates, its authority, its digest and its frozen step sequence. The liveness certificate carries the three things it certifies. A search that recorded only its answer would be an oracle; these carriers are what make it an argument." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRefinementCarriersRowCapabilityGapProposalproposalBlockedStep , ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedEffects , ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedInputs , ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedOutputs , ex:cqRefinementCarriersRowCapabilityGapProposalproposalMissingCapability , ex:cqRefinementCarriersRowCapabilityGapProposalproposalRequiredContract , ex:cqRefinementCarriersRowCapabilityGapProposalproposalSecurityLifecycle , ex:cqRefinementCarriersRowCapabilityGapProposalproposalVerificationMethod , ex:cqRefinementCarriersRowDecompositionMethodmethodApplicability , ex:cqRefinementCarriersRowDecompositionMethodmethodDecomposes , ex:cqRefinementCarriersRowDecompositionMethodmethodDigest , ex:cqRefinementCarriersRowDecompositionMethodmethodStep , ex:cqRefinementCarriersRowDecompositionMethodmethodYieldCell , ex:cqRefinementCarriersRowDecompositionMethodmethodYields , ex:cqRefinementCarriersRowLivenessCertificatecertifiesDeadlockFreedom , ex:cqRefinementCarriersRowLivenessCertificatecertifiesNoOrphanIntent , ex:cqRefinementCarriersRowLivenessCertificatecertifiesReachability , ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinAuthority , ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinDigest , ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinInstantiatesMethod , ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinnedStepSequence , ex:cqRefinementCarriersRowRefinementCandidateSethasRejection , ex:cqRefinementCarriersRowRefinementCandidateSetrefinementCandidate , ex:cqRefinementCarriersRowRefinementEpisodeproducedCandidateSet , ex:cqRefinementCarriersRowRefinementEpisoderefinementBudget , ex:cqRefinementCarriersRowRefinementEpisoderefinementServesGoal , ex:cqRefinementCarriersRowRefinementEpisoderefinementWorldSnapshot , ex:cqRefinementCarriersRowRefinementEpisoderefinesStep , ex:cqRefinementCarriersRowRefinementEpisodesearchFragment , ex:cqRefinementCarriersRowRefinementEpisodeselectedPin , ex:cqRefinementCarriersRowRefinementRejectionrejectedCandidate , ex:cqRefinementCarriersRowRefinementRejectionrejectionKind , ex:cqRefinementCarriersRowRefinementRejectionrejectionWitness  .
+
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalBlockedStep ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedEffects a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedEffects ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedInputs a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedInputs ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalExpectedOutputs a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedOutputs ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalMissingCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalMissingCapability ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalRequiredContract a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalRequiredContract ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalSecurityLifecycle a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalSecurityLifecycle ] .
+ex:cqRefinementCarriersRowCapabilityGapProposalproposalVerificationMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CapabilityGapProposal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalVerificationMethod ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodApplicability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodApplicability ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodDecomposes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodDecomposes ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodDigest ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodStep ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodYieldCell a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodYieldCell ] .
+ex:cqRefinementCarriersRowDecompositionMethodmethodYields a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DecompositionMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodYields ] .
+ex:cqRefinementCarriersRowLivenessCertificatecertifiesDeadlockFreedom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:LivenessCertificate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:certifiesDeadlockFreedom ] .
+ex:cqRefinementCarriersRowLivenessCertificatecertifiesNoOrphanIntent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:LivenessCertificate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:certifiesNoOrphanIntent ] .
+ex:cqRefinementCarriersRowLivenessCertificatecertifiesReachability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:LivenessCertificate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:certifiesReachability ] .
+ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinAuthority a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PinnedExecutableSubgraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinAuthority ] .
+ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PinnedExecutableSubgraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinDigest ] .
+ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PinnedExecutableSubgraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinInstantiatesMethod ] .
+ex:cqRefinementCarriersRowPinnedExecutableSubgraphpinnedStepSequence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PinnedExecutableSubgraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinnedStepSequence ] .
+ex:cqRefinementCarriersRowRefinementCandidateSethasRejection a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementCandidateSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasRejection ] .
+ex:cqRefinementCarriersRowRefinementCandidateSetrefinementCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementCandidateSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidate ] .
+ex:cqRefinementCarriersRowRefinementEpisodeproducedCandidateSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:producedCandidateSet ] .
+ex:cqRefinementCarriersRowRefinementEpisoderefinementBudget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementBudget ] .
+ex:cqRefinementCarriersRowRefinementEpisoderefinementServesGoal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementServesGoal ] .
+ex:cqRefinementCarriersRowRefinementEpisoderefinementWorldSnapshot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementWorldSnapshot ] .
+ex:cqRefinementCarriersRowRefinementEpisoderefinesStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinesStep ] .
+ex:cqRefinementCarriersRowRefinementEpisodesearchFragment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:searchFragment ] .
+ex:cqRefinementCarriersRowRefinementEpisodeselectedPin a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementEpisode ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:selectedPin ] .
+ex:cqRefinementCarriersRowRefinementRejectionrejectedCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementRejection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rejectedCandidate ] .
+ex:cqRefinementCarriersRowRefinementRejectionrejectionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementRejection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rejectionKind ] .
+ex:cqRefinementCarriersRowRefinementRejectionrejectionWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RefinementRejection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rejectionWitness ] .
+
+ex:cqPrescriptionCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:PrescriptionVersion logic:PriorEnactmentRequirement logic:RevisionLens logic:ContextAssembly logic:PreparationStep logic:PreparationReceipt } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "What is enacted, what must have happened first, how a revision is allowed to move, and what context the run was assembled from. A prescription version carries the prescription it is of and its content digest, which is what makes enactment reference a frozen artifact rather than a moving one. A prior-enactment requirement carries the prescription required and the state it must have reached. A revision lens carries what it governs and its two round-trip laws — and the two laws are separate carriers precisely because a lens can satisfy one and fail the other. Context assembly carries what it included, what it excluded, the reason for each exclusion, the guidance version and the enactment; preparation carries the step and its receipt." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqPrescriptionCarriersRowContextAssemblyassemblyExcluded , ex:cqPrescriptionCarriersRowContextAssemblyassemblyExclusionReason , ex:cqPrescriptionCarriersRowContextAssemblyassemblyForEnactment , ex:cqPrescriptionCarriersRowContextAssemblyassemblyGuidanceVersion , ex:cqPrescriptionCarriersRowContextAssemblyassemblyIncluded , ex:cqPrescriptionCarriersRowPreparationReceiptreceiptOfPreparation , ex:cqPrescriptionCarriersRowPreparationSteppreparationActivity , ex:cqPrescriptionCarriersRowPreparationSteppreparationOf , ex:cqPrescriptionCarriersRowPrescriptionVersionprescriptionDigest , ex:cqPrescriptionCarriersRowPrescriptionVersionprescriptionOf , ex:cqPrescriptionCarriersRowPriorEnactmentRequirementrequiredPriorPrescription , ex:cqPrescriptionCarriersRowPriorEnactmentRequirementrequiredPriorState , ex:cqPrescriptionCarriersRowRevisionLenslensGetPutHolds , ex:cqPrescriptionCarriersRowRevisionLenslensGoverns , ex:cqPrescriptionCarriersRowRevisionLenslensPutGetHolds  .
+
+ex:cqPrescriptionCarriersRowContextAssemblyassemblyExcluded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContextAssembly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyExcluded ] .
+ex:cqPrescriptionCarriersRowContextAssemblyassemblyExclusionReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContextAssembly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyExclusionReason ] .
+ex:cqPrescriptionCarriersRowContextAssemblyassemblyForEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContextAssembly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyForEnactment ] .
+ex:cqPrescriptionCarriersRowContextAssemblyassemblyGuidanceVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContextAssembly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyGuidanceVersion ] .
+ex:cqPrescriptionCarriersRowContextAssemblyassemblyIncluded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ContextAssembly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyIncluded ] .
+ex:cqPrescriptionCarriersRowPreparationReceiptreceiptOfPreparation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PreparationReceipt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:receiptOfPreparation ] .
+ex:cqPrescriptionCarriersRowPreparationSteppreparationActivity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PreparationStep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:preparationActivity ] .
+ex:cqPrescriptionCarriersRowPreparationSteppreparationOf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PreparationStep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:preparationOf ] .
+ex:cqPrescriptionCarriersRowPrescriptionVersionprescriptionDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PrescriptionVersion ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionDigest ] .
+ex:cqPrescriptionCarriersRowPrescriptionVersionprescriptionOf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PrescriptionVersion ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionOf ] .
+ex:cqPrescriptionCarriersRowPriorEnactmentRequirementrequiredPriorPrescription a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PriorEnactmentRequirement ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:requiredPriorPrescription ] .
+ex:cqPrescriptionCarriersRowPriorEnactmentRequirementrequiredPriorState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:PriorEnactmentRequirement ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:requiredPriorState ] .
+ex:cqPrescriptionCarriersRowRevisionLenslensGetPutHolds a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RevisionLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lensGetPutHolds ] .
+ex:cqPrescriptionCarriersRowRevisionLenslensGoverns a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RevisionLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lensGoverns ] .
+ex:cqPrescriptionCarriersRowRevisionLenslensPutGetHolds a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:RevisionLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lensPutGetHolds ] .
+
+ex:cqRecoveryCarriers a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?record ?term WHERE { VALUES ?record { logic:EnactmentCheckpoint logic:StepCheckpoint logic:CheckpointRestore logic:EnactmentCohort logic:ClockAttribution logic:DeadlineConsumption logic:AxisTransitionLaw logic:OperationalCapabilityGap } ?term rdfs:domain ?record } ORDER BY ?record ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Recovery, cohorts, clocks, deadlines and the transition laws they are checked against. A checkpoint carries the enactment or step it is of and its recovery witness; a restore carries the checkpoint it restores, the enactment it restores into and the descriptor hash that proves the two match. That hash is the carrier the whole record turns on: without it a restore is indistinguishable from a rematerialization that merely looks similar. An axis transition law carries the axis it governs and the transitions it admits, which is what lets deadlock-freedom be proved over an axis rather than asserted about it." ;
+    gmeow:cqResultShape ex:cqRecordCarriersShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRecoveryCarriersRowAxisTransitionLawlawAdmits , ex:cqRecoveryCarriersRowAxisTransitionLawlawGovernsAxis , ex:cqRecoveryCarriersRowCheckpointRestorerestoreDescriptorHash , ex:cqRecoveryCarriersRowCheckpointRestorerestoreOfEnactment , ex:cqRecoveryCarriersRowCheckpointRestorerestoresCheckpoint , ex:cqRecoveryCarriersRowClockAttributionclockObservedAt , ex:cqRecoveryCarriersRowClockAttributionclockSource , ex:cqRecoveryCarriersRowDeadlineConsumptiondeadlineExhausted , ex:cqRecoveryCarriersRowDeadlineConsumptiondeadlineOfEnactment , ex:cqRecoveryCarriersRowEnactmentCheckpointcheckpointOfEnactment , ex:cqRecoveryCarriersRowEnactmentCheckpointrecoveryWitness , ex:cqRecoveryCarriersRowEnactmentCohortcohortMember , ex:cqRecoveryCarriersRowOperationalCapabilityGapgapBlockedStep , ex:cqRecoveryCarriersRowStepCheckpointcheckpointOfStep  .
+
+ex:cqRecoveryCarriersRowAxisTransitionLawlawAdmits a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:AxisTransitionLaw ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lawAdmits ] .
+ex:cqRecoveryCarriersRowAxisTransitionLawlawGovernsAxis a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:AxisTransitionLaw ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lawGovernsAxis ] .
+ex:cqRecoveryCarriersRowCheckpointRestorerestoreDescriptorHash a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CheckpointRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoreDescriptorHash ] .
+ex:cqRecoveryCarriersRowCheckpointRestorerestoreOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CheckpointRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoreOfEnactment ] .
+ex:cqRecoveryCarriersRowCheckpointRestorerestoresCheckpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:CheckpointRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoresCheckpoint ] .
+ex:cqRecoveryCarriersRowClockAttributionclockObservedAt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ClockAttribution ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:clockObservedAt ] .
+ex:cqRecoveryCarriersRowClockAttributionclockSource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:ClockAttribution ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:clockSource ] .
+ex:cqRecoveryCarriersRowDeadlineConsumptiondeadlineExhausted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DeadlineConsumption ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:deadlineExhausted ] .
+ex:cqRecoveryCarriersRowDeadlineConsumptiondeadlineOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:DeadlineConsumption ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:deadlineOfEnactment ] .
+ex:cqRecoveryCarriersRowEnactmentCheckpointcheckpointOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:EnactmentCheckpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointOfEnactment ] .
+ex:cqRecoveryCarriersRowEnactmentCheckpointrecoveryWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:EnactmentCheckpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:recoveryWitness ] .
+ex:cqRecoveryCarriersRowEnactmentCohortcohortMember a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:EnactmentCohort ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:cohortMember ] .
+ex:cqRecoveryCarriersRowOperationalCapabilityGapgapBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:OperationalCapabilityGap ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:gapBlockedStep ] .
+ex:cqRecoveryCarriersRowStepCheckpointcheckpointOfStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:StepCheckpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointOfStep ] .
+
+ex:cqRefinementRelations a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT ?term WHERE { ?term a owl:ObjectProperty . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/refinement\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The refinement surface is eleven relations, and the roster is what makes means-end search inspectable rather than an evaluator private note. Four of them are the typed rejections, one per gate; two are the one-step expansion and its transitive closure, kept apart because a constraint about immediate decomposition must not range over the whole tree and because a self-edge in the closure is the decomposition cycle no budget increase repairs; the rest carry the budget, the goal served, the world snapshot searched, the candidate and the method it instantiates. Pinning all eleven stops a twelfth appearing without the reader ever being told the surface grew." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRefinementRelationsRowrefinementBudget , ex:cqRefinementRelationsRowrefinementCandidate , ex:cqRefinementRelationsRowrefinementCandidateMethod , ex:cqRefinementRelationsRowrefinementExpands , ex:cqRefinementRelationsRowrefinementReaches , ex:cqRefinementRelationsRowrefinementRejectedOnApproval , ex:cqRefinementRelationsRowrefinementRejectedOnCapability , ex:cqRefinementRelationsRowrefinementRejectedOnPrecondition , ex:cqRefinementRelationsRowrefinementRejectedOnResource , ex:cqRefinementRelationsRowrefinementServesGoal , ex:cqRefinementRelationsRowrefinementWorldSnapshot  .
+
+ex:cqRefinementRelationsRowrefinementBudget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementBudget ] .
+ex:cqRefinementRelationsRowrefinementCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidate ] .
+ex:cqRefinementRelationsRowrefinementCandidateMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidateMethod ] .
+ex:cqRefinementRelationsRowrefinementExpands a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementExpands ] .
+ex:cqRefinementRelationsRowrefinementReaches a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementReaches ] .
+ex:cqRefinementRelationsRowrefinementRejectedOnApproval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnApproval ] .
+ex:cqRefinementRelationsRowrefinementRejectedOnCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnCapability ] .
+ex:cqRefinementRelationsRowrefinementRejectedOnPrecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnPrecondition ] .
+ex:cqRefinementRelationsRowrefinementRejectedOnResource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnResource ] .
+ex:cqRefinementRelationsRowrefinementServesGoal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementServesGoal ] .
+ex:cqRefinementRelationsRowrefinementWorldSnapshot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementWorldSnapshot ] .
+
+ex:cqCheckpointDescriptorDigests a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT ?term WHERE { ?term a owl:DatatypeProperty . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/checkpoint\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A checkpoint is only restorable if the world it is restored into is the world it was taken from, and the seven component digests are what make that checkable: the data, the rule set, the slice set, the engine, the contract, the annotations and the fragment. The eighth entry is the composite descriptor hash they roll up into. Enumerating the components rather than shipping only the composite is the whole design — a single opaque hash tells a reader that something changed, and these tell them WHICH thing changed, which is the difference between a restore that can be repaired and one that can only be abandoned." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqCheckpointDescriptorDigestsRowcheckpointAnnotationDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointContractDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointDataDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointDescriptorHash , ex:cqCheckpointDescriptorDigestsRowcheckpointEngineDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointFragmentDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointRulesDigest , ex:cqCheckpointDescriptorDigestsRowcheckpointSliceDigest  .
+
+ex:cqCheckpointDescriptorDigestsRowcheckpointAnnotationDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointAnnotationDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointContractDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointContractDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointDataDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointDataDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointDescriptorHash a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointDescriptorHash ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointEngineDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointEngineDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointFragmentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointFragmentDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointRulesDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointRulesDigest ] .
+ex:cqCheckpointDescriptorDigestsRowcheckpointSliceDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointSliceDigest ] .
+
+ex:cqAttemptReferents a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?term WHERE { ?term rdfs:range logic:EffectAttempt } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Seven relations point back at an effect attempt, and that convergence is the protocol design rather than an accident of naming. An attempt is the only handle an external effect is ever known through, so the receipt that settles it, the unknown outcome that fails to, the probe that interrogates it, the impossibility that forecloses it, the retry that repeats it, the licence that permits the retry and the adjudication that resolves a contradiction about it all target the ATTEMPT and not the step or the enactment. Pin the set and a new recovery record cannot be added that hangs off the step instead, which is how an effect ends up with two recovery stories that never meet." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqAttemptReferentsRowadjudicatesAttempt , ex:cqAttemptReferentsRowimpossibleOfAttempt , ex:cqAttemptReferentsRowlicenceCoversAttempt , ex:cqAttemptReferentsRowprobesAttempt , ex:cqAttemptReferentsRowreceiptOfAttempt , ex:cqAttemptReferentsRowretryOfAttempt , ex:cqAttemptReferentsRowunknownOfAttempt  .
+
+ex:cqAttemptReferentsRowadjudicatesAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:adjudicatesAttempt ] .
+ex:cqAttemptReferentsRowimpossibleOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:impossibleOfAttempt ] .
+ex:cqAttemptReferentsRowlicenceCoversAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:licenceCoversAttempt ] .
+ex:cqAttemptReferentsRowprobesAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:probesAttempt ] .
+ex:cqAttemptReferentsRowreceiptOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:receiptOfAttempt ] .
+ex:cqAttemptReferentsRowretryOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:retryOfAttempt ] .
+ex:cqAttemptReferentsRowunknownOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:unknownOfAttempt ] .
+
+ex:cqLogicFailureClasses a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT DISTINCT ?term WHERE { ?c gmeow:enforcesFailureClass ?term . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Every constraint in the slice declares the failure class it enforces, and this reads the seven classes back off those declarations rather than off a hand-kept list. That direction is the point: a class nobody enforces would silently drop out of this roster, and a constraint that enforced a class the slice never declared would silently add to it. Enactment integrity is the largest of the seven and covers the fencing, digest, licence and journal laws together, because they all fail the same way — a run whose record no longer describes what happened." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqLogicFailureClassesRowEnactmentIntegrityViolation , ex:cqLogicFailureClassesRowIncompleteClosure , ex:cqLogicFailureClassesRowSectionObligationViolated , ex:cqLogicFailureClassesRowUncertifiedChase , ex:cqLogicFailureClassesRowUnentrenchedCounterfactual , ex:cqLogicFailureClassesRowUnwiredFlagshipScenario , ex:cqLogicFailureClassesRowUnwitnessedRefutation  .
+
+ex:cqLogicFailureClassesRowEnactmentIntegrityViolation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:EnactmentIntegrityViolation ] .
+ex:cqLogicFailureClassesRowIncompleteClosure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:IncompleteClosure ] .
+ex:cqLogicFailureClassesRowSectionObligationViolated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:SectionObligationViolated ] .
+ex:cqLogicFailureClassesRowUncertifiedChase a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UncertifiedChase ] .
+ex:cqLogicFailureClassesRowUnentrenchedCounterfactual a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnentrenchedCounterfactual ] .
+ex:cqLogicFailureClassesRowUnwiredFlagshipScenario a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnwiredFlagshipScenario ] .
+ex:cqLogicFailureClassesRowUnwitnessedRefutation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:UnwitnessedRefutation ] .
+
+ex:cqLawReadPredicates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT DISTINCT ?term WHERE { ?f logic:relation ?term . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The slice ships its laws as logic:Formula abstract syntax rather than as prose or as hand-written SHACL, and the consequence is that the predicates those laws READ are queryable. This question asks for them, and its value is the gap it exposes: a kernel predicate absent from this roster is carried by records and read by nobody, which is either a law that was never written or a field that never mattered. Pinning the set exactly turns both directions into failures — deleting a law silently shrinks it, and adding an atom over a predicate the kernel does not declare silently grows it. The filter keeps the answer to logic-owned predicates; laws that read a gmeow: or math: predicate are that slice.s question to ask." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqLawReadPredicatesRowapprovalDecision , ex:cqLawReadPredicatesRowapprovalEnactment , ex:cqLawReadPredicatesRowapprovalIntentDigest , ex:cqLawReadPredicatesRowapprovalOperator , ex:cqLawReadPredicatesRowapprovalPolicy , ex:cqLawReadPredicatesRowapprovalValidityWindow , ex:cqLawReadPredicatesRowassemblyExcluded , ex:cqLawReadPredicatesRowassemblyExclusionReason , ex:cqLawReadPredicatesRowassemblyForEnactment , ex:cqLawReadPredicatesRowassemblyGuidanceVersion , ex:cqLawReadPredicatesRowassemblyIncluded , ex:cqLawReadPredicatesRowcheckpointDescriptorHash , ex:cqLawReadPredicatesRowcheckpointOfEnactment , ex:cqLawReadPredicatesRowclockSource , ex:cqLawReadPredicatesRowCollection , ex:cqLawReadPredicatesRowcompensatesEffect , ex:cqLawReadPredicatesRowcompensationReceipt , ex:cqLawReadPredicatesRowconjectureLifecycleState , ex:cqLawReadPredicatesRowconjectureRefutationWitness , ex:cqLawReadPredicatesRowconsumedBudget , ex:cqLawReadPredicatesRowcontinuationKind , ex:cqLawReadPredicatesRowderivationIdentifier , ex:cqLawReadPredicatesRowdirectType , ex:cqLawReadPredicatesRowenactedPrescriptionDigest , ex:cqLawReadPredicatesRowenactmentInputSnapshot , ex:cqLawReadPredicatesRowenactsPrescriptionVersion , ex:cqLawReadPredicatesRowevaluatedAgainst , ex:cqLawReadPredicatesRowevaluatesGoal , ex:cqLawReadPredicatesRowexpectedJournalHead , ex:cqLawReadPredicatesRowexpressivenessBoundary , ex:cqLawReadPredicatesRowfencingIdentity , ex:cqLawReadPredicatesRowfreshnessWindow , ex:cqLawReadPredicatesRowfreshnessWindowEnd , ex:cqLawReadPredicatesRowfreshnessWindowStart , ex:cqLawReadPredicatesRowfrontierSaturationWitness , ex:cqLawReadPredicatesRowFunctionalComplex , ex:cqLawReadPredicatesRowgapBlockedStep , ex:cqLawReadPredicatesRowgoalEvaluationStatus , ex:cqLawReadPredicatesRowgoalExpressionKind , ex:cqLawReadPredicatesRowhasGoalCondition , ex:cqLawReadPredicatesRowidempotencyDuplicateSemantics , ex:cqLawReadPredicatesRowidempotencyKey , ex:cqLawReadPredicatesRowidempotencyProviderEvidence , ex:cqLawReadPredicatesRowidempotencyRetention , ex:cqLawReadPredicatesRowidempotencyScope , ex:cqLawReadPredicatesRowintentActionSchemaVersion , ex:cqLawReadPredicatesRowintentApprovalRequired , ex:cqLawReadPredicatesRowintentDigest , ex:cqLawReadPredicatesRowintentNormalizedArguments , ex:cqLawReadPredicatesRowintentOfEnactment , ex:cqLawReadPredicatesRowintentOfStep , ex:cqLawReadPredicatesRowintentPolicy , ex:cqLawReadPredicatesRowintentTarget , ex:cqLawReadPredicatesRowjournalNewHead , ex:cqLawReadPredicatesRowjournalPredecessor , ex:cqLawReadPredicatesRowjournalPrevHead , ex:cqLawReadPredicatesRowleaseScope , ex:cqLawReadPredicatesRowlicenceCoversAttempt , ex:cqLawReadPredicatesRowlinkVia , ex:cqLawReadPredicatesRowmethodYields , ex:cqLawReadPredicatesRowmnemomorphic , ex:cqLawReadPredicatesRowObject , ex:cqLawReadPredicatesRowoutcomeOfCompensation , ex:cqLawReadPredicatesRowpinAuthority , ex:cqLawReadPredicatesRowpinDigest , ex:cqLawReadPredicatesRowpinInstantiatesMethod , ex:cqLawReadPredicatesRowpinnedStepSequence , ex:cqLawReadPredicatesRowprescriptionDigest , ex:cqLawReadPredicatesRowpreservationKind , ex:cqLawReadPredicatesRowprobability , ex:cqLawReadPredicatesRowprobabilityModel , ex:cqLawReadPredicatesRowproducedCandidateSet , ex:cqLawReadPredicatesRowproofEstablishes , ex:cqLawReadPredicatesRowproposalBlockedStep , ex:cqLawReadPredicatesRowproposalExpectedEffects , ex:cqLawReadPredicatesRowproposalExpectedInputs , ex:cqLawReadPredicatesRowproposalExpectedOutputs , ex:cqLawReadPredicatesRowproposalMissingCapability , ex:cqLawReadPredicatesRowproposalRequiredContract , ex:cqLawReadPredicatesRowproposalSecurityLifecycle , ex:cqLawReadPredicatesRowproposalVerificationMethod , ex:cqLawReadPredicatesRowQuantity , ex:cqLawReadPredicatesRowreceiptOfAttempt , ex:cqLawReadPredicatesRowreconciliationVerdict , ex:cqLawReadPredicatesRowrecoveryTransform , ex:cqLawReadPredicatesRowreferenceFrame , ex:cqLawReadPredicatesRowrefinementCandidate , ex:cqLawReadPredicatesRowrestoreDescriptorHash , ex:cqLawReadPredicatesRowrestoreOfEnactment , ex:cqLawReadPredicatesRowrestoresCheckpoint , ex:cqLawReadPredicatesRowresultEvaluation , ex:cqLawReadPredicatesRowretryLicence , ex:cqLawReadPredicatesRowretryOfAttempt , ex:cqLawReadPredicatesRowsatisfactionStatus , ex:cqLawReadPredicatesRowscopeExclusiveHolder , ex:cqLawReadPredicatesRowsearchFragment , ex:cqLawReadPredicatesRowselectedPin , ex:cqLawReadPredicatesRowsettledPredicate , ex:cqLawReadPredicatesRowsourceEndpoint , ex:cqLawReadPredicatesRowsparqlTarget , ex:cqLawReadPredicatesRowsubClassOf , ex:cqLawReadPredicatesRowtargetEndpoint , ex:cqLawReadPredicatesRowtermDistinct , ex:cqLawReadPredicatesRowtermEqual , ex:cqLawReadPredicatesRowtermGreater , ex:cqLawReadPredicatesRowtermGreaterEqual , ex:cqLawReadPredicatesRowtermHasLang , ex:cqLawReadPredicatesRowtermIn , ex:cqLawReadPredicatesRowtermIsIri , ex:cqLawReadPredicatesRowtermIsLiteral , ex:cqLawReadPredicatesRowtermLangMatches , ex:cqLawReadPredicatesRowtermLess , ex:cqLawReadPredicatesRowtermLessEqual , ex:cqLawReadPredicatesRowtermRegex , ex:cqLawReadPredicatesRowtermStrStarts , ex:cqLawReadPredicatesRowtermSum , ex:cqLawReadPredicatesRowtransitiveReach , ex:cqLawReadPredicatesRowunit , ex:cqLawReadPredicatesRowunknownOfAttempt  .
+
+ex:cqLawReadPredicatesRowapprovalDecision a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalDecision ] .
+ex:cqLawReadPredicatesRowapprovalEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalEnactment ] .
+ex:cqLawReadPredicatesRowapprovalIntentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalIntentDigest ] .
+ex:cqLawReadPredicatesRowapprovalOperator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalOperator ] .
+ex:cqLawReadPredicatesRowapprovalPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalPolicy ] .
+ex:cqLawReadPredicatesRowapprovalValidityWindow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:approvalValidityWindow ] .
+ex:cqLawReadPredicatesRowassemblyExcluded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyExcluded ] .
+ex:cqLawReadPredicatesRowassemblyExclusionReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyExclusionReason ] .
+ex:cqLawReadPredicatesRowassemblyForEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyForEnactment ] .
+ex:cqLawReadPredicatesRowassemblyGuidanceVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyGuidanceVersion ] .
+ex:cqLawReadPredicatesRowassemblyIncluded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assemblyIncluded ] .
+ex:cqLawReadPredicatesRowcheckpointDescriptorHash a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointDescriptorHash ] .
+ex:cqLawReadPredicatesRowcheckpointOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:checkpointOfEnactment ] .
+ex:cqLawReadPredicatesRowclockSource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:clockSource ] .
+ex:cqLawReadPredicatesRowCollection a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Collection ] .
+ex:cqLawReadPredicatesRowcompensatesEffect a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:compensatesEffect ] .
+ex:cqLawReadPredicatesRowcompensationReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:compensationReceipt ] .
+ex:cqLawReadPredicatesRowconjectureLifecycleState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:conjectureLifecycleState ] .
+ex:cqLawReadPredicatesRowconjectureRefutationWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:conjectureRefutationWitness ] .
+ex:cqLawReadPredicatesRowconsumedBudget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:consumedBudget ] .
+ex:cqLawReadPredicatesRowcontinuationKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:continuationKind ] .
+ex:cqLawReadPredicatesRowderivationIdentifier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:derivationIdentifier ] .
+ex:cqLawReadPredicatesRowdirectType a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:directType ] .
+ex:cqLawReadPredicatesRowenactedPrescriptionDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactedPrescriptionDigest ] .
+ex:cqLawReadPredicatesRowenactmentInputSnapshot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactmentInputSnapshot ] .
+ex:cqLawReadPredicatesRowenactsPrescriptionVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:enactsPrescriptionVersion ] .
+ex:cqLawReadPredicatesRowevaluatedAgainst a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:evaluatedAgainst ] .
+ex:cqLawReadPredicatesRowevaluatesGoal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:evaluatesGoal ] .
+ex:cqLawReadPredicatesRowexpectedJournalHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:expectedJournalHead ] .
+ex:cqLawReadPredicatesRowexpressivenessBoundary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:expressivenessBoundary ] .
+ex:cqLawReadPredicatesRowfencingIdentity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:fencingIdentity ] .
+ex:cqLawReadPredicatesRowfreshnessWindow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:freshnessWindow ] .
+ex:cqLawReadPredicatesRowfreshnessWindowEnd a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:freshnessWindowEnd ] .
+ex:cqLawReadPredicatesRowfreshnessWindowStart a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:freshnessWindowStart ] .
+ex:cqLawReadPredicatesRowfrontierSaturationWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:frontierSaturationWitness ] .
+ex:cqLawReadPredicatesRowFunctionalComplex a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FunctionalComplex ] .
+ex:cqLawReadPredicatesRowgapBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:gapBlockedStep ] .
+ex:cqLawReadPredicatesRowgoalEvaluationStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:goalEvaluationStatus ] .
+ex:cqLawReadPredicatesRowgoalExpressionKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:goalExpressionKind ] .
+ex:cqLawReadPredicatesRowhasGoalCondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasGoalCondition ] .
+ex:cqLawReadPredicatesRowidempotencyDuplicateSemantics a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyDuplicateSemantics ] .
+ex:cqLawReadPredicatesRowidempotencyKey a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyKey ] .
+ex:cqLawReadPredicatesRowidempotencyProviderEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyProviderEvidence ] .
+ex:cqLawReadPredicatesRowidempotencyRetention a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyRetention ] .
+ex:cqLawReadPredicatesRowidempotencyScope a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:idempotencyScope ] .
+ex:cqLawReadPredicatesRowintentActionSchemaVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentActionSchemaVersion ] .
+ex:cqLawReadPredicatesRowintentApprovalRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentApprovalRequired ] .
+ex:cqLawReadPredicatesRowintentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentDigest ] .
+ex:cqLawReadPredicatesRowintentNormalizedArguments a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentNormalizedArguments ] .
+ex:cqLawReadPredicatesRowintentOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentOfEnactment ] .
+ex:cqLawReadPredicatesRowintentOfStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentOfStep ] .
+ex:cqLawReadPredicatesRowintentPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentPolicy ] .
+ex:cqLawReadPredicatesRowintentTarget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:intentTarget ] .
+ex:cqLawReadPredicatesRowjournalNewHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalNewHead ] .
+ex:cqLawReadPredicatesRowjournalPredecessor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalPredecessor ] .
+ex:cqLawReadPredicatesRowjournalPrevHead a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:journalPrevHead ] .
+ex:cqLawReadPredicatesRowleaseScope a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:leaseScope ] .
+ex:cqLawReadPredicatesRowlicenceCoversAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:licenceCoversAttempt ] .
+ex:cqLawReadPredicatesRowlinkVia a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:linkVia ] .
+ex:cqLawReadPredicatesRowmethodYields a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodYields ] .
+ex:cqLawReadPredicatesRowmnemomorphic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:mnemomorphic ] .
+ex:cqLawReadPredicatesRowObject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Object ] .
+ex:cqLawReadPredicatesRowoutcomeOfCompensation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:outcomeOfCompensation ] .
+ex:cqLawReadPredicatesRowpinAuthority a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinAuthority ] .
+ex:cqLawReadPredicatesRowpinDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinDigest ] .
+ex:cqLawReadPredicatesRowpinInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinInstantiatesMethod ] .
+ex:cqLawReadPredicatesRowpinnedStepSequence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinnedStepSequence ] .
+ex:cqLawReadPredicatesRowprescriptionDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:prescriptionDigest ] .
+ex:cqLawReadPredicatesRowpreservationKind a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:preservationKind ] .
+ex:cqLawReadPredicatesRowprobability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:probability ] .
+ex:cqLawReadPredicatesRowprobabilityModel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:probabilityModel ] .
+ex:cqLawReadPredicatesRowproducedCandidateSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:producedCandidateSet ] .
+ex:cqLawReadPredicatesRowproofEstablishes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proofEstablishes ] .
+ex:cqLawReadPredicatesRowproposalBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalBlockedStep ] .
+ex:cqLawReadPredicatesRowproposalExpectedEffects a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedEffects ] .
+ex:cqLawReadPredicatesRowproposalExpectedInputs a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedInputs ] .
+ex:cqLawReadPredicatesRowproposalExpectedOutputs a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalExpectedOutputs ] .
+ex:cqLawReadPredicatesRowproposalMissingCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalMissingCapability ] .
+ex:cqLawReadPredicatesRowproposalRequiredContract a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalRequiredContract ] .
+ex:cqLawReadPredicatesRowproposalSecurityLifecycle a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalSecurityLifecycle ] .
+ex:cqLawReadPredicatesRowproposalVerificationMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalVerificationMethod ] .
+ex:cqLawReadPredicatesRowQuantity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Quantity ] .
+ex:cqLawReadPredicatesRowreceiptOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:receiptOfAttempt ] .
+ex:cqLawReadPredicatesRowreconciliationVerdict a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reconciliationVerdict ] .
+ex:cqLawReadPredicatesRowrecoveryTransform a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:recoveryTransform ] .
+ex:cqLawReadPredicatesRowreferenceFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:referenceFrame ] .
+ex:cqLawReadPredicatesRowrefinementCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidate ] .
+ex:cqLawReadPredicatesRowrestoreDescriptorHash a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoreDescriptorHash ] .
+ex:cqLawReadPredicatesRowrestoreOfEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoreOfEnactment ] .
+ex:cqLawReadPredicatesRowrestoresCheckpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:restoresCheckpoint ] .
+ex:cqLawReadPredicatesRowresultEvaluation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:resultEvaluation ] .
+ex:cqLawReadPredicatesRowretryLicence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:retryLicence ] .
+ex:cqLawReadPredicatesRowretryOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:retryOfAttempt ] .
+ex:cqLawReadPredicatesRowsatisfactionStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:satisfactionStatus ] .
+ex:cqLawReadPredicatesRowscopeExclusiveHolder a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:scopeExclusiveHolder ] .
+ex:cqLawReadPredicatesRowsearchFragment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:searchFragment ] .
+ex:cqLawReadPredicatesRowselectedPin a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:selectedPin ] .
+ex:cqLawReadPredicatesRowsettledPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:settledPredicate ] .
+ex:cqLawReadPredicatesRowsourceEndpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sourceEndpoint ] .
+ex:cqLawReadPredicatesRowsparqlTarget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sparqlTarget ] .
+ex:cqLawReadPredicatesRowsubClassOf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:subClassOf ] .
+ex:cqLawReadPredicatesRowtargetEndpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:targetEndpoint ] .
+ex:cqLawReadPredicatesRowtermDistinct a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termDistinct ] .
+ex:cqLawReadPredicatesRowtermEqual a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termEqual ] .
+ex:cqLawReadPredicatesRowtermGreater a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termGreater ] .
+ex:cqLawReadPredicatesRowtermGreaterEqual a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termGreaterEqual ] .
+ex:cqLawReadPredicatesRowtermHasLang a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termHasLang ] .
+ex:cqLawReadPredicatesRowtermIn a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termIn ] .
+ex:cqLawReadPredicatesRowtermIsIri a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termIsIri ] .
+ex:cqLawReadPredicatesRowtermIsLiteral a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termIsLiteral ] .
+ex:cqLawReadPredicatesRowtermLangMatches a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termLangMatches ] .
+ex:cqLawReadPredicatesRowtermLess a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termLess ] .
+ex:cqLawReadPredicatesRowtermLessEqual a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termLessEqual ] .
+ex:cqLawReadPredicatesRowtermRegex a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termRegex ] .
+ex:cqLawReadPredicatesRowtermStrStarts a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termStrStarts ] .
+ex:cqLawReadPredicatesRowtermSum a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termSum ] .
+ex:cqLawReadPredicatesRowtransitiveReach a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:transitiveReach ] .
+ex:cqLawReadPredicatesRowunit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:unit ] .
+ex:cqLawReadPredicatesRowunknownOfAttempt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:unknownOfAttempt ] .
+
+ex:cqRuleAtomPredicates a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?term WHERE { ?atom rdf:predicate ?term . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The derivation rules are data too, and their head and body atoms name predicates in the rdf:predicate position. This roster is therefore the answer to what the kernel actually DERIVES as opposed to what it merely constrains: a predicate here is written or read by a rule, and the frontier label, axis witness and refinement rejection predicates dominate the list for exactly that reason. Read against the law-predicate roster it makes a real distinction visible — a predicate constrained but never derived must be asserted by an author, and a predicate derived but never constrained is produced under no check at all." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRuleAtomPredicatesRowassessedAgent , ex:cqRuleAtomPredicatesRowassessmentDimension , ex:cqRuleAtomPredicatesRowassessmentLevel , ex:cqRuleAtomPredicatesRowassessmentSubject , ex:cqRuleAtomPredicatesRowentryAction , ex:cqRuleAtomPredicatesRowentryAwaits , ex:cqRuleAtomPredicatesRowentryAxisWitness , ex:cqRuleAtomPredicatesRowentryExcludes , ex:cqRuleAtomPredicatesRowentryLabel , ex:cqRuleAtomPredicatesRowgapBlockedStep , ex:cqRuleAtomPredicatesRowgateVerdict , ex:cqRuleAtomPredicatesRowhasThresholdRow , ex:cqRuleAtomPredicatesRowleaseScope , ex:cqRuleAtomPredicatesRowlevelAtOrAbove , ex:cqRuleAtomPredicatesRowmethodDecomposes , ex:cqRuleAtomPredicatesRowmethodStep , ex:cqRuleAtomPredicatesRowmethodYieldCell , ex:cqRuleAtomPredicatesRowmethodYields , ex:cqRuleAtomPredicatesRowprecondition , ex:cqRuleAtomPredicatesRowprobesSchema , ex:cqRuleAtomPredicatesRowprojectsLadderEdge , ex:cqRuleAtomPredicatesRowproposalBlockedStep , ex:cqRuleAtomPredicatesRowproposalMissingCapability , ex:cqRuleAtomPredicatesRowrefinementCandidateMethod , ex:cqRuleAtomPredicatesRowrefinementExpands , ex:cqRuleAtomPredicatesRowrefinementReaches , ex:cqRuleAtomPredicatesRowrefinementRejectedOnApproval , ex:cqRuleAtomPredicatesRowrefinementRejectedOnCapability , ex:cqRuleAtomPredicatesRowrefinementRejectedOnPrecondition , ex:cqRuleAtomPredicatesRowrefinementRejectedOnResource , ex:cqRuleAtomPredicatesRowskipReason , ex:cqRuleAtomPredicatesRowsourceDimension , ex:cqRuleAtomPredicatesRowthresholdLevel , ex:cqRuleAtomPredicatesRowcandidateInstantiatesMethod , ex:cqRuleAtomPredicatesRowcontestedByAttribution , ex:cqRuleAtomPredicatesRowmethodDigest , ex:cqRuleAtomPredicatesRowpinAuthority , ex:cqRuleAtomPredicatesRowpinDigest , ex:cqRuleAtomPredicatesRowpinInstantiatesMethod , ex:cqRuleAtomPredicatesRowpinnedStepSequence , ex:cqRuleAtomPredicatesRowproducedCandidateSet , ex:cqRuleAtomPredicatesRowproofEstablishes , ex:cqRuleAtomPredicatesRowrefinementCandidate , ex:cqRuleAtomPredicatesRowreifiedStatementObject , ex:cqRuleAtomPredicatesRowreifiedStatementPredicate , ex:cqRuleAtomPredicatesRowreifiedStatementSubject , ex:cqRuleAtomPredicatesRowselectedPin  .
+
+ex:cqRuleAtomPredicatesRowassessedAgent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assessedAgent ] .
+ex:cqRuleAtomPredicatesRowassessmentDimension a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assessmentDimension ] .
+ex:cqRuleAtomPredicatesRowassessmentLevel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assessmentLevel ] .
+ex:cqRuleAtomPredicatesRowassessmentSubject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:assessmentSubject ] .
+ex:cqRuleAtomPredicatesRowentryAction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAction ] .
+ex:cqRuleAtomPredicatesRowentryAwaits a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAwaits ] .
+ex:cqRuleAtomPredicatesRowentryAxisWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryAxisWitness ] .
+ex:cqRuleAtomPredicatesRowentryExcludes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryExcludes ] .
+ex:cqRuleAtomPredicatesRowentryLabel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entryLabel ] .
+ex:cqRuleAtomPredicatesRowgapBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:gapBlockedStep ] .
+ex:cqRuleAtomPredicatesRowgateVerdict a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:gateVerdict ] .
+ex:cqRuleAtomPredicatesRowhasThresholdRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasThresholdRow ] .
+ex:cqRuleAtomPredicatesRowleaseScope a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:leaseScope ] .
+ex:cqRuleAtomPredicatesRowlevelAtOrAbove a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:levelAtOrAbove ] .
+ex:cqRuleAtomPredicatesRowmethodDecomposes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodDecomposes ] .
+ex:cqRuleAtomPredicatesRowmethodStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodStep ] .
+ex:cqRuleAtomPredicatesRowmethodYieldCell a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodYieldCell ] .
+ex:cqRuleAtomPredicatesRowmethodYields a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodYields ] .
+ex:cqRuleAtomPredicatesRowprecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:precondition ] .
+ex:cqRuleAtomPredicatesRowprobesSchema a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:probesSchema ] .
+ex:cqRuleAtomPredicatesRowprojectsLadderEdge a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:projectsLadderEdge ] .
+ex:cqRuleAtomPredicatesRowproposalBlockedStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalBlockedStep ] .
+ex:cqRuleAtomPredicatesRowproposalMissingCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proposalMissingCapability ] .
+ex:cqRuleAtomPredicatesRowrefinementCandidateMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidateMethod ] .
+ex:cqRuleAtomPredicatesRowrefinementExpands a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementExpands ] .
+ex:cqRuleAtomPredicatesRowrefinementReaches a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementReaches ] .
+ex:cqRuleAtomPredicatesRowrefinementRejectedOnApproval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnApproval ] .
+ex:cqRuleAtomPredicatesRowrefinementRejectedOnCapability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnCapability ] .
+ex:cqRuleAtomPredicatesRowrefinementRejectedOnPrecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnPrecondition ] .
+ex:cqRuleAtomPredicatesRowrefinementRejectedOnResource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementRejectedOnResource ] .
+ex:cqRuleAtomPredicatesRowskipReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:skipReason ] .
+ex:cqRuleAtomPredicatesRowsourceDimension a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sourceDimension ] .
+ex:cqRuleAtomPredicatesRowthresholdLevel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:thresholdLevel ] .
+ex:cqRuleAtomPredicatesRowcandidateInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:candidateInstantiatesMethod ] .
+ex:cqRuleAtomPredicatesRowcontestedByAttribution a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contestedByAttribution ] .
+ex:cqRuleAtomPredicatesRowmethodDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodDigest ] .
+ex:cqRuleAtomPredicatesRowpinAuthority a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinAuthority ] .
+ex:cqRuleAtomPredicatesRowpinDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinDigest ] .
+ex:cqRuleAtomPredicatesRowpinInstantiatesMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinInstantiatesMethod ] .
+ex:cqRuleAtomPredicatesRowpinnedStepSequence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:pinnedStepSequence ] .
+ex:cqRuleAtomPredicatesRowproducedCandidateSet a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:producedCandidateSet ] .
+ex:cqRuleAtomPredicatesRowproofEstablishes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:proofEstablishes ] .
+ex:cqRuleAtomPredicatesRowrefinementCandidate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:refinementCandidate ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementObject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementObject ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementPredicate ] .
+ex:cqRuleAtomPredicatesRowreifiedStatementSubject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reifiedStatementSubject ] .
+ex:cqRuleAtomPredicatesRowselectedPin a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:selectedPin ] .
+
+ex:cqEffectProtocolCarriersRowInformationStateknowledgePrecedes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri logic:InformationState ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:knowledgePrecedes ] .
+
+# --- The relations that point at the kernel's own law objects ----------------
+ex:cqLawObjectReferentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "lawKind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqLawObjectReferents a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?lawKind ?term WHERE { VALUES ?lawKind { logic:Constraint logic:Formula } ?term rdfs:range ?lawKind } ORDER BY ?lawKind ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Laws are data in this slice, so relations can point AT them, and this roster is what that buys. Seventeen relations reach a formula — the connectives and quantifiers that build one, plus the four that attach a finished formula to something that uses it: a constraint's integrity condition, an axis transition law's admitted relation, a method's applicability guard and a reasoning program's query. Exactly ONE relation reaches a constraint, and that asymmetry is the point: a formula is a reusable term, whereas a constraint is a named enforcement, so the only edge that needs to name one is the violation record saying which law it breached. A second such relation would let one violation blame two laws with no way to say which check actually failed." ;
+    gmeow:cqResultShape ex:cqLawObjectReferentsShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqLawObjectReferentsRowConstraintviolatedLaw , ex:cqLawObjectReferentsRowFormulaand , ex:cqLawObjectReferentsRowFormulaantecedent , ex:cqLawObjectReferentsRowFormulaclause , ex:cqLawObjectReferentsRowFormulacompletenessFormula , ex:cqLawObjectReferentsRowFormulaconsequent , ex:cqLawObjectReferentsRowFormulaexists , ex:cqLawObjectReferentsRowFormulaforall , ex:cqLawObjectReferentsRowFormulahasFormula , ex:cqLawObjectReferentsRowFormulaiff , ex:cqLawObjectReferentsRowFormulaintegrity , ex:cqLawObjectReferentsRowFormulalawAdmits , ex:cqLawObjectReferentsRowFormulamethodApplicability , ex:cqLawObjectReferentsRowFormulanot , ex:cqLawObjectReferentsRowFormulaor , ex:cqLawObjectReferentsRowFormulaprogramQuery , ex:cqLawObjectReferentsRowFormularecoveryTransform , ex:cqLawObjectReferentsRowFormulaverdictProbe  .
+
+ex:cqLawObjectReferentsRowConstraintviolatedLaw a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Constraint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:violatedLaw ] .
+ex:cqLawObjectReferentsRowFormulaand a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:and ] .
+ex:cqLawObjectReferentsRowFormulaantecedent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:antecedent ] .
+ex:cqLawObjectReferentsRowFormulaclause a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:clause ] .
+ex:cqLawObjectReferentsRowFormulacompletenessFormula a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:completenessFormula ] .
+ex:cqLawObjectReferentsRowFormulaconsequent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:consequent ] .
+ex:cqLawObjectReferentsRowFormulaexists a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:exists ] .
+ex:cqLawObjectReferentsRowFormulaforall a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:forall ] .
+ex:cqLawObjectReferentsRowFormulahasFormula a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasFormula ] .
+ex:cqLawObjectReferentsRowFormulaiff a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:iff ] .
+ex:cqLawObjectReferentsRowFormulaintegrity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:integrity ] .
+ex:cqLawObjectReferentsRowFormulalawAdmits a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:lawAdmits ] .
+ex:cqLawObjectReferentsRowFormulamethodApplicability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:methodApplicability ] .
+ex:cqLawObjectReferentsRowFormulanot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:not ] .
+ex:cqLawObjectReferentsRowFormulaor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:or ] .
+ex:cqLawObjectReferentsRowFormulaprogramQuery a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:programQuery ] .
+ex:cqLawObjectReferentsRowFormularecoveryTransform a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:recoveryTransform ] .
+ex:cqLawObjectReferentsRowFormulaverdictProbe a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:verdictProbe ] .
+
+# --- The retained withholds, as a roster ------------------------------------ #
+#
+# The dual of every decided-fragment roster above: not what the kernel decides but
+# what it deliberately declines to. These four records are the ONLY honest
+# withholds the logic slice ships, and the reason the roster is pinned EXACTLY is
+# that both directions of drift are silent failures. A withhold that disappears
+# turns a documented limitation into an undocumented one, and a withhold that
+# arrives unannounced lets a capability be dropped with a record that reads like it
+# was always missing. The Rust twin (crates/logic/src/reason/refute.rs,
+# retained_boundaries) is checked against these records in both directions, so this
+# roster is also what keeps the engine's own registry and the shipped ontology from
+# describing two different kernels.
+
+ex:cqRetainedBoundaries a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT DISTINCT ?term WHERE { ?term logic:expressivenessBoundary ?position . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Four constructs the kernel does not decide, each carrying a technical reason rather than an apology. Three are classical DL boundaries — an XSD regular-expression facet, an n-ary role composition, an existential entangled with a cardinality bound — and the fourth is the residue of the RDF 1.2 statement-metadata lowering, which is the one an operator is most likely to meet: flat statement metadata IS reasoned over, so a blanket disclaimer about triple terms would now be false, and a nested triple term is the narrow case that genuinely is not lowered. Pinning the roster exactly is what makes both directions of drift visible: a withhold that vanishes turns a documented limitation into an undocumented one, and a withhold that appears unannounced lets a capability be dropped behind a record that reads as though it was never there." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqRetainedBoundariesRowEntangled , ex:cqRetainedBoundariesRowNestedTripleTerm , ex:cqRetainedBoundariesRowNonBinaryChain , ex:cqRetainedBoundariesRowXsdPattern .
+
+ex:cqRetainedBoundariesRowEntangled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:entangled-existential-cardinality ] .
+ex:cqRetainedBoundariesRowNestedTripleTerm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:rdf12-nested-triple-term ] .
+ex:cqRetainedBoundariesRowNonBinaryChain a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:non-binary-property-chain ] .
+ex:cqRetainedBoundariesRowXsdPattern a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:xsd-pattern-facet ] .

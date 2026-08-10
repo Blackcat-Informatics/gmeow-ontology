@@ -16,29 +16,31 @@
 # refusals (dialects, cl-imports, sequence markers) are recorded on
 # gmeow:mapsetCommonLogic in dsl/mappings/mapping-sets.ttl.
 
-gmeow:eqCommonLogic001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:CommonLogicProjection ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q5153563 ;
-    logic:sourceEndpoint logic:CommonLogicProjection ; logic:targetEndpoint wd:Q5153563 ;
+logic:CommonLogicProjection skos:closeMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "logic:CommonLogicProjection is the projection target that renders an answer onto the ISO/IEC 24707 Common Logic surface; wd:Q5153563 (Common Logic) is the framework it targets. closeMatch, not equivalence: the projection target is a standing rendering request over the canonical logic: IR, not the CL framework itself." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:CommonLogicProjection ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqCommonLogic002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:Module ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q5153563 ;
-    logic:sourceEndpoint logic:Module ; logic:targetEndpoint wd:Q5153563 ;
+logic:Module skos:relatedMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "logic:Module is the Common Logic theory/module construct onto which the ingested and emitted CLIF, CGIF, and XCL (module …) and (cl-imports …) forms map; relatedMatch to wd:Q5153563 (Common Logic) — a component construct of the framework, not the framework as a whole. No stable external entity names a CL module/text on its own." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:Module ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
 # External correctness-corpus verdict alignment: the community-decided ground-truth
 # vocabularies the external corpora carry are subsumed by reference (Principle 5 — real
@@ -52,57 +54,61 @@ gmeow:eqCommonLogic002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 # refusal and licence note are recorded on gmeow:mapsetConformanceCorpus in
 # dsl/mappings/mapping-sets.ttl.
 
-gmeow:eqConfCorpus001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:ConfInconsistent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
-    logic:sourceEndpoint logic:ConfInconsistent ; logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
+logic:ConfInconsistent skos:closeMatch <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "PositiveEntailment" ;
     gmeow:comment "The W3C «PositiveEntailment» test kind: the conclusion IS entailed by the premises. Its community-decided ground-truth outcome is logic:ConfInconsistent (the negated-conclusion reduction is unsatisfiable). closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:ConfInconsistent ;
+    logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqConfCorpus002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:ConfConsistent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
-    logic:sourceEndpoint logic:ConfConsistent ; logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
+logic:ConfConsistent skos:closeMatch <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "NegativeEntailment" ;
     gmeow:comment "The W3C «NegativeEntailment» test kind: the conclusion is NOT entailed. Its ground-truth outcome is logic:ConfConsistent (a counter-model exists). closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:ConfConsistent ;
+    logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqConfCorpus003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:ConfInconsistent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
-    logic:sourceEndpoint logic:ConfInconsistent ; logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
+logic:ConfInconsistent skos:closeMatch <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "InconsistencyTest" ;
     gmeow:comment "The OWL «InconsistencyTest» test kind: the ontology is expected to be inconsistent. Its ground-truth outcome is logic:ConfInconsistent. closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:ConfInconsistent ;
+    logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqConfCorpus004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:ConfConsistent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
-    logic:sourceEndpoint logic:ConfConsistent ; logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
+logic:ConfConsistent skos:closeMatch <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "ConsistencyTest" ;
     gmeow:comment "The OWL «ConsistencyTest» test kind: the ontology is expected to be consistent. Its ground-truth outcome is logic:ConfConsistent. closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:ConfConsistent ;
+    logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
 # Logic glyph-plane external alignment: the newly minted turnstile, DL concept,
 # and modal operators face published formal standards with no RDF namespace, so —
@@ -118,80 +124,86 @@ gmeow:eqConfCorpus004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 # carry no external row: like the FOL connectives they are internal canon — the
 # Belnap values are grounded internally by logic:realizedAsVerdict.
 
-gmeow:eqLogicGlyph001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:derives ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q5153563 ;
-    logic:sourceEndpoint logic:derives ; logic:targetEndpoint wd:Q5153563 ;
+logic:derives skos:relatedMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "Common Logic" ;
     gmeow:comment "logic:derives is the syntactic derivability turnstile ⊢ (provability in a calculus). ISO/IEC 24707 Common Logic (wd:Q5153563) fixes the model-theoretic semantics against which a calculus's derivability is judged sound and complete, keeping ⊢ strictly distinct from the semantic logic:entails (⊨). relatedMatch — a proof-theoretic component notion of the framework, not the framework as a whole." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:derives ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqLogicGlyph002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:entails ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q5153563 ;
-    logic:sourceEndpoint logic:entails ; logic:targetEndpoint wd:Q5153563 ;
+logic:entails skos:relatedMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "Common Logic" ;
     gmeow:comment "logic:entails is the semantic entailment turnstile ⊨ (truth in every model). ISO/IEC 24707 Common Logic (wd:Q5153563) defines exactly this model-theoretic entailment, which a sound and complete calculus's logic:derives (⊢) then matches — the two remaining strictly distinct relations. relatedMatch — a model-theoretic component notion of the framework, not the framework as a whole." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:entails ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqLogicGlyph003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:conceptIntersection ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q387196 ;
-    logic:sourceEndpoint logic:conceptIntersection ; logic:targetEndpoint wd:Q387196 ;
+logic:conceptIntersection skos:relatedMatch wd:Q387196 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "description logic" ;
     gmeow:comment "logic:conceptIntersection is the Description Logic concept-conjunction constructor ⊓ (Concept × Concept → Concept). The Description Logic Handbook fixes its extensional intersection semantics; wd:Q387196 (description logic) is the family it belongs to. relatedMatch — one constructor of the DL family, not the family itself, and distinct from the sentence connective logic:and." ;
-    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:conceptIntersection ;
+    logic:targetEndpoint wd:Q387196 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqLogicGlyph004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:conceptUnion ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q387196 ;
-    logic:sourceEndpoint logic:conceptUnion ; logic:targetEndpoint wd:Q387196 ;
+logic:conceptUnion skos:relatedMatch wd:Q387196 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "description logic" ;
     gmeow:comment "logic:conceptUnion is the Description Logic concept-disjunction constructor ⊔ (Concept × Concept → Concept). The Description Logic Handbook fixes its extensional union semantics; wd:Q387196 (description logic) is the family it belongs to. relatedMatch — one constructor of the DL family, not the family itself, and distinct from the sentence connective logic:or." ;
-    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:conceptUnion ;
+    logic:targetEndpoint wd:Q387196 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqLogicGlyph005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:necessarily ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q2462350 ;
-    logic:sourceEndpoint logic:necessarily ; logic:targetEndpoint wd:Q2462350 ;
+logic:necessarily skos:relatedMatch wd:Q2462350 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "Kripke semantics" ;
     gmeow:comment "logic:necessarily is the box modality □, truth in every accessible context of the typed relation named on logic:overAccessibility. Standard Kripke standard-translation semantics (wd:Q2462350) fixes its reading over an accessibility relation. relatedMatch — the standard translation of one modal operator, evaluated over a named typed relation rather than the bare accessibility union, and distinct from the standpoint claim-modal-force register." ;
-    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:necessarily ;
+    logic:targetEndpoint wd:Q2462350 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-gmeow:eqLogicGlyph006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:possibly ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q2462350 ;
-    logic:sourceEndpoint logic:possibly ; logic:targetEndpoint wd:Q2462350 ;
+logic:possibly skos:relatedMatch wd:Q2462350 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "Kripke semantics" ;
     gmeow:comment "logic:possibly is the diamond modality ◇, truth in some accessible context of the typed relation named on logic:overAccessibility — the dual of logic:necessarily. Standard Kripke standard-translation semantics (wd:Q2462350) fixes its reading over an accessibility relation. relatedMatch — the standard translation of one modal operator, evaluated over a named typed relation rather than the bare accessibility union, and distinct from the standpoint claim-modal-force register." ;
-    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
-    logic:preservationKind logic:ValidationOnly .
+    logic:sourceEndpoint logic:possibly ;
+    logic:targetEndpoint wd:Q2462350 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .

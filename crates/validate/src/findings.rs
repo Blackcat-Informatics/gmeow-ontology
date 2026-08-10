@@ -15,6 +15,8 @@
 //! RDF projection, and the content-addressed cache all anchor to the same
 //! position inside a bundle.
 
+use std::collections::BTreeMap;
+
 use gmeow_errors::code::register_code;
 use gmeow_errors::diag::{Diag, Label};
 use gmeow_errors::grade::{Grade, Standpoint};
@@ -22,6 +24,94 @@ use gmeow_errors::model::FindingCategory;
 use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
 use purrdf::shapes::term::Term;
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+
+/// `gmeow:enforcesFailureClass` — the predicate a law (a `logic:Constraint`, an
+/// OWL/RDFS restriction, or the shape either derives to) carries to name the TYPED
+/// conformance-failure class it raises.
+pub const GMEOW_ENFORCES_FAILURE_CLASS: &str =
+    "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+
+/// The `sh:NodeShape IRI → gmeow:enforcesFailureClass IRI` index a SHACL result is
+/// resolved against, so the emitted [`Finding`] can NAME the typed failure the
+/// violated law declares instead of only the generic constraint-component code.
+///
+/// The derive pipeline projects `gmeow:enforcesFailureClass` directly onto the
+/// generated shape node itself — the SAME IRI a SHACL engine reports as a violation's
+/// `sh:sourceShape` — for `logic:Constraint`-derived procedural shapes and
+/// OWL-restriction-derived validation shapes alike, so one scan over the shapes graph
+/// reaches every annotated shape whichever derive path produced it. Nothing here is
+/// keyed on a namespace: a shape carrying the annotation names its class, and one that
+/// does not carries no class (an honest absence, never fabricated).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct FailureClassIndex {
+    by_shape: BTreeMap<String, String>,
+}
+
+impl FailureClassIndex {
+    /// The empty index — a SHACL run whose shapes graph is not available names no
+    /// failure class. Used only where there is genuinely no shapes graph to read.
+    #[must_use]
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Scan a parsed shapes graph for every `?shape gmeow:enforcesFailureClass ?class`
+    /// triple with an IRI subject and object.
+    ///
+    /// A shape carrying two distinct classes is rejected upstream by the derive
+    /// frontend (`logic:Constraint {iri} has distinct gmeow:enforcesFailureClass
+    /// values`), so this keeps the lexicographic minimum purely to stay a total,
+    /// scan-order-independent function rather than to paper over that conflict.
+    #[must_use]
+    pub fn from_shapes_dataset(ds: &RdfDataset) -> Self {
+        let mut by_shape: BTreeMap<String, String> = BTreeMap::new();
+        let Some(enforces) = ds.term_id_by_value(&TermValue::iri(GMEOW_ENFORCES_FAILURE_CLASS))
+        else {
+            return Self { by_shape };
+        };
+        for quad in ds.quads_for_pattern(None, Some(enforces), None, GraphMatch::Any) {
+            let (TermRef::Iri(shape), TermRef::Iri(class)) =
+                (ds.resolve(quad.s), ds.resolve(quad.o))
+            else {
+                continue;
+            };
+            by_shape
+                .entry(shape.to_owned())
+                .and_modify(|resident| {
+                    if class < resident.as_str() {
+                        *resident = class.to_owned();
+                    }
+                })
+                .or_insert_with(|| class.to_owned());
+        }
+        Self { by_shape }
+    }
+
+    /// The typed failure class the shape at `shape_iri` declares, if any.
+    #[must_use]
+    pub fn for_shape(&self, shape_iri: &str) -> Option<&str> {
+        self.by_shape.get(shape_iri).map(String::as_str)
+    }
+
+    /// The typed failure class a SHACL result's `sh:sourceShape` declares, if any.
+    #[must_use]
+    pub fn for_result(&self, result: &ValidationResult) -> Option<&str> {
+        self.for_shape(strip_angle(&result.source_shape.to_string()))
+    }
+
+    /// Whether the index resolved no shape at all.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.by_shape.is_empty()
+    }
+
+    /// How many shapes declare a failure class.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.by_shape.len()
+    }
+}
 
 /// Normalize a SHACL [`ShaclSeverity`] to the canonical diagnostics [`Severity`].
 ///
@@ -84,7 +174,13 @@ fn documented_constrained_property(result: &ValidationResult) -> Option<&str> {
 /// offending value become related locations; the source shape rides in the
 /// detail field. The code is `shacl.<ConstraintComponentLocalName>` so SARIF
 /// rules stay stable and short.
-pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
+///
+/// `classes` resolves the violated shape to the TYPED conformance-failure class it
+/// declares (`gmeow:enforcesFailureClass`), which rides onto
+/// [`Finding::failure_class`]. The component code alone cannot name it — every
+/// cardinality gate in the ontology reports `shacl.MinCountConstraintComponent` —
+/// so without this join the authored class never reaches a consumer at all.
+pub fn finding_from_shacl(result: &ValidationResult, classes: &FailureClassIndex) -> Finding {
     let code = format!(
         "{}{}",
         crate::codes::SHACL_FAMILY,
@@ -124,6 +220,11 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
     // location. Absent for node-level / complex-path constraints (honest absence).
     if let Some(property) = documented_constrained_property(result) {
         finding.documented_terms.push(property.to_owned());
+    }
+    // The TYPED failure class the violated shape declares — the specific failure the
+    // generic component code cannot name. Absent when the shape declares none.
+    if let Some(class) = classes.for_result(result) {
+        finding.failure_class = Some(class.to_owned());
     }
     finding
 }
@@ -166,7 +267,10 @@ fn standpoint_from_shacl(severity: Severity) -> Standpoint {
 ///
 /// SHACL violations are independent (no antecedent DAG among them), so the built diag
 /// carries no antecedents — anchor + grade only.
-pub fn diag_from_shacl(result: &ValidationResult) -> Diag {
+///
+/// `classes` supplies the same shape → `gmeow:enforcesFailureClass` join
+/// [`finding_from_shacl`] performs, so both bridges name the typed failure identically.
+pub fn diag_from_shacl(result: &ValidationResult, classes: &FailureClassIndex) -> Diag {
     let code = format!(
         "{}{}",
         crate::codes::SHACL_FAMILY,
@@ -217,6 +321,11 @@ pub fn diag_from_shacl(result: &ValidationResult) -> Diag {
     if let Some(property) = documented_constrained_property(result) {
         diag = diag.with_documented_term(property.to_owned());
     }
+    // The TYPED failure class the violated shape declares. Payload, not an identity
+    // field, so the witness's blake3 fingerprint / anchor are unchanged.
+    if let Some(class) = classes.for_result(result) {
+        diag = diag.with_failure_class(class.to_owned());
+    }
     diag
 }
 
@@ -245,7 +354,7 @@ mod tests {
             attributions: vec![],
         };
 
-        let finding = finding_from_shacl(&result);
+        let finding = finding_from_shacl(&result, &FailureClassIndex::empty());
 
         assert_eq!(finding.severity, Severity::Error);
         assert_eq!(finding.code, "shacl.MinCountConstraintComponent");
@@ -280,11 +389,19 @@ mod tests {
         // single constrained property, so no documented term is fabricated.
         let mut result = min_count_result("https://ex/a");
         result.result_path = None;
-        assert!(finding_from_shacl(&result).documented_terms.is_empty());
+        assert!(
+            finding_from_shacl(&result, &FailureClassIndex::empty())
+                .documented_terms
+                .is_empty()
+        );
         // Same honest absence when the path is a complex (blank-node) property path.
         let mut complex = min_count_result("https://ex/a");
         complex.result_path = Some(Term::BlankNode("b0".to_owned()));
-        assert!(finding_from_shacl(&complex).documented_terms.is_empty());
+        assert!(
+            finding_from_shacl(&complex, &FailureClassIndex::empty())
+                .documented_terms
+                .is_empty()
+        );
     }
 
     fn min_count_result(focus: &str) -> ValidationResult {
@@ -316,7 +433,10 @@ mod tests {
         // an `sh:Violation` is a Binding DataShapeViolation (the gate-fatal up-set leg).
         let mut ledger = DiagLedger::new();
         ledger.attach(
-            diag_from_shacl(&min_count_result("https://ex/a")),
+            diag_from_shacl(
+                &min_count_result("https://ex/a"),
+                &FailureClassIndex::empty(),
+            ),
             StageId::new("stage-validate"),
         );
         let findings = ledger.findings("shacl");
@@ -375,15 +495,111 @@ mod tests {
         // and their code-blind anchor IRIs differ (the join key is per-focus).
         let mut ledger = DiagLedger::new();
         ledger.attach(
-            diag_from_shacl(&min_count_result("https://ex/a")),
+            diag_from_shacl(
+                &min_count_result("https://ex/a"),
+                &FailureClassIndex::empty(),
+            ),
             StageId::new("stage-validate"),
         );
         ledger.attach(
-            diag_from_shacl(&min_count_result("https://ex/b")),
+            diag_from_shacl(
+                &min_count_result("https://ex/b"),
+                &FailureClassIndex::empty(),
+            ),
             StageId::new("stage-validate"),
         );
         let findings = ledger.findings("shacl");
         assert_eq!(findings.len(), 2, "distinct foci → distinct witnesses");
         assert_ne!(findings[0].anchor_iri, findings[1].anchor_iri);
+    }
+
+    /// A shapes graph in which one node shape declares a typed failure class and a
+    /// second, otherwise-identical shape declares none.
+    fn shapes_with_failure_class() -> std::sync::Arc<purrdf::RdfDataset> {
+        purrdf::parse_dataset(
+            concat!(
+                "<https://ex/shape> ",
+                "<https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ",
+                "<https://ex/UntypedFreeVariable> .\n",
+                "<https://ex/unannotated> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
+                "<http://www.w3.org/ns/shacl#NodeShape> .\n"
+            )
+            .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .expect("shapes fixture parses")
+    }
+
+    #[test]
+    fn the_violated_shapes_typed_failure_class_reaches_the_finding() {
+        // F1: the shipped surface must NAME the failure. The component code is generic —
+        // every cardinality gate in the ontology reports MinCountConstraintComponent —
+        // so a consumer reading only `code` + `detail` cannot tell WHICH authored law
+        // fired. The class is on the shape the engine already names as `sh:sourceShape`;
+        // before this join it was parsed and then dropped on the floor.
+        let classes = FailureClassIndex::from_shapes_dataset(&shapes_with_failure_class());
+        assert_eq!(classes.len(), 1);
+        let finding = finding_from_shacl(&min_count_result("https://ex/a"), &classes);
+        assert_eq!(
+            finding.failure_class.as_deref(),
+            Some("https://ex/UntypedFreeVariable")
+        );
+    }
+
+    #[test]
+    fn a_shape_declaring_no_failure_class_names_none() {
+        // Honest absence, never fabricated: an unannotated shape's violation carries no
+        // class rather than a guessed one.
+        let classes = FailureClassIndex::from_shapes_dataset(&shapes_with_failure_class());
+        let mut result = min_count_result("https://ex/a");
+        result.source_shape = Term::NamedNode(NamedNode::new_unchecked("https://ex/unannotated"));
+        assert_eq!(finding_from_shacl(&result, &classes).failure_class, None);
+    }
+
+    #[test]
+    fn the_failure_class_survives_the_ledger_projection() {
+        // The pipeline and the `--deep`/data paths route SHACL results through the
+        // DiagLedger rather than hand-building findings, so the class must ride the
+        // witness node too — otherwise the class reaches only ONE of the two bridges and
+        // the surface a consumer actually hits depends on which entry point ran.
+        let classes = FailureClassIndex::from_shapes_dataset(&shapes_with_failure_class());
+        let mut ledger = DiagLedger::new();
+        ledger.attach(
+            diag_from_shacl(&min_count_result("https://ex/a"), &classes),
+            StageId::new("stage-validate"),
+        );
+        let findings = ledger.findings("shacl");
+        assert_eq!(findings.len(), 1);
+        assert_eq!(
+            findings[0].failure_class.as_deref(),
+            Some("https://ex/UntypedFreeVariable")
+        );
+    }
+
+    #[test]
+    fn the_failure_class_is_payload_not_identity() {
+        // Naming the class must not perturb the witness's content address: the same
+        // violation with and without a resolvable class is the SAME witness, so the
+        // blake3 finding IRI and the code-blind anchor are unchanged.
+        let classes = FailureClassIndex::from_shapes_dataset(&shapes_with_failure_class());
+        let mut with_class = DiagLedger::new();
+        with_class.attach(
+            diag_from_shacl(&min_count_result("https://ex/a"), &classes),
+            StageId::new("stage-validate"),
+        );
+        let mut without_class = DiagLedger::new();
+        without_class.attach(
+            diag_from_shacl(
+                &min_count_result("https://ex/a"),
+                &FailureClassIndex::empty(),
+            ),
+            StageId::new("stage-validate"),
+        );
+        let a = &with_class.findings("shacl")[0];
+        let b = &without_class.findings("shacl")[0];
+        assert_eq!(a.finding_iri, b.finding_iri);
+        assert_eq!(a.anchor_iri, b.anchor_iri);
+        assert_ne!(a.failure_class, b.failure_class);
     }
 }

@@ -1,0 +1,170 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: notation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationSystemOf is functional"
+msgstr "notationSystemOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationSystemOf est fonctionnelle : un gmeow:NotationProjectionProfile décrit exactement un système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageInterval is functional"
+msgstr "notationUsageInterval est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageInterval est fonctionnelle : un relateur gmeow:NotationSystemUsage vaut sur exactement un intervalle de temps, et un intervalle différent constitue un épisode d'usage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageNotationSystem is functional"
+msgstr "notationUsageNotationSystem est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageNotationSystem est fonctionnelle : un gmeow:NotationSystemUsage enregistre l'usage d'exactement un système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageRole is functional"
+msgstr "notationUsageRole est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageRole est fonctionnelle : un gmeow:NotationSystemUsage joue exactement un rôle (transcription, encodage, représentation, communication, expression, sténographie, ou chiffrement), et un rôle différent constitue un usage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageTarget is functional"
+msgstr "notationUsageTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageTarget est fonctionnelle : un gmeow:NotationSystemUsage a exactement une entité cible qui utilise le système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:notationSystemOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:notationSystemOf nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationSystemOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:notationSystemOf, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notationSystemOfFunctionality logic:characterizes gmeow:notationSystemOf ."
+msgstr "gmeow:notationSystemOfFunctionality logic:characterizes gmeow:notationSystemOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:notationUsageInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:notationUsageInterval nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageInterval, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:notationUsageInterval, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notationUsageIntervalFunctionality logic:characterizes gmeow:notationUsageInterval ."
+msgstr "gmeow:notationUsageIntervalFunctionality logic:characterizes gmeow:notationUsageInterval ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:notationUsageNotationSystem names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:notationUsageNotationSystem nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageNotationSystem, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:notationUsageNotationSystem, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notationUsageNotationSystemFunctionality logic:characterizes gmeow:notationUsageNotationSystem ."
+msgstr "gmeow:notationUsageNotationSystemFunctionality logic:characterizes gmeow:notationUsageNotationSystem ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:notationUsageRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:notationUsageRole nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:notationUsageRole, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notationUsageRoleFunctionality logic:characterizes gmeow:notationUsageRole ."
+msgstr "gmeow:notationUsageRoleFunctionality logic:characterizes gmeow:notationUsageRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:notationUsageTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:notationUsageTarget nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:notationUsageTarget, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notationUsageTargetFunctionality logic:characterizes gmeow:notationUsageTarget ."
+msgstr "gmeow:notationUsageTargetFunctionality logic:characterizes gmeow:notationUsageTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:notationSystemOf and nothing else. It is not a definition of gmeow:notationSystemOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationSystemOf, et rien d'autre. Ce n'est pas une définition de gmeow:notationSystemOf (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageInterval and nothing else. It is not a definition of gmeow:notationUsageInterval (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationUsageInterval, et rien d'autre. Ce n'est pas une définition de gmeow:notationUsageInterval (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageNotationSystem and nothing else. It is not a definition of gmeow:notationUsageNotationSystem (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationUsageNotationSystem, et rien d'autre. Ce n'est pas une définition de gmeow:notationUsageNotationSystem (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageRole and nothing else. It is not a definition of gmeow:notationUsageRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationUsageRole, et rien d'autre. Ce n'est pas une définition de gmeow:notationUsageRole (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageTarget and nothing else. It is not a definition of gmeow:notationUsageTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:notationUsageTarget, et rien d'autre. Ce n'est pas une définition de gmeow:notationUsageTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SMuFL codepoint pattern constraint"
+msgstr "contrainte de motif des points de code SMuFL"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:smuflCodepoint value matches the SMuFL Unicode-codepoint pattern U+HHHH(HH)."
+msgstr "Une contrainte d'intégrité en monde clos : chaque valeur de gmeow:smuflCodepoint respecte le motif de point de code Unicode SMuFL U+HHHH(HH)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notation projection profile loss-or-parameter constraint"
+msgstr "contrainte « perte ou paramètre » d'un profil de projection de notation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:NotationProjectionProfile must declare at least one gmeow:representableParameter or one gmeow:declaredLoss."
+msgstr "Une contrainte d'obligation en monde clos : un gmeow:NotationProjectionProfile doit déclarer au moins un gmeow:representableParameter ou une gmeow:declaredLoss."

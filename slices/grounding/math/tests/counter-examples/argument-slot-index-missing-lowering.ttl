@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::ArgumentSlotMissingIndex): a
+# math:ApplicationExpression root whose one math:ArgumentSlot names a
+# math:slotExpression but no math:slotIndex at all. Distinct from
+# tests/counter-examples/argument-slot-malformed.ttl (a standalone, unreferenced
+# math:ArgumentSlot authored purely to trip the SHACL shape): THIS fixture wires the
+# malformed slot under a real math:ApplicationExpression root, so the native lowering
+# actually reaches and rejects it (the standalone SHACL-only fixture is never picked up
+# as an expression root or slot child, so it never reaches
+# crates/logic/src/physical/lower.rs at all). The authored math:structuralKey lets the
+# reasoned-graph gate (check_structural_key_on_rejected_expression) also reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:ApplicationExpression ;
+    math:operator ex:op ;
+    math:argumentSlot ex:slot0 ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotExpression ex:operand .
+
+ex:operand a math:NumberLiteral ;
+    math:literalValue 1 .

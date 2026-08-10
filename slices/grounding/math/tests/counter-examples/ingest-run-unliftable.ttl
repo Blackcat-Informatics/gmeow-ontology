@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example for the NATIVE math:UnliftableIngest gate (crates/validate structural_lint,
-# NOT a SHACL shape — so it has no example-conformance cell; see the note in
-# tests/example-conformance.ttl). A bridge run RETAINS its source witness through
+# NOT a SHACL shape — the conformance runner reaches it through its structural-lint channel,
+# and ex:ecIngestRunUnliftable pins the isolation). A bridge run RETAINS its source witness through
 # math:parseSource and carries the full grounding frame (logic:instantiatesSchema /
 # logic:instantiatesPlan and its lift correspondence math:ingestCorrespondence), so it
 # passes math:IngestRunShape and is NOT math:UngroundedIngestRun — yet it produces NO
@@ -20,7 +20,11 @@ ex:run a math:RIngestRun ;
     logic:instantiatesSchema ex:schema ;
     logic:instantiatesPlan ex:plan ;
     math:ingestCorrespondence ex:corr .
-ex:srcWitness a math:MathematicalObject ; logic:loadBearing true .
+# The witness retains its source verbatim, so the ONE thing wrong with this run is the
+# empty codomain — a minimal violation stays minimal only if it is well-formed everywhere
+# else, and a bare witness would add a second, unrelated defect (the amnesic case).
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "fit <- lm(mpg ~ wt, data = mtcars)" .
 ex:schema a logic:ActionSchema .
 ex:plan a logic:Plan .
 ex:corr a logic:Correspondence ;

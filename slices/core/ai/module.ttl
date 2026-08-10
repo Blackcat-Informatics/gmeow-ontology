@@ -11,14 +11,15 @@ gmeow:Chunk
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunk"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:chunkOf ;
             owl:someValuesFrom gmeow:InformationObject ;
         ] ;
     skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a retrieval returns, a model reads, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd and content-addressed via the EXISTING gmeow:contentDigest (sources slice), so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
-    skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart 0 ; gmeow:spanEnd 512 ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
+    skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the segment gmeow:Chunk, locate it with gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd, content-address it with the existing gmeow:contentDigest, and let evidence spans pin into it via gmeow:spanOfChunk."@x-gmeow-english ;
@@ -31,7 +32,8 @@ gmeow:Contradiction
     rdfs:label "Contradiction"@x-gmeow-english ;
     logic:mediates gmeow:contradictsClaim ,
         gmeow:detectedBy ;
-    rdfs:subClassOf logic:Relator ,
+    logic:subClassOf logic:Relator ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contradictsClaim ;
@@ -53,7 +55,7 @@ gmeow:ContradictionKind
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of contradiction flavours."@x-gmeow-english ;
     skos:example "ex:contradictionKindFactual a gmeow:ContradictionKind ; rdfs:label \"factual\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a contradiction-kind SUBCLASS of gmeow:Contradiction (the kind is a value, Principle 9) and avoid confusing it with gmeow:SupportPolarity — kind is the flavour of the conflict, polarity is a span's stance toward a claim."@x-gmeow-english ;
@@ -61,12 +63,55 @@ gmeow:ContradictionKind
     gmeow:howToUse "Add a new flavour as a gmeow:ContradictionKind individual with rdfs:label and skos:definition; reference it from a gmeow:Contradiction via gmeow:contradictionKind."@x-gmeow-english ;
     gmeow:useWhen "Use as the open value vocabulary for the contradiction-flavour axis — the kinds (factual, temporal, numeric, framing, …) that gmeow:contradictionKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english .
 
+gmeow:DistanceMetric
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Distance Metric"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "An open value vocabulary of vector similarity/distance functions — a CORE-tier primitive: both extensions/graphrag's retrieval substrate and extensions/embedding-projection's comparable vector spaces reuse the same three-value seed (gmeow:distanceMetricCosine / gmeow:distanceMetricDotProduct / gmeow:distanceMetricEuclidean) rather than each minting its own."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the similarity function under which a vector space is meaningful."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the metric as an implementation detail or defaulting it silently — cosine and euclidean disagree about what is near."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of gmeow:distanceMetricCosine / DotProduct / Euclidean with gmeow:distanceMetric; the vocabulary is open."@x-gmeow-english ;
+    skos:example "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Embedding
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Embedding"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:embeddingOf ;
+            owl:someValuesFrom gmeow:InformationObject ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:embeddingModel ;
+            owl:someValuesFrom gmeow:SoftwareAgent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:distanceMetric ;
+            owl:someValuesFrom gmeow:DistanceMetric ;
+        ] ;
+    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (GraphRAG provenance design): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (extensions/graphrag's gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable. A CORE-tier primitive: extensions/graphrag's per-object rows and extensions/embedding-projection's pack-level aggregate (gmeow:aggregatesEmbedding) both build on this one Embedding, never a competing per-extension definition."@x-gmeow-english ;
+    gmeow:useWhen "Use for one vector representation of one information object under one model."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging two models' embeddings of the same chunk into one individual, and avoid using it for the source text itself."@x-gmeow-english ;
+    gmeow:howToUse "Give it gmeow:embeddingOf, gmeow:embeddingModel, gmeow:embeddingDimensions and gmeow:distanceMetric; model and metric are provenance, not decoration."@x-gmeow-english ;
+    skos:example "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:MemoryItem
     a logic:Role ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Item"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ,
+    logic:subClassOf gmeow:Observation ;
+    rdfs:subClassOf
         [
             a owl:Restriction ;
             owl:onProperty gmeow:memoryOf ;
@@ -88,7 +133,7 @@ gmeow:MemoryKind
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of agent-memory registers."@x-gmeow-english ;
     skos:example "ex:memoryKindEpisodic a gmeow:MemoryKind ; rdfs:label \"episodic\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a register SUBCLASS of gmeow:MemoryItem (the register is a value, Principle 9) and avoid overloading it with salience or recency, which are statement-level facets, not registers."@x-gmeow-english ;
@@ -101,7 +146,7 @@ gmeow:ModelCard
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Card"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "A structured description of a model agent (gmeow:describesModel): provider, version tag, context window, training cutoff. Aligns Model Cards / ML-Schema / SPDX-AI by reference (P5). The card is a document ABOUT the agent; capability claims are claim-layer observations, attributed and contestable."@x-gmeow-english ;
     skos:example "ex:opusCard a gmeow:ModelCard ; gmeow:describesModel ex:opus ; gmeow:modelProvider \"Anthropic\" ; gmeow:modelTrainingCutoff \"2026-01-01\"^^xsd:date ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with the model itself (the agent is the gmeow:SoftwareAgent, the card is a document about it) and avoid baking capability claims into the card as facts — those are attributed, contestable claim-layer observations."@x-gmeow-english ;
@@ -114,7 +159,7 @@ gmeow:ModelInvocation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Invocation"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf gmeow:Activity ;
     skos:definition "One call to a generative model: the model agent (gmeow:usedModel), the prompts presented (gmeow:hasPrompt), and the sampling parameters. The provenance anchor of every generated claim — a claim node gmeow:wasGeneratedBy its invocation and gmeow:wasAttributedTo the model agent (both EXISTING provenance properties), so 'which model, under which prompt and parameters, at what time?' is answerable after the fact. Outputs are linked FROM the output via gmeow:wasGeneratedBy; no forward output property exists (P5)."@x-gmeow-english ;
     skos:example "ex:inv1 a gmeow:ModelInvocation ; gmeow:usedModel ex:opus ; gmeow:hasPrompt ex:sysPrompt ; gmeow:eventTime \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerFoafExport ,
@@ -132,10 +177,10 @@ gmeow:Prompt
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms extension's machinery, used from instance data."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms slice's machinery, used from instance data."@x-gmeow-english ;
     skos:example "ex:sysPrompt a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleSystem ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms extension."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms slice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the instruction gmeow:Prompt, tag it with gmeow:promptRole, content-address it with gmeow:contentDigest, and where it instantiates a published template point gmeow:filledFrom at the gmeow:PromptTemplate; link it to its invocation via gmeow:hasPrompt."@x-gmeow-english ;
     gmeow:useWhen "Use for the concrete instruction text presented to a model in an invocation — the provenance that makes a generated claim auditable, content-addressed and role-tagged."@x-gmeow-english .
@@ -145,7 +190,7 @@ gmeow:PromptRole
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Role"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of conversational prompt roles."@x-gmeow-english ;
     skos:example "ex:promptRoleTool a gmeow:PromptRole ; rdfs:label \"tool\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a prompt-role SUBCLASS of gmeow:Prompt (the role is a value, Principle 9) and avoid confusing it with gmeow:ParticipantRole — prompt roles are conversational turns, not event participation."@x-gmeow-english ;
@@ -158,7 +203,7 @@ gmeow:PromptTemplate
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Prompt ;
+    logic:subClassOf gmeow:Prompt ;
     skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (EvidenceSpan audit machinery ships the claim-extraction template as data, not code). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english ;
     skos:example "ex:extractTmpl a gmeow:PromptTemplate ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing a filled, ready-to-send instruction as a template (that is a plain gmeow:Prompt) — the template is the unfilled, versioned source a gmeow:Prompt points back to via gmeow:filledFrom."@x-gmeow-english ;
@@ -166,12 +211,31 @@ gmeow:PromptTemplate
     gmeow:howToUse "Type the artifact gmeow:PromptTemplate, content-address each version with gmeow:contentDigest, and let concrete gmeow:Prompt individuals link to it via gmeow:filledFrom so an output traces to the exact template version."@x-gmeow-english ;
     gmeow:useWhen "Use for a reusable, versioned prompt carrying unfilled variables — a published artifact (e.g. the claim-extraction template shipped as data) that concrete prompts instantiate."@x-gmeow-english .
 
+gmeow:RetrievalEvent
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Retrieval Event"@x-gmeow-english ;
+    logic:subClassOf gmeow:Activity ;
+    rdfs:subClassOf
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:againstIndex ;
+            owl:someValuesFrom gmeow:VectorIndex ;
+        ] ;
+    skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned — the answer to 'why did the model see this passage?'. An agent-memory recall is a RetrievalEvent too (the core MemoryItem doctrine's read operation). Per-chunk relevance rides extensions/graphrag's gmeow:retrievalScore statement annotations on each gmeow:retrievedChunk triple. A CORE-tier primitive: any embedding consumer that runs retrieval (extensions/graphrag's corpus pipeline today) reuses this one activity rather than minting a competing one."@x-gmeow-english ;
+    gmeow:useWhen "Use to record one retrieval against a vector index — the answer to why a model saw a passage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the generation step that consumed the results, and avoid one event for a federated fan-out — that is several events under one parent activity."@x-gmeow-english ;
+    gmeow:howToUse "Give it gmeow:againstIndex and the chunks returned; an agent-memory recall is a RetrievalEvent too."@x-gmeow-english ;
+    skos:example "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:SupportPolarity
     a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Support Polarity"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "The closed three-value polarity of an evidence span toward its claim."@x-gmeow-english ;
     skos:example "ex:polarityRefutes a gmeow:SupportPolarity ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid extending it with new individuals (the three values are closed, unlike the open kind vocabularies) and avoid using it for inter-work citation stance (that is gmeow:citationIntent)."@x-gmeow-english ;
@@ -179,13 +243,39 @@ gmeow:SupportPolarity
     gmeow:howToUse "Reference one of the three seeded individuals (gmeow:polaritySupports / gmeow:polarityRefutes / gmeow:polarityNeutral) from a span via gmeow:supportPolarity."@x-gmeow-english ;
     gmeow:useWhen "Use as the closed three-value vocabulary (supports / refutes / neutral) that gmeow:supportPolarity draws from for a span's stance toward its claim."@x-gmeow-english .
 
+gmeow:VectorIndex
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Vector Index"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its algorithm (extensions/graphrag's gmeow:indexAlgorithm), parameters (verbatim, for reproducibility), and metric; its build provenance rides the EXISTING gmeow:wasGeneratedBy, tying index contents to the corpus state (contentDigest) at build time. A CORE-tier primitive: extensions/embedding-projection's gmeow:DerivedVectorIndex specializes this class directly rather than through extensions/graphrag."@x-gmeow-english ;
+    gmeow:useWhen "Use for a built retrieval structure over a corpus's embeddings — the artifact a retrieval queries."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the embeddings it indexes or with the corpus itself, and avoid omitting its metric."@x-gmeow-english ;
+    gmeow:howToUse "Carry its algorithm, its parameters verbatim for reproducibility, and gmeow:distanceMetric."@x-gmeow-english ;
+    skos:example "gmeow:index1 gmeow:distanceMetric gmeow:distanceMetricCosine ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:againstIndex
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "against index"@x-gmeow-english ;
+    rdfs:range gmeow:VectorIndex ;
+    skos:definition "The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the one index a retrieval queried."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a federated fan-out; it is functional, so several indexes mean several RetrievalEvents."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:VectorIndex to a gmeow:RetrievalEvent."@x-gmeow-english ;
+    skos:example "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:chunkOf
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Chunk ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunk of"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:subPropertyOf gmeow:partOf ;
+    logic:subPropertyOf gmeow:partOf ;
     skos:definition "The source information object this chunk segments. Functional: a chunk is cut from exactly one source; re-chunking produces new Chunk individuals, never a re-pointed one."@x-gmeow-english ;
     skos:example "ex:c1 gmeow:chunkOf ex:doc ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing one chunk at two sources (it is functional — a different cut is a new Chunk) and avoid using it for the chunk's evidence pin (that is gmeow:spanOfChunk, span-into-chunk, not chunk-into-source)."@x-gmeow-english ;
@@ -273,6 +363,90 @@ gmeow:detectedBy
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:detectedBy at the detecting gmeow:Agent; rival detectors of the same conflict are separate gmeow:Contradiction individuals rather than several detectors on one."@x-gmeow-english ;
     gmeow:useWhen "Use to attribute a gmeow:Contradiction to the agent that surfaced it — a person, an NLI model, or an eval run's judge — because detection is itself contestable."@x-gmeow-english .
+
+gmeow:distanceMetric
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "distance metric"@x-gmeow-english ;
+    rdfs:range gmeow:DistanceMetric ;
+    skos:definition "The similarity/distance function under which an embedding or index is meaningful — cosine and euclidean disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike, and reused by extensions/embedding-projection's gmeow:VectorSpaceContract."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the similarity function under which an embedding or index is meaningful."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving it implicit or assuming a default — the metric is provenance, and consumers cannot recover it."@x-gmeow-english ;
+    gmeow:howToUse "Domain-free: carry it on gmeow:Embedding and gmeow:VectorIndex alike, with a gmeow:DistanceMetric value."@x-gmeow-english ;
+    skos:example "gmeow:embedding1 gmeow:distanceMetric gmeow:distanceMetricCosine ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:distanceMetricCosine
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "cosine"@x-gmeow-english ;
+    skos:definition "Cosine similarity — angle between vectors, magnitude-invariant."@x-gmeow-english ;
+    gmeow:useWhen "Use when angle between vectors is what matters and magnitude should be ignored."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."@x-gmeow-english ;
+    gmeow:howToUse "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."@x-gmeow-english ;
+    skos:example "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:distanceMetricDotProduct
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "dot product"@x-gmeow-english ;
+    skos:definition "Inner-product similarity — magnitude-sensitive; common for normalized embeddings."@x-gmeow-english ;
+    gmeow:useWhen "Use when magnitude carries signal, as with normalized embeddings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."@x-gmeow-english ;
+    gmeow:howToUse "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."@x-gmeow-english ;
+    skos:example "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:distanceMetricEuclidean
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "euclidean"@x-gmeow-english ;
+    skos:definition "Euclidean (L2) distance between vectors."@x-gmeow-english ;
+    gmeow:useWhen "Use when straight-line L2 distance is the intended notion of near."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."@x-gmeow-english ;
+    gmeow:howToUse "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."@x-gmeow-english ;
+    skos:example "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:embeddingDimensions
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding dimensions"@x-gmeow-english ;
+    rdfs:range xsd:positiveInteger ;
+    skos:definition "The dimensionality of the embedding vector."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the dimensionality of the embedding vector."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from the model name, and avoid recording it on the index instead of the embedding."@x-gmeow-english ;
+    gmeow:howToUse "A plain integer literal on a gmeow:Embedding."@x-gmeow-english ;
+    skos:example "gmeow:embedding1 gmeow:embeddingDimensions 1536 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:embeddingModel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding model"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareAgent ;
+    skos:definition "The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed)."@x-gmeow-english ;
+    gmeow:useWhen "Use to attribute an embedding to the model agent that produced it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging two models' embeddings of one chunk — machine-derived values are attributed, so they are two individuals."@x-gmeow-english ;
+    gmeow:howToUse "Name the model agent on the gmeow:Embedding."@x-gmeow-english ;
+    skos:example "gmeow:embedding1 gmeow:embeddingModel gmeow:model1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:embeddingOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding of"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The information object this embedding represents. Functional: one embedding represents exactly one object under one model."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the one information object an embedding represents."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a whole document when the embedding is of a chunk; it is functional, so one embedding represents exactly one object."@x-gmeow-english ;
+    gmeow:howToUse "Attach the represented object — usually a gmeow:Chunk — to the gmeow:Embedding."@x-gmeow-english ;
+    skos:example "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:filledFrom
     a owl:ObjectProperty ;
@@ -543,7 +717,7 @@ gmeow:spanEnd
     rdfs:label "span end"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The ending character offset (unicode code points, zero-based, exclusive) of a span. Pairs with gmeow:spanStart."@x-gmeow-english ;
-    skos:example "ex:c1 gmeow:spanEnd 512 ."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an end offset without a matching gmeow:spanStart, and avoid prose locators (those are the citations slice's gmeow:selectorTextPosition)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:spanEnd alongside gmeow:spanStart as a zero-based exclusive code-point offset on the same span subject."@x-gmeow-english ;
@@ -568,7 +742,7 @@ gmeow:spanStart
     rdfs:label "span start"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (EvidenceSpan audit machinery) needs integers, not prose."@x-gmeow-english ;
-    skos:example "ex:c1 gmeow:spanStart 0 ."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for a non-numeric position locator (use the citations slice's gmeow:selectorTextPosition) and avoid asserting a start without its matching gmeow:spanEnd — the pair defines the span."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:spanStart with gmeow:spanEnd as a zero-based half-open code-point range on the same span subject; keep both as integers so AIS coverage checks compute over them directly."@x-gmeow-english ;
@@ -602,10 +776,10 @@ gmeow:usedModel
 
 <https://blackcatinformatics.ca/gmeow/slices/ai>
     a owl:Ontology ;
-    rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. Pipeline observability (corpus, embeddings, indexes, retrievals, GraphRAG artifacts) lives in extensions/graphrag, consumer-named per P15."@x-gmeow-english ;
+    rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. GraphRAG-specific pipeline observability (corpus, extracted entity/relationship, community, and index-wiring artifacts) lives in extensions/graphrag, consumer-named per P15; the generic vector/embedding/retrieval PRIMITIVES (gmeow:Embedding, gmeow:VectorIndex, gmeow:DistanceMetric, gmeow:RetrievalEvent) are core-tier here because any embedding consumer — not only GraphRAG — needs them (extensions/embedding-projection is the other current consumer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
-    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
+    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms slice's judge-as-vantage Assessment. This module therefore mints what is genuinely absent from the claim layer (the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role) PLUS the generic vector/embedding/retrieval primitives (Embedding, VectorIndex, DistanceMetric, RetrievalEvent) every embedding consumer needs — core-tier infrastructure, never duplicated per extension. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
@@ -621,25 +795,72 @@ gmeow:usedModel
 gmeow:Contradiction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
 
+# `gmeow:spanStart` / `gmeow:spanEnd` are DATA properties, so their qualified
+# cardinalities qualify over a DATA RANGE (`owl:onDataRange`), never over
+# `owl:onClass owl:Thing` — an individual-domain filler on a data property is
+# malformed OWL 2 DL, and its closed-world projection is an INVERTED constraint
+# (`sh:nodeKind sh:BlankNodeOrIRI`) that rejects every correct integer offset.
+# The data range is the property's own declared `rdfs:range`.
 gmeow:Chunk rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] .
 
 gmeow:MemoryItem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# Embedding/RetrievalEvent cardinality axioms (gmeow:EmbeddingProvenanceShape,
+# gmeow:RetrievalEventShape), migrated here from extensions/graphrag's
+# module.ttl alongside the classes they constrain (both promoted to this
+# core-tier slice as shared vector/embedding primitives).
+gmeow:Embedding rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:RetrievalEvent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/chunkOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/distanceMetric> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RetrievalEvent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/againstIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingModel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# Migrated procedural constraints: closed-world SHACL sparql shapes            #
 # from slices/core/ai/shapes.ttl, re-expressed as canonical logic:Constraints  #
 # (Principle 17). The authored shapes stay (additive).                         #
 # =========================================================================== #
+
+gmeow:ClaimNeedsEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim needs evidence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: an LLM-extracted claim (gmeow:observationMethod gmeow:methodLlmExtraction) with no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10)."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:ClaimNeedsEvidenceShape ;
+    logic:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
+    logic:integrity logic:cneForall .
+logic:cneForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cneImpl .
+logic:cneImpl a logic:Formula ; logic:antecedent logic:cneGuard ; logic:consequent logic:cneExists .
+logic:cneGuard a logic:Formula ; logic:and logic:cneType , logic:cneMethod .
+logic:cneType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointClaim ] .
+logic:cneMethod a logic:Formula ; logic:relation gmeow:observationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:methodLlmExtraction ] .
+logic:cneExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "span" ] ;
+    logic:exists logic:cneBody .
+logic:cneBody a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] .
 
 gmeow:SpanEndAfterStartConstraint
     a logic:Constraint ;
@@ -661,6 +882,34 @@ logic:seaEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 logic:seaGt a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+# gmeow:SpanSanityShape is sh:targetSubjectsOf gmeow:spanStart (not sh:targetClass):
+# gmeow:SpanEndAfterStartConstraint above formalizes the shape's end>start
+# comparison but its guard is a conjunction (spanStart AND spanEnd), which never
+# resolves to a clean SubjectsOf(spanStart) shape target — leaving the legacy
+# shape with NO-PROJECTED-PEER. This sibling constraint's guard is the single
+# atom gmeow:spanStart(this,s) (matching the legacy shape's own target exactly)
+# and requires the paired gmeow:spanEnd to be present, closing the peer gap.
+gmeow:SpanRequiresEndConstraint
+    a logic:Constraint ;
+    rdfs:label "Span requires end constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span carrying a gmeow:spanStart must also carry a gmeow:spanEnd — a span with only one boundary is not a well-formed span."@x-gmeow-english ;
+    logic:formalizes gmeow:SpanSanityShape ;
+    logic:message "A span with a gmeow:spanStart must also carry a gmeow:spanEnd." ;
+    logic:integrity logic:sreForall .
+logic:sreForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall logic:sreImpl .
+logic:sreImpl a logic:Formula ; logic:antecedent logic:sreStart ; logic:consequent logic:sreExists .
+logic:sreStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:sreExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:sreBody .
+logic:sreBody a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 
 gmeow:StaleSourceConstraint
     a logic:Constraint ;
@@ -690,7 +939,250 @@ logic:stsSrcMod a logic:Formula ; logic:relation gmeow:sourceModifiedAt ;
 logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "srcMod" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
 
+# gmeow:GroundingSpanShape targets $this via a raw sh:SPARQLTarget select
+# (every span reached through gmeow:groundedIn from a claim), not sh:targetClass
+# or sh:targetSubjectsOf — a shape target no ChoiceGroup/Disjunctive sugar's
+# logic:onClass can express. The check is authored as a raw logic:Formula
+# integrity tree in the SpanEndAfterStart/StaleSource idiom: the guard atom
+# gmeow:groundedIn(claim,this) and the four required-facet atoms share the
+# outer forall's free variables (implicit join/existential-import), exactly
+# mirroring how logic:stsForall above joins span → chunk → source without a
+# nested sh:exists. It does not encode the shape's per-facet sh:maxCount 1
+# ceiling (no procedural builtin tests upper cardinality here, matching every
+# other migrated existence obligation in this file).
+gmeow:GroundingSpanConstraint
+    a logic:Constraint ;
+    rdfs:label "Grounding span completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."@x-gmeow-english ;
+    logic:formalizes gmeow:GroundingSpanShape ;
+    logic:message "A grounding span (reached via gmeow:groundedIn) must carry gmeow:spanOfChunk, gmeow:spanStart, gmeow:spanEnd, and gmeow:supportPolarity." ;
+    logic:integrity logic:gscForall .
+logic:gscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] , [ logic:termIndex 2 ; logic:termVariable "chunk" ] , [ logic:termIndex 3 ; logic:termVariable "s" ] , [ logic:termIndex 4 ; logic:termVariable "e" ] , [ logic:termIndex 5 ; logic:termVariable "p" ] ;
+    logic:forall logic:gscImpl .
+logic:gscImpl a logic:Formula ; logic:antecedent logic:gscGuard ; logic:consequent logic:gscAnd .
+logic:gscGuard a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:gscAnd a logic:Formula ; logic:and logic:gscChunk , logic:gscStart , logic:gscEnd , logic:gscPolarity .
+logic:gscChunk a logic:Formula ; logic:relation gmeow:spanOfChunk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunk" ] .
+logic:gscStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:gscEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:gscPolarity a logic:Formula ; logic:relation gmeow:supportPolarity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:chunkOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "chunkOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:chunkOf is functional: a chunk is cut from exactly one source information object, so its parthood seam carries a single whole and any re-segmentation produces fresh Chunk individuals rather than re-pointing an existing one at a second source."@x-gmeow-english ;
+    logic:characterizes gmeow:chunkOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:chunkOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:chunkOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:chunkOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:chunkOf and nothing else. It is not a definition of gmeow:chunkOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:chunkOfFunctionality logic:characterizes gmeow:chunkOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contradictionKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "contradictionKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contradictionKind is functional: a contradiction carries one flavour of conflict — factual, temporal, numeric, or framing — so a genuinely multi-flavour conflict is split into separate Contradiction individuals rather than stacking several kinds on one."@x-gmeow-english ;
+    logic:characterizes gmeow:contradictionKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contradictionKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:contradictionKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contradictionKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:contradictionKind and nothing else. It is not a definition of gmeow:contradictionKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:contradictionKindFunctionality logic:characterizes gmeow:contradictionKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:describesModelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "describesModel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:describesModel is functional: a model card documents exactly one model agent, so the description-to-model link resolves to a single gmeow:SoftwareAgent and two documented agents demand two cards rather than a second target on one."@x-gmeow-english ;
+    logic:characterizes gmeow:describesModel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:describesModel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:describesModel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:describesModel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:describesModel and nothing else. It is not a definition of gmeow:describesModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:describesModelFunctionality logic:characterizes gmeow:describesModel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:filledFromFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "filledFrom is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:filledFrom is functional: a concrete prompt instantiates a single prompt-template version, so an output traces to exactly one published template and never spreads its provenance across several template sources."@x-gmeow-english ;
+    logic:characterizes gmeow:filledFrom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:filledFrom ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:filledFrom names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:filledFrom, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:filledFrom and nothing else. It is not a definition of gmeow:filledFrom (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:filledFromFunctionality logic:characterizes gmeow:filledFrom ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:memoryKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "memoryKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:memoryKind is functional: a memory item sits in exactly one cognitive register — episodic, semantic, working, or procedural — so a single item takes one register and salience or recency ride the statement layer rather than a competing second register."@x-gmeow-english ;
+    logic:characterizes gmeow:memoryKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:memoryKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:memoryKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:memoryKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:memoryKind and nothing else. It is not a definition of gmeow:memoryKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:memoryKindFunctionality logic:characterizes gmeow:memoryKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:promptRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "promptRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:promptRole is functional: a prompt occupies one conversational role — system, user, assistant, or tool — so a single prompt takes one role and a multi-role turn is modelled as several prompts rather than one prompt bearing several roles."@x-gmeow-english ;
+    logic:characterizes gmeow:promptRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:promptRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:promptRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:promptRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:promptRole and nothing else. It is not a definition of gmeow:promptRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:promptRoleFunctionality logic:characterizes gmeow:promptRole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:spanOfChunkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "spanOfChunk is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:spanOfChunk ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spanOfChunk ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:spanOfChunk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spanOfChunk, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:spanOfChunk and nothing else. It is not a definition of gmeow:spanOfChunk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:spanOfChunkFunctionality logic:characterizes gmeow:spanOfChunk ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:supportPolarityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "supportPolarity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportPolarity is functional: an evidence span holds a single NLI/AIS verdict toward the claim it grounds — supports, refutes, or neutral — so faithfulness and contradiction audits read one stance per span rather than reconciling conflicting polarities on the same span."@x-gmeow-english ;
+    logic:characterizes gmeow:supportPolarity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:supportPolarity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:supportPolarity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:supportPolarity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:supportPolarity and nothing else. It is not a definition of gmeow:supportPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:supportPolarityFunctionality logic:characterizes gmeow:supportPolarity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:usedModelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "usedModel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usedModel is functional: a model invocation called exactly one model agent, so the invocation-to-model link carries a single gmeow:SoftwareAgent and a second model called is a second invocation rather than an added target on one."@x-gmeow-english ;
+    logic:characterizes gmeow:usedModel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:usedModel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:usedModel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:usedModel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:usedModel and nothing else. It is not a definition of gmeow:usedModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:usedModelFunctionality logic:characterizes gmeow:usedModel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:againstIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "againstIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:againstIndex is functional: a retrieval event queries exactly one vector index, because federated retrieval is decomposed into several RetrievalEvents under one parent activity rather than one event fired against many indices."@x-gmeow-english ;
+    logic:characterizes gmeow:againstIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:againstIndex ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:againstIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:againstIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:againstIndex and nothing else. It is not a definition of gmeow:againstIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:againstIndexFunctionality logic:characterizes gmeow:againstIndex ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:distanceMetricFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "distanceMetric is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:distanceMetric is functional: an embedding or index is meaningful under exactly one similarity/distance function, because cosine and euclidean disagree about what counts as 'near', so a carrier commits to a single metric rather than blending incomparable notions of nearness."@x-gmeow-english ;
+    logic:characterizes gmeow:distanceMetric ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:distanceMetric ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:distanceMetric names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:distanceMetric, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:distanceMetric and nothing else. It is not a definition of gmeow:distanceMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:distanceMetricFunctionality logic:characterizes gmeow:distanceMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:embeddingModelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embeddingModel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:embeddingModel is functional: an embedding is produced by exactly one model agent, since two models' embeddings of the same chunk are two distinct Embedding individuals rather than one embedding crediting two models (P9 attribution)."@x-gmeow-english ;
+    logic:characterizes gmeow:embeddingModel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:embeddingModel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:embeddingModel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:embeddingModel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:embeddingModel and nothing else. It is not a definition of gmeow:embeddingModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:embeddingModelFunctionality logic:characterizes gmeow:embeddingModel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:embeddingOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embeddingOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:embeddingOf is functional: an embedding represents exactly one information object under one model, so a single vector is never made to stand for two different objects."@x-gmeow-english ;
+    logic:characterizes gmeow:embeddingOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:embeddingOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:embeddingOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:embeddingOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:embeddingOf and nothing else. It is not a definition of gmeow:embeddingOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

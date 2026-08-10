@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Which standpoint is each recommendation held from, and
+# over which interval?"
+#
+# This is the question the operator review projection cannot answer, and saying
+# so is the slice's own disclosed loss: collapsing coexisting standpoint-indexed
+# classifications into one readable surface is a real loss, which is why the
+# review ships a projection receipt rather than presenting the collapse as the
+# record. This query is the uncollapsed form — the rows the receipt is admitting
+# it dropped.
+#
+# The standpoint index and the time scope are REUSED, never re-minted: the
+# vantage a comparison is framed from is the core gmeow:Standpoint, and the
+# interval it is scoped to is the core gmeow:TimeScopedRelation, reached exactly
+# as every other time-scoped claim in the ontology reaches one.
+#
+# Over the contextual-recommendation scene this returns three rows sharing ONE
+# interval — three readings of the same decision moment from three standpoints,
+# not one decision revisited later under new information. That distinction is
+# what makes their disagreement a genuine coexistence rather than a change of
+# mind, and it is only visible because the time scope is recorded.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?context ?standpoint ?interval WHERE {
+    ?context a gmeow:ComparisonContext ;
+             gmeow:contextStandpoint ?standpoint ;
+             gmeow:contextTime ?scope .
+    ?standpoint a gmeow:Standpoint .
+    ?scope a gmeow:TimeScopedRelation ;
+           gmeow:duringInterval ?interval .
+}
+ORDER BY ?context ?standpoint

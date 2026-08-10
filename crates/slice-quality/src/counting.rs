@@ -23,11 +23,22 @@
 //!   share this implementation instead of duplicating it; it is not a second, looser
 //!   gate semantics.
 //!
-//! [`residue`] and [`grounded_fraction`] are the two derived quantities callers
-//! actually want: the gate counts [`residue`] (FullResidue, ungrounded and
-//! non-bridge), the axis computes [`grounded_fraction`] (Historical, grounded/total).
+//! [`residue_constructs_for_surface`] is the ONE residue counter: it returns the
+//! ungrounded, non-bridge [`Construct`] SET, and [`residue_for_surface`] /
+//! [`residue`] are its `.len()` projection. There is deliberately no second
+//! "keys-only" sibling — one predicate, one implementation.
+//!
+//! [`grounded_fraction`] is the other derived quantity callers want: the gate counts
+//! [`residue`] (FullResidue, ungrounded and non-bridge), the advisory axis computes
+//! [`grounded_fraction`] (Historical, grounded/total).
+//!
+//! Every enumerated construct carries a [`Witness`] — a RELOCATION-INVARIANT identity
+//! anchored on its subject TERM IRI — so a residue cell can be compared across two
+//! independently-built datasets (a merge-base measurement vs a working-tree one).
+//! [`relocation_reasons`] then names, with machine-readable codes, the two ways residue
+//! genuinely fails to be conserved when a construct moves between authoring surfaces.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
 
@@ -60,14 +71,10 @@ pub const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formali
 /// The `logic:` core namespace — every guarded vocab's `subsumed_by` witness, and
 /// (per [`resolvable_grounding`]) the namespace an appropriately-typed grounding
 /// target's `rdf:type` must fall in.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 /// `owl:AllDisjointClasses` — the one non-`logic:`-namespaced grounding-target type
 /// (a named disjointness axiom a shape may formalize).
 const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
-/// `gmeow:alignObject` — the object-side link of a correspondence cell naming the
-/// external term. A raw `rdfs:subClassOf`/`owl:equivalentClass` to an external object
-/// is NOT this and is no longer exempt (it counts as second-source residue).
-const GM_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
 const GM_TO_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/toPredicate";
 const GM_TO_CLASS: &str = "https://blackcatinformatics.ca/gmeow/toClass";
 const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget";
@@ -86,24 +93,149 @@ pub enum CountMode {
     FullResidue,
 }
 
-/// One enumerated hand-authored construct in a vocab's surface. Crate-visible (not
+/// One enumerated hand-authored construct in a vocab's surface. PUBLIC (not
 /// module-private) so the advisory `shape_migration_axis` can iterate the SAME
-/// enumeration [`enumerate`] returns to emit its per-shape finding, instead of a
-/// second adapter re-deriving the same information.
-pub(crate) struct Construct {
-    /// A stable, deterministic key identifying the construct — an IRI, a
-    /// blank-node-derived key, or (for a whole-triple key) a rendering of all three
-    /// term positions. Never re-derived differently between two enumerations of the
-    /// same dataset (dedup correctness depends on it).
-    pub(crate) key: String,
+/// enumeration [`enumerate`] returns to emit its per-shape finding, and so the ratchet
+/// gate's driver can carry each residue construct's [`Witness`] across a
+/// base-vs-working comparison — instead of a second adapter re-deriving the same
+/// information.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Construct {
+    /// A stable, deterministic key identifying the construct WITHIN ONE DATASET — an
+    /// IRI, a blank-node-derived key, or (for a whole-triple key) a rendering of all
+    /// three term positions. Never re-derived differently between two enumerations of
+    /// the same dataset (dedup correctness depends on it).
+    ///
+    /// NOT comparable across two datasets: see [`Witness`] for the cross-dataset
+    /// identity.
+    pub key: String,
     /// Whether the construct carries a grounding back-reference (semantics depend on
     /// [`CountMode`]: presence-only under `Historical`, resolvable under
     /// `FullResidue`).
-    pub(crate) grounded: bool,
+    pub grounded: bool,
     /// Whether the construct is a by-reference alignment/bridge link to an EXTERNAL
     /// upper-ontology/standard namespace (Principle 5) — exempt from the residue.
     /// Always `false` under `Historical` (no bridge subtraction existed pre-refactor).
-    pub(crate) is_bridge: bool,
+    pub is_bridge: bool,
+    /// The construct's RELOCATION-INVARIANT identity — see [`Witness`].
+    pub witness: Witness,
+}
+
+/// A construct's cross-dataset identity, anchored on its SUBJECT TERM IRI.
+///
+/// WHY NOT [`Construct::key`]: [`term_key`] renders a blank node as
+/// `_:{label}#{scope}`, and the scope id depends on **dataset construction order** —
+/// which datasets were pushed into the builder, and in which order. The ratchet gate
+/// builds its merge-base dataset (base bytes for one slice) and its working-tree
+/// dataset (working files for one slice) in different orders, so a construct that did
+/// not change at all can carry two different `key`s on the two sides. Keying a
+/// relocation comparison on the full `s|p|o` key would therefore report phantom
+/// churn.
+///
+/// Anchoring on the SUBJECT TERM IRI fixes that, and additionally makes a blank
+/// *object* harmless: `«gmeow:X rdfs:subClassOf _:b0#3»` and the same triple
+/// re-scoped to `_:b0#7` share the anchor `gmeow:X`. GMEOW mints every term into a
+/// GLOBAL namespace (`crates/ns`), never a per-slice one, so a term IRI is already
+/// invariant under moving the authoring file between slices.
+///
+/// For a construct whose SUBJECT is itself a blank node — the common case for `sh:`
+/// residue, since [`enumerate_shape`] deliberately counts anonymous nested
+/// `sh:property [ sh:path … ]` blocks — the anchor is the nearest NAMED ancestor
+/// reached by walking `sh:property` / `sh:node` edges upward. When no named ancestor
+/// exists the construct is [`Witness::NonRelocatable`]: FAIL-CLOSED, because there is
+/// no evidence that would let a relocation-aware ratchet forgive it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Witness {
+    /// The construct is anchored on this named term IRI — its own subject IRI, or the
+    /// nearest `sh:property`/`sh:node` ancestor's IRI when the subject is blank.
+    Anchored(String),
+    /// No named anchor is reachable (a blank subject with no named
+    /// `sh:property`/`sh:node` ancestor). The construct has NO relocation-invariant
+    /// identity, so a relocation-aware ratchet must treat it as freshly authored.
+    NonRelocatable,
+}
+
+impl Witness {
+    /// The anchor term IRI, or `None` when the construct is
+    /// [`Witness::NonRelocatable`].
+    #[must_use]
+    pub fn anchor(&self) -> Option<&str> {
+        match self {
+            Self::Anchored(iri) => Some(iri.as_str()),
+            Self::NonRelocatable => None,
+        }
+    }
+
+    /// Whether this construct has a relocation-invariant identity at all.
+    #[must_use]
+    pub fn is_relocatable(&self) -> bool {
+        matches!(self, Self::Anchored(_))
+    }
+}
+
+/// The `sh:property` / `sh:node` PARENT index used to anchor a blank-subject
+/// construct on its nearest named ancestor. Collected ONCE per enumeration (two
+/// predicate-bound scans) and consulted per construct, never re-queried inside the
+/// per-construct loop.
+struct AnchorIndex {
+    /// nested shape node → the shape nodes that point at it via `sh:property`/`sh:node`.
+    parents: BTreeMap<TermId, BTreeSet<TermId>>,
+}
+
+impl AnchorIndex {
+    fn collect(ds: &RdfDataset) -> Self {
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        for pred_iri in [SH_PROPERTY, SH_NODE] {
+            let Some(pred) = id(ds, pred_iri) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(pred), None, GraphMatch::Any) {
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        Self { parents }
+    }
+
+    /// The [`Witness`] for a construct whose subject term is `subject`.
+    ///
+    /// An IRI subject anchors on itself. A blank subject is walked upward level by
+    /// level through the `sh:property`/`sh:node` parent edges; the FIRST level that
+    /// contains any named ancestor decides, and among several the lexicographically
+    /// smallest IRI is taken so the anchor is deterministic regardless of dataset
+    /// construction order. A `visited` set bounds a cyclic (or diamond) shape graph.
+    /// Exhausting the walk without reaching a named node is
+    /// [`Witness::NonRelocatable`].
+    fn witness(&self, ds: &RdfDataset, subject: TermId) -> Witness {
+        if let TermRef::Iri(iri) = ds.resolve(subject) {
+            return Witness::Anchored(iri.to_owned());
+        }
+        let mut visited: BTreeSet<TermId> = BTreeSet::new();
+        visited.insert(subject);
+        let mut frontier: Vec<TermId> = vec![subject];
+        while !frontier.is_empty() {
+            let mut named: BTreeSet<String> = BTreeSet::new();
+            let mut next: BTreeSet<TermId> = BTreeSet::new();
+            for node in &frontier {
+                for parent in self.parents.get(node).into_iter().flatten() {
+                    match ds.resolve(*parent) {
+                        TermRef::Iri(iri) => {
+                            named.insert(iri.to_owned());
+                        }
+                        _ => {
+                            if visited.insert(*parent) {
+                                next.insert(*parent);
+                            }
+                        }
+                    }
+                }
+            }
+            if let Some(anchor) = named.into_iter().next() {
+                return Witness::Anchored(anchor);
+            }
+            frontier = next.into_iter().collect();
+        }
+        Witness::NonRelocatable
+    }
 }
 
 /// A stable key for a resolved term: the IRI itself, a blank-node key derived from
@@ -184,17 +316,93 @@ fn resolvable_grounding(ds: &RdfDataset, subject: TermId) -> bool {
     false
 }
 
-/// Whether `(subject, predicate)` is the target-bearing edge of a COMPLETE authored
-/// grounding correspondence. Both accepted frontends are recognized: direct
-/// `alignObject`, and the sole binding target of a marked `ProjectionMapping`.
-fn is_validated_grounding_target(ds: &RdfDataset, subject: TermId, predicate: TermId) -> bool {
+/// The native alignment cells' base triples, split for the residue enumeration. The
+/// canonical reader is `O(reifiers)`, so this is collected ONCE per enumeration and
+/// consulted per construct — never re-read inside the quad loop.
+struct AlignmentBridges {
+    /// Every native alignment cell base triple `(s, p, o)` — a first-class RDF-1.2
+    /// correspondence record (identified by its `gmeow:sssomFile` reifier), not
+    /// hand-authored second-source residue.
+    all: BTreeSet<(TermId, TermId, TermId)>,
+    /// The subset carrying a complete grounding envelope
+    /// (`is_native_validated_grounding_term_cell`): exempt ONLY on the vocabulary's
+    /// owner surface (the C1e owner boundary).
+    grounding: BTreeSet<(TermId, TermId, TermId)>,
+}
+
+impl AlignmentBridges {
+    fn collect(ds: &RdfDataset) -> Self {
+        let mut all = BTreeSet::new();
+        let mut grounding = BTreeSet::new();
+        for cell in crate::grounding::native_alignment_cells(ds) {
+            let (Some(s), Some(p), Some(o)) = (
+                id(ds, &cell.subject),
+                id(ds, &cell.predicate),
+                id(ds, &cell.obj),
+            ) else {
+                continue;
+            };
+            all.insert((s, p, o));
+            if crate::grounding::is_native_validated_grounding_term_cell(&cell) {
+                grounding.insert((s, p, o));
+            }
+        }
+        Self { all, grounding }
+    }
+}
+
+/// Whether the enumerated triple `(subject, predicate, object)` is a by-reference
+/// alignment/bridge link exempt from the ungrounded residue on `surface_iri`. Three
+/// frontends are recognized:
+///
+/// * a NATIVE grounding correspondence (complete envelope on the reifier) — exempt
+///   ONLY on the vocabulary's owner surface (C1e: an external grounding term has one
+///   authoring home);
+/// * any OTHER native alignment cell base triple with at least one EXTERNAL endpoint —
+///   a first-class correspondence record, exempt on every surface (an internal
+///   `gmeow`-to-`gmeow` cell stays in the residue as a genuine second source);
+/// * the node-authored `ProjectionMapping` frontend (not migrated) — its flat
+///   `logic:targetEndpoint`, or the sole `toClass`/`toPredicate`/`edoalTarget` binding
+///   target of a validated mapping, on the owner surface with an external object.
+fn is_bridge_exempt(
+    ds: &RdfDataset,
+    subject: TermId,
+    predicate: TermId,
+    object: TermId,
+    surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+    bridges: &AlignmentBridges,
+) -> bool {
+    let external =
+        |t: TermId| matches!(ds.resolve(t), TermRef::Iri(iri) if !iri.starts_with(GMEOW));
+    let triple = (subject, predicate, object);
+    if bridges.grounding.contains(&triple) {
+        return surface_iri == vocab.owner;
+    }
+    // An ordinary (non-grounding) native alignment cell is a first-class correspondence
+    // record only where the counted surface is the STRUCTURAL rdfs taxonomy: a domain
+    // slice aligning its term to/from an external class via `rdfs:subClassOf` is a
+    // correspondence, not hand-authored TBox. For a TYPED-axiom foundational vocabulary
+    // (gUFO/BFO/…) only a COMPLETE grounding correspondence is exempt — an incomplete
+    // cell targeting it stays in the residue as an unwarranted grounding.
+    if vocab.count_kind == CountKind::StructuralAxiom
+        && bridges.all.contains(&triple)
+        && (external(subject) || external(object))
+    {
+        return true;
+    }
+    // The node-authored ProjectionMapping frontend is exempt only on the owner surface
+    // when its target edge points at an external object.
+    if surface_iri != vocab.owner || !external(object) {
+        return false;
+    }
     let Some(predicate_iri) = (match ds.resolve(predicate) {
         TermRef::Iri(iri) => Some(iri),
         _ => None,
     }) else {
         return false;
     };
-    if predicate_iri == GM_ALIGN_OBJECT || predicate_iri == LOGIC_TARGET_ENDPOINT {
+    if predicate_iri == LOGIC_TARGET_ENDPOINT {
         return match ds.resolve(subject) {
             TermRef::Iri(cell) => crate::grounding::is_validated_grounding_correspondence(ds, cell),
             _ => false,
@@ -218,9 +426,10 @@ fn presence_grounding(ds: &RdfDataset, subject: TermId) -> bool {
 /// as grounded" decisions are made exactly once. Crate-visible: [`crate::axes`]'s
 /// `shape_migration_axis` calls this directly at [`CountMode::Historical`] to
 /// reproduce its per-shape advisories; external callers use the derived
-/// [`residue`]/[`grounded_fraction`] quantities instead.
+/// [`residue`]/[`grounded_fraction`] quantities instead. PUBLIC so the ratchet gate's
+/// driver can reach each construct's [`Witness`] without a second enumeration.
 #[must_use]
-pub(crate) fn enumerate(
+pub fn enumerate(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
@@ -251,6 +460,8 @@ fn enumerate_structural_axiom(
     }
     let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
     let mut out = Vec::new();
+    let bridges = AlignmentBridges::collect(ds);
+    let anchors = AnchorIndex::collect(ds);
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let TermRef::Iri(p_iri) = ds.resolve(q.p) else {
             continue;
@@ -261,10 +472,6 @@ fn enumerate_structural_axiom(
         if !seen.insert((q.s, q.p, q.o)) {
             continue;
         }
-        let o_iri = match ds.resolve(q.o) {
-            TermRef::Iri(iri) => Some(iri),
-            _ => None,
-        };
         let key = format!(
             "{}|{}|{}",
             term_key(ds, q.s),
@@ -272,15 +479,15 @@ fn enumerate_structural_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A structural axiom is exempt only when it is the target edge of a complete
-        // grounding correspondence. Raw structural triples never satisfy that contract.
-        let is_bridge = surface_iri == vocab.owner
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
-            && is_validated_grounding_target(ds, q.s, q.p);
+        // A structural axiom is exempt only when it is the target edge of a native
+        // alignment correspondence. Raw hand-authored structural triples never are.
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
+        let witness = anchors.witness(ds, q.s);
         out.push(Construct {
             key,
             grounded,
             is_bridge,
+            witness,
         });
     }
     out.sort_by(|a, b| a.key.cmp(&b.key));
@@ -303,6 +510,9 @@ fn enumerate_shape(ds: &RdfDataset, mode: CountMode) -> Vec<Construct> {
                 .map(|iri| {
                     let grounded = id(ds, &iri).is_some_and(|s| presence_grounding(ds, s));
                     Construct {
+                        // Historical scope is IRI-subjects-only, so the construct is
+                        // always anchored on its own subject term IRI.
+                        witness: Witness::Anchored(iri.clone()),
                         key: iri,
                         grounded,
                         is_bridge: false,
@@ -335,15 +545,18 @@ fn enumerate_shape(ds: &RdfDataset, mode: CountMode) -> Vec<Construct> {
             node_ids.sort();
             node_ids.dedup();
 
+            let anchors = AnchorIndex::collect(ds);
             let mut out: Vec<Construct> = node_ids
                 .into_iter()
                 .map(|tid| {
                     let key = term_key(ds, tid);
                     let grounded = resolvable_grounding(ds, tid);
+                    let witness = anchors.witness(ds, tid);
                     Construct {
                         key,
                         grounded,
                         is_bridge: false,
+                        witness,
                     }
                 })
                 .collect();
@@ -367,6 +580,8 @@ fn enumerate_typed_axiom(
     }
     let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
     let mut out = Vec::new();
+    let bridges = AlignmentBridges::collect(ds);
+    let anchors = AnchorIndex::collect(ds);
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let p_iri = match ds.resolve(q.p) {
             TermRef::Iri(iri) => Some(iri),
@@ -399,41 +614,54 @@ fn enumerate_typed_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A by-reference bridge is exempt ONLY when this is the target-bearing edge of
-        // a complete `logic:GroundingCorrespondence`: either direct `alignObject`, or
-        // the sole target of a marked single-binding ProjectionMapping. A raw
-        // rdfs/owl edge remains second-source residue.
-        // C1e strict owner boundary: the validated-cell exemption applies ONLY on the
-        // vocabulary's OWNER surface. A correspondence cell (or any bridge) authored in
-        // a non-owner slice stays in the residue — external terms of a vocabulary may be
-        // authored only at their owner grounding slice's mapping boundary.
-        let is_bridge = surface_iri == vocab.owner
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
-            && is_validated_grounding_target(ds, q.s, q.p);
+        // A by-reference bridge is exempt when this is the base triple of a native
+        // alignment correspondence (a grounding correspondence on its owner surface, or
+        // any other external-facing alignment cell) or the target edge of a validated
+        // ProjectionMapping. A raw hand-authored rdfs/owl edge remains second-source
+        // residue. C1e strict owner boundary: the grounding-correspondence exemption
+        // applies ONLY on the vocabulary's OWNER surface.
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
+        let witness = anchors.witness(ds, q.s);
         out.push(Construct {
             key,
             grounded,
             is_bridge,
+            witness,
         });
     }
     out.sort_by(|a, b| a.key.cmp(&b.key));
     out
 }
 
-/// The ungrounded residue of `vocab` over `ds`: the count of [`CountMode::FullResidue`]
-/// constructs that are neither grounded nor an exempt by-reference bridge. This is
-/// the quantity the ratchet gate and the seed both count — never diverging, because
-/// both call this function.
+/// The ungrounded residue of `vocab` over `ds`: the [`CountMode::FullResidue`]
+/// constructs that are neither grounded nor an exempt by-reference bridge, in the
+/// enumeration's deterministic key order.
+///
+/// This is THE residue counter. [`residue_for_surface`] and [`residue`] are its
+/// `.len()` projection — there is deliberately no separate "count only" or "keys only"
+/// implementation, so the gate, the seed, the debt report, and the relocation
+/// accounting can never disagree about which constructs are in the residue.
+#[must_use]
+pub fn residue_constructs_for_surface(
+    ds: &RdfDataset,
+    vocab: &ProjectionVocabulary,
+    surface_iri: &str,
+) -> Vec<Construct> {
+    let mut out = enumerate(ds, vocab, CountMode::FullResidue, surface_iri);
+    out.retain(|c| !c.grounded && !c.is_bridge);
+    out
+}
+
+/// The COUNT of [`residue_constructs_for_surface`] — the quantity the ratchet gate and
+/// the seed both compare against a committed ceiling. A pure `.len()` projection of the
+/// one construct set above.
 #[must_use]
 pub fn residue_for_surface(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
 ) -> u64 {
-    enumerate(ds, vocab, CountMode::FullResidue, surface_iri)
-        .iter()
-        .filter(|c| !c.grounded && !c.is_bridge)
-        .count() as u64
+    residue_constructs_for_surface(ds, vocab, surface_iri).len() as u64
 }
 
 /// The ungrounded residue measured AS IF on the vocabulary's own owner surface — the
@@ -443,6 +671,129 @@ pub fn residue_for_surface(
 #[must_use]
 pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
     residue_for_surface(ds, vocab, &vocab.owner)
+}
+
+// -----------------------------------------------------------------------------
+// Relocation accounting: WHY residue is not conserved when a construct moves.
+// -----------------------------------------------------------------------------
+
+/// A machine-readable reason that a construct's residue membership is NOT conserved
+/// when it moves from one authoring surface to another.
+///
+/// Residue is a function of `(dataset, surface_iri)`, not of the construct alone, and
+/// two of that function's inputs genuinely change under relocation:
+///
+/// * [`is_bridge_exempt`] returns exempt IFF `surface_iri == vocab.owner` for a
+///   grounding correspondence, so a construct crossing the owner boundary has residue
+///   CREATED or DESTROYED with no authoring at all
+///   ([`Self::ExemptionShiftOwnerBoundary`] / [`Self::BridgeExemptBothSides`]);
+/// * [`resolvable_grounding`] requires the `logic:` axiom target to be in the SAME
+///   per-slice dataset, so moving a construct away from the `logic:Formula` that
+///   grounds it MANUFACTURES residue with no authoring
+///   ([`Self::GroundingOrphaned`]).
+///
+/// These are computed from the two real datasets by [`relocation_reasons`], never
+/// inferred from a count delta.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum RelocationReason {
+    /// The construct's bridge exemption FLIPS between the source surface and the
+    /// destination surface (the C1e owner boundary): exempt on exactly one of them, so
+    /// relocating it alone creates or destroys residue.
+    ExemptionShiftOwnerBoundary,
+    /// The construct's anchor term resolves its `logic:formalizes` back-reference in
+    /// the SOURCE dataset but not in the DESTINATION dataset — the grounding axiom
+    /// stayed behind, so the relocated construct is ungrounded residue it never was
+    /// before.
+    GroundingOrphaned,
+    /// The construct is an exempt by-reference bridge on BOTH surfaces — relocation is
+    /// residue-neutral for it, and a ratchet must not book it as newly-authored debt.
+    BridgeExemptBothSides,
+}
+
+impl RelocationReason {
+    /// The stable, machine-readable code a consumer reports.
+    #[must_use]
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::ExemptionShiftOwnerBoundary => "exemption-shift-owner-boundary",
+            Self::GroundingOrphaned => "grounding-orphaned",
+            Self::BridgeExemptBothSides => "bridge-exempt-both-sides",
+        }
+    }
+}
+
+/// Explain, per [`Witness`] ANCHOR, why `vocab`'s residue over `source` fails to be
+/// conserved when its constructs are attributed to `destination_surface_iri` in the
+/// `destination` dataset.
+///
+/// Three real measurements, no inference:
+///
+/// 1. `source` enumerated at `source_surface_iri` — the bytes where they sat;
+/// 2. `source` enumerated at `destination_surface_iri` — the SAME bytes measured AS IF
+///    they already sat at the destination surface (the surface-normalized base
+///    measurement). Identical dataset ⇒ identical [`Construct::key`]s, so the ONLY
+///    field that can differ is [`Construct::is_bridge`] — exactly the owner-boundary
+///    exemption shift;
+/// 3. `destination` — where the construct now lives, consulted for whether the anchor
+///    term's grounding survived the move.
+///
+/// The result is keyed on the relocation-invariant anchor IRI. A
+/// [`Witness::NonRelocatable`] construct is deliberately ABSENT from the map: it has no
+/// cross-dataset identity, so it carries no relocation warrant (fail-closed).
+#[must_use]
+pub fn relocation_reasons(
+    source: &RdfDataset,
+    source_surface_iri: &str,
+    destination: &RdfDataset,
+    destination_surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+) -> BTreeMap<String, BTreeSet<RelocationReason>> {
+    let at_source = enumerate(source, vocab, CountMode::FullResidue, source_surface_iri);
+    // Same dataset, destination surface: the surface-normalized measurement.
+    let normalized: BTreeMap<String, bool> = enumerate(
+        source,
+        vocab,
+        CountMode::FullResidue,
+        destination_surface_iri,
+    )
+    .into_iter()
+    .map(|c| (c.key, c.is_bridge))
+    .collect();
+
+    // Whether an anchor term resolves its grounding back-reference in a given dataset —
+    // the exact predicate [`resolvable_grounding`] applies to residue membership,
+    // evaluated on the relocation-invariant anchor rather than on a blank-node key that
+    // cannot cross a dataset boundary.
+    let grounded_in =
+        |ds: &RdfDataset, iri: &str| id(ds, iri).is_some_and(|term| resolvable_grounding(ds, term));
+
+    let mut out: BTreeMap<String, BTreeSet<RelocationReason>> = BTreeMap::new();
+    for c in &at_source {
+        let Some(anchor) = c.witness.anchor() else {
+            continue; // NonRelocatable: no cross-dataset identity, no warrant.
+        };
+        let mut reasons: BTreeSet<RelocationReason> = BTreeSet::new();
+        // The normalized enumeration is over the same dataset, so every key is present;
+        // fall back to the source verdict rather than invent a shift if it somehow is not.
+        let normalized_bridge = normalized.get(&c.key).copied().unwrap_or(c.is_bridge);
+        if c.is_bridge != normalized_bridge {
+            reasons.insert(RelocationReason::ExemptionShiftOwnerBoundary);
+        } else if c.is_bridge {
+            reasons.insert(RelocationReason::BridgeExemptBothSides);
+        }
+        // Grounding is a property of the per-slice dataset, not of the surface IRI:
+        // consult the destination dataset the construct actually moved into.
+        if id(destination, anchor).is_some()
+            && grounded_in(source, anchor)
+            && !grounded_in(destination, anchor)
+        {
+            reasons.insert(RelocationReason::GroundingOrphaned);
+        }
+        if !reasons.is_empty() {
+            out.entry(anchor.to_owned()).or_default().extend(reasons);
+        }
+    }
+    out
 }
 
 /// The grounded fraction over [`CountMode::Historical`] enumeration — legacy
@@ -610,43 +961,44 @@ mod tests {
 
     #[test]
     fn validated_correspondence_cell_is_exempt() {
+        // A native RDF-1.2 grounding correspondence: the envelope rides the reifier, so
+        // the only external-facing flat triple is the asserted match base triple, and it
+        // is subtracted as a by-reference bridge on the owner surface.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 gmeow:justification gmeow:ManualMappingCuration ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
-        // Both external target-bearing triples belong to one complete grounding cell.
         assert_eq!(residue(&ds, &vocab), 0);
     }
 
     #[test]
     fn validated_cell_on_non_owner_surface_still_counts() {
         // The SAME validated cell that is exempt on the owner surface counts when
-        // measured on a non-owner surface — strict owner boundary (C1e).
+        // measured on a non-owner surface — strict owner boundary (C1e). The single
+        // asserted match base triple is the one external-facing flat triple.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 gmeow:justification gmeow:ManualMappingCuration ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
@@ -657,45 +1009,74 @@ mod tests {
                 &vocab,
                 "https://blackcatinformatics.ca/gmeow/slices/kernel"
             ),
-            2 // alignObject + explicit targetEndpoint both count off the owner surface
+            1 // the match base triple counts off the owner surface
         );
     }
 
     #[test]
-    fn alignobject_without_justification_is_not_exempt() {
+    fn grounding_cell_without_justification_is_not_exempt() {
+        // A native grounding cell missing its warrant (no gmeow:justification) is an
+        // incomplete grounding correspondence; targeting a TYPED-axiom foundational
+        // vocabulary, its match base triple stays in the residue.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
-            "#,
-        );
-        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
-        // A grounding frontend lacking its warrant is invalid; neither external edge is exempt.
-        assert_eq!(residue(&ds, &vocab), 2);
-    }
-
-    #[test]
-    fn ordinary_term_equivalence_no_longer_opens_the_owner_boundary() {
-        let ds = ds_of(
-            r#"
-            gmeow:eqKind a gmeow:TermEquivalence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
-                gmeow:sssomFile "ordinary.sssom.tsv" ;
-                gmeow:justification gmeow:ManualMappingCuration .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
         assert_eq!(residue(&ds, &vocab), 1);
+    }
+
+    #[test]
+    fn ordinary_alignment_to_typed_vocab_stays_in_residue() {
+        // A bare native alignment cell (no grounding envelope) to a TYPED-axiom
+        // foundational vocabulary is not a warranted grounding correspondence; its match
+        // base triple counts, never opening the owner boundary.
+        let ds = ds_of(
+            r#"
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                gmeow:sssomFile "ordinary.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+        assert_eq!(residue(&ds, &vocab), 1);
+    }
+
+    #[test]
+    fn structural_domain_alignment_cell_is_exempt() {
+        // A domain slice aligning an external class into the gmeow taxonomy via a native
+        // rdfs:subClassOf cell is a first-class correspondence record, not hand-authored
+        // second-source rdfs — subtracted from the STRUCTURAL residue on any surface.
+        let ds = ds_of(
+            r#"
+            gufo:Kind rdfs:subClassOf gmeow:MyKind {|
+                gmeow:sssomFile "classes.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let mut vocab = alignment_vocab("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        vocab.count_kind = CountKind::StructuralAxiom;
+        vocab.counted_predicates =
+            vec!["http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()];
+        assert_eq!(
+            residue_for_surface(
+                &ds,
+                &vocab,
+                "https://blackcatinformatics.ca/gmeow/slices/documents"
+            ),
+            0
+        );
     }
 
     #[test]
@@ -847,5 +1228,291 @@ mod tests {
     fn grounded_fraction_is_one_when_nothing_authored() {
         let ds = ds_of("gmeow:Unrelated a owl:Class .");
         assert!((grounded_fraction(&ds, &shacl_vocab()) - 1.0).abs() < f64::EPSILON);
+    }
+
+    // -------------------------------------------------------------------------
+    // ONE counter: the count is the construct set's length, never a second walk.
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn residue_count_is_exactly_the_construct_sets_length() {
+        // Four countable shape nodes (two named + two anonymous nested blocks), one of
+        // which is grounded and therefore NOT in the residue.
+        let ds = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ;
+                sh:property [ sh:path gmeow:p ; sh:minCount 1 ] ,
+                            [ sh:path gmeow:q ; sh:minCount 1 ] .
+            gmeow:T a sh:NodeShape ; logic:formalizes logic:tAxiom .
+            logic:tAxiom a logic:Formula .
+            "#,
+        );
+        let vocab = shacl_vocab();
+        let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+        assert_eq!(constructs.len(), 3, "gmeow:S + its two nested blocks");
+        assert!(
+            constructs.iter().all(|c| !c.grounded && !c.is_bridge),
+            "the residue set holds only ungrounded, non-bridge constructs"
+        );
+        assert_eq!(
+            residue_for_surface(&ds, &vocab, &vocab.owner),
+            constructs.len() as u64,
+            "the count MUST be the construct set's `.len()` projection"
+        );
+        assert_eq!(residue(&ds, &vocab), constructs.len() as u64);
+    }
+
+    // -------------------------------------------------------------------------
+    // Witness anchoring.
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn named_subject_anchors_on_its_own_term_iri() {
+        let ds = ds_of("gmeow:S a sh:NodeShape .");
+        let vocab = shacl_vocab();
+        let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+        assert_eq!(constructs.len(), 1);
+        assert_eq!(
+            constructs[0].witness,
+            Witness::Anchored(format!("{GMEOW}S"))
+        );
+        assert!(constructs[0].witness.is_relocatable());
+    }
+
+    #[test]
+    fn structural_axiom_anchors_on_the_subject_term_not_the_whole_triple() {
+        // The construct KEY is the full `s|p|o` rendering; the WITNESS is the subject
+        // term IRI alone, so a blank OBJECT (whose `_:label#scope` depends on dataset
+        // construction order) cannot perturb the identity.
+        let ds = ds_of("gmeow:X rdfs:subClassOf [ a owl:Class ] .");
+        let mut vocab = alignment_vocab("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        vocab.count_kind = CountKind::StructuralAxiom;
+        vocab.counted_predicates =
+            vec!["http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()];
+        let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+        assert_eq!(constructs.len(), 1);
+        assert!(
+            constructs[0].key.contains("_:"),
+            "the key still renders the blank object: {}",
+            constructs[0].key
+        );
+        assert_eq!(
+            constructs[0].witness,
+            Witness::Anchored(format!("{GMEOW}X")),
+            "the witness is the SUBJECT term IRI, not the whole triple"
+        );
+    }
+
+    #[test]
+    fn blank_subject_anchors_on_its_nearest_named_sh_ancestor() {
+        // The anonymous nested property shape (blank SUBJECT) anchors on gmeow:S, and
+        // the doubly-nested sh:node block anchors on gmeow:S too (two hops up).
+        let ds = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ;
+                sh:property [ sh:path gmeow:p ; sh:node [ sh:path gmeow:q ] ] .
+            "#,
+        );
+        let vocab = shacl_vocab();
+        let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+        assert_eq!(constructs.len(), 3, "gmeow:S + two nested blank shapes");
+        let anchored = Witness::Anchored(format!("{GMEOW}S"));
+        assert!(
+            constructs.iter().all(|c| c.witness == anchored),
+            "every construct anchors on the named ancestor: {:?}",
+            constructs.iter().map(|c| &c.witness).collect::<Vec<_>>()
+        );
+        // The blank-subject constructs really are blank-keyed — the anchoring is doing
+        // work, not trivially reading an IRI subject back.
+        assert_eq!(
+            constructs
+                .iter()
+                .filter(|c| c.key.starts_with("_:"))
+                .count(),
+            2
+        );
+    }
+
+    #[test]
+    fn blank_subject_without_named_ancestor_is_non_relocatable() {
+        // A top-level anonymous property shape: a blank SUBJECT with no
+        // sh:property/sh:node parent at all. Fail-closed — there is no
+        // relocation-invariant identity to carry, so it must NOT be forgivable.
+        let ds = ds_of("[] sh:path gmeow:p ; sh:minCount 1 .");
+        let vocab = shacl_vocab();
+        let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+        assert_eq!(constructs.len(), 1);
+        assert_eq!(constructs[0].witness, Witness::NonRelocatable);
+        assert!(!constructs[0].witness.is_relocatable());
+        assert_eq!(constructs[0].witness.anchor(), None);
+    }
+
+    #[test]
+    fn a_non_relocatable_construct_carries_no_relocation_warrant() {
+        let source = ds_of("[] sh:path gmeow:p ; sh:minCount 1 .");
+        let destination = ds_of("[] sh:path gmeow:p ; sh:minCount 1 .");
+        let vocab = shacl_vocab();
+        let reasons = relocation_reasons(
+            &source,
+            &vocab.owner,
+            &destination,
+            "https://blackcatinformatics.ca/gmeow/slices/kernel",
+            &vocab,
+        );
+        assert!(
+            reasons.is_empty(),
+            "a NonRelocatable construct must never appear in the reason map: {reasons:?}"
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Relocation reason codes — computed from real measurements on both sides.
+    // -------------------------------------------------------------------------
+
+    /// A native RDF-1.2 grounding correspondence, exempt ONLY on the owner surface.
+    fn grounding_cell_ds() -> std::sync::Arc<RdfDataset> {
+        ds_of(
+            r#"
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
+                gmeow:sssomFile "grounding.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration ;
+                logic:sourceEndpoint gmeow:MyKind ;
+                logic:targetEndpoint gufo:Kind ;
+                logic:morphismClass logic:WellBehavedLens ;
+                logic:morphismKind logic:InstitutionMorphism ;
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
+            "#,
+        )
+    }
+
+    #[test]
+    fn reason_code_exemption_shift_owner_boundary() {
+        // The SAME bytes are bridge-exempt on the vocabulary's owner surface and NOT
+        // exempt one surface over: relocation alone manufactures the residue.
+        let source = grounding_cell_ds();
+        let destination = grounding_cell_ds();
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
+        let dest_surface = "https://blackcatinformatics.ca/gmeow/slices/kernel";
+        assert_eq!(residue_for_surface(&source, &vocab, &vocab.owner), 0);
+        assert_eq!(residue_for_surface(&source, &vocab, dest_surface), 1);
+
+        let reasons = relocation_reasons(&source, &vocab.owner, &destination, dest_surface, &vocab);
+        let anchor = format!("{GMEOW}MyKind");
+        assert_eq!(
+            reasons
+                .get(&anchor)
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![RelocationReason::ExemptionShiftOwnerBoundary]),
+            "{reasons:?}"
+        );
+        assert_eq!(
+            RelocationReason::ExemptionShiftOwnerBoundary.code(),
+            "exemption-shift-owner-boundary"
+        );
+    }
+
+    #[test]
+    fn reason_code_bridge_exempt_both_sides() {
+        // A structural domain alignment cell is a first-class correspondence record on
+        // EVERY surface, so moving it is residue-neutral — never new authored debt.
+        let source = ds_of(
+            r#"
+            gufo:Kind rdfs:subClassOf gmeow:MyKind {|
+                gmeow:sssomFile "classes.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let destination = ds_of(
+            r#"
+            gufo:Kind rdfs:subClassOf gmeow:MyKind {|
+                gmeow:sssomFile "classes.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let mut vocab = alignment_vocab("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        vocab.count_kind = CountKind::StructuralAxiom;
+        vocab.counted_predicates =
+            vec!["http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()];
+        let from = "https://blackcatinformatics.ca/gmeow/slices/documents";
+        let to = "https://blackcatinformatics.ca/gmeow/slices/kernel";
+        assert_eq!(residue_for_surface(&source, &vocab, from), 0);
+        assert_eq!(residue_for_surface(&source, &vocab, to), 0);
+
+        let reasons = relocation_reasons(&source, from, &destination, to, &vocab);
+        assert_eq!(
+            reasons
+                .get("https://w3id.org/gufo#Kind")
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![RelocationReason::BridgeExemptBothSides]),
+            "{reasons:?}"
+        );
+        assert_eq!(
+            RelocationReason::BridgeExemptBothSides.code(),
+            "bridge-exempt-both-sides"
+        );
+    }
+
+    #[test]
+    fn reason_code_grounding_orphaned() {
+        // Source: the shape AND the logic:Formula that grounds it live in one dataset,
+        // so the shape is grounded and contributes no residue.
+        let source = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .
+            logic:sAxiom a logic:Formula .
+            "#,
+        );
+        // Destination: the shape moved, the grounding axiom stayed behind. The
+        // back-reference is intact but no longer RESOLVABLE in this dataset, so residue
+        // is manufactured with no authoring at all.
+        let destination = ds_of("gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .");
+        let vocab = shacl_vocab();
+        let to = "https://blackcatinformatics.ca/gmeow/slices/kernel";
+        assert_eq!(residue_for_surface(&source, &vocab, &vocab.owner), 0);
+        assert_eq!(residue_for_surface(&destination, &vocab, to), 1);
+
+        let reasons = relocation_reasons(&source, &vocab.owner, &destination, to, &vocab);
+        assert_eq!(
+            reasons
+                .get(&format!("{GMEOW}S"))
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![RelocationReason::GroundingOrphaned]),
+            "{reasons:?}"
+        );
+        assert_eq!(
+            RelocationReason::GroundingOrphaned.code(),
+            "grounding-orphaned"
+        );
+    }
+
+    #[test]
+    fn grounding_that_travels_with_its_axiom_is_not_orphaned() {
+        // The control for `reason_code_grounding_orphaned`: when the logic:Formula moves
+        // WITH the shape, nothing is orphaned and no reason is reported.
+        let source = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .
+            logic:sAxiom a logic:Formula .
+            "#,
+        );
+        let destination = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .
+            logic:sAxiom a logic:Formula .
+            "#,
+        );
+        let vocab = shacl_vocab();
+        let reasons = relocation_reasons(
+            &source,
+            &vocab.owner,
+            &destination,
+            "https://blackcatinformatics.ca/gmeow/slices/kernel",
+            &vocab,
+        );
+        assert!(reasons.is_empty(), "{reasons:?}");
     }
 }

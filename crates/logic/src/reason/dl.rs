@@ -52,6 +52,58 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+// ── Chase materialization backstop (sound withhold under a resource bound) ─────
+//
+// The DL existential chase runs a weakly/jointly-acyclic CERTIFIED program, so it is
+// guaranteed to TERMINATE — but not in tractable space. A certified program can still
+// mint a super-polynomial (up to double-exponential) witness model: a large exact
+// cardinality (e.g. an `owl:cardinality 127` restriction feeding an inverse/equivalent-
+// class cycle, W3C `WebOnt-I5.1-010`) fans out witnesses whose full materialization
+// exhausts memory long before the fixpoint closes. Running such a program unbudgeted
+// OOMs the process rather than deciding it.
+//
+// These two bounds are HARD memory ceilings on that terminating path. Exceeding EITHER
+// stops the chase and records an honest INCOMPLETE withhold (a `DlGap`) — never a wrong
+// `consistent`/`inconsistent` decision (the incomplete-never-wrong contract). Both are
+// set FAR above the largest materialization any decided W3C OWL 2 (EL + Full) corpus
+// case needs (measured max total facts is in the low hundreds; measured max chase steps
+// likewise), so no currently-decided case can reach them — they only ever trip on a
+// genuinely explosive input, exactly where the reasoner must withhold instead of grow.
+//
+// `CHASE_STEP_BACKSTOP` caps committed derivations within ONE `route_chase` invocation
+// (the `StepGovernor` unit); `MAX_CHASE_FACTS` caps the cumulative fact set the outer
+// alternating fixed-point accumulates across invocations. Together they bound both the
+// single-call blow-up and the multi-round accumulation.
+const CHASE_STEP_BACKSTOP: u64 = 20_000;
+const MAX_CHASE_FACTS: usize = 500_000;
+
+/// The largest `≥n` existential obligation the native restricted chase will lower into a
+/// concrete witness-inventing rule.
+///
+/// A cardinality minimum `≥n` (`owl:cardinality`/`owl:minCardinality`/the qualified
+/// forms) lowers to a rule that invents `n` distinct witnesses AND asserts their
+/// `n·(n−1)/2` pairwise `owl:differentFrom` — a QUADRATIC head. A very large `n` (the
+/// W3C `WebOnt-description-logic-907` case declares `owl:cardinality 60000`, i.e. ~1.8
+/// billion difference atoms) exhausts memory just BUILDING that rule, before any chase
+/// step runs. Beyond this bound the obligation is not lowered; the run withholds an
+/// honest INCOMPLETE instead (the native chase cannot materialize a witness set that
+/// large), never a wrong decision and never an out-of-memory abort. It is set far above
+/// the largest `≥n` any decided W3C OWL 2 (EL + Full) case needs (their measured chase
+/// step counts are in the low single digits), so no currently-decided case regresses.
+const MAX_EXISTENTIAL_WITNESSES: usize = 512;
+
+/// Reserved internal marker predicate recorded in the closure when the existential
+/// chase stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before reaching its
+/// fixpoint. It is NOT an RDF entailment; [`verdict_from_inferred`] reads its presence
+/// and folds it into [`DlVerdict::gaps`] as a sound withhold, and it appears in the
+/// closure ONLY on an input that actually hit the bound (never on a decided case).
+const CHASE_INCOMPLETE_MARKER_PRED: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseMaterializationIncomplete";
+
+/// The reserved subject the [`CHASE_INCOMPLETE_MARKER_PRED`] marker fact carries.
+const CHASE_INCOMPLETE_MARKER_SUBJECT: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseBackstop";
+
 // ── Out-of-fragment DL/Full constructs the native path CANNOT soundly decide ───
 //
 // These are inventoried in `CONSTRUCT_COVERAGE` so `scan_coverage` marks them
@@ -64,7 +116,7 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 // constrains no asserted/inferred literal is INERT (it cannot cause an
 // inconsistency), so `classify_coverage` decides the datatype-facet families in
 // that case and only withholds when a literal is actually subject to a facet
-// (see `datatype_facet_has_live_obligation`). The universal top
+// (see `datatype_facet_live_obligations`). The universal top
 // properties (`owl:topObjectProperty`/`owl:topDataProperty`) are NEVER decided.
 //
 // NOTE — property irreflexivity/asymmetry (`owl:IrreflexiveProperty`,
@@ -149,10 +201,12 @@ const RDF_XML_LITERAL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLit
 // DL construct IRIs scanned for the native coverage inventory.
 const OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
 // `owl:InverseFunctionalProperty` needs an inverse-functional identity-merge clash
-// the native post-pass does not perform; it is out of the OWL 2 EL profile and
-// absent from the committed bundle + vendored on-gate corpus (measured), so
-// inventorying it and NEVER promoting it to `decided` surfaces any bundle asserting
-// it as an honest cannot-decide gap rather than a wrong `consistent`.
+// the native forward post-pass does not perform; it is out of the OWL 2 EL profile
+// and absent from the committed bundle + vendored on-gate corpus (measured). The
+// Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+// decides its pure assertional/identity fragment (the `1 = 2` collapse); outside
+// that fragment its presence stays an honest cannot-decide gap, never a wrong
+// `consistent`.
 //
 // `owl:hasSelf` is NOT inventoried here: it is IN the OWL 2 EL profile and the
 // vendored EL grade decides a benign `hasSelf` self-restriction typed onto an
@@ -302,9 +356,13 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "allDisjointClasses",
     ),
     (OWL_ALL_DIFFERENT, "owl:AllDifferent", "allDifferent"),
-    // No native inverse-functional identity-merge clash exists — never promoted to
-    // `decided` (out of EL, absent from the committed bundle + vendored on-gate
-    // corpus, so its presence is always an honest gap, never a silently-ignored axiom).
+    // No native inverse-functional identity-merge clash exists in the forward chase
+    // (out of EL, absent from the committed bundle + vendored on-gate corpus). The
+    // Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+    // wires the real inverse-functional `sameAs` propagation and its `differentFrom`
+    // clash, so `classify_coverage` promotes this family to `decided` exactly when
+    // that sub-decider completely decides the (pure assertional/identity) case —
+    // otherwise its presence stays an honest gap, never a silently-ignored axiom.
     (
         OWL_INVERSE_FUNCTIONAL_PROPERTY,
         "owl:InverseFunctionalProperty",
@@ -317,7 +375,7 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
     // range) is invisible to it. A facet is withheld (honest gap) ONLY when it
     // actually constrains an asserted/inferred literal; a facet-restricted
     // datatype that is merely DEFINED but constrains no literal is inert and
-    // decided (see `datatype_facet_has_live_obligation`). The universal
+    // decided (see `datatype_facet_live_obligations`). The universal
     // top properties below are always `unsupported`, never `decided`.
     (
         OWL_DATATYPE_COMPLEMENT_OF,
@@ -359,7 +417,7 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
 /// chase carries no datatype value-space reasoning, so these are undecidable ONLY
 /// when a facet actually constrains a literal; a facet-restricted datatype that is
 /// merely DEFINED is inert and decided (see
-/// [`datatype_facet_has_live_obligation`]). Deliberately EXCLUDES the
+/// [`datatype_facet_live_obligations`]). Deliberately EXCLUDES the
 /// universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`), which
 /// are never decided.
 const DATATYPE_FACET_FAMILIES: &[&str] = &[
@@ -498,6 +556,15 @@ impl DlGap {
 /// families present and decided by the native path. `gaps` mirrors
 /// `coverage.unsupported` for existing consumers and must be empty for the
 /// committed bundle.
+///
+/// `boundary_findings` carries the fragment-certified refutation kernel's
+/// FAMILY-SCOPED withholds (see [`crate::reason::refute::production_boundary_findings`]):
+/// a family shape was present but its completeness bound did not close, so the kernel
+/// surfaces an honest, ledger-identified "outside the certified fragment" finding
+/// stamped with [`crate::reason::refute::REFUTATION_KERNEL_CATEGORY`]. It is a
+/// Coherent `UnsupportedSemanticFeature` that can NEVER gate, and it is EMPTY on the
+/// committed bundle and every gated corpus input (the kernel's steady state there is
+/// `NoDeciderEngaged`, which emits nothing), so it changes no reasoning verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DlVerdict {
     pub consistent: bool,
@@ -505,6 +572,7 @@ pub struct DlVerdict {
     pub inconsistencies: Vec<InconsistencyWitness>,
     pub coverage: DlCoverage,
     pub gaps: Vec<DlGap>,
+    pub boundary_findings: Vec<gmeow_errors::Finding>,
 }
 
 /// Strip a decoded object display form (`<iri>`) back to the bare IRI.
@@ -603,7 +671,25 @@ fn graph_world_key(graph_name: &Option<RdfTerm>) -> String {
     }
 }
 
+/// The non-negative integer a cardinality-bound literal denotes, or `None` when the
+/// literal is not one the counting handlers may act on (which leaves its family an
+/// honest gap rather than a guessed bound).
+///
+/// `None` and `xsd:string` are ONE case, not two. RDF 1.1 abolished the untyped
+/// literal: a simple literal `"1"` IS `"1"^^xsd:string`, and which of the two a term
+/// arrives as here is decided by the serialization it travelled through, not by the
+/// author. `RdfLiteral::simple` (the in-memory form the `logic:` canonical projection
+/// emits a lifted restriction's bound as) carries no datatype, while the same term
+/// read back out of a GTS snapshot carries `xsd:string`. Accepting one and refusing
+/// the other made a bound decidable before a round-trip and undecidable after it —
+/// the same axiom, two verdicts. The repo's own literal-identity keys already fold
+/// the two together (`refute::counting::literal_value_key`,
+/// `refute::datatype`'s value key), and the counting sub-decider reads a bound
+/// lexically regardless of datatype, so this is that one convention rather than a
+/// looser check: a lexical form that is not a non-negative integer is still refused
+/// under EVERY datatype.
 fn literal_usize(lit: &RdfLiteral) -> Option<usize> {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
     match lit.datatype.as_deref() {
         Some(XSD_NON_NEGATIVE_INTEGER)
         | Some(XSD_INTEGER)
@@ -612,6 +698,7 @@ fn literal_usize(lit: &RdfLiteral) -> Option<usize> {
         | Some("http://www.w3.org/2001/XMLSchema#unsignedLong")
         | Some("http://www.w3.org/2001/XMLSchema#unsignedShort")
         | Some("http://www.w3.org/2001/XMLSchema#unsignedByte")
+        | Some(XSD_STRING)
         | None => lit.lexical_form.parse::<usize>().ok(),
         _ => None,
     }
@@ -639,14 +726,80 @@ fn add_inferred_fact(
     true
 }
 
+/// Materialize a fragment-certified refutation kernel verdict into the closure.
+///
+/// The unified beyond-Horn kernel ([`crate::reason::refute`]) decides a
+/// precisely-characterized COMPLETE fragment of the constructs this forward chase
+/// withholds. An `InFragment{Inconsistent}` decision carries one
+/// [`crate::reason::refute::NothingClash`] per forced-empty individual; each is
+/// added as the `type(?i, owl:Nothing, ?w)` witness [`verdict_from_inferred`]
+/// reads off, with the deciding rule name and clash premises preserved. An
+/// `InFragment{Consistent}` decision materializes NO clash (its family is promoted
+/// to `decided` by [`classify_coverage`], per family, in the later kernel tasks),
+/// and an `OutOfFragment` withhold materializes nothing (the family stays an
+/// honest gap).
+///
+/// Returns whether any witness fact was added, so the caller can fold the kernel
+/// into its fixpoint if it ever decides on materialized facts. Task 2 registers no
+/// family sub-decider, so on every real closure the kernel returns `OutOfFragment`
+/// and this is a strict no-op — no current verdict changes — while still being
+/// CALLED on the production path (no dark code).
+fn materialize_refutation(
+    certificate: &crate::reason::refute::RefutationCertificate,
+    inferred: &mut Vec<InferredAxiom>,
+    facts: &mut BTreeSet<Fact>,
+) -> bool {
+    use crate::reason::refute::{Decision, RefutationCertificate};
+    let RefutationCertificate::InFragment { decision, witness } = certificate else {
+        return false;
+    };
+    if *decision != Decision::Inconsistent {
+        return false;
+    }
+    let mut added = false;
+    for clash in &witness.clashes {
+        added |= add_inferred_fact(
+            inferred,
+            facts,
+            Fact::new(
+                clash.individual.clone(),
+                RDF_TYPE.to_owned(),
+                OWL_NOTHING.to_owned(),
+                clash.world.clone(),
+            ),
+            &clash.rule_name,
+            clash.premises.clone(),
+        );
+    }
+    added
+}
+
+/// The ONE raw-dataset scan waist of this module: every structural reader below
+/// (`read_restrictions`, `read_lists`, the coverage classifiers, the key/identity
+/// readers) folds these rows rather than touching `edb` itself.
+///
+/// Because it is the single waist, it is also where the canonical `logic:`
+/// class-expression vocabulary is lowered onto the W3C `owl:` spelling this module's
+/// readers match — see [`crate::reason::calculus_term`] for the
+/// direction and why a raw scan REPLACES the spelling where the typed EDB adds it. The
+/// `rdf:type` object is normalized on the same table, so an authored
+/// `[ a logic:Restriction ]` node is the `owl:Restriction` declaration the readers
+/// already skip rather than a phantom class membership.
 fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> {
     let mut rows = Vec::new();
     for quad in edb.owned_quads() {
         if let Some(subject) = term_resource_key(&quad.subject) {
+            let predicate = crate::reason::calculus_term(&quad.predicate).to_owned();
+            let object = match (predicate.as_str(), &quad.object) {
+                (RDF_TYPE, RdfTerm::Iri(class)) => {
+                    RdfTerm::iri(crate::reason::calculus_term(class))
+                }
+                _ => quad.object,
+            };
             rows.push((
                 subject,
-                quad.predicate,
-                quad.object,
+                predicate,
+                object,
                 graph_world_key(&quad.graph_name),
             ));
         }
@@ -823,6 +976,22 @@ fn read_lists(edb: &RdfDataset) -> HashMap<(String, String), Vec<String>> {
     out
 }
 
+/// The raw resource (IRI-and-skolemized-blank) facts of `edb`, in the finite DL
+/// post-pass's fact shape.
+///
+/// This is the raw MIRROR of the typed EDB, so it takes the same lowering the typed EDB
+/// takes: each quad is emitted under every spelling
+/// [`crate::reason::edb_predicate_spellings`] gives it — canonical first, the fixed
+/// calculi's `rdfs:`/`owl:` projection second, the authored quad never replaced. (The
+/// struct-keyed scans read through [`quads_by_subject`], which normalizes instead; the
+/// two modes are described on [`crate::reason::calculus_term`].)
+///
+/// The lowering is not redundant with the closure this fact set is unioned into.
+/// [`crate::reason::build_edb_facts`] keeps only IRI-OBJECT quads, so a class-expression
+/// body — anchored through a blank node, `C logic:subClassOf [ a logic:Restriction ; … ]`
+/// — never reaches the typed EDB at all. This is the only place that edge is projected,
+/// and without it `dl:type-propagation` never reaches the restriction node, so the whole
+/// authored body sits inert.
 fn raw_resource_facts(edb: &RdfDataset) -> Vec<Fact> {
     let mut rows = Vec::new();
     for RdfQuad {
@@ -838,12 +1007,15 @@ fn raw_resource_facts(edb: &RdfDataset) -> Vec<Fact> {
         else {
             continue;
         };
-        rows.push(Fact::new(
-            subject,
-            predicate,
-            object,
-            graph_world_key(&graph_name),
-        ));
+        let world = graph_world_key(&graph_name);
+        for spelling in crate::reason::edb_predicate_spellings(&predicate) {
+            rows.push(Fact::new(
+                subject.clone(),
+                spelling.to_owned(),
+                object.clone(),
+                world.clone(),
+            ));
+        }
     }
     rows
 }
@@ -1108,13 +1280,24 @@ fn cardinality_minima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
 /// `onClass` when present. These are the obligations the chase discharges by
 /// inventing scoped Skolem witnesses through the native restricted chase.
 fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
+    // `owl:Thing` qualification is VACUOUS, and carrying it into the head breaks the
+    // restricted chase. The head would gain a `?witness rdf:type owl:Thing` conjunct, and
+    // nothing asserts `rdf:type owl:Thing` for anything — so the head-satisfaction probe
+    // can never match, blocking never fires, and the chase invents a witness even for a
+    // subject that already has its filler. That turns `≥1 p.⊤` into "always add one more
+    // p", so an asserted single value reads back as two and collides with the `≤1 p`
+    // restriction on the same property. Normalizing it to the unqualified obligation
+    // restores the blocking check the restricted chase depends on.
+    fn qualifier(class: Option<&str>) -> Option<&str> {
+        class.filter(|c| *c != OWL_THING)
+    }
     let mut obligations: Vec<(usize, Option<&str>)> = Vec::new();
     if let Some(class) = restriction.some_values_from.as_deref() {
-        obligations.push((1, Some(class)));
+        obligations.push((1, qualifier(Some(class))));
     }
     for (n, on_class) in cardinality_minima(restriction) {
         if n > 0 {
-            obligations.push((n, on_class));
+            obligations.push((n, qualifier(on_class)));
         }
     }
     obligations
@@ -1314,8 +1497,14 @@ pub(crate) fn authored_existential_rules(
 fn structured_existential_rules(
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
-) -> BTreeMap<String, Vec<crate::physical::ExistentialRule>> {
+) -> (
+    BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    bool,
+) {
     use crate::rule_ir::{EvalAtom, EvalTerm};
+    // Whether any `≥n` obligation exceeded `MAX_EXISTENTIAL_WITNESSES` and was NOT
+    // lowered — the caller records an honest INCOMPLETE withhold for it.
+    let mut oversized_withheld = false;
 
     const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_properties = quads_by_subject(edb)
@@ -1337,6 +1526,13 @@ fn structured_existential_rules(
             continue;
         }
         for (needed, on_class) in existential_obligations(restriction) {
+            // A `≥n` beyond the materialization bound is not lowered: building its
+            // n·(n−1)/2-atom quadratic head would exhaust memory before the chase runs.
+            // Withhold an honest INCOMPLETE instead of constructing an unbounded rule.
+            if needed > MAX_EXISTENTIAL_WITNESSES {
+                oversized_withheld = true;
+                continue;
+            }
             let witnesses = (0..needed)
                 .map(|ordinal| format!("?witness{ordinal}"))
                 .collect::<Vec<_>>();
@@ -1393,16 +1589,47 @@ fn structured_existential_rules(
                 });
         }
     }
-    by_world
+    (by_world, oversized_withheld)
 }
 
+/// Record the sound INCOMPLETE withhold marker on the closure: the existential chase
+/// stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before its fixpoint closed,
+/// so the run cannot certify a `consistent`/`inconsistent` decision.
+///
+/// The marker is idempotent (recorded once) and lives ONLY in `inferred` — it is never
+/// inserted into `facts`, so it cannot perturb any downstream rule firing;
+/// [`verdict_from_inferred`] reads its presence and folds it into [`DlVerdict::gaps`].
+fn record_chase_materialization_withhold(inferred: &mut Vec<InferredAxiom>) {
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        return;
+    }
+    inferred.push(InferredAxiom {
+        subject: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        predicate: CHASE_INCOMPLETE_MARKER_PRED.to_owned(),
+        object: format!("<{CHASE_INCOMPLETE_MARKER_SUBJECT}>"),
+        world: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        is_edb: false,
+        rule_name: Some("dl:chase-materialization-backstop".to_owned()),
+        premises: Vec::new(),
+    });
+}
+
+/// Run the structured existential chase over each world's rules.
+///
+/// Returns the per-world chase certificates and whether the chase was cut short by the
+/// materialization backstop ([`CHASE_STEP_BACKSTOP`]) in ANY world — an exhausted world
+/// yields a sound partial prefix, and the caller records the withhold and stops.
 fn run_structured_existential_chase(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
     rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
     witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
-) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+) -> gmeow_errors::Result<(Vec<crate::reason::ChaseCertificate>, bool)> {
     let mut certificates = Vec::new();
+    let mut incomplete = false;
     for (world, rules) in rules_by_world {
         if rules.is_empty() {
             continue;
@@ -1417,8 +1644,13 @@ fn run_structured_existential_chase(
             })
             .collect::<Vec<_>>();
         let registry = witness_registries.entry(world.clone()).or_default();
-        let (admission, outcome) =
-            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
+        let (admission, outcome) = crate::physical::route_chase_with_registry_backstopped(
+            world,
+            &edb,
+            rules,
+            CHASE_STEP_BACKSTOP,
+            registry,
+        )?;
         let budgeted = match outcome {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -1430,6 +1662,11 @@ fn run_structured_existential_chase(
                 }));
             }
         };
+        // A certified program that hit the step backstop terminated INCOMPLETE: its rows
+        // are a sound prefix, but the fixpoint is not closed, so the run must withhold.
+        if budgeted.status == crate::seam::BudgetStatus::Exhausted {
+            incomplete = true;
+        }
         certificates.push(crate::reason::ChaseCertificate {
             world: world.clone(),
             admission,
@@ -1484,7 +1721,7 @@ fn run_structured_existential_chase(
             );
         }
     }
-    Ok(certificates)
+    Ok((certificates, incomplete))
 }
 
 /// Add DL-only finite consistency consequences to the closure.
@@ -1517,7 +1754,13 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     Vec<crate::physical::WitnessDerivation>,
 )> {
     let restrictions = read_restrictions(edb);
-    let mut existential_rules = structured_existential_rules(&restrictions, edb);
+    let (mut existential_rules, oversized_existential) =
+        structured_existential_rules(&restrictions, edb);
+    // An over-large `≥n` obligation was not lowered (its quadratic head would exhaust
+    // memory to even build): record the honest INCOMPLETE withhold up front.
+    if oversized_existential {
+        record_chase_materialization_withhold(inferred);
+    }
     // Merge authored general existential rules (arbitrary body/head) into the same
     // per-world map, so they are certified per-world and shipped alongside the
     // OWL-restriction certificates.
@@ -2339,12 +2582,22 @@ pub(crate) fn augment_inferred_with_dl_certificates(
             }
         }
 
-        certificates.extend(run_structured_existential_chase(
+        let (chase_certificates, chase_incomplete) = run_structured_existential_chase(
             inferred,
             &mut facts,
             &existential_rules,
             &mut witness_registries,
-        )?);
+        )?;
+        certificates.extend(chase_certificates);
+
+        // Sound withhold under the resource bound: a single-invocation blow-up trips the
+        // step backstop (`chase_incomplete`); a slow multi-round accumulation trips the
+        // cumulative fact ceiling. Either way the fixpoint is not closed, so record the
+        // INCOMPLETE marker and stop rather than growing the closure toward OOM.
+        if chase_incomplete || facts.len() > MAX_CHASE_FACTS {
+            record_chase_materialization_withhold(inferred);
+            break;
+        }
 
         if facts.len() == before {
             break;
@@ -2359,6 +2612,19 @@ pub(crate) fn augment_inferred_with_dl_certificates(
         &mut certificates,
         &mut witness_registries,
     )?;
+
+    // ── Fragment-certified refutation kernel (unified beyond-Horn decider) ──────
+    // Decide the precisely-characterized COMPLETE fragment of the beyond-Horn
+    // constructs the forward chase above withholds (datatype value-space,
+    // counting, case-split/complement), and honestly withhold outside it. The
+    // kernel is CALLED on every production closure — so its wiring is exercised,
+    // not dark — but Task 2 registers no family sub-decider yet, so it returns
+    // `OutOfFragment` and `materialize_refutation` adds nothing: a strict no-op on
+    // real inputs (no current verdict changes; the drift-pinned withholds stay
+    // `incomplete`). Tasks 3/4/5 register the per-family sub-deciders whose
+    // `InFragment{Inconsistent}` clashes are materialized here as
+    // `type(?i, owl:Nothing)` witnesses `verdict_from_inferred` reads off.
+    materialize_refutation(&crate::reason::refute::refute(edb), inferred, &mut facts);
 
     certificates.sort_by(|left, right| {
         let left_finding = left.admission.to_finding();
@@ -2473,12 +2739,12 @@ fn augment_with_extra_dl_clashes(
             .collect();
         thing_rules.insert(world, rules);
     }
-    certificates.extend(run_structured_existential_chase(
-        inferred,
-        facts,
-        &thing_rules,
-        witness_registries,
-    )?);
+    let (thing_certificates, thing_incomplete) =
+        run_structured_existential_chase(inferred, facts, &thing_rules, witness_registries)?;
+    certificates.extend(thing_certificates);
+    if thing_incomplete {
+        record_chase_materialization_withhold(inferred);
+    }
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
     // An individual typed a restriction on owl:bottomObjectProperty /
@@ -3366,7 +3632,30 @@ pub(crate) fn verdict_from_inferred(
     let consistent = inconsistencies.is_empty();
 
     let coverage = scan_coverage(edb)?;
-    let gaps = gaps_from_unsupported(&coverage.unsupported);
+    let mut gaps = gaps_from_unsupported(&coverage.unsupported);
+    // Fold the existential-chase materialization backstop into the verdict as a sound
+    // INCOMPLETE withhold: the chase stopped before its fixpoint closed (a certified-but-
+    // super-polynomial materialization), so the run cannot certify consistency. The
+    // marker rides `inferred` (never `edb`), so this is the only place a runtime resource
+    // bound can reach the verdict — it forces `gaps` non-empty (incomplete-never-wrong),
+    // never a wrong decided answer.
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        gaps.push(DlGap::new(
+            "reason.dl-gap.chase-materialization-bound",
+            "the DL existential chase reached its materialization backstop before closing \
+             its fixpoint; the consistency verdict is withheld as incomplete rather than \
+             decided under an unbounded materialization",
+        ));
+    }
+    // Fold the fragment-certified refutation kernel's FAMILY-SCOPED withhold (a
+    // present family shape whose completeness bound did not close) into the verdict as
+    // an honest, ledger-identified boundary finding. Empty on the committed bundle and
+    // every gated input (the kernel's steady state there is `NoDeciderEngaged`, which
+    // emits nothing), so this changes no reasoning verdict.
+    let boundary_findings = crate::reason::refute::production_boundary_findings(edb);
 
     Ok(DlVerdict {
         consistent,
@@ -3374,6 +3663,7 @@ pub(crate) fn verdict_from_inferred(
         inconsistencies,
         coverage,
         gaps,
+        boundary_findings,
     })
 }
 
@@ -3526,6 +3816,20 @@ pub fn scan_coverage(edb: &RdfDataset) -> gmeow_errors::Result<DlCoverage> {
 fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     let mut withholds: BTreeSet<String> = BTreeSet::new();
 
+    // Family 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
+    // union-disjoint / malformed-list sub-decider ([`crate::reason::refute::casesplit`])
+    // now COMPLETELY decides a precisely-characterized propositional-plus-nominal
+    // fragment of exactly the beyond-Horn refutation shapes withheld below. When it
+    // decides the whole case (an `Inconsistent` decision materializes `owl:Nothing`;
+    // a `Consistent` decision is certified in-fragment), the complement / union /
+    // oneOf / malformed-list families it accounts for stay `decided` rather than
+    // being demoted to an honest gap — so each shape-specific withhold below is
+    // narrowed by `&& !casesplit_decides`. A case outside its fragment (an
+    // existential/cardinality/property-characteristic construct it refuses, or a
+    // budget-exceeded search) keeps `casesplit_decides` FALSE, so the withhold
+    // still fires. Computed once (the bounded case-split is re-run only here).
+    let casesplit_decides = crate::reason::refute::casesplit::decides(edb);
+
     // H1 — complement used in a positive class-constraint position. Native decides
     // the complement *clash* (`x:A ∧ x:¬A ⇒ Nothing`, via `dl:complement-disjoint`)
     // but NOT complement *refutation* (a class defined/constrained by a negated
@@ -3535,8 +3839,9 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // superclass, or a `someValuesFrom`/`allValuesFrom` filler). The committed
     // bundle's complement is referenced ONLY by `rdfs:domain` (a property-scoping
     // position, never reached here), so this never fires on production.
-    if complement_in_class_constraint_position(edb)
-        || complement_typed_individual_needs_derivation(edb)
+    if (complement_in_class_constraint_position(edb)
+        || complement_typed_individual_needs_derivation(edb))
+        && !casesplit_decides
     {
         withholds.insert("complementOf".to_owned());
     }
@@ -3550,22 +3855,54 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
     // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
     // sits in a class-definition position — never when it is `rdf:type`d onto an
-    // individual (the Wave-A decided case). The committed bundle uses only exact
-    // `cardinality 1` and qualified cardinalities, none in the withheld shape.
-    let restrictions = read_restrictions(edb);
-    let constraint_nodes = nodes_in_class_constraint_position(edb);
-    for ((world, node), r) in &restrictions {
-        if !constraint_nodes.contains(&(world.clone(), node.clone())) {
-            continue;
-        }
-        if r.min_cardinality.is_some() {
-            withholds.insert("minCardinality".to_owned());
-        }
-        if r.max_cardinality.is_some() {
-            withholds.insert("maxCardinality".to_owned());
-        }
-        if matches!(r.cardinality, Some(n) if n >= 2) {
-            withholds.insert("cardinality".to_owned());
+    // individual (the Wave-A decided case), and never when its EFFECTIVE bound is the
+    // functional `= 1`. Family 2 — the counting sub-decider
+    // ([`crate::reason::refute::counting`]) — COMPLETELY decides the pure
+    // class-definition cardinality fragment (a collapsed `min > max` bound on a
+    // populated class materializes `owl:Nothing`; an uncollapsed one is certified
+    // consistent), so when it decides the whole case the families it accounts for stay
+    // `decided`. Outside that pure fragment `class_definition_counting_residual` asks
+    // whether any definition-position class still carries a plain bound that is not
+    // exactly `= 1`. That carve-out is the one already made a few lines below, where
+    // only `cardinality n ≥ 2` withholds and an exact `cardinality 1` does not: a class
+    // carrying `min 1` and `max 1` on one property states the same functional fact in
+    // two nodes instead of one, and is decided on the same grounds. Everything else —
+    // a one-sided bound, an effective minimum ≥ 2 (the domain-size interaction of W3C
+    // `webont-description-logic-035`), a collapse — stays a residual.
+    //
+    // What keeps this quiet on production is those conditions together, not a corpus
+    // census of cardinality assertions. `math:compilesToLogicFormula`'s two
+    // `owl:minCardinality "1"` companions hang off `rdfs:domain`, a property-scoping
+    // position `nodes_in_class_constraint_position` deliberately never collects, and
+    // the `logic:` grounding-surface demonstrators (`ex:minMemberRestriction` /
+    // `ex:maxLeadRestriction` in
+    // `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) are NAMED
+    // declarations that no `rdfs:subClassOf`/`owl:equivalentClass`/`someValuesFrom`/
+    // `allValuesFrom` object — nor any `intersectionOf`/`unionOf` list reachable from
+    // one — ever references, so nothing puts them in a constraint position. The
+    // canonically-authored `math:NormalizationDeclaration` exact-one pair (a
+    // `logic:minCardinality 1` and a `logic:maxCardinality 1` on
+    // `math:normalizationStrength`) IS in a definition position and IS read here; it is
+    // the functional case, so it is decided. A definition-position bound outside that
+    // case is withheld the moment it appears; that is the intended trigger.
+    if !crate::reason::refute::counting::decides_cardinality(edb)
+        && crate::reason::refute::counting::class_definition_counting_residual(edb)
+    {
+        let restrictions = read_restrictions(edb);
+        let constraint_nodes = nodes_in_class_constraint_position(edb);
+        for ((world, node), r) in &restrictions {
+            if !constraint_nodes.contains(&(world.clone(), node.clone())) {
+                continue;
+            }
+            if r.min_cardinality.is_some() {
+                withholds.insert("minCardinality".to_owned());
+            }
+            if r.max_cardinality.is_some() {
+                withholds.insert("maxCardinality".to_owned());
+            }
+            if matches!(r.cardinality, Some(n) if n >= 2) {
+                withholds.insert("cardinality".to_owned());
+            }
         }
     }
 
@@ -3574,7 +3911,14 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // value-space (e.g. `cardinality 257` distinct `xsd:byte` values). The chase
     // carries no datatype value-space reasoning, so it cannot refute the count. No
     // cardinality restriction in the committed bundle targets a datatype property.
-    if cardinality_on_datatype_property(edb) {
+    //
+    // Family 5 — the datatype value-space refutation sub-decider — now COMPLETELY
+    // decides this counting fragment (deriving the finite value-space cardinality
+    // from the `math:`-grounded facts). The withhold is narrowed to exactly the
+    // residual it cannot decide: when the subsolver decides the case, the family
+    // stays `decided` (an inconsistency materializes `owl:Nothing`; a consistent
+    // count is certified) rather than being demoted to an honest gap.
+    if cardinality_on_datatype_property(edb) && !crate::reason::refute::datatype::decided(edb) {
         withholds.insert("cardinality".to_owned());
     }
 
@@ -3592,7 +3936,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // `owl:differentFrom` every member — is still decided by the augment handler and
     // is NOT withheld here.) The committed bundle has no individual typed to ≥2
     // enumerations.
-    if individual_in_multiple_enumerations(edb) {
+    if individual_in_multiple_enumerations(edb) && !casesplit_decides {
         withholds.insert("oneOf".to_owned());
     }
 
@@ -3601,7 +3945,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // propositional-SAT shape whose refutation needs joint case-splitting. The
     // committed bundle has at most ONE union superclass on any class, so this never
     // fires on production; a single disjunctive superclass stays decided.
-    if class_with_multiple_union_superclasses(edb) {
+    if class_with_multiple_union_superclasses(edb) && !casesplit_decides {
         withholds.insert("unionOf".to_owned());
     }
 
@@ -3611,7 +3955,16 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // class-constraint position needs the self-membership inference (`x p x ⇒ x ∈ ∃p.Self`)
     // the chase does not perform to see the clash. Withheld only in that refutation
     // position; the committed bundle asserts no `owl:hasSelf`.
-    if has_self_restriction_in_refutation_position(edb) {
+    // Family 7 — the counting sub-decider now decides the `owl:hasSelf` membership
+    // refutation: a self-edge (`x p x`) inhabiting a `∃p.Self` restriction that is
+    // `owl:disjointWith` a class `x` also holds materializes `owl:Nothing`. When the
+    // sub-decider decides the case (a clash, or a certified-consistent benign
+    // position), the withhold is dropped; it stays for the residual the sub-decider
+    // refuses (a self-restriction entangled with an existential/property-chain
+    // construct it does not fold in).
+    if has_self_restriction_in_refutation_position(edb)
+        && !crate::reason::refute::counting::decides_has_self(edb)
+    {
         withholds.insert("hasSelf".to_owned());
     }
 
@@ -3619,7 +3972,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // structurally-broken list makes the enclosing axiom's meaning turn on
     // list-well-formedness the chase does not adjudicate. `rdf:nil` never bears a
     // list edge in the committed bundle.
-    if nil_bears_list_edge(edb) {
+    if nil_bears_list_edge(edb) && !casesplit_decides {
         withholds.insert("malformedRdfList".to_owned());
     }
 
@@ -3733,10 +4086,17 @@ fn nodes_in_class_constraint_position(edb: &RdfDataset) -> BTreeSet<(String, Str
 /// `owl:min`/`maxCardinality` — is `owl:onProperty` a property typed
 /// `owl:DatatypeProperty`. That is the datatype value-space counting shape (G8):
 /// `cardinality 257` distinct `xsd:byte` values is unsatisfiable, but the chase
-/// carries no datatype value-space reasoning to refute it. Qualified cardinalities
-/// and the exact `cardinality 1` (functional) case — the only plain cardinality the
-/// committed bundle asserts — are deliberately NOT withheld, so this never fires on
-/// production.
+/// carries no datatype value-space reasoning to refute it. Qualified cardinalities and
+/// the exact `cardinality 1` (functional) case are deliberately NOT withheld. What keeps
+/// this quiet on production is the `owl:DatatypeProperty` conjunct, not a census of the
+/// corpus's cardinality assertions: every plain cardinality restriction the committed
+/// bundle carries is `owl:onProperty` a property that is never typed
+/// `owl:DatatypeProperty` — `math:compilesToLogicFormula`'s two `owl:minCardinality "1"`
+/// `rdfs:domain` companions target declared `owl:ObjectProperty`s, and the `logic:`
+/// grounding-surface demonstrators (`ex:minMemberRestriction` / `ex:maxLeadRestriction`)
+/// target `ex:member` / `ex:lead`, which carry no property typing at all. Typing a
+/// counted property `owl:DatatypeProperty` arms this withhold; that is the intended
+/// trigger.
 fn cardinality_on_datatype_property(edb: &RdfDataset) -> bool {
     const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_props: BTreeSet<(String, String)> = quads_by_subject(edb)
@@ -4052,16 +4412,42 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     // Datatype-facet family: PRECISE withhold. A facet-restricted datatype that is
     // merely DEFINED but constrains no asserted/inferred literal is INERT — it
     // cannot cause an inconsistency, so the native path decides it and the facet
-    // families stay out of `gaps`. Only when a literal is actually subject to a
-    // facet-restricted datatype (a value the native chase cannot validate) is the
-    // family left UNDECIDED (→ honest gap). See
-    // `datatype_facet_has_live_obligation`.
-    if !datatype_facet_has_live_obligation(edb) {
+    // families stay out of `gaps`. Only a LIVE obligation the value-space
+    // sub-decider does not settle leaves the family UNDECIDED (→ honest gap). See
+    // `datatype_facet_live_obligations`.
+    if datatype_facet_live_obligations(edb).settled_by_value_space_subsolver(edb) {
         for family in DATATYPE_FACET_FAMILIES {
             if present_set.contains(family) {
                 decided.insert((*family).to_owned());
             }
         }
+    }
+
+    // A LITERAL `owl:oneOf` datatype enumeration is a value-space the native list
+    // reader skips (it drops literal members), so it is left undecided above. The
+    // datatype value-space subsolver counts its distinct values exactly; promote the
+    // `oneOf` family to `decided` precisely when the subsolver decides the case AND
+    // every enumeration in the EDB is a literal datatype enumeration (never an
+    // object enumeration, which the native path already decides).
+    if present_set.contains("oneOf")
+        && crate::reason::refute::datatype::decided(edb)
+        && crate::reason::refute::datatype::all_oneof_are_literal_enumerations(edb)
+    {
+        decided.insert("oneOf".to_owned());
+    }
+
+    // owl:InverseFunctionalProperty carries NO native identity-merge rule, so it was
+    // never promoted above (the chase cannot see the `1 = 2` collapse). The Family-6a
+    // counting sub-decider ([`crate::reason::refute::counting`]) now wires the real
+    // inverse-functional `sameAs` propagation: it merges the subjects that share a
+    // value and clashes a merged pair asserted `owl:differentFrom`. It certifies the
+    // family only for the PURE assertional/identity fragment (no class-construction
+    // vocabulary present); a case mixing IFP with a class definition it does not
+    // fold in is refused, so `inverseFunctionalProperty` stays an honest gap there.
+    if present_set.contains("inverseFunctionalProperty")
+        && crate::reason::refute::counting::decides_identity(edb)
+    {
+        decided.insert("inverseFunctionalProperty".to_owned());
     }
 
     // The universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`)
@@ -4074,31 +4460,89 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     decided
 }
 
-/// True iff the EDB contains a LIVE undecidable datatype-facet obligation — a
-/// facet-restricted datatype the native chase would actually have to reason over
-/// to decide (in)consistency. There are two live shapes.
-///
-/// SHAPE 1, an existential into a facet datatype: a facet-restricted datatype as
-/// the filler of an `owl:someValuesFrom` restriction (`∃p.D`). The existential
-/// forces a datatype value to EXIST; native cannot decide the datatype's
-/// (non)emptiness (e.g. the discrete `xsd:float` range `(0.0, 1.4e-45)` is empty),
-/// so an instance typed into it is undecidable — regardless of any asserted literal.
-///
-/// SHAPE 2, a constrained literal: an asserted (or inferred) literal value on a
-/// property whose `rdfs:range` or an `owl:allValuesFrom`/`owl:someValuesFrom`
-/// restriction resolves to a facet-restricted datatype, or a literal directly typed
-/// to such a datatype. Native cannot validate the literal against the facet.
+/// The LIVE datatype-facet obligations in an EDB — the places a facet-restricted
+/// datatype would actually have to be reasoned over to decide (in)consistency,
+/// separated by whether the value-space sub-decider can be held to account for
+/// them one by one.
 ///
 /// A facet-restricted datatype — an `rdfs:Datatype` node carrying both
 /// `owl:onDatatype` and `owl:withRestrictions`, or an `owl:datatypeComplementOf`
-/// datatype — that is
-/// merely DEFINED, or used only in a UNIVERSAL (`owl:allValuesFrom`) position with
-/// no asserted value, is INERT: `∀p.D` over an empty value set is trivially
-/// satisfied, so it cannot make the ontology inconsistent and the native path
-/// decides it soundly (the datatype-facet families stay out of `gaps`). Matching
-/// is name-scoped (world-agnostic) — a facet definition in a TBox world still
-/// withholds against an obligation in any ABox world (soundness-first).
-fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
+/// datatype — that is merely DEFINED, or used only in a UNIVERSAL
+/// (`owl:allValuesFrom`) position with no asserted value, is INERT: `∀p.D` over an
+/// empty value set is trivially satisfied, so it cannot make the ontology
+/// inconsistent and the native path decides it soundly (the datatype-facet families
+/// stay out of `gaps`).
+#[derive(Debug, Default)]
+struct FacetLiveness {
+    /// SHAPE 1 — a facet-restricted datatype as the filler of an
+    /// `owl:someValuesFrom` restriction (`∃p.D`). The existential forces a datatype
+    /// value to EXIST and native cannot decide the datatype's (non)emptiness (e.g.
+    /// the discrete `xsd:float` range `(0.0, 1.4e-45)` is empty), regardless of any
+    /// asserted literal. The obligation belongs to the restriction CLASS, whose
+    /// inhabitants an `owl:equivalentClass` definition can force without any
+    /// `rdf:type` edge this scan could see, so there is no per-individual witness to
+    /// check the sub-decider against: its presence alone keeps the families
+    /// withheld unless the sub-decider decides the WHOLE case.
+    existential: bool,
+    /// SHAPE 2b — a literal whose OWN datatype IRI names a facet-restricted
+    /// datatype. Same reasoning: no `(subject, property)` obligation carries it.
+    directly_typed_literal: bool,
+    /// SHAPE 2a — the `(world, subject, property)` witnesses: an asserted (or
+    /// inferred) literal value on a property whose `rdfs:range`, or an
+    /// `owl:allValuesFrom`/`owl:someValuesFrom` restriction, resolves to a
+    /// facet-restricted datatype. These are exactly the keys the value-space
+    /// sub-decider reports through
+    /// [`crate::reason::refute::datatype::definitively_evaluated_obligations`], so
+    /// each one can be checked individually.
+    constrained_literals: BTreeSet<(String, String, String)>,
+}
+
+impl FacetLiveness {
+    /// No live obligation at all — every facet in the EDB is merely defined.
+    fn is_inert(&self) -> bool {
+        !self.existential && !self.directly_typed_literal && self.constrained_literals.is_empty()
+    }
+
+    /// Whether the datatype value-space refutation sub-decider (Family 5) settles
+    /// every live obligation, so the facet families may be promoted to `decided`.
+    ///
+    /// Two routes, both sound, checked in widening order:
+    ///
+    /// 1. The sub-decider decides the WHOLE case
+    ///    ([`crate::reason::refute::datatype::decided`]) — it proved the entire
+    ///    ontology in-fragment, which covers every shape including the ones with no
+    ///    per-individual witness.
+    /// 2. Every live obligation is a Shape-2a witness AND every one of those
+    ///    witnesses is an obligation the sub-decider evaluated definitively. Route 1
+    ///    is unreachable on a real bundle — its whole-case predicate allowlist is
+    ///    false as soon as ordinary domain vocabulary is present — so without this
+    ///    route the sub-decider's facet analysis could never widen coverage on
+    ///    anything but a toy fixture, and a facet the engine demonstrably decides
+    ///    would still be reported as an out-of-fragment construct.
+    ///
+    /// A witness the sub-decider did NOT evaluate (its property is not a declared
+    /// `owl:DatatypeProperty`, its literal is unparsable, its value space carries a
+    /// `xsd:pattern` facet, …) leaves the families UNDECIDED — the honest gap.
+    fn settled_by_value_space_subsolver(&self, edb: &RdfDataset) -> bool {
+        if self.is_inert() {
+            return true;
+        }
+        if crate::reason::refute::datatype::decided(edb) {
+            return true;
+        }
+        if self.existential || self.directly_typed_literal {
+            return false;
+        }
+        let evaluated = crate::reason::refute::datatype::definitively_evaluated_obligations(edb);
+        self.constrained_literals.is_subset(&evaluated)
+    }
+}
+
+/// Scan the EDB for the [`FacetLiveness`] shapes. Matching is name-scoped
+/// (world-agnostic) — a facet definition in a TBox world still constrains an
+/// obligation in any ABox world (soundness-first).
+fn datatype_facet_live_obligations(edb: &RdfDataset) -> FacetLiveness {
+    let mut liveness = FacetLiveness::default();
     // Facet-restricted datatype node keys (world-agnostic: a datatype's identity is
     // its node, and a constrained property may reference it from any world).
     let mut facet_dt: BTreeSet<String> = BTreeSet::new();
@@ -4111,19 +4555,18 @@ fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
         }
     }
     if facet_dt.is_empty() {
-        return false;
+        return liveness;
     }
 
     // Shape 1 — an existential (`someValuesFrom`) into a facet datatype forces a
-    // value to exist; the datatype's (non)emptiness is undecidable natively.
-    // (`allValuesFrom` is universal and is NOT a standalone obligation — it only
-    // constrains values that are actually asserted, handled by Shape 2.)
+    // value to exist. (`allValuesFrom` is universal and is NOT a standalone
+    // obligation — it only constrains values that are actually asserted, Shape 2.)
     let restrictions = read_restrictions(edb);
     for r in restrictions.values() {
         if let Some(filler) = r.some_values_from.as_ref()
             && facet_dt.contains(filler)
         {
-            return true;
+            liveness.existential = true;
         }
     }
 
@@ -4150,22 +4593,29 @@ fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
         }
     }
 
-    // A live obligation: an asserted literal on a constrained property, or a literal
-    // directly typed to a facet-restricted (named) datatype.
+    // A live obligation: an asserted literal on a constrained property (a witness
+    // keyed exactly as the sub-decider keys its obligations), or a literal directly
+    // typed to a facet-restricted (named) datatype.
     for quad in edb.owned_quads() {
         let RdfTerm::Literal(lit) = &quad.object else {
             continue;
         };
-        if constrained_props.contains(&quad.predicate) {
-            return true;
+        if constrained_props.contains(&quad.predicate)
+            && let Some(subject) = term_resource_key(&quad.subject)
+        {
+            liveness.constrained_literals.insert((
+                graph_world_key(&quad.graph_name),
+                subject,
+                quad.predicate.clone(),
+            ));
         }
         if let Some(dt) = lit.datatype.as_deref()
             && facet_dt.contains(dt)
         {
-            return true;
+            liveness.directly_typed_literal = true;
         }
     }
-    false
+    liveness
 }
 
 /// True iff some `owl:FunctionalProperty` carries two lexically-distinct
@@ -4293,14 +4743,14 @@ fn all_property_chains_are_binary(
 ///
 /// A datatype-qualified cardinality counts LITERAL fillers, which the
 /// IRI-individual chase does not carry. Like a merely-defined datatype facet
-/// ([`datatype_facet_has_live_obligation`]), such a restriction is INERT when no
+/// ([`datatype_facet_live_obligations`]), such a restriction is INERT when no
 /// instance can violate it — a maximum on a datatype property can only clash when a
 /// subject carries MORE value-distinct literals of that datatype than the bound
 /// allows, and a datatype MINIMUM is an existential into a non-empty datatype
 /// (always satisfiable). Only a genuine max overflow is a live obligation the
 /// native path cannot decide; absent one, the datatype-qualified families are
 /// decided soundly (incomplete-never-wrong). Matching is exact on the literal's
-/// datatype, mirroring [`datatype_facet_has_live_obligation`].
+/// datatype, mirroring [`datatype_facet_live_obligations`].
 fn datatype_qualified_cardinality_has_live_obligation(edb: &RdfDataset) -> bool {
     let restrictions = read_restrictions(edb);
     // Datatype-qualified maxima: `(on_property, datatype, max)`. An exact
@@ -4684,16 +5134,33 @@ mod tests {
     }
 
     #[test]
-    fn complement_in_class_definition_is_withheld() {
+    fn complement_in_class_definition_is_decided_consistent() {
         // A ⊑ ¬D — the complement node is a `rdfs:subClassOf` superclass (a class
-        // definition), NOT typed onto an individual. Deciding this needs complement
-        // refutation the chase does not perform ⇒ honest gap.
+        // definition), with NO individual forced into it. The Family-1 case-split
+        // refutation sub-decider ([`crate::reason::refute::casesplit`]) now COMPLETELY
+        // decides this propositional-fragment case: an individual-free complement TBox
+        // is trivially satisfiable (the empty interpretation is a model), so it is
+        // decided CONSISTENT with no honest gap — no longer the pre-sub-decider
+        // conservative withhold.
         let store = dataset(vec![
             quad(A, SUBCLASS, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free complement TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4711,44 +5178,274 @@ mod tests {
     }
 
     #[test]
-    fn complement_typed_individual_without_asserted_membership_is_withheld() {
-        // x : ¬D, but x is NOT asserted x : D. The clash needs `x : D` to be DERIVED
-        // (beyond the chase) ⇒ honest gap. Contrast the decided clash test where BOTH
-        // memberships are asserted.
+    fn complement_typed_individual_without_asserted_membership_is_decided_consistent() {
+        // x : ¬D, but x is NOT asserted x : D. The Family-1 case-split sub-decider now
+        // decides this: `x ∈ ¬D` with no forced `x ∈ D` saturates clash-free inside
+        // the certified-complete fragment, so it is decided CONSISTENT (a model has
+        // `x ∉ D`) — no longer the pre-sub-decider withhold. Contrast the decided
+        // clash test where BOTH memberships are asserted (decided INCONSISTENT).
         let store = dataset(vec![
             quad(X, TYPE, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "x ∈ ¬D with no forced x ∈ D is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
-    fn min_cardinality_on_a_class_definition_is_withheld() {
-        // C ≡ (≥2 p): a TBox cardinality counting definition, not an ABox restriction
-        // typed onto an individual. Native decides the ABox counting clash (Wave A)
-        // but NOT the TBox-satisfiability counting ⇒ honest gap.
+    fn min_cardinality_on_a_class_definition_is_decided_consistent() {
+        // C ≡ (≥2 p): a pure TBox cardinality counting definition. The Family-2
+        // counting refutation sub-decider now COMPLETELY decides the pure
+        // class-definition cardinality fragment: an uncollapsed bound (no `min > max`
+        // conflict) on a class is satisfiable, so this is decided CONSISTENT with no
+        // honest gap — no longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, EQUIV_CLASS, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "minCardinality");
+        assert!(
+            verdict.consistent,
+            "an uncollapsed ≥2 definition is satisfiable"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "minCardinality"),
+            "the minCardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    /// A class-expression body authored in the CANONICAL `logic:` vocabulary and
+    /// anchored through a BLANK node — the shape every `module.ttl` writes,
+    /// `C logic:subClassOf [ a logic:Restriction ; logic:onProperty p ;
+    /// logic:allValuesFrom D ]` — drives the closure exactly as its `owl:` projection
+    /// does.
+    ///
+    /// The blank anchor is the load-bearing detail: [`crate::reason::build_edb_facts`]
+    /// keeps only IRI-object quads, so this edge never reaches the typed EDB at all and
+    /// the whole body is read off the frozen dataset by the finite DL post-pass. That is
+    /// the raw waist [`quads_by_subject`] / [`raw_resource_facts`] lower.
+    #[test]
+    fn canonical_logic_restriction_on_a_blank_anchor_drives_the_closure() {
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        const OWL: &str = "http://www.w3.org/2002/07/owl#";
+        let blank_quad = |s: &str, p: &str, o: RdfTerm| {
+            RdfQuad::new(RdfTerm::BlankNode(s.to_owned()), p, o).in_graph(RdfTerm::iri(W))
+        };
+        // Both spellings of: C ⊑ ∀p.D, x : C, x p y  ⊨  y : D.
+        let body = |ns: &str, subclass: &str| {
+            dataset(vec![
+                RdfQuad::new(
+                    RdfTerm::iri(C),
+                    subclass,
+                    RdfTerm::BlankNode("r".to_owned()),
+                )
+                .in_graph(RdfTerm::iri(W)),
+                blank_quad("r", RDF_TYPE, RdfTerm::iri(format!("{ns}Restriction"))),
+                blank_quad("r", &format!("{ns}onProperty"), RdfTerm::iri(P)),
+                blank_quad("r", &format!("{ns}allValuesFrom"), RdfTerm::iri(D)),
+                quad(X, TYPE, C),
+                quad(X, P, Y),
+            ])
+        };
+        let types_the_filler = |edb: &RdfDataset| {
+            crate::reason::reason_closure_axioms(edb)
+                .expect("closure")
+                .iter()
+                .any(|ax| {
+                    ax.subject == Y && ax.predicate == RDF_TYPE && ax.object == format!("<{D}>")
+                })
+        };
+        assert!(
+            types_the_filler(body(OWL, RDFS_SUBCLASSOF).as_ref()),
+            "control: the `owl:`-spelled body must type the filler"
+        );
+        assert!(
+            types_the_filler(body(LOGIC, &format!("{LOGIC}subClassOf")).as_ref()),
+            "the CANONICAL `logic:` body must type the filler identically — an authored \
+             class expression is reasoner content, not derived-shape-only content"
+        );
+    }
+
+    /// The H2 class-definition cardinality withhold fires on the shape it is FOR.
+    ///
+    /// An effective per-class/per-property bound of exactly one is the functional
+    /// statement the engine already declines to withhold for in its one-node `owl:cardinality 1`
+    /// spelling, so the two-node `min 1` + `max 1` spelling is decided too. A one-sided
+    /// bound and an effective minimum ≥ 2 stay honest gaps.
+    #[test]
+    fn class_definition_cardinality_withhold_is_scoped_to_the_non_functional_bound() {
+        let r2 = "http://gmeow.example/r2";
+        // The pure-fragment sub-decider must NOT be the thing deciding these, or the
+        // narrowing under test is never reached: an ordinary domain predicate takes the
+        // case out of its allowlist, exactly as a real bundle does.
+        let noise = quad(C, "http://gmeow.example/unrelated", D);
+
+        let exact_one = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            noise.clone(),
+        ]);
+        let verdict = dl_consistency(exact_one.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.gaps.is_empty(),
+            "an effective `= 1` bound is the functional case the engine decides: {:?}",
+            verdict.gaps
+        );
+
+        let one_sided = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            noise.clone(),
+        ]);
+        assert_withheld(
+            &dl_consistency(one_sided.as_ref()).expect("dl consistency should succeed"),
+            "minCardinality",
+        );
+
+        let counting = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "3", XSD_NON_NEGATIVE_INTEGER),
+            noise,
+        ]);
+        assert_withheld(
+            &dl_consistency(counting.as_ref()).expect("dl consistency should succeed"),
+            "minCardinality",
+        );
+    }
+
+    /// A simple-literal cardinality bound reads the same before and after the RDF 1.1
+    /// `xsd:string` normalization a snapshot round-trip applies — `"1"` and
+    /// `"1"^^xsd:string` are the same term, so they cannot yield different verdicts.
+    /// A non-numeric lexical form is still refused under both.
+    #[test]
+    fn a_simple_literal_bound_reads_identically_typed_and_untyped() {
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        assert_eq!(literal_usize(&RdfLiteral::simple("1")), Some(1));
+        assert_eq!(literal_usize(&RdfLiteral::typed("1", XSD_STRING)), Some(1));
+        assert_eq!(literal_usize(&RdfLiteral::simple("many")), None);
+        assert_eq!(literal_usize(&RdfLiteral::typed("many", XSD_STRING)), None);
+        // A bound in a datatype that is not an integer tower member stays refused.
+        assert_eq!(
+            literal_usize(&RdfLiteral::typed(
+                "1",
+                "http://www.w3.org/2001/XMLSchema#decimal"
+            )),
+            None
+        );
     }
 
     #[test]
-    fn exact_cardinality_on_datatype_property_is_withheld() {
-        // x : (=257 p) with p a DatatypeProperty — datatype value-space counting the
-        // chase cannot refute (e.g. 257 distinct xsd:byte) ⇒ honest gap.
+    fn collapsed_cardinality_on_a_populated_class_is_decided_inconsistent() {
+        // C ⊑ (≥2 p) ⊓ (≤1 p), i : C — the collapsed bound makes the populated class
+        // unsatisfiable, so the Family-2 sub-decider materializes `owl:Nothing` on the
+        // instance: decided INCONSISTENT with no honest gap.
+        let r2 = "http://gmeow.example/r2";
         let store = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, C),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "a collapsed min>max bound on a populated class is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn exact_cardinality_over_finite_datatype_range_is_decided_by_family5() {
+        // Family 5 (the datatype value-space refutation sub-decider) now DECIDES the
+        // datatype value-space counting the forward chase cannot refute. With p an
+        // `owl:DatatypeProperty` whose `rdfs:range` is `xsd:byte` (value-space size
+        // 256, derived from the `math:`-grounded facts):
+        //   * `x : (=257 p)` forces 257 distinct byte values into a 256-element
+        //     space ⇒ pigeonhole INCONSISTENT (an `owl:Nothing` clash, empty gaps);
+        //   * `x : (=256 p)` fits exactly ⇒ CONSISTENT (empty gaps).
+        const BYTE: &str = "http://www.w3.org/2001/XMLSchema#byte";
+        const RANGE: &str = super::RDFS_RANGE;
+
+        let inconsistent = dataset(vec![
             quad(X, TYPE, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, CARDINALITY, "257", XSD_NON_NEGATIVE_INTEGER),
             quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "cardinality");
+        let verdict = dl_consistency(inconsistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "257 distinct xsd:byte values overflow the 256-element value space ⇒ inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 decides this — no honest gap remains: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict.coverage.decided.iter().any(|d| d == "cardinality"),
+            "the cardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+
+        let consistent = dataset(vec![
+            quad(X, TYPE, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, CARDINALITY, "256", XSD_NON_NEGATIVE_INTEGER),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
+        ]);
+        let verdict = dl_consistency(consistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.consistent,
+            "256 distinct xsd:byte values fit the value space exactly ⇒ consistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 certifies the consistent count — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4772,9 +5469,13 @@ mod tests {
     }
 
     #[test]
-    fn class_with_two_union_superclasses_is_withheld() {
-        // C ⊑ (A∪B) AND C ⊑ (X∪Y): multi-disjunction propositional SAT ⇒ gap. A
-        // single union superclass stays decided (see the union decided test).
+    fn class_with_two_union_superclasses_is_decided_consistent() {
+        // C ⊑ (A∪B) AND C ⊑ (X∪Y): the multi-disjunction propositional shape. With NO
+        // individual forced into C, the Family-3 case-split sub-decider decides it
+        // CONSISTENT (the empty model satisfies every disjunctive superclass) — no
+        // longer the pre-sub-decider conservative withhold. The propositional
+        // refutation (every branch closing) is exercised end-to-end on the committed
+        // `webont-description-logic-503`/`504` SAT pair.
         let u1 = "http://gmeow.example/u1";
         let u2 = "http://gmeow.example/u2";
         let store = dataset(vec![
@@ -4788,13 +5489,24 @@ mod tests {
             quad("http://gmeow.example/lu2", REST, NIL),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "unionOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free union TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("unionOf"))
+                && !verdict.coverage.unsupported.iter().any(|u| u == "unionOf"),
+            "the case-split sub-decider certifies this — no unionOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
-    fn hasself_disjoint_refutation_is_withheld() {
-        // C disjointWith [∃p.Self], x : C, x p x. The clash needs `x ∈ ∃p.Self`
-        // inferred from `x p x` ⇒ honest gap.
+    fn hasself_disjoint_refutation_is_decided_inconsistent() {
+        // C disjointWith [∃p.Self], x : C, x p x. The Family-7 counting sub-decider
+        // now infers `x ∈ ∃p.Self` from the self-edge and clashes it against the
+        // disjoint class x also holds: decided INCONSISTENT with no honest gap — no
+        // longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, DISJOINT, R),
             quad(R, TYPE, "http://www.w3.org/2002/07/owl#Restriction"),
@@ -4809,7 +5521,15 @@ mod tests {
             quad(X, P, X),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "hasSelf");
+        assert!(
+            !verdict.consistent,
+            "a self-edge inhabiting a disjoint self-restriction is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the hasSelf sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4837,11 +5557,27 @@ mod tests {
     }
 
     #[test]
-    fn malformed_nil_list_is_withheld() {
-        // rdf:nil bearing an rdf:first edge — a malformed rdf:List ⇒ honest gap.
+    fn malformed_nil_list_is_decided_inconsistent() {
+        // rdf:nil bearing an rdf:first edge — a malformed rdf:List. The Family-6b
+        // case-split sub-decider now decides this: a structurally-broken list makes
+        // the world inconsistent, materializing `owl:Nothing` (on `rdf:nil`) — decided
+        // INCONSISTENT with no honest gap, no longer the pre-sub-decider withhold.
         let store = dataset(vec![quad(NIL, FIRST, A)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "malformedRdfList");
+        assert!(!verdict.consistent, "a malformed rdf:List is inconsistent");
+        assert!(
+            !verdict
+                .gaps
+                .iter()
+                .any(|g| g.code.contains("malformedRdfList"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "malformedRdfList"),
+            "the case-split sub-decider decides this — no malformedRdfList gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4854,12 +5590,54 @@ mod tests {
     }
 
     #[test]
-    fn inverse_functional_property_is_withheld() {
-        // owl:InverseFunctionalProperty has no native identity-merge clash rule ⇒
-        // its presence is an honest gap.
+    fn inverse_functional_property_is_decided_consistent() {
+        // owl:InverseFunctionalProperty has no native identity-merge clash rule, but
+        // the Family-6a counting sub-decider now wires the real inverse-functional
+        // `sameAs` propagation. A single assertion with no distinctness merges
+        // nothing to clash — decided CONSISTENT with no honest gap (the pure
+        // assertional/identity fragment).
         let store = dataset(vec![quad(P, TYPE, INVERSE_FUNCTIONAL), quad(X, P, Y)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "inverseFunctionalProperty");
+        assert!(verdict.consistent, "a lone IFP assertion is consistent");
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "inverseFunctionalProperty"),
+            "the inverseFunctionalProperty family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    #[test]
+    fn inverse_functional_collapse_with_differentfrom_is_decided_inconsistent() {
+        // s1 p o, s2 p o, p IFP, s1 differentFrom s2 — the `1 = 2` collapse: the IFP
+        // merges s1 and s2, contradicting their asserted distinctness. Decided
+        // INCONSISTENT with no honest gap.
+        let s1 = "http://gmeow.example/s1";
+        let s2 = "http://gmeow.example/s2";
+        let store = dataset(vec![
+            quad(P, TYPE, INVERSE_FUNCTIONAL),
+            quad(s1, P, Y),
+            quad(s2, P, Y),
+            quad(s1, DIFFERENT_FROM, s2),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "an IFP-merged pair asserted differentFrom is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -6225,6 +7003,153 @@ mod tests {
         }
     }
 
+    /// The PRODUCTION facet shape: a named class carries its value restriction as an
+    /// anonymous `rdfs:subClassOf` filler (`C ⊑ ∀p.D`), an individual is typed to the
+    /// NAMED class, and the property additionally has a plain `rdfs:range`. The
+    /// literal satisfies the facet, and the value-space sub-decider proves it, so the
+    /// facet families are DECIDED — no gap. Nothing here reaches the individual
+    /// through a direct `rdf:type` on the restriction, and the property is
+    /// constrained by TWO datatypes at once; before both were wired the decider saw
+    /// no obligation at all and the facets were reported out-of-fragment even though
+    /// the engine can settle them.
+    #[test]
+    fn datatype_facet_through_subclass_restriction_is_decided_when_satisfied() {
+        let verdict = subclass_facet_verdict("0.3");
+        assert!(
+            verdict.consistent,
+            "a literal inside the facet range is consistent: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "a satisfied facet the sub-decider proves must NOT be a gap: {:?}",
+            verdict.gaps
+        );
+        for family in [
+            "onDatatype",
+            "withRestrictions",
+            "minInclusive",
+            "maxInclusive",
+        ] {
+            assert!(
+                verdict.coverage.decided.contains(&family.to_owned()),
+                "{family} must be decided for a proven-satisfied facet: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// The falsifiable twin: the SAME shape with a literal OUTSIDE the facet range is
+    /// decided INCONSISTENT — the value-space clash is materialized as an
+    /// `owl:Nothing` witness — never a silent pass. A promotion to `decided` that
+    /// could not also catch the violation would be the wrong-`consistent` this
+    /// coverage machinery exists to prevent.
+    #[test]
+    fn datatype_facet_through_subclass_restriction_is_decided_inconsistent_when_violated() {
+        let verdict = subclass_facet_verdict("1.5");
+        assert!(
+            !verdict.consistent,
+            "a literal outside the facet range must be decided INCONSISTENT: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the violation is DECIDED, so it is a verdict and not a gap: {:?}",
+            verdict.gaps
+        );
+    }
+
+    /// A `xsd:pattern` facet in the same production shape stays an honest gap: sound
+    /// XSD-pattern value-space reasoning is outside the sub-decider's certified
+    /// fragment, so the witness is never definitively evaluated and the families are
+    /// NOT promoted. This is the falsifiable control on the per-obligation coverage
+    /// check — it promotes exactly what the sub-decider settles, never a whole family
+    /// because a sibling obligation happened to be settled.
+    #[test]
+    fn datatype_pattern_facet_through_subclass_restriction_stays_an_honest_gap() {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const PATTERN: &str = super::XSD_PATTERN;
+        const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let dt = "http://gmeow.example/CodeString";
+        let cell = "http://gmeow.example/facetCell";
+        let facet = "http://gmeow.example/facet0";
+        let restriction = "http://gmeow.example/restr";
+        let store = dataset(vec![
+            quad(dt, ON_DATATYPE, XSD_STRING),
+            quad(dt, WITH_RESTRICTIONS, cell),
+            quad(cell, RDF_FIRST, facet),
+            quad(cell, RDF_REST, RDF_NIL),
+            literal_quad(facet, PATTERN, "^[A-Z]+$", XSD_STRING),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(C, SUBCLASS, restriction),
+            quad(restriction, ON_PROPERTY, P),
+            quad(restriction, ALL_VALUES_FROM, dt),
+            quad(X, TYPE, C),
+            literal_quad(X, P, "AB", XSD_STRING),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.gaps.is_empty(),
+            "a pattern facet is outside the certified fragment ⇒ honest gap: {:?}",
+            verdict.coverage
+        );
+        for family in ["onDatatype", "withRestrictions", "pattern"] {
+            assert!(
+                verdict.coverage.unsupported.contains(&family.to_owned()),
+                "{family} must stay unsupported under a pattern facet: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// The shared production-shaped fixture for the two facet tests above:
+    /// `C ⊑ ∀p.(xsd:decimal[0,1])`, `p rdfs:range xsd:decimal`, `x a C`, `x p value`.
+    fn subclass_facet_verdict(value: &str) -> DlVerdict {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const MIN_INCLUSIVE: &str = super::XSD_MIN_INCLUSIVE;
+        const MAX_INCLUSIVE: &str = super::XSD_MAX_INCLUSIVE;
+        const RANGE: &str = super::RDFS_RANGE;
+        const DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let dt = "http://gmeow.example/UnitInterval";
+        let cell1 = "http://gmeow.example/facetCell1";
+        let cell2 = "http://gmeow.example/facetCell2";
+        let lo = "http://gmeow.example/facetLo";
+        let hi = "http://gmeow.example/facetHi";
+        let restriction = "http://gmeow.example/restr";
+        let store = dataset(vec![
+            // dt = xsd:decimal restricted to [0, 1] through a two-cell facet list.
+            quad(dt, ON_DATATYPE, DECIMAL),
+            quad(dt, WITH_RESTRICTIONS, cell1),
+            quad(cell1, RDF_FIRST, lo),
+            quad(cell1, RDF_REST, cell2),
+            quad(cell2, RDF_FIRST, hi),
+            quad(cell2, RDF_REST, RDF_NIL),
+            literal_quad(lo, MIN_INCLUSIVE, "0", DECIMAL),
+            literal_quad(hi, MAX_INCLUSIVE, "1", DECIMAL),
+            // p is a datatype property with a plain range AND a class-local ∀p.dt.
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, DECIMAL),
+            quad(C, SUBCLASS, restriction),
+            quad(restriction, ON_PROPERTY, P),
+            quad(restriction, ALL_VALUES_FROM, dt),
+            // The individual is typed to the NAMED class, never to the restriction.
+            quad(X, TYPE, C),
+            literal_quad(X, P, value, DECIMAL),
+        ]);
+        dl_consistency(store.as_ref()).expect("dl consistency should succeed")
+    }
+
     /// The typed `ReasoningResult` fold: an out-of-fragment bundle with no derived
     /// contradiction is `information=undetermined` (honest cannot-decide) — it is
     /// NOT `is_decided_consistent()`, and its completeness drops to `Incomplete`.
@@ -6639,5 +7564,76 @@ mod tests {
             "the withheld XMLLiteral shape surfaces as a gap: {:?}",
             v.gaps
         );
+    }
+
+    // The refutation-kernel materialization seam: an `InFragment{Inconsistent}`
+    // certificate materializes its `type(?i, owl:Nothing)` clash witness into the
+    // closure, which `verdict_from_inferred` then reads off as an inconsistency —
+    // while an `OutOfFragment` withhold (the Task-2 production steady state) and an
+    // `InFragment{Consistent}` decision materialize nothing. This exercises the
+    // decide-path seam the per-family deciders (Tasks 3/4/5) plug into.
+    #[test]
+    fn materialize_refutation_seam_forces_owl_nothing_only_on_inconsistent() {
+        use crate::reason::refute::{
+            Decision, FragmentBoundary, FragmentFamily, NothingClash, RefutationCertificate,
+            Witness, WitnessEvidence,
+        };
+
+        let inconsistent = RefutationCertificate::InFragment {
+            decision: Decision::Inconsistent,
+            witness: Witness {
+                family: FragmentFamily::Counting,
+                clashes: [NothingClash {
+                    individual: "http://ex/i".to_owned(),
+                    world: String::new(),
+                    rule_name: "refute:counting".to_owned(),
+                    premises: vec![(
+                        "http://ex/i".to_owned(),
+                        RDF_TYPE.to_owned(),
+                        "http://ex/A".to_owned(),
+                    )],
+                }]
+                .into_iter()
+                .collect(),
+                evidence: WitnessEvidence::default(),
+            },
+        };
+        let mut inferred: Vec<InferredAxiom> = Vec::new();
+        let mut facts: BTreeSet<Fact> = BTreeSet::new();
+        assert!(
+            materialize_refutation(&inconsistent, &mut inferred, &mut facts),
+            "an inconsistent certificate materializes its clash"
+        );
+        let store = dataset(Vec::new());
+        let verdict = verdict_from_inferred(&inferred, store.as_ref()).expect("verdict");
+        assert!(
+            !verdict.consistent,
+            "the materialized owl:Nothing witness makes the closure inconsistent"
+        );
+        assert_eq!(verdict.inconsistencies.len(), 1);
+        assert_eq!(verdict.inconsistencies[0].individual, "http://ex/i");
+
+        // A consistent decision and an out-of-fragment withhold are both no-ops.
+        for benign in [
+            RefutationCertificate::InFragment {
+                decision: Decision::Consistent,
+                witness: Witness {
+                    family: FragmentFamily::Counting,
+                    clashes: BTreeSet::new(),
+                    evidence: WitnessEvidence::default(),
+                },
+            },
+            RefutationCertificate::OutOfFragment {
+                reason: FragmentBoundary::NoDeciderEngaged,
+            },
+        ] {
+            let mut inferred2: Vec<InferredAxiom> = Vec::new();
+            let mut facts2: BTreeSet<Fact> = BTreeSet::new();
+            assert!(
+                !materialize_refutation(&benign, &mut inferred2, &mut facts2),
+                "a consistent decision / withhold materializes nothing: {benign:?}"
+            );
+            assert!(inferred2.is_empty(), "no witness axiom added: {benign:?}");
+        }
     }
 }

@@ -24,11 +24,20 @@ use std::path::{Path, PathBuf};
 use gmeow_slice_quality::report::SliceReport;
 use gmeow_slice_quality::{BundleStandards, MeasurementStandard, ScoringEnv, score_external_slice};
 
-/// The three environment-anchored axis IRIs, keyed by the rubric individual names.
+/// The four environment-anchored axis IRIs, keyed by the rubric individual names.
 const AXIS_GMN1: &str = "https://blackcatinformatics.ca/gmeow/axisGmn1Coverage";
 const AXIS_GMN_GLYPH: &str = "https://blackcatinformatics.ca/gmeow/axisGmnGlyphOptimality";
 const AXIS_DOC_MATURITY: &str = "https://blackcatinformatics.ca/gmeow/axisDocMaturity";
 const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage";
+/// The advice-harvest-coverage axis: like `gmn1`/`DocMaturity`, its Repo-mode
+/// producer ([`gmeow_slice_quality::axes`]'s `advice_coverage_axis`) resolves the
+/// advisory-constraint authority off `ctx.slice_dir`'s `slices/` ancestor
+/// (`repo_root_of`), so a slice staged with NO such ancestor (this fixture's
+/// deliberately repo-free staging) goes vacuous 1.0 in Repo mode — while Bundle
+/// mode measures the fixture's OWN graph self-containedly and finds neither
+/// advisory-prose term backed by a realized carrier, scoring the real 0.0. It is
+/// therefore environment-DIVERGENT by construction, not a byte-equality bug.
+const AXIS_ADVICE_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisAdviceCoverage";
 
 /// The fixture slice's stable IRI (matches `manifest.ttl`).
 const FIXTURE_SLICE_IRI: &str =
@@ -298,9 +307,10 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     let bundle = score_external_slice(&std, &slice_dir).expect("bundle score");
 
     // Repo run against the SAME standard (loaded via the public rubric API), scored
-    // in Repo mode. Off-repo, gmn1 + DocMaturity legitimately go vacuous (1.0),
-    // while GMN glyph optimality fails closed because its canonical lang authority
-    // cannot be assembled. Every other axis must be identical to the Bundle run.
+    // in Repo mode. Off-repo, gmn1 + advice-coverage legitimately go vacuous (1.0),
+    // while GMN glyph optimality and DocMaturity fail CLOSED (0.0) because neither's
+    // authority — the canonical lang audit graph, the repo documentation model — can be
+    // assembled. Every other axis must be identical to the Bundle run.
     let ds = purrdf::gts::flattened_dataset_from_bytes(gmeow_cli::BUNDLE_GTS)
         .expect("flatten bundle dataset");
     let std_meas: MeasurementStandard = gmeow_slice_quality::rubric::load_rubric(&ds)
@@ -313,8 +323,10 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     )
     .expect("repo score");
 
-    // The three env-DIVERGENT axes: two are vacuous off-repo; glyph optimality is
-    // deliberately non-vacuous because losing its audit authority must be visible.
+    // The four env-DIVERGENT axes: two are vacuous off-repo; glyph optimality and
+    // DocMaturity are deliberately non-vacuous because losing their measuring authority
+    // must be VISIBLE. An axis that could not be measured is a defect to fix, never a
+    // grade to bank — scoring it 1.0 would launder "nothing was known" into the maximum.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
         1.0,
@@ -322,8 +334,27 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     );
     assert_eq!(
         grade_for(&repo, AXIS_DOC_MATURITY).score,
+        0.0,
+        "DocMaturity fails closed at 0.0 in Repo mode off-repo: the repo documentation model \
+         cannot be built there, so its coverage is UNMEASURED — never vacuously maximal"
+    );
+    assert!(
+        advisory_codes(&repo)
+            .iter()
+            .any(|code| code == "slice-quality.doc-maturity.model-unavailable"),
+        "the failed-closed DocMaturity score names the model it could not build"
+    );
+    assert_eq!(
+        grade_for(&repo, AXIS_ADVICE_COVERAGE).score,
         1.0,
-        "DocMaturity goes vacuous 1.0 in Repo mode off-repo"
+        "advice-coverage goes vacuous 1.0 in Repo mode off-repo (no slices/ ancestor to \
+         resolve the central logic:Constraint / logic:AdviceGuidance authority from)"
+    );
+    assert_eq!(
+        grade_for(&bundle, AXIS_ADVICE_COVERAGE).score,
+        0.0,
+        "Bundle mode measures the fixture's own graph self-containedly: its avoidWhen/useWhen \
+         terms author no realized advisory carrier of their own, so the real score is 0.0"
     );
     assert_eq!(
         grade_for(&repo, AXIS_GMN_GLYPH).score,
@@ -343,6 +374,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         if bg.axis_iri == AXIS_GMN1
             || bg.axis_iri == AXIS_GMN_GLYPH
             || bg.axis_iri == AXIS_DOC_MATURITY
+            || bg.axis_iri == AXIS_ADVICE_COVERAGE
         {
             continue;
         }
@@ -362,7 +394,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     }
     assert_eq!(
         compared, 12,
-        "exactly the 12 env-agnostic axes are compared (15 total minus three environment-dependent axes)"
+        "exactly the 12 env-agnostic axes are compared (16 total minus four environment-dependent axes)"
     );
 }
 

@@ -37,8 +37,113 @@ pub fn shacl_validate_dataset(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
 ) -> purrdf::shapes::report::ValidationReport {
-    purrdf::shapes::engine::validate_dataset(dataset, shapes)
-        .expect("validation over a frozen dataset is infallible")
+    let mut report = purrdf::shapes::engine::validate_dataset(dataset, shapes)
+        .expect("validation over a frozen dataset is infallible");
+    dedupe_validation_results(&mut report);
+    report
+}
+
+/// The total, order-preserving identity of a SHACL result: every field a consumer can
+/// observe, joined under a field separator no IRI or message can contain.
+///
+/// Two results with equal identity are INDISTINGUISHABLE — same focus node, same path
+/// (including the structure behind a complex-path blank node), same offending value,
+/// same constraint component, same source shape, same severity, same message, same box
+/// roles, same attributions. There is no observation that separates them.
+fn result_identity(result: &purrdf::shapes::report::ValidationResult) -> String {
+    use std::fmt::Write;
+    let mut key = String::new();
+    let field = |value: &dyn std::fmt::Debug, key: &mut String| {
+        let _ = write!(key, "{value:?}\u{1f}");
+    };
+    field(&result.focus_node.to_string(), &mut key);
+    field(
+        &result.result_path.as_ref().map(ToString::to_string),
+        &mut key,
+    );
+    field(&result.path_structure, &mut key);
+    field(&result.value.as_ref().map(ToString::to_string), &mut key);
+    field(&result.source_constraint_component.as_str(), &mut key);
+    field(&result.source_shape.to_string(), &mut key);
+    field(&result.severity, &mut key);
+    field(&result.message, &mut key);
+    field(&result.source_box_roles, &mut key);
+    field(&result.path_box_roles, &mut key);
+    field(&result.result_box_roles, &mut key);
+    field(&result.attributions, &mut key);
+    key
+}
+
+/// Collapse INDISTINGUISHABLE results in a SHACL report, keeping the first occurrence
+/// of each (so the engine's own result order is preserved).
+///
+/// A SHACL validation report is a SET of results: a violation reported twice is one
+/// violation, and a consumer that counts findings gets the wrong answer when it is
+/// reported N times. The engine produces the duplicates honestly — SHACL specifies one
+/// validation result per SOLUTION of an `sh:sparql` constraint's `sh:select`, and a
+/// projected `SELECT $this` whose WHERE clause binds further variables (a guard triple
+/// that fixes the target, an `?s1`/`?s2` pair witnessing a duplicate index) has one
+/// solution per BINDING COMBINATION, not per focus node. Every such solution projects
+/// the same single `$this` column, so the results it yields are byte-identical. The
+/// same collapse handles a shape that reaches one focus node twice through two
+/// equivalent constructs (e.g. a property shape carrying `sh:qualifiedValueShape`
+/// twice, once beside its max count and once beside its min count).
+///
+/// Distinct violations always differ in at least one observable field and are never
+/// collapsed — see [`result_identity`].
+pub fn dedupe_validation_results(report: &mut purrdf::shapes::report::ValidationReport) {
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+    report
+        .results
+        .retain(|result| seen.insert(result_identity(result)));
+}
+
+/// Every indistinguishable-result group a SHACL report carries more than once: a human
+/// description of the repeated result paired with how many times the engine reported
+/// it, in first-appearance order.
+///
+/// [`dedupe_validation_results`] makes the shipped surfaces read the report as the SET
+/// it is; this is the complementary AUDIT, for a gate that must FAIL on a duplicate
+/// rather than quietly absorb it — a conformance cell that asserts "exactly one
+/// finding" is only meaningful if something reds when the engine emits four.
+#[must_use]
+pub fn duplicate_validation_results(
+    report: &purrdf::shapes::report::ValidationReport,
+) -> Vec<(String, usize)> {
+    let mut order: Vec<String> = Vec::new();
+    let mut counts: std::collections::HashMap<String, (String, usize)> =
+        std::collections::HashMap::new();
+    for result in &report.results {
+        let identity = result_identity(result);
+        match counts.get_mut(&identity) {
+            Some((_, count)) => *count += 1,
+            None => {
+                order.push(identity.clone());
+                counts.insert(
+                    identity,
+                    (
+                        format!(
+                            "{} at {} (shape {}{})",
+                            result.source_constraint_component.as_str(),
+                            result.focus_node,
+                            result.source_shape,
+                            result
+                                .result_path
+                                .as_ref()
+                                .map(|p| format!(", path {p}"))
+                                .unwrap_or_default(),
+                        ),
+                        1,
+                    ),
+                );
+            }
+        }
+    }
+    order
+        .into_iter()
+        .filter_map(|identity| counts.remove(&identity))
+        .filter(|(_, count)| *count > 1)
+        .collect()
 }
 
 /// Parse a single Turtle file into a frozen native [`RdfDataset`].
@@ -132,6 +237,109 @@ pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     })
 }
 
+/// Project a full `gmeow.gts` bundle into a **core browser bundle** — graph-preserving
+/// N-Quads text carrying only the object-level ontology (the default graph) plus any
+/// explicitly kept named graphs, with every derived/heavy graph dropped (the
+/// documentation projection, the `graph/fanout/*` flat-file re-embeds, diagnostics,
+/// authoring briefs, the reasoned closure, …).
+///
+/// The FULL bundle extracts to ~948 MB of N-Quads — far too large to load and query
+/// in a browser (it OOMs the wasm engine). This projection keeps the queryable
+/// object-level ontology (~124 k quads → ~24 MB N-Quads, well within a browser's
+/// reach once the web server gzips it) so the in-browser playground/explorer can
+/// parse and SPARQL over the SAME authored ontology the pipeline shipped. It is
+/// shipped as N-Quads TEXT (not a GTS container) so the in-page purrdf RDF engine
+/// parses it directly with no container codec, and it is a pure, deterministic
+/// function of the input bytes (order-preserving filter + deterministic serializer),
+/// so the emitted asset is byte-reproducible.
+///
+/// `keep_named_graphs` is the allow-list of named-graph IRIs to retain ALONGSIDE the
+/// default graph (e.g. grounding graphs); pass an empty slice for object-level only.
+///
+/// # Errors
+///
+/// Returns `Err` if the container cannot be read, the statement layer cannot be
+/// folded, or the filtered dataset cannot be serialized.
+pub fn core_browser_bundle_nquads(
+    full_bytes: &[u8],
+    keep_named_graphs: &[&str],
+) -> gmeow_errors::Result<String> {
+    use std::collections::HashSet;
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let mut graph = purrdf::gts::read_all_segments(full_bytes).map_err(to_diag)?;
+    // Term ids whose value is a kept named-graph IRI. The default graph (`None` slot)
+    // is always retained; every other named graph is dropped.
+    let keep: HashSet<usize> = graph
+        .terms
+        .iter()
+        .enumerate()
+        .filter_map(|(i, t)| match t.value.as_deref() {
+            Some(v) if keep_named_graphs.contains(&v) => Some(i),
+            _ => None,
+        })
+        .collect();
+    let kept = |slot: Option<usize>| slot.is_none_or(|gid| keep.contains(&gid));
+    graph.quads.retain(|q| kept(q.3));
+    graph.reifiers.retain(|r| kept(r.2));
+    graph.annotations.retain(|a| kept(a.3));
+    // Fold the filtered graph into a graph-preserving dataset and serialize to
+    // N-Quads over the full dataset selection (the term table rides in the codec, so
+    // no term-pruning is needed — dropped quads simply do not appear).
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("core browser bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
+/// Read a `gmeow.gts` bundle's bytes into **graph-preserving** N-Quads text — every
+/// base quad keeps its named-graph component (unlike [`dataset_from_gts`], which
+/// folds them into the default graph). This is the browser bundle-read primitive:
+/// the wasm shim (`gmeow-validate-wasm::bundle_dataset`) hands the resulting N-Quads
+/// to the in-page purrdf RDF engine so the documentation playground/explorer query
+/// the SAME bundle the pipeline shipped, rather than a second curated data path.
+///
+/// Uses the oxigraph-free container reader (`read_all_segments` →
+/// `dataset_from_gts_graph`, which retains each quad's graph) and the native
+/// N-Quads serializer over the full dataset selection; both are wasm-clean (no
+/// reasoner, no filesystem).
+///
+/// # Errors
+///
+/// Returns `Err` if the GTS container cannot be read, the statement layer cannot be
+/// folded, or the dataset cannot be serialized.
+pub fn dataset_nquads_from_gts(bytes: &[u8]) -> gmeow_errors::Result<String> {
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let graph = purrdf::gts::read_all_segments(bytes).map_err(to_diag)?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
 /// Render a resolved subject term the way the legacy `_ox_term_display` did:
 /// IRI → its value; blank → `_:b`.
 ///
@@ -207,65 +415,147 @@ pub fn read_gts_graph(bytes: &[u8]) -> gmeow_errors::Result<purrdf::gts::model::
 mod tests {
     use super::*;
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the parser dispatches on the
+    /// `.ttl` extension and the parse-error assertions match on the file name.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     use purrdf::{DatasetView, GraphMatch};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
+    // ── result-set collapse ────────────────────────────────────────────────────
+
+    fn sparql_result(focus: &str) -> purrdf::shapes::report::ValidationResult {
+        use purrdf::shapes::report::Severity as ShaclSeverity;
+        use purrdf::shapes::term::{NamedNode, Term};
+        purrdf::shapes::report::ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked(focus)),
+            result_path: None,
+            path_structure: None,
+            value: Some(Term::NamedNode(NamedNode::new_unchecked(focus))),
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#SPARQLConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked("https://ex/ContiguityShape")),
+            severity: ShaclSeverity::Violation,
+            message: Some("slot indexes must be contiguous".to_owned()),
+            source_box_roles: Vec::new(),
+            path_box_roles: Vec::new(),
+            result_box_roles: Vec::new(),
+            attributions: Vec::new(),
+        }
+    }
+
+    fn report_of(
+        results: Vec<purrdf::shapes::report::ValidationResult>,
+    ) -> purrdf::shapes::report::ValidationReport {
+        purrdf::shapes::report::ValidationReport {
+            conforms: results.is_empty(),
+            results,
+        }
+    }
+
+    #[test]
+    fn indistinguishable_results_collapse_to_one() {
+        // The defect this exists for: a projected `SELECT $this` whose WHERE clause
+        // binds further variables yields ONE result per binding combination, all
+        // projecting the same `$this` — four byte-identical findings for one violation,
+        // which a consumer counting findings reads as four defects.
+        let mut report = report_of(vec![
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+        ]);
+        assert_eq!(duplicate_validation_results(&report).len(), 1);
+        assert_eq!(duplicate_validation_results(&report)[0].1, 4);
+        dedupe_validation_results(&mut report);
+        assert_eq!(report.results.len(), 1, "one violation is one result");
+    }
+
+    #[test]
+    fn distinguishable_results_all_survive_the_collapse() {
+        // The collapse may only ever drop results NO consumer can tell apart. Two
+        // violations of the same law at different focus nodes are two violations, and a
+        // second component over the same focus node is a second observation — both must
+        // survive, or the collapse would be hiding real defects.
+        let other_focus = sparql_result("https://ex/otherBinder");
+        let mut other_component = sparql_result("https://ex/badBinder");
+        other_component.source_constraint_component =
+            purrdf::shapes::term::NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+            );
+        let mut other_shape = sparql_result("https://ex/badBinder");
+        other_shape.source_shape = purrdf::shapes::term::Term::NamedNode(
+            purrdf::shapes::term::NamedNode::new_unchecked("https://ex/UniquenessShape"),
+        );
+        let mut other_message = sparql_result("https://ex/badBinder");
+        other_message.message = Some("a different law speaking".to_owned());
+        let mut report = report_of(vec![
+            sparql_result("https://ex/badBinder"),
+            other_focus,
+            other_component,
+            other_shape,
+            other_message,
+        ]);
+        assert!(duplicate_validation_results(&report).is_empty());
+        dedupe_validation_results(&mut report);
+        assert_eq!(report.results.len(), 5);
+    }
+
     #[test]
     fn parse_file_dataset_rejects_bad_turtle() {
-        let path = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
+        let (_tmp, path) = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         assert!(result.is_err(), "malformed Turtle must parse-error");
     }
 
     #[test]
     fn parse_file_dataset_accepts_good_turtle() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_store_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
         let result = parse_file_dataset(&path);
-        std::fs::remove_file(&path).ok();
         let ds = result.expect("well-formed Turtle must parse");
         assert_eq!(ds.quad_count(), 1);
     }
 
     #[test]
     fn dataset_from_paths_loads_multiple_files() {
-        let a = write_tmp(
+        let (_tmp_a, a) = write_tmp(
             "gmeow_validate_store_multi_a.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let b = write_tmp(
+        let (_tmp_b, b) = write_tmp(
             "gmeow_validate_store_multi_b.ttl",
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
         let ds = dataset_from_paths(&[a.clone(), b.clone()]).expect("both files must load");
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
         assert_eq!(ds.quad_count(), 2);
     }
 
     #[test]
     fn dataset_from_paths_propagates_parse_error() {
-        let good = write_tmp(
+        let (_tmp_good, good) = write_tmp(
             "gmeow_validate_parsed_err_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let bad = write_tmp(
+        let (_tmp_bad, bad) = write_tmp(
             "gmeow_validate_parsed_err_bad.ttl",
             "this is not turtle @@@ <<<",
         );
         let result = dataset_from_paths(&[good.clone(), bad.clone()]);
-        std::fs::remove_file(&good).ok();
-        std::fs::remove_file(&bad).ok();
         assert!(result.is_err(), "a malformed file must propagate");
         let err = result.err().unwrap();
         let msg = err.message();
@@ -424,6 +714,101 @@ mod tests {
             }
             other => panic!("object must be a literal, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn core_browser_bundle_keeps_default_drops_named_graphs() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // A bundle with one quad in the DEFAULT graph (object-level) and one quad in
+        // a heavy named graph (`graph/documentation`). The core browser projection
+        // must keep the default-graph quad and DROP the named-graph quad.
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://blackcatinformatics.ca/gmeow/Cat", // 0: default s
+            "http://www.w3.org/2000/01/rdf-schema#label", // 1: default p
+            "https://blackcatinformatics.ca/gmeow/DocNode", // 2: named s
+            "https://blackcatinformatics.ca/gmeow/docTitle", // 3: named p
+            "https://blackcatinformatics.ca/gmeow/graph/documentation", // 4: named graph
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        for lit in ["Cat", "A documentation node"] {
+            graph.terms.push(Term {
+                kind: TermKind::Literal,
+                value: Some(lit.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        // default-graph quad: Cat rdfs:label "Cat" .
+        graph.quads.push((0, 1, 5, None));
+        // named-graph quad: DocNode docTitle "A documentation node" <graph/documentation>
+        graph.quads.push((2, 3, 6, Some(4)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[])
+            .expect("core browser bundle must serialize");
+        assert!(
+            nq.contains("https://blackcatinformatics.ca/gmeow/Cat"),
+            "core keeps the default-graph object-level quad:\n{nq}"
+        );
+        assert!(
+            !nq.contains("graph/documentation") && !nq.contains("DocNode"),
+            "core drops the heavy named graph and its quads:\n{nq}"
+        );
+    }
+
+    #[test]
+    fn dataset_nquads_from_gts_preserves_named_graph() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // The same one-quad-in-a-named-graph bundle, but read through the
+        // graph-PRESERVING browser primitive: the emitted N-Quads MUST carry the
+        // named-graph IRI as the fourth term (a flatten would drop it to the default
+        // graph and the assertion would fail).
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://example.org/s",
+            "https://example.org/p",
+            "https://example.org/o",
+            "https://blackcatinformatics.ca/gmeow/graph/metadata",
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        graph.quads.push((0, 1, 2, Some(3)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nquads = dataset_nquads_from_gts(&writer.to_bytes())
+            .expect("graph-preserving bundle N-Quads must serialize");
+        assert!(
+            nquads.contains("https://blackcatinformatics.ca/gmeow/graph/metadata"),
+            "bundle N-Quads must retain the named-graph component (graph-preserving), got:\n{nquads}"
+        );
+        assert!(
+            nquads.contains("https://example.org/s") && nquads.contains("https://example.org/o"),
+            "bundle N-Quads must carry the quad's subject and object:\n{nquads}"
+        );
     }
 
     #[test]

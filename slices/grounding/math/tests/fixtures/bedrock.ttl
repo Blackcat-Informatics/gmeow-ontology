@@ -42,10 +42,11 @@ ex:primesUnderTen a math:FiniteSet ;
 ex:allNaturals a math:Set ;
     math:hasCardinality math:alephNull .
 
-# Q5 — a named constant carrying a queryable Wikidata anchor.
-ex:eqPiAnchor a gmeow:TermEquivalence ;
-    gmeow:alignSubject math:pi ;
-    gmeow:alignObject wd:Q167 .
+# Q5 — a named constant carrying a queryable Wikidata anchor, recorded through a
+# fixture-local anchor vocabulary so the CQ isolates pi's anchor without depending on
+# (or over-matching) the module's real math:pi skos:exactMatch wd:Q167 alignment cell.
+ex:eqPiAnchor ex:anchorSubject math:pi ;
+    ex:anchorObject wd:Q167 .
 
 # Q6 — measures with their space, total mass, and whether they are probability
 # measures. A probability measure has mass one; a Lebesgue measure on the line has

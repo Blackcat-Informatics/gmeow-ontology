@@ -1,0 +1,437 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Annotation
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Annotation"@x-gmeow-english ;
+    logic:mediates gmeow:annotationTarget ,
+        gmeow:annotationBody ;
+    rdfs:subClassOf logic:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:annotationTarget ;
+            owl:someValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:annotationMotivation ;
+            owl:someValuesFrom gmeow:AnnotationMotivation ;
+        ] ;
+    skos:definition "A reified binding of a body to a target with a motivation — the W3C Web Annotation idiom expressed as a gufo:Relator. Mediates annotationBody (the note or literal), annotationTarget (the annotated entity), and annotationMotivation (the purpose). A highlight is an Annotation with a target span but no body; a bookmark is an Annotation motivated by bookmarking. Standpoint, confidence, and suppression are carried by the relator's provenance layer (accordingTo, displayable) or by RDF-star annotations on the shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AnnotationMotivation
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Annotation Motivation"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The purpose for which an annotation is created — a VALUE vocabulary (individuals, never subclasses) aligned to the W3C Web Annotation motivation set. Co-equal: no motivation is primary or default. The set is open."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Bookmark
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Bookmark"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Annotation ;
+    skos:definition "An annotation that records a target resource for later retrieval, motivated by bookmarking. Typically has no body and no selector (the target entity itself is the bookmarked resource)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Comment
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Comment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Note ;
+    skos:definition "A note that replies to an annotation or another comment — a threaded discussion node. Every Comment has exactly one commentParent (the annotation or comment being replied to). The transitive hasReply reaches all descendants in the thread. A note without a parent is a plain Note, not a Comment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Highlight
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Highlight"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Annotation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:annotationTargetSpan ;
+            owl:someValuesFrom gmeow:EvidenceSpan ;
+        ] ;
+    skos:definition "An annotation that marks an anchored span within a target and carries no body — a pure target+selector binding motivated by highlighting."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Note
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "Note"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A piece of content in a personal or collective knowledge graph — an annotation body, a Zettelkasten card, a comment, or a standalone thought. Grounded as an information object whose authorship is mediated by Participation / wasAttributedTo, whose temporal scope is carried by the four clocks, and whose standpoint is indexed by accordingTo. Reuses isAbout and hasTag / Tagging for topic and tagging; does not mint parallel properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:annotationBody
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Annotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotation body"@x-gmeow-english ;
+    rdfs:range gmeow:Note ;
+    skos:definition "The note that serves as the body of an annotation — the content being attached. Functional per relator: one body per Annotation. Optional: a highlight or bookmark has no body."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:annotationMotivation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Annotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotation motivation"@x-gmeow-english ;
+    rdfs:range gmeow:AnnotationMotivation ;
+    skos:definition "The motivation of an annotation — the purpose for which the body is attached to the target. Functional per relator: one motivation per Annotation. An open value vocabulary of individuals (Principle 9); no motivation is privileged as primary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:annotationTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Annotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotation target"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The entity that is annotated — the target of the annotation. Functional per relator: one target per Annotation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:annotationTargetSpan
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Annotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotation target span"@x-gmeow-english ;
+    rdfs:range gmeow:EvidenceSpan ;
+    skos:definition "An optional anchored span within the annotation target — a text quote, position, or fragment selector. Non-functional: an annotation may reference multiple spans (e.g. several disjoint highlights in the same document). Reuses EvidenceSpan and its selector properties; no second selector model is minted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commentParent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Comment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "comment parent"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The annotation or comment that this comment replies to. Every Comment has exactly one commentParent. The range is gmeow:Entity (encompassing Annotation and Comment) so that a comment may reply to any annotatable entity without identity clash."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasDirectReply
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "has direct reply"@x-gmeow-english ;
+    rdfs:range gmeow:Comment ;
+    rdfs:subPropertyOf gmeow:hasReply ;
+    owl:inverseOf gmeow:commentParent ;
+    skos:definition "Relates an annotation or comment to its immediate reply comment. Non-transitive inverse of commentParent. HasReply is the transitive superproperty that reaches the full reply tree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasReply
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "has reply"@x-gmeow-english ;
+    rdfs:range gmeow:Comment ;
+    skos:definition "Relates an annotation or comment to a reply comment. Transitive: the full reply tree is reachable. Superproperty of hasDirectReply. Intentionally kept free of OWL cardinality so that deep thread trees remain DL-regular (no cardinality explosion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasWikilink
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "has wikilink"@x-gmeow-english ;
+    rdfs:range gmeow:Note ;
+    skos:definition "A directed wikilink edge projected from mentions or relatedNote for Markdown / PKM round-trip. Not asserted in the canonical graph; materialized by the markdown projection (queries/projections/markdown.rq)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:mentionedIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "mentioned in"@x-gmeow-english ;
+    rdfs:range gmeow:Note ;
+    owl:inverseOf gmeow:mentions ;
+    skos:definition "The inverse of mentions: an entity is mentioned in a note — the backlink view. Materialized by projection or inference, never hand-maintained."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:mentions
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "mentions"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "A note mentions another entity (typically another note or a resource) — the source of a directed backlink edge. Non-functional: a note may mention many entities. Kept cardinality-free for DL regularity; the inverse mentionedIn provides the backlink view."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:motivationAssessing
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "assessing"@x-gmeow-english ;
+    skos:definition "The annotation assesses or evaluates the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationBookmarking
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "bookmarking"@x-gmeow-english ;
+    skos:definition "The annotation bookmarks the target for later retrieval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationCommenting
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "commenting"@x-gmeow-english ;
+    skos:definition "The annotation comments on the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationDescribing
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "describing"@x-gmeow-english ;
+    skos:definition "The annotation describes the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationHighlighting
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "highlighting"@x-gmeow-english ;
+    skos:definition "The annotation highlights a span within the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationLinking
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "linking"@x-gmeow-english ;
+    skos:definition "The annotation links the target to another resource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationModerating
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "moderating"@x-gmeow-english ;
+    skos:definition "The annotation moderates or curates the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationQuestioning
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "questioning"@x-gmeow-english ;
+    skos:definition "The annotation poses a question about the target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationReplying
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "replying"@x-gmeow-english ;
+    skos:definition "The annotation replies to another annotation or comment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motivationTagging
+    a gmeow:AnnotationMotivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "tagging"@x-gmeow-english ;
+    skos:definition "The annotation tags the target with a label or topic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:noteAuthor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "note author"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent who authored a note — the flat 80% shortcut. Non-functional: a note may have multiple co-authors. Promote to a reified gmeow:Participation or prov:wasAttributedTo when the authorship act itself must carry period, confidence, or standpoint (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:noteContent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "note content"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The textual or markdown content of a note. The flat 80% case; promote to a structured CreativeWork or a reified annotation when provenance, versioning, or multipart structure is needed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:noteCreatedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "note created at"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The creation timestamp of a note — a lightweight four-clock shortcut. The heavy case uses a reified gmeow:Participation or prov:wasAttributedTo with full temporal scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:noteModifiedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "note modified at"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The last-modification timestamp of a note — a lightweight four-clock shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:relatedNote
+    a owl:ObjectProperty ,
+        owl:SymmetricProperty ;
+    rdfs:domain gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "related note"@x-gmeow-english ;
+    rdfs:range gmeow:Note ;
+    skos:definition "An undirected associative link between two notes — the semantic sibling of relatedTag, applied to the note graph. Symmetric. Optional: the note graph stays flat-first."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+<https://blackcatinformatics.ca/gmeow/slices/notes>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "First-class annotation and personal-knowledge-management layer — notes, highlights, bookmarks, comments, and the bidirectional backlink graph (the RDF gap GMEOW fills). Reuses, never duplicates: EvidenceSpan/Selector for anchored targets (EvidenceSpan audit machinery), aboutness/Tagging for topics, accordingTo for standpoint (standpoint facility), displayable for suppression (P10). Grounded in gUFO; aligned to W3C Web Annotation, schema.org, ActivityStreams, and SIOC by reference (P5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "GMEOW Notes & Annotation Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Notes & Annotation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of RetractedNoteSuppressionShape. #
+# A gmeow:Comment whose gmeow:commentParent is itself suppressed                #
+# (gmeow:displayable false) but which is not itself suppressed is a Warning.    #
+# =========================================================================== #
+
+gmeow:CommentParentSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Comment parent-suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Comment whose gmeow:commentParent is suppressed (gmeow:displayable false) should itself set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:RetractedNoteSuppressionShape ;
+    logic:severity "Warning" ;
+    logic:message "A comment whose parent is suppressed should set gmeow:displayable false (Principle 10)." ;
+    logic:integrity logic:supCmForall .
+logic:supCmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supCmImpl .
+logic:supCmImpl a logic:Formula ; logic:antecedent logic:supCmGuard ; logic:consequent logic:supCmPhi .
+logic:supCmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Comment ] .
+logic:supCmPhi a logic:Formula ; logic:not logic:supCmEx .
+logic:supCmEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parent" ] ;
+    logic:exists logic:supCmBody .
+logic:supCmBody a logic:Formula ; logic:and logic:supCmParent , logic:supCmParentSuppressed , logic:supCmNotSuppressed .
+logic:supCmParent a logic:Formula ; logic:relation gmeow:commentParent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "parent" ] .
+logic:supCmParentSuppressed a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+logic:supCmNotSuppressed a logic:Formula ; logic:not logic:supCmDisp .
+logic:supCmDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Annotation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationMotivation> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Annotation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Highlight> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationTargetSpan> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Annotation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationMotivation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Annotation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Highlight> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationTargetSpan" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: annotation cardinality + note content / suppression grounding ---
+# gmeow:WebAnnotationShape — every Annotation has exactly one target, at most one body, and
+# exactly one motivation.
+gmeow:Annotation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationBody ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationMotivation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:CommentHasParentShape — a Comment references exactly one parent. The retired shape also
+# carried sh:class gmeow:Entity on gmeow:commentParent; that closed-world class check is a
+# data-soundness casualty (Tier-1 SHACL runs without inference, and conformant parents are typed
+# with their specific sortal — a gmeow:CreativeWork, gmeow:Comment, gmeow:Annotation — not the
+# redundant explicit gmeow:Entity the guidance forbids, so projecting sh:class gmeow:Entity would
+# red make validate). The commentParent range stays the open-world rdfs:range gmeow:Entity already
+# declared on the property; only the exactly-one cardinality is closed-world here.
+gmeow:Comment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:commentParent ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:commentParent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:NoteContentShape — a Note must carry gmeow:noteContent or at least one rdfs:label.
+gmeow:NoteContentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Note has content or label constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Note carries gmeow:noteContent or at least one rdfs:label."@x-gmeow-english ;
+    logic:formalizes gmeow:NoteContentShape ;
+    logic:onClass gmeow:Note ;
+    logic:anyOf gmeow:noteContent , rdfs:label ;
+    logic:message "A Note must have gmeow:noteContent or at least one rdfs:label." .
+
+
+# gmeow:NoteContentShape node-level sh:or → the OrProperties node-component projection: a Note
+# carries gmeow:noteContent or at least one rdfs:label.
+gmeow:Note logic:subClassOf [ owl:unionOf (
+    [ a logic:Restriction ; logic:onProperty gmeow:noteContent ; logic:someValuesFrom owl:Thing ]
+    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:someValuesFrom owl:Thing ] ) ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:annotationBodyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotationBody is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:annotationBody ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:annotationBody ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:annotationBody names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:annotationBody, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:annotationBody and nothing else. It is not a definition of gmeow:annotationBody (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:annotationBodyFunctionality logic:characterizes gmeow:annotationBody ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:annotationMotivationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotationMotivation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:annotationMotivation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:annotationMotivation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:annotationMotivation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:annotationMotivation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:annotationMotivation and nothing else. It is not a definition of gmeow:annotationMotivation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:annotationMotivationFunctionality logic:characterizes gmeow:annotationMotivation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:annotationTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    rdfs:label "annotationTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:annotationTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:annotationTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:annotationTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:annotationTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:annotationTarget and nothing else. It is not a definition of gmeow:annotationTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:annotationTargetFunctionality logic:characterizes gmeow:annotationTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

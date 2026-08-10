@@ -23,7 +23,7 @@ use crate::error::{
 use crate::i18n::translation_integrity_issue;
 
 const ENGLISH_TAG: &str = "x-gmeow-english";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
@@ -898,10 +898,7 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
 }
 
 fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
-    let catalog = SliceCatalog::discover(
-        &root.join("slices"),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -973,10 +970,7 @@ pub fn extract_catalog(
     lang: Option<&str>,
     terms_only: bool,
 ) -> Result<ExtractReport> {
-    let catalog = SliceCatalog::discover(
-        &root.join("slices"),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()
         .iter()
@@ -2179,12 +2173,17 @@ msgstr "proposed value"
         assert!(report.conflicts[0].contains("source and PO both changed"));
     }
 
-    fn test_root(name: &str) -> PathBuf {
-        let mut root = std::env::temp_dir();
-        root.push(format!("gmeow-docs-i18n-{name}-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
+    /// A fresh, empty repo root for one test, owned by the returned
+    /// [`tempfile::TempDir`] so the tree is removed when that guard drops — on
+    /// success, on panic, and on early return. Uniqueness comes from the guard;
+    /// `name` is only a readable label for the root inside it. Callers must bind
+    /// the guard (`let (_tmp, root) = test_root("…");`); a bare `_` binding drops
+    /// it at once and deletes the root out from under the test.
+    fn test_root(name: &str) -> (tempfile::TempDir, PathBuf) {
+        let guard = tempfile::tempdir().expect("create temp dir");
+        let root = guard.path().join(name);
         fs::create_dir_all(&root).unwrap();
-        root
+        (guard, root)
     }
 
     fn write_minimal_ontology(root: &Path) {
@@ -2233,7 +2232,7 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
 
     #[test]
     fn xliff_export_uses_actual_slice_path() {
-        let root = test_root("xliff-slice-path");
+        let (_tmp, root) = test_root("xliff-slice-path");
         let po_path = root.join("slices/extensions/example/i18n/fr.po");
         fs::create_dir_all(po_path.parent().unwrap()).unwrap();
         fs::write(
@@ -2252,12 +2251,11 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         assert!(!text.contains("original=\"slices/core/example\""));
         // A non-fuzzy entry is emitted as an XLIFF `translated` target state.
         assert!(text.contains("<target state=\"translated\">example label translated</target>"));
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_valid_catalog_reports_no_errors() {
-        let root = test_root("lint-valid");
+        let (_tmp, root) = test_root("lint-valid");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2282,14 +2280,13 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         assert!(report.warnings.is_empty(), "{:?}", report.warnings);
         assert_eq!(report.total_counts.get("x-gmeow-french"), Some(&2));
         assert_eq!(report.fuzzy_counts.get("x-gmeow-french"), Some(&0));
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_flags_collapsed_translation_distinction() {
         // Two DISTINCT English sources translated to the SAME target — the translation
         // collapsed a distinction the source made. A hard reject.
-        let root = test_root("lint-collapsed");
+        let (_tmp, root) = test_root("lint-collapsed");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2325,14 +2322,13 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
             collisions[0].contains("pareil") && collisions[0].contains("distinct sources"),
             "names the shared target: {collisions:?}"
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_passes_twin_source_shared_translation() {
         // A class and its property twin share ONE English label, so sharing ONE target
         // translation is legitimate (identical msgid skeleton) and must NOT be flagged.
-        let root = test_root("lint-twin");
+        let (_tmp, root) = test_root("lint-twin");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2358,7 +2354,6 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
             "twin sources sharing one translation must not red: {:?}",
             report.errors
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     /// An ontology whose terms carry the English labels the glossary-consistency tests
@@ -2400,7 +2395,7 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         // One English source ("read") translated two different ways ("lire" / "lu") across
         // batches — the cross-batch terminology-consistency violation (the dual of the
         // distinctiveness collapse). A hard reject via lang:GlossaryTermInconsistency.
-        let root = test_root("lint-glossary-inconsistent");
+        let (_tmp, root) = test_root("lint-glossary-inconsistent");
         write_glossary_ontology(&root);
         write_test_po(
             &root,
@@ -2436,13 +2431,12 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
             hits[0].contains("\"read\"") && hits[0].contains("lang:GlossaryTermInconsistency"),
             "names the source and the failure class: {hits:?}"
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_passes_consistent_glossary() {
         // One English source rendered ONE consistent way across batches — no violation.
-        let root = test_root("lint-glossary-consistent");
+        let (_tmp, root) = test_root("lint-glossary-consistent");
         write_glossary_ontology(&root);
         write_test_po(
             &root,
@@ -2471,7 +2465,6 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
             "a consistent glossary must not red: {:?}",
             report.errors
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -2480,7 +2473,7 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         // ("lire" / "lu") without a consistency violation. The real lint_po_files loader
         // reads the declaration from authored TTL (write_declared_homographs), not a
         // hand-built set — the production module.ttl -> gate flow.
-        let root = test_root("lint-glossary-homograph");
+        let (_tmp, root) = test_root("lint-glossary-homograph");
         write_glossary_ontology(&root);
         write_declared_homographs(&root, &["read"]);
         write_test_po(
@@ -2510,7 +2503,6 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
             "a declared homograph must be exempt: {:?}",
             report.errors
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -2518,7 +2510,7 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         // Guardrail: an UNRELATED declared homograph ("play") must not widen the exempt set
         // and mask a genuine "read" inconsistency — the exempt-set read is source-keyed and
         // authored-TTL-only, so only the exact declared source is exempted.
-        let root = test_root("lint-glossary-unrelated-homograph");
+        let (_tmp, root) = test_root("lint-glossary-unrelated-homograph");
         write_glossary_ontology(&root);
         write_declared_homographs(&root, &["play"]);
         write_test_po(
@@ -2548,14 +2540,13 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
             "an unrelated homograph must not mask the read inconsistency: {:?}",
             report.errors
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_excludes_fuzzy_from_distinctiveness() {
         // Fuzzy entries are not candidate translations, so a fuzzy collapsed pair is not
         // a distinctiveness violation (consistent with the rest of the lint's exclusions).
-        let root = test_root("lint-fuzzy-excluded");
+        let (_tmp, root) = test_root("lint-fuzzy-excluded");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2581,12 +2572,11 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
             "fuzzy entries are excluded from the distinctiveness check: {:?}",
             report.errors
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_reports_orphaned_and_stale_entries_as_warnings() {
-        let root = test_root("lint-stale");
+        let (_tmp, root) = test_root("lint-stale");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2621,12 +2611,11 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
                 .iter()
                 .any(|warning| warning.contains("stale"))
         );
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_rejects_copied_or_hybrid_english_as_translation() {
-        let root = test_root("lint-english-leak");
+        let (_tmp, root) = test_root("lint-english-leak");
         write_minimal_ontology(&root);
         write_test_po(
             &root,
@@ -2641,12 +2630,11 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         let report = lint_po_files(&root, 100.0);
         assert_eq!(report.errors.len(), 1, "{:?}", report.errors);
         assert!(report.errors[0].contains("copied into msgstr"));
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_all_fuzzy_catalog_is_error() {
-        let root = test_root("lint-fuzzy");
+        let (_tmp, root) = test_root("lint-fuzzy");
         write_test_po(
             &root,
             "fuzzy_fr.po",
@@ -2668,12 +2656,11 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         let report = lint_po_files(&root, 100.0);
         assert_eq!(report.errors.len(), 1);
         assert!(report.errors[0].contains("x-gmeow-french has only fuzzy entries"));
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
     fn lint_missing_language_header_is_error() {
-        let root = test_root("lint-no-lang");
+        let (_tmp, root) = test_root("lint-no-lang");
         write_test_po(
             &root,
             "no_lang.po",
@@ -2682,6 +2669,5 @@ gmeow:playMedia rdfs:label "play"@x-gmeow-english .
         let report = lint_po_files(&root, 100.0);
         assert_eq!(report.errors.len(), 1);
         assert!(report.errors[0].contains("missing Language header"));
-        let _ = fs::remove_dir_all(root);
     }
 }

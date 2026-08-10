@@ -1,0 +1,118 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inquiry, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureInquirer is functional"
+msgstr "tenureInquirer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureInquirer is functional: a gmeow:InquiryTenure records the open question of exactly one agent — two agents holding the same question open are two tenures sharing one gmeow:tenureQuestion, not two inquirers on one tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureInquirer est fonctionnelle: une gmeow:InquiryTenure enregistre la question ouverte d'exactement un agent — deux agents maintenant ouverte la même question sont deux tenures partageant un même gmeow:tenureQuestion, et non deux enquêteurs sur une seule tenure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureQuestion is functional"
+msgstr "tenureQuestion est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureQuestion est fonctionnelle: une gmeow:InquiryTenure enregistre exactement une question maintenue ouverte — un agent maintenant cinq questions ouvertes porte cinq tenures, et le partage se fait au niveau d'un seul individu gmeow:Question plutôt qu'en multi-valuant cette relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureInquirer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureInquirer nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureInquirer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureInquirer, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureInquirerFunctionality logic:characterizes gmeow:tenureInquirer ."
+msgstr "gmeow:tenureInquirerFunctionality logic:characterizes gmeow:tenureInquirer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureQuestion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureQuestion nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureQuestion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureQuestion, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureQuestionFunctionality logic:characterizes gmeow:tenureQuestion ."
+msgstr "gmeow:tenureQuestionFunctionality logic:characterizes gmeow:tenureQuestion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureInquirer and nothing else. It is not a definition of gmeow:tenureInquirer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenureInquirer, et rien d'autre. Ce n'est pas une définition de gmeow:tenureInquirer (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureQuestion and nothing else. It is not a definition of gmeow:tenureQuestion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenureQuestion, et rien d'autre. Ce n'est pas une définition de gmeow:tenureQuestion (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records how the inquiry is being run, not what would count as an answer. It is orthogonal to the erotetic question type, so the two co-apply: the same wh-question can be pursued as a scan or as a deep dive without changing what would answer it."
+msgstr "Consigne la manière dont l'enquête est menée, non ce qui vaudrait réponse. Orthogonal au type érotétique de la question, les deux axes se cumulent : une même question en wh- peut être poursuivie en survol ou en approfondissement sans que change ce qui y répondrait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records the state of the PURSUIT and never the epistemic standing of an answer. Whether an answer is believed or known lives on the epistemics spine, so a settled inquiry may still carry an answer nobody believes."
+msgstr "Consigne l'état de la POURSUITE et jamais le statut épistémique d'une réponse. Qu'une réponse soit crue ou sue relève de la colonne épistémique : une enquête close peut donc porter une réponse que nul ne croit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Classifies the question by the operational kind of the inquiry pursuing it, drawn from an OPEN value vocabulary. It is not the erotetic question type: the two axes co-apply, and using one where the other belongs makes an answerhood condition look like a work style."
+msgstr "Classe la question par le genre opérationnel de l'enquête qui la poursuit, à partir d'un vocabulaire de valeurs OUVERT. Ce n'est pas le type érotétique : les deux axes se cumulent, et employer l'un pour l'autre fait passer une condition de réponse pour un style de travail."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inquiry Kind"
+msgstr "Genre d'enquête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The OPERATIONAL kind of a research inquiry — a VALUE, never a gmeow:Question subclass. Held apart from gmeow:QuestionType, which is the CLOSED erotetic classification by answerhood condition (polar / alternative / wh / why / how): this axis records how the inquiry is being run rather than what would count as an answer, so a single wh question pursued as a research plan carries one value from each vocabulary rather than one conflated kind. The set is OPEN, unlike gmeow:QuestionType — a kind not among the seeded individuals is a fresh gmeow:InquiryKind individual carrying rdfs:label, not a new class."
+msgstr "Le genre OPÉRATIONNEL d'une enquête de recherche — une VALEUR, jamais une sous-classe de gmeow:Question. Tenu à l'écart de gmeow:QuestionType, qui est la classification érotétique FERMÉE par condition de réponse (polaire / alternative / en wh- / en pourquoi / en comment) : cet axe consigne la manière dont l'enquête est menée plutôt que ce qui vaudrait réponse, si bien qu'une même question en wh- poursuivie comme plan de recherche porte une valeur de chaque vocabulaire et non un genre confondu. L'ensemble est OUVERT, à la différence de gmeow:QuestionType — un genre absent des individus amorcés donne un nouvel individu gmeow:InquiryKind porteur de rdfs:label, et non une classe nouvelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+msgstr "Exemple : ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inquiry Status"
+msgstr "Statut d'enquête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working status of a research inquiry — a VALUE, never a gmeow:Question subclass. It records the state of the PURSUIT (not yet started, being worked, settled, dropped, parked), not the epistemic standing of any answer: whether an answer is believed or known stays on the epistemics spine (gmeow:accepts / gmeow:knowsThat) and is never inferred from a status value. The set is OPEN; a status not among the seeded individuals is a fresh gmeow:InquiryStatus individual, not a new class."
+msgstr "Le statut de travail d'une enquête de recherche — une VALEUR, jamais une sous-classe de gmeow:Question. Il consigne l'état de la POURSUITE (pas encore entamée, en cours, close, abandonnée, mise de côté) et non le statut épistémique d'une réponse : qu'une réponse soit crue ou sue relève de la colonne épistémique (gmeow:accepts / gmeow:knowsThat) et ne s'infère jamais d'une valeur de statut. L'ensemble est OUVERT ; un statut absent des individus amorcés donne un nouvel individu gmeow:InquiryStatus, et non une classe nouvelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActive ."
+msgstr "Exemple : ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inquiry kind"
+msgstr "genre d'enquête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Classifies a gmeow:Question by the OPERATIONAL kind of the inquiry pursuing it, drawn from the open gmeow:InquiryKind value vocabulary. NOT gmeow:questionType, which classifies the same question by its erotetic answerhood condition: the two axes are orthogonal and co-apply rather than compete. Non-functional — one question may be pursued as several kinds of inquiry at once, and competing standpoint-indexed kind claims coexist rather than contradict (Principle 9)."
+msgstr "Classe une gmeow:Question selon le genre OPÉRATIONNEL de l'enquête qui la poursuit, pris dans le vocabulaire de valeurs ouvert gmeow:InquiryKind. À ne pas confondre avec gmeow:questionType, qui classe la même question selon sa condition érotétique de réponse : les deux axes sont orthogonaux et se cumulent au lieu de se concurrencer. Non fonctionnelle — une même question peut être poursuivie comme plusieurs genres d'enquête à la fois, et des revendications de genre indexées à des points de vue concurrents coexistent sans se contredire (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+msgstr "Exemple : ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."

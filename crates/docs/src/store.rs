@@ -88,6 +88,22 @@ impl Store {
         Ok(Self { ds })
     }
 
+    /// Wrap an already-parsed dataset — e.g. a slice's frozen
+    /// `purrdf::slice::SliceRecord::manifest_graph` — as a [`Store`], with no
+    /// re-parse. Used by the seam-registry extractor, which reads the lossless
+    /// per-slice manifest IR the catalog already carries in memory.
+    pub(crate) fn from_dataset(ds: Arc<RdfDataset>) -> Self {
+        Self { ds }
+    }
+
+    /// The underlying parsed dataset, including its RDF-1.2 reifier/annotation side tables —
+    /// needed by consumers that read native alignment cells through
+    /// [`gmeow_logic_compile::ingest::DslView`] (the flat query helpers cannot see reifier
+    /// annotations).
+    pub(crate) fn dataset(&self) -> &RdfDataset {
+        &self.ds
+    }
+
     /// Parse N-Quads `bytes` into a fresh store via the native codecs. Unlike
     /// [`Store::parse_turtle`], the parsed quads may live in a *named* graph
     /// (the constraint-catalog fanout artifact carries every triple in the
@@ -314,6 +330,24 @@ impl Store {
     /// `sorted_literals`).
     pub(crate) fn sorted_literals(&self, subject_iri: &str, pred: &str) -> Vec<String> {
         self.literals(subject_iri, pred)
+    }
+
+    /// All literal values of `<subject> <pred> ?o` across *any* graph, sorted +
+    /// deduped (deterministic). Named-graph twin of [`Store::literals`] — the
+    /// advice-catalog reader uses it to collect the multi-valued advice prose
+    /// carried in the catalog fanout named graph.
+    pub(crate) fn literals_any(&self, subject_iri: &str, pred: &str) -> Vec<String> {
+        let mut out: Vec<String> = self
+            .objects_any(subject_iri, pred)
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
     }
 
     /// All named-node object IRIs of `<subject> <pred> ?o`, in dataset order

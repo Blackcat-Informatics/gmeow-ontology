@@ -16,5 +16,6 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     gmeow:sliceConsumer "Reality-monitoring for the agent-memory flagship (Principle 14) — store_claim records a gmeow:contentOrigin (gmeow:originPerceived / originRemembered / originBelieved / originImagined / originSupposed / originGenerated) so recall can tell a recalled fact from a confabulated or LLM-generated one, gmeow:originGenerated being the disciplined hallucination/provenance marker; counterfactual rehearsal and planning rollouts entertain content with gmeow:imagines / gmeow:supposes against an imagined gmeow:imaginedWorld (logic:, by reference); fiction and narrative interiority are shared licensed imagining bridging gmeow:veridicalityLicensedFalsehood (deception); abduction entertains candidate explanations as suppositions before any are believed."@x-gmeow-english .

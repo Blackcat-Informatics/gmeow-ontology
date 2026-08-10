@@ -51,7 +51,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
     if graph.quad_count() == 0 {
         return Err(error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make sync` \
+            "the snapshot carries no graph/reasoning verdict; run `make check` \
              (or re-reason with --fresh)",
         ));
     }
@@ -70,7 +70,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
             "the shipped graph/reasoning verdict was minted under reasoning contract \
-             {shipped} but this binary implements {current}; run `make sync` to \
+             {shipped} but this binary implements {current}; run `make check` to \
              re-mint the bundle (or re-reason with --fresh)",
             shipped = result.provenance.contract_hash,
         )));
@@ -244,10 +244,21 @@ where
 
     if !result.is_decided_consistent() {
         return if result.is_consistent() {
+            // Name them. The sibling refusal in `run_reason` lists the constructs, and a
+            // refusal that reports only a COUNT cannot be acted on: it says an axiom took
+            // the ontology out of the decided fragment without saying which one, which is
+            // the whole content of the diagnosis.
             Err(error::reasoning(format!(
                 "cannot decide consistency: {n} out-of-fragment construct(s) the native \
-                 path does not decide; refusing to verify",
+                 path does not decide; refusing to verify ({constructs})",
                 n = result.preservation.unsupported_constructs.len(),
+                constructs = result
+                    .preservation
+                    .unsupported_constructs
+                    .iter()
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", "),
             )))
         } else {
             Err(error::reasoning("inconsistent ontology"))
@@ -329,6 +340,11 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     }
     if !evaluation.report.ok() {
+        // Emit the findings, exactly as the standalone `verify` command does. A
+        // refusal that reports only a COUNT cannot be acted on: it says the reasoned
+        // graph carries a violation without saying WHICH, and the whole content of
+        // the diagnosis is which obligation, query, or gate produced it.
+        emit_report(&evaluation.report);
         return fail(format!(
             "verify: {} violation(s) on the reasoned graph",
             evaluation.report.error_count()

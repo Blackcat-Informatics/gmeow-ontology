@@ -228,7 +228,7 @@ gmeow:gtsHeadId
     rdfs:label "GTS head id"@x-gmeow-english ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gmeow:versionFingerprint ;
-    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion logic:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
+    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion gmeow:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
     skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for byte-exact identity of the file or a blob (use gmeow:contentDigest) and avoid asserting more than one head per segment; the head is functional and commits transitively to the chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
@@ -472,9 +472,11 @@ REUSE (no parallel mechanisms — GTS transport design).
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
-gmeow:OpaqueFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:OpacityReason ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSSegment ] .
+gmeow:OpaqueFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:opacityReason ; logic:allValuesFrom gmeow:OpacityReason ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:opaqueFrameIn ; logic:allValuesFrom gmeow:GTSSegment ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opacityReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opaqueFrameIn" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:GTSSegment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
@@ -483,8 +485,6 @@ gmeow:GTSSegment rdfs:subClassOf
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opacityReason> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
-<https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsProfile> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
@@ -505,7 +505,7 @@ logic:SealedFrameRecipientConstraint
     logic:trigger gmeow:opacityReason ;
     logic:triggerValue gmeow:opacityMissingKey ;
     logic:requires gmeow:sealedRecipient ;
-    logic:formalizes gmeow:OpaqueFrame ;
+    logic:formalizes gmeow:SealedFrameRecipientShape ;
     logic:message "A missing-key opaque frame must name at least one gmeow:sealedRecipient — sealed content has a declared audience." .
 
 logic:EvidenceCompactionConstraint
@@ -515,7 +515,7 @@ logic:EvidenceCompactionConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity warning: an evidence-profile gmeow:GTSDocument should not be generated by a gmeow:GTSCompaction — compaction re-authors the segment ordering and detaches the third-party transport attestation (GTS spec §12.1)."@x-gmeow-english ;
     logic:severity "Warning" ;
-    logic:formalizes gmeow:GTSDocument ;
+    logic:formalizes gmeow:EvidenceCompactionShape ;
     logic:message "An evidence-profile GTS document should not be generated by a GTSCompaction — compaction re-authors the ordering and detaches third-party transport attestation." ;
     logic:integrity logic:evcForall .
 logic:evcForall a logic:Formula ;
@@ -538,9 +538,159 @@ logic:evcGenBy a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
 logic:evcCompaction a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSCompaction ] .
 
+# =========================================================================== #
+# GTS head-id canonical pattern constraint: the sh:pattern residue of          #
+# gmeow:GTSSegmentShape (spec §9.1) has no OWL antecedent (regex is out of     #
+# EL), so it grounds as a string-pattern residue, matching the idiom already   #
+# used for lang:GmnCodepointCanonicalConstraint (the U+XXXX codepoint pattern).#
+# =========================================================================== #
+
+gmeow:GtsHeadIdCanonicalConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "GTS head-id canonical pattern constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."@x-gmeow-english ;
+    logic:valuePath gmeow:gtsHeadId ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:formalizes gmeow:GTSSegmentShape ;
+    logic:message "A gmeow:gtsHeadId value must match '^blake3:[0-9a-f]{64}$' — the canonical blake3 content-id form." .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
-<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opacityReason> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
-<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:KeyAssertion — logic:keyProperty's value uniquely identifies a logic:keyClass instance.
+
+gmeow:codecClassFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "codecClass is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:codecClass is functional: a gmeow:TransformCodec has exactly one capability class — the single kind of thing a reader must hold to reverse it, a library or a key, never both at once."@x-gmeow-english ;
+    logic:characterizes gmeow:codecClass ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:codecClass ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:codecClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:codecClass, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:codecClass and nothing else. It is not a definition of gmeow:codecClass (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:gtsHeadIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gtsHeadId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:gtsHeadId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gtsHeadId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gtsHeadId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsHeadId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gtsHeadId and nothing else. It is not a definition of gmeow:gtsHeadId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:gtsProfileFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gtsProfile is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsProfile is functional: a gmeow:GTSSegment declares exactly one profile — a single value-vocabulary individual naming its purpose and requirement set, while a multi-segment document's effective requirements are the derived union of its segments' profiles rather than a second value on one segment."@x-gmeow-english ;
+    logic:characterizes gmeow:gtsProfile ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gtsProfile ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gtsProfile names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsProfile, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gtsProfile and nothing else. It is not a definition of gmeow:gtsProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:gtsSegmentIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gtsSegmentIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:gtsSegmentIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gtsSegmentIndex ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gtsSegmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentIndex and nothing else. It is not a definition of gmeow:gtsSegmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:gtsSegmentOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gtsSegmentOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsSegmentOf is functional: a gmeow:GTSSegment instance belongs to exactly one document — the same bytes appearing in another file are a different segment instance of the same content, not a second document on one segment."@x-gmeow-english ;
+    logic:characterizes gmeow:gtsSegmentOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gtsSegmentOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gtsSegmentOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gtsSegmentOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gtsSegmentOf and nothing else. It is not a definition of gmeow:gtsSegmentOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:opacityReasonFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "opacityReason is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:opacityReason ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:opacityReason ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:opacityReason names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opacityReason, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:opacityReason and nothing else. It is not a definition of gmeow:opacityReason (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:opaqueFrameInFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "opaqueFrameIn is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:opaqueFrameIn ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:opaqueFrameIn ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:opaqueFrameIn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opaqueFrameIn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:opaqueFrameIn and nothing else. It is not a definition of gmeow:opaqueFrameIn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:gtsSegmentHeadKey
+    a owl:NamedIndividual ,
+        logic:KeyAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "a GTS segment is keyed by its chain head"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:GTSSegment is identified by its gmeow:gtsHeadId: the chain head is a BLAKE3 content-id committing transitively to the segment's entire frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction. The head therefore uniquely identifies its segment (content-addressing IS the identity), and the native DL consistency gate forces two segments asserted distinct yet sharing a head into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property gmeow:gtsHeadId would be OWL 2 Full."@x-gmeow-english ;
+    logic:keyClass gmeow:GTSSegment ;
+    logic:keyProperty gmeow:gtsHeadId ;
+    logic:formalizes gmeow:gtsHeadId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:GTSSegment; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:GTSSegment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:GTSSegment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

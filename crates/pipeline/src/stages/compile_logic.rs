@@ -886,6 +886,9 @@ impl Stage for CompileLogicStage {
             // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
             None,
             meta.as_ref(),
+            // No consumer reads this record back in place of re-running the compiler, so
+            // it carries no self-digest (a seal nobody verifies is decoration).
+            None,
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself
@@ -1516,6 +1519,35 @@ mod tests {
         assert_eq!(
             deriv_full, deriv_narrow,
             "MetaProgram::from_source_dataset must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 6: the RDFS/SKOS annotation lift. The surgical un-deny keeps the six
+        // annotation predicates in the narrowed subgraph, so the NodeKind::Annotation axioms
+        // must be reader-identical across the narrowing — this is the tripwire that REDs if a
+        // future edit re-denies a lifted annotation predicate (silently dropping the SKOS/RDFS
+        // superset content). Non-vacuity FIRST: the authored corpus carries carrier-tagged
+        // rdfs:label/skos:definition on every term.
+        let anns = |ds: &purrdf::RdfDataset| -> Vec<gmeow_logic_compile::ir::LogicAxiom> {
+            let (prog, _d) = parse_logic_dataset(ds, None).expect("parse annotation axioms");
+            let mut a: Vec<_> = prog
+                .axioms
+                .iter()
+                .filter(|ax| ax.node_kind == gmeow_logic_compile::ir::NodeKind::Annotation)
+                .cloned()
+                .collect();
+            a.sort_by_key(gmeow_logic_compile::ir::LogicAxiom::sort_key);
+            a
+        };
+        let ann_full = anns(full.as_ref());
+        let ann_narrow = anns(narrow.as_ref());
+        assert!(
+            !ann_full.is_empty(),
+            "non-vacuity: the full corpus must lift at least one RDFS/SKOS annotation axiom"
+        );
+        assert_eq!(
+            ann_full, ann_narrow,
+            "the annotation lift must be reader-identical across the denylist narrowing \
+             (a re-denied annotation predicate would drop SKOS/RDFS superset content)"
         );
     }
 

@@ -27,6 +27,8 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
+use gmeow_logic_compile::ir::ANNOTATION_LIFT_PREDS;
+
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
@@ -239,10 +241,13 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_error
 /// schema.org, Wikidata, FOAF, and the bibliographic-metadata families) are matched by prefix
 /// in [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`].
 pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
-    // RDFS presentational/navigational documentation predicates. NOT rdfs:comment — that is
-    // read by `read_caveats` and MUST survive; only these presentational RDFS predicates are
-    // stripped. (SKOS — including its mapping predicates — is a prefix family below.)
-    "http://www.w3.org/2000/01/rdf-schema#label",
+    // RDFS presentational/navigational documentation predicates. NOT rdfs:label — that is now
+    // LIFTED into a NodeKind::Annotation axiom (`ANNOTATION_LIFT_PREDS`), so it is READ and must
+    // survive (the annotation-exception early-return in `predicate_is_logic_compile_denylisted`
+    // keeps it out of the strip). NOT rdfs:comment either — read by `read_caveats` AND lifted.
+    // Only these genuinely-inert navigational RDFS predicates are stripped. (SKOS annotations are
+    // un-denied by the same exception; the SKOS *mapping* surface stays denied by the prefix
+    // family below.)
     "http://www.w3.org/2000/01/rdf-schema#seeAlso",
     "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
 ];
@@ -251,10 +256,13 @@ pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
 /// augmentation readers — matched by predicate-IRI `starts_with`, so the whole family is
 /// denylisted without enumerating each term. Four groups, all provably never read (the
 /// `logic_compile_input_subgraph_preserves_reader_output` guard REDs on any family that is):
-///   * Documentation / annotation: SKOS (`skos:` — labels, definitions, notes, AND the
-///     mapping predicates closeMatch/exactMatch/relatedMatch/broadMatch/…, pure alignment
-///     surface no reader consults; the correspondence reader keys on `logic:` predicates and
-///     `rdf:type`, never SKOS).
+///   * Documentation / annotation: SKOS (`skos:`). The prefix denies the SKOS mapping surface
+///     (closeMatch/exactMatch/relatedMatch/broadMatch/…) — pure alignment surface the
+///     compile-logic augmentation readers never consult. EXCEPTION: the four SKOS *annotation*
+///     predicates (skos:definition/prefLabel/altLabel/scopeNote) are un-denied by the
+///     `ANNOTATION_LIFT_PREDS` early-return in `predicate_is_logic_compile_denylisted` — they
+///     are LIFTED into NodeKind::Annotation axioms and so ARE read (the annotation reader in the
+///     `logic_compile_input_subgraph_preserves_reader_output` guard REDs if they are re-denied).
 ///   * Alignment/mapping provenance: SSSOM `semapv:` mapping-justification vocabulary.
 ///   * Foreign-domain example / correspondence-target vocabularies: gUFO (`gufo:`),
 ///     schema.org, FOAF (`foaf:`), and Wikidata (`wd:`/`wdt:`/`wikibase:`) — used only as
@@ -302,6 +310,16 @@ pub const LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES: &[&str] = &[
 /// readers never consult — an exact [`LOGIC_COMPILE_INPUT_DENYLIST`] member or a
 /// [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`] namespace member.
 fn predicate_is_logic_compile_denylisted(predicate: &str) -> bool {
+    // The six RDFS/SKOS annotation predicates are LIFTED into NodeKind::Annotation axioms
+    // (`isSupersetOf` SKOS/RDFS), so they are READ and must reach the compiler — surgically
+    // un-denied BEFORE the prefix scan. This exception un-denies exactly
+    // skos:definition/prefLabel/altLabel/scopeNote (leaving the rest of the `skos:` prefix —
+    // notably the skos:*Match mapping surface — denied) and rdfs:label (rdfs:comment is already
+    // off the exact denylist). The `logic_compile_input_subgraph_preserves_reader_output`
+    // annotation reader REDs if any of these is silently re-denied.
+    if ANNOTATION_LIFT_PREDS.contains(&predicate) {
+        return false;
+    }
     LOGIC_COMPILE_INPUT_DENYLIST.contains(&predicate)
         || LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES
             .iter()
@@ -361,6 +379,55 @@ pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     files.extend(ttl_files_in(&root.join("imports"))?);
     files.sort();
     Ok(files)
+}
+
+/// Every `slices/<group>/<name>/examples/*.ttl`, sorted — the whole repository's
+/// positive-demonstrator ABox corpus.
+///
+/// This is authored source, exactly like `module.ttl` and `imports/*.ttl`, so it is
+/// discovered and loaded HERE rather than by a computed-graph producer stage: an ABox
+/// corpus belongs to the loader that reads the slices, and a slice's demonstrators must not
+/// depend on whether some unrelated producer happens to run. A slice with no `examples/`
+/// directory simply contributes nothing (`sorted_dirs`' NotFound-is-empty contract); an
+/// unreadable file is a HARD FAIL.
+pub fn example_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+    let mut out = Vec::new();
+    let slices = root.join("slices");
+    for group in sorted_dirs(&slices)? {
+        for slice_dir in sorted_dirs(&group)? {
+            out.extend(ttl_files_in(&slice_dir.join("examples"))?);
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// Parse and union every example file into one dataset rooted at
+/// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]. Each file's blank nodes are
+/// standardized apart ([`RdfDatasetBuilder::push_dataset`]) so a structurally-distinct blank
+/// axiom in two slices' examples can never collide.
+pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    let mut builder = RdfDatasetBuilder::new();
+    for path in files {
+        let bytes = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-source-load".to_string(),
+                message: format!("read {}: {e}", path.display()),
+            })
+        })?;
+        let parsed = turtle_bytes_to_dataset(&bytes, &path.display().to_string())?;
+        builder.push_dataset(parsed.as_ref());
+    }
+    let unioned = builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-source-load".to_string(),
+            message: format!("freeze examples union: {e}"),
+        })
+    })?;
+    crate::stages::carrier::rooted_in_graph(
+        unioned.as_ref(),
+        gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
+    )
 }
 
 /// Every `slices/<group>/<name>/module.ttl`.
@@ -578,7 +645,17 @@ impl Stage for SourceLoadStage {
         // narrowing of the whole authored corpus compile-logic reads — so compile-logic
         // consumes it as a typed entity and a documentation-only edit no longer busts the
         // compiler's cache.
-        "source_load.v5-logic-compile-inputs"
+        // v6: attach the `graph/grounding-seams` named graph — the authored `gmeow:Seam`
+        // registry re-projected losslessly off the SAME slice catalog the slice-analysis
+        // graph reads. A `manifest.ttl` never enters the composed fold, so this graph is
+        // the only path by which the closed set of sanctioned cross-grounding reference
+        // channels reaches `gmeow.gts`.
+        // v7: attach the `graph/examples` named graph — the union of EVERY slice's
+        // `examples/*.ttl` positive-demonstrator ABox. That corpus is authored source, so
+        // the loader that reads the slices reads it too; it is admitted to the object-level
+        // reasoning EDB, so every slice's worked examples reach the shipped bundle's
+        // reasoned closure instead of only the docs/competency-question harvest.
+        "source_load.v7-examples"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -587,8 +664,11 @@ impl Stage for SourceLoadStage {
         // translated authored default). Declare them ALL so any of these busting the
         // cache re-runs the loader (cache soundness — a stale self-description graph would
         // ship a stale bundle). `build_self_description_dataset` is the single authority
-        // for what is read; this mirrors its source closure.
+        // for what is read; this mirrors its source closure. The `examples/*.ttl` corpus is
+        // a genuine disk read of this stage's, so it joins that closure: editing any
+        // slice's demonstrator must re-run the loader.
         let mut files = crate::stages::carrier::self_description_source_files(root)?;
+        files.extend(example_files(root)?);
         files.sort();
         files.dedup();
         Ok(files)
@@ -659,8 +739,23 @@ impl Stage for SourceLoadStage {
             "self-description",
             started.elapsed().as_millis(),
         ));
+        // Every slice's `examples/*.ttl` positive-demonstrator ABox, unioned into ONE named
+        // graph. It rides the carrier as an attached graph (never the authored default), so
+        // it is queryable in `gmeow.gts` AND admitted to the object-level reasoning EDB
+        // (`gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`) without ever being
+        // mistaken for a slice's own TBox. A read failure is a HARD FAIL, propagated.
         let started = Instant::now();
-        let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
+        let examples = examples_graph(&example_files(input.root)?)?;
+        timings.push(crate::node::StageRunTiming::new(
+            "examples-corpus",
+            started.elapsed().as_millis(),
+        ));
+        let started = Instant::now();
+        let dataset = Arc::new(RdfDataset::union(&[
+            base.as_ref(),
+            self_desc.as_ref(),
+            examples.as_ref(),
+        ]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
         artifacts.insert(
@@ -819,6 +914,91 @@ mod tests {
                 .is_none(),
             "Import subject must be SUPPRESSED by the fixed policy"
         );
+    }
+
+    /// EVERY slice's demonstrator corpus is admitted, not one grounding slice's. The floor is
+    /// stated across all three slice groups, and named witnesses are asserted in `core/` and
+    /// `extensions/` as well as `grounding/`: a regression that quietly narrowed the sweep back
+    /// to `slices/grounding/math` would still satisfy a bare non-empty count.
+    #[test]
+    fn example_files_admits_every_slice_group_not_just_math() {
+        let root = repo_root();
+        let files = example_files(&root).expect("list every slice's examples");
+        assert!(
+            files.windows(2).all(|pair| pair[0] < pair[1]),
+            "files must be sorted"
+        );
+        assert!(
+            files
+                .iter()
+                .all(|path| path.extension().is_some_and(|ext| ext == "ttl")),
+            "only .ttl demonstrators are admitted"
+        );
+        let group_count = |group: &str| {
+            files
+                .iter()
+                .filter(|path| {
+                    path.to_string_lossy()
+                        .contains(&format!("/slices/{group}/"))
+                })
+                .count()
+        };
+        for group in ["core", "extensions", "grounding"] {
+            assert!(
+                group_count(group) > 0,
+                "slices/{group}/*/examples must be admitted, saw none"
+            );
+        }
+        assert!(
+            group_count("core") > group_count("grounding") / 2,
+            "the core slices' corpus is a first-class member, not a rounding error: \
+             core={} grounding={}",
+            group_count("core"),
+            group_count("grounding")
+        );
+        for witness in [
+            "slices/core/inference/examples",
+            "slices/extensions/finance/examples",
+            "slices/grounding/math/examples/alpha-equivalent-twins.ttl",
+        ] {
+            assert!(
+                files
+                    .iter()
+                    .any(|path| path.to_string_lossy().contains(witness)),
+                "the corpus must reach {witness}"
+            );
+        }
+    }
+
+    /// The corpus lands in ONE named graph, carrying witnesses from slices that had no path to
+    /// the object-level bundle at all before: a `core/` and an `extensions/` demonstrator
+    /// alongside the `grounding/math` one.
+    #[test]
+    fn examples_graph_carries_every_group_in_one_named_world() {
+        let root = repo_root();
+        let files = example_files(&root).expect("list examples");
+        let graph = examples_graph(&files).expect("union the corpus");
+        let projected = graph.project_named_graph(gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
+        assert_eq!(
+            projected.quad_count(),
+            graph.quad_count(),
+            "every corpus quad belongs to graph/examples — nothing leaks to the default graph, \
+             where it would be mistaken for an authored slice TBox"
+        );
+        let nquads = purrdf::canonical_flat_nquads(&projected).expect("canon the corpus");
+        for witness in [
+            // grounding/math: the α-twins the identity gate decides over.
+            "alpha-twins/firstProduct",
+            // core/: a demonstrator whose slice ships no producer stage at all.
+            "modeDeduction",
+            // extensions/: likewise.
+            "/finance/",
+        ] {
+            assert!(
+                nquads.contains(witness),
+                "graph/examples must carry the {witness} witness"
+            );
+        }
     }
 
     #[test]

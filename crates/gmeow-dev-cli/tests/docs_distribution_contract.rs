@@ -58,8 +58,11 @@ fn reasoning_graphs_source() -> String {
     read("crates/logic/src/reasoning_graphs.rs")
 }
 
+/// The mandated-profile source. It lives in the `gmeow-gts-profile` LEAF crate, not
+/// in `gmeow-pipeline`: the profile only binds if every bundle author can reach it,
+/// and `gmeow-math` cannot depend on the pipeline (the pipeline depends on math).
 fn gts_profile_source() -> String {
-    read("crates/pipeline/src/gts_profile.rs")
+    read("crates/gts-profile/src/lib.rs")
 }
 
 // ── Makefile target parsing (mirrors make_gate_contract.rs) ────────────────────────
@@ -94,10 +97,11 @@ fn target_recipe(source: &str, target: &str) -> String {
 fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
-        source.contains("run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        source.contains("run: make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
         "AC3 (source-backed export): .github/workflows/pages.yml must render the \
-         Pages site from canonical sources via the exact step `run: make sync SYNC_MODE=update \
-         SYNC_OUTPUTS=docs` — it must never publish a stale or hand-copied tree"
+         Pages site from canonical sources via the exact step `run: make check-sync \
+         SYNC_MODE=update SYNC_OUTPUTS=docs` — the single producer target, and never a \
+         stale or hand-copied tree"
     );
     assert!(
         source.contains("uses: actions/upload-pages-artifact"),
@@ -112,13 +116,28 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
 }
 
 #[test]
-fn ac3_makefile_sync_delegates_to_gmeow_dev_sync() {
+fn ac3_makefile_producer_delegates_to_gmeow_dev_sync() {
     let source = makefile();
-    let recipe = target_recipe(&source, "sync");
+    // ONE producer. `make sync` and `make regen` are both gone as pipeline entry
+    // points (`regen` survives only as a refusal that names its replacement), so the
+    // whole regeneration surface — including the docs fanout AC3 depends on — is
+    // owned by `check-sync`.
+    let recipe = target_recipe(&source, "check-sync");
     assert!(
-        recipe.contains("$(GMEOW_DEV) sync"),
-        "AC3: the standalone Makefile `sync:` recipe must delegate to the single \
-         `$(GMEOW_DEV) sync` producer binary invocation; recipe was: {recipe:?}"
+        recipe.contains("$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS)"),
+        "AC3: the Makefile `check-sync:` recipe must delegate to the single \
+         `$(GMEOW_DEV) sync` producer binary invocation, mode- and scope-selected; \
+         recipe was: {recipe:?}"
+    );
+    assert!(
+        recipe.contains("$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated")
+            && recipe.contains("$(MAKE) build"),
+        "AC3: the docs scope must still order materialize-then-build before the docs \
+         fanout reads dist/gmeow.jsonld / dist/gmeow.yamlld; recipe was: {recipe:?}"
+    );
+    assert!(
+        !target_recipe(&source, "regen").contains("$(GMEOW_DEV) sync"),
+        "AC3: `make regen` must no longer be a second pipeline entry point"
     );
 }
 
@@ -207,6 +226,39 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
         "AC2/AC6: the rendered docs destinations and the distribution catalog schema must \
          name the SAME slug set (bijection catalog <-> rendered); rendered={rendered_slugs:?} \
          catalog={catalog_slugs:?}"
+    );
+}
+
+#[test]
+fn site_sub_assets_are_priced_but_never_enter_the_eight_slug_bijection() {
+    let bijection: BTreeSet<String> = CANONICAL_SLUGS.iter().map(|s| s.to_string()).collect();
+    let sub_assets: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::declared_site_sub_asset_slugs()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect();
+    // The interactive engines + browser bundle ARE priced as first-class sub-assets…
+    assert!(
+        !sub_assets.is_empty(),
+        "the vendored interactive engines + browser bundle must be priced as site sub-assets"
+    );
+    // …but they are SUB-ASSETS of `site`, never top-level distributions, so the
+    // eight-slug bijection is untouched (a sub-asset leaking into it would be a ninth
+    // distribution, which the bijection test above would also catch).
+    assert!(
+        sub_assets.is_disjoint(&bijection),
+        "AC2/AC6: site sub-assets {sub_assets:?} must be DISJOINT from the eight-slug \
+         distribution bijection {CANONICAL_SLUGS:?} — they are sub-assets, not distributions"
+    );
+    // The release-time digest producer prices exactly the declared set (one authority).
+    let priced: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+            .into_iter()
+            .map(|(slug, _, _)| slug.to_string())
+            .collect();
+    assert_eq!(
+        priced, sub_assets,
+        "the release-time sub-asset pricing set must equal the catalog-declared sub-asset set"
     );
 }
 
@@ -490,11 +542,11 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let gts_profile = gts_profile_source();
     assert!(
         gts_profile.contains("pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;"),
-        "AC4: gts_profile.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
+        "AC4: the gts-profile leaf must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
     );
     assert!(
         gts_profile.contains("pub fn validate_mandated_frames"),
-        "AC4: gts_profile.rs must keep `validate_mandated_frames`, the function that \
+        "AC4: the gts-profile leaf must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
 
@@ -506,7 +558,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
         panic!(
             "cannot read the shipped bundle {} ({e}); materialize it first with \
-             `make sync SYNC_OUTPUTS=generated`",
+             `make check-sync SYNC_MODE=update`",
             bundle_path.display()
         )
     });
@@ -519,7 +571,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
 
 /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
 /// source (a pure function of committed, tracked sources — no dependency on a prior
-/// `make sync` materializing the git-ignored `generated/` tree) and fold it into a
+/// `make check` materializing the git-ignored `generated/` tree) and fold it into a
 /// minimal synthetic GTS snapshot carrying just the `queries-archive` blob, exactly
 /// as the real bundle carries it. Mirrors the equivalent private test helper in
 /// `crates/pipeline/src/docs_distribution.rs`, built here from ONLY the public API
@@ -552,6 +604,7 @@ fn synthetic_gts_with_dcat_query() -> Vec<u8> {
         None,
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(Some(&["zstd-rsyncable".to_string()])),
     )
     .expect("frame the synthetic GTS snapshot")
 }
@@ -579,9 +632,12 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
         media_type: "text/html".to_string(),
     }];
     let gts_bytes = synthetic_gts_with_dcat_query();
-    let manifest =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
-            .expect("build the real docs distribution manifest");
+    let manifest = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &[],
+        &gts_bytes,
+    )
+    .expect("build the real docs distribution manifest");
     let manifest_dir = docs_dir.join("manifest");
     std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
     std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");

@@ -27,7 +27,7 @@ use super::model::{OntoumlError, OntoumlModel, logic_local_for_stereotype};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// Lower a model into a sorted, deduped world-scoped N-Quads string, returning
 /// the text and its quad count.

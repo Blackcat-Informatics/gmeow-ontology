@@ -39,7 +39,7 @@ use gmeow_logic_compile::projections::report::{ReportHeader, build_projection_re
 use purrdf::RdfSeverity;
 use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use purrdf::slice::{
-    CLAIM_VIEW_FILE, emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
+    CLAIM_VIEW_FILE, emit_claim_view, emit_list_functions, emit_standpoint_sets,
     lint_prefix_consistency,
 };
 
@@ -62,6 +62,110 @@ pub const EDOAL_DIR: &str = "generated/projections";
 pub const QUERIES_DIR: &str = "generated/queries";
 /// Committed logical path of the DSL surface-count summary.
 pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
+
+/// Pipeline-native replacement for `purrdf::slice::emit_dsl_stats`: the external counter keyed
+/// on the DELETED `gmeow:TermEquivalence` subjects (now zero), so the equivalence count + the
+/// per-set breakdown come from the canonical native reader (`equivalence_cells`) over the SAME
+/// merged DSL store (`dsl/mappings/**` + the slice `Mapping` artifacts). Functions, mapping
+/// sets, and projections are still authored `gmeow:` nodes, counted as before. The JSON layout
+/// is byte-identical to the retired emitter (`json.dumps(indent=1, sort_keys=True) + "\n"`).
+fn emit_dsl_stats_native(
+    root: &std::path::Path,
+    catalog: Option<&purrdf::slice::SliceCatalog>,
+    vocab: &purrdf::slice::SliceVocab,
+) -> Result<String, gmeow_errors::Diag> {
+    use gmeow_logic_compile::ingest::DslView;
+    use gmeow_logic_compile::projections::sssom::equivalence_cells;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let stage_err = |m: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("dsl-stats emission failed: {m}"),
+        })
+    };
+    let store =
+        correspondence_lower::merge_dsl(root, catalog).map_err(|e| stage_err(e.to_string()))?;
+    let view = DslView::new(store.as_ref());
+
+    // cells_by_set + equivalences: every native alignment cell keyed by its sssomFile.
+    let mut cells_by_set: BTreeMap<String, u64> = BTreeMap::new();
+    let mut equivalences: u64 = 0;
+    for cell in equivalence_cells(&view).map_err(|e| stage_err(e.to_string()))? {
+        equivalences += 1;
+        *cells_by_set.entry(cell.sssom_file).or_insert(0) += 1;
+    }
+
+    let functions = view.subjects_of_type(&vocab.projection_function()).len() as u64;
+    let projections = view.subjects_of_type(&vocab.projection_mapping()).len() as u64;
+
+    // mapping_sets: DISTINCT sssomFile target files (two MappingSet nodes on the same file
+    // collapse to one), matching the retired emitter.
+    let mut mapping_set_files: BTreeSet<String> = BTreeSet::new();
+    for set_iri in view.subjects_of_type(&vocab.mapping_set()) {
+        let file = view
+            .object_literal(&set_iri, &vocab.sssom_file())
+            .ok_or_else(|| stage_err(format!("mapping set {set_iri} missing sssomFile")))?;
+        mapping_set_files.insert(file);
+    }
+    let mapping_sets = mapping_set_files.len() as u64;
+
+    Ok(render_dsl_stats(
+        &cells_by_set,
+        equivalences,
+        functions,
+        mapping_sets,
+        projections,
+    ))
+}
+
+/// Render the DSL stats dict as `json.dumps(stats, indent=1, sort_keys=True) + "\n"` — the exact
+/// byte layout the retired `purrdf::slice::emit_dsl_stats` produced.
+fn render_dsl_stats(
+    cells_by_set: &std::collections::BTreeMap<String, u64>,
+    equivalences: u64,
+    functions: u64,
+    mapping_sets: u64,
+    projections: u64,
+) -> String {
+    use std::fmt::Write as _;
+    fn json_string(s: &str) -> String {
+        let mut out = String::from("\"");
+        for c in s.chars() {
+            match c {
+                '"' => out.push_str("\\\""),
+                '\\' => out.push_str("\\\\"),
+                _ => out.push(c),
+            }
+        }
+        out.push('"');
+        out
+    }
+    let mut out = String::new();
+    out.push_str("{\n");
+    out.push_str(" \"cells_by_set\": {");
+    if cells_by_set.is_empty() {
+        out.push('}');
+    } else {
+        out.push('\n');
+        let mut first = true;
+        for (file, count) in cells_by_set {
+            if !first {
+                out.push_str(",\n");
+            }
+            first = false;
+            let _ = write!(out, "  {}: {count}", json_string(file));
+        }
+        out.push_str("\n }");
+    }
+    out.push_str(",\n");
+    let _ = writeln!(out, " \"equivalences\": {equivalences},");
+    let _ = writeln!(out, " \"functions\": {functions},");
+    let _ = writeln!(out, " \"mapping_sets\": {mapping_sets},");
+    let _ = writeln!(out, " \"projections\": {projections}");
+    out.push_str("}\n");
+    out
+}
 /// Committed logical path of the importable named prefix set (§2).
 pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 /// Committed logical path of the JSON-LD `@context` (§2; replaces the
@@ -150,7 +254,7 @@ pub struct CompiledMappings {
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::Diag> {
-    let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+    let vocab = gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // Discover the slice catalog ONCE, here, and share the single in-memory instance across
@@ -162,16 +266,13 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(
-                &slices_dir,
-                crate::gmeow_ns::gmeow_slice_vocab(),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("slice catalog discovery: {e}"),
-                })
-            })?,
+            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!("slice catalog discovery: {e}"),
+                    })
+                })?,
         )
     } else {
         None
@@ -199,11 +300,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         }));
     }
 
-    // DSL mapping-purity gate: alignment linkage flows from slices. A
-    // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
-    // restatement in the wrong place — it must live in the slice that defines its
-    // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
-    // makes update / strict sync / `make check` reject a stray cell.
+    // DSL mapping-purity gate: alignment linkage flows from slices. A native
+    // alignment cell authored under `dsl/mappings/` is a linkage restatement in the
+    // wrong place — it must live in the slice that defines its subject term.
+    // Hard-fail before emitting any artifact (no-optionality); this makes update /
+    // strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -222,6 +323,14 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         }));
     }
 
+    // Consumer down-projection inventory gate: the authored `gmeow:ProjectionProfile`
+    // rows must EQUAL the `dsl/mappings/projections/` tree, and each profile must still
+    // declare at least its committed cell floor. Several profile files bind the same
+    // `gmeow:profile` name and fold into ONE generated query, so no generated-artifact
+    // inventory can see a deleted or hollowed-out consumer surface — this authored
+    // second source can. Hard-fail before any artifact is emitted (no-optionality).
+    crate::projection_profiles::check_projection_profile_inventory(root)?;
+
     // The four alignment dialects are now produced by the oxigraph-free
     // `gmeow-logic-compile` correspondence lowerings: SSSOM (1:1 lattice band), FnO
     // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
@@ -233,6 +342,67 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
             message: format!("correspondence lowering failed: {e}"),
         })
     })?;
+
+    // Closed target-catalog gate + per-family ratchet, read from the ontology-resident
+    // `gmeow:CatalogFamily` registry (never a Rust list): every grounding correspondence's
+    // `logic:targetEndpoint` must fall in exactly one REGISTERED external catalog family,
+    // and every family's measured count must hold at or above its
+    // `gmeow:catalogTargetMinimum`. Admitting a new external surface is therefore an
+    // ontology edit, and losing rows from an admitted one is red rather than silent.
+    {
+        let families = crate::catalog_families::load_catalog_families(root)?;
+        let targets: Vec<(&str, &str)> = aligned
+            .correspondences
+            .correspondences
+            .iter()
+            .filter(|c| c.grounding)
+            .filter_map(|c| {
+                c.target_endpoint
+                    .as_deref()
+                    .map(|target| (c.iri.as_str(), target))
+            })
+            .collect();
+        let measured = crate::catalog_families::check_target_catalogs(
+            &families,
+            targets,
+            "lowered grounding correspondences",
+        )?;
+
+        // Residue-ratchet carve-out gate. A family with no single grounding-slice owner
+        // carries no `gmeow:ProjectionVocabulary`, so correspondences onto it enter no
+        // residue count, no per-slice ceiling and no monotonicity ratchet. That absence
+        // is legitimate but it is not free: it must be a REGISTERED, rationale-bearing,
+        // COUNTED row, or the carve-out widens one correspondence at a time with nothing
+        // ever measuring it. The guarded set is read from the ontology-resident
+        // `gmeow:ProjectionVocabulary` registry (the rubric slice's `module.ttl`, already
+        // in this stage's cache key via `module_files`) — never a Rust list, exactly as
+        // the family registry is not one.
+        let guarded_namespaces: std::collections::BTreeSet<String> =
+            gmeow_slice_quality::load_repo_rubric(root)
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!(
+                            "residue-ratchet carve-out gate: cannot load the guarded \
+                             gmeow:ProjectionVocabulary registry: {e}"
+                        ),
+                    })
+                })?
+                .floors
+                .vocabularies
+                .iter()
+                .flat_map(|vocab| vocab.namespaces.iter().cloned())
+                .collect();
+        let exemptions = crate::catalog_families::load_residue_exemptions(root)?;
+        crate::catalog_families::check_residue_exemptions(
+            &families,
+            &exemptions,
+            &guarded_namespaces,
+            &measured,
+            "lowered grounding correspondences",
+        )?;
+    }
+
     // Executed lens-law discharge: for every authored correspondence,
     // run its OWN per-binding get/put CONSTRUCT round-trip through the native engine, attach
     // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This
@@ -384,23 +554,25 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         normalize_mapping_source_banner(emit_claim_view(&vocab)).into_bytes(),
     );
 
-    // DSL surface-count summary — the committed, drift-gated counts JSON.
-    let dsl_stats = emit_dsl_stats(root, &vocab).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-mappings".to_string(),
-            message: format!("dsl-stats emission failed: {e}"),
-        })
-    })?;
+    // DSL surface-count summary — the committed, drift-gated counts JSON. Reimplemented
+    // pipeline-side (the external emit_dsl_stats counted the deleted gmeow:TermEquivalence
+    // subjects): the equivalence count now comes from the canonical native reader.
+    let dsl_stats = emit_dsl_stats_native(root, catalog.as_ref(), &vocab)?;
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
 
     // Prefix-set projections (§2) — both derived from the single
     // PREFIX_REGISTRY authority: the importable `gmeow:CorePrefixes` SHACL set
     // and the JSON-LD `@context`. Deterministic by construction (const-derived),
     // so they ride the `generated/` drift gate and fold into `gmeow.gts` exactly
-    // like the FnO catalog, with no new pipeline stage.
+    // like the FnO catalog, with no new pipeline stage. `emit_core_prefixes`
+    // never emits `skos:definition`/`rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
+    // the T-Box `owl:Ontology` header it mints — complete exactly those three.
     artifacts.insert(
         CORE_PREFIXES_PATH.to_string(),
-        canon_fanout_ttl(&emit_core_prefixes(&vocab))?,
+        canon_fanout_ttl(&complete_core_prefixes_abox(
+            &emit_core_prefixes(&vocab),
+            &vocab,
+        ))?,
     );
     artifacts.insert(
         JSONLD_CONTEXT_PATH.to_string(),
@@ -409,10 +581,16 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
 
     // First-class RDF list functions (§5) — six FnO primitives backed by the
     // reasoning layer's recursive rdf:List resolution. Fixed content, deterministic;
-    // folds into gmeow.gts like the FnO catalog.
+    // folds into gmeow.gts like the FnO catalog. `emit_list_functions` (like the
+    // FnO catalog's `to_quads`) never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole`
+    // for its A-Box `fno:Function`/`fno:Output`/`fno:Parameter` individuals —
+    // complete them the same way `logic-compile`'s `fno.rs` does.
     artifacts.insert(
         LIST_FUNCTIONS_PATH.to_string(),
-        canon_fanout_ttl(&emit_list_functions(&vocab))?,
+        canon_fanout_ttl(&complete_list_functions_abox(
+            &emit_list_functions(&vocab),
+            &vocab,
+        ))?,
     );
 
     Ok(CompiledMappings {
@@ -449,7 +627,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
 /// sorts + dedups them.
 ///
 /// A correspondence whose binding emits NO put fragment (Unsupported — e.g. `mapSiocTopic`),
-/// or a `gmeow:TermEquivalence` cell (no profile), is left untouched: it carries no
+/// or a native alignment cell (no profile), is left untouched: it carries no
 /// discharged section law, which is exactly the intended exclusion (AC3). A non-injective
 /// rung yields no claim (`discharge_laws` returns empty), so it too passes through.
 ///
@@ -467,8 +645,8 @@ fn discharge_correspondence_laws(
 
     let mut rebuilt: Vec<Correspondence> = Vec::new();
     for corr in &aligned.correspondences.correspondences {
-        // Only a per-profile binding correspondence knows its profile (a TermEquivalence cell
-        // is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
+        // Only a per-profile binding correspondence knows its profile (a native alignment
+        // cell is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
         let fragment_pair = match (
             aligned.correspondence_profiles.get(&corr.iri),
             corr.get_leg.as_deref(),
@@ -575,16 +753,13 @@ pub fn discharged_section_cells_from_root(
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(
-                &slices_dir,
-                crate::gmeow_ns::gmeow_slice_vocab(),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("slice catalog discovery: {e}"),
-                })
-            })?,
+            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!("slice catalog discovery: {e}"),
+                    })
+                })?,
         )
     } else {
         None
@@ -626,6 +801,101 @@ fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
                 message: format!("canonicalize RDF projection: {e}"),
             })
         })
+}
+
+/// Complete `gmeow:CorePrefixes`' A-Box structural-annotation gap:
+/// `purrdf::slice::prefix_emit::emit_core_prefixes` mints the importable SHACL
+/// prefix set as `a owl:Ontology` with an `rdfs:label`/`rdfs:comment` (bare `@en`,
+/// retagged to the `x-gmeow-english` carrier here by [`retag_core_prefixes_english`])
+/// but NEVER a `skos:definition`, `rdfs:isDefinedBy`, or `gmeow:graphBoxRole`. `CorePrefixes` is a T-Box document (an ontology header
+/// describing a declared prefix set), never an assertional individual, so it
+/// carries [`gmeow_errors::abox::BOX_TBOX`] rather than the A-Box
+/// [`gmeow_errors::abox::BOX_ABOX`] every other completion in this module uses.
+/// Appended as full-IRI Turtle triples so `canon_fanout_ttl` folds them into the
+/// same canonicalization pass as `body`.
+/// Retag the bare public `@en` tag `emit_core_prefixes` mints on the
+/// `gmeow:CorePrefixes` `rdfs:label` / `rdfs:comment` to the `x-gmeow-english`
+/// carrier tag. `CorePrefixes` is an INTERNAL importable SHACL prefix set — not a
+/// Principle-17 external lowering — so its GMEOW-authored English prose owes the
+/// carrier tag like every other internal term (only its `skos:definition`, minted
+/// below, already carries it). Keyed on the label/comment predicate so no other
+/// literal is touched; the object literal value never itself contains `"@en`.
+fn retag_core_prefixes_english(body: &str) -> String {
+    body.lines()
+        .map(|line| {
+            let annotation = line.contains("#label>")
+                || line.contains("#comment>")
+                || line.contains("rdfs:label")
+                || line.contains("rdfs:comment");
+            if annotation {
+                line.replace(
+                    "\"@en",
+                    &format!("\"@{}", gmeow_errors::abox::X_GMEOW_ENGLISH),
+                )
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn complete_core_prefixes_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
+    let body = retag_core_prefixes_english(body);
+    let subject = vocab.core_prefixes_iri();
+    const DEFINITION: &str = "The importable SHACL prefix set (`sh:declare`) covering every \
+        namespace prefix in the mapping-DSL prefix registry; reference it from a SHACL shape \
+        via `sh:prefixes gmeow:CorePrefixes` instead of redeclaring prefixes per shape.";
+    format!(
+        "{body}\n\
+         <{subject}> <{definition_pred}> \"{definition}\"@{carrier} .\n\
+         <{subject}> <{is_defined_by_pred}> <{ontology_iri}> .\n\
+         <{subject}> <{graph_box_role_pred}> <{box_tbox}> .\n",
+        definition_pred = gmeow_errors::abox::SKOS_DEFINITION,
+        definition = gmeow_errors::render::nq_escape(DEFINITION),
+        carrier = gmeow_errors::abox::X_GMEOW_ENGLISH,
+        is_defined_by_pred = gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+        ontology_iri = vocab.ontology_iri(),
+        graph_box_role_pred = gmeow_errors::abox::GRAPH_BOX_ROLE,
+        box_tbox = gmeow_errors::abox::BOX_TBOX,
+    )
+}
+
+/// Complete the first-class RDF list-functions catalog's A-Box structural-
+/// annotation gap: `purrdf::slice::list_functions::emit_list_functions` routes
+/// through the SAME `purrdf::fno::to_quads` serializer `logic-compile`'s FnO
+/// catalog uses, so it inherits the identical gap — `rdfs:isDefinedBy`/
+/// `gmeow:graphBoxRole` are NEVER emitted for any subject. Unlike the FnO
+/// catalog, every `fno:Function`/`fno:Output`/`fno:Parameter` individual here
+/// already carries a real `rdfs:label`/`skos:definition` from the catalog model
+/// (`list_functions_catalog` populates both fields for all three), so only the
+/// two structural predicates need completing. Re-derives the catalog MODEL
+/// (public, deterministic, side-effect-free) purely to enumerate the subject
+/// IRIs — `body`'s serialized text (with its own retag/tag choices) is passed
+/// through unmodified, only appended to, so this never diverges from what
+/// `emit_list_functions` actually emitted.
+fn complete_list_functions_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
+    let catalog = purrdf::slice::list_functions::list_functions_catalog(vocab);
+    let mut subjects: Vec<&str> = Vec::new();
+    for func in &catalog.functions {
+        subjects.push(&func.iri);
+        subjects.push(&func.output.iri);
+    }
+    for param in &catalog.params {
+        subjects.push(&param.iri);
+    }
+    let mut out = body.to_owned();
+    for subject in subjects {
+        out.push_str(&format!(
+            "<{subject}> <{is_defined_by_pred}> <{graph}> .\n\
+             <{subject}> <{graph_box_role_pred}> <{box_abox}> .\n",
+            is_defined_by_pred = gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+            graph = catalog.document_iri,
+            graph_box_role_pred = gmeow_errors::abox::GRAPH_BOX_ROLE,
+            box_abox = gmeow_errors::abox::BOX_ABOX,
+        ));
+    }
+    out
 }
 
 /// Assemble the FINAL `generated/logic/projection-report.ttl` over the UNION of the
@@ -1449,7 +1719,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // undercount the `.put.rq` oracle).
         let catalog = purrdf::slice::SliceCatalog::discover(
             &root.join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )
         .expect("slice catalog discovery");
         let expected_put = correspondence_lower::lower_all(&root, Some(&catalog))
@@ -1988,6 +2258,145 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         }
     }
 
+    /// Errors from `structural_lint_dataset` whose message names one of the four
+    /// A-Box structural-annotation predicates this task completes — deliberately
+    /// excludes the (separately tracked) language-tag-discipline codes, so this
+    /// stays a precise "zero A-Box findings" check, not "zero findings at all".
+    fn abox_annotation_errors<'a>(errors: &'a [String], subject: &str) -> Vec<&'a String> {
+        const MISSING_MARKERS: [&str; 4] = [
+            "is missing rdfs:label",
+            "is missing skos:definition",
+            "is missing rdfs:isDefinedBy",
+            "is missing gmeow:graphBoxRole",
+        ];
+        errors
+            .iter()
+            .filter(|e| e.contains(subject) && MISSING_MARKERS.iter().any(|m| e.contains(m)))
+            .collect()
+    }
+
+    /// Shift-left: drive the SAME native structural lint the whole-bundle SHACL
+    /// validation (`make validate` / the pipeline stage-validate) runs
+    /// (`gmeow_validate::lint::structural_lint_dataset`) over `complete_core_prefixes_abox`'s
+    /// real output, so a missing/incorrect A-Box annotation on the minted
+    /// `gmeow:CorePrefixes` T-Box header reds HERE — a fast `cargo nextest -p
+    /// gmeow-pipeline` — rather than only surfacing at the next expensive
+    /// whole-bundle SHACL validation. Mirrors `provenance_graph.rs`'s
+    /// `minted_individuals_satisfy_the_assertional_abox_contract`.
+    #[test]
+    fn core_prefixes_completion_satisfies_the_structural_contract() {
+        use gmeow_validate::lint::{
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
+        };
+
+        let vocab = gmeow_ns::gmeow_slice_vocab();
+        let subject = vocab.core_prefixes_iri();
+        let completed = complete_core_prefixes_abox(&emit_core_prefixes(&vocab), &vocab);
+        // The real bundle supplies `gmeow:boxTBox a gmeow:GraphBoxRole` from the
+        // kernel slice (`slices/vocabulary.ttl` et al. already reference
+        // `gmeow:boxTBox` as a role); add it here so the role-typing check has its
+        // declaration to resolve against (same pattern as `release.rs`'s
+        // `minted_attestations_satisfy_the_assertional_contract`).
+        let doc = format!(
+            "{completed}<{}> <{}> <https://blackcatinformatics.ca/gmeow/GraphBoxRole> .\n",
+            gmeow_errors::abox::BOX_TBOX,
+            gmeow_errors::abox::RDF_TYPE,
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None)
+            .expect("parse the completed core-prefixes turtle");
+
+        let cfg = LintConfig {
+            namespace: gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
+        };
+        let report = structural_lint_dataset(&ds, &cfg);
+        let errors = report.errors();
+        let core_prefixes_errors = abox_annotation_errors(&errors, &subject);
+        assert!(
+            core_prefixes_errors.is_empty(),
+            "gmeow:CorePrefixes must satisfy the T-Box structural-annotation contract \
+             (rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole): \
+             {core_prefixes_errors:?}"
+        );
+        // Do NOT add gmeow:boxABox to a T-Box owl:Ontology header.
+        assert!(
+            !completed.contains(gmeow_errors::abox::BOX_ABOX),
+            "gmeow:CorePrefixes is a T-Box header — it must never carry gmeow:boxABox"
+        );
+        // The label/comment `emit_core_prefixes` mints with a bare `@en` must be
+        // retagged to the carrier tag — CorePrefixes is an internal ontology, not an
+        // external lowering, so it owes the carrier-tag discipline.
+        assert!(
+            !errors
+                .iter()
+                .any(|e| e.contains(&subject) && e.contains("external language tag 'en'")),
+            "gmeow:CorePrefixes label/comment must carry x-gmeow-english, not bare @en: {errors:?}"
+        );
+        assert!(
+            !completed.contains("\"@en"),
+            "no bare @en may survive on the completed CorePrefixes A-Box: {completed}"
+        );
+    }
+
+    /// Shift-left: same pattern as `core_prefixes_completion_satisfies_the_structural_contract`,
+    /// over `complete_list_functions_abox`'s real output — every A-Box
+    /// `fno:Function`/`fno:Output`/`fno:Parameter` individual it mints must satisfy
+    /// the full four-predicate contract.
+    #[test]
+    fn list_functions_completion_satisfies_the_structural_contract() {
+        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+
+        let vocab = gmeow_ns::gmeow_slice_vocab();
+        let catalog = purrdf::slice::list_functions::list_functions_catalog(&vocab);
+        let completed = complete_list_functions_abox(&emit_list_functions(&vocab), &vocab);
+        // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
+        // kernel slice; add it here so the role-typing check has its declaration.
+        let doc = format!(
+            "{completed}<{}> <{}> <https://blackcatinformatics.ca/gmeow/GraphBoxRole> .\n",
+            gmeow_errors::abox::BOX_ABOX,
+            gmeow_errors::abox::RDF_TYPE,
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None)
+            .expect("parse the completed list-functions turtle");
+
+        let cfg = LintConfig {
+            namespace: gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: Default::default(),
+        };
+        let report = structural_lint_dataset(&ds, &cfg);
+        let errors = report.errors();
+
+        let mut subjects: Vec<String> = Vec::new();
+        for func in &catalog.functions {
+            subjects.push(func.iri.clone());
+            subjects.push(func.output.iri.clone());
+        }
+        for param in &catalog.params {
+            subjects.push(param.iri.clone());
+        }
+        assert_eq!(
+            subjects.len(),
+            6 + 6 + 7,
+            "expected 6 functions + 6 outputs + 7 params"
+        );
+
+        for subject in &subjects {
+            let subject_errors = abox_annotation_errors(&errors, subject);
+            assert!(
+                subject_errors.is_empty(),
+                "{subject} must satisfy the A-Box structural-annotation contract \
+                 (rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole): \
+                 {subject_errors:?}"
+            );
+        }
+    }
+
     // ── AC2 (Deliverable A): the PRODUCTION mappings-stage discharge path
     //    HARD-fails when a correspondence's put leg fabricates an unrecoverable source atom.
     //
@@ -2003,7 +2412,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let root = repo_root();
         let catalog = purrdf::slice::SliceCatalog::discover(
             &root.join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )
         .expect("slice catalog discovery");
         correspondence_lower::lower_all(&root, Some(&catalog)).expect("lower_all over the repo")

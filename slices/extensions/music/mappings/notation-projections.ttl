@@ -20,7 +20,7 @@
 
 # Music notation projection layer and maximal alignment.
 # Compiled by `gmeow-dev sync --mode update --outputs generated` (mappings) to:
-#   - mappings/gmeow-music.sssom.tsv (TermEquivalence rows)
+#   - mappings/gmeow-music.sssom.tsv (alignment cells)
 #   - projections/functions.fno.ttl (ProjectionFunction declarations)
 #   - projections/music-*.edoal.ttl (ProjectionMapping cells)
 #   - queries/projections/music-*.rq (executable CONSTRUCT)
@@ -261,125 +261,75 @@ gmeow:fnProjectToScl a gmeow:ProjectionFunction ;
 # TERM EQUIVALENCES — notation systems and encoding formats
 # --------------------------------------------------------------------------- #
 
-gmeow:eqMuNot001 a gmeow:TermEquivalence ;
-    rdfs:label "CMN staff notation ↔ Wikidata Q233861"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW CMN staff notation individual to Wikidata 'musical notation' (Q233861)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationCMNStaff ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q233861 ;
+gmeow:notationCMNStaff skos:closeMatch wd:Q233861 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than CMN staff specifically." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than CMN staff specifically."
+|} .
 
-gmeow:eqMuNot002 a gmeow:TermEquivalence ;
-    rdfs:label "MIDI ↔ Wikidata Q80284"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW MIDI notation-system individual to Wikidata 'MIDI' (Q80284)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationMIDI ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q80284 ;
+gmeow:notationMIDI skos:exactMatch wd:Q80284 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'MIDI' (Q80284)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'MIDI' (Q80284)."
+|} .
 
-gmeow:eqMuNot003 a gmeow:TermEquivalence ;
-    rdfs:label "tablature ↔ Wikidata Q207338"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW tablature notation-system individual to Wikidata 'tablature' (Q207338)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationTablature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q207338 ;
+gmeow:notationTablature skos:closeMatch wd:Q207338 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'tablature' (Q207338) — broader than any single instrument tablature." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'tablature' (Q207338) — broader than any single instrument tablature."
+|} .
 
-gmeow:eqMuNot004 a gmeow:TermEquivalence ;
-    rdfs:label "ABC notation ↔ Wikidata Q287895"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW ABC notation individual to Wikidata 'ABC notation' (Q287895)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationABC ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q287895 ;
+gmeow:notationABC skos:exactMatch wd:Q287895 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'ABC notation' (Q287895)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'ABC notation' (Q287895)."
+|} .
 
-gmeow:eqMuNot005 a gmeow:TermEquivalence ;
-    rdfs:label "LilyPond ↔ Wikidata Q507471"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW LilyPond notation individual to Wikidata 'LilyPond' (Q507471)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationLilyPond ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q507471 ;
+gmeow:notationLilyPond skos:exactMatch wd:Q507471 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'LilyPond' (Q507471)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'LilyPond' (Q507471)."
+|} .
 
-gmeow:eqMuNot006 a gmeow:TermEquivalence ;
-    rdfs:label "MusicXML ↔ Wikidata Q284221"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW MusicXML notation individual to Wikidata 'MusicXML' (Q284221)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationMusicXML ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q284221 ;
+gmeow:notationMusicXML skos:exactMatch wd:Q284221 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'MusicXML' (Q284221)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'MusicXML' (Q284221)."
+|} .
 
-gmeow:eqMuNot007 a gmeow:TermEquivalence ;
-    rdfs:label "MEI ↔ Wikidata Q6808199"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW MEI notation individual to Wikidata 'Music Encoding Initiative' (Q6808199)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:notationMEI ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q6808199 ;
+gmeow:notationMEI skos:exactMatch wd:Q6808199 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'Music Encoding Initiative' (Q6808199)." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "Wikidata 'Music Encoding Initiative' (Q6808199)."
+|} .
 
-gmeow:eqMuNot008 a gmeow:TermEquivalence ;
-    rdfs:label "MusicBrainz work MBID via P434"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW MusicalWork class to MusicBrainz work identifiers via Wikidata P434."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:MusicalWork ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P434 ;
+gmeow:MusicalWork skos:relatedMatch wd:P434 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "MusicBrainz work MBID is referenced via Wikidata P434; no schema absorption." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MusicBrainz work MBID is referenced via Wikidata P434; no schema absorption."
+|} .
 
-gmeow:eqMuNot009 a gmeow:TermEquivalence ;
-    rdfs:label "MusicBrainz recording MBID via P436"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW Recording class to MusicBrainz recording identifiers via Wikidata P436."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:Recording ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P436 ;
+gmeow:Recording skos:relatedMatch wd:P436 {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "MusicBrainz recording MBID is referenced via Wikidata P436; no schema absorption." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "MusicBrainz recording MBID is referenced via Wikidata P436; no schema absorption."
+|} .
 
-gmeow:eqMuNot010 a gmeow:TermEquivalence ;
-    rdfs:label "OMRAS2 chord symbol ↔ chord:Chord"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW PitchCollection used as a chord symbol to the OMRAS2 Chord concept. Harte grammar is 12-TET letter-name only."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:alignSubject gmeow:PitchCollection ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject chord:Chord ;
+gmeow:PitchCollection skos:closeMatch chord:Chord {|
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "OMRAS2 chord symbols are 12-TET only; JI/EDO≠12 chords are unrepresentable." ;
-    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+    gmeow:comment "OMRAS2 chord symbols are 12-TET only; JI/EDO≠12 chords are unrepresentable."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROJECTION MAPPINGS — external surface vocabularies

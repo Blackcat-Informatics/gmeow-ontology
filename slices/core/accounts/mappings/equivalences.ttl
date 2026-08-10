@@ -8,38 +8,33 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:OnlineAccount ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject foaf:OnlineAccount ;
+gmeow:OnlineAccount owl:equivalentClass foaf:OnlineAccount {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject sioc:UserAccount ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:OnlineAccount ;
+sioc:UserAccount rdfs:subClassOf gmeow:OnlineAccount {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProperties031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:holdsAccount ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject foaf:account ;
+gmeow:holdsAccount owl:equivalentProperty foaf:account {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:accountName ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject foaf:accountName ;
+gmeow:accountName owl:equivalentProperty foaf:accountName {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties092 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:accountServiceHomepage ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:accountServiceHomepage ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "FOAF's OnlineAccount service-homepage idiom" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:accountServiceHomepage skos:closeMatch foaf:accountServiceHomepage {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "FOAF's OnlineAccount service-homepage idiom"
+|} .

@@ -44,12 +44,14 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
-    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
-    Correspondence, EvaluationMode, Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr,
-    ReasoningContract, ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity,
-    ShapeTarget, ShapeValue, Term, ValidationShapeIr, VariableSortScope,
+    ANNOTATION_LIFT_PREDS, AggregateBalance, AggregateComparator, AggregateComparison,
+    AggregateRhs, AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr,
+    ConstraintProvenance, ContextualScope, Correspondence, EvaluationMode, Formula, JoinAggregate,
+    JoinLeg, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, NodeKind,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
+    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr, VariableSortScope, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
+    subject_is_gmeow_authored,
 };
 use super::restriction;
 
@@ -271,7 +273,7 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
     matches!(
         prop_local,
         // Core logic:Constraint annotations.
-        "integrity" | "severity" | "message" | "formalizes"
+        "integrity" | "severity" | "message" | "formalizes" | "adviceSourceField"
             // Shared sugar target.
             | "onClass"
             // P1 choice-group.
@@ -286,8 +288,9 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "roleA" | "roleB" | "crossMode"
             // P7 forbidden-pattern.
             | "forbiddenPredicate" | "forbiddenValue"
-            // P8 value-range (inclusive numeric bounds over a path).
+            // P8 value-range (inclusive OR exclusive numeric bounds over a path).
             | "minInclusiveBound" | "maxInclusiveBound"
+            | "minExclusiveBound" | "maxExclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
             // Join-aggregate satellite (multi-hop join + product aggregate + threshold).
@@ -340,6 +343,20 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ValueSetMembershipConstraint"
             | "StringPatternConstraint"
             | "UniqueLangConstraint"
+    )
+}
+
+/// The reserved `logic:` predicate-local names that carry a `logic:AbductiveSchema`'s repair
+/// mechanism — the discipline back-link, the repair-strategy selector, and the completeness
+/// formula root. Like the constraint annotations, these are consumed by the abductive advice
+/// producer (which queries the reasoned RDF dataset directly) and must NOT leak into
+/// `prog.axioms`; in particular `completenessFormula` reaches a `logic:Formula` root that is
+/// excluded from the top-level formula set in [`extract_formulas`], so authoring a completeness
+/// condition never changes what the reasoner entails about the live model.
+fn is_abductive_schema_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "repairsDiscipline" | "repairStrategy" | "completenessFormula"
     )
 }
 
@@ -431,6 +448,79 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
         .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
         .map(|quad| term_str(&quad.object))
         .collect()
+}
+
+/// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
+/// [`NodeKind::Annotation`] axioms — the inbound half of `logic: isSupersetOf SKOS/RDFS`.
+/// Each `<term> <annotation-pred> "literal"@x-gmeow-english` triple becomes one annotation
+/// axiom carrying the surface predicate verbatim, so the SKOS/RDFS annotation surface
+/// round-trips through the canonical IR and the generated SKOS surface is a projection of
+/// these axioms rather than an authored second source.
+///
+/// The `@x-gmeow-english` carrier discipline is honored: ONLY carrier-tagged literals are
+/// lifted — an annotation literal carrying a *different* language tag (an `@en` example
+/// label, a foreign literal) or an untagged/typed literal is skipped, never silently
+/// retagged. The authoritative fail-closed carrier guard is the structural lint (the
+/// validate `x-gmeow-` language-tag check), scoped to the shipped core-term graphs, which
+/// flags a genuine core violation; internal terms are always carrier-tagged.
+fn extract_annotation_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LogicAxiom> {
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
+            continue;
+        }
+        // Annotations belong on named terms; a blank-node subject is a structural
+        // interior (a restriction / formula node), never a term carrying a display label.
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        // Only GMEOW-authored subjects are lifted: a foreign alignment-target / example
+        // subject carries its own external-vocabulary label (@en, …), which is that
+        // vocabulary's metadata, not GMEOW's SKOS/RDFS surface, and must not be lifted or
+        // carrier-checked (mirrors the structural-lint scoping).
+        if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
+            continue;
+        }
+        let Node::Lit { lexical, lang, .. } = &quad.object else {
+            // A non-literal object on an annotation predicate is malformed authoring
+            // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
+            continue;
+        };
+        // Only the internal carrier surface is lifted. Any other language tag (an `@en`
+        // example/demonstration label, a foreign literal) or an untagged/typed literal is
+        // NOT part of GMEOW's carrier SKOS/RDFS surface, so it is skipped — never lifted and
+        // never treated as a hard error here. The authoritative fail-closed carrier-discipline
+        // guard is the structural lint (validate-gts), which is scoped to the shipped
+        // core-term graphs and flags a genuine core violation (R2/AC2); the compile-logic
+        // corpus also carries example/test subjects the lint deliberately does not police, so
+        // rejecting their @en annotations here would be stricter than the guard itself.
+        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+            continue;
+        }
+        match LogicAxiom::new(
+            subject_str(&quad.subject),
+            p_str,
+            lexical.clone(),
+            true,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(
+                ax.with_node_kind(NodeKind::Annotation)
+                    .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
+            ),
+            Err(exc) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_ANNOTATION",
+                exc.message().to_owned(),
+                Some(subject_str(&quad.subject)),
+            )),
+        }
+    }
+    axioms
 }
 
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
@@ -531,6 +621,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // Reasoning-program structural triples are consumed by extract_reasoning_programs;
         // they are never domain facts.
         if is_reasoning_program_structural_predicate(p_local) {
+            continue;
+        }
+        // Abductive-schema structural triples are consumed by the abductive advice producer;
+        // they are never domain facts (and completenessFormula's root is excluded from the
+        // top-level formula set in extract_formulas).
+        if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -1605,6 +1701,37 @@ pub fn derive_validation_shapes(
         }
     };
 
+    // Whether `p` is a DECLARED `owl:DatatypeProperty` (and not also an object property — a
+    // corpus that declares both is contradictory OWL and gets the conservative object reading,
+    // never a silently narrowed one).
+    let owl_datatype_property = Node::iri(format!("{owl}DatatypeProperty"));
+    let owl_object_property = Node::iri(format!("{owl}ObjectProperty"));
+    let is_datatype_property = |p: &str| -> bool {
+        let types = objects(store, &Subject::Iri(p.to_owned()), &nn(RDF_TYPE));
+        types.contains(&owl_datatype_property) && !types.contains(&owl_object_property)
+    };
+
+    // `classify`, resolved against the property the filler is a filler FOR.
+    //
+    // The two bounded universal tops are NOT interchangeable across the object/data divide:
+    // `owl:Thing` is the top of the INDIVIDUAL domain, `rdfs:Literal` the top of the DATA
+    // domain. A declared `owl:DatatypeProperty` takes literal values only, so an authored
+    // `owl:someValuesFrom owl:Thing` / `owl:allValuesFrom owl:Thing` / `rdfs:range owl:Thing`
+    // on such a property means "any value" in the only domain that property has — the data
+    // domain — and its faithful projection is `sh:nodeKind sh:Literal`. Projecting the
+    // individual-domain reading (`sh:nodeKind sh:BlankNodeOrIRI`) there is not a lossy
+    // approximation but an INVERTED constraint: it rejects every correct literal value the
+    // property is declared to carry (the `gmeow:spanStart` / `gmeow:spanEnd` integer offsets on
+    // `gmeow:Chunk` are the corpus witness). The redirect is keyed on the property's own
+    // declaration, so it can never narrow an object-valued or undeclared path.
+    let classify_on = |on: &str, iri: &str| -> Option<ConstraintComponent> {
+        if iri == owl_thing && is_datatype_property(on) {
+            classify(&rdfs_literal)
+        } else {
+            classify(iri)
+        }
+    };
+
     // The closed-world reading of a faceted datatype filler
     // (`[ a rdfs:Datatype ; owl:onDatatype xsd:string ; owl:withRestrictions ( [ xsd:pattern "…" ]
     // [ xsd:minLength "…" ] … ) ]`): the base datatype plus each XSD length / pattern facet, as
@@ -1907,7 +2034,7 @@ pub fn derive_validation_shapes(
             // witnesses into the shipped closure.
             match restriction_value(&restr_subj, &p_some, &p_logic_some) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
@@ -1942,7 +2069,7 @@ pub fn derive_validation_shapes(
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
             match restriction_value(&restr_subj, &p_all, &p_logic_all) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
+                    if let Some(cc) = classify_on(&on, &cv) {
                         let min = closed_requirements
                             .contains(&(class_iri.clone(), on.clone()))
                             .then_some(1);
@@ -2320,7 +2447,7 @@ pub fn derive_validation_shapes(
                 let mut comps: Vec<ConstraintComponent> = Vec::new();
                 for vp in [&p_some, &p_all] {
                     if let Some(Node::Iri(cv)) = value(store, &domain_subj, vp)
-                        && let Some(cc) = classify(&cv)
+                        && let Some(cc) = classify_on(&on_q, &cv)
                     {
                         comps.push(cc);
                     }
@@ -2347,7 +2474,7 @@ pub fn derive_validation_shapes(
             // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
             for c in objects(store, &p_subj, &p_range) {
                 if let Node::Iri(c) = c
-                    && let Some(cc) = classify(&c)
+                    && let Some(cc) = classify_on(p, &c)
                 {
                     entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
                         .1
@@ -2572,7 +2699,7 @@ pub fn derive_validation_shapes(
         let mut components: Vec<ConstraintComponent> = Vec::new();
         for vp in [&p_some, &p_all] {
             if let Some(Node::Iri(cv)) = value(store, &super_subj, vp)
-                && let Some(cc) = classify(&cv)
+                && let Some(cc) = classify_on(&on, &cv)
             {
                 components.push(cc);
             }
@@ -2684,6 +2811,12 @@ pub fn derive_validation_shapes(
     let p_valuepath = nn(&logic_iri("valuePath"));
     let p_min_bound = nn(&logic_iri("minInclusiveBound"));
     let p_max_bound = nn(&logic_iri("maxInclusiveBound"));
+    // Exclusive peers (`logic:minExclusiveBound` / `logic:maxExclusiveBound`) lower to
+    // `sh:minExclusive` / `sh:maxExclusive` — the faithful record for a legacy shape whose bound
+    // was authored open (e.g. `sh:minExclusive 0` for a strictly-positive denominator). An
+    // inclusive bound wins over an exclusive one on the same endpoint (the tighter closed reading).
+    let p_min_excl = nn(&logic_iri("minExclusiveBound"));
+    let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
     for record in subjects_with(store, &nn(RDF_TYPE), &range_ty) {
         let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
             continue;
@@ -2700,7 +2833,15 @@ pub fn derive_validation_shapes(
                 _ => None,
             }
         };
-        let (lo, hi) = (bound_of(&p_min_bound), bound_of(&p_max_bound));
+        // Inclusive bound wins over the exclusive peer on the same endpoint.
+        let (lo, lo_incl) = match bound_of(&p_min_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_min_excl), false),
+        };
+        let (hi, hi_incl) = match bound_of(&p_max_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_max_excl), false),
+        };
         if lo.is_none() && hi.is_none() {
             continue;
         }
@@ -2712,8 +2853,8 @@ pub fn derive_validation_shapes(
             vec![ConstraintComponent::NumericRange {
                 min: lo,
                 max: hi,
-                min_inclusive: true,
-                max_inclusive: true,
+                min_inclusive: lo_incl,
+                max_inclusive: hi_incl,
             }],
         )?;
         entry_for(&mut acc, ShapeTarget::Class(class_iri))
@@ -2746,12 +2887,26 @@ pub fn derive_validation_shapes(
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
-        // node. Collapse repeated identical values; hard-fail distinct values.
-        if let ShapeTarget::Class(class) = &target {
-            let failure_classes = distinct_failure_classes(store, &Subject::Iri(class.clone()))?;
+        // node. For a class-targeted shape that term is the CLASS; for the domain/range shapes
+        // derived from `rdfs:domain P …` / `rdfs:range P …` it is the PROPERTY — the shape's whole
+        // focus set is "the subjects (objects) of P", so P is the only authored term the shape
+        // belongs to, and without this a property-scoped law's findings resolve to no failure class
+        // at all (`<unmapped>`), leaving a conformance cell unable to say which class it just
+        // proved. Collapse repeated identical values; hard-fail distinct values.
+        let failure_source = match &target {
+            ShapeTarget::Class(class) => Some(("class", class)),
+            ShapeTarget::SubjectsOf(predicate) | ShapeTarget::ObjectsOf(predicate) => {
+                Some(("property", predicate))
+            }
+            ShapeTarget::ValueKeyed { .. }
+            | ShapeTarget::DirectClass(_)
+            | ShapeTarget::Sparql(_) => None,
+        };
+        if let Some((kind, term)) = failure_source {
+            let failure_classes = distinct_failure_classes(store, &Subject::Iri(term.clone()))?;
             if failure_classes.len() > 1 {
                 return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("class {class} has distinct gmeow:enforcesFailureClass values"),
+                    detail: format!("{kind} {term} has distinct gmeow:enforcesFailureClass values"),
                 }));
             }
             if let Some(failure_class) = failure_classes.first() {
@@ -2781,7 +2936,7 @@ pub fn derive_validation_shapes(
 pub fn functional_properties_missing_logic_carrier(
     store: &RdfDataset,
 ) -> std::collections::BTreeSet<String> {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
     let owl_functional = Node::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
     // Every gmeow:-owned property carrying the deprecated OWL functional marker.
     let mut declared: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
@@ -3273,6 +3428,22 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             }
         }
     }
+    // A formula reached as a `logic:AbductiveSchema`'s `logic:completenessFormula` is the
+    // discipline-satisfied condition the abductive producer instantiates at a gap subject —
+    // NOT a free-standing top-level assertion. Excluding every completeness root here is what
+    // keeps authoring a completeness condition from asserting it as an always-true axiom (which
+    // would both corrupt the reasoned core and auto-assert the very structure the advice only
+    // RECOMMENDS adding).
+    let completeness_pred = nn(&logic_iri("completenessFormula"));
+    for schema in subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("AbductiveSchema")),
+    ) {
+        for obj in objects(store, &schema, &completeness_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -3368,6 +3539,18 @@ fn one_child_subject(
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
+}
+
+/// Reconstruct the [`Formula`] rooted at the `logic:Formula` node named `root_iri` from `store`.
+///
+/// The public entry for consumers that hold a formula-root IRI resolved from the reasoned RDF
+/// dataset and need its first-order [`Formula`] IR without compiling the whole document — notably
+/// the abductive advice producer, which reads a `logic:AbductiveSchema`'s
+/// `logic:completenessFormula` root. That root is deliberately kept out of the top-level formula
+/// set (see [`extract_formulas`]), so it is unreachable through `parse_logic_*`; this reconstructs
+/// exactly the one subtree, applying the same strict well-formedness checks as every other formula.
+pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::Result<Formula> {
+    parse_formula(store, &Subject::Iri(root_iri.to_owned()))
 }
 
 fn parse_formula_inner(
@@ -5801,15 +5984,19 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
     let mut cmps: Vec<Formula> = Vec::with_capacity(2);
     if let Some(min) = bound("minInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termGreaterEqual"), t_var("v"), min)?);
+    } else if let Some(min) = bound("minExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termGreater"), t_var("v"), min)?);
     }
     if let Some(max) = bound("maxInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termLessEqual"), t_var("v"), max)?);
+    } else if let Some(max) = bound("maxExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termLess"), t_var("v"), max)?);
     }
     let consequent = match cmps.len() {
         0 => {
             return Err(sugar_err(
-                "logic:ValueRangeConstraint requires logic:minInclusiveBound and/or \
-                 logic:maxInclusiveBound",
+                "logic:ValueRangeConstraint requires logic:minInclusiveBound / \
+                 logic:minExclusiveBound and/or logic:maxInclusiveBound / logic:maxExclusiveBound",
             ));
         }
         1 => cmps.pop().expect("one bound"),
@@ -5909,6 +6096,9 @@ pub fn parse_logic_dataset(
 
     let plain_axioms = extract_axioms(store, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
+    // Lift the RDFS/SKOS annotation surface into first-class NodeKind::Annotation axioms
+    // (logic: isSupersetOf SKOS/RDFS); fail-closed on a non-carrier language tag.
+    let annotation_axioms = extract_annotation_axioms(store, &mut diagnostics);
 
     // Read the top-level `logic:Formula` trees, then ROUTE a trivially-Horn leaf (a reified
     // ordinary triple: an IRI relation over two non-sequence-marker arguments) to its axiom
@@ -5951,6 +6141,7 @@ pub fn parse_logic_dataset(
         .into_iter()
         .chain(scoped_axioms)
         .chain(horn_axioms)
+        .chain(annotation_axioms)
     {
         if seen.insert(content_dedup_key(&ax)) {
             all_axioms.push(ax);

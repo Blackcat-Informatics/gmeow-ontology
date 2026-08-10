@@ -33,6 +33,19 @@ const PREFIXES: &str = "\
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 ";
 
+// Every "missing constituent" counter-example below used to be rejected by a
+// hand-authored `sh:NodeShape` in `slices/extensions/music/shapes.ttl` carrying a
+// prose `sh:message`. Those shapes were retired by the shapes-to-logic migration
+// (see docs/MIGRATING-SHAPES-TO-LOGIC.md); the obligations now live as EL-safe
+// `logic:Restriction` axioms in `slices/extensions/music/module.ttl` and are
+// PROJECTED to `generated/shapes/validation-shapes.ttl` as message-less
+// `sh:minCount` property shapes. `whole_shapes()` deliberately drops that projected
+// file from this fixture corpus (an open-world someValuesFrom reading would
+// over-flag ABox-incomplete fixtures elsewhere in this suite), so exercising the
+// projected bound requires the LIVE production shape union — the corpus
+// `gmeow validate` actually runs — and the message-less result is asserted by
+// `sh:resultPath` + `sh:sourceConstraintComponent` rather than by prose. Same
+// rationale and same shape as the migrated `conformance_music_time` cases.
 #[rstest]
 #[case::pitch_collection_shape_requires_kind(
     Case::inline(format!(
@@ -40,8 +53,12 @@ const PREFIXES: &str = "\
 ex:badCollection a gmeow:PitchCollection .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchCollection must have exactly one collectionKind (Principle 9)."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/collectionKind",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_collection_membership_valid_passes_shacl(
     Case::inline(format!(
@@ -62,8 +79,12 @@ ex:membershipNoCollection gmeow:membershipPitch gmeow:pitchValue12EDOOrigin .
 ex:membershipNoCollection gmeow:membershipRole  gmeow:collectionMemberRoleMember .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchCollectionMembership must belong to exactly one PitchCollection."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/membershipCollection",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_collection_membership_missing_pitch_fails_shacl(
     Case::inline(format!(
@@ -73,8 +94,12 @@ ex:membershipNoPitch gmeow:membershipCollection gmeow:pitchCollectionPCSet027 .
 ex:membershipNoPitch gmeow:membershipRole       gmeow:collectionMemberRoleMember .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchCollectionMembership must name exactly one PitchValue."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/membershipPitch",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_collection_membership_missing_role_fails_shacl(
     Case::inline(format!(
@@ -84,8 +109,12 @@ ex:membershipNoRole gmeow:membershipCollection gmeow:pitchCollectionPCSet027 .
 ex:membershipNoRole gmeow:membershipPitch      gmeow:pitchValue12EDOOrigin .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchCollectionMembership must declare exactly one CollectionMemberRole."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/membershipRole",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_spelling_valid_passes_shacl(
     Case::inline(format!(
@@ -105,8 +134,12 @@ ex:spellingNoPitch gmeow:spellingSystem gmeow:pitchSpellingSystemCMN .
 ex:spellingNoPitch gmeow:spelledName    \"C\u{266f}4\"^^xsd:string .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchSpelling must name exactly one PitchValue."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/spellingPitch",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_spelling_missing_system_fails_shacl(
     Case::inline(format!(
@@ -116,8 +149,12 @@ ex:spellingNoSystem gmeow:spellingPitch gmeow:pitchValue12EDOCSharp4 .
 ex:spellingNoSystem gmeow:spelledName   \"C\u{266f}4\"^^xsd:string .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchSpelling must use exactly one PitchSpellingSystem."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/spellingSystem",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::pitch_spelling_missing_name_fails_shacl(
     Case::inline(format!(
@@ -127,8 +164,12 @@ ex:spellingNoName gmeow:spellingPitch  gmeow:pitchValue12EDOCSharp4 .
 ex:spellingNoName gmeow:spellingSystem gmeow:pitchSpellingSystemCMN .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["A PitchSpelling must provide exactly one spelled name string."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/spelledName",
+        "MinCountConstraintComponent",
+    )
 )]
 #[case::standpoint_memberships_pass_shacl_arabic(
     Case::inline(format!(

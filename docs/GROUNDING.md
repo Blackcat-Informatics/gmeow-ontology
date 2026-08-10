@@ -65,6 +65,21 @@ and its correspondence; they do not author a second alignment. RDF/OWL
 declaration syntax and generated validation syntax are serialization/compiler
 boundaries, not exceptions that grant external vocabularies semantic ownership.
 
+Each row of that table is declared as a `gmeow:GroundingDomain` individual in
+the owning slice's manifest, carrying the owner in `gmeow:groundingDomainOwner`.
+A term whose subject matter falls in one of the three domains is a **grounding
+concept**, and says so on itself: `gmeow:groundingConceptDomain` names its
+domain. That marker is what the tier rule is machine-checked against — a
+grounding slice referencing a marked term that a non-grounding slice owns is a
+violation, and the fix is always the fixed reconciliation direction (re-point
+the term's `rdfs:isDefinedBy` and move its block to the domain's owner; the IRI
+never changes, because ownership is by `rdfs:isDefinedBy`, not by namespace).
+The judgment is authored rather than inferred: subject matter is not visible in
+graph shape. The qualifier stays load-bearing in the other direction too — a
+grounding slice consuming ordinary domain vocabulary by reference is sanctioned,
+and formalizing a domain term in a `logic:Formula` does not make that term a
+grounding concept.
+
 Grounding correspondences are different from presentation-only projections.
 They compile to content-addressed `logic:Correspondence` records and ship in
 the `graph/correspondence-laws` named graph of `gmeow.gts`, while remaining
@@ -76,13 +91,30 @@ The shipped grounding surface is split by semantic owner:
 - `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
   OWL/RDFS, and SHACL Core/AF in
   [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
-  plus 23 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  plus 25 commitment-shifting DUL, IAO, OBI, PATO, YAMATO, and OpenCyc rows in
   [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
+  OBI's catalog is `logic:`-owned because its backbone is a planned-process
+  upper ontology: the prescription and enactment bridges
+  (`logic:Plan` → OBI protocol, `logic:Enactment` → OBI planned process) are
+  authored there once, and every downstream `obi:` surface is a generated
+  projection of them. The same ownership carries the remaining process-model
+  surfaces: 37 by-reference rows for P-Plan, PROV-O, schema.org HowTo/Recipe,
+  OPMW, BPMN, the RO-Crate Workflow-Run profile, the workflow engines (Airflow,
+  CWL, WDL, Temporal, Nextflow), and openEHR Task Planning in
+  [`plan-enactment-bridges.ttl`](../slices/grounding/logic/mappings/plan-enactment-bridges.ttl).
+  A work-orchestration or process-authoring slice consumes `logic:Plan`,
+  `logic:ActionSchema`, `logic:Enactment`, `logic:precondition`,
+  `logic:effect` and `logic:planBody` together with these correspondences; it
+  never mints a second alignment onto the same external term.
 - `math:` carries its identity catalog, six direct quantity/value bridges to
   SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
   [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),
   plus 13 validation-only Data Cube, STATO, OBCS, SIO, and OBI rows in
   [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
+  The single OBI row there (`math:DataTransformation` → OBI data transformation)
+  predates the ownership split and sits off the owner boundary, so it is an
+  explicitly ceilinged residue of exactly one (`gmeow:pcc-math-obi`) that may
+  only fall — never a second OBI authoring home.
 - `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
   LexInfo, Global WordNet schema, NIF, and Web Annotation rows in
   [`lexical-bridges.ttl`](../slices/grounding/lang/mappings/lexical-bridges.ttl).
@@ -97,21 +129,49 @@ The foundation policy and coverage ledger is
 
 ## The seam registry
 
-The closed set of sanctioned seams among the grounding slices. Directions are
-reference directions (who names whose terms).
+The closed set of sanctioned seams among the grounding slices — directions are
+reference directions (who names whose terms) — is **canonical governance
+data**, not hand-maintained prose. Each seam is a `gmeow:Seam` individual
+(`gmeow:seamDirection`, `gmeow:seamCarryingTerm`, `gmeow:seamOwningDoc`)
+authored in a grounding slice's `manifest.ttl` (today, `logic:`'s registers
+all eight, as the neutral registrar); the vocabulary is defined in
+`slices/vocabulary.ttl`. A new seam requires a new `gmeow:Seam` individual
+here before the first referencing triple is authored — never a new row typed
+into this document. The registry's size is itself gated: the shipped-graph
+non-vacuity check in `crates/pipeline/src/stages/carrier.rs` pins the closed
+count, so a seam is added or dropped deliberately, never discovered by drift.
 
-| Seam | Direction | Carrying terms | Owning design doc |
-|---|---|---|---|
-| **Denotation** | lang → logic | `lang:denotationTarget`, `lang:denotationKind` (targets `logic:Formula`/`logic:Type`/terms), `lang:CompositionRule` lowering into the logic Formula/Term IR | `LANG-MEANING.md` |
-| **Compilation** | math → logic | `math:compilesToLogicFormula`/`Term`/`Type`, `math:denotationKind`, intensional `math:memberCondition` → `logic:` formula | `MATHEMATICS-EXPRESSIONS.md` |
-| **Laws & boundaries** | math → logic | mathematical laws authored as `logic:Formula` (homogeneity, topology, algebra); `logic:expressivenessBoundary` for honest second-order limits | `MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`, `MATHEMATICS-MEASURE-AND-DIMENSION.md` |
-| **Correspondence & preservation** | lang → logic, math → logic | `logic:Correspondence` (translation, GMN crossings, external alignments), `logic:preservationKind` reused verbatim | `LANG-TRANSLATION.md`, `LOGIC-CORRESPONDENCE.md` |
-| **Rendering** | math → lang | `math:ExpressionRendering` ⊑ `lang:Rendering`; `lang:renderedContent`/`renderingConvention`/`renderingPreservation` read directly off the math record | `LANG-TRANSLATION.md` (theory), `MATHEMATICS-EXPRESSIONS.md` (graft) |
-| **Quantity** | lang → math | `math:Quantity` individuals with `math:hasDimension`/`math:quantityValue` carrying lang's declared and measured magnitudes (GMN codebook rates, glyph token costs) | `MATHEMATICS-MEASURE-AND-DIMENSION.md` (theory), `LANG-GMN.md` (consumer) |
+That data reaches two projections, both derived from the manifests and never
+hand-maintained:
 
-`logic:` references neither peer structurally. Prose in `logic:` definitions
-does not name `lang:`/`math:` terms; illustrative examples belong in the
-peer's own documents.
+- **The shipped graph.** `gmeow.gts` carries the whole registry as its own
+  queryable named graph,
+  `https://blackcatinformatics.ca/gmeow/graph/grounding-seams` — one
+  `gmeow:Seam` per authored seam with its `rdfs:label`, its
+  `gmeow:seamDirection` legs (`gmeow:seamFromSlice` / `gmeow:seamToSlice`),
+  every `gmeow:seamCarryingTerm`, and every `gmeow:seamOwningDoc`. It is
+  lossless, so a consumer holding only the bundle can reconstruct the registry
+  without the repository. Like `graph/correspondence-laws`, it is governance
+  data and stays outside object-level closure.
+- **The rendered table.** The always-current human table (seam, direction,
+  carrying terms, owning design doc) is the generated seam-registry page
+  `ontology-docs/seams/index.md`, rendered on demand by
+  `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
+  product, so the page exists only after that render). It is a direct
+  projection of the same data, and a validator gate keeps it from drifting out
+  of sync with the manifests.
+
+`logic:` reaches into a peer exactly once, and the registry says where: the
+**quantity-boundary seam** carries the single term `math:Quantity`, because
+`logic:` owns the SUMO boundary while the tier rule fixes `math:Quantity` as
+the sole authority for dimensioned magnitude, so the honest bridge row has a
+peer-owned source endpoint (`LOGIC-CORRESPONDENCE.md`, "The quantity
+boundary"). Everything else `logic:` might be tempted to say about a peer's
+term belongs in the peer: a `logic:PropertyCharacteristicAssertion` about a
+`lang:`-owned property is a fact about `lang:`'s own term and is authored in
+`lang:`'s `module.ttl`, exactly as it is for a non-grounding slice. Prose in
+`logic:` definitions does not name `lang:`/`math:` terms; illustrative
+examples belong in the peer's own documents.
 
 ## Shared disciplines
 

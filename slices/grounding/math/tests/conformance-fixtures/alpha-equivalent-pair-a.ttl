@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance fixture (bound by ex:ecAlphaEquivalentPairA) that is ALSO loaded verbatim
+# by crates/logic/src/physical/lower.rs through include_str!(): the digest-equality
+# property is a claim about the PAIR, which no single cell can express, while each half
+# is on its own a well-formed math: expression that must validate clean. Half A of an
+# α-equivalence pair: ∑ᵢ i, a summation binder over a bound variable declaration named
+# ex:iDecl, with its bound occurrence — wrapped in the math:VariableExpression AST leaf,
+# since math:VariableOccurrence is not itself a math:MathematicalExpression and enters
+# the tree only through a math:VariableExpression's math:variableOccurrence edge, per
+# math:VariableExpression's own definition — as the sole operand of argument slot 0.
+# Pair with alpha-equivalent-pair-b.ttl, which is STRUCTURALLY IDENTICAL — same
+# operator, same slot-indexed operand, same binding shape — differing ONLY in the IRI
+# of its bound-variable declaration (ex:jDecl in place of ex:iDecl). The property test
+# asserts the two digest to the SAME math:structuralKey.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sumBinder a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:iDecl ;
+    math:bindsOccurrence ex:iOccurrence ;
+    math:argumentSlot ex:bodySlot .
+
+ex:iDecl a math:VariableDeclaration .
+
+ex:bodySlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:iOccurrenceExpr .
+
+ex:iOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:iOccurrence .
+
+ex:iOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:iDecl ;
+    math:occursInScope ex:sumBinder .

@@ -1,0 +1,35 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: CC-BY-4.0
+%
+% Dialect: Vampire (`vampire --proof tptp`) TSTP refutation output.
+%
+% Vampire's derivation shape differs from E's in three ways this fixture exists
+% to exercise:
+%   * step names are bare `f<n>`;
+%   * the CONJECTURE itself appears as a step (role `conjecture`), and the
+%     `negated_conjecture` is DERIVED from it by an `inference(negated_conjecture,
+%     ...)` rather than read from the problem file;
+%   * the inference status list is EMPTY — `inference(rule, [], [parents])`. An
+%     empty list states nothing, so nothing is dropped by not carrying it, but it
+%     is also not a declared `status(thm)`, so a structural checker may not report
+%     the derivation as thm-verified on its account.
+%
+% Source problem:
+%   fof(ax_pq,  axiom,      ! [X] : (p(X) => q(X))).
+%   fof(ax_pa,  axiom,      p(a)).
+%   fof(goal,   conjecture, ? [X] : (p(X) & q(X))).
+%
+% The refutation: negate the conjecture, clausify both sides, resolve, and reach
+% the empty clause.
+fof(f1, axiom, ! [X0] : (p(X0) => q(X0)), file('PUZ001+1.p', ax_pq)).
+fof(f2, axiom, p(a), file('PUZ001+1.p', ax_pa)).
+fof(f3, conjecture, ? [X0] : (p(X0) & q(X0)), file('PUZ001+1.p', goal)).
+fof(f4, negated_conjecture, ~ (? [X0] : (p(X0) & q(X0))), inference(negated_conjecture, [], [f3])).
+fof(f5, plain, ! [X0] : (~p(X0) | q(X0)), inference(ennf_transformation, [], [f1])).
+fof(f6, plain, ! [X0] : (~p(X0) | ~q(X0)), inference(ennf_transformation, [], [f4])).
+cnf(f7, plain, ~p(X0) | q(X0), inference(cnf_transformation, [], [f5])).
+cnf(f8, plain, ~p(X0) | ~q(X0), inference(cnf_transformation, [], [f6])).
+cnf(f9, plain, p(a), inference(cnf_transformation, [], [f2])).
+cnf(f10, plain, q(a), inference(resolution, [], [f7, f9])).
+cnf(f11, plain, ~q(a), inference(resolution, [], [f8, f9])).
+cnf(f12, plain, $false, inference(subsumption_resolution, [], [f10, f11])).

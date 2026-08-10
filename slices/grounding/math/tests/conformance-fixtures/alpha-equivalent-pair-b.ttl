@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance fixture (bound by ex:ecAlphaEquivalentPairB) that is ALSO loaded verbatim
+# by crates/logic/src/physical/lower.rs through include_str!(): the digest-equality
+# property is a claim about the PAIR, which no single cell can express, while each half
+# is on its own a well-formed math: expression that must validate clean. Half B of an
+# α-equivalence pair: ∑ⱼ j, STRUCTURALLY IDENTICAL to alpha-equivalent-pair-a.ttl's
+# ∑ᵢ i — same operator (math:summationBinder), same single slot-indexed operand at
+# index 0, same binding shape — differing ONLY in the IRI of its bound-variable
+# declaration (ex:jDecl in place of ex:iDecl). The property test asserts the two digest
+# to the SAME math:structuralKey.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sumBinder a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:jDecl ;
+    math:bindsOccurrence ex:jOccurrence ;
+    math:argumentSlot ex:bodySlot .
+
+ex:jDecl a math:VariableDeclaration .
+
+ex:bodySlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:jOccurrenceExpr .
+
+ex:jOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:jOccurrence .
+
+ex:jOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:jDecl ;
+    math:occursInScope ex:sumBinder .

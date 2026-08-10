@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saNoLogicToGmeowAxiomEdge: an axiom edge out of the
+# standalone kernel into a domain class, which is a genuine dependency cycle
+# because the domain layer already depends on the reasoning layer.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+logic:Enactment rdfs:subClassOf gmeow:Event .

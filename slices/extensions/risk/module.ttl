@@ -13,7 +13,7 @@ gmeow:Cascade
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Cascade"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A NAMED chain of causal links — 'Trust Collapse: betrayal dissolves the bond, bond dissolution kills the will to survive.' A social object: the cascade exists as a recognized failure narrative, independent of anything ever occurring. Entered at gmeow:cascadeFirstLink, walked by gmeow:linkNext, graded by gmeow:cascadeSeverity. Acyclic within itself (the logic:linkNextAcyclicity axiom, projected to SHACL); propagation arithmetic is solver work (Principle 12)."@x-gmeow-english ;
+    skos:definition "A NAMED chain of causal links — 'Trust Collapse: betrayal dissolves the bond, bond dissolution kills the will to survive.' A social object: the cascade exists as a recognized failure narrative, independent of anything ever occurring. Entered at gmeow:cascadeFirstLink, walked by gmeow:linkNext, graded by gmeow:cascadeSeverity. Acyclic within itself (the gmeow:linkNextAcyclicity axiom, projected to SHACL); propagation arithmetic is solver work (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CausalLink
@@ -65,7 +65,7 @@ gmeow:Mitigation
             owl:onProperty gmeow:mitigationCounters ;
             owl:someValuesFrom owl:Thing ;
         ] ;
-    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm or a Procedure (procedures extension) — set against a causal link or hazard it counters. The measure range is intentionally OPEN (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
+    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm that forbids the antecedent conduct, or a logic:Plan that interrupts the chain — set against a causal link or hazard it counters. The measure range stays OPEN because a countermeasure is genuinely heterogeneous: a norm, a plan, and an engineered design control are all measures, and no single class subsumes them without distorting one of the three. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MitigationStatus
@@ -174,7 +174,7 @@ gmeow:linkAntecedent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link antecedent"@x-gmeow-english ;
     rdfs:range gmeow:EventType ;
-    skos:definition "The causing kind. Functional and mandatory (SHACL); distinct from the consequent (the logic:causalLinkDistinctness axiom, projected to SHACL — nothing type-causes itself)."@x-gmeow-english ;
+    skos:definition "The causing kind. Functional and mandatory (SHACL); distinct from the consequent (the gmeow:causalLinkDistinctness axiom, projected to SHACL — nothing type-causes itself)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkConsequent
@@ -200,7 +200,7 @@ gmeow:linkNext
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link next"@x-gmeow-english ;
     rdfs:range gmeow:CausalLink ;
-    skos:definition "The next link in a cascade walk. NOT functional (a link may feed branches; a branching failure tree is one cascade entry with diverging walks) and NOT transitive — reachability is solver work. Acyclic (the logic:linkNextAcyclicity axiom, projected to SHACL): no link reaches itself through linkNext."@x-gmeow-english ;
+    skos:definition "The next link in a cascade walk. NOT functional (a link may feed branches; a branching failure tree is one cascade entry with diverging walks) and NOT transitive — reachability is solver work. Acyclic (the gmeow:linkNextAcyclicity axiom, projected to SHACL): no link reaches itself through linkNext."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkStrength
@@ -242,7 +242,7 @@ gmeow:mitigationMeasure
     rdfs:domain gmeow:Mitigation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "mitigation measure"@x-gmeow-english ;
-    skos:definition "The countermeasure — a norm that forbids the antecedent conduct, a procedure that interrupts the chain, a design control. Range intentionally open across extension worlds. NOT functional, at least one (SHACL)."@x-gmeow-english ;
+    skos:definition "The countermeasure — a gmeow:Norm that forbids the antecedent conduct, a logic:Plan that interrupts the chain, or an engineered design control. The range stays open because those three are genuinely heterogeneous. NOT functional, at least one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mitigationProposed
@@ -355,7 +355,7 @@ DOCTRINE.
   * THE COUNTERFACTUAL PROBLEM DISSOLVES AT THE TYPE LEVEL: cascades relate event TYPES, never event instances — nothing in this slice asserts that anything occurred, and the no-occurrence gate makes that executable (loading the full fixture set entails zero gmeow:Event instances from this slice's terms). 'Trust betrayal dissolves the bond' is a claim about kinds of events; the catastrophe it warns of need never have happened. PROV lineage and CRM influence are token-level; OBO RO is the rare type-level causation vocabulary — that asymmetry is why this slice exists.
   * CAUSAL LINKS ARE CLAIMS LIKE ANY OTHER: standpoint-indexed and confidence-bearing through the statement layer. Two risk analysts disagreeing about whether T1 promotes T2 are two coexisting claims (Principle 9). Cascade propagation, probability composition, and simulation are solver work over the recorded links (Principle 12); gmeow:linkStrength is solver INPUT, never solver output written back as assertion.
   * FIRST gufo:Disposition USE IN GMEOW: a Hazard is a bearer's disposition toward harm, manifested (when it manifests at all) as events of a feared type. Inherence is asserted with GMEOW's own gmeow:hazardBearer (Principle 5: gufo:inheresIn is the alignment target, not the asserted axiom).
-  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm or a Procedure (procedures extension) — to what it counters. The measure range is intentionally open (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling.
+  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm that forbids the antecedent conduct, or a logic:Plan that interrupts the chain — to what it counters. The range stays open because countermeasures are genuinely heterogeneous (norm, plan, engineered control), not because a dependency rule forbids naming a class.
   * SEVERITY IS AN ORDERED VOCABULARY (the kernel GranularityLevel pattern — catastrophic ≻ severe ≻ moderate ≻ minor, gmeow:moreSevereThan transitive ON LEVELS ONLY), anchored terminologically to ISO 31000 / IEC 60812 in docs, never in axioms.
   * ALIGNMENTS DEFERRED to the compiler-arc window: OBO RO causal properties (linkage-only, BFO lineage), MITRE D3FEND (countermeasure ↔ Mitigation), STIX 2.1/ATT&CK, UCO, ConceptNet/ATOMIC rows; projections to bowtie JSON, FMEA CSV, STIX bundles each with declared-loss manifests. Target list fixed in the alignment ledger."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
@@ -444,7 +444,7 @@ gmeow:MitigationMeasureConstraint
     logic:onClass gmeow:Mitigation ;
     logic:anyOf gmeow:mitigationMeasure ;
     logic:formalizes gmeow:Mitigation ;
-    logic:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across the deontic and procedural worlds, P16)." .
+    logic:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across norms, plans and engineered controls)." .
 
 gmeow:MitigationCountersPresenceConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -534,3 +534,121 @@ gmeow:CausalLinkMechanismUniqueLangConstraint
     logic:valuePath gmeow:linkMechanism ;
     logic:formalizes gmeow:CausalLinkShape ;
     logic:message "A CausalLink carries at most one gmeow:linkMechanism per language tag (localizable prose, the per-language-tag uniqueness convention)." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
+
+gmeow:cascadeFirstLinkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "cascadeFirstLink is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:cascadeFirstLink ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:cascadeFirstLink ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:cascadeFirstLink names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:cascadeFirstLink and nothing else. It is not a definition of gmeow:cascadeFirstLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:causalModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "causalModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:causalModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:causalModality ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:causalModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:causalModality and nothing else. It is not a definition of gmeow:causalModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hazardBearerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "hazardBearer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hazardBearer is functional: a hazard inheres in exactly one bearer, per gUFO inherence — the same danger borne by two systems is two hazards, not one shared between them."@x-gmeow-english ;
+    logic:characterizes gmeow:hazardBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hazardBearer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hazardBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hazardBearer and nothing else. It is not a definition of gmeow:hazardBearer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:linkAntecedentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "linkAntecedent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:linkAntecedent is functional: a causal link has exactly one causing kind, the single antecedent event type, held distinct from the consequent so that nothing type-causes itself."@x-gmeow-english ;
+    logic:characterizes gmeow:linkAntecedent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:linkAntecedent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkAntecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:linkAntecedent and nothing else. It is not a definition of gmeow:linkAntecedent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:linkConsequentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "linkConsequent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:linkConsequent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:linkConsequent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkConsequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:linkConsequent and nothing else. It is not a definition of gmeow:linkConsequent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:linkNextAcyclicity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "linkNext is acyclic"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:linkNext ;
+    logic:characteristicSort logic:acyclicProperty ;
+    logic:formalizes gmeow:linkNext ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkNext admits no cycle; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a cycle is a legitimate shape — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:linkNext and nothing else. It is not a definition of gmeow:linkNext (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:causalLinkDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "a causal link's antecedent and consequent are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:CausalLink ;
+    logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
+    logic:formalizes gmeow:linkAntecedent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:CausalLink; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:CausalLink no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:CausalLink and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:CausalLink and nothing else. It is not a definition of gmeow:CausalLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

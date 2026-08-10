@@ -13,6 +13,7 @@
 @prefix gts: <http://resource.geosciml.org/ontology/timescale/gts#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix ivoa: <http://www.ivoa.net/rdf/> .
+@prefix schema: <https://schema.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
 
@@ -57,616 +58,526 @@ gmeow:mapsetTemporal a gmeow:MappingSet ;
 # ReferenceFrame contextual alignments (from temporal-frame design — merged during rebase)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporalFrame001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:TRS ;
+gmeow:ReferenceFrame skos:closeMatch time:TRS {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmTemporal" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmTemporal"
+|} .
 
-gmeow:eqTemporalFrame002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:hasTRS ;
+gmeow:hasReferenceFrame skos:closeMatch time:hasTRS {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "links a temporal position to its calendar/timescale frame" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "links a temporal position to its calendar/timescale frame"
+|} .
 
 # --------------------------------------------------------------------------- #
 # TemporalFrame and its components
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TemporalFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:TemporalReferenceSystem ;
+gmeow:TemporalFrame skos:closeMatch time:TemporalReferenceSystem {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "OWL-Time Temporal Reference System — GMEOW decomposes it into scale+calendar+position" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "OWL-Time Temporal Reference System — GMEOW decomposes it into scale+calendar+position"
+|} .
 
-gmeow:eqTemporal002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TemporalFrame ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:E52_Time-Span ;
+gmeow:TemporalFrame skos:relatedMatch crm:E52_Time-Span {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "CIDOC E52 Time-Span carries the frame implicitly via its time primitives" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC E52 Time-Span carries the frame implicitly via its time primitives"
+|} .
 
-gmeow:eqTemporal003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TemporalFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmgeo:SP13_Temporal_Reference_System ;
+gmeow:TemporalFrame skos:closeMatch crmgeo:SP13_Temporal_Reference_System {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CRMgeo spatiotemporal reference system (temporal aspect)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CRMgeo spatiotemporal reference system (temporal aspect)"
+|} .
 
-gmeow:eqTemporal004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TimeScale ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:TRS ;
+gmeow:TimeScale skos:closeMatch time:TRS {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "OWL-Time Temporal Reference System when scale-only" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "OWL-Time Temporal Reference System when scale-only"
+|} .
 
-gmeow:eqTemporal005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CalendarSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:CalendarSystem ;
+gmeow:CalendarSystem skos:closeMatch time:CalendarSystem {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "OWL-Time CalendarSystem" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "OWL-Time CalendarSystem"
+|} .
 
-gmeow:eqTemporal006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferencePosition ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject time:TimeZone ;
+gmeow:ReferencePosition skos:relatedMatch time:TimeZone {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "timezone is one kind of reference position; observatory/planet are others" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "timezone is one kind of reference position; observatory/planet are others"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Instant
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Instant ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:Instant ;
+gmeow:Instant skos:closeMatch time:Instant {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Instant ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E61_Time_Primitive ;
+gmeow:Instant skos:closeMatch crm:E61_Time_Primitive {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CIDOC time primitive" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC time primitive"
+|} .
 
-gmeow:eqTemporal009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:instantValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:inXSDDateTimeStamp ;
+gmeow:instantValue skos:closeMatch time:inXSDDateTimeStamp {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "crisp instant as xsd:dateTime" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "crisp instant as xsd:dateTime"
+|} .
 
-gmeow:eqTemporal010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:edtfValue ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject edtf:EDTF ;
+gmeow:edtfValue skos:relatedMatch edtf:EDTF {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention." ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention."
+|} .
 
-gmeow:eqTemporal011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:inTemporalFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:hasTRS ;
+gmeow:inTemporalFrame skos:closeMatch time:hasTRS {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "links an instant to its temporal reference system/frame" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "links an instant to its temporal reference system/frame"
+|} .
 
 # --------------------------------------------------------------------------- #
 # NamedPeriod
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NamedPeriod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:ProperInterval ;
+gmeow:NamedPeriod skos:closeMatch time:ProperInterval {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a named period is an interval with extra naming/authority structure" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "a named period is an interval with extra naming/authority structure"
+|} .
 
-gmeow:eqTemporal013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NamedPeriod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E4_Period ;
+gmeow:NamedPeriod skos:closeMatch crm:E4_Period {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CIDOC E4 Period — culturally-defined temporal extent" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC E4 Period — culturally-defined temporal extent"
+|} .
 
-gmeow:eqTemporal014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NamedPeriod ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject periodo:Period ;
+gmeow:NamedPeriod skos:relatedMatch periodo:Period {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "PeriodO period — a gazetteer entry rather than an ontology class" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "PeriodO period — a gazetteer entry rather than an ontology class"
+|} .
 
-gmeow:eqTemporal015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodStart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:hasBeginning ;
+gmeow:periodStart skos:closeMatch time:hasBeginning {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqTemporal016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodEnd ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:hasEnd ;
+gmeow:periodEnd skos:closeMatch time:hasEnd {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqTemporal017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodPartOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gts:rank ;
+gmeow:periodPartOf skos:closeMatch gts:rank {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "ICS rank hierarchy — geologic period mereology" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "ICS rank hierarchy — geologic period mereology"
+|} .
 
 # Geologic period seeds → ICS and Wikidata
-gmeow:eqTemporal018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodPhanerozoic ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q101313 ;
+gmeow:periodPhanerozoic skos:exactMatch wd:Q101313 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata Phanerozoic (Q101313)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Wikidata Phanerozoic (Q101313)"
+|} .
 
-gmeow:eqTemporal019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodCenozoic ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q40508 ;
+gmeow:periodCenozoic skos:exactMatch wd:Q40508 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata Cenozoic (Q40508)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Wikidata Cenozoic (Q40508)"
+|} .
 
-gmeow:eqTemporal020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodQuaternary ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q25097 ;
+gmeow:periodQuaternary skos:exactMatch wd:Q25097 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata Quaternary (Q25097)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Wikidata Quaternary (Q25097)"
+|} .
 
-gmeow:eqTemporal021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:periodHolocene ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q201698 ;
+gmeow:periodHolocene skos:exactMatch wd:Q201698 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata Holocene (Q201698)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Wikidata Holocene (Q201698)"
+|} .
 
 # --------------------------------------------------------------------------- #
 # TemporalMeasurement
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TemporalMeasurement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E16_Measurement ;
+gmeow:TemporalMeasurement skos:closeMatch crm:E16_Measurement {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW";
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW"
+|} .
 
-gmeow:eqTemporal023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:measuredAge ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P90_has_value ;
+gmeow:measuredAge skos:closeMatch crm:P90_has_value {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "CIDOC measured value" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC measured value"
+|} .
 
-gmeow:eqTemporal024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:unit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:hasUnit ;
+gmeow:unit skos:closeMatch qudt:hasUnit {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "QUDT unit linkage" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "QUDT unit linkage"
+|} .
 
-gmeow:eqTemporal025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:measurementUncertainty ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:P90i_is_value_of ;
+gmeow:measurementUncertainty skos:relatedMatch crm:P90i_is_value_of {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "CIDOC value, used here for uncertainty band" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC value, used here for uncertainty band"
+|} .
 
-gmeow:eqTemporal025b a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:measuredDate ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:hasTime ;
+gmeow:measuredDate skos:closeMatch time:hasTime {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "measuredDate (the absolute-date result of a TemporalMeasurement) aligns to OWL-Time hasTime" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "measuredDate (the absolute-date result of a TemporalMeasurement) aligns to OWL-Time hasTime"
+|} .
 
-gmeow:eqTemporal025c a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:measuredDate ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:inXSDDateTimeStamp ;
+gmeow:measuredDate skos:closeMatch time:inXSDDateTimeStamp {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "measuredDate instant carrying an instantValue aligns to OWL-Time inXSDDateTimeStamp" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "measuredDate instant carrying an instantValue aligns to OWL-Time inXSDDateTimeStamp"
+|} .
 
-gmeow:eqTemporal025d a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DatingMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://purl.org/dc/terms/method> ;
+gmeow:DatingMethod skos:closeMatch dcterms:method {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Dublin Core method — dating method as observation method" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Dublin Core method — dating method as observation method"
+|} .
 
-gmeow:eqTemporal025e a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DatingMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P33_used_specific_technique ;
+gmeow:DatingMethod skos:closeMatch crm:P33_used_specific_technique {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "CIDOC-CRM technique used — dating method as observation method" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM technique used — dating method as observation method"
+|} .
 
 # Dating methods → Wikidata
-gmeow:eqTemporal026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datingMethodRadiocarbon ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q180454 ;
+gmeow:datingMethodRadiocarbon skos:exactMatch wd:Q180454 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "radiocarbon dating (Q180454)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "radiocarbon dating (Q180454)"
+|} .
 
-gmeow:eqTemporal027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datingMethodDendrochronology ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q180439 ;
+gmeow:datingMethodDendrochronology skos:exactMatch wd:Q180439 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "dendrochronology (Q180439)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "dendrochronology (Q180439)"
+|} .
 
-gmeow:eqTemporal028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datingMethodPotassiumArgon ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q899981 ;
+gmeow:datingMethodPotassiumArgon skos:exactMatch wd:Q899981 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "potassium-argon dating (Q899981)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "potassium-argon dating (Q899981)"
+|} .
 
-gmeow:eqTemporal029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datingMethodUraniumLead ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1930710 ;
+gmeow:datingMethodUraniumLead skos:exactMatch wd:Q1930710 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "uranium-lead dating (Q1930710)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "uranium-lead dating (Q1930710)"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Calendar systems → Wikidata
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarGregorian ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q12132 ;
+gmeow:calendarGregorian skos:exactMatch wd:Q12132 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Gregorian calendar (Q12132)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Gregorian calendar (Q12132)"
+|} .
 
-gmeow:eqTemporal031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarJulian ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1986 ;
+gmeow:calendarJulian skos:exactMatch wd:Q1986 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Julian calendar (Q1986)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Julian calendar (Q1986)"
+|} .
 
-gmeow:eqTemporal032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarHebrew ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q5776 ;
+gmeow:calendarHebrew skos:exactMatch wd:Q5776 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Hebrew calendar (Q5776)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Hebrew calendar (Q5776)"
+|} .
 
-gmeow:eqTemporal033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarIslamic ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q13184 ;
+gmeow:calendarIslamic skos:exactMatch wd:Q13184 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Islamic calendar (Q13184)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Islamic calendar (Q13184)"
+|} .
 
-gmeow:eqTemporal034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarChinese ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1851 ;
+gmeow:calendarChinese skos:exactMatch wd:Q1851 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Chinese calendar (Q1851)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Chinese calendar (Q1851)"
+|} .
 
-gmeow:eqTemporal035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarPersian ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q181229 ;
+gmeow:calendarPersian skos:exactMatch wd:Q181229 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Persian calendar (Q181229)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Persian calendar (Q181229)"
+|} .
+
+# --------------------------------------------------------------------------- #
+# Week cycle → schema.org DayOfWeek enumeration members
+#
+# The seven gmeow:DayOfWeek individuals are exactly schema.org's DayOfWeek
+# enumeration members; the alignment is BY REFERENCE (Principle 5) and lives with
+# the terms it aligns, in the slice that owns the week-cycle vocabulary.
+# --------------------------------------------------------------------------- #
+
+gmeow:dayMonday skos:exactMatch schema:Monday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayTuesday skos:exactMatch schema:Tuesday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayWednesday skos:exactMatch schema:Wednesday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayThursday skos:exactMatch schema:Thursday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:dayFriday skos:exactMatch schema:Friday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:daySaturday skos:exactMatch schema:Saturday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+gmeow:daySunday skos:exactMatch schema:Sunday {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
 
 # --------------------------------------------------------------------------- #
 # Time scales → Wikidata / IVOA
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleUTC ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q170788 ;
+gmeow:timeScaleUTC skos:exactMatch wd:Q170788 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Coordinated Universal Time (Q170788)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Coordinated Universal Time (Q170788)"
+|} .
 
-gmeow:eqTemporal037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTAI ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q12149 ;
+gmeow:timeScaleTAI skos:exactMatch wd:Q12149 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "International Atomic Time (Q12149)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "International Atomic Time (Q12149)"
+|} .
 
-gmeow:eqTemporal038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTT ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q649548 ;
+gmeow:timeScaleTT skos:exactMatch wd:Q649548 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Terrestrial Time (Q649548)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Terrestrial Time (Q649548)"
+|} .
 
-gmeow:eqTemporal039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTDB ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q4866001 ;
+gmeow:timeScaleTDB skos:exactMatch wd:Q4866001 {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Barycentric Dynamical Time (Q4866001)" ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "Barycentric Dynamical Time (Q4866001)"
+|} .
 
 # IVOA timescale — direct vocabulary matches (celestial-frame design)
-gmeow:eqTemporal039b a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleUTC ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/UTC> ;
+gmeow:timeScaleUTC skos:closeMatch <http://www.ivoa.net/rdf/timescale/UTC> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal039c a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTT ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TT> ;
+gmeow:timeScaleTT skos:closeMatch <http://www.ivoa.net/rdf/timescale/TT> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal039d a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTDB ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TDB> ;
+gmeow:timeScaleTDB skos:closeMatch <http://www.ivoa.net/rdf/timescale/TDB> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal039e a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleGPS ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/GPS> ;
+gmeow:timeScaleGPS skos:closeMatch <http://www.ivoa.net/rdf/timescale/GPS> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal039f a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleTAI ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TAI> ;
+gmeow:timeScaleTAI skos:closeMatch <http://www.ivoa.net/rdf/timescale/TAI> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal039g a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeScaleUT1 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/UT1> ;
+gmeow:timeScaleUT1 skos:closeMatch <http://www.ivoa.net/rdf/timescale/UT1> {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
 # --------------------------------------------------------------------------- #
 # Interval-level Allen relations → OWL-Time
 # --------------------------------------------------------------------------- #
 
-gmeow:eqTemporal040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalBefore ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalBefore ;
+gmeow:intervalBefore skos:closeMatch time:intervalBefore {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalAfter ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalAfter ;
+gmeow:intervalAfter skos:closeMatch time:intervalAfter {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalMeets ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalMeets ;
+gmeow:intervalMeets skos:closeMatch time:intervalMeets {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalMetBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalMetBy ;
+gmeow:intervalMetBy skos:closeMatch time:intervalMetBy {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalOverlaps ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalOverlaps ;
+gmeow:intervalOverlaps skos:closeMatch time:intervalOverlaps {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalOverlappedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalOverlappedBy ;
+gmeow:intervalOverlappedBy skos:closeMatch time:intervalOverlappedBy {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalStarts ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalStarts ;
+gmeow:intervalStarts skos:closeMatch time:intervalStarts {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalStartedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalStartedBy ;
+gmeow:intervalStartedBy skos:closeMatch time:intervalStartedBy {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalDuring ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalDuring ;
+gmeow:intervalDuring skos:closeMatch time:intervalDuring {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalContains ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalContains ;
+gmeow:intervalContains skos:closeMatch time:intervalContains {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalFinishes ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalFinishes ;
+gmeow:intervalFinishes skos:closeMatch time:intervalFinishes {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalFinishedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalFinishedBy ;
+gmeow:intervalFinishedBy skos:closeMatch time:intervalFinishedBy {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:intervalCoincidesWith ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:intervalEquals ;
+gmeow:intervalCoincidesWith skos:closeMatch time:intervalEquals {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTemporal053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:startedAtTime ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:startedAtTime ;
+gmeow:startedAtTime skos:exactMatch prov:startedAtTime {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)";
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)"
+|} .
 
-gmeow:eqTemporal054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:endedAtTime ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:endedAtTime ;
+gmeow:endedAtTime skos:exactMatch prov:endedAtTime {|
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)";
-    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+    gmeow:comment "the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqWikidata049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CalendarSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q4036 ;
+gmeow:CalendarSystem skos:closeMatch wd:Q4036 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "calendar" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "calendar"
+|} .

@@ -50,7 +50,7 @@
 use std::collections::BTreeSet;
 
 use gmeow_logic::entail::{self, ConclusionShape, Minter};
-use gmeow_logic_compile::ir::{Formula, Term};
+use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
 
 use crate::external::lower::premise_ds_to_world_nquads;
 use crate::external::status::ExternalOutcome;
@@ -123,6 +123,17 @@ pub fn lower_problem(
             TptpRole::Conjecture => {
                 lower_negated_conjecture(&af.formula, &minter, &mut triples)?;
             }
+            // A `plain` TSTP derivation step is a PROOF step, not a problem axiom.
+            // Asserting it would re-assert every inference as an independent axiom
+            // (a strictly stronger, possibly inconsistent theory), so a derivation
+            // is refused here rather than silently lowered as a problem.
+            TptpRole::Derived => {
+                return Err(gap(format!(
+                    "formula {:?} is a derived TSTP step (role `plain`); a derivation is not a \
+                     problem and its steps must not be asserted as axioms",
+                    af.name
+                )));
+            }
         }
     }
     if triples.is_empty() {
@@ -194,6 +205,314 @@ pub fn lower_and_decide(
         ExternalOutcome::Inconsistent
     };
     Ok((outcome, lowered))
+}
+
+// ---------------------------------------------------------------------------
+// The Horn / backward-resolution lowering (the proof-minting path)
+// ---------------------------------------------------------------------------
+
+/// The namespace a lowered TPTP backward program's identity is minted under.
+const TPTP_PROGRAM_NS: &str = "https://blackcatinformatics.ca/gmeow/tptp/program/";
+
+/// Lower a parsed TPTP problem into a compiled `logic:ReasoningProgram` the native
+/// BACKWARD engine resolves — the only native path that mints a checkable proof.
+///
+/// # Why this exists next to [`lower_problem`]
+///
+/// [`lower_problem`] projects onto the DL consistency calculus, which decides
+/// satisfiability and mints **no proof**: its answer is a clash, not a derivation. To lift
+/// a TPTP theorem into a proof-as-process artifact the problem must reach
+/// `gmeow_logic`'s proof-carrying backward resolver instead, which is what a
+/// [`ReasoningProgramIr`] feeds
+/// ([`gmeow_logic::proof_tree::prove_reasoning_program`]).
+///
+/// # The reduction
+///
+/// The refutation `premises ∧ ¬conjecture` is carried out in the HORN fragment, where a
+/// refutation is exactly a derivation of the conjecture's positive content:
+///
+/// * a premise `∀X̄.(C(X̄) → D(X̄))`, a Horn CNF clause `¬C(X̄) ∨ D(X̄)`, or a fact `C(ā)`
+///   becomes one program clause (implicit universals are stripped — a
+///   `logic:ReasoningProgram` clause's free variables ARE its universals);
+/// * a ground conjecture `C(ā)` becomes the goal: deriving it contradicts the negated
+///   conjecture `¬C(ā)`;
+/// * a subsumption conjecture `∀X.(C(X) → D(X))` is negated to `∃X.(C(X) ∧ ¬D(X))` through
+///   the SHARED [`entail::negate`] waist (so the fresh witness comes from the one sound
+///   reserved-namespace [`Minter`], never a forked recipe): its witness `w` is asserted as
+///   the fact `C(w)` and the goal becomes `D(w)`, whose derivation contradicts `¬D(w)`.
+///
+/// Everything outside the Horn fragment — a disjointness axiom `∀X.¬(C(X) ∧ D(X))`, an
+/// all-negative clause, a two-positive clause, an existential, a non-ground conjecture atom
+/// (proving one instance is not proving a universal) — is a [`LoweringGap`]. Those problems
+/// are refuted by the DL clash rule ([`lower_and_decide`]), which is a different, non-proof-
+/// carrying decision procedure; approximating them here would fabricate a proof.
+///
+/// # Errors
+///
+/// [`LoweringGap`] when the problem carries no conjecture, more than one conjecture, or any
+/// construct outside the Horn fragment described above.
+pub fn lower_to_fol_program(
+    formulas: &[AnnotatedFormula],
+) -> Result<ReasoningProgramIr, LoweringGap> {
+    let mut vocab: BTreeSet<String> = BTreeSet::new();
+    for af in formulas {
+        collect_formula_iris(&af.formula, &mut vocab);
+    }
+    let minter = Minter::new(&vocab).map_err(|e| LoweringGap {
+        reason: format!("entailment minter rejected the problem vocabulary: {e}"),
+    })?;
+
+    let mut clauses: Vec<Formula> = Vec::new();
+    let mut query: Option<Formula> = None;
+    for af in formulas {
+        match af.role {
+            TptpRole::Premise | TptpRole::NegatedConjecture => {
+                clauses.push(horn_clause(strip_universals(&af.formula))?);
+            }
+            TptpRole::Derived => {
+                return Err(gap(format!(
+                    "formula {:?} is a derived TSTP step (role `plain`); a derivation is not a \
+                     problem and its steps must not be asserted as program clauses",
+                    af.name
+                )));
+            }
+            TptpRole::Conjecture => {
+                if query.is_some() {
+                    return Err(gap(
+                        "the problem carries more than one conjecture; a backward program \
+                         resolves exactly one goal"
+                            .into(),
+                    ));
+                }
+                let (extra_fact, goal) = horn_goal(&af.formula, &minter)?;
+                if let Some(fact) = extra_fact {
+                    clauses.push(fact);
+                }
+                query = Some(goal);
+            }
+        }
+    }
+    let query = query.ok_or_else(|| {
+        gap(
+            "the problem carries no conjecture, so there is no goal to derive (a backward \
+             program is a clause set PLUS a goal)"
+                .into(),
+        )
+    })?;
+    if clauses.is_empty() {
+        return Err(gap(
+            "the problem lowered to zero program clauses; a goal with nothing to resolve \
+             against derives nothing"
+                .into(),
+        ));
+    }
+
+    // Content-addressed program identity: a pure function of the lowered clause set and
+    // goal (never a positional/source-path token), so the same problem always mints the same
+    // program IRI. Components are length-framed so the concatenation is injective.
+    let mut payload = String::new();
+    for clause in &clauses {
+        let key = clause.content_key().into_string();
+        payload.push_str(&format!("c{}:{key};", key.len()));
+    }
+    let goal_key = query.content_key().into_string();
+    payload.push_str(&format!("q{}:{goal_key};", goal_key.len()));
+    let iri = format!(
+        "{TPTP_PROGRAM_NS}{}",
+        gmeow_logic::provenance::sha1_hex(&payload)
+    );
+
+    ReasoningProgramIr::new(
+        iri,
+        EvaluationMode::Backward,
+        clauses,
+        query,
+        // A TPTP problem authors no three-valued verdict probe, no per-variable order sort,
+        // and no constant `rdf:type` — the lowered program is unsorted and probe-free.
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    )
+    .map_err(|e| gap(format!("lowered backward program is not well-formed: {e}")))
+}
+
+/// Peel every leading universal quantifier: a `logic:ReasoningProgram` clause's FREE
+/// variables are its implicit universals, so an explicit `∀` prefix is the same clause.
+fn strip_universals(f: &Formula) -> &Formula {
+    match f {
+        Formula::Forall { body, .. } => strip_universals(body),
+        other => other,
+    }
+}
+
+/// Recognize a quantifier-free matrix as one definite Horn clause: a fact atom, or an
+/// `Implies(body, head)` whose head is a single atom and whose body is a conjunction of
+/// atoms. A CNF disjunction with exactly one positive literal is converted to that
+/// implication form.
+fn horn_clause(matrix: &Formula) -> Result<Formula, LoweringGap> {
+    match matrix {
+        Formula::Atom { .. } => Ok(matrix.clone()),
+        Formula::Implies(ante, cons) => {
+            if !matches!(&**cons, Formula::Atom { .. }) {
+                return Err(gap(format!(
+                    "a Horn clause head must be a single atom, found {}",
+                    shape_name(cons)
+                )));
+            }
+            let mut body = Vec::new();
+            horn_body_atoms(ante, &mut body)?;
+            Ok(Formula::Implies(
+                Box::new(conjoin(body)),
+                Box::new((**cons).clone()),
+            ))
+        }
+        Formula::Or(lits) => {
+            let mut positives: Vec<&Formula> = Vec::new();
+            let mut negatives: Vec<Formula> = Vec::new();
+            for lit in lits {
+                match lit {
+                    Formula::Not(inner) if matches!(&**inner, Formula::Atom { .. }) => {
+                        negatives.push((**inner).clone());
+                    }
+                    atom @ Formula::Atom { .. } => positives.push(atom),
+                    other => {
+                        return Err(gap(format!(
+                            "clause literal shape {} is not a (negated) atom",
+                            shape_name(other)
+                        )));
+                    }
+                }
+            }
+            match positives.as_slice() {
+                [head] if negatives.is_empty() => Ok((*head).clone()),
+                [head] => Ok(Formula::Implies(
+                    Box::new(conjoin(negatives)),
+                    Box::new((*head).clone()),
+                )),
+                [] => Err(gap(
+                    "an all-negative (goal) clause has no Horn head; it is a refutation \
+                     constraint the DL clash rule decides, not a derivable clause"
+                        .into(),
+                )),
+                _ => Err(gap(
+                    "a clause with two or more positive literals is a genuine disjunction, \
+                     outside the definite Horn fragment"
+                        .into(),
+                )),
+            }
+        }
+        other => Err(gap(format!(
+            "premise shape {} is not a definite Horn clause (expected a fact atom, an \
+             implication with an atomic head, or a Horn CNF clause)",
+            shape_name(other)
+        ))),
+    }
+}
+
+/// Flatten a rule antecedent into its positive body atoms; anything but a conjunction of
+/// atoms is outside the definite fragment.
+fn horn_body_atoms(f: &Formula, out: &mut Vec<Formula>) -> Result<(), LoweringGap> {
+    match f {
+        Formula::And(parts) => {
+            for p in parts {
+                horn_body_atoms(p, out)?;
+            }
+            Ok(())
+        }
+        Formula::Atom { .. } => {
+            out.push(f.clone());
+            Ok(())
+        }
+        other => Err(gap(format!(
+            "a definite Horn body must be a conjunction of atoms, found {}",
+            shape_name(other)
+        ))),
+    }
+}
+
+/// Re-conjoin body atoms: a single atom stays bare (the `logic:ReasoningProgram` clause
+/// surface `lower_body` expects), several become one `And`.
+fn conjoin(mut atoms: Vec<Formula>) -> Formula {
+    if atoms.len() == 1 {
+        return atoms.remove(0);
+    }
+    Formula::And(atoms)
+}
+
+/// Reduce a conjecture to `(optional witness fact, goal atom)`.
+///
+/// A ground atom is the goal directly. A subsumption `∀X.(C(X) → D(X))` is negated through
+/// the SHARED [`entail::negate`] waist: the minted fresh witness `w` becomes the asserted
+/// fact `C(w)` and the goal becomes `D(w)`.
+fn horn_goal(
+    conjecture: &Formula,
+    minter: &Minter,
+) -> Result<(Option<Formula>, Formula), LoweringGap> {
+    match conjecture {
+        Formula::Atom { .. } => {
+            if !conjecture.is_ground() {
+                return Err(gap(
+                    "a non-ground conjecture atom is outside this reduction: deriving ONE \
+                     instance would not establish the universally-quantified claim"
+                        .into(),
+                ));
+            }
+            Ok((None, conjecture.clone()))
+        }
+        Formula::Forall { vars, body } => {
+            let [var] = vars.as_slice() else {
+                return Err(gap(
+                    "multi-variable conjecture quantifier (only a single-variable subclass \
+                     conjecture is reduced to a witness goal)"
+                        .into(),
+                ));
+            };
+            let Formula::Implies(ante, cons) = &**body else {
+                return Err(gap(format!(
+                    "universal conjecture body {} is not a subclass `C(X) → D(X)`",
+                    shape_name(body)
+                )));
+            };
+            let sub = unary_class_over(ante, var)?;
+            let sup = unary_class_over(cons, var)?;
+            let shape = ConclusionShape::SubClassOf {
+                sub: sub.clone(),
+                sup: sup.clone(),
+            };
+            let negation = entail::negate(&shape, minter).map_err(|d| gap(d.to_string()))?;
+            // The witness is the individual the shared negation asserts INTO the antecedent
+            // class: `(w, rdf:type, sub)`. Reading it back (rather than re-deriving it) keeps
+            // the one sound minting recipe unforked.
+            let witness = negation
+                .iter()
+                .find(|(_, p, o)| p == RDF_TYPE && *o == sub)
+                .map(|(s, _, _)| s.clone())
+                .ok_or_else(|| {
+                    gap(
+                        "the shared subsumption negation did not assert a witness membership; \
+                         refusing to mint one independently"
+                            .into(),
+                    )
+                })?;
+            let witness_term = Term::iri(witness).map_err(|e| gap(e.message().to_owned()))?;
+            let fact = Formula::atom(
+                Term::iri(sub).map_err(|e| gap(e.message().to_owned()))?,
+                vec![witness_term.clone()],
+            )
+            .map_err(|e| gap(e.message().to_owned()))?;
+            let goal = Formula::atom(
+                Term::iri(sup).map_err(|e| gap(e.message().to_owned()))?,
+                vec![witness_term],
+            )
+            .map_err(|e| gap(e.message().to_owned()))?;
+            Ok((Some(fact), goal))
+        }
+        other => Err(gap(format!(
+            "conjecture shape {} is not reducible to a Horn goal (expected a ground atom or a \
+             single-variable subclass)",
+            shape_name(other)
+        ))),
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -479,7 +798,7 @@ fn shape_name(f: &Formula) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::external::tptp::parser::parse_tptp;
+    use crate::external::tptp::parser::{TptpSource, TstpTerm, parse_tptp};
 
     fn decide(src: &str) -> Result<ExternalOutcome, LoweringGap> {
         let fs = parse_tptp(src).expect("parse ok");
@@ -606,6 +925,197 @@ mod tests {
             fof(goal, conjecture, r(a, b)).\n";
         let err = decide(src).unwrap_err();
         assert!(err.reason.contains("role"), "{err}");
+    }
+
+    // -----------------------------------------------------------------------
+    // The Horn / backward-resolution (proof-minting) lowering
+    // -----------------------------------------------------------------------
+
+    /// The committed `tptp-mini` problems, by case name.
+    const THEOREM_SUBCLASS: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/theorem-subclass/source/problem.p"
+    );
+    const THEOREM_GROUND: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/theorem-ground/source/problem.p"
+    );
+    const COUNTERSATISFIABLE: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/countersatisfiable/source/problem.p"
+    );
+    const SATISFIABLE_OPEN: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/satisfiable-open/source/problem.p"
+    );
+    const CONTRADICTORY_AXIOMS: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/contradictory-axioms/source/problem.p"
+    );
+    const CNF_DISJOINT_CLASH: &str = include_str!(
+        "../../../../../conformance/logic/cases/external/tptp-mini/cnf-disjoint-clash/source/problem.p"
+    );
+
+    fn prove(src: &str) -> gmeow_logic::proof_tree::ProvedProgram {
+        let formulas = parse_tptp(src).expect("parse ok");
+        let program = lower_to_fol_program(&formulas).expect("Horn lowering");
+        gmeow_logic::proof_tree::prove_reasoning_program(&program, &[]).expect("resolution")
+    }
+
+    #[test]
+    fn theorem_subclass_lowers_to_a_proof_carrying_derivation() {
+        // a ⊑ b, b ⊑ c ⊢ a ⊑ c. Negating the conjecture mints a witness w with a(w);
+        // the Horn derivation c(w) ← b(w) ← a(w) IS the refutation of ¬c(w).
+        let proved = prove(THEOREM_SUBCLASS);
+        assert_eq!(proved.status, "ok");
+        assert_eq!(proved.answers.len(), 1, "one derived goal instance");
+        let tree = &proved.answers[0].tree;
+        assert_eq!(tree.len(), 3, "c(w) ← b(w) ← a(w)");
+        assert!(!tree.root().asserted, "the root is a rule application");
+        assert_eq!(tree.root().premises, vec![1]);
+        assert!(
+            tree.steps()[2].asserted,
+            "the witness membership a(w) is the asserted leaf"
+        );
+        // Every step's identity is a genuine content-addressed derivation IRI.
+        for step in tree.steps() {
+            assert!(
+                step.derivation_iri
+                    .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"),
+                "{}",
+                step.derivation_iri
+            );
+        }
+    }
+
+    #[test]
+    fn theorem_ground_lowers_to_a_two_step_derivation() {
+        // a ⊑ b, a(x) ⊢ b(x): one rule application over one asserted fact.
+        let proved = prove(THEOREM_GROUND);
+        assert_eq!(proved.answers.len(), 1);
+        let tree = &proved.answers[0].tree;
+        assert_eq!(tree.len(), 2);
+        assert!(tree.steps()[1].asserted);
+    }
+
+    #[test]
+    fn a_non_theorem_lowers_and_derives_nothing() {
+        // a(x) does NOT entail b(x): the goal is decided with an EMPTY answer set — no
+        // proof exists, and none is fabricated.
+        let proved = prove(COUNTERSATISFIABLE);
+        assert_eq!(proved.status, "ok");
+        assert!(proved.answers.is_empty());
+    }
+
+    #[test]
+    fn non_horn_and_goal_free_problems_are_honest_gaps() {
+        // No conjecture ⇒ no goal to derive.
+        let no_goal = lower_to_fol_program(&parse_tptp(SATISFIABLE_OPEN).unwrap()).unwrap_err();
+        assert!(no_goal.reason.contains("no conjecture"), "{no_goal}");
+
+        // `∀X.¬(b(X) ∧ c(X))` is a disjointness constraint, not a Horn clause.
+        let disjointness =
+            lower_to_fol_program(&parse_tptp(CONTRADICTORY_AXIOMS).unwrap()).unwrap_err();
+        assert!(disjointness.reason.contains("Horn"), "{disjointness}");
+
+        // `¬b(X) ∨ ¬c(X)` is an all-negative (goal) clause with no Horn head.
+        let all_negative =
+            lower_to_fol_program(&parse_tptp(CNF_DISJOINT_CLASH).unwrap()).unwrap_err();
+        assert!(
+            all_negative.reason.contains("all-negative"),
+            "{all_negative}"
+        );
+    }
+
+    #[test]
+    fn the_lowered_program_identity_is_content_addressed_and_stable() {
+        let a = lower_to_fol_program(&parse_tptp(THEOREM_SUBCLASS).unwrap()).unwrap();
+        let b = lower_to_fol_program(&parse_tptp(THEOREM_SUBCLASS).unwrap()).unwrap();
+        assert_eq!(a.iri, b.iri, "the same problem mints the same program IRI");
+        let other = lower_to_fol_program(&parse_tptp(THEOREM_GROUND).unwrap()).unwrap();
+        assert_ne!(a.iri, other.iri, "distinct problems mint distinct IRIs");
+    }
+
+    #[test]
+    fn the_tstp_derivation_round_trips_through_the_parser() {
+        use gmeow_logic::proof_tree::{tstp_step_derivation_iri, tstp_step_name};
+
+        let proved = prove(THEOREM_SUBCLASS);
+        let tree = &proved.answers[0].tree;
+        let tstp = tree.to_tstp().expect("TSTP projection");
+
+        let parsed = parse_tptp(&tstp).expect("our own TSTP derivation must re-parse");
+        assert_eq!(parsed.len(), tree.len(), "one annotated formula per step");
+
+        // Names round-trip to the step identities, and the emitted (reverse) order lines up
+        // with the tree's step table read backwards.
+        for (i, af) in parsed.iter().enumerate() {
+            let step = &tree.steps()[tree.len() - 1 - i];
+            assert_eq!(
+                af.name,
+                tstp_step_name(&step.derivation_iri).expect("name"),
+                "step name"
+            );
+            assert_eq!(
+                tstp_step_derivation_iri(&af.name).expect("inverse"),
+                step.derivation_iri,
+                "name → derivation IRI is the exact inverse"
+            );
+            match (&step.rule_iri, &af.source, af.role) {
+                (None, None, TptpRole::Premise) => {
+                    assert!(step.asserted, "an axiom line is an asserted leaf");
+                }
+                (
+                    Some(rule),
+                    Some(TptpSource::Inference {
+                        rule: parsed_rule,
+                        status,
+                        parents,
+                    }),
+                    TptpRole::Derived,
+                ) => {
+                    assert_eq!(parsed_rule, rule, "the cited firing rule survives");
+                    assert_eq!(
+                        status,
+                        &vec![TstpTerm::Func(
+                            "status".into(),
+                            vec![TstpTerm::Name("thm".into())]
+                        )]
+                    );
+                    let expected: Vec<String> = step
+                        .premises
+                        .iter()
+                        .map(|&p| tstp_step_name(&tree.steps()[p].derivation_iri).expect("name"))
+                        .collect();
+                    assert_eq!(parents, &expected, "the parent SET survives");
+                }
+                other => panic!("step {i} did not round-trip: {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn the_committed_tstp_fixture_is_exactly_what_our_reasoner_produces() {
+        // The shipped derivation fixture is a PRODUCT of the pipeline above, not a
+        // hand-written artifact: regenerate it from the committed problem and require a
+        // byte match of its derivation lines (the `%` header is prose). This also parses
+        // the fixture as it ships, header and all.
+        const FIXTURE: &str = include_str!("../../../../math-lift/fixtures/theorem-subclass.tstp");
+
+        let regenerated = prove(THEOREM_SUBCLASS).answers[0]
+            .tree
+            .to_tstp()
+            .expect("TSTP projection");
+        let committed: String = FIXTURE
+            .lines()
+            .filter(|l| !l.starts_with('%'))
+            .map(|l| format!("{l}\n"))
+            .collect();
+        assert_eq!(
+            committed, regenerated,
+            "the committed TSTP fixture drifted from what the reasoner now produces"
+        );
+        assert_eq!(
+            parse_tptp(FIXTURE)
+                .expect("the shipped fixture must parse")
+                .len(),
+            3
+        );
     }
 
     #[test]

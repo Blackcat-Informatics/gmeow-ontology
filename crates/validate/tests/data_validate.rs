@@ -261,6 +261,149 @@ fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
     );
 }
 
+/// An under-specified A-Box that drives the D5 abductive "what to ADD" wing on the
+/// PRODUCTION consumer surface (`data_validate::run`, the `gmeow validate <rdf>` entry).
+///
+/// `ex:c` is a `gmeow:Commitment` relator carrying only `committedAgent` — its
+/// beneficiary/intentionGoal relata are MISSING (relatum-completion candidates); `ex:i`
+/// is a bare `gmeow:Item` (sortal-specialization candidate). Each is marked
+/// `gmeow:graphBoxRole gmeow:boxABox` so the producer's A-Box scoping admits it. Tier-1 is
+/// reasoner-free, so this is the honest ASSERTED-ONLY surface.
+const UNDERSPEC_ABDUCTIVE_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/> .
+
+ex:c a gmeow:Commitment ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:committedAgent ex:agent .
+
+ex:i a gmeow:Item ;
+    gmeow:graphBoxRole gmeow:boxABox .
+"#;
+
+/// C1 on the production surface: the real `data_validate::run` (the `gmeow validate <rdf>`
+/// CLI entry) over an under-specified A-Box must now emit `advice.abductive.<case>`
+/// advisories naming the minimal element to ADD — the wing was previously wired only into
+/// the pipeline / dev-gate paths (which only ever see VALID input → 0 output), so a real
+/// user's under-specified model got ZERO abductive advice. This asserts, in order: that
+/// ≥1 `advice.abductive.*` advisory fires (the relator + the sortal case); that EVERY
+/// abductive-tier finding (advice + warrant) is a `Severity::Note` — the tier NEVER
+/// fabricates a hard Error/Warning and NEVER gates the pass/fail verdict; that each
+/// abductive advisory carries its warrant twin (a paired `advice.abductive.warrant.*`
+/// Note), i.e. the dual projection rode the ledger with a real warrant edge; and that the
+/// output is DETERMINISTIC — the same input twice yields identical abductive codes (a
+/// proxy for "the producer only READ the graph; the base graph is unmutated").
+#[test]
+fn abductive_wing_fires_on_the_real_validate_cli_path() {
+    let gts = bundle_bytes();
+    let report = data_validate::run(
+        UNDERSPEC_ABDUCTIVE_TTL.as_bytes(),
+        "turtle",
+        &gts,
+        NS,
+        "underspec.ttl",
+        false,
+    )
+    .expect("validate run");
+
+    let abductive: Vec<_> = report
+        .findings
+        .iter()
+        .filter(|f| f.code.starts_with("advice.abductive."))
+        .collect();
+    assert!(
+        !abductive.is_empty(),
+        "the abductive wing must fire on the real consumer path: {:?}",
+        report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+    );
+
+    // The tier is ADVISORY: every abductive finding (advice + warrant) is a Note. No hard
+    // Error/Warning is fabricated by the abductive tier, so it can never gate the verdict.
+    for f in &abductive {
+        assert_eq!(
+            f.severity,
+            gmeow_errors::Severity::Note,
+            "abductive finding {} must be a Note, never a gating severity",
+            f.code
+        );
+    }
+
+    // At least one candidate names the missing Commitment relatum, and each advice carries
+    // its warrant twin (the dual projection rode the ledger).
+    let advice_codes: Vec<&str> = abductive
+        .iter()
+        .map(|f| f.code.as_str())
+        .filter(|c| !c.starts_with("advice.abductive.warrant."))
+        .collect();
+    assert!(
+        advice_codes.iter().any(|c| c.contains(".Commitment.")),
+        "an abductive advisory must name the under-specified Commitment relator: {advice_codes:?}"
+    );
+    for code in &advice_codes {
+        // The warrant twin shares the advice code's `<discipline>.<digest>` tail under the
+        // `advice.abductive.warrant.` prefix (see abductive.rs::build_suggestion).
+        let tail = code
+            .strip_prefix("advice.abductive.")
+            .expect("advice.abductive. prefix");
+        let want_warrant = format!("advice.abductive.warrant.{tail}");
+        assert!(
+            abductive.iter().any(|f| f.code == want_warrant),
+            "advice {code} must carry its warrant twin {want_warrant}: {:?}",
+            abductive.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    // Determinism / read-only: the same input twice yields the identical abductive code set.
+    let report2 = data_validate::run(
+        UNDERSPEC_ABDUCTIVE_TTL.as_bytes(),
+        "turtle",
+        &gts,
+        NS,
+        "underspec.ttl",
+        false,
+    )
+    .expect("second validate run");
+    let codes = |r: &gmeow_errors::Report| -> Vec<String> {
+        let mut v: Vec<String> = r
+            .findings
+            .iter()
+            .filter(|f| f.code.starts_with("advice.abductive."))
+            .map(|f| f.code.clone())
+            .collect();
+        v.sort();
+        v
+    };
+    assert_eq!(
+        codes(&report),
+        codes(&report2),
+        "the abductive wing must be deterministic (same input ⇒ same advice codes)"
+    );
+}
+
+/// A conforming input must still PASS: the abductive Notes ride alongside without changing
+/// the pass/fail verdict. A clean graph guard-matches no A-Box gap subject, so no abductive
+/// advice fires and no bundle self-advice leaks in — 0 errors, 0 warnings.
+#[test]
+fn abductive_wing_does_not_gate_a_conforming_input() {
+    let gts = bundle_bytes();
+    let clean = "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n";
+    let report = data_validate::run(clean.as_bytes(), "turtle", &gts, NS, "clean.ttl", false)
+        .expect("run clean");
+    assert_eq!(report.error_count(), 0, "clean graph must report no errors");
+    assert_eq!(
+        report.warning_count(),
+        0,
+        "clean graph must report no warnings"
+    );
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|f| f.code.starts_with("advice.abductive.")),
+        "a conforming graph must not surface abductive advice (no bundle self-advice): {:?}",
+        report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+    );
+}
+
 #[test]
 fn deep_false_is_the_reasoner_free_default() {
     // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact

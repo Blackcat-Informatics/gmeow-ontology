@@ -850,10 +850,12 @@ gmeow:DoxasticStandpointClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
 
+gmeow:DoxasticState logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticContent ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticClaim ; logic:allValuesFrom gmeow:StandpointClaim ] .
+
 gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:StandpointClaim ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:credence ; owl:allValuesFrom xsd:decimal ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
@@ -862,58 +864,136 @@ gmeow:DoxasticState rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
 
-gmeow:ClaimEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluates ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ClaimToken ] .
-
-gmeow:DoxasticTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DoxasticState ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
-
-gmeow:SupportAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:supportGround ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportUnderStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportStrength ; owl:allValuesFrom xsd:decimal ] .
-
-gmeow:AdequacyAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:adequacyUnderStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:meetsThreshold ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AdequacyVerdict ] .
-
-gmeow:KnowledgeClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:knowerAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownProposition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownInWorld ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicContext ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:underStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] .
-
-gmeow:KnowledgeAttribution rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] .
-
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:StandpointClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
-# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/epistemicAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/doxasticContent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/doxasticClaim> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] .
-<https://blackcatinformatics.ca/gmeow/ClaimEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/evaluates> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ClaimToken> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/supportGround> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/supportUnderStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/adequacyUnderStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/meetsThreshold> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/AdequacyVerdict> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knowerAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knownProposition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knownInWorld> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicContext> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/underStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributingAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedKnower> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedProposition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
+# Bare min1+class backing for the properties whose legacy sh:minCount 1 the
+# qualified-onClass restorations above never satisfied (a min/maxQualifiedCardinality
+# with a SPECIFIC onClass projects only sh:qualifiedMinCount/MaxCount, never the legacy
+# BARE sh:minCount/maxCount — the #1194 restoration was a dead end for these paths).
+gmeow:DoxasticState logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticContent ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticClaim ; logic:allValuesFrom gmeow:StandpointClaim ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epistemicAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticContent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticClaim" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ClaimEvaluation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluates ; logic:allValuesFrom gmeow:ClaimToken ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ClaimEvaluation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evaluates" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DoxasticTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureOfDoxasticState ; logic:allValuesFrom gmeow:DoxasticState ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:allValuesFrom gmeow:TimeInterval ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/duringInterval" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:SupportAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:supportGround ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:supportUnderStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportGround" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:AdequacyAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:adequacyUnderStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:meetsThreshold ; logic:allValuesFrom gmeow:AdequacyVerdict ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/adequacyUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/meetsThreshold" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:KnowledgeClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:knowerAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:knownProposition ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:knownInWorld ; logic:allValuesFrom gmeow:EpistemicContext ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:underStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knowerAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownInWorld" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/underStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:KnowledgeAttribution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:attributingAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attributedKnower ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attributedProposition ; logic:allValuesFrom gmeow:Proposition ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributingAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedKnower" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:DoxasticStateShape: gmeow:credence, when present, is an xsd:decimal in the
+# closed interval [0,1] (sh:minInclusive 0 / sh:maxInclusive 1) — the declarative
+# range half had no logic:ValueRangeConstraint yet (only the allValuesFrom xsd:decimal
+# datatype restriction above). gmeow:credence's own rdfs:domain is exactly
+# gmeow:DoxasticState (not reused elsewhere), so a class-scoped record is exact.
+gmeow:DoxasticStateCredenceRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "DoxasticState credence range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A validation-only integrity constraint: when present, a DoxasticState's gmeow:credence is an xsd:decimal in [0.0, 1.0]."@x-gmeow-english ;
+    logic:formalizes gmeow:DoxasticStateShape ;
+    logic:onClass gmeow:DoxasticState ;
+    logic:valuePath gmeow:credence ;
+    logic:minInclusiveBound 0.0 ;
+    logic:maxInclusiveBound 1.0 .
+
 <https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+
+# =========================================================================== #
+# Advisory justifier-type constraint — projection of
+# DoxasticStateJustifierWarningShape (Principle 13). The justification-ground
+# edges keep the JustificationGround range (Violation-severity, structural);
+# this constraint is the ADVISORY (Warning) sh:or peer that warns, per-value,
+# when a DoxasticState's hasAvailableEvidence / basesBeliefOn value is not one
+# of EvidenceSpan / Attestation / DoxasticState.
+# =========================================================================== #
+
+gmeow:DoxasticStateJustifierWarningConstraint
+    a logic:Constraint ;
+    rdfs:label "DoxasticState justifier-type warning constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world advisory constraint: a gmeow:DoxasticState's gmeow:hasAvailableEvidence or gmeow:basesBeliefOn value should be a gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState."@x-gmeow-english ;
+    logic:formalizes gmeow:DoxasticStateJustifierWarningShape ;
+    logic:severity "Warning" ;
+    logic:message "gmeow:hasAvailableEvidence and gmeow:basesBeliefOn should point to an EvidenceSpan, Attestation, or DoxasticState (advisory warning)." ;
+    logic:integrity logic:dsjForall .
+logic:dsjForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dsjImpl .
+logic:dsjImpl a logic:Formula ; logic:antecedent logic:dsjType ; logic:consequent logic:dsjBoth .
+logic:dsjType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
+logic:dsjBoth a logic:Formula ; logic:and logic:dsjEvidenceCheck , logic:dsjBasingCheck .
+
+logic:dsjEvidenceCheck a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ev" ] ;
+    logic:forall logic:dsjEvidenceImpl .
+logic:dsjEvidenceImpl a logic:Formula ; logic:antecedent logic:dsjEvidenceHas ; logic:consequent logic:dsjEvidenceOr .
+logic:dsjEvidenceHas a logic:Formula ; logic:relation gmeow:hasAvailableEvidence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ev" ] .
+logic:dsjEvidenceOr a logic:Formula ; logic:or logic:dsjEvSpan , logic:dsjEvAtt , logic:dsjEvDox .
+logic:dsjEvSpan a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EvidenceSpan ] .
+logic:dsjEvAtt a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attestation ] .
+logic:dsjEvDox a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
+
+logic:dsjBasingCheck a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bg" ] ;
+    logic:forall logic:dsjBasingImpl .
+logic:dsjBasingImpl a logic:Formula ; logic:antecedent logic:dsjBasingHas ; logic:consequent logic:dsjBasingOr .
+logic:dsjBasingHas a logic:Formula ; logic:relation gmeow:basesBeliefOn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bg" ] .
+logic:dsjBasingOr a logic:Formula ; logic:or logic:dsjBgSpan , logic:dsjBgAtt , logic:dsjBgDox .
+logic:dsjBgSpan a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EvidenceSpan ] .
+logic:dsjBgAtt a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attestation ] .
+logic:dsjBgDox a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
 
 # =========================================================================== #
 # Suppression constraint (#1194) — projection of WithdrawnDoxasticTenureSuppressionShape.
@@ -928,7 +1008,7 @@ gmeow:WithdrawnDoxasticTenureSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a withdrawn belief (a gmeow:DoxasticTenure whose gmeow:duringInterval carries a gmeow:endedAtTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:DoxasticTenure ;
+    logic:formalizes gmeow:WithdrawnDoxasticTenureSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A withdrawn belief (a DoxasticTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supDxForall .
@@ -952,9 +1032,6 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/adequacyUnderStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/meetsThreshold> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyVerdict> ] .
-<https://blackcatinformatics.ca/gmeow/ClaimEvaluation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/evaluates> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/ClaimToken> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/adequateUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyAssessment> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/basesBeliefOn> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/claimOfBelief> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
@@ -962,12 +1039,271 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasAvailableEvidence> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDefeatStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationStatus> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportsUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/SupportAssessment> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributedKnower> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributedProposition> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributingAgent> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knowerAgent> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knownInWorld> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicContext> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knownProposition> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/underStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
 <https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportStrength> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportUnderStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:adequacyUnderStandardFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequacyUnderStandard is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:adequacyUnderStandard is functional: a single reified gmeow:AdequacyAssessment judges its support against exactly one named gmeow:EpistemicStandard, so the assessment fixes one standard as the bar it measures against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:adequacyUnderStandard ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:adequacyUnderStandard ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:adequacyUnderStandard names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:adequacyUnderStandard, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:adequacyUnderStandard and nothing else. It is not a definition of gmeow:adequacyUnderStandard (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:adequacyUnderStandardFunctionality logic:characterizes gmeow:adequacyUnderStandard ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attributedKnowerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributedKnower is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attributedKnower is functional: one gmeow:KnowledgeAttribution credits exactly one agent with the knowing — the single knower it is about, which may equal the attributing agent for self-attribution but is never plural within one attribution."@x-gmeow-english ;
+    logic:characterizes gmeow:attributedKnower ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attributedKnower ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attributedKnower names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attributedKnower, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attributedKnower and nothing else. It is not a definition of gmeow:attributedKnower (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attributedKnowerFunctionality logic:characterizes gmeow:attributedKnower ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attributedPropositionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributedProposition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attributedProposition is functional: one gmeow:KnowledgeAttribution is about exactly one proposition attributed as known, so a single non-factive 'takes themselves to know' attribution names one propositional target and entails no truth of it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:attributedProposition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attributedProposition ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attributedProposition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attributedProposition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attributedProposition and nothing else. It is not a definition of gmeow:attributedProposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attributedPropositionFunctionality logic:characterizes gmeow:attributedProposition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:attributingAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributingAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attributingAgent is functional: one gmeow:KnowledgeAttribution has exactly one agent making it — the single attributer whose standpoint the credited knowing is reported from, never two co-attributers within one attribution."@x-gmeow-english ;
+    logic:characterizes gmeow:attributingAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attributingAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:attributingAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attributingAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:attributingAgent and nothing else. It is not a definition of gmeow:attributingAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:attributingAgentFunctionality logic:characterizes gmeow:attributingAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:claimOfBeliefFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "claimOfBelief is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimOfBelief is functional: one gmeow:DoxasticStandpointClaim reports exactly one held gmeow:DoxasticState — the single believing mode the claim is the vantage-indexed report of, so the reporting claim binds to one underlying belief. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:claimOfBelief ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimOfBelief ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimOfBelief names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimOfBelief, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimOfBelief and nothing else. It is not a definition of gmeow:claimOfBelief (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimOfBeliefFunctionality logic:characterizes gmeow:claimOfBelief ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:doxasticClaimFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doxasticClaim is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:doxasticClaim is functional: one gmeow:DoxasticState carries its qualitative belief value through exactly one gmeow:StandpointClaim — the single bridge whose claimModality supplies the state's modality without domain-clashing claimModality onto DoxasticState. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:doxasticClaim ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:doxasticClaim ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:doxasticClaim names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:doxasticClaim, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:doxasticClaim and nothing else. It is not a definition of gmeow:doxasticClaim (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:doxasticClaimFunctionality logic:characterizes gmeow:doxasticClaim ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:doxasticContentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doxasticContent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:doxasticContent is functional: one gmeow:DoxasticState is constitutively directed at exactly one gmeow:Proposition — the single truth-apt content the believing mode is about, so a state directed at two propositions would be two distinct believings. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:doxasticContent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:doxasticContent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:doxasticContent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:doxasticContent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:doxasticContent and nothing else. It is not a definition of gmeow:doxasticContent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:doxasticContentFunctionality logic:characterizes gmeow:doxasticContent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:epistemicAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "epistemicAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:epistemicAgent is functional: one gmeow:DoxasticState constitutively inheres in exactly one gmeow:Agent — the single believer whose believing mode it is, since a mental moment inheres in one bearer and cannot be shared across agents."@x-gmeow-english ;
+    logic:characterizes gmeow:epistemicAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:epistemicAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:epistemicAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:epistemicAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:epistemicAgent and nothing else. It is not a definition of gmeow:epistemicAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:epistemicAgentFunctionality logic:characterizes gmeow:epistemicAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:evaluatesFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "evaluates is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluates is functional: one gmeow:ClaimEvaluation assesses exactly one target gmeow:ClaimToken — the single assertion act it judges under its context — even though that one token may in turn be assessed by many coexisting evaluations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluates ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluates ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:evaluates names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:evaluates, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:evaluates and nothing else. It is not a definition of gmeow:evaluates (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:evaluatesFunctionality logic:characterizes gmeow:evaluates ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knowerAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knowerAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knowerAgent is functional: one reified gmeow:KnowledgeClaim has exactly one knowing agent — the single subject the locally-factive knowing relation is anchored on, so the claim reifies one agent's knowing, not a collective."@x-gmeow-english ;
+    logic:characterizes gmeow:knowerAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knowerAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knowerAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowerAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:knowerAgent and nothing else. It is not a definition of gmeow:knowerAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:knowerAgentFunctionality logic:characterizes gmeow:knowerAgent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knownInWorldFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knownInWorld is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knownInWorld is functional: one gmeow:KnowledgeClaim is locally factive in exactly one gmeow:EpistemicContext — the single belief-world its known proposition holds in, since factivity is world-relative and a second world would be a second knowing claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:knownInWorld ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knownInWorld ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knownInWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knownInWorld, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:knownInWorld and nothing else. It is not a definition of gmeow:knownInWorld (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:knownInWorldFunctionality logic:characterizes gmeow:knownInWorld ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knownPropositionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knownProposition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knownProposition is functional: one reified gmeow:KnowledgeClaim is about exactly one known gmeow:Proposition — the single propositional content the knowing relation ranges over, so one claim reifies knowing one proposition in its world under its standard. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:knownProposition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knownProposition ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knownProposition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knownProposition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:knownProposition and nothing else. It is not a definition of gmeow:knownProposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:knownPropositionFunctionality logic:characterizes gmeow:knownProposition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:meetsThresholdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "meetsThreshold is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:meetsThreshold is functional: one gmeow:AdequacyAssessment carries exactly one solver-set gmeow:AdequacyVerdict — met, unmet, or undetermined — since a single assessment against one standard resolves to one verdict, never to conflicting outcomes at once."@x-gmeow-english ;
+    logic:characterizes gmeow:meetsThreshold ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:meetsThreshold ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:meetsThreshold names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:meetsThreshold, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:meetsThreshold and nothing else. It is not a definition of gmeow:meetsThreshold (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:meetsThresholdFunctionality logic:characterizes gmeow:meetsThreshold ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:supportGroundFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "supportGround is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportGround is functional: one gmeow:SupportAssessment weighs exactly one gmeow:JustificationGround — the single ground whose warranting strength it measures under one standard, so a second ground would be a separate support assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:supportGround ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:supportGround ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:supportGround names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:supportGround, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:supportGround and nothing else. It is not a definition of gmeow:supportGround (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:supportGroundFunctionality logic:characterizes gmeow:supportGround ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:supportUnderStandardFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "supportUnderStandard is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportUnderStandard is functional: one gmeow:SupportAssessment measures support relative to exactly one named gmeow:EpistemicStandard — the single bar its strength is indexed to, so assessing the same ground under a second standard is a distinct assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:supportUnderStandard ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:supportUnderStandard ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:supportUnderStandard names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:supportUnderStandard, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:supportUnderStandard and nothing else. It is not a definition of gmeow:supportUnderStandard (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:supportUnderStandardFunctionality logic:characterizes gmeow:supportUnderStandard ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tenureOfDoxasticStateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "tenureOfDoxasticState is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureOfDoxasticState is functional: one gmeow:DoxasticTenure scopes exactly one gmeow:DoxasticState — the single believing whose holding interval it records — so a revised belief opens a fresh state and a fresh tenure rather than re-pointing this one."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureOfDoxasticState ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureOfDoxasticState ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tenureOfDoxasticState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureOfDoxasticState, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureOfDoxasticState and nothing else. It is not a definition of gmeow:tenureOfDoxasticState (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tenureOfDoxasticStateFunctionality logic:characterizes gmeow:tenureOfDoxasticState ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:underStandardFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "underStandard is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:underStandard ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:underStandard ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:underStandard names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:underStandard, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:underStandard and nothing else. It is not a definition of gmeow:underStandard (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:underStandardFunctionality logic:characterizes gmeow:underStandard ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

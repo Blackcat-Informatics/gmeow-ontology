@@ -18,270 +18,206 @@ gmeow:mapsetEmail a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Email alignments. EmailMessage is equivalent to schema:EmailMessage; the rest use skos:closeMatch (cross-type/loose) to schema.org, the Nepomuk Message Ontology (NMO), and SIOC. The reified MessageParticipant relator is canonical; flat from/to/cc/bcc and their schema.org/NMO counterparts are lossy projection shortcuts. Trust terms (RelayHop/AuthenticationResult/signatures) are canonical — no maintained external RDF vocabulary exists for them. MessageParticipantRole envelope/resent roles are also canonical — no external vocabulary covers them. threadSubject and subjectPrefix are canonical — no maintained external vocabulary exposes thread-level normalized subject or per-message prefix stripping. MessageKind and its individuals are canonical — no maintained external vocabulary covers DSN/ARF/MDN/auto-generated report kinds. priority, importance, precedence, autoSubmitted, readReceiptRequested, and dispositionNotificationTo are canonical — no maintained external vocabulary covers these behavioral header facets. MIME body-part metadata terms (MultipartBodyPart, InlinePart, MultipartType, ContentDisposition, ContentTransferEncoding, hasMultipartType, hasInlinePart, hasContentDisposition, hasContentTransferEncoding, partId, contentId, charset; the design) are canonical — no maintained external RDF vocabulary covers granular MIME structure, Content-ID, transfer encoding, or disposition values. Mailbox hierarchy terms (parentMailbox, childMailbox, mailboxSortOrder, mailboxPath, mailboxTotalMessages, mailboxUnreadMessages; the design) are canonical — JMAP (RFC 8621) has no maintained RDF vocabulary. parentMailbox/childMailbox specialize the universal partOf/hasPart spine; path and counts are derived projection state (Principle 12). Calendar invitation bridge terms (describesEvent, calendarAttachment, calendarUid, CalendarMethod, hasCalendarMethod, messageKindCalendarInvitation; mail-corpus invitation consumer) are canonical — no maintained external RDF vocabulary covers the email→event bridge. iCalendar METHOD/UID alignments are by reference to icaltzd. Email versioning terms (EmailPatchDiff, hasPatchDiff, messageIdGenerated, messageIdCollision, canonicalFingerprint, bodyLineFingerprint, analysisScope, analysisInputBodyLine; the design) are canonical — no maintained external vocabulary covers Message-ID collision tracking, body-line fingerprinting, or email patch-diff artifacts. Canonical/variant status is represented via the cross-cutting VersionMembership relator from versions.ttl, not as email-specific subclasses. JMAP structural identifier terms (blobId, bodyStructure, BodyValue; the design) are canonical — JMAP (RFC 8620/8621) defines blobId, partId, and BodyStructure at the protocol level, but has no maintained RDF vocabulary. bodyStructure is a serialized projection; the canonical MIME tree is the existing hasBodyPart/hasPart spine (Principle 4).".
 
-gmeow:eqEmail001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EmailMessage ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:EmailMessage ;
+gmeow:EmailMessage owl:equivalentClass schema:EmailMessage {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqEmail002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EmailMessage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:Email ;
+gmeow:EmailMessage skos:closeMatch nmo:Email {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EmailMessage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sioc:Post ;
+gmeow:EmailMessage skos:closeMatch sioc:Post {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqEmail004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Message ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Message ;
+gmeow:Message skos:closeMatch schema:Message {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Message ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:Message ;
+gmeow:Message skos:closeMatch nmo:Message {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Thread ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sioc:Thread ;
+gmeow:Thread skos:closeMatch sioc:Thread {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqEmail007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Mailbox ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:Mailbox ;
+gmeow:Mailbox skos:closeMatch nmo:Mailbox {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqEmail008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:from ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:sender ;
+gmeow:from skos:closeMatch schema:sender {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:from ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:from ;
+gmeow:from skos:closeMatch nmo:from {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:to ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:toRecipient ;
+gmeow:to skos:closeMatch schema:toRecipient {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:to ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:to ;
+gmeow:to skos:closeMatch nmo:to {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:cc ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:ccRecipient ;
+gmeow:cc skos:closeMatch schema:ccRecipient {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:cc ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:cc ;
+gmeow:cc skos:closeMatch nmo:cc {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:bcc ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:bccRecipient ;
+gmeow:bcc skos:closeMatch schema:bccRecipient {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:bcc ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:bcc ;
+gmeow:bcc skos:closeMatch nmo:bcc {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:replyTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:replyTo ;
+gmeow:replyTo skos:closeMatch nmo:replyTo {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sentAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:dateSent ;
+gmeow:sentAt skos:closeMatch schema:dateSent {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sentAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:sentDate ;
+gmeow:sentAt skos:closeMatch nmo:sentDate {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:receivedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:dateReceived ;
+gmeow:receivedAt skos:closeMatch schema:dateReceived {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:receivedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:receivedDate ;
+gmeow:receivedAt skos:closeMatch nmo:receivedDate {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:subject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:messageSubject ;
+gmeow:subject skos:closeMatch nmo:messageSubject {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rfcMessageId ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:messageId ;
+gmeow:rfcMessageId skos:closeMatch nmo:messageId {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:inReplyTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:inReplyTo ;
+gmeow:inReplyTo skos:closeMatch nmo:inReplyTo {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:references ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:references ;
+gmeow:references skos:closeMatch nmo:references {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqEmail025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAttachment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:messageAttachment ;
+gmeow:hasAttachment skos:closeMatch schema:messageAttachment {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAttachment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject nmo:hasAttachment ;
+gmeow:hasAttachment skos:closeMatch nmo:hasAttachment {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqEmail027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sentBySoftware ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:agent ;
+gmeow:sentBySoftware skos:closeMatch schema:agent {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
 # --------------------------------------------------------------------------- #
 # Calendar invitation bridge alignments (mail-corpus invitation consumer)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqEmail028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:describesEvent ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:about ;
+gmeow:describesEvent skos:relatedMatch schema:about {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:about is extremely broad; describesEvent is scoped to Event-bearing emails" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "schema:about is extremely broad; describesEvent is scoped to Event-bearing emails"
+|} .
 
-gmeow:eqEmail029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:calendarUid ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:uid ;
+gmeow:calendarUid skos:closeMatch ical:uid {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "iCalendar UID — the persistent identifier of a calendar component" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "iCalendar UID — the persistent identifier of a calendar component"
+|} .
 
-gmeow:eqEmail030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CalendarMethod ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ical:method ;
+gmeow:CalendarMethod skos:relatedMatch ical:method {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "iCalendar METHOD property — the value vocabulary corresponds to the property's value space, not a class equivalence" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "iCalendar METHOD property — the value vocabulary corresponds to the property's value space, not a class equivalence"
+|} .
 
-gmeow:eqEmail031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCalendarMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:method ;
+gmeow:hasCalendarMethod skos:closeMatch ical:method {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "iCalendar METHOD property on the calendar component" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "iCalendar METHOD property on the calendar component"
+|} .
 
-gmeow:eqEmail032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:messageKindCalendarInvitation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ical:Vevent ;
+gmeow:messageKindCalendarInvitation skos:relatedMatch ical:Vevent {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the message carries an iCalendar VEVENT component" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "the message carries an iCalendar VEVENT component"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Mailing-list header terms
@@ -307,32 +243,26 @@ gmeow:eqEmail032 a gmeow:TermEquivalence ;
 # email address structure terms.
 # --------------------------------------------------------------------------- #
 
-gmeow:eqEmail033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:displayName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:displayName skos:closeMatch schema:name {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)" ;
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)"
+|} .
 
-gmeow:eqEmail034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Thread ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sioc:Container ;
+gmeow:Thread skos:closeMatch sioc:Container {|
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (PROV activity alignment phase 3 — declares the sioc projection's Container typing row)";
-    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+    gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (PROV activity alignment phase 3 — declares the sioc projection's Container typing row)"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqWikidata045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Mailbox ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1531418 ;
+gmeow:Mailbox skos:closeMatch wd:Q1531418 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "mailbox" ;
-    gmeow:comment "Wikidata 'mailbox' is primarily physical; GMEOW Mailbox covers both physical and electronic. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:comment "Wikidata 'mailbox' is primarily physical; GMEOW Mailbox covers both physical and electronic. Directional lossy projection."
+|} .

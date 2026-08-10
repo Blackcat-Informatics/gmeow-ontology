@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/pydantic_rust_tabs_golden.rs
-assertion_line: 132
 expression: python
 ---
 import json

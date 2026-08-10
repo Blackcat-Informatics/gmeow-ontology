@@ -388,6 +388,11 @@ pub struct DiagInner {
     /// field, projected onto [`Finding::documented_terms`](crate::model::Finding)
     /// for the docs per-term "Diagnostics you might hit" join.
     pub documented_terms: Vec<String>,
+    /// The TYPED conformance-failure class this diagnostic instantiates — the IRI the
+    /// violated law declares through `gmeow:enforcesFailureClass`. Payload, NOT an
+    /// identity field (the code + anchor already fix the content address), projected
+    /// onto [`Finding::failure_class`](crate::model::Finding).
+    pub failure_class: Option<String>,
     pub observed: Option<Slot>,
     pub expected: Option<Slot>,
     pub locus: PipelineLocus,
@@ -420,6 +425,7 @@ impl Diag {
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
+            failure_class: None,
             observed: None,
             expected: None,
             locus: PipelineLocus::here(),
@@ -575,6 +581,15 @@ impl Diag {
     /// address; projected onto [`Finding::documented_terms`](crate::model::Finding).
     pub fn with_documented_term(mut self, term_iri: impl Into<String>) -> Self {
         self.0.documented_terms.push(term_iri.into());
+        self
+    }
+    /// Name the TYPED conformance-failure class this diagnostic instantiates — the
+    /// IRI the violated law declares through `gmeow:enforcesFailureClass`. Payload,
+    /// never an identity field, so naming the class never perturbs the witness's
+    /// content address; projected onto
+    /// [`Finding::failure_class`](crate::model::Finding).
+    pub fn with_failure_class(mut self, class_iri: impl Into<String>) -> Self {
+        self.0.failure_class = Some(class_iri.into());
         self
     }
     pub fn with_expected(mut self, slot: Slot) -> Self {

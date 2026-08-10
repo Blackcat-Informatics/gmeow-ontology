@@ -1,0 +1,200 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:ToolCall
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "Tool Call"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:usedTool ;
+            logic:someValuesFrom gmeow:SoftwareAgent ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:calledByInvocation ;
+            logic:allValuesFrom gmeow:ModelInvocation ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:toolArguments ;
+            logic:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:toolResult ;
+            logic:allValuesFrom rdfs:Literal ;
+        ] ;
+    skos:definition "One invocation of a tool by an agent: the tool agent (gmeow:usedTool), the requesting model invocation when known (gmeow:calledByInvocation), and the verbatim arguments/result payloads. The agent's actions join the same provenance graph as its claims — an entity the call produced links back via gmeow:wasGeneratedBy (no forward output property, Principle 5), so 'which tool, called by which invocation, with what arguments?' is answerable after the fact. The ModelInvocation idiom one level down."@x-gmeow-english ;
+    skos:example "An assistant's MCP store_claim call: the ToolCall records the tool agent, the verbatim JSON arguments, and the stored claim's id as the result payload; the claim itself links back with gmeow:wasGeneratedBy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:calledByInvocation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "called by invocation"@x-gmeow-english ;
+    rdfs:range gmeow:ModelInvocation ;
+    skos:definition "The model invocation that requested this tool call. Functional: one requesting invocation per call. Optional: a recording harness may not expose the invocation — a ToolCall without one is still auditable provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:toolArguments
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "tool arguments"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The verbatim arguments payload presented to the tool (typically JSON), byte-faithful. For large payloads store a content digest literal instead ('blake3:…' — the gmeow:contentDigest convention): the digest is the value, resolvable from a content-addressed store. Functional: one arguments record per call."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:toolResult
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "tool result"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The verbatim result payload the tool returned, byte-faithful — the PAYLOAD of the event, never a forward entity link: an entity the call produced links back via gmeow:wasGeneratedBy (Principle 5). For large payloads store a content digest literal instead ('blake3:…'), as gmeow:toolArguments. Functional: one result record per call."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:usedTool
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "used tool"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareAgent ;
+    skos:definition "The tool that was called — a SoftwareAgent (an MCP tool, a search service, a code runner). Deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity. Functional: one tool per call; a multi-tool turn is several ToolCalls."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+<https://blackcatinformatics.ca/gmeow/slices/agentic>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment """Agentic tool-call provenance — the ModelInvocation idiom one level down.
+
+DOCTRINE.
+  * THE MODELINVOCATION IDIOM, EXACTLY: ToolCall is a gufo:EventType under gmeow:Activity with one functional agent link (usedTool, mirroring usedModel) and verbatim call parameters as datatype properties (mirroring the sampling trio). 'Which tool, called by which invocation, with what arguments, at what time?' is answerable after the fact.
+  * NO FORWARD OUTPUT ENTITY PROPERTY (Principle 5): an entity the call produced — a stored claim, a written file, a minted node — links BACK via gmeow:wasGeneratedBy, exactly as claims link back to their ModelInvocation. gmeow:toolResult records the verbatim PAYLOAD of the event itself, never an entity link.
+  * VERBATIM-OR-DIGEST: toolArguments/toolResult carry the byte-faithful payload. For large payloads store a content digest literal instead ("blake3:…" — the gmeow:contentDigest convention from the sources slice): the digest IS the value, resolvable from a content-addressed store. Self-describing prefixes keep the two forms distinguishable.
+  * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, register/persona design). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.
+  * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.
+  * THIN MEANS THIN (Principle 15): the named consumer is Project Lillith's agentic mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Five terms; growth requires a new consumer — trajectory aggregates (runs, episodes, plans) wait for one. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the slice stays at five terms (worked example: examples/trajectory-audit.ttl).
+  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (Lillith worked example, the OpenLineage precedent), recorded in the mapping trailer."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "GMEOW Agentic Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Agentic Module — tool-call provenance: an agent's ACTIONS join the same provenance graph as its claims. DELIBERATELY THIN."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms — the closed-
+# world cardinality / class / literal obligations the hand-authored
+# gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
+# PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). owl:maxQualifiedCardinality (onClass owl:Thing) -> sh:maxCount;
+# owl:maxQualifiedCardinality 1 (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1;
+# owl:allValuesFrom C -> sh:class C;
+# owl:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
+# facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
+# ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
+# stays on the procedural constraint fragment.
+# =========================================================================== #
+
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+# onClass owl:Thing (not the specific class) so the qualified count degrades to
+# the bare sh:minCount/maxCount gmeow:ToolCallShape wants, matching the class
+# component already supplied by the someValuesFrom/allValuesFrom restrictions
+# in this class's own definition above.
+gmeow:ToolCall logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:ToolCallShape: gmeow:calledByInvocation is already owl:FunctionalProperty
+# with rdfs:range gmeow:ModelInvocation (sh:maxCount 1); the explicit allValuesFrom
+# restriction below is the class-restriction idiom (Pattern 2) alongside it.
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:allValuesFrom gmeow:ModelInvocation ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:calledByInvocationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "calledByInvocation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:calledByInvocation is functional: a tool call is requested by at most one model invocation, the single requesting invocation that issued it (optional, because a recording harness may not expose it, but never plural)."@x-gmeow-english ;
+    logic:characterizes gmeow:calledByInvocation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:calledByInvocation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:calledByInvocation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:calledByInvocation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:calledByInvocation and nothing else. It is not a definition of gmeow:calledByInvocation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toolArgumentsFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "toolArguments is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toolArguments ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toolArguments ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toolArguments names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toolArguments, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toolArguments and nothing else. It is not a definition of gmeow:toolArguments (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toolResultFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "toolResult is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toolResult ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toolResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toolResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toolResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toolResult and nothing else. It is not a definition of gmeow:toolResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toolResultFunctionality logic:characterizes gmeow:toolResult ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:usedToolFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "usedTool is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:usedTool ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:usedTool ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:usedTool names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:usedTool, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:usedTool and nothing else. It is not a definition of gmeow:usedTool (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:usedToolFunctionality logic:characterizes gmeow:usedTool ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

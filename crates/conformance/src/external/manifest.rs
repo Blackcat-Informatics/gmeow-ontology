@@ -90,6 +90,15 @@ pub struct ManifestEntry {
     pub name: String,
     /// The test kind.
     pub kind: ManifestTestKind,
+    /// Whether the entry ALSO declares a positive-entailment test type
+    /// (`otest:PositiveEntailmentTest` / `mf:PositiveEntailment`) in addition to its
+    /// primary [`kind`](Self::kind). The W3C OWL 2 `rdfbased-sem-*` metamodeling cases
+    /// are dual-typed `PositiveEntailmentTest + ConsistencyTest`: their consistency
+    /// premise is empty (`<rdf:RDF/>`) and the real content is the entailment
+    /// conclusion, so an empty-premise dual-typed entry is graded as an entailment
+    /// case, not a vacuous consistency case. Order-independent (set from the presence
+    /// of the type quad, regardless of which type wins `kind`).
+    pub also_positive_entailment: bool,
     /// The premise document. `None` when neither `mf:action` IRI nor
     /// `otest:rdfXmlPremiseOntology` literal is present (e.g. a functional-syntax-only
     /// entry in a real-world W3C corpus). [`parse_test_manifest`] hard-fails on such
@@ -180,6 +189,9 @@ pub fn manifest_entries(ds: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<Man
     #[derive(Default)]
     struct Row {
         kind: Option<ManifestTestKind>,
+        /// Whether a positive-entailment type quad was seen for this subject
+        /// (independent of which type wins `kind` — dual-typed entries declare both).
+        saw_positive_entailment: bool,
         /// `mf:name` (highest precedence name)
         mf_name: Option<String>,
         /// `rdfs:label` (second precedence name)
@@ -220,6 +232,7 @@ pub fn manifest_entries(ds: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<Man
             if let TermRef::Iri(t) = q.o {
                 if t == type_mf_pos || t == type_otest_pos {
                     row.kind = Some(ManifestTestKind::PositiveEntailment);
+                    row.saw_positive_entailment = true;
                 } else if t == type_mf_neg || t == type_otest_neg {
                     row.kind = Some(ManifestTestKind::NegativeEntailment);
                 } else if t == type_otest_con {
@@ -300,6 +313,7 @@ pub fn manifest_entries(ds: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<Man
             iri,
             name,
             kind,
+            also_positive_entailment: row.saw_positive_entailment,
             action,
             result,
         });
@@ -393,6 +407,35 @@ ex:pos a mf:PositiveEntailment ; mf:name \"x\" .\n";
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].kind, ManifestTestKind::Consistency);
         assert_eq!(entries[0].outcome(), ExternalOutcome::Consistent);
+    }
+
+    #[test]
+    fn single_typed_consistency_is_not_also_positive_entailment() {
+        let entries = parse_test_manifest(&make_otest_entry("ConsistencyTest", ""), None).unwrap();
+        assert_eq!(entries.len(), 1);
+        assert!(
+            !entries[0].also_positive_entailment,
+            "a plain ConsistencyTest must not be flagged as a positive-entailment test"
+        );
+    }
+
+    /// The W3C `rdfbased-sem-*` metamodeling cases declare BOTH `ConsistencyTest`
+    /// and `PositiveEntailmentTest`. The `also_positive_entailment` flag must be set
+    /// regardless of which type wins `kind`, so the grade lane can route their empty
+    /// consistency premise to the entailment lane instead of a vacuous DlGap.
+    #[test]
+    fn dual_typed_consistency_plus_positive_entailment_sets_flag() {
+        let src = "@prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .\n\
+             @prefix ex: <https://gmeow.example/ent/> .\n\
+             ex:t a otest:PositiveEntailmentTest, otest:ConsistencyTest ;\n\
+                 otest:rdfXmlPremiseOntology \"<rdf:RDF/>\" ;\n\
+                 otest:rdfXmlConclusionOntology \"<rdf:RDF/>\" .\n";
+        let entries = parse_test_manifest(src, None).unwrap();
+        assert_eq!(entries.len(), 1);
+        assert!(
+            entries[0].also_positive_entailment,
+            "a dual-typed ConsistencyTest + PositiveEntailmentTest must set the flag"
+        );
     }
 
     #[test]

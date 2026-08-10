@@ -24,9 +24,9 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, pa
 use crate::bridge::{IngestDiagnostic, LangFailure};
 
 /// The `lang:` namespace base, byte-identical to every other `lang:` producer.
-pub(crate) const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+pub(crate) use gmeow_ns::LANG_NS;
 /// The `logic:` namespace base — a `lang:Denotation`'s `lang:denotationTarget` points here.
-pub(crate) const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+pub(crate) use gmeow_ns::LOGIC_NS;
 /// `rdf:type`.
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// `rdfs:label` — the human-readable surface token a projection renders where present.

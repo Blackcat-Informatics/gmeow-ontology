@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The declared consumer down-projection inventory (gmeow:ProjectionProfile) — one
+# row per authored dsl/mappings/projections/*.ttl document, with the raise-only
+# floor on the number of gmeow:ProjectionMapping cells that document must declare.
+#
+# The gate (crates/pipeline/src/projection_profiles.rs) requires the declared path
+# set to EQUAL the on-disk set in both directions and every profile's authored cell
+# count to hold at or above its floor. A deleted profile, an unregistered new one,
+# and a profile hollowed out to fewer cells are all hard failures — none of which
+# any generated-artifact inventory could see, because several profiles bind the
+# same gmeow:profile name and therefore share one generated query and one EDOAL
+# alignment.
+#
+# Floors RISE with the surface and never fall. Retiring a consumer surface deletes
+# the whole row together with the document it names.
+
+gmeow:projProfile-ai a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — AI / model cards"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/ai.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-bot a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — Building Topology Ontology"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/bot.ttl" ;
+    gmeow:profileCellMinimum 6 .
+
+gmeow:projProfile-codemeta a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — CodeMeta"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/codemeta.ttl" ;
+    gmeow:profileCellMinimum 13 .
+
+gmeow:projProfile-crmarchaeo a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — CRMarchaeo"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/crmarchaeo.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-dcat a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — DCAT"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/dcat.ttl" ;
+    gmeow:profileCellMinimum 12 .
+
+gmeow:projProfile-dcterms a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — Dublin Core Terms"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/dcterms.ttl" ;
+    gmeow:profileCellMinimum 34 .
+
+gmeow:projProfile-doap a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — DOAP"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/doap.ttl" ;
+    gmeow:profileCellMinimum 25 .
+
+gmeow:projProfile-exif a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — EXIF"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/exif.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-foaf a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — FOAF"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/foaf.ttl" ;
+    gmeow:profileCellMinimum 17 .
+
+gmeow:projProfile-geosparql a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — GeoSPARQL"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/geosparql.ttl" ;
+    gmeow:profileCellMinimum 14 .
+
+gmeow:projProfile-ical a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — iCalendar"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/ical.ttl" ;
+    gmeow:profileCellMinimum 13 .
+
+gmeow:projProfile-iiif a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — IIIF"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/iiif.ttl" ;
+    gmeow:profileCellMinimum 2 .
+
+gmeow:projProfile-intoto a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — in-toto"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/intoto.ttl" ;
+    gmeow:profileCellMinimum 2 .
+
+gmeow:projProfile-iptc a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — IPTC"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/iptc.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-ivoa a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — IVOA"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/ivoa.ttl" ;
+    gmeow:profileCellMinimum 6 .
+
+gmeow:projProfile-jcal a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — jCal"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/jcal.ttl" ;
+    gmeow:profileCellMinimum 3 .
+
+gmeow:projProfile-loinc a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — LOINC"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/loinc.ttl" ;
+    gmeow:profileCellMinimum 6 .
+
+gmeow:projProfile-mailmap a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — mailmap"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/mailmap.ttl" ;
+    gmeow:profileCellMinimum 2 .
+
+gmeow:projProfile-oai-dc a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — OAI Dublin Core"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/oai_dc.ttl" ;
+    gmeow:profileCellMinimum 39 .
+
+gmeow:projProfile-ontolex a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — OntoLex"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/ontolex.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-prov a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — PROV-O"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/prov.ttl" ;
+    gmeow:profileCellMinimum 6 .
+
+gmeow:projProfile-qb a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — RDF Data Cube"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/qb.ttl" ;
+    gmeow:profileCellMinimum 1 .
+
+gmeow:projProfile-resume a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — résumé"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/resume.ttl" ;
+    gmeow:profileCellMinimum 5 .
+
+gmeow:projProfile-schema-org a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — schema.org (core)"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/schema-org.ttl" ;
+    gmeow:profileCellMinimum 122 .
+
+gmeow:projProfile-schema-org-accessibility a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — schema.org accessibility"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/schema-org-accessibility.ttl" ;
+    gmeow:profileCellMinimum 2 .
+
+gmeow:projProfile-schema-org-images a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — schema.org images"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/schema-org-images.ttl" ;
+    gmeow:profileCellMinimum 6 .
+
+gmeow:projProfile-schema-org-procedures a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — schema.org HowTo / Recipe"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/schema-org-procedures.ttl" ;
+    gmeow:profileCellMinimum 8 .
+
+gmeow:projProfile-schema-org-schedule a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — schema.org schedule"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/schema-org-schedule.ttl" ;
+    gmeow:profileCellMinimum 4 .
+
+gmeow:projProfile-sigstore a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — Sigstore"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/sigstore.ttl" ;
+    gmeow:profileCellMinimum 1 .
+
+gmeow:projProfile-slsa a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — SLSA"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/slsa.ttl" ;
+    gmeow:profileCellMinimum 2 .
+
+gmeow:projProfile-sosa a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — SOSA"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/sosa.ttl" ;
+    gmeow:profileCellMinimum 9 .
+
+gmeow:projProfile-tags a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — tags"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/tags.ttl" ;
+    gmeow:profileCellMinimum 5 .
+
+gmeow:projProfile-vcard a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — vCard"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/vcard.ttl" ;
+    gmeow:profileCellMinimum 14 .
+
+gmeow:projProfile-web-annotation a gmeow:ProjectionProfile ;
+    rdfs:label "projection profile — Web Annotation"@x-gmeow-english ;
+    gmeow:profileSource "dsl/mappings/projections/web-annotation.ttl" ;
+    gmeow:profileCellMinimum 8 .

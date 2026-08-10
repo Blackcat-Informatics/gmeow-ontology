@@ -191,6 +191,7 @@ https://blackcatinformatics.ca/gmeow/distanceMetric
 https://blackcatinformatics.ca/gmeow/dividedIntervalDenominator
 https://blackcatinformatics.ca/gmeow/dividedIntervalNumerator
 https://blackcatinformatics.ca/gmeow/divisionCount
+https://blackcatinformatics.ca/gmeow/docEvidenceKind
 https://blackcatinformatics.ca/gmeow/dofExpression
 https://blackcatinformatics.ca/gmeow/dofParameter
 https://blackcatinformatics.ca/gmeow/dofStatus
@@ -224,6 +225,7 @@ https://blackcatinformatics.ca/gmeow/exceptionOriginalDate
 https://blackcatinformatics.ca/gmeow/exceptionReplacementEvent
 https://blackcatinformatics.ca/gmeow/exceptionSchedule
 https://blackcatinformatics.ca/gmeow/exceptionType
+https://blackcatinformatics.ca/gmeow/executesStage
 https://blackcatinformatics.ca/gmeow/exemplarPolarity
 https://blackcatinformatics.ca/gmeow/exemptionDate
 https://blackcatinformatics.ca/gmeow/exifTagId
@@ -276,6 +278,7 @@ https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm
 https://blackcatinformatics.ca/gmeow/gmnDispositionBasis
 https://blackcatinformatics.ca/gmeow/gmnDispositionRationale
 https://blackcatinformatics.ca/gmeow/gmnRingLevel
+https://blackcatinformatics.ca/gmeow/gmnSecurityRing
 https://blackcatinformatics.ca/gmeow/gmnSpokenLabel
 https://blackcatinformatics.ca/gmeow/gmnSymbolDisposition
 https://blackcatinformatics.ca/gmeow/grooveGridUnit
@@ -501,6 +504,7 @@ https://blackcatinformatics.ca/gmeow/ratioNumerator
 https://blackcatinformatics.ca/gmeow/readingOf
 https://blackcatinformatics.ca/gmeow/realizationMode
 https://blackcatinformatics.ca/gmeow/receiptKind
+https://blackcatinformatics.ca/gmeow/receiptOfExecution
 https://blackcatinformatics.ca/gmeow/recurrenceRuleText
 https://blackcatinformatics.ca/gmeow/referenceAuthority
 https://blackcatinformatics.ca/gmeow/referenceJurisdiction
@@ -517,6 +521,10 @@ https://blackcatinformatics.ca/gmeow/relayBy
 https://blackcatinformatics.ca/gmeow/relayFrom
 https://blackcatinformatics.ca/gmeow/relayProtocol
 https://blackcatinformatics.ca/gmeow/releaseOf
+https://blackcatinformatics.ca/gmeow/relocationDate
+https://blackcatinformatics.ca/gmeow/relocationFromSlice
+https://blackcatinformatics.ca/gmeow/relocationToSlice
+https://blackcatinformatics.ca/gmeow/relocationVocabulary
 https://blackcatinformatics.ca/gmeow/reminderAction
 https://blackcatinformatics.ca/gmeow/reminderTarget
 https://blackcatinformatics.ca/gmeow/repositoryType
@@ -683,6 +691,7 @@ https://blackcatinformatics.ca/gmeow/weightingPolicy
 https://blackcatinformatics.ca/gmeow/what3words
 https://blackcatinformatics.ca/gmeow/withMetric
 https://blackcatinformatics.ca/logic/actionResource
+https://blackcatinformatics.ca/logic/adviceSourceField
 https://blackcatinformatics.ca/logic/antecedent
 https://blackcatinformatics.ca/logic/candidateCategory
 https://blackcatinformatics.ca/logic/candidateContract

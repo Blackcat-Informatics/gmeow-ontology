@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -24,6 +25,10 @@ gmeow:SliceManifestShape
     rdfs:label "slice manifest shape"@x-gmeow-english ;
     skos:definition "Structural validation for every slice manifest: exactly one tier (core or extension), at least one non-vacuous Principle 15 consumer, IRI-valued dependencies, and the title/creator pair the CITATION.cff projection requires. Semantic gates (dependency DAG, anchor resolution) live in the slice gate."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    logic:formalizes gmeow:SliceTierRequiredConstraint, gmeow:SliceConsumerRequiredConstraint,
+        gmeow:SliceDependsOnCreatorRequiredConstraint, gmeow:SliceProvidesSubcommandPatternConstraint,
+        gmeow:SliceConsumerLangMinLengthConstraint, gmeow:SliceTitleUniqueLangConstraint,
+        gmeow:SliceTitleCanonicalConstraint ;
     sh:property [
         sh:path gmeow:sliceTier ;
         sh:minCount 1 ; sh:maxCount 1 ;

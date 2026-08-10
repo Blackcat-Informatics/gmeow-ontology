@@ -8,22 +8,44 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/lang>
-    a gmeow:Slice ;
+    a gmeow:Slice, gmeow:GroundingSlice ;
     rdfs:label "lang"@x-gmeow-english ;
     skos:definition "The lang slice (core tier): the home of GMEOW Language — the `lang:` grounding layer, the third co-foundational grounding layer alongside the `logic:` reasoning layer and the `math:` structural layer (Principle 19). It grounds what language is made of before any meaning is attached: the sign-system reference layer (sign systems, language varieties, scripts, orthographies, and grammars as first-class individuals, distinguished by kind rather than by a subclass ladder) and the typed form AST (surface forms, graphemes and phones, morphemes and morphs, lexemes and word forms, orthographic and syntactic words, composed forms over indexed slots with dependency structure, covert forms, and competing analyses). Its two load-bearing commitments are that a language is an individual and never a tag, and that a string is a surface while the form is a tree — so form identity is independent of encoding, script, casing, and rendering, computed over structural content alone. The graded analysis discipline records whether a surface is raw, segmented, tokenized, morph-analyzed, or parsed rather than forcing a binary; morphology is typed against a feature inventory rather than carried as a string. The typed conformance-failure vocabulary makes every well-formedness violation a queryable object. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     dcterms:title "GMEOW Language"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
-    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+        <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/citations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:sliceConsumer "The meaning layer that gives forms denotations, the rendering-and-translation layer that maps between forms, and every generated lossy projection (OntoLex-Lemon, Universal Dependencies/CoNLL-U, NIF, TEI, BCP-47/ISO 639/ISO 15924, EBNF), each carrying a preservation judgment in the loss ledger. The Rust `lang-form` crate consumes the form AST as content-keyed forms — GMEOW's own identity discipline applied to language — and every textual, nominal, and notational surface across the ontology grounds in these sign-system and form terms. The `lang:` layer sits in the co-foundational grounding kernel (docs/GROUNDING.md): it denotes one way into `logic:` (which never depends back on it), the mathematics slice's rendering seam grafts onto the general `lang:` rendering theory rather than forking it, and its own declared/measured magnitudes (GMN codebook rates, glyph token costs) ground in `math:Quantity` through the registered quantity seam."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered ;
     gmeow:sliceDocMaturity gmeow:docMaturityMinimal .
+
+# --------------------------------------------------------------------------- #
+# The linguistic grounding domain.
+#
+# One of the three subject-matter domains of docs/GROUNDING.md's "External
+# grounding ownership" table, declared here by the slice that owns it. A term
+# marked gmeow:groundingConceptDomain gmeow:groundingDomainLinguistic is a
+# GROUNDING CONCEPT that `lang:` must own; the tier rule fires when a grounding
+# slice references such a term while a non-grounding slice owns it.
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/groundingDomainLinguistic>
+    a gmeow:GroundingDomain ;
+    rdfs:label "linguistic grounding domain"@x-gmeow-english ;
+    skos:definition "Linguistic, lexical, semiotic, and serialization formalisms — signs, forms, lexica, scripts, orthographies, grammars, notational surfaces, and the interchange syntaxes meaning is carried in. The `lang:` slice is the sole owner of every grounding concept in this domain."@x-gmeow-english ;
+    gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> .

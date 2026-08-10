@@ -56,7 +56,7 @@ use support::flagship_discharge::{
 // Slice identity + fixture paths.
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 fn lang_spec() -> SliceSpec {
     SliceSpec {

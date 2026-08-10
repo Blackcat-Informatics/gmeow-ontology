@@ -24,11 +24,12 @@ gmeow:Blob
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Blob"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:SourceNode ,
+    rdfs:subClassOf gmeow:SourceNode ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contentDigest ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contentDigest ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -107,11 +108,12 @@ gmeow:Commit
             a owl:Restriction ;
             owl:onProperty gmeow:commitTree ;
             owl:someValuesFrom gmeow:SourceTree ;
-        ] ,
+        ] ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contentDigest ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contentDigest ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -131,6 +133,17 @@ gmeow:Diff
             a owl:Restriction ;
             owl:onProperty gmeow:diffTo ;
             owl:someValuesFrom gmeow:Commit ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffFrom ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffTo ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -185,21 +198,27 @@ gmeow:Merge
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ,
+    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeBase ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeBase ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeSource ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeSource ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeTarget ;
-            owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeTarget ;
+            logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeTarget ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -274,6 +293,12 @@ gmeow:Release
             owl:onProperty gmeow:releaseOf ;
             owl:someValuesFrom gmeow:Project ;
         ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:releaseOf ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ;
     skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -282,11 +307,12 @@ gmeow:Repository
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:repositoryType ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:repositoryType ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -405,6 +431,22 @@ gmeow:TreeEntry
             a owl:Restriction ;
             owl:onProperty gmeow:treeEntryObject ;
             owl:someValuesFrom gmeow:SourceNode ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryName ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryMode ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryObject ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -1076,4 +1118,256 @@ Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-englis
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Merge> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/mergeTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mergeTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:authorIdentityStringFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "authorIdentityString is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."@x-gmeow-english ;
+    logic:characterizes gmeow:authorIdentityString ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:authorIdentityString ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:authorIdentityString names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:authorIdentityString, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:authorIdentityString and nothing else. It is not a definition of gmeow:authorIdentityString (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:authorIdentityStringFunctionality logic:characterizes gmeow:authorIdentityString ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:buildConfigUriFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "buildConfigUri is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:buildConfigUri ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:buildConfigUri ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:buildConfigUri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:buildConfigUri, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:buildConfigUri and nothing else. It is not a definition of gmeow:buildConfigUri (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:buildConfigUriFunctionality logic:characterizes gmeow:buildConfigUri ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:commitAuthorIdentityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitAuthorIdentity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitAuthorIdentity is functional: a commit object records exactly one author-identity line — the single raw historical byte-string naming who wrote the patch, distinct from the canonical agent it may be understood to refer to."@x-gmeow-english ;
+    logic:characterizes gmeow:commitAuthorIdentity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitAuthorIdentity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:commitAuthorIdentity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:commitAuthorIdentity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:commitAuthorIdentity and nothing else. It is not a definition of gmeow:commitAuthorIdentity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:commitAuthorIdentityFunctionality logic:characterizes gmeow:commitAuthorIdentity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:commitCommitterIdentityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitCommitterIdentity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitCommitterIdentity is functional: a commit object records exactly one committer-identity line — the single raw historical byte-string naming who applied the commit to the repository, distinct from its author identity."@x-gmeow-english ;
+    logic:characterizes gmeow:commitCommitterIdentity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitCommitterIdentity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:commitCommitterIdentity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:commitCommitterIdentity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:commitCommitterIdentity and nothing else. It is not a definition of gmeow:commitCommitterIdentity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:commitCommitterIdentityFunctionality logic:characterizes gmeow:commitCommitterIdentity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:commitInRepositoryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitInRepository is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitInRepository is functional: a commit belongs to exactly one repository, since a fork is a separate repository carrying its own independent history rather than a second home for the same commit."@x-gmeow-english ;
+    logic:characterizes gmeow:commitInRepository ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitInRepository ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:commitInRepository names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:commitInRepository, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:commitInRepository and nothing else. It is not a definition of gmeow:commitInRepository (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:commitInRepositoryFunctionality logic:characterizes gmeow:commitInRepository ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:commitTreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitTree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:commitTree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitTree ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:commitTree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:commitTree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:commitTree and nothing else. It is not a definition of gmeow:commitTree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:commitTreeFunctionality logic:characterizes gmeow:commitTree ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:diffFromFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diffFrom is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:diffFrom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:diffFrom ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:diffFrom names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:diffFrom, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:diffFrom and nothing else. It is not a definition of gmeow:diffFrom (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:diffFromFunctionality logic:characterizes gmeow:diffFrom ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:diffToFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diffTo is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:diffTo ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:diffTo ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:diffTo names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:diffTo, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:diffTo and nothing else. It is not a definition of gmeow:diffTo (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:diffToFunctionality logic:characterizes gmeow:diffTo ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:materializationDepthFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "materializationDepth is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:materializationDepth ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:materializationDepth ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:materializationDepth names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:materializationDepth, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:materializationDepth and nothing else. It is not a definition of gmeow:materializationDepth (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:materializationDepthFunctionality logic:characterizes gmeow:materializationDepth ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mergeTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "mergeTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:mergeTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mergeTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mergeTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mergeTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mergeTarget and nothing else. It is not a definition of gmeow:mergeTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mergeTargetFunctionality logic:characterizes gmeow:mergeTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:projectHomepageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "projectHomepage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:projectHomepage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectHomepage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:projectHomepage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:projectHomepage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:projectHomepage and nothing else. It is not a definition of gmeow:projectHomepage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:projectHomepageFunctionality logic:characterizes gmeow:projectHomepage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:releaseOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "releaseOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:releaseOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:releaseOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:releaseOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:releaseOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:releaseOf and nothing else. It is not a definition of gmeow:releaseOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:releaseOfFunctionality logic:characterizes gmeow:releaseOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repositoryTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "repositoryType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:repositoryType is functional: a repository is managed by exactly one version-control system — a single RepositoryType value (git, hg, svn, fossil, …), never two VCSes at once."@x-gmeow-english ;
+    logic:characterizes gmeow:repositoryType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:repositoryType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:repositoryType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:repositoryType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:repositoryType and nothing else. It is not a definition of gmeow:repositoryType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:repositoryTypeFunctionality logic:characterizes gmeow:repositoryType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:treeEntryModeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryMode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryMode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryMode ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:treeEntryMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:treeEntryMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:treeEntryMode and nothing else. It is not a definition of gmeow:treeEntryMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:treeEntryModeFunctionality logic:characterizes gmeow:treeEntryMode ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:treeEntryNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryName ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:treeEntryName names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:treeEntryName, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:treeEntryName and nothing else. It is not a definition of gmeow:treeEntryName (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:treeEntryNameFunctionality logic:characterizes gmeow:treeEntryName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:treeEntryObjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryObject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryObject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryObject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:treeEntryObject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:treeEntryObject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:treeEntryObject and nothing else. It is not a definition of gmeow:treeEntryObject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:treeEntryObjectFunctionality logic:characterizes gmeow:treeEntryObject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

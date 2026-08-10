@@ -1,0 +1,14 @@
+<https://example.org/datatype-value-space/length-facet-empty/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:restr <https://example.org/datatype-value-space/length-facet-empty/w> .
+<https://example.org/datatype-value-space/length-facet-empty/dp> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:restr <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:restr <http://www.w3.org/2002/07/owl#onProperty> <https://example.org/datatype-value-space/length-facet-empty/dp> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:restr <http://www.w3.org/2002/07/owl#someValuesFrom> _:dt <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:dt <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Datatype> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:dt <http://www.w3.org/2002/07/owl#onDatatype> <http://www.w3.org/2001/XMLSchema#string> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:dt <http://www.w3.org/2002/07/owl#withRestrictions> _:l1 <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:l1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:f1 <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:l1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l2 <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:l2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:f2 <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:l2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:f1 <http://www.w3.org/2001/XMLSchema#minLength> "5"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://example.org/datatype-value-space/length-facet-empty/w> .
+_:f2 <http://www.w3.org/2001/XMLSchema#maxLength> "3"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://example.org/datatype-value-space/length-facet-empty/w> .

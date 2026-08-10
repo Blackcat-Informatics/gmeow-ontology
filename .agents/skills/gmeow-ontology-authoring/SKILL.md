@@ -31,9 +31,9 @@ resources in the current slices-first, Rust-native repository.
      `ontology-docs/`, `dist/`, or generated mapping/projection/query outputs.
      Regenerate them from canonical sources.
 3. **No-Drift Gate (Principle 7)**:
-   - Run `make regenerate` after canonical source changes that affect generated
-     artifacts.
-   - Run `make check-generated` to verify generated output is synchronized.
+   - Run `make check` after canonical source changes that affect generated
+     artifacts: it materializes them through the single producer and then gates
+     the result, so it is the whole no-drift proof in one pass.
    - Run `make check` before proposing, committing, or submitting changes unless
      the user explicitly narrows validation.
 4. **Logic projection doctrine (Principle 17)**:
@@ -53,8 +53,10 @@ resources in the current slices-first, Rust-native repository.
      Migrate under equivalence-before-deletion: never delete a shape whose check
      is not yet reproduced by the projected union.
    - Cross-ontology linkage and projection should be represented as
-     correspondence work: use the current slice-local `gmeow:TermEquivalence`
-     and `gmeow:ProjectionMapping` frontend honestly so it can lower to
+     correspondence work: use the current slice-local native alignment cell
+     (a reified `skos:*Match` statement carrying
+     `gmeow:sssomFile`/`gmeow:justification`/`gmeow:confidence`) and
+     `gmeow:ProjectionMapping` frontend honestly so it can lower to
      `logic:Correspondence` with the right relation, direction, loss, law, and
      preservation claims.
 5. **Reasoner-driven flagship counter-examples (Principle 17/18)**:
@@ -120,7 +122,7 @@ resources in the current slices-first, Rust-native repository.
 
 - **Edit cross-ontology linkage and projections**:
   1. Put pure identity or match linkage in the slice that owns the
-     `gmeow:alignSubject`, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
+     match subject, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
   2. Put lossy projection legs, profile bindings, guards, transforms, and loss
      notes in the owning slice's `mappings/projections-<profile>.ttl`; use
      `dsl/mappings/projections/*.ttl` only for shared cross-slice enrichment.
@@ -143,8 +145,7 @@ resources in the current slices-first, Rust-native repository.
   Open and edit files in `dsl/statements/`, then regenerate and check drift:
 
   ```bash
-  make regenerate
-  make check-generated
+  make check
   ```
 
 - **Assess slice quality**:

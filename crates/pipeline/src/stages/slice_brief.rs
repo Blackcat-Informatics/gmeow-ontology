@@ -313,7 +313,7 @@ mod tests {
     /// Build the four fresh shape-producer products the stage now consumes by reading
     /// THIS checkout's committed `generated/shapes/*.ttl` members off disk and packaging
     /// them exactly as [`crate::stages::shape_union_fresh::fresh_generated_shape_members`]
-    /// expects. In an in-repo (post-`make sync`) checkout these bytes ARE the committed
+    /// expects. In an in-repo (post-`make check`) checkout these bytes ARE the committed
     /// projection, so the loaded fresh union is byte-identical to the disk-read union the
     /// stage used before the fresh-source migration — the parity these real-repo tests
     /// assert. Under the live pipeline the SAME map is assembled from the producers'

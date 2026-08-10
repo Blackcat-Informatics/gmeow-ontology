@@ -211,37 +211,43 @@ pub fn render_audit(report: &AuditReport) -> String {
 mod tests {
     use super::*;
 
-    fn write_tmp(name: &str, contents: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(name);
+    /// Write `contents` to `name` inside a fresh RAII temp directory.
+    ///
+    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
+    /// drop, including on panic and early return. Bind it to a named `_tmp`
+    /// (never a bare `_`, which would drop it immediately) so it outlives the
+    /// path. The file *name* is preserved because the auditor dispatches on the
+    /// `.ttl` extension.
+    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let path = dir.path().join(name);
         std::fs::write(&path, contents).unwrap();
-        path
+        (dir, path)
     }
 
     // Case 1: a well-formed `wd:Q42` object → 0 findings.
     #[test]
     fn audit_file_valid() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_valid.ttl",
             "@prefix ex: <http://example.org/> .\n\
              @prefix wd: <http://www.wikidata.org/entity/> .\n\
              ex:item ex:ref wd:Q42 .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         assert_eq!(findings.len(), 0, "valid wd:Q42 must produce no findings");
     }
 
     // Case 2: a malformed `wd:Q0` object → exactly 1 error finding.
     #[test]
     fn audit_file_bad_syntax() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_bad.ttl",
             "@prefix ex: <http://example.org/> .\n\
              @prefix wd: <http://www.wikidata.org/entity/> .\n\
              ex:item ex:ref wd:Q0 .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         assert_eq!(findings.len(), 1, "wd:Q0 must produce exactly one finding");
         assert_eq!(findings[0].severity, "error");
         assert!(
@@ -254,13 +260,12 @@ mod tests {
     // Case 3: an HTTPS Wikidata entity URL → exactly 1 warning finding.
     #[test]
     fn audit_file_https_url() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_https.ttl",
             "@prefix ex: <http://example.org/> .\n\
              ex:item ex:ref <https://www.wikidata.org/entity/Q42> .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         assert_eq!(
             findings.len(),
             1,
@@ -277,7 +282,7 @@ mod tests {
     // Case 4: `owl:sameAs` is deliberately NOT this tool's job.
     #[test]
     fn audit_file_owl_sameas_not_reported_here() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_sameas.ttl",
             "@prefix ex: <http://example.org/> .\n\
              @prefix wd: <http://www.wikidata.org/entity/> .\n\
@@ -285,7 +290,6 @@ mod tests {
              ex:item owl:sameAs wd:Q42 .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         let sameas: Vec<_> = findings
             .iter()
             .filter(|f| f.predicate == "http://www.w3.org/2002/07/owl#sameAs")
@@ -300,13 +304,12 @@ mod tests {
     // suggests the wdt: CURIE.
     #[test]
     fn audit_file_https_direct_property() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_https_wdt.ttl",
             "@prefix ex: <http://example.org/> .\n\
              ex:item ex:ref <https://www.wikidata.org/prop/direct/P31> .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         assert_eq!(
             findings.len(),
             1,
@@ -324,14 +327,13 @@ mod tests {
     // warning (an HTTPS entity is still a Wikidata entity).
     #[test]
     fn audit_file_schema_sameas_https_entity() {
-        let path = write_tmp(
+        let (_tmp, path) = write_tmp(
             "gmeow_validate_wda_sameas_https.ttl",
             "@prefix ex: <http://example.org/> .\n\
              @prefix schema: <https://schema.org/> .\n\
              ex:item schema:sameAs <https://www.wikidata.org/entity/Q42> .\n",
         );
         let findings = audit_file(&path);
-        std::fs::remove_file(&path).ok();
         let sameas: Vec<_> = findings
             .iter()
             .filter(|f| f.message.contains("schema:sameAs to Wikidata entity"))

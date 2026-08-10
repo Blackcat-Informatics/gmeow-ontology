@@ -16,12 +16,15 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Every located fact: contacts, events, the mail corpus, jurisdiction tenures; the GeoSPARQL projection."@x-gmeow-english .

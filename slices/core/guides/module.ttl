@@ -591,7 +591,7 @@ gmeow:recipeDocumentsAndSchemaOrg
     gmeow:guideTitle "Publish Documents for Schema.org Consumers"@x-gmeow-english ;
     gmeow:guideGoal "Start with native document and web-presence facts, then inspect which facts project to schema.org and where projection is lossy."@x-gmeow-english ;
     gmeow:usesExamplePath "slices/core/documents/examples/web-presence.ttl" ;
-    gmeow:usesTerm gmeow:Document , gmeow:webUrl , gmeow:Entity ;
+    gmeow:usesTerm gmeow:Document , gmeow:WebPage , gmeow:WebSite , gmeow:pageOfSite , gmeow:Entity ;
     gmeow:followsGuidePath "slices/documents.md" , "linkages/index.md" ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -693,7 +693,7 @@ gmeow:pathAuditAiOrGraphRag
     gmeow:learningAudience "Developers recording extracted facts, chunks, and tools."@x-gmeow-english ;
     gmeow:guideGoal "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them."@x-gmeow-english ;
     gmeow:includesRecipe gmeow:recipeGraphRagDatasetLineage ;
-    gmeow:usesExamplePath "slices/core/ai/examples/grounded-claim.ttl" , "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" , "slices/extensions/agentic/examples/agent-trajectory.ttl" ;
+    gmeow:usesExamplePath "slices/core/ai/examples/grounded-claim.ttl" , "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" , "slices/core/agentic/examples/agent-trajectory.ttl" ;
     gmeow:usesTerm gmeow:Dataset , gmeow:Chunk , gmeow:ExtractedEntity , gmeow:EvidenceSpan , gmeow:usedModel ;
     gmeow:adoptionTarget "prov" , "dcat" , "schema" ;
     gmeow:graphBoxRole gmeow:boxABox .

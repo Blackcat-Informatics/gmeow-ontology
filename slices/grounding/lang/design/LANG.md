@@ -119,7 +119,7 @@ namespace (`https://blackcatinformatics.ca/lang/`), peer to **`logic:`**
 (`https://blackcatinformatics.ca/logic/`) and **`math:`** (`https://blackcatinformatics.ca/math/`).
 Terms this layer *borrows* from other slices keep their home namespace — the `observations` spine
 (`gmeow:Observation`, `gmeow:vantage`), `provenance`/`events` (`gmeow:Activity`,
-`gmeow:wasGeneratedBy`), and the alignment vocabulary (`gmeow:TermEquivalence`) — and the slice is
+`gmeow:wasGeneratedBy`), and the alignment vocabulary (native `skos:*Match` alignment cells) — and the slice is
 still *declared* with the `gmeow:` slice-manifest vocabulary. A worked example therefore mixes
 namespaces on purpose: a `lang:` form *held via* a `gmeow:Observation` and *denoting into* a
 `logic:` formula is the grounding-layer composition made visible.
@@ -218,7 +218,9 @@ carries exactly what `module.ttl`/`shapes.ttl` actually use — is `logic`, `ker
 `versions` dependencies this manifesto once sketched were trimmed by that computed graph: the slice
 reaches them through the observations and provenance spines rather than referencing their terms
 directly. The deliberate **absences** remain as load-bearing as the presences: `math` appears under
-peerage (the registered rendering and quantity seams), never under `sliceDependsOn`; and no
+peerage (the registered rendering, quantity, and GMN mathematical-plane seams — see
+[`LANG-GMN.md`](LANG-GMN.md), "The mathematical symbology plane"), never under `sliceDependsOn`;
+and no
 `language`/`notation`/`names`/`coreference` (those slices migrate to depend on `lang:`, never the
 reverse).
 

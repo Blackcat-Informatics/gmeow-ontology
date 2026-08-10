@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:    <https://blackcatinformatics.ca/math/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 
 # =============================================================================
 # GMEOW test DSL — the canonical authoring vocabulary for slice-resident,
@@ -47,7 +49,12 @@ gmeow:CompetencyQuestion a owl:Class ;
     gmeow:useWhen "Use to pin a question the ontology must be able to answer — a query whose result (a boolean for ASK, a row set for SELECT) is the acceptance criterion for a slice's modelling decisions."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for structural MUST / MUST-NOT invariants over the module graph (use gmeow:StructuralAssertion) and for example-validation outcomes (use gmeow:ExampleConformance); a competency question is about query-answerability, not graph well-formedness."@x-gmeow-english ;
     gmeow:howToUse "Author one instance per question in the slice's tests/ directory: give it a query (inline gmeow:cqQuery or a repo-root-relative gmeow:cqQueryFile), the expected outcome (gmeow:cqExpectAsk for ASK; enumerated gmeow:cqExpectRow with gmeow:cqExactRows true for SELECT), and a gmeow:cqRationale."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:cqReasoning ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:reasoningNone gmeow:reasoningRdfs ) ] ;
+    ] .
 
 gmeow:StructuralAssertion a owl:Class ;
     rdfs:label "structural assertion"@x-gmeow-english ;
@@ -56,7 +63,17 @@ gmeow:StructuralAssertion a owl:Class ;
     gmeow:useWhen "Use to assert a MUST or MUST-NOT invariant about the structure of a slice module's graph — a pattern that has to hold (or must never hold), or a SHACL shape the module must satisfy."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for query-answerability acceptance criteria (use gmeow:CompetencyQuestion) and for per-example expected validation findings (use gmeow:ExampleConformance)."@x-gmeow-english ;
     gmeow:howToUse "Set gmeow:saPolarity to gmeow:must or gmeow:mustNot, supply EXACTLY ONE of gmeow:saPattern (a SPARQL ASK) or gmeow:saShape (an sh:NodeShape IRI), optionally narrow gmeow:saScope, and add a gmeow:saRationale explaining the invariant."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:saPolarity ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:must gmeow:mustNot ) ] ;
+    ] ,
+    [
+        a logic:Restriction ;
+        logic:onProperty gmeow:saScope ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:scopeModule gmeow:scopeModuleAndExamples ) ] ;
+    ] .
 
 gmeow:ExampleConformance a owl:Class ;
     rdfs:label "example conformance"@x-gmeow-english ;
@@ -65,7 +82,12 @@ gmeow:ExampleConformance a owl:Class ;
     gmeow:useWhen "Use to pin the expected SHACL/validation outcome for a specific example or counter-example file shipped with a slice — conformance for positive examples, a specific violation code for counter-examples."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for query-answerability (gmeow:CompetencyQuestion) and for graph-wide structural invariants not tied to a single example file (gmeow:StructuralAssertion)."@x-gmeow-english ;
     gmeow:howToUse "Name the slice-relative gmeow:exampleFile, set gmeow:expectedOutcome to gmeow:conforms (no code) or gmeow:violates with a gmeow:expectedViolationCode in the real `shacl.<FullConstraintComponentLocalName>` form, and optionally add a gmeow:conformanceRationale."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:expectedOutcome ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:conforms gmeow:violates ) ] ;
+    ] .
 
 # --------------------------------------------------------------------------- #
 # Expected SELECT result rows / cells (helpers for CompetencyQuestion)
@@ -205,7 +227,8 @@ gmeow:cqProject a owl:DatatypeProperty ;
     gmeow:howToUse "Write the repo-root-relative path to a CONSTRUCT .rq file (like gmeow:cqQueryFile); the harness runs it over the overlaid dataset, unions the constructed triples in, then runs the competency query over the result."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqDataFile a owl:DatatypeProperty ;
+gmeow:cqDataFile a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:string ;
     rdfs:label "competency data file"@x-gmeow-english ;
     skos:definition "A SLICE-RELATIVE path to a .ttl file of synthetic instance data (an ABox) overlaid onto the asserted merged ontology for this one competency question only, then removed — resolved against the slice directory, NOT the repository root (the same base as gmeow:exampleFile, and the opposite of the repo-root-relative gmeow:cqQueryFile). The merged ontology is TBox-only, so a competency question that classifies instances (e.g. 'is this event a lie?') has nothing to match against the bare ontology; gmeow:cqDataFile supplies the instances. The overlay only applies in the gmeow:reasoningNone lane: pairing it with gmeow:reasoningRdfs is rejected, because the RDFS closure is computed before the overlay and would not see the fixture's entailments."@x-gmeow-english ;
@@ -223,7 +246,8 @@ gmeow:cqRationale a owl:DatatypeProperty ;
     gmeow:useWhen "Use to record the modelling intent a competency question protects, so a reader understands what would be lost if the query stopped answering as expected."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqExpectAsk a owl:DatatypeProperty ;
+gmeow:cqExpectAsk a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:boolean ;
     rdfs:label "expected ASK result"@x-gmeow-english ;
     skos:definition "The expected boolean result of an ASK competency question. Set on ASK questions only; SELECT questions pin their result set via gmeow:cqExpectRow / gmeow:cqExpectRowCount instead."@x-gmeow-english ;
@@ -242,7 +266,8 @@ gmeow:cqExpectRow a owl:ObjectProperty ;
     gmeow:howToUse "Attach one gmeow:ExpectedRow per expected row and set gmeow:cqExactRows true when the enumerated rows are the COMPLETE expected set; leave gmeow:cqExactRows false (or absent) for a contains-check subset."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqExpectRowCount a owl:DatatypeProperty ;
+gmeow:cqExpectRowCount a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "expected row count"@x-gmeow-english ;
     skos:definition "A COARSE expected row count for a SELECT competency question: how many rows the query is expected to return, without pinning their content. An ESCAPE HATCH for not-yet-fully-migrated competency questions — the PREFERRED form is full enumeration via gmeow:cqExpectRow with gmeow:cqExactRows true."@x-gmeow-english ;
@@ -251,7 +276,8 @@ gmeow:cqExpectRowCount a owl:DatatypeProperty ;
     gmeow:avoidWhen "Avoid whenever full enumeration is feasible: prefer gmeow:cqExpectRow with gmeow:cqExactRows true, which pins both the count and the content of every row."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqExactRows a owl:DatatypeProperty ;
+gmeow:cqExactRows a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:boolean ;
     rdfs:label "exact rows"@x-gmeow-english ;
     skos:definition "Whether the enumerated gmeow:cqExpectRow set is the COMPLETE expected result set (true) or merely a subset / contains-check (false). The true + fully-enumerated form is the preferred, maximal-fidelity way to pin a SELECT result, asserting that the query returns these rows AND NO OTHERS."@x-gmeow-english ;
@@ -260,7 +286,8 @@ gmeow:cqExactRows a owl:DatatypeProperty ;
     gmeow:avoidWhen "Avoid leaving it absent on an enumerated SELECT question when you intend an exact match — make the completeness claim explicit with true."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqResultShape a owl:ObjectProperty ;
+gmeow:cqResultShape a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "competency result shape"@x-gmeow-english ;
     skos:definition "The typed result-set schema a SELECT competency question's result is contracted to: a logic:ResultShape (range stated in prose, the test-DSL convention) declaring one typed column per projected variable (term-kind, optional datatype, binding) and a row-set cardinality. The schema-level generalisation of the example-row idiom — the question's gmeow:ExpectedRow values become example-instances of this shape, and the harness validates the actual SELECT bindings against it (a wrong term-kind, datatype, missing required column, or extra column hard-fails). Maps to logic:producesResultShape."@x-gmeow-english ;
     skos:example "ex:cq gmeow:cqResultShape ex:agentShape . ex:agentShape a logic:ResultShape ; logic:declaresColumn [ logic:columnVariable \"agent\" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ; logic:shapeCardinality logic:RowsExact ."@x-gmeow-english ;
@@ -269,7 +296,8 @@ gmeow:cqResultShape a owl:ObjectProperty ;
     gmeow:howToUse "Mint one logic:ResultShape individual in the slice's tests/ directory with one logic:declaresColumn per projected SELECT variable (logic:columnVariable + logic:columnTermKind + optional logic:columnDatatype + logic:columnBinding) and a logic:shapeCardinality; link it to the question via gmeow:cqResultShape; keep the gmeow:ExpectedRow values as its example-instances."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqInputShape a owl:ObjectProperty ;
+gmeow:cqInputShape a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "competency input shape"@x-gmeow-english ;
     skos:definition "The typed input contract this question expects from the upstream producer named by gmeow:cqConsumes; validated before execution by checking the producer's gmeow:cqResultShape satisfies it (structural input→output compatibility); maps to logic:expectsInputShape."@x-gmeow-english ;
     skos:example "ex:cq gmeow:cqInputShape ex:inputShape ; gmeow:cqConsumes ex:upstreamQuestion ."@x-gmeow-english ;
@@ -278,7 +306,8 @@ gmeow:cqInputShape a owl:ObjectProperty ;
     gmeow:howToUse "Mint a logic:ResultShape for the required input columns and link it via gmeow:cqInputShape; also declare the upstream question via gmeow:cqConsumes; the harness checks the producer's gmeow:cqResultShape satisfies this shape before executing the query."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqConsumes a owl:ObjectProperty ;
+gmeow:cqConsumes a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "competency consumes"@x-gmeow-english ;
     skos:definition "The upstream gmeow:CompetencyQuestion whose declared output (gmeow:cqResultShape) this question's declared input (gmeow:cqInputShape) must be compatible with; the harness checks the structural input→output compatibility contract before executing this question. The composition property between two questions — the producer supplies what this question requires. Maps to the inter-question dependency axis of logic:expectsInputShape."@x-gmeow-english ;
     skos:example "ex:cqDownstream gmeow:cqConsumes ex:cqUpstream ; gmeow:cqInputShape ex:downstreamInputShape ."@x-gmeow-english ;
@@ -287,7 +316,8 @@ gmeow:cqConsumes a owl:ObjectProperty ;
     gmeow:howToUse "Point gmeow:cqConsumes at the upstream gmeow:CompetencyQuestion IRI and pair it with gmeow:cqInputShape naming the logic:ResultShape the producer must cover; the harness resolves the producer from the same spec file and performs the composition pre-check before execution."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cqReasoning a owl:ObjectProperty ;
+gmeow:cqReasoning a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:range gmeow:ReasoningProfile ;
     rdfs:label "competency reasoning profile"@x-gmeow-english ;
     skos:definition "The entailment lane a competency question is evaluated under (a gmeow:ReasoningProfile). Optional; when omitted the default is gmeow:reasoningNone — the ASSERTED merged ontology, over which SPARQL property paths (rdfs:subClassOf*, rdfs:subPropertyOf*) still supply transitive closure at query time. Set gmeow:reasoningRdfs to evaluate over the RDFS closure of the merged graph for questions whose expected answer is entailed (e.g. a type inferred from a property's rdfs:domain), not asserted."@x-gmeow-english ;
@@ -309,7 +339,8 @@ gmeow:rowCell a owl:ObjectProperty ;
     gmeow:useWhen "Use to attach the expected per-variable bindings to an expected row — one gmeow:rowCell per projected variable."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:cellVar a owl:DatatypeProperty ;
+gmeow:cellVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:string ;
     rdfs:label "cell variable"@x-gmeow-english ;
     skos:definition "The SPARQL variable name an expected cell binds, WITHOUT the leading '?' — e.g. \"name\", not \"?name\"."@x-gmeow-english ;
@@ -339,7 +370,8 @@ gmeow:cellValueLiteral a owl:DatatypeProperty ;
 # StructuralAssertion fields
 # --------------------------------------------------------------------------- #
 
-gmeow:saPolarity a owl:ObjectProperty ;
+gmeow:saPolarity a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:range gmeow:AssertionPolarity ;
     rdfs:label "assertion polarity"@x-gmeow-english ;
     skos:definition "The required polarity of a structural assertion — gmeow:must (the pattern/shape must hold) or gmeow:mustNot (it must not hold). Required on every gmeow:StructuralAssertion."@x-gmeow-english ;
@@ -365,7 +397,8 @@ gmeow:saShape a owl:ObjectProperty ;
     gmeow:avoidWhen "Avoid pairing it with gmeow:saPattern on the same assertion — exactly one of pattern or shape."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:saScope a owl:ObjectProperty ;
+gmeow:saScope a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:range gmeow:AssertionScope ;
     rdfs:label "assertion scope"@x-gmeow-english ;
     skos:definition "The graph scope a structural assertion is evaluated over — gmeow:scopeModule or gmeow:scopeModuleAndExamples. Optional; when omitted the default semantics are gmeow:scopeModuleAndExamples (the harness applies this default; no owl default is asserted on the property)."@x-gmeow-english ;
@@ -386,7 +419,8 @@ gmeow:saRationale a owl:DatatypeProperty ;
 # ExampleConformance fields
 # --------------------------------------------------------------------------- #
 
-gmeow:exampleFile a owl:DatatypeProperty ;
+gmeow:exampleFile a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:range xsd:string ;
     rdfs:label "example file"@x-gmeow-english ;
     skos:definition "A SLICE-RELATIVE path to the example or counter-example .ttl file whose validation outcome is being pinned — resolved against the slice directory, NOT the repository root (contrast with gmeow:cqQueryFile, which is repo-root-relative)."@x-gmeow-english ;
@@ -396,7 +430,8 @@ gmeow:exampleFile a owl:DatatypeProperty ;
     gmeow:howToUse "Write the path relative to the slice directory, typically `examples/<name>.ttl` for a positive example or a counter-example; the harness resolves it inside the owning slice."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
-gmeow:expectedOutcome a owl:ObjectProperty ;
+gmeow:expectedOutcome a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:range gmeow:ConformanceOutcome ;
     rdfs:label "expected outcome"@x-gmeow-english ;
     skos:definition "The expected validation outcome of the bound example file — gmeow:conforms (passes validation) or gmeow:violates (is rejected with a finding). Required on every gmeow:ExampleConformance."@x-gmeow-english ;
@@ -419,11 +454,33 @@ gmeow:expectedSourceShape a owl:ObjectProperty ;
     rdfs:domain gmeow:ExampleConformance ;
     rdfs:range rdfs:Resource ;
     rdfs:label "expected source shape"@x-gmeow-english ;
-    skos:definition "The SHACL sh:sourceShape the expected finding must originate from, pinning WHICH specific derived shape a counter-example is expected to red. gmeow:expectedViolationCode alone names only the finding COMPONENT, and every logic:Constraint projects to the SAME generic component (shacl.SPARQLConstraintComponent), so a counter-example can satisfy the code by tripping a DIFFERENT rule than the one it is meant to test. Naming the source shape closes that gap: the harness checks it ONLY when present (an exact source-shape IRI match, or a local-name suffix match), so it is fully OPTIONAL and backward-compatible — a fixture that omits it is validated on the component code exactly as before. Applies only to gmeow:violates fixtures."@x-gmeow-english ;
+    skos:definition "The SHACL sh:sourceShape the expected finding must originate from, pinning WHICH specific derived shape a counter-example is expected to red. gmeow:expectedViolationCode alone names only the finding COMPONENT, and every logic:Constraint projects to the SAME generic component (shacl.SPARQLConstraintComponent), so a counter-example can satisfy the code by tripping a DIFFERENT rule than the one it is meant to test. Naming the source shape closes that gap: the harness checks it when present (an exact source-shape IRI match, or a local-name suffix match), so a fixture that omits it is validated on the component code alone. Applies only to gmeow:violates fixtures, and is REQUIRED on any cell that also declares gmeow:expectedSoleFinding, since soleness names WHICH law is the only one."@x-gmeow-english ;
     skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.SPARQLConstraintComponent\" ; gmeow:expectedSourceShape gmeow:SourceDigestMatchConstraintProceduralConstraintShape ."@x-gmeow-english ;
     gmeow:useWhen "Use on a gmeow:violates fixture whose gmeow:expectedViolationCode is a generic component shared by many rules (e.g. shacl.SPARQLConstraintComponent, shacl.MinCountConstraintComponent) to pin the exact derived shape that must fire, so the fixture proves the SPECIFIC named rule — not merely some rule of the same component — rejected the counter-example."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding), and where the finding's sh:sourceShape is not per-rule stable — e.g. a sh:minCount derived from a class-level node shape reports the shared class shape as its source, not a per-property shape, so pinning it would not narrow to the specific property; leave such a fixture on the component code."@x-gmeow-english ;
     gmeow:howToUse "Read the derived shape the counter-example must red — for a logic:Constraint it is the projected sh:NodeShape carrying the sh:sparql (the shape logic:formalizes maps FROM, as the generated procedural-constraints surface names it) — and pin its IRI here alongside the gmeow:expectedViolationCode; the harness matches the finding's sh:sourceShape by exact IRI or by local-name suffix."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:expectedFailureClass a owl:ObjectProperty ;
+    rdfs:domain gmeow:ExampleConformance ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "expected failure class"@x-gmeow-english ;
+    skos:definition "The semantic failure-class IRI (e.g. math:UndeclaredNormalForm) the counter-example is expected to raise, checked with ISOLATION across BOTH finding channels the harness executes: native SHACL violations (resolved to a class through the generated shape's own gmeow:enforcesFailureClass annotation, the SAME IRI reported as sh:sourceShape) and native Rust findings such as the math: expression-identity reasoned gate (resolved through the `<prefix>:<ClassName>:` message-token convention those validators use). Unlike gmeow:expectedViolationCode/gmeow:expectedSourceShape, which only prove the intended finding is PRESENT, this property additionally requires that NO OTHER finding fires anywhere in either channel — closing the gap where a SPARQL-derived gate's shared generic component code let an unrelated cross-fire finding hide beside the intended one. It is also the ONLY conformance-cell mechanism that reaches a purely native failure class with no SHACL derivation at all (e.g. math:MalformedStructuralKey, math:StructuralKeyDrift): for such a class the cell sets ONLY gmeow:expectedFailureClass, since no gmeow:expectedViolationCode exists to give. Applies only to gmeow:violates fixtures, and when present it REPLACES the component-code check rather than layering on top of it."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedFailureClass math:UndeclaredNormalForm ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture whenever the counter-example must isolate its ONE intended failure class from every other finding a shared component code or an unrelated native check could hide beside it — including a purely native class that carries no SHACL derivation and hence no finding code to pin at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding). Avoid pairing it with gmeow:expectedViolationCode expecting BOTH to be checked — setting gmeow:expectedFailureClass replaces the code check for that cell."@x-gmeow-english ;
+    gmeow:howToUse "Name the exact math:<Class> (or other slice-owned) failure-class IRI the counter-example must raise; repair the fixture so it carries no OTHER structured trigger the SAME data would also fire (e.g. give a math:normalForm-bearing expression a structured-child edge so it does not also trip math:StringOnlyComputableExpression), then bind this property alone (no gmeow:expectedViolationCode needed)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:expectedSoleFinding a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ExampleConformance ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "expected sole finding"@x-gmeow-english ;
+    skos:definition "Whether the pinned law must be the ONLY law the counter-example trips — the EXHAUSTIVENESS half of a violates fixture, which gmeow:expectedViolationCode and gmeow:expectedSourceShape together cannot express. Those two say a particular law DID fire; neither says nothing else did, because the harness's violates branch asks only that SOME finding carry the expected code and originate from the pinned shape. A rationale claiming the fixture isolates one defect is therefore unfalsifiable while this is absent: the fixture could acquire a second, unrelated breakage and the cell would stay green. When true, the harness requires EVERY violation-severity result in the report to originate from the gmeow:expectedSourceShape the cell pins — so several rows of the SAME law remain conforming, while one finding from any other shape is a hard failure. The unit is per-SHAPE, and deliberately so in both directions: one law reporting one defect at several focus nodes, or under two components, is still one law; but a defect reported by a class shape AND its superclass's shape, or by a derived shape AND the residual hand-authored twin a partially-migrated slice still ships, IS two shapes and forfeits the claim. OPTIONAL and opt-in per cell; when present it REQUIRES gmeow:expectedSourceShape, because soleness is a claim about WHICH law is the only one and an unnamed law cannot carry it."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.SPARQLConstraintComponent\" ; gmeow:expectedSourceShape logic:ReceiptRequiresAttemptConstraintProceduralConstraintShape ; gmeow:expectedSoleFinding true ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture whose rationale claims the counter-example isolates a SINGLE defect (\"and NO other finding\", \"exactly one finding, from this law\"), so the claim is checked rather than asserted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding), and on a fixture whose single authored defect provably CASCADES into findings from other shapes — a double typing that puts one node in scope of two record kinds, a class shape and its superclass shape both reporting one missing member, or a derived shape duplicated by a residual hand-authored twin. State what else speaks in the rationale and keep the gmeow:expectedSourceShape pin instead; claiming sole-ness there would be false, and forcing it would push the corpus towards fixtures that avoid entailed consequences rather than towards honest ones. Never author it without gmeow:expectedSourceShape — that pairing is a hard failure, not a weaker check."@x-gmeow-english ;
+    gmeow:howToUse "Bind gmeow:expectedSourceShape to the law's sh:sourceShape IRI, then set this to true once the fixture's FULL violation-severity finding set has been read and shown to originate from nothing but that shape; leave it unbound where the finding set is genuinely wider, and say so in gmeow:conformanceRationale."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:conformanceRationale a owl:DatatypeProperty ;
@@ -433,6 +490,269 @@ gmeow:conformanceRationale a owl:DatatypeProperty ;
     skos:example "ex:ec gmeow:conformanceRationale \"This counter-example omits the required name, so MinCount must fire.\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to record why a particular conformance or violation is the expected outcome, documenting the constraint the fixture guards."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# =============================================================================
+# Migrated procedural + declarative constraints: the closed-world
+# gmeow:CompetencyQuestionShape / gmeow:StructuralAssertionShape /
+# gmeow:ExampleConformanceShape / gmeow:ExpectedRowShape / gmeow:ExpectedCellShape
+# / gmeow:TestDslVocabularyTermShape shapes from shapes/test-dsl-shapes.ttl,
+# re-expressed as canonical logic: records (Principle 17). The authored shapes
+# stay (additive); the sweep verifies.
+# =============================================================================
+
+# --- CompetencyQuestion ------------------------------------------------------ #
+
+gmeow:CompetencyQuestionRationaleRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "CompetencyQuestion rationale requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:CompetencyQuestion must carry at least one gmeow:cqRationale."@x-gmeow-english ;
+    logic:onClass gmeow:CompetencyQuestion ;
+    logic:anyOf gmeow:cqRationale ;
+    logic:formalizes gmeow:CompetencyQuestion ;
+    logic:message "CompetencyQuestion must have at least one gmeow:cqRationale (xsd:string)"@x-gmeow-english .
+
+gmeow:CompetencyQuestionQueryChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "CompetencyQuestion query choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion carries exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)."@x-gmeow-english ;
+    logic:onClass gmeow:CompetencyQuestion ;
+    logic:choicePredicate gmeow:cqQuery , gmeow:cqQueryFile ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:CompetencyQuestion ;
+    logic:message "CompetencyQuestion needs exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)"@x-gmeow-english .
+
+# gmeow:cqDataFile is only honoured in the asserted (gmeow:reasoningNone) lane —
+# pairing it with gmeow:reasoningRdfs is a closed-world co-occurrence violation,
+# so this mirrors the organization gmeow:MembershipFillsPostOrgMismatchConstraint
+# raw-Formula idiom (a guarded non-existence over two named values).
+gmeow:CompetencyQuestionDataFileReasoningConstraint
+    a logic:Constraint ;
+    rdfs:label "CompetencyQuestion data-file reasoning-lane constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion carrying a gmeow:cqDataFile must not also declare gmeow:cqReasoning gmeow:reasoningRdfs — the overlay is only honoured in the asserted lane."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetencyQuestion ;
+    logic:message "CompetencyQuestion gmeow:cqDataFile is only honoured in the asserted (gmeow:reasoningNone) lane, not gmeow:reasoningRdfs"@x-gmeow-english ;
+    logic:integrity logic:cqdfForall .
+logic:cqdfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cqdfImpl .
+logic:cqdfImpl a logic:Formula ; logic:antecedent logic:cqdfGuard ; logic:consequent logic:cqdfNot .
+logic:cqdfGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompetencyQuestion ] .
+logic:cqdfNot a logic:Formula ; logic:not logic:cqdfExists .
+logic:cqdfExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists logic:cqdfBody .
+logic:cqdfBody a logic:Formula ; logic:and logic:cqdfHasData , logic:cqdfIsRdfs .
+logic:cqdfHasData a logic:Formula ; logic:relation gmeow:cqDataFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:cqdfIsRdfs a logic:Formula ; logic:relation gmeow:cqReasoning ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:reasoningRdfs ] .
+
+# gmeow:cqExpectAsk XOR (gmeow:cqExpectRow OR gmeow:cqExpectRowCount): the SELECT
+# side is itself a disjunction of two predicates, so this is NOT a flat
+# ChoiceGroupConstraint (which would wrongly forbid cqExpectRow and
+# cqExpectRowCount co-occurring); authored as a raw logic:Formula XOR of "ask"
+# and "select" (select := cqExpectRow ∨ cqExpectRowCount).
+gmeow:CompetencyQuestionExpectationChoiceConstraint
+    a logic:Constraint ;
+    rdfs:label "CompetencyQuestion expectation choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion carries exactly one expectation — either gmeow:cqExpectAsk (for ASK) XOR at least one SELECT expectation (gmeow:cqExpectRow or gmeow:cqExpectRowCount)."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetencyQuestion ;
+    logic:message "CompetencyQuestion needs exactly one expectation: either gmeow:cqExpectAsk (for ASK) XOR at least one SELECT expectation (gmeow:cqExpectRow or gmeow:cqExpectRowCount)"@x-gmeow-english ;
+    logic:integrity logic:cqecForall .
+logic:cqecForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cqecImpl .
+logic:cqecImpl a logic:Formula ; logic:antecedent logic:cqecGuard ; logic:consequent logic:cqecXor .
+logic:cqecGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompetencyQuestion ] .
+logic:cqecXor a logic:Formula ; logic:or logic:cqecAskOnly , logic:cqecSelectOnly .
+logic:cqecAskOnly a logic:Formula ; logic:and logic:cqecAsk , logic:cqecNotSelect .
+logic:cqecSelectOnly a logic:Formula ; logic:and logic:cqecNotAsk , logic:cqecSelect .
+logic:cqecAsk a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
+    logic:exists logic:cqecAskAtom .
+logic:cqecAskAtom a logic:Formula ; logic:relation gmeow:cqExpectAsk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+logic:cqecNotAsk a logic:Formula ; logic:not logic:cqecAsk .
+logic:cqecSelect a logic:Formula ; logic:or logic:cqecRow , logic:cqecRowCount .
+logic:cqecRow a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ;
+    logic:exists logic:cqecRowAtom .
+logic:cqecRowAtom a logic:Formula ; logic:relation gmeow:cqExpectRow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+logic:cqecRowCount a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
+    logic:exists logic:cqecRowCountAtom .
+logic:cqecRowCountAtom a logic:Formula ; logic:relation gmeow:cqExpectRowCount ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+logic:cqecNotSelect a logic:Formula ; logic:not logic:cqecSelect .
+
+# --- StructuralAssertion ------------------------------------------------------ #
+
+gmeow:StructuralAssertionPolarityRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "StructuralAssertion polarity requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:StructuralAssertion must carry exactly one gmeow:saPolarity."@x-gmeow-english ;
+    logic:onClass gmeow:StructuralAssertion ;
+    logic:anyOf gmeow:saPolarity ;
+    logic:formalizes gmeow:StructuralAssertion ;
+    logic:message "StructuralAssertion must have exactly one gmeow:saPolarity in (gmeow:must, gmeow:mustNot)"@x-gmeow-english .
+
+gmeow:StructuralAssertionPatternChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "StructuralAssertion pattern/shape choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StructuralAssertion carries exactly one of gmeow:saPattern (a SPARQL ASK) or gmeow:saShape (an sh:NodeShape IRI)."@x-gmeow-english ;
+    logic:onClass gmeow:StructuralAssertion ;
+    logic:choicePredicate gmeow:saPattern , gmeow:saShape ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:StructuralAssertion ;
+    logic:message "StructuralAssertion needs exactly one of gmeow:saPattern (SPARQL ASK) or gmeow:saShape (sh:NodeShape IRI)"@x-gmeow-english .
+
+# --- ExampleConformance -------------------------------------------------------- #
+
+gmeow:ExampleConformanceFileRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ExampleConformance file requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ExampleConformance must carry exactly one gmeow:exampleFile."@x-gmeow-english ;
+    logic:onClass gmeow:ExampleConformance ;
+    logic:anyOf gmeow:exampleFile ;
+    logic:formalizes gmeow:ExampleConformance ;
+    logic:message "ExampleConformance must have exactly one gmeow:exampleFile (xsd:string)"@x-gmeow-english .
+
+gmeow:ExampleConformanceOutcomeRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ExampleConformance outcome requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ExampleConformance must carry exactly one gmeow:expectedOutcome."@x-gmeow-english ;
+    logic:onClass gmeow:ExampleConformance ;
+    logic:anyOf gmeow:expectedOutcome ;
+    logic:formalizes gmeow:ExampleConformance ;
+    logic:message "ExampleConformance must have exactly one gmeow:expectedOutcome in (gmeow:conforms, gmeow:violates)"@x-gmeow-english .
+
+# gmeow:expectedOutcome gmeow:violates ⟺ gmeow:expectedViolationCode present — a
+# biconditional, so this is a raw logic:Formula (AND of the two guarded
+# implications) rather than a single sugar record.
+gmeow:ExampleConformanceViolationCodeConstraint
+    a logic:Constraint ;
+    rdfs:label "ExampleConformance violation-code biconditional constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ExampleConformance carries a gmeow:expectedViolationCode if and only if its gmeow:expectedOutcome is gmeow:violates."@x-gmeow-english ;
+    logic:formalizes gmeow:ExampleConformance ;
+    logic:message "ExampleConformance with gmeow:expectedOutcome gmeow:violates must carry gmeow:expectedViolationCode; gmeow:conforms must NOT"@x-gmeow-english ;
+    logic:integrity logic:ecvForall .
+logic:ecvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ecvImpl .
+logic:ecvImpl a logic:Formula ; logic:antecedent logic:ecvGuard ; logic:consequent logic:ecvBiconditional .
+logic:ecvGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ExampleConformance ] .
+logic:ecvBiconditional a logic:Formula ; logic:and logic:ecvForward , logic:ecvBackward .
+logic:ecvForward a logic:Formula ; logic:antecedent logic:ecvViolates ; logic:consequent logic:ecvHasCode .
+logic:ecvViolates a logic:Formula ; logic:relation gmeow:expectedOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:violates ] .
+logic:ecvHasCode a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "code" ] ;
+    logic:exists logic:ecvHasCodeAtom .
+logic:ecvHasCodeAtom a logic:Formula ; logic:relation gmeow:expectedViolationCode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "code" ] .
+logic:ecvBackward a logic:Formula ; logic:antecedent logic:ecvConforms ; logic:consequent logic:ecvNoCode .
+logic:ecvConforms a logic:Formula ; logic:relation gmeow:expectedOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:conforms ] .
+logic:ecvNoCode a logic:Formula ; logic:not logic:ecvHasCode .
+
+# --- ExpectedRow / ExpectedCell ----------------------------------------------- #
+
+gmeow:ExpectedRowCellRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ExpectedRow cell requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ExpectedRow must carry at least one gmeow:rowCell."@x-gmeow-english ;
+    logic:onClass gmeow:ExpectedRow ;
+    logic:anyOf gmeow:rowCell ;
+    logic:formalizes gmeow:ExpectedRow ;
+    logic:message "ExpectedRow must have at least one gmeow:rowCell"@x-gmeow-english .
+
+gmeow:ExpectedCellVarRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ExpectedCell variable requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ExpectedCell must carry exactly one gmeow:cellVar."@x-gmeow-english ;
+    logic:onClass gmeow:ExpectedCell ;
+    logic:anyOf gmeow:cellVar ;
+    logic:formalizes gmeow:ExpectedCell ;
+    logic:message "ExpectedCell must have exactly one gmeow:cellVar (xsd:string)"@x-gmeow-english .
+
+gmeow:ExpectedCellValueChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "ExpectedCell value choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ExpectedCell carries exactly one of gmeow:cellValueIri or gmeow:cellValueLiteral."@x-gmeow-english ;
+    logic:onClass gmeow:ExpectedCell ;
+    logic:choicePredicate gmeow:cellValueIri , gmeow:cellValueLiteral ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:ExpectedCell ;
+    logic:message "ExpectedCell needs exactly one of gmeow:cellValueIri or gmeow:cellValueLiteral"@x-gmeow-english .
+
+# --- Vocabulary annotation completeness -------------------------------------- #
+# gmeow:TestDslVocabularyTermShape — mirrors
+# logic:GmeowClassCompletenessConstraint / GmeowPropertyCompletenessConstraint's
+# logic:sparqlTarget idiom for a raw sh:SPARQLTarget focus set, scoped to the
+# test-dsl namespace.
+
+gmeow:TestDslVocabularyTermCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "Test DSL vocabulary term completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every term declared in the test DSL vocabulary namespace (a class, object/datatype/annotation property, ontology, or datatype) carries at least one rdfs:label, one skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl>."@x-gmeow-english ;
+    logic:formalizes gmeow:TestDslVocabularyTermShape ;
+    logic:message "Every test DSL vocabulary term must carry rdfs:label, skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl>."@x-gmeow-english ;
+    logic:integrity logic:tdvForall .
+logic:tdvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:tdvImpl .
+logic:tdvImpl a logic:Formula ; logic:antecedent logic:tdvTarget ; logic:consequent logic:tdvAnd .
+logic:tdvTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this a ?t .
+    FILTER(?t IN (
+        <http://www.w3.org/2002/07/owl#Class>,
+        <http://www.w3.org/2002/07/owl#ObjectProperty>,
+        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+        <http://www.w3.org/2002/07/owl#AnnotationProperty>,
+        <http://www.w3.org/2002/07/owl#Ontology>,
+        <http://www.w3.org/2000/01/rdf-schema#Datatype>
+    ))
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:tdvAnd a logic:Formula ; logic:and logic:tdvLabel , logic:tdvDef , logic:tdvDefBy .
+logic:tdvLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:tdvLabelAtom .
+logic:tdvLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:tdvDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:tdvDefAtom .
+logic:tdvDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:tdvDefBy a logic:Formula ; logic:relation rdfs:isDefinedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri <https://blackcatinformatics.ca/gmeow/test-dsl> ] .
 
 # =============================================================================
 # Flagship acceptance manifest — the shared depth-bar vocabulary.

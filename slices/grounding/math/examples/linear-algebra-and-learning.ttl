@@ -129,8 +129,18 @@ ex:attnSlot1 a math:ArgumentSlot ;
     math:slotIndex 1 ;
     math:slotExpression ex:layer1WeightExpr .
 
-ex:inputActivationExpr a math:MathematicalExpression .
-ex:layer1WeightExpr a math:MathematicalExpression .
+# Two operands named but not decomposed. The honest AST leaf for that is a
+# math:SymbolReference occurrence resolving to a SYMBOL — real content, shared by every author
+# who writes over the same symbol. The abstract math:MathematicalExpression base names no
+# concrete form, so it carries no structural identity (math:UnrecognizedExpressionType).
+ex:inputActivationExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:inputActivationSymbol .
+ex:layer1WeightExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:layer1WeightSymbol .
+ex:inputActivationSymbol a math:MathematicalSymbol ;
+    rdfs:label "the layer input activation tensor, as a named symbol"@x-gmeow-english .
+ex:layer1WeightSymbol a math:MathematicalSymbol ;
+    rdfs:label "the layer-1 weight tensor, as a named symbol"@x-gmeow-english .
 
 ex:layer1 a math:NeuralLayer .
 ex:layer1Weight a math:WeightTensor ;

@@ -30,6 +30,7 @@ purrdf.workspace = true
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
@@ -97,21 +98,27 @@ roxmltree = "0.20"
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
 purrdf.workspace = true
+# `tests/witness_explore.rs` computes the bundle-explorer DESCRIBE witness by calling
+# `gmeow_query_wasm::Dataset::query` — the EXACT function `#[wasm_bindgen]` exposes to
+# the browser — rather than a hand-rolled quad filter, so the native witness and the
+# browser's DESCRIBE genuinely run the same code (this crate compiles natively too;
+# only the `cdylib` wasm-bindgen artifact ships to the browser).
+gmeow-query-wasm = { path = "../query-wasm" }
 # The classifier-ingestion producers under test: the conformance twin runs each
 # real captured classifier output through the unmodified whole-ontology SHACL
 # corpus and asserts the blind round-trip end-to-end.
 gmeow-affect-ingest = { path = "../affect-ingest" }
 # JSON deserialization of the captured classifier fixtures the producer ingests.
 serde_json = "1"
-# Ed25519 signing material for deterministic GTS signature tests (#646).
+# Ed25519 signing material for deterministic GTS signature tests.
 ed25519-dalek = "2"
-# Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.
+# Acceleration-program baselines (Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 # Hermetic temp slices trees for the S6a merged-SHACL Merkle key integration test.
 tempfile = "3"
-# Snapshot goldens for the constitution parity regression test (#939 Gap 4).
+# Snapshot goldens for the constitution parity regression test.
 insta = { version = "1.48", features = ["json"] }
-# Parameterized #[case] rows for the conformance_*.rs SHACL twins (#1051). rstest
+# Parameterized #[case] rows for the conformance_*.rs SHACL twins. rstest
 # subsumes test-case; test-case is deliberately NOT a dependency.
 rstest = "0.26"
 # Deterministic retired-instruction backend for the whole-ontology-union conformance

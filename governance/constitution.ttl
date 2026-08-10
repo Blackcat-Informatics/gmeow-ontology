@@ -70,7 +70,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
     meta:cliCommand "sync", "compile-gts" ;
-    meta:makeTarget "sync" ;
+    meta:makeTarget "check-sync" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
         "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
@@ -361,7 +361,7 @@ meta:gate-cost-ledger a meta:Gate ;
         "generated/bench/cost-ledger.md",
         "bench/cost-baseline.json" ;
     meta:symbol "CostLedgerStage" ;
-    meta:makeTarget "sync" .
+    meta:makeTarget "check-sync" .
 
 # The instruction-count corroboration lane (off-gate). iai-callgrind measures
 # RETIRED INSTRUCTIONS under Valgrind Callgrind — a machine-independent, run-to-run
@@ -535,7 +535,7 @@ meta:gate-projection-compute-purity a meta:Gate ;
         "slices/grounding/logic/design/LOGIC-RDFQUERY.md" ;
     meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
     meta:cliCommand "crate-check", "sync" ;
-    meta:makeTarget "crate-check", "sync" .
+    meta:makeTarget "crate-check", "check-sync" .
 
 # The shape-half peer of gate-projection-compute-purity: an open-world FOL axiom
 # (irreflexivity / acyclicity / relatum-distinctness) is authored in the logic: canon
@@ -553,7 +553,7 @@ meta:gate-projection-shape-purity a meta:Gate ;
         "slices/grounding/logic/design/LOGIC-VALIDATION.md" ;
     meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
     meta:cliCommand "crate-check", "sync" ;
-    meta:makeTarget "crate-check", "sync" .
+    meta:makeTarget "crate-check", "check-sync" .
 
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;

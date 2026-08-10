@@ -9,6 +9,7 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # A model-extracted fact: the east wing's closing time, asserted by the
@@ -31,4 +32,7 @@ ex:claim-east-wing-close a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.85 ] ,
         [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2026-06-12T03:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:assistant ] ,
-        [ gmeow:annProperty gmeow:mappedFrom  ; gmeow:annValue ex:invocation-19 ] .
+        [ gmeow:annProperty gmeow:mappedFrom  ; gmeow:annValue ex:invocation-19 ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    skos:definition "The reifying statement-metadata cell for the model-extracted claim that the east wing closes at 22:00: the canonical RDF 1.2 form of an LLM output as claim-not-truth, annotated with confidence, assertion time, standpoint, and generating invocation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

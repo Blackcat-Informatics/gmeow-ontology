@@ -17,8 +17,11 @@ pub mod artifacts;
 pub(crate) mod builtin_gap;
 pub mod dl;
 pub mod el;
+pub(crate) mod enactment;
 pub mod ledger;
+pub mod math_gate;
 pub mod perf_ledger;
+pub(crate) mod refute;
 pub mod rl;
 pub(crate) mod rl_rules;
 
@@ -116,6 +119,9 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
 ///   `classify_coverage` — any edit to those changes the contract semantics even
 ///   when the rule text is unchanged;
+/// * the full source of `refute.rs`, the fragment-certified refutation kernel the
+///   `dl.rs` decide path invokes — any change to which withheld constructs it
+///   decides (or the certificate/boundary it emits) changes the contract;
 /// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
 ///   existential chase, and relation store that execute those rules;
 /// * the canonical-program lowering, selected-view materializer, and native
@@ -131,6 +137,7 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/el.rs", include_str!("el.rs")),
     ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
     ("reason/dl.rs", include_str!("dl.rs")),
+    ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
     ("certify.rs", include_str!("../certify.rs")),
@@ -209,6 +216,32 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
     Ok(inferred)
+}
+
+/// The reasoned closure of `edb` as a frozen [`RdfDataset`] of the INFERRED triples
+/// — the structured-DL closure ([`reason_closure_axioms`]) materialized into RDF.
+/// This is the browser reasoner's entry (`gmeow-reason-wasm` serializes it to
+/// N-Quads for the live entailment panel), running the SAME native chase — serially
+/// on wasm (single-threaded rayon fallback), byte-identical to the parallel path
+/// (proven by the rule-parallel evidence probe).
+///
+/// # Errors
+///
+/// Returns `Err` if reasoning fails or an inferred term cannot be lowered to RDF.
+pub fn reason_closure_dataset(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let inferred = reason_closure_axioms(edb)?;
+    let mut builder = RdfDatasetBuilder::new();
+    for ax in &inferred {
+        let subject = RdfTerm::iri(ax.subject.clone());
+        let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
+        let quad = RdfQuad::new(subject, ax.predicate.clone(), object);
+        builder.push_owned_quad(&quad);
+    }
+    builder
+        .freeze()
+        .map_err(|e| reason_err(format!("freeze reasoned closure dataset: {e}")))
 }
 
 /// One IRI-object axiom to probe through exact leave-one-out reasoning.
@@ -337,6 +370,41 @@ const LOO_OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalent
 const LOO_OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
 const LOO_OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
 
+/// Lower a CANONICAL `logic:` subsumption predicate to the `rdfs:` spelling the fixed
+/// DL/RDFS calculus matches — the SAME lowering [`edb_predicate_spellings`] applies at
+/// the EDB boundary, applied here at the leave-one-out boundary. It REPLACES the
+/// spelling rather than adding to it, because the probe index is keyed on one
+/// spelling per edge. Every other predicate is itself.
+///
+/// # Why the leave-one-out path needs it
+///
+/// GMEOW authors subsumption in the canonical `logic:` vocabulary (Principle 17 —
+/// `rdfs:` is one of its lossy projections), but every device in this module that can
+/// answer a subsumption probe CHEAPLY is keyed on the `rdfs:` spelling: the
+/// [`TransitiveReachability`] index, the [`LOO_RDFS_SUBCLASS_OF`] /
+/// [`LOO_RDFS_SUBPROPERTY_OF`] dispatch arms in [`leave_one_out_rederived`], and the
+/// [`finite_dl_may_rederive_after_rule_miss`] negative filter. Without the lowering a
+/// canonical-spelled axiom matches NO analytic arm and falls to
+/// [`leave_one_out_probe`] — an incremental session fork PLUS a full finite-DL
+/// augmentation over a rebuilt reduced dataset, per axiom. It also gets the WRONG
+/// answer there: no fixed rule head is spelled `logic:subClassOf`, so the probe can
+/// only ever report "not re-derived", making the redundancy measurement vacuous for
+/// exactly the slices that re-authored their taxonomy canonically.
+///
+/// Lowering fixes both at once: the canonical edge joins the same reachability graph
+/// as its projection, so the probe is answered analytically AND correctly.
+///
+/// When the `rdfs:` projection ceilings reach zero corpus-wide and the `rdfs:` arm of
+/// the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the lowering
+/// (canonical → the fixed calculus's RDFS vocabulary) is what the calculus needs.
+fn loo_subsumption_spelling(predicate: &str) -> &str {
+    match predicate {
+        gmeow_ns::LOGIC_SUB_CLASS_OF => LOO_RDFS_SUBCLASS_OF,
+        gmeow_ns::LOGIC_SUB_PROPERTY_OF => LOO_RDFS_SUBPROPERTY_OF,
+        other => other,
+    }
+}
+
 fn dataset_has_pattern(
     edb: &RdfDataset,
     subject: Option<&str>,
@@ -376,10 +444,18 @@ fn dataset_has_pattern(
 /// predicates come from `owl:onProperty`, then may travel through the ordinary
 /// property schema. A direct schema mention is therefore a conservative witness
 /// that the post-pass might still create the predicate.
+///
+/// The property-subsumption hop is scanned under BOTH spellings
+/// ([`gmeow_ns::SUB_PROPERTY_OF`]): a canonical `logic:subPropertyOf` edge into or out
+/// of `predicate` is the same schema mention as its `rdfs:` projection, so missing it
+/// would let an exactness guard claim a fast path the dynamic producer can still
+/// invalidate.
 fn dataset_may_generate_dynamic_predicate(edb: &RdfDataset, predicate: &str) -> bool {
     dataset_has_pattern(edb, None, LOO_OWL_ON_PROPERTY, Some(predicate))
-        || dataset_has_pattern(edb, Some(predicate), LOO_RDFS_SUBPROPERTY_OF, None)
-        || dataset_has_pattern(edb, None, LOO_RDFS_SUBPROPERTY_OF, Some(predicate))
+        || gmeow_ns::SUB_PROPERTY_OF.iter().any(|subsumption| {
+            dataset_has_pattern(edb, Some(predicate), subsumption, None)
+                || dataset_has_pattern(edb, None, subsumption, Some(predicate))
+        })
         || dataset_has_pattern(edb, Some(predicate), LOO_OWL_INVERSE_OF, None)
         || dataset_has_pattern(edb, None, LOO_OWL_INVERSE_OF, Some(predicate))
         || dataset_has_pattern(edb, Some(predicate), LOO_OWL_EQUIVALENT_PROPERTY, None)
@@ -395,12 +471,19 @@ fn dataset_may_generate_dynamic_predicate(edb: &RdfDataset, predicate: &str) -> 
 /// `rdfs:subClassOf` can be introduced by an open-headed producer, a missing
 /// subclass target cannot appear later. Every other target conservatively keeps
 /// the full production pass.
+///
+/// The subsumption test runs on the LOWERED spelling
+/// ([`loo_subsumption_spelling`]), so a canonical `logic:subClassOf` axiom gets the
+/// same cheap negative filter as its `rdfs:` projection instead of falling through
+/// to the full production pass.
 fn finite_dl_may_rederive_after_rule_miss(
     edb: &RdfDataset,
     inferred: &[InferredAxiom],
     axiom: &LeaveOneOutAxiom,
 ) -> bool {
-    if axiom.predicate != LOO_RDFS_SUBCLASS_OF || axiom.object == LOO_OWL_NOTHING {
+    if loo_subsumption_spelling(&axiom.predicate) != LOO_RDFS_SUBCLASS_OF
+        || axiom.object == LOO_OWL_NOTHING
+    {
         return true;
     }
     let has_union = inferred.iter().any(|fact| {
@@ -411,18 +494,28 @@ fn finite_dl_may_rederive_after_rule_miss(
         || dataset_has_pattern(edb, None, LOO_OWL_DISJOINT_UNION_OF, None)
         || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
         || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
-        || dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+        || subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_CLASS_OF)
+}
+
+/// Whether EITHER spelling of one subsumption edge could be created by an
+/// open-headed producer — the exactness precondition of the batched reachability
+/// indexes, evaluated over the canonical predicate AND its `rdfs:` projection
+/// because [`TransitiveReachability`] now merges both into one edge set.
+fn subsumption_may_be_dynamic(edb: &RdfDataset, spellings: &[&str; 2]) -> bool {
+    spellings
+        .iter()
+        .any(|predicate| dataset_may_generate_dynamic_predicate(edb, predicate))
 }
 
 fn batch_subclass_reachability_is_exact(edb: &RdfDataset) -> bool {
     !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
-        && !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+        && !subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_CLASS_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_CLASS)
 }
 
 fn batch_subproperty_reachability_is_exact(edb: &RdfDataset) -> bool {
-    !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBPROPERTY_OF)
+    !subsumption_may_be_dynamic(edb, &gmeow_ns::SUB_PROPERTY_OF)
         && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_PROPERTY)
 }
 
@@ -466,6 +559,15 @@ fn is_property_characteristic(iri: &str) -> bool {
 /// The boolean edge payload records a non-removable equivalence support. A raw
 /// `A rdfs:subClassOf B` edge is removed by the `(A, B)` probe, but the same edge
 /// remains justified when `A owl:equivalentClass B` is also authored.
+///
+/// Edges are collected under the LOWERED spelling ([`loo_subsumption_spelling`]), so
+/// a canonical `logic:subClassOf` / `logic:subPropertyOf` edge and its `rdfs:`
+/// projection are the SAME edge of this graph — the only reading consistent with
+/// Principle 17, and the reading the RL EDB boundary already takes. A subject/object
+/// pair authored under BOTH spellings collapses to one non-independently-supported
+/// entry, so a probe on either one removes both: the redundancy answer is then
+/// conservative (the duplicate is never counted as re-deriving its twin), never
+/// inventive.
 #[derive(Default)]
 struct TransitiveReachability {
     worlds: std::collections::BTreeMap<
@@ -488,7 +590,7 @@ impl TransitiveReachability {
             else {
                 continue;
             };
-            if fact.predicate == predicate {
+            if loo_subsumption_spelling(&fact.predicate) == predicate {
                 reachability.insert(&world, &subject, &object, false);
             } else if fact.predicate == equivalence
                 && (equivalence_in_finite_dl || structured_worlds.contains(&world))
@@ -707,12 +809,20 @@ pub fn leave_one_out_rederived(
     let mut results = vec![false; axioms.len()];
     let mut slow = Vec::new();
     for (index, axiom) in axioms.iter().enumerate() {
-        if axiom.predicate == LOO_RDFS_SUBCLASS_OF
+        // Dispatch on the LOWERED spelling: a canonical `logic:subClassOf` /
+        // `logic:subPropertyOf` axiom is the same subsumption edge as its `rdfs:`
+        // projection and takes the same analytic reachability answer. Without this the
+        // canonical spelling matches no arm, falls to the per-axiom incremental fork +
+        // full finite-DL augmentation, and is answered vacuously (no fixed rule head is
+        // spelled `logic:`), so the redundancy measurement would be both quadratically
+        // expensive and blind on every canonically-authored slice.
+        let subsumption = loo_subsumption_spelling(&axiom.predicate);
+        if subsumption == LOO_RDFS_SUBCLASS_OF
             && axiom.object != LOO_OWL_NOTHING
             && let Some(reachability) = &subclass_reachability
         {
             results[index] = reachability.rederived_without(axiom);
-        } else if axiom.predicate == LOO_RDFS_SUBPROPERTY_OF
+        } else if subsumption == LOO_RDFS_SUBPROPERTY_OF
             && let Some(reachability) = &subproperty_reachability
         {
             results[index] = reachability.rederived_without(axiom);
@@ -1548,6 +1658,143 @@ pub(crate) fn run_reasoning_rules_budgeted(
     })
 }
 
+/// The ONE table mapping the canonical `logic:` axiom vocabulary onto the W3C spelling
+/// the FIXED calculi match — the single definition of that correspondence for the whole
+/// reasoner. Nothing under `reason/` may re-spell a `logic:` IRI outside it.
+///
+/// Two groups, and both are needed for one authored axiom to reach the closure:
+///
+/// * the **class-expression body** — `logic:Restriction` and its slots. Their local
+///   names are shared by BOTH authoring surfaces (the same fact the compiler's
+///   `RestrictionVocab` is parameterized on: only the namespace differs between a
+///   `logic:`-authored restriction and its `owl:` projection), so each entry is built
+///   from the local alone.
+/// * the **anchors** that attach a body to the class it constrains — `logic:subClassOf`
+///   / `logic:equivalentClass`, the two `RestrictionVocab` names as well, plus
+///   `logic:subPropertyOf` for the property hierarchy. A body without its anchor is
+///   still dark: `dl:type-propagation` and `cax-sco` reach a restriction node only
+///   along a subsumption edge, so lowering the slots and not the anchor would read the
+///   restriction and never apply it to an individual.
+static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
+    macro_rules! owl {
+        ($local:literal) => {
+            (
+                concat!("https://blackcatinformatics.ca/logic/", $local),
+                concat!("http://www.w3.org/2002/07/owl#", $local),
+            )
+        };
+    }
+    [
+        // Anchors.
+        (gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF),
+        (
+            gmeow_ns::LOGIC_SUB_PROPERTY_OF,
+            gmeow_ns::RDFS_SUB_PROPERTY_OF,
+        ),
+        owl!("equivalentClass"),
+        // Class-expression body.
+        owl!("Restriction"),
+        owl!("onProperty"),
+        owl!("someValuesFrom"),
+        owl!("allValuesFrom"),
+        owl!("hasValue"),
+        owl!("onClass"),
+        owl!("onDataRange"),
+        owl!("onDatatype"),
+        owl!("withRestrictions"),
+        owl!("cardinality"),
+        owl!("minCardinality"),
+        owl!("maxCardinality"),
+        owl!("qualifiedCardinality"),
+        owl!("minQualifiedCardinality"),
+        owl!("maxQualifiedCardinality"),
+    ]
+};
+
+/// The fixed-calculus spelling of a canonical `logic:` axiom term, or `None` when `iri`
+/// is not one — the single lookup behind both lowerings below.
+fn calculus_projection(iri: &str) -> Option<&'static str> {
+    if !iri.starts_with(gmeow_ns::LOGIC_NS) {
+        return None;
+    }
+    CALCULUS_VOCABULARY
+        .iter()
+        .find(|(canonical, _)| *canonical == iri)
+        .map(|(_, projected)| *projected)
+}
+
+/// Normalize one term — a predicate, or an `rdf:type` object — onto the vocabulary the
+/// fixed calculi match: a canonical `logic:` axiom term becomes its `rdfs:`/`owl:`
+/// spelling, every other IRI passes through untouched.
+///
+/// This is the RAW-DATASET twin of [`edb_predicate_spellings`], and the two differ only
+/// in how they carry the projection. The typed EDB holds a quad under two spellings at
+/// once, so there the projection ADDS. A raw scan instead folds each quad into a struct
+/// field keyed by predicate, where a second spelling would double-count (two
+/// `Restriction` entries for one node, a doubled `predicates` completeness set), so here
+/// it REPLACES. The direction is the same one in both: canonical → the fixed calculi's
+/// W3C vocabulary, never the reverse (Principle 17 — `owl:`/`rdfs:` are the lossy
+/// projections, and the reasoner reads them because the rules it implements are
+/// specified in them).
+///
+/// # Why the raw waists need their own lowering at all
+///
+/// [`build_edb_facts`] keeps only IRI-object quads, so a restriction body — which is
+/// anchored through a BLANK node (`C logic:subClassOf [ a logic:Restriction ; … ]`) —
+/// never reaches the typed EDB in the first place. The DL post-pass reads those bodies
+/// straight off the frozen dataset instead, which is exactly where an unlowered
+/// canonical spelling goes dark.
+pub(crate) fn calculus_term(iri: &str) -> &str {
+    calculus_projection(iri).unwrap_or(iri)
+}
+
+/// The predicate spellings one authored quad contributes to a fixed-calculus EDB:
+/// the authored predicate itself, plus — for a canonical `logic:` subsumption edge or a
+/// canonical `logic:` restriction slot — the `rdfs:`/`owl:` spelling every fixed rule set
+/// matches on.
+///
+/// # Why the lowering lives at the EDB boundary
+///
+/// The EL/DL/RL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`],
+/// [`rl_rules`]) are FIXED and largely W3C-specified: every subsumption rule
+/// (`el:subClassOf-transitive`, `el:type-propagation`, `cax-sco`, `scm-sco`,
+/// `scm-spo`, `prp-spo1`, …) matches the `rdfs:subClassOf` / `rdfs:subPropertyOf`
+/// spelling *by specification*, and is not GMEOW's to re-author. But GMEOW's
+/// authored surface is the CANONICAL `logic:` vocabulary (Principle 17: `rdfs:` is
+/// one of its lossy projections), so a chase fed authored `module.ttl` sources sees
+/// a taxonomy spelled `logic:subClassOf` and would derive nothing from it —
+/// silently, with a taxonomy-free closure rather than an error. A consumer of the
+/// shipped artifacts could not then answer "is this class a `math:MathConformanceFailure`?"
+/// for any class whose parent edge was authored canonically.
+///
+/// So the projection is materialized at the EDB boundary, once, for every fixed
+/// calculus: a canonical `logic:subClassOf` / `logic:subPropertyOf` quad is encoded a
+/// second time under its `rdfs:` spelling ([`gmeow_ns::SUB_CLASS_OF`] /
+/// [`gmeow_ns::SUB_PROPERTY_OF`], canonical first, projected second), in the same
+/// world. The canonical quad is kept too — the projection ADDS the RDFS view, it
+/// never replaces the authored edge — and both are asserted (`is_edb`), because a
+/// projection of an asserted axiom is asserted, not derived.
+///
+/// When the `rdfs:` projection ceilings reach zero corpus-wide and the `rdfs:` arm of
+/// the [`gmeow_ns`] doctrine is deleted, this stays: the direction of the lowering
+/// (canonical → the fixed calculi's RDFS vocabulary) is what those calculi need, not
+/// a transitional read of two authored spellings.
+///
+/// # The same lowering carries the class-expression (restriction) vocabulary
+///
+/// The restriction slots are the identical situation one construct over. `cls-svf1`,
+/// `cls-avf`, `cls-hv1`/`cls-hv2` and the DL existential/counting readers all name
+/// `owl:onProperty` / `owl:someValuesFrom` / `owl:allValuesFrom` *by specification*,
+/// while a slice authors `[ a logic:Restriction ; logic:onProperty … ]`. Without the
+/// projection an authored restriction body reaches the SHACL surface and contributes
+/// nothing to the DL/EL closure: a mandatory-value axiom would enforce in validation
+/// and be invisible to `gmeow entails`. So [`CLASS_EXPRESSION_VOCABULARY`] is projected
+/// here on the same terms as the subsumption edge — canonical first, projected second,
+/// both asserted, the authored quad never replaced.
+pub(crate) fn edb_predicate_spellings(predicate: &str) -> impl Iterator<Item = &str> {
+    std::iter::once(predicate).chain(calculus_projection(predicate))
+}
+
 /// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
 /// fact-set construction the whole reasoning path shares.
 ///
@@ -1559,6 +1806,13 @@ pub(crate) fn run_reasoning_rules_budgeted(
 /// participate in any rule, and skipping them is sound for the closure AND the
 /// verdict. It is no longer a transport necessity: the typed adapter carries
 /// literal objects — control characters included — losslessly through the chase.
+///
+/// Each surviving quad is pushed under every spelling
+/// [`edb_predicate_spellings`] gives it, so a canonically-spelled
+/// `logic:subClassOf` / `logic:subPropertyOf` taxonomy drives the fixed
+/// RDFS-vocabulary calculus instead of sitting inert in the EDB. This is the one
+/// place the whole native reasoning path — the shipped closure, the DL verdict,
+/// `gmeow entails`, and every incremental session — takes that lowering.
 ///
 /// This deliberately does not first copy the entire immutable `RdfDataset` into a
 /// mutable `WorldStore` and then query every world back out. The frozen IR already
@@ -1592,7 +1846,9 @@ pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFac
         // travels as a plain string literal exactly as before.
         let subject = edb.term_value(quad.s);
         let object = edb.term_value(quad.o);
-        edb_facts.push_quad(&subject, predicate, &object, world);
+        for spelling in edb_predicate_spellings(predicate) {
+            edb_facts.push_quad(&subject, spelling, &object, world);
+        }
     }
     Ok(edb_facts)
 }
@@ -1810,6 +2066,139 @@ mod tests {
         assert_eq!(incremental, vec![true, true, false, false]);
     }
 
+    /// A leave-one-out probe spelled in the CANONICAL `logic:` subsumption vocabulary
+    /// is answered by the same analytic reachability index as its `rdfs:` projection,
+    /// and the two spellings compose into ONE taxonomy.
+    ///
+    /// Both halves are load-bearing. Semantically: without the
+    /// [`loo_subsumption_spelling`] lowering the canonical probe reaches
+    /// [`leave_one_out_probe`], where no fixed rule head is spelled `logic:` — so a
+    /// transitively re-derivable canonical axiom is reported LOAD-BEARING, making the
+    /// redundancy measurement vacuous on exactly the slices that re-authored their
+    /// taxonomy canonically (Principle 17). Operationally: that same miss costs one
+    /// incremental session fork PLUS one full finite-DL augmentation over a rebuilt
+    /// reduced dataset per axiom, which is what turned the corpus-wide quality sweep
+    /// from minutes into hours.
+    ///
+    /// Every canonical `logic:` term the class-expression surface authors reaches its
+    /// fixed-calculus spelling through the ONE shared table, in both modes.
+    ///
+    /// The local names are the complete `logic:` class-expression vocabulary — the same
+    /// set the compiler's restriction lifter enumerates. A term missing here is a slot a
+    /// slice can author and the reasoner cannot see, which is the exact defect the table
+    /// exists to foreclose, so the list is spelled out rather than derived from the table
+    /// under test.
+    #[test]
+    fn every_canonical_class_expression_term_lowers_onto_the_fixed_calculus_spelling() {
+        const OWL: &str = "http://www.w3.org/2002/07/owl#";
+        for local in [
+            "Restriction",
+            "onProperty",
+            "someValuesFrom",
+            "allValuesFrom",
+            "hasValue",
+            "onClass",
+            "onDataRange",
+            "onDatatype",
+            "withRestrictions",
+            "cardinality",
+            "minCardinality",
+            "maxCardinality",
+            "qualifiedCardinality",
+            "minQualifiedCardinality",
+            "maxQualifiedCardinality",
+            // The anchors that attach a body to the class it constrains. Without them
+            // the body is read and never applied.
+            "equivalentClass",
+        ] {
+            let canonical = format!("{}{local}", gmeow_ns::LOGIC_NS);
+            let projected = format!("{OWL}{local}");
+            assert_eq!(
+                calculus_term(&canonical),
+                projected,
+                "the raw-scan waists must normalize logic:{local}"
+            );
+            assert_eq!(
+                edb_predicate_spellings(&canonical).collect::<Vec<_>>(),
+                vec![canonical.as_str(), projected.as_str()],
+                "the typed EDB must carry logic:{local} canonical-first, projected-second"
+            );
+        }
+        for (canonical, projected) in [
+            (gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF),
+            (
+                gmeow_ns::LOGIC_SUB_PROPERTY_OF,
+                gmeow_ns::RDFS_SUB_PROPERTY_OF,
+            ),
+        ] {
+            assert_eq!(calculus_term(canonical), projected);
+            assert_eq!(
+                edb_predicate_spellings(canonical).collect::<Vec<_>>(),
+                vec![canonical, projected]
+            );
+        }
+        // Everything else passes through untouched — the lowering ADDS a view of the
+        // canonical vocabulary, it does not rewrite the world.
+        for untouched in [
+            "http://www.w3.org/2002/07/owl#onProperty",
+            "https://blackcatinformatics.ca/math/normalizationStrength",
+            "https://blackcatinformatics.ca/logic/keyProperty",
+        ] {
+            assert_eq!(calculus_term(untouched), untouched);
+            assert_eq!(
+                edb_predicate_spellings(untouched).collect::<Vec<_>>(),
+                vec![untouched]
+            );
+        }
+    }
+
+    /// `scratch_leave_one_out` is deliberately NOT used as the oracle here: it runs the
+    /// fixed RDFS-vocabulary closure, which cannot derive a `logic:`-spelled head at
+    /// all, so it is precisely the vacuous answer this lowering exists to replace.
+    #[test]
+    fn leave_one_out_answers_canonical_logic_subsumption_analytically() {
+        const D: &str = "http://gmeow.example/D";
+        const E: &str = "http://gmeow.example/E";
+        const F: &str = "http://gmeow.example/F";
+        const P: &str = "http://gmeow.example/p";
+        const Q: &str = "http://gmeow.example/q";
+        const R: &str = "http://gmeow.example/r";
+        let logic_subclass = gmeow_ns::LOGIC_SUB_CLASS_OF;
+        let logic_subproperty = gmeow_ns::LOGIC_SUB_PROPERTY_OF;
+
+        let store = dataset(vec![
+            // A purely canonical chain: A ⊑ B ⊑ C makes the direct A ⊑ C redundant.
+            quad(A, logic_subclass, B),
+            quad(B, logic_subclass, C),
+            quad(A, logic_subclass, C),
+            // A MIXED chain: the canonical edge and its rdfs: projection are the same
+            // edge of the taxonomy, so D ⊑ E (rdfs) ⊑ F (logic) re-derives D ⊑ F.
+            quad(D, SUBCLASS, E),
+            quad(E, logic_subclass, F),
+            quad(D, logic_subclass, F),
+            // The property side takes the same lowering.
+            quad(P, logic_subproperty, Q),
+            quad(Q, logic_subproperty, R),
+            quad(P, logic_subproperty, R),
+        ]);
+        let probes = vec![
+            LeaveOneOutAxiom::new(A, logic_subclass, C),
+            LeaveOneOutAxiom::new(A, logic_subclass, B),
+            LeaveOneOutAxiom::new(D, logic_subclass, F),
+            LeaveOneOutAxiom::new(D, SUBCLASS, E),
+            LeaveOneOutAxiom::new(P, logic_subproperty, R),
+            LeaveOneOutAxiom::new(P, logic_subproperty, Q),
+        ];
+
+        let rederived = leave_one_out_rederived(&store, &probes).expect("batch reasons");
+        assert_eq!(
+            rederived,
+            vec![true, false, true, false, true, false],
+            "canonical logic: subsumption must take the analytic reachability answer, \
+             composing with its rdfs: projection as one taxonomy"
+        );
+    }
+
     #[test]
     fn incremental_leave_one_out_preserves_finite_dl_union_derivation() {
         const U: &str = "http://gmeow.example/U";
@@ -1905,6 +2294,7 @@ mod tests {
                 "reason/el.rs",
                 "reason/rl_rules.rs",
                 "reason/dl.rs",
+                "reason/refute.rs",
                 "reason/mod.rs",
                 "oracle.rs",
                 "certify.rs",

@@ -15,6 +15,13 @@
 # actual (linear) dimension, and MUST emit math:DistributionParameterConstraint
 # (and no other probability failure class). The role declares no
 # math:requiresPositiveValue, so only the relational dimension arm fires.
+#
+# Every OTHER obligation the traversal's carriers are under is satisfied here, so the
+# relational dimension mismatch is the fixture's single defect: the random variable
+# names its domain and codomain (math:UnscopedRandomVariable), and the distribution
+# names its family and — because it supplies a math:hasDistributionParameter — the
+# parameterization convention that fixes which parametric form is meant
+# (math:MissingDistributionParameterization).
 # Back-reference: math:squareOfRandomVariableDimension / math:DistributionParameterConstraint
 # (slices/grounding/math/module.ttl).
 @prefix math:  <https://blackcatinformatics.ca/math/> .
@@ -23,10 +30,20 @@
 
 ex:weightRV a math:RandomVariable ;
     math:hasDistribution ex:weightDist ;
+    math:randomVariableDomain ex:sampleOutcomes ;
+    math:randomVariableCodomain ex:realValues ;
     math:hasDimension math:lengthDimension .
 
+ex:sampleOutcomes a math:Set .
+ex:realValues a math:Set .
+
 ex:weightDist a math:Distribution ;
+    math:distributionFamily ex:gaussianFamily ;
+    math:distributionParameterization ex:meanVariance ;
     math:hasDistributionParameter ex:varParam .
+
+ex:gaussianFamily a math:DistributionFamily .
+ex:meanVariance a math:DistributionParameterization .
 
 ex:varianceRole a math:DistributionParameterRole ;
     math:quantityDimension math:squareOfRandomVariableDimension .

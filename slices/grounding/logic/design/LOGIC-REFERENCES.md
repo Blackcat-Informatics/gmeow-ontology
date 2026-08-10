@@ -79,7 +79,8 @@ implicit promise to add a mapping later.
 | Family | Realized disposition |
 |---|---|
 | gUFO, BFO 2020, OBO/RO, SUMO, OWL/RDFS, SHACL Core/AF | Shipped `logic:GroundingCorrespondence` catalogs in `mappings/grounding-bridges.ttl` |
-| DUL, IAO, PATO, YAMATO 2021-08-08, OpenCyc 2012-05-10 | Shipped commitment-shifting, validation-only bridge catalog in `mappings/foundation-bridges.ttl`; target axioms remain by-reference |
+| DUL, IAO, OBI, PATO, YAMATO 2021-08-08, OpenCyc 2012-05-10 | Shipped commitment-shifting, validation-only bridge catalog in `mappings/foundation-bridges.ttl`; target axioms remain by-reference |
+| P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, BPMN, RO-Crate Workflow-Run, Airflow/CWL/WDL/Temporal/Nextflow, openEHR Task Planning | Shipped commitment-shifting, validation-only process-model bridge catalog in `mappings/plan-enactment-bridges.ttl`; every engine surface is a by-reference lowering of `logic:Plan` with its structured lossy drops |
 | OntoUML | Shipped executable, single-binding grounding correspondences in `mappings/projections-ontouml.ttl` |
 | Sequence Ontology (`SO_`) and Emotion Ontology (`MFOEM_`) | Citation and domain-lineage only here; neither has a foundation-term identity warrant, so no synthetic `logic:` bridge is asserted |
 

@@ -33,12 +33,14 @@
     rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by the registered mappings generator."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Cell types — the two authoring units
+# Cell types — the authoring units
 # --------------------------------------------------------------------------- #
-
-gmeow:TermEquivalence a owl:Class ;
-    rdfs:label "term equivalence"@x-gmeow-english ;
-    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It compiles both to a single SSSOM row and to a first-class logic:Correspondence in the shipped graph/correspondence-laws carrier, with logic:sourceEndpoint and logic:targetEndpoint retained; it has no executable projection branch. Ordinary cells may derive their law-spine defaults from the SSSOM predicate. A cell additionally typed logic:GroundingCorrespondence is a co-foundational commitment rather than an ordinary consumer alignment and must explicitly author logic:morphismClass, logic:morphismKind, and logic:preservationKind."@x-gmeow-english .
+#
+# A cross-ontology term alignment is authored as a native RDF-1.2 asserting
+# annotation on the match triple itself — `S <match-predicate> O {| gmeow:sssomFile
+# "…" ; … |}` (skos:*Match / owl:equivalent* / owl:sameAs / rdfs:sub*Of) — with the
+# `gmeow:sssomFile` discriminator marking the reifier as an alignment cell. It has
+# no reified class of its own; the annotation fields below are its surface.
 
 gmeow:ProjectionMapping a owl:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;
@@ -57,22 +59,18 @@ gmeow:ProfileBinding a owl:Class ;
     skos:definition "The per-target-profile face of a projection mapping: the target term it emits for one profile, the EDOAL relation, the transform, the confidence, the SSSOM predicate, and the profile-specific lossy drops. One mapping fans out to several bindings (one source -> different target terms across schema.org / vCard / FOAF)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Alignment fields (both cell types)
+# Alignment fields (the annotation surface of a native alignment cell)
 # --------------------------------------------------------------------------- #
+#
+# The subject, predicate, and object of an alignment are the reified match triple
+# itself (`S <match-predicate> O`), not authored properties. The fields below are the
+# `{| … |}` annotation coat carried on the reifier.
 
-gmeow:alignSubject a owl:ObjectProperty ;
-    rdfs:label "alignment subject"@x-gmeow-english ;
-    skos:definition "The term on the subject side of a term equivalence (either a GMEOW or an external term — mappings are authored in whichever direction is honest, e.g. geo:Feature skos:closeMatch gmeow:Place)."@x-gmeow-english .
-gmeow:alignPredicate a owl:ObjectProperty ;
-    rdfs:label "alignment predicate"@x-gmeow-english ;
-    skos:definition "The mapping predicate of a term equivalence (owl:equivalentClass, owl:equivalentProperty, skos:exactMatch, skos:closeMatch, rdfs:subClassOf, …)."@x-gmeow-english .
-gmeow:alignObject a owl:ObjectProperty ;
-    rdfs:label "alignment object"@x-gmeow-english ;
-    skos:definition "The term on the object side of a term equivalence (either a GMEOW or an external term — see gmeow:alignSubject)."@x-gmeow-english .
 gmeow:confidence a owl:DatatypeProperty ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@x-gmeow-english .
-gmeow:justification a owl:ObjectProperty ;
+gmeow:justification a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "mapping justification"@x-gmeow-english ;
     skos:definition "The SSSOM mapping_justification (defaults to semapv:ManualMappingCuration)."@x-gmeow-english .
 gmeow:comment a owl:DatatypeProperty ;
@@ -84,26 +82,32 @@ gmeow:subjectLabel a owl:DatatypeProperty ;
 gmeow:objectLabel a owl:DatatypeProperty ;
     rdfs:label "object label"@x-gmeow-english ;
     skos:definition "Human-readable label of the (external) object term, emitted as the SSSOM object_label column (e.g. the Wikidata item's English label)."@x-gmeow-english .
-gmeow:sssomFile a owl:DatatypeProperty ;
+gmeow:sssomFile a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "SSSOM file"@x-gmeow-english ;
     skos:definition "The basename of the mappings/*.sssom.tsv file this row is routed to (e.g. \"gmeow-properties.sssom.tsv\")."@x-gmeow-english .
 
 gmeow:MappingSet a owl:Class ;
     rdfs:label "SSSOM mapping set"@x-gmeow-english ;
     skos:definition "Per-file SSSOM header metadata (set id, license, comment, optional trailer) for one generated mappings/*.sssom.tsv file."@x-gmeow-english .
-gmeow:setId a owl:DatatypeProperty ;
+gmeow:setId a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "mapping set id"@x-gmeow-english ;
     skos:definition "The SSSOM mapping_set_id header value."@x-gmeow-english .
-gmeow:license a owl:DatatypeProperty ;
+gmeow:license a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "mapping set license"@x-gmeow-english ;
     skos:definition "The SSSOM license header value."@x-gmeow-english .
-gmeow:setComment a owl:DatatypeProperty ;
+gmeow:setComment a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "mapping set comment"@x-gmeow-english ;
     skos:definition "The SSSOM comment header value."@x-gmeow-english .
-gmeow:setTrailer a owl:DatatypeProperty ;
+gmeow:setTrailer a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "mapping set trailer"@x-gmeow-english ;
     skos:definition "Optional trailing comment lines appended after the data rows (e.g. forward-looking, commented-out mappings)."@x-gmeow-english .
-gmeow:sssomPredicate a owl:ObjectProperty ;
+gmeow:sssomPredicate a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "SSSOM predicate"@x-gmeow-english ;
     skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its one-to-one term row (distinct from the EDOAL gmeow:relation axis)."@x-gmeow-english .
 
@@ -113,25 +117,34 @@ gmeow:sssomPredicate a owl:ObjectProperty ;
 
 gmeow:DeclinedCorrespondence a owl:Class ;
     rdfs:label "declined correspondence"@x-gmeow-english ;
-    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from gmeow:TermEquivalence (a live, resolvable link): a decline has no gmeow:alignObject, precisely because no resolvable object exists."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from a live native alignment cell (a resolvable link with a `gmeow:sssomFile`-annotated match triple): a decline has no resolvable alignment target at all, precisely because no resolvable object exists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty logic:preservationKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    ] .
 
-gmeow:declinedTarget a owl:DatatypeProperty ;
+gmeow:declinedTarget a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "declined target vocabulary"@x-gmeow-english ;
     skos:definition "The external vocabulary a correspondence was declined against, named by its spelled-out label or prefix as a string — NEVER a per-term IRI, because dereferencing one would fabricate the dead link the decline exists to avoid. A collision-prone bare acronym (e.g. the three letters that also name the Experimental Factor Ontology) is forbidden; use the full name."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:intendedRelation a owl:ObjectProperty ;
+gmeow:intendedRelation a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "intended bridge relation"@x-gmeow-english ;
     skos:definition "The SKOS mapping relation (skos:closeMatch / skos:relatedMatch / skos:broadMatch) that a bridge to the declined target WOULD have used had a resolvable surface existed — recording the design intent so a future revisit can author the bridge directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:declineRationale a owl:DatatypeProperty ;
+gmeow:declineRationale a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "decline rationale"@x-gmeow-english ;
     skos:definition "Why the bridge was declined — the reviewable justification (e.g. the target's per-term RDF export is defunct, its term IRIs do not dereference, or it is a reference inventory with no namespace authority)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:revisitCondition a owl:DatatypeProperty ;
+gmeow:revisitCondition a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "revisit condition"@x-gmeow-english ;
     skos:definition "The condition under which a decline is reopened and the bridge authored — typically that a verifiable, dereferenceable per-term namespace for the target appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -141,7 +154,8 @@ gmeow:candidateNamespace a owl:DatatypeProperty ;
     skos:definition "A probed candidate base for the declined target, carried as a string (never a dereferenced IRI) so a future re-probe has a concrete, reproducible target. Multi-valued: a single declined target may bundle several candidate surfaces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:probeVerdict a owl:DatatypeProperty ;
+gmeow:probeVerdict a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "probe verdict"@x-gmeow-english ;
     skos:definition "The dated liveness finding from probing the candidate namespace(s) — the reproducible evidence backing the decline (e.g. an HTTP 404 or an absent per-term RDF surface)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -152,13 +166,133 @@ gmeow:contentCarriedBy a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 # --------------------------------------------------------------------------- #
+# Catalog family — the registered external target catalogs a grounding
+# correspondence may point at.
+# --------------------------------------------------------------------------- #
+#
+# Every `logic:GroundingCorrespondence` names an external `logic:targetEndpoint`.
+# The set of external catalogs those endpoints may belong to is CLOSED and
+# registered: a target outside every registered family is a HARD FAIL at
+# `compile_mappings`, so a new external surface enters the corpus by minting a
+# family row rather than by quietly appearing in a bridge cell. The registry also
+# carries each family's raise-only correspondence-count ratchet, so an existing
+# catalog cannot silently lose rows.
+#
+# This is DISTINCT from `gmeow:ProjectionVocabulary` (slices/core/slice-quality-rubric),
+# which registers the guarded surfaces whose HAND-AUTHORED constructs the
+# ungrounded-residue counter caps: that registry looks INWARD at authoring debt in
+# `slices/`, this one looks OUTWARD at the alignment targets of the correspondence
+# catalog. Their extensions differ (owl:, Wikidata, DLMF, OEIS, the test manifests
+# and the schema.org HowTo family are correspondence targets but are deliberately
+# NOT guarded residue surfaces), and so do their namespace stems (a family stem
+# matches a TARGET IRI, a guarded namespace matches an AUTHORED construct), so
+# neither is derivable from the other and neither restates it.
+
+gmeow:CatalogFamily a owl:Class ;
+    rdfs:label "external catalog family"@x-gmeow-english ;
+    skos:definition "One registered external target catalog a grounding correspondence may point at — a named external formalism (gUFO, BFO, Wikidata, QUDT, OntoLex, BPMN, …) identified by the IRI stem(s) its terms are minted under, together with the grounding slice(s) that author its bridge cells and the raise-only minimum number of correspondences the shipped catalog must carry. It is NOT a gmeow:MappingSet (that is the per-file SSSOM publication header, several of which may target one family, and one of which may span several) and NOT a gmeow:ProjectionVocabulary (that is the inward-looking guarded surface whose hand-authored constructs the residue counter caps): a catalog family classifies the OUTWARD alignment targets, and the registry of families is the closed set a target endpoint must fall in exactly once."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogFamilyName a owl:DatatypeProperty ;
+    rdfs:label "catalog family name"@x-gmeow-english ;
+    skos:definition "The stable, human-readable identity of a catalog family (\"gUFO\", \"RDF Data Cube\", \"openEHR Task Planning\"), used as the family's key in the gate's ratchet report. Exactly one per family and unique across the registry: two families sharing a name would collapse in the name-keyed count map and hide one catalog's shrinkage behind the other's growth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogNamespace a owl:DatatypeProperty ;
+    rdfs:label "catalog namespace stem"@x-gmeow-english ;
+    skos:definition "One IRI stem a member term of this catalog family is minted under; a target endpoint belongs to the family when it starts with any asserted stem. Multi-valued, because a catalog may publish under several bases (OpenMath serves both its http: and https: content-dictionary roots) and because an OBO family is identified by its per-prefix stem (obo/BFO_, obo/STATO_) rather than by the shared obo/ root. At least one is mandatory: a family with no stem could never recognize a target and would be a dead registry row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogOwner a owl:ObjectProperty ;
+    rdfs:label "catalog authoring owner"@x-gmeow-english ;
+    skos:definition "A grounding slice (logic:, math:, or lang:) at whose mappings/ boundary this family's bridge cells are authored — the home a domain slice must reference rather than re-align. Multi-valued, and honestly so: a cross-cutting authority such as Wikidata is authored at all three grounding boundaries, and RDFS and OBI at two, so declaring a single owner would be a fiction. At least one is mandatory; an unowned family names no authoring home at all."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:catalogTargetMinimum a owl:DatatypeProperty ;
+    rdfs:label "catalog target-count minimum"@x-gmeow-english ;
+    skos:definition "The RAISE-ONLY floor on how many shipped grounding correspondences must target this family — the ratchet that turns a silently deleted bridge cell into a red gate. The value may rise as the catalog grows and may never fall while the family is registered; retiring a catalog means removing its family row (and, with it, every correspondence onto it), never lowering the floor to fit a loss. It is NOT a measured count (the gate computes that live from the shipped bundle) and NOT a ceiling (gmeow:ceilingCount is the opposite, lower-only polarity on a residue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Residue-ratchet carve-out — the registered, countable exemptions.
+# --------------------------------------------------------------------------- #
+#
+# The projection-vocabulary residue ratchet (docs/PROJECTION-VOCABULARY-RATCHET.md)
+# guards a vocabulary only when it has ONE grounding slice as its authoring owner.
+# Two registered catalog families the grounding kernel bridges onto — PROV-O and
+# schema.org — are general publication vocabularies that ~60 domain slices align to
+# as ordinary by-reference correspondences, with no single owner, so they carry no
+# `gmeow:ProjectionVocabulary` and their rows enter no residue count, no ceiling,
+# and no monotonicity ratchet.
+#
+# That carve-out used to be a paragraph of prose: nothing counted it, nothing
+# bounded it, and rows could be added to it silently and indefinitely. These terms
+# make it a REGISTRY ROW like every other governance commitment in this file — a
+# typed individual naming the exempted family, stating why it has no owner, and
+# pinning how many shipped grounding correspondences currently ride the exemption.
+# Growing the carve-out is then an ontology edit that shows up in review, and a row
+# added without one reds the mappings stage.
+
+gmeow:ResidueRatchetExemption a owl:Class ;
+    rdfs:label "residue-ratchet exemption"@x-gmeow-english ;
+    skos:definition "One registered exemption of an external catalog family from the projection-vocabulary residue ratchet — a family whose terms domain slices may align to without an owner boundary, because the family is a general publication vocabulary with no single grounding-slice authoring home. It pairs the exempted gmeow:CatalogFamily with the reason it has no owner and the lower-only ceiling on how many shipped grounding correspondences may ride the exemption. It is NOT a gmeow:ProjectionVocabulary (that is the guarded case, this is the recorded absence of guarding) and NOT a gmeow:ProjectionCeilingCommitment (that caps a measured per-slice residue; this caps the size of the carve-out itself). An exempted family that later gains a single owner must be GUARDED and its exemption removed, never both."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptCatalogFamily a owl:ObjectProperty ;
+    rdfs:label "exempted catalog family"@x-gmeow-english ;
+    skos:definition "The gmeow:CatalogFamily this exemption covers. Exactly one per exemption, and unique across the registry: two exemptions for one family would each carry half the carve-out's size and hide growth between them. The family must be REGISTERED — an exemption naming no registered family exempts nothing and is a dead row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRationale a owl:DatatypeProperty ;
+    rdfs:label "exemption rationale"@x-gmeow-english ;
+    skos:definition "Why this family has no single grounding-slice owner and therefore cannot be guarded — the substantive argument, not a restatement of the fact. Mandatory: an exemption whose reason is not written down cannot be re-examined by a later reader, which is exactly how an undocumented carve-out becomes permanent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:exemptRowCeiling a owl:DatatypeProperty ;
+    rdfs:label "exemption row ceiling"@x-gmeow-english ;
+    skos:definition "The LOWER-ONLY ceiling on how many shipped grounding correspondences may target the exempted family — the ratchet that stops the carve-out growing silently. The value may fall as rows are grounded through a guarded owner and may never rise without a deliberate, reviewed ontology edit stating why the carve-out must widen. It has the OPPOSITE polarity to the same family's gmeow:catalogTargetMinimum (which may only rise): together they pin the exempt row count from both sides, so neither a silent addition nor a silent deletion passes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Projection profile inventory — the declared consumer down-projection surfaces.
+# --------------------------------------------------------------------------- #
+#
+# A projection profile file under `dsl/mappings/projections/` is a SHIPPED
+# CONSUMER SURFACE: its `gmeow:ProjectionMapping` cells are what `gmeow project`
+# executes to lower GMEOW data to schema.org, FOAF, DCAT, PROV, … Nothing about a
+# generated artifact records that a profile EXISTS — several profiles bind the
+# same `gmeow:profile` name and so share one generated `.rq` / `.edoal.ttl` — so
+# deleting a profile file, or emptying one of its cells, changed no inventory and
+# reddened no gate. This registry closes that: the authored inventory is a second,
+# independent source from the directory listing, in the same shape the pipeline's
+# `gmeow:expectsGeneratedOutput` inventory is a second source from the carrier's
+# emitted set.
+
+gmeow:ProjectionProfile a owl:Class ;
+    rdfs:label "projection profile source"@x-gmeow-english ;
+    skos:definition "One declared consumer down-projection source file — an authored `dsl/mappings/projections/*.ttl` document of `gmeow:ProjectionMapping` cells, registered with the raise-only floor on how many cells it must declare. It is NOT a gmeow:ProjectionMapping (that is a single cell, many to a profile) and NOT the `gmeow:profile` binding NAME (several profile files may bind the same name and share its generated query): it is the authored FILE, so that removing the file, or hollowing it out, is a countable loss rather than an invisible one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:profileSource a owl:DatatypeProperty ;
+    rdfs:label "projection profile source path"@x-gmeow-english ;
+    skos:definition "The repo-relative path of the authored profile document (\"dsl/mappings/projections/schema-org.ttl\"). Exactly one per profile and unique across the inventory; the gate requires the declared path set to EQUAL the on-disk `dsl/mappings/projections/**/*.ttl` set in both directions, so a deleted profile and an unregistered new one are equally hard failures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:profileCellMinimum a owl:DatatypeProperty ;
+    rdfs:label "projection profile cell minimum"@x-gmeow-english ;
+    skos:definition "The RAISE-ONLY floor on how many `gmeow:ProjectionMapping` cells the profile document must declare — the ratchet that catches a profile which still parses but has stopped projecting. It may rise as cells are added and may never fall while the profile is registered; retiring a projection surface removes its whole row, never trims the floor to fit a deletion. It is NOT a measured count (the gate counts the authored cells live)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Pattern fields
 # --------------------------------------------------------------------------- #
 
-gmeow:hasMappingPattern a owl:ObjectProperty ;
+gmeow:hasMappingPattern a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "has mapping pattern"@x-gmeow-english ;
     skos:definition "Links a projection mapping to its GMEOW-side pattern."@x-gmeow-english .
-gmeow:anchor a owl:DatatypeProperty ;
+gmeow:anchor a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "anchor variable"@x-gmeow-english ;
     skos:definition "The name (string) of the variable that the output triple's SUBJECT binds to — the node the projected fact is predicated of (jobTitle on the person, not the Membership)."@x-gmeow-english .
 gmeow:value a owl:DatatypeProperty ;
@@ -167,34 +301,42 @@ gmeow:value a owl:DatatypeProperty ;
 gmeow:atom a owl:ObjectProperty ;
     rdfs:label "pattern atom"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of the pattern's atoms (triple/path constraints)."@x-gmeow-english .
-gmeow:subjectVar a owl:DatatypeProperty ;
+gmeow:subjectVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "subject variable"@x-gmeow-english ;
     skos:definition "The subject variable name of a pattern/template atom."@x-gmeow-english .
-gmeow:predicate a owl:ObjectProperty ;
+gmeow:predicate a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "atom predicate"@x-gmeow-english ;
     skos:definition "The predicate IRI of a pattern atom (mutually exclusive with gmeow:path)."@x-gmeow-english .
-gmeow:predicateVar a owl:DatatypeProperty ;
+gmeow:predicateVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "atom predicate variable"@x-gmeow-english ;
     skos:definition "The predicate variable name of a pattern atom, used when the predicate itself must be constrained by another atom."@x-gmeow-english .
 gmeow:path a owl:ObjectProperty ;
     rdfs:label "atom property path"@x-gmeow-english ;
     skos:definition "A structured SPARQL property path (AltPath / SeqPath / ZeroOrMorePath) for a pattern atom whose predicate is not a single IRI."@x-gmeow-english .
-gmeow:objectVar a owl:DatatypeProperty ;
+gmeow:objectVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "object variable"@x-gmeow-english ;
     skos:definition "The object variable name of a pattern atom."@x-gmeow-english .
-gmeow:objectValue a owl:ObjectProperty ;
+gmeow:objectValue a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "object value"@x-gmeow-english ;
     skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:eventTypeBirth, gmeow:namePartGiven)."@x-gmeow-english .
-gmeow:objectLiteral a owl:DatatypeProperty ;
+gmeow:objectLiteral a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "object literal"@x-gmeow-english ;
     skos:definition "A fixed literal on the object side of a pattern atom (e.g. the boolean false in a displayable check)."@x-gmeow-english .
-gmeow:optional a owl:DatatypeProperty ;
+gmeow:optional a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "optional atom"@x-gmeow-english ;
     skos:definition "When true, the atom is wrapped in OPTIONAL { } in the generated SPARQL."@x-gmeow-english .
 gmeow:OptionalGroup a owl:Class ;
     rdfs:label "optional group"@x-gmeow-english ;
     skos:definition "A nested OPTIONAL { … } group of pattern items (atoms or further groups) — needed where a block of constraints is jointly optional (e.g. coordinates with their lat/long sub-optionals)."@x-gmeow-english .
-gmeow:optionalGroup a owl:ObjectProperty ;
+gmeow:optionalGroup a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "optional group items"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of pattern items inside an OPTIONAL group."@x-gmeow-english .
 gmeow:suppressWhen a owl:ObjectProperty ;
@@ -215,10 +357,12 @@ gmeow:bind a owl:ObjectProperty ;
 gmeow:mint a owl:ObjectProperty ;
     rdfs:label "minted node"@x-gmeow-english ;
     skos:definition "Binds a variable to a freshly-minted IRI (e.g. a synthetic vcard:Name node), rendered BIND( IRI(...) AS ?var )."@x-gmeow-english .
-gmeow:bindVar a owl:DatatypeProperty ;
+gmeow:bindVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "bound variable"@x-gmeow-english ;
     skos:definition "The name of the variable a bind/mint produces."@x-gmeow-english .
-gmeow:bindExpr a owl:ObjectProperty ;
+gmeow:bindExpr a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "bind expression"@x-gmeow-english ;
     skos:definition "The expression a bind/mint evaluates."@x-gmeow-english .
 
@@ -229,61 +373,78 @@ gmeow:bindExpr a owl:ObjectProperty ;
 gmeow:hasBinding a owl:ObjectProperty ;
     rdfs:label "has profile binding"@x-gmeow-english ;
     skos:definition "Links a projection mapping to one of its per-profile bindings."@x-gmeow-english .
-gmeow:profile a owl:DatatypeProperty ;
+gmeow:profile a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "target profile"@x-gmeow-english ;
     skos:definition "The projection profile key: \"schema-org\", \"vcard\", \"foaf\" or \"geosparql\"."@x-gmeow-english .
-gmeow:toPredicate a owl:ObjectProperty ;
+gmeow:toPredicate a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "target predicate"@x-gmeow-english ;
     skos:definition "The target-vocabulary property the value is emitted under (the simple, single-triple output)."@x-gmeow-english .
-gmeow:toClass a owl:ObjectProperty ;
+gmeow:toClass a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "target class"@x-gmeow-english ;
     skos:definition "The target-vocabulary class the anchor is retyped to (rdf:type output), unconditionally or per a value->class map."@x-gmeow-english .
-gmeow:templateAtoms a owl:ObjectProperty ;
+gmeow:templateAtoms a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "template atoms"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of output (template) atoms for a multi-triple projection — e.g. minting and typing a vcard:Name node. Used in place of toPredicate/toClass for structural outputs."@x-gmeow-english .
-gmeow:tSubj a owl:DatatypeProperty ;
+gmeow:tSubj a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "template subject"@x-gmeow-english ;
     skos:definition "The subject variable of a template atom."@x-gmeow-english .
-gmeow:tPred a owl:ObjectProperty ;
+gmeow:tPred a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "template predicate"@x-gmeow-english ;
     skos:definition "The target predicate of a template atom."@x-gmeow-english .
-gmeow:tObj a owl:DatatypeProperty ;
+gmeow:tObj a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "template object variable"@x-gmeow-english ;
     skos:definition "The object variable of a template atom."@x-gmeow-english .
-gmeow:tObjValue a owl:ObjectProperty ;
+gmeow:tObjValue a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "template object value"@x-gmeow-english ;
     skos:definition "A fixed IRI on the object side of a template atom (e.g. a target class for an rdf:type triple)."@x-gmeow-english .
 gmeow:valueClassMap a owl:ObjectProperty ;
     rdfs:label "value-to-class map"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of (whenValue -> toClass) entries: a source value individual mapped to the target class to assert (rendered a SPARQL VALUES table + N EDOAL AttributeValueRestriction cells)."@x-gmeow-english .
-gmeow:whenValue a owl:ObjectProperty ;
+gmeow:whenValue a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "when value"@x-gmeow-english ;
     skos:definition "The source value individual matched by a value-to-class entry (e.g. gmeow:placeTypeCountry)."@x-gmeow-english .
-gmeow:relation a owl:DatatypeProperty ;
+gmeow:relation a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "EDOAL relation"@x-gmeow-english ;
     skos:definition "The EDOAL align:relation string: \"=\" (equivalence), \"<=\" (lossy/subsumed), or \">=\" (subsumes)."@x-gmeow-english .
-gmeow:transform a owl:ObjectProperty ;
+gmeow:transform a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "transform function"@x-gmeow-english ;
     skos:definition "The FnO projection function this binding invokes (a gmeow:ProjectionFunction)."@x-gmeow-english .
-gmeow:edoalSource a owl:ObjectProperty ;
+gmeow:edoalSource a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "EDOAL entity1 term"@x-gmeow-english ;
     skos:definition "The salient GMEOW term to use as the EDOAL align:entity1 (e.g. gmeow:fullName for a displayable-name rename). An authored override; when omitted and gmeow:edoalPath is not set, and there is no value->class map, the binding emits no EDOAL cell (a pure structural / SSSOM-backed projection)."@x-gmeow-english .
-gmeow:edoalPath a owl:DatatypeProperty ;
+gmeow:edoalPath a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "derive EDOAL relation path"@x-gmeow-english ;
     skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a birth-event traversal becomes a compose over the principal Participation: inverse(participationParticipant), participationEvent, eventTime). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@x-gmeow-english .
-gmeow:edoalSourceKind a owl:DatatypeProperty ;
+gmeow:edoalSourceKind a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "EDOAL entity1 kind"@x-gmeow-english ;
     skos:definition "Whether the EDOAL entity1 is a \"class\" or a \"relation\" (default \"relation\")."@x-gmeow-english .
-gmeow:edoalTarget a owl:ObjectProperty ;
+gmeow:edoalTarget a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "EDOAL entity2 term"@x-gmeow-english ;
     skos:definition "The target term that is the EDOAL align:entity2, when the output is structural (templateAtoms) rather than a single toPredicate/toClass."@x-gmeow-english .
-gmeow:edoalTargetKind a owl:DatatypeProperty ;
+gmeow:edoalTargetKind a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "EDOAL entity2 kind"@x-gmeow-english ;
     skos:definition "Whether the EDOAL entity2 is a \"class\", \"property\" or \"relation\" (default derived: class for toClass/edoalTarget-class, property for toPredicate)."@x-gmeow-english .
 gmeow:lossyDrop a owl:DatatypeProperty ;
     rdfs:label "lossy drop"@x-gmeow-english ;
     skos:definition "A note describing what GMEOW structure this profile drops; aggregated into the generated EDOAL/SPARQL header comments."@x-gmeow-english .
-gmeow:emitSssom a owl:DatatypeProperty ;
+gmeow:emitSssom a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "emit SSSOM row"@x-gmeow-english ;
     skos:definition "When true, this one-to-one term binding also emits an SSSOM row from the binding's source term to its target term (typically gmeow:toPredicate or gmeow:toClass), using gmeow:sssomPredicate for the mapping strength."@x-gmeow-english .
 
@@ -300,13 +461,16 @@ gmeow:SeqPath a owl:Class ;
 gmeow:ZeroOrMorePath a owl:Class ;
     rdfs:label "zero-or-more path"@x-gmeow-english ;
     skos:definition "A SPARQL zero-or-more property path p* (gmeow:pathStep)."@x-gmeow-english .
-gmeow:pathAlts a owl:ObjectProperty ;
+gmeow:pathAlts a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "path alternatives"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of alternatives of an AltPath."@x-gmeow-english .
-gmeow:pathSteps a owl:ObjectProperty ;
+gmeow:pathSteps a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "path steps"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of steps of a SeqPath (each a predicate IRI or a nested path)."@x-gmeow-english .
-gmeow:pathStep a owl:ObjectProperty ;
+gmeow:pathStep a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "path step"@x-gmeow-english ;
     skos:definition "The single inner predicate/path of a ZeroOrMorePath / OneOrMorePath / ZeroOrOnePath / InversePath."@x-gmeow-english .
 gmeow:InversePath a owl:Class ;
@@ -321,7 +485,8 @@ gmeow:ZeroOrOnePath a owl:Class ;
 gmeow:NegatedPropertySet a owl:Class ;
     rdfs:label "negated property set"@x-gmeow-english ;
     skos:definition "A SPARQL negated property set !(p1|p2|…) (gmeow:pathSet) — any predicate except the listed ones."@x-gmeow-english .
-gmeow:pathSet a owl:ObjectProperty ;
+gmeow:pathSet a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "negated path set"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of predicates excluded by a NegatedPropertySet."@x-gmeow-english .
 
@@ -332,13 +497,16 @@ gmeow:pathSet a owl:ObjectProperty ;
 gmeow:ExpressionOperator a owl:Class ;
     rdfs:label "expression operator"@x-gmeow-english ;
     skos:definition "An operator in the closed SPARQL-expression algebra the compiler renders for composed/derived values."@x-gmeow-english .
-gmeow:exprOp a owl:ObjectProperty ;
+gmeow:exprOp a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "expression operator"@x-gmeow-english ;
     skos:definition "The operator applied by an expression node."@x-gmeow-english .
-gmeow:exprArgs a owl:ObjectProperty ;
+gmeow:exprArgs a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "expression arguments"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of an expression node's arguments (each a nested expression, a gmeow:exprVar node, or a literal/IRI constant)."@x-gmeow-english .
-gmeow:exprVar a owl:DatatypeProperty ;
+gmeow:exprVar a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "expression variable"@x-gmeow-english ;
     skos:definition "A variable reference inside an expression (the variable name as a string)."@x-gmeow-english .
 
@@ -430,11 +598,13 @@ gmeow:fnInputOptional a owl:ObjectProperty ;
     rdfs:label "optional function input predicate"@x-gmeow-english ;
     skos:definition "An optional GMEOW source predicate feeding a projection function."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-gmeow:fnOutput a owl:ObjectProperty ;
+gmeow:fnOutput a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "function output predicate"@x-gmeow-english ;
     skos:definition "The FnO output predicate a projection function returns under."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-gmeow:fnOutputType a owl:ObjectProperty ;
+gmeow:fnOutputType a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "function output type"@x-gmeow-english ;
     skos:definition "The authored fno:type of a projection function's output (projected* predicates have no ontology range to derive from)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -771,17 +941,9 @@ gmeow:ProjectionMapping rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/m
 
 gmeow:SeqPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:TermEquivalence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
 gmeow:ZeroOrMorePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:ZeroOrOnePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignPredicate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignSubject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:anchor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
@@ -980,11 +1142,629 @@ gmeow:valueClassMap rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mappi
 
 gmeow:whenValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
+# =============================================================================
+# Migrated procedural + declarative constraints: the closed-world shapes from
+# shapes/mapping-dsl-shapes.ttl, re-expressed as canonical logic: records
+# (Principle 17). The authored shapes stay (additive); the sweep verifies.
+#
+# Two authoring regimes: the TOP-LEVEL typed cells
+# (gmeow:DeclinedCorrespondence, gmeow:ProjectionMapping, gmeow:MappingSet,
+# gmeow:ProjectionFunction, gmeow:OptionalGroup, the 7 property-path classes)
+# are explicitly `a`-typed, so their requiredness is authored with
+# logic:DisjunctiveRequirednessConstraint's logic:onClass. The STRUCTURAL
+# blank-node children (gmeow:MappingPattern, gmeow:PatternAtom,
+# gmeow:TemplateAtom, gmeow:ProfileBinding, Bind/Mint, gmeow:Expression,
+# the ValueClassMap entry) are reached only by sh:targetSubjectsOf /
+# sh:targetObjectsOf in the legacy shapes (typically untyped blank nodes), so
+# their constraints are raw logic:Constraint records guarded by the anchoring
+# property itself — the kernel gmeow:UseForConsumerTargetConstraint idiom.
+# =============================================================================
+
+# --- DeclinedCorrespondence ---------------------------------------------------- #
+
+gmeow:DeclinedCorrespondenceTargetRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence target requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry exactly one gmeow:declinedTarget."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:declinedTarget ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "declinedTarget must be a single spelled-out label"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceTargetPatternConstraint
+    a logic:Constraint ;
+    rdfs:label "DeclinedCorrespondence target pattern constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:declinedTarget value is at least 4 characters long, never the bare acronym EFO, and never a URI."@x-gmeow-english ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "declinedTarget must be a single spelled-out label (never the bare acronym EFO, which collides with the Experimental Factor Ontology; never a URI, which would smuggle a dead IRI past Principle 5)"@x-gmeow-english ;
+    logic:integrity logic:dctForall .
+logic:dctForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:dctImpl .
+logic:dctImpl a logic:Formula ; logic:antecedent logic:dctGuard ; logic:consequent logic:dctAnd .
+logic:dctGuard a logic:Formula ; logic:and logic:dctType , logic:dctHas .
+logic:dctType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DeclinedCorrespondence ] .
+logic:dctHas a logic:Formula ; logic:relation gmeow:declinedTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:dctAnd a logic:Formula ; logic:and logic:dctMinLen , logic:dctNotEfo , logic:dctNotUri .
+logic:dctMinLen a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^.{4,}" ] .
+logic:dctNotEfo a logic:Formula ; logic:not logic:dctEfoMatch .
+logic:dctEfoMatch a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "(?i)\\bEFO\\b" ] .
+logic:dctNotUri a logic:Formula ; logic:not logic:dctUriMatch .
+logic:dctUriMatch a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^https?://" ] .
+
+gmeow:DeclinedCorrespondenceIntendedRelationRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence intended-relation requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry exactly one gmeow:intendedRelation."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:intendedRelation ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must have exactly one gmeow:intendedRelation (the SKOS relation a bridge would have used)"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceRationaleRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence rationale requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry exactly one non-empty gmeow:declineRationale."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:declineRationale ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must have exactly one non-empty gmeow:declineRationale"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceNamespaceRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence candidate-namespace requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry at least one gmeow:candidateNamespace."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:candidateNamespace ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must carry at least one gmeow:candidateNamespace (a probed base string, for a reproducible re-probe)"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceVerdictRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence probe-verdict requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry exactly one gmeow:probeVerdict."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:probeVerdict ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must have exactly one gmeow:probeVerdict (the dated liveness finding)"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceRevisitRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence revisit-condition requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must carry exactly one gmeow:revisitCondition."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:revisitCondition ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must have exactly one gmeow:revisitCondition"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondenceContentCarriedByRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "DeclinedCorrespondence content-carried-by requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DeclinedCorrespondence must name at least one gmeow:contentCarriedBy witness term."@x-gmeow-english ;
+    logic:onClass gmeow:DeclinedCorrespondence ;
+    logic:anyOf gmeow:contentCarriedBy ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must name at least one in-slice gmeow:contentCarriedBy witness term (the positive coverage that makes the decline safe)"@x-gmeow-english .
+
+gmeow:DeclinedCorrespondencePreservationUnsupportedConstraint
+    a logic:Constraint ;
+    rdfs:label "DeclinedCorrespondence preservationKind fixed-value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DeclinedCorrespondence must carry logic:preservationKind logic:Unsupported."@x-gmeow-english ;
+    logic:formalizes gmeow:DeclinedCorrespondence ;
+    logic:message "DeclinedCorrespondence must carry logic:preservationKind logic:Unsupported (the honest 'cannot be expressed in the target' polarity)"@x-gmeow-english ;
+    logic:integrity logic:dcpForall .
+logic:dcpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dcpImpl .
+logic:dcpImpl a logic:Formula ; logic:antecedent logic:dcpGuard ; logic:consequent logic:dcpHasValue .
+logic:dcpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DeclinedCorrespondence ] .
+logic:dcpHasValue a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Unsupported ] .
+
+# --- ProjectionMapping --------------------------------------------------------- #
+
+gmeow:ProjectionMapping logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty rdfs:label ;
+    logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+] .
+
+gmeow:ProjectionMappingPatternRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ProjectionMapping pattern requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ProjectionMapping must carry exactly one gmeow:hasMappingPattern."@x-gmeow-english ;
+    logic:onClass gmeow:ProjectionMapping ;
+    logic:anyOf gmeow:hasMappingPattern ;
+    logic:formalizes gmeow:ProjectionMapping ;
+    logic:message "ProjectionMapping must have exactly one gmeow:hasMappingPattern"@x-gmeow-english .
+
+gmeow:ProjectionMappingBindingRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ProjectionMapping binding requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ProjectionMapping must carry at least one gmeow:hasBinding."@x-gmeow-english ;
+    logic:onClass gmeow:ProjectionMapping ;
+    logic:anyOf gmeow:hasBinding ;
+    logic:formalizes gmeow:ProjectionMapping ;
+    logic:message "ProjectionMapping must have at least one gmeow:hasBinding"@x-gmeow-english .
+
+# --- MappingSet ----------------------------------------------------------------- #
+
+gmeow:MappingSetSssomFileRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "MappingSet sssomFile requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:MappingSet must carry exactly one gmeow:sssomFile."@x-gmeow-english ;
+    logic:onClass gmeow:MappingSet ;
+    logic:anyOf gmeow:sssomFile ;
+    logic:formalizes gmeow:MappingSet ;
+    logic:message "MappingSet must have exactly one gmeow:sssomFile (string)"@x-gmeow-english .
+
+# --- ProjectionFunction ----------------------------------------------------------- #
+
+gmeow:ProjectionFunctionLabelRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ProjectionFunction label requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ProjectionFunction must carry at least one rdfs:label."@x-gmeow-english ;
+    logic:onClass gmeow:ProjectionFunction ;
+    logic:anyOf rdfs:label ;
+    logic:formalizes gmeow:ProjectionFunction ;
+    logic:message "ProjectionFunction must have at least one rdfs:label"@x-gmeow-english .
+
+gmeow:ProjectionFunctionOutputRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ProjectionFunction output requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ProjectionFunction must carry exactly one gmeow:fnOutput."@x-gmeow-english ;
+    logic:onClass gmeow:ProjectionFunction ;
+    logic:anyOf gmeow:fnOutput ;
+    logic:formalizes gmeow:ProjectionFunction ;
+    logic:message "ProjectionFunction must have exactly one gmeow:fnOutput (IRI)"@x-gmeow-english .
+
+gmeow:ProjectionFunctionOutputTypeRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ProjectionFunction output-type requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ProjectionFunction must carry exactly one gmeow:fnOutputType."@x-gmeow-english ;
+    logic:onClass gmeow:ProjectionFunction ;
+    logic:anyOf gmeow:fnOutputType ;
+    logic:formalizes gmeow:ProjectionFunction ;
+    logic:message "ProjectionFunction must have exactly one gmeow:fnOutputType (IRI)"@x-gmeow-english .
+
+# --- OptionalGroup + property-path algebra --------------------------------------- #
+
+gmeow:OptionalGroupItemsRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "OptionalGroup items requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:OptionalGroup must carry exactly one gmeow:optionalGroup list."@x-gmeow-english ;
+    logic:onClass gmeow:OptionalGroup ;
+    logic:anyOf gmeow:optionalGroup ;
+    logic:formalizes gmeow:OptionalGroup ;
+    logic:message "OptionalGroup must have exactly one gmeow:optionalGroup (rdf:List)"@x-gmeow-english .
+
+gmeow:AltPathAltsRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "AltPath alternatives requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: an gmeow:AltPath must carry exactly one gmeow:pathAlts list."@x-gmeow-english ;
+    logic:onClass gmeow:AltPath ;
+    logic:anyOf gmeow:pathAlts ;
+    logic:formalizes gmeow:AltPath ;
+    logic:message "AltPath must have exactly one gmeow:pathAlts (rdf:List)"@x-gmeow-english .
+
+gmeow:SeqPathStepsRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "SeqPath steps requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:SeqPath must carry exactly one gmeow:pathSteps list."@x-gmeow-english ;
+    logic:onClass gmeow:SeqPath ;
+    logic:anyOf gmeow:pathSteps ;
+    logic:formalizes gmeow:SeqPath ;
+    logic:message "SeqPath must have exactly one gmeow:pathSteps (rdf:List)"@x-gmeow-english .
+
+gmeow:ZeroOrMorePathStepRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ZeroOrMorePath step requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ZeroOrMorePath must carry exactly one gmeow:pathStep."@x-gmeow-english ;
+    logic:onClass gmeow:ZeroOrMorePath ;
+    logic:anyOf gmeow:pathStep ;
+    logic:formalizes gmeow:ZeroOrMorePath ;
+    logic:message "ZeroOrMorePath must have exactly one gmeow:pathStep"@x-gmeow-english .
+
+gmeow:OneOrMorePathStepRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "OneOrMorePath step requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:OneOrMorePath must carry exactly one gmeow:pathStep."@x-gmeow-english ;
+    logic:onClass gmeow:OneOrMorePath ;
+    logic:anyOf gmeow:pathStep ;
+    logic:formalizes gmeow:OneOrMorePath ;
+    logic:message "OneOrMorePath must have exactly one gmeow:pathStep"@x-gmeow-english .
+
+gmeow:ZeroOrOnePathStepRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ZeroOrOnePath step requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:ZeroOrOnePath must carry exactly one gmeow:pathStep."@x-gmeow-english ;
+    logic:onClass gmeow:ZeroOrOnePath ;
+    logic:anyOf gmeow:pathStep ;
+    logic:formalizes gmeow:ZeroOrOnePath ;
+    logic:message "ZeroOrOnePath must have exactly one gmeow:pathStep"@x-gmeow-english .
+
+gmeow:InversePathStepRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "InversePath step requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: an gmeow:InversePath must carry exactly one gmeow:pathStep."@x-gmeow-english ;
+    logic:onClass gmeow:InversePath ;
+    logic:anyOf gmeow:pathStep ;
+    logic:formalizes gmeow:InversePath ;
+    logic:message "InversePath must have exactly one gmeow:pathStep"@x-gmeow-english .
+
+gmeow:NegatedPropertySetPathSetRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NegatedPropertySet pathSet requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:NegatedPropertySet must carry exactly one gmeow:pathSet list."@x-gmeow-english ;
+    logic:onClass gmeow:NegatedPropertySet ;
+    logic:anyOf gmeow:pathSet ;
+    logic:formalizes gmeow:NegatedPropertySet ;
+    logic:message "NegatedPropertySet must have exactly one gmeow:pathSet (rdf:List)"@x-gmeow-english .
+
+# --- MappingPattern (structural: targetObjectsOf gmeow:hasMappingPattern) -------- #
+
+gmeow:MappingPatternAnchorRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "MappingPattern anchor requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:MappingPattern (the object of gmeow:hasMappingPattern) carries exactly one gmeow:anchor."@x-gmeow-english ;
+    logic:formalizes gmeow:MappingPattern ;
+    logic:message "MappingPattern must have exactly one gmeow:anchor (string)"@x-gmeow-english ;
+    logic:integrity logic:mpaForall .
+logic:mpaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] ;
+    logic:forall logic:mpaImpl .
+logic:mpaImpl a logic:Formula ; logic:antecedent logic:mpaGuard ; logic:consequent logic:mpaExists .
+logic:mpaGuard a logic:Formula ; logic:relation gmeow:hasMappingPattern ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:mpaExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
+    logic:exists logic:mpaAtom .
+logic:mpaAtom a logic:Formula ; logic:relation gmeow:anchor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+
+# --- PatternAtom (structural: targetSubjectsOf gmeow:subjectVar) ---------------- #
+
+gmeow:PatternAtomPredicateChoiceConstraint
+    a logic:Constraint ;
+    rdfs:label "PatternAtom predicate choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:PatternAtom (a subject of gmeow:subjectVar) carries exactly one of gmeow:predicate (IRI), gmeow:predicateVar (string), or gmeow:path."@x-gmeow-english ;
+    logic:formalizes gmeow:PatternAtom ;
+    logic:message "PatternAtom must have exactly one of predicate (IRI), predicateVar (string), or path (node)"@x-gmeow-english ;
+    logic:integrity logic:papForall .
+logic:papForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sv" ] ;
+    logic:forall logic:papImpl .
+logic:papImpl a logic:Formula ; logic:antecedent logic:papGuard ; logic:consequent logic:papXor .
+logic:papGuard a logic:Formula ; logic:relation gmeow:subjectVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sv" ] .
+logic:papXor a logic:Formula ; logic:or logic:papOnlyPred , logic:papOnlyPredVar , logic:papOnlyPath .
+logic:papOnlyPred a logic:Formula ; logic:and logic:papHasPred , logic:papNoPredVar , logic:papNoPath .
+logic:papOnlyPredVar a logic:Formula ; logic:and logic:papNoPred , logic:papHasPredVar , logic:papNoPath .
+logic:papOnlyPath a logic:Formula ; logic:and logic:papNoPred , logic:papNoPredVar , logic:papHasPath .
+logic:papHasPred a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists logic:papHasPredAtom .
+logic:papHasPredAtom a logic:Formula ; logic:relation gmeow:predicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:papNoPred a logic:Formula ; logic:not logic:papHasPred .
+logic:papHasPredVar a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pv" ] ; logic:exists logic:papHasPredVarAtom .
+logic:papHasPredVarAtom a logic:Formula ; logic:relation gmeow:predicateVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pv" ] .
+logic:papNoPredVar a logic:Formula ; logic:not logic:papHasPredVar .
+logic:papHasPath a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pt" ] ; logic:exists logic:papHasPathAtom .
+logic:papHasPathAtom a logic:Formula ; logic:relation gmeow:path ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pt" ] .
+logic:papNoPath a logic:Formula ; logic:not logic:papHasPath .
+
+# --- TemplateAtom (structural: targetSubjectsOf gmeow:tSubj) -------------------- #
+
+gmeow:TemplateAtomPredRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "TemplateAtom predicate requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) carries exactly one gmeow:tPred."@x-gmeow-english ;
+    logic:formalizes gmeow:TemplateAtom ;
+    logic:message "TemplateAtom must have exactly one gmeow:tPred (IRI)"@x-gmeow-english ;
+    logic:integrity logic:tapForall .
+logic:tapForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall logic:tapImpl .
+logic:tapImpl a logic:Formula ; logic:antecedent logic:tapGuard ; logic:consequent logic:tapExists .
+logic:tapGuard a logic:Formula ; logic:relation gmeow:tSubj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:tapExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists logic:tapAtom .
+logic:tapAtom a logic:Formula ; logic:relation gmeow:tPred ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+gmeow:TemplateAtomObjectChoiceConstraint
+    a logic:Constraint ;
+    rdfs:label "TemplateAtom object choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:TemplateAtom carries exactly one of gmeow:tObj (string) or gmeow:tObjValue (IRI)."@x-gmeow-english ;
+    logic:formalizes gmeow:TemplateAtom ;
+    logic:message "TemplateAtom must have exactly one of tObj (string) or tObjValue (IRI)"@x-gmeow-english ;
+    logic:integrity logic:tacForall .
+logic:tacForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall logic:tacImpl .
+logic:tacImpl a logic:Formula ; logic:antecedent logic:tacGuard ; logic:consequent logic:tacXor .
+logic:tacGuard a logic:Formula ; logic:relation gmeow:tSubj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:tacXor a logic:Formula ; logic:or logic:tacOnlyObj , logic:tacOnlyObjValue .
+logic:tacOnlyObj a logic:Formula ; logic:and logic:tacHasObj , logic:tacNoObjValue .
+logic:tacOnlyObjValue a logic:Formula ; logic:and logic:tacNoObj , logic:tacHasObjValue .
+logic:tacHasObj a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists logic:tacHasObjAtom .
+logic:tacHasObjAtom a logic:Formula ; logic:relation gmeow:tObj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+logic:tacNoObj a logic:Formula ; logic:not logic:tacHasObj .
+logic:tacHasObjValue a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ov" ] ; logic:exists logic:tacHasObjValueAtom .
+logic:tacHasObjValueAtom a logic:Formula ; logic:relation gmeow:tObjValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ov" ] .
+logic:tacNoObjValue a logic:Formula ; logic:not logic:tacHasObjValue .
+
+# --- ProfileBinding (structural: targetObjectsOf gmeow:hasBinding) -------------- #
+
+gmeow:ProfileBindingProfileRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "ProfileBinding profile requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:ProfileBinding (the object of gmeow:hasBinding) carries exactly one gmeow:profile."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileBinding ;
+    logic:message "ProfileBinding must have exactly one gmeow:profile (string)"@x-gmeow-english ;
+    logic:integrity logic:pbpForall .
+logic:pbpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] ;
+    logic:forall logic:pbpImpl .
+logic:pbpImpl a logic:Formula ; logic:antecedent logic:pbpGuard ; logic:consequent logic:pbpExists .
+logic:pbpGuard a logic:Formula ; logic:relation gmeow:hasBinding ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:pbpExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists logic:pbpAtom .
+logic:pbpAtom a logic:Formula ; logic:relation gmeow:profile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+gmeow:ProfileBindingOutputRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "ProfileBinding output requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:ProfileBinding declares at least one output: gmeow:toPredicate, gmeow:toClass, gmeow:templateAtoms, or gmeow:valueClassMap."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileBinding ;
+    logic:message "ProfileBinding must have at least one output: toPredicate, toClass, templateAtoms, or valueClassMap"@x-gmeow-english ;
+    logic:integrity logic:pboForall .
+logic:pboForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] ;
+    logic:forall logic:pboImpl .
+logic:pboImpl a logic:Formula ; logic:antecedent logic:pboGuard ; logic:consequent logic:pboOr .
+logic:pboGuard a logic:Formula ; logic:relation gmeow:hasBinding ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:pboOr a logic:Formula ; logic:or logic:pboPred , logic:pboClass , logic:pboTemplate , logic:pboValueMap .
+logic:pboPred a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists logic:pboPredAtom .
+logic:pboPredAtom a logic:Formula ; logic:relation gmeow:toPredicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:pboClass a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ; logic:exists logic:pboClassAtom .
+logic:pboClassAtom a logic:Formula ; logic:relation gmeow:toClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+logic:pboTemplate a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ; logic:exists logic:pboTemplateAtom .
+logic:pboTemplateAtom a logic:Formula ; logic:relation gmeow:templateAtoms ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+logic:pboValueMap a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists logic:pboValueMapAtom .
+logic:pboValueMapAtom a logic:Formula ; logic:relation gmeow:valueClassMap ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:ProfileBindingSssomEmitConstraint
+    a logic:Constraint ;
+    rdfs:label "ProfileBinding SSSOM-emission guarded requirement"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProfileBinding with gmeow:emitSssom true must carry gmeow:sssomPredicate and gmeow:sssomFile."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileBinding ;
+    logic:message "ProfileBinding with gmeow:emitSssom true must have gmeow:sssomPredicate and gmeow:sssomFile"@x-gmeow-english ;
+    logic:integrity logic:pbsForall .
+logic:pbsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pbsImpl .
+logic:pbsImpl a logic:Formula ; logic:antecedent logic:pbsGuard ; logic:consequent logic:pbsAnd .
+logic:pbsGuard a logic:Formula ; logic:relation gmeow:emitSssom ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true"^^<http://www.w3.org/2001/XMLSchema#boolean> ] .
+logic:pbsAnd a logic:Formula ; logic:and logic:pbsPredExists , logic:pbsFileExists .
+logic:pbsPredExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sp" ] ; logic:exists logic:pbsPredAtom .
+logic:pbsPredAtom a logic:Formula ; logic:relation gmeow:sssomPredicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sp" ] .
+logic:pbsFileExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sf" ] ; logic:exists logic:pbsFileAtom .
+logic:pbsFileAtom a logic:Formula ; logic:relation gmeow:sssomFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sf" ] .
+
+# --- Bind / Mint (structural: targetObjectsOf gmeow:bind, gmeow:mint) ----------- #
+
+gmeow:BindVarRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "Bind/Mint variable requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every bind/mint node (the object of gmeow:bind or gmeow:mint) carries exactly one gmeow:bindVar and exactly one gmeow:bindExpr."@x-gmeow-english ;
+    logic:formalizes gmeow:BindShape ;
+    logic:message "Bind/Mint must have exactly one gmeow:bindVar (string) and exactly one gmeow:bindExpr"@x-gmeow-english ;
+    logic:integrity logic:bvForall .
+logic:bvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] ;
+    logic:forall logic:bvImpl .
+logic:bvImpl a logic:Formula ; logic:antecedent logic:bvGuard ; logic:consequent logic:bvAnd .
+logic:bvGuard a logic:Formula ; logic:or logic:bvBindGuard , logic:bvMintGuard .
+logic:bvBindGuard a logic:Formula ; logic:relation gmeow:bind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:bvMintGuard a logic:Formula ; logic:relation gmeow:mint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:bvAnd a logic:Formula ; logic:and logic:bvVarExists , logic:bvExprExists .
+logic:bvVarExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists logic:bvVarAtom .
+logic:bvVarAtom a logic:Formula ; logic:relation gmeow:bindVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:bvExprExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ; logic:exists logic:bvExprAtom .
+logic:bvExprAtom a logic:Formula ; logic:relation gmeow:bindExpr ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+# --- Expression (structural: targetSubjectsOf gmeow:exprOp / gmeow:exprVar) ----- #
+
+gmeow:ExpressionShapeChoiceConstraint
+    a logic:Constraint ;
+    rdfs:label "Expression shape choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:Expression node carries exactly one of gmeow:exprVar (string) or the pair (gmeow:exprOp + gmeow:exprArgs)."@x-gmeow-english ;
+    logic:formalizes gmeow:Expression ;
+    logic:message "Expression must have exactly one of exprVar (string) or (exprOp + exprArgs)"@x-gmeow-english ;
+    logic:integrity logic:excForall .
+logic:excForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:excImpl .
+logic:excImpl a logic:Formula ; logic:antecedent logic:excGuard ; logic:consequent logic:excXor .
+logic:excGuard a logic:Formula ; logic:or logic:excOpGuard , logic:excVarGuard .
+logic:excOpGuard a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists logic:excOpGuardAtom .
+logic:excOpGuardAtom a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+logic:excVarGuard a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vv" ] ; logic:exists logic:excVarGuardAtom .
+logic:excVarGuardAtom a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .
+logic:excXor a logic:Formula ; logic:or logic:excOnlyVar , logic:excOpAndArgs .
+logic:excOnlyVar a logic:Formula ; logic:and logic:excHasVar , logic:excNoOp , logic:excNoArgs .
+logic:excOpAndArgs a logic:Formula ; logic:and logic:excNoVar , logic:excHasOp , logic:excHasArgs .
+logic:excHasVar a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists logic:excHasVarAtom .
+logic:excHasVarAtom a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:excNoVar a logic:Formula ; logic:not logic:excHasVar .
+logic:excHasOp a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "op" ] ; logic:exists logic:excHasOpAtom .
+logic:excHasOpAtom a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "op" ] .
+logic:excNoOp a logic:Formula ; logic:not logic:excHasOp .
+logic:excHasArgs a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ar" ] ; logic:exists logic:excHasArgsAtom .
+logic:excHasArgsAtom a logic:Formula ; logic:relation gmeow:exprArgs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ar" ] .
+logic:excNoArgs a logic:Formula ; logic:not logic:excHasArgs .
+
+# --- ValueClassMap entry (structural: targetSubjectsOf gmeow:whenValue) --------- #
+
+gmeow:ValueClassMapEntryToClassRequiredConstraint
+    a logic:Constraint ;
+    rdfs:label "ValueClassMap entry toClass requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every value-class map entry (a subject of gmeow:whenValue) carries exactly one gmeow:toClass."@x-gmeow-english ;
+    logic:formalizes gmeow:ValueClassMapEntryShape ;
+    logic:message "Value-class map entry must have exactly one gmeow:toClass (IRI)"@x-gmeow-english ;
+    logic:integrity logic:vcmForall .
+logic:vcmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "wv" ] ;
+    logic:forall logic:vcmImpl .
+logic:vcmImpl a logic:Formula ; logic:antecedent logic:vcmGuard ; logic:consequent logic:vcmExists .
+logic:vcmGuard a logic:Formula ; logic:relation gmeow:whenValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "wv" ] .
+logic:vcmExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ; logic:exists logic:vcmAtom .
+logic:vcmAtom a logic:Formula ; logic:relation gmeow:toClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+
+# --- Vocabulary annotation completeness --------------------------------------- #
+# gmeow:MappingDslVocabularyTermShape — mirrors
+# logic:GmeowClassCompletenessConstraint / GmeowPropertyCompletenessConstraint's
+# logic:sparqlTarget idiom for a raw sh:SPARQLTarget focus set, scoped to the
+# mapping-dsl namespace.
+
+gmeow:MappingDslVocabularyTermCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "Mapping DSL vocabulary term completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every term declared in the mapping DSL vocabulary namespace (a class, object/datatype/annotation property, ontology, or datatype) carries at least one rdfs:label, one skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl>."@x-gmeow-english ;
+    logic:formalizes gmeow:MappingDslVocabularyTermShape ;
+    logic:message "Every mapping DSL vocabulary term must carry rdfs:label, skos:definition, and rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl>."@x-gmeow-english ;
+    logic:integrity logic:mdvForall .
+logic:mdvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mdvImpl .
+logic:mdvImpl a logic:Formula ; logic:antecedent logic:mdvTarget ; logic:consequent logic:mdvAnd .
+logic:mdvTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this a ?t .
+    FILTER(?t IN (
+        <http://www.w3.org/2002/07/owl#Class>,
+        <http://www.w3.org/2002/07/owl#ObjectProperty>,
+        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+        <http://www.w3.org/2002/07/owl#AnnotationProperty>,
+        <http://www.w3.org/2002/07/owl#Ontology>,
+        <http://www.w3.org/2000/01/rdf-schema#Datatype>
+    ))
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:mdvAnd a logic:Formula ; logic:and logic:mdvLabel , logic:mdvDef , logic:mdvDefBy .
+logic:mdvLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:mdvLabelAtom .
+logic:mdvLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:mdvDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:mdvDefAtom .
+logic:mdvDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:mdvDefBy a logic:Formula ; logic:relation rdfs:isDefinedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri <https://blackcatinformatics.ca/gmeow/mapping-dsl> ] .
+
 # --------------------------------------------------------------------------- #
 # Graph box role coverage (canonical explicit annotations).
 # --------------------------------------------------------------------------- #
 
 gmeow:AltPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:CatalogFamily gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:DeclinedCorrespondence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ExpressionOperator gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:InversePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
@@ -997,20 +1777,27 @@ gmeow:PatternAtom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProfileBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionMapping gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ResidueRatchetExemption gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:SeqPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:TermEquivalence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrMorePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrOnePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:alignObject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignPredicate gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignSubject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:anchor gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:atom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bind gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindExpr gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:candidateNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogFamilyName gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogOwner gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:catalogTargetMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:comment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptCatalogFamily gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:exemptRowCeiling gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileCellMinimum gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileSource gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:contentCarriedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:declineRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

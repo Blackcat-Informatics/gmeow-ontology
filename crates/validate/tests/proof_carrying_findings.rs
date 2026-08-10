@@ -10,7 +10,7 @@
 //!
 //! The fixture is a self-built, in-memory `gmeow.gts` bundle (never the
 //! committed `generated/dist/gmeow.gts`, which is regenerate-only and would
-//! make this test depend on an unrelated `make sync` pass): it carries
+//! make this test depend on an unrelated `make check` pass): it carries
 //! its OWN `shapes-archive` blob (so `data_validate::run` can validate
 //! repo-free) plus a small TBox that reasons to a genuine entailed
 //! inconsistency under `--deep` (mirroring the `INCONSISTENT_TTL` pattern
@@ -18,7 +18,7 @@
 //! test-authored guidance-carrying term (mirroring the shape of Task 4's
 //! seeded `gmeow:requiresFrame` guidance, but authored fresh in THIS bundle
 //! since the real seeded terms live in `slices/*.ttl` sources that only reach
-//! `generated/dist/gmeow.gts` via `make sync`, which this test must not
+//! `generated/dist/gmeow.gts` via `make check`, which this test must not
 //! depend on).
 
 use gmeow_errors::Severity;
@@ -101,7 +101,7 @@ ex:x a ex:A .
 /// its default graph and [`SHAPES_TTL`] as its `shapes-archive` blob — mirrors
 /// the real `stage-carrier`/`stage-snapshot` compose (`purrdf::gts_compose`),
 /// never the committed `generated/dist/gmeow.gts` (regenerate-only, and this
-/// test must stay independent of `make sync`).
+/// test must stay independent of `make check`).
 fn build_test_bundle() -> Vec<u8> {
     let dataset = purrdf::parse_dataset(BUNDLE_GRAPH_TTL.as_bytes(), "text/turtle", None)
         .expect("bundle graph turtle parses");
@@ -129,6 +129,7 @@ fn build_test_bundle() -> Vec<u8> {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit test gts bundle")
 }

@@ -25,233 +25,200 @@ gmeow:mapsetImages a gmeow:MappingSet ;
 # schema.org ImageObject
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:ImageObject ;
+gmeow:MediaObject skos:closeMatch schema:ImageObject {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "GMEOW MediaObject is broader than schema:ImageObject (it also covers audio and video); directional lossy projection." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "GMEOW MediaObject is broader than schema:ImageObject (it also covers audio and video); directional lossy projection."
+|} .
 
-gmeow:eqImg002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:depicts ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:about ;
+gmeow:depicts skos:closeMatch schema:about {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "gmeow:depicts (⊑ gmeow:isAbout, domain MediaObject) projects to schema:about on schema:ImageObject. Lossy: context, audience, period dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "gmeow:depicts (⊑ gmeow:isAbout, domain MediaObject) projects to schema:about on schema:ImageObject. Lossy: context, audience, period dropped."
+|} .
 
-gmeow:eqImg003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelWidth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:width ;
+gmeow:pixelWidth skos:closeMatch schema:width {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel width projects to schema:width (as QuantitativeValue or integer)." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel width projects to schema:width (as QuantitativeValue or integer)."
+|} .
 
-gmeow:eqImg004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelHeight ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:height ;
+gmeow:pixelHeight skos:closeMatch schema:height {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel height projects to schema:height (as QuantitativeValue or integer)." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel height projects to schema:height (as QuantitativeValue or integer)."
+|} .
 
 # --------------------------------------------------------------------------- #
 # W3C Web Annotation — region selectors
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ImageRegion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:SpecificResource ;
+gmeow:ImageRegion skos:closeMatch oa:SpecificResource {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "An ImageRegion with a selector projects to an oa:SpecificResource. Lossy: regionLabel and scene-graph edges are dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "An ImageRegion with a selector projects to an oa:SpecificResource. Lossy: regionLabel and scene-graph edges are dropped."
+|} .
 
-gmeow:eqImg011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RegionSelector ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Selector ;
+gmeow:RegionSelector skos:closeMatch oa:Selector {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "RegionSelector projects to oa:Selector. The selectorType determines the concrete selector subclass (FragmentSelector, SvgSelector, etc.)." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "RegionSelector projects to oa:Selector. The selectorType determines the concrete selector subclass (FragmentSelector, SvgSelector, etc.)."
+|} .
 
-gmeow:eqImg012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:selectorTypePixelRectangle ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject oa:FragmentSelector ;
+gmeow:selectorTypePixelRectangle skos:exactMatch oa:FragmentSelector {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel rectangle projects to oa:FragmentSelector with xywh media fragment." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel rectangle projects to oa:FragmentSelector with xywh media fragment."
+|} .
 
-gmeow:eqImg013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:selectorTypeSvgPath ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject oa:SvgSelector ;
+gmeow:selectorTypeSvgPath skos:exactMatch oa:SvgSelector {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "SVG path projects to oa:SvgSelector." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "SVG path projects to oa:SvgSelector."
+|} .
 
 # --------------------------------------------------------------------------- #
 # W3C EXIF Ontology — technical metadata
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelWidth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject exif:width ;
+gmeow:pixelWidth skos:closeMatch exif:width {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel width projects to exif:width." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel width projects to exif:width."
+|} .
 
-gmeow:eqImg021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelHeight ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject exif:height ;
+gmeow:pixelHeight skos:closeMatch exif:height {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel height projects to exif:height." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel height projects to exif:height."
+|} .
 
-gmeow:eqImg022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:imageOrientation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject exif:orientation ;
+gmeow:imageOrientation skos:closeMatch exif:orientation {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Image orientation projects to exif:orientation." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Image orientation projects to exif:orientation."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CIDOC-CRM / CRMdig — provenance
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeImageCapture ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E12_Production ;
+gmeow:eventTypeImageCapture skos:closeMatch crm:E12_Production {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Image capture is a production event in CIDOC-CRM terms." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Image capture is a production event in CIDOC-CRM terms."
+|} .
 
-gmeow:eqImg031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeImageProcessing ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E11_Modification ;
+gmeow:eventTypeImageProcessing skos:closeMatch crm:E11_Modification {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Image processing aligns to CIDOC-CRM modification activity. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Image processing aligns to CIDOC-CRM modification activity. Directional lossy projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — hub bridging
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ImageRegion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q10884 ;
+gmeow:ImageRegion skos:closeMatch wd:Q10884 {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Wikidata 'region' (Q10884) is broader than GMEOW ImageRegion; directional lossy projection." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Wikidata 'region' (Q10884) is broader than GMEOW ImageRegion; directional lossy projection."
+|} .
 
-gmeow:eqImg041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SceneGraphEdge ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q215032 ;
+gmeow:SceneGraphEdge skos:closeMatch wd:Q215032 {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'spatial relation' (Q215032) is the closest peer to SceneGraphEdge. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Wikidata 'spatial relation' (Q215032) is the closest peer to SceneGraphEdge. Directional lossy projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # schema.org — captureTime
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:captureTime ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:dateCreated ;
+gmeow:captureTime skos:closeMatch schema:dateCreated {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "captureTime projects to schema:dateCreated. Lossy: provenance and confidence dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "captureTime projects to schema:dateCreated. Lossy: provenance and confidence dropped."
+|} .
 
 # --------------------------------------------------------------------------- #
 # IIIF Presentation API 3 — Canvas, Annotation, dimensions
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg060 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iiif:Canvas ;
+gmeow:MediaObject skos:closeMatch iiif:Canvas {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "GMEOW MediaObject projects to iiif:Canvas. Lossy: depicts, regions, rights, and capture metadata dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "GMEOW MediaObject projects to iiif:Canvas. Lossy: depicts, regions, rights, and capture metadata dropped."
+|} .
 
-gmeow:eqImg061 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelWidth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iiif:width ;
+gmeow:pixelWidth skos:closeMatch iiif:width {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel width projects to iiif:width." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel width projects to iiif:width."
+|} .
 
-gmeow:eqImg062 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pixelHeight ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iiif:height ;
+gmeow:pixelHeight skos:closeMatch iiif:height {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Pixel height projects to iiif:height." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "Pixel height projects to iiif:height."
+|} .
 
-gmeow:eqImg063 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ImageRegion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iiif:Annotation ;
+gmeow:ImageRegion skos:closeMatch iiif:Annotation {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ImageRegion projects to iiif:Annotation. Lossy: regionLabel and scene-graph edges dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "ImageRegion projects to iiif:Annotation. Lossy: regionLabel and scene-graph edges dropped."
+|} .
 
 # --------------------------------------------------------------------------- #
 # W3C EXIF Ontology — captureTime
 # --------------------------------------------------------------------------- #
 
-gmeow:eqImg070 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:captureTime ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject exif:dateTime ;
+gmeow:captureTime skos:closeMatch exif:dateTime {|
+    gmeow:sssomFile "gmeow-images.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "captureTime projects to exif:dateTime. Lossy: provenance and confidence dropped." ;
-    gmeow:sssomFile "gmeow-images.sssom.tsv" .
+    gmeow:comment "captureTime projects to exif:dateTime. Lossy: provenance and confidence dropped."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqProperties093 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasExifTag ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:exifData ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "reified EXIF tags → schema:exifData PropertyValues (lossless)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:hasExifTag skos:closeMatch schema:exifData {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "reified EXIF tags → schema:exifData PropertyValues (lossless)"
+|} .
 
-gmeow:eqProperties094 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLogo ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:logo ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "an entity's emblematic media object → schema:logo (follow-through)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:hasLogo skos:closeMatch schema:logo {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "an entity's emblematic media object → schema:logo (follow-through)"
+|} .
 
-gmeow:eqProperties095 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLogo ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:logo ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "an entity's emblematic media object → foaf:logo (follow-through)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:hasLogo skos:closeMatch foaf:logo {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "an entity's emblematic media object → foaf:logo (follow-through)"
+|} .

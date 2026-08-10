@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ChainShape (derived from the min-1 qualified restriction on
+# math:Chain's math:chainOf): a math:Chain naming no math:ChainComplex it is a graded
+# element of. Validation MUST emit shacl.QualifiedMinCountConstraintComponent
+# (math:UngroundedChain).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareChain a math:Chain .

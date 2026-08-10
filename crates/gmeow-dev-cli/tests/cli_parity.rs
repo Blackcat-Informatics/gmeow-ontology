@@ -199,7 +199,7 @@ fn external_tool_mirrors_child_exit() {
 
 #[test]
 fn external_tool_writes_artifacts() {
-    let dir = tempdir();
+    let (_tmp, dir) = tempdir();
     dev_cmd()
         .arg("external-tool")
         .arg("--name")
@@ -216,7 +216,6 @@ fn external_tool_writes_artifacts() {
         .failure();
     assert!(dir.join("ext.json").is_file(), "wrote the JSON artifact");
     assert!(dir.join("ext.sarif").is_file(), "wrote the SARIF artifact");
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 #[test]
@@ -232,7 +231,8 @@ fn slice_fix_deps_dry_run_writes_nothing() {
     // renders the proposed manifest patches but must not touch a single file. We
     // point `--slices-dir` at a copy of the committed tree, fingerprint every file
     // before and after, and assert nothing was created, deleted, or modified.
-    let copy = tempdir().join("slices");
+    let (_tmp, tmp_root) = tempdir();
+    let copy = tmp_root.join("slices");
     copy_tree(&repo_root().join("slices"), &copy);
     let before = fingerprint_tree(&copy);
 
@@ -248,7 +248,6 @@ fn slice_fix_deps_dry_run_writes_nothing() {
         before, after,
         "slice-fix-deps without --apply must not create, delete, or modify any file"
     );
-    std::fs::remove_dir_all(copy.parent().unwrap_or(&copy)).ok();
 }
 
 /// Recursively copy `src` into `dst` (files + directory structure).
@@ -407,7 +406,7 @@ fn feedback_writes_artifacts() {
     if !heavy_enabled() {
         return;
     }
-    let dir = tempdir();
+    let (_tmp, dir) = tempdir();
     let _ = dev_cmd()
         .arg("feedback")
         .arg("--diagnostics-dir")
@@ -421,22 +420,20 @@ fn feedback_writes_artifacts() {
         dir.join("fb.gts").is_file(),
         "always writes the .gts bundle"
     );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
-/// A unique temp directory under the system temp dir (removed by the caller).
-fn tempdir() -> PathBuf {
-    let mut path = std::env::temp_dir();
-    path.push(format!(
-        "gmeow-dev-cli-test-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0)
-    ));
-    std::fs::create_dir_all(&path).expect("create temp dir");
-    path
+/// A fresh, empty temp directory owned by the returned [`tempfile::TempDir`].
+///
+/// The guard must be bound to a live local (`let (_tmp, dir) = tempdir();`) for the
+/// duration of the test: dropping it removes the directory and its contents, on
+/// success, on early return, and on panic alike.
+fn tempdir() -> (tempfile::TempDir, PathBuf) {
+    let tmp = tempfile::Builder::new()
+        .prefix("gmeow-dev-cli-test-")
+        .tempdir()
+        .expect("create temp dir");
+    let path = tmp.path().to_path_buf();
+    (tmp, path)
 }
 
 // ── shape-equivalence: the per-increment migration verifier ──────────────────
@@ -482,7 +479,7 @@ fn write_shape_fixture(root: &std::path::Path, legacy_property: &str) {
 /// A legacy block the projector reproduces exactly is `EQUIV` and clears the gate (exit 0).
 #[test]
 fn shape_equivalence_reports_equiv_and_exits_zero_when_reproduced() {
-    let root = tempdir();
+    let (_tmp, root) = tempdir();
     write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
     Command::cargo_bin("gmeow-dev")
         .expect("gmeow-dev binary")
@@ -493,14 +490,13 @@ fn shape_equivalence_reports_equiv_and_exits_zero_when_reproduced() {
         .stdout(
             predicate::str::contains("[EQUIV]").and(predicate::str::contains("gmeow:FooShape")),
         );
-    std::fs::remove_dir_all(&root).ok();
 }
 
 /// A legacy block the projector does NOT reproduce (a tighter cardinality) is `NOT-EQUIV`
 /// and reds the gate (exit non-zero) — the equivalence-before-deletion guard.
 #[test]
 fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
-    let root = tempdir();
+    let (_tmp, root) = tempdir();
     write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 2");
     Command::cargo_bin("gmeow-dev")
         .expect("gmeow-dev binary")
@@ -509,7 +505,6 @@ fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
         .assert()
         .failure()
         .stdout(predicate::str::contains("[NOT-EQUIV"));
-    std::fs::remove_dir_all(&root).ok();
 }
 
 /// Write a mini-repo whose projected surface carries a `Foo` class shape (with the given
@@ -557,7 +552,7 @@ fn write_functional_credit_fixture(root: &std::path::Path, projected_bar: &str) 
 /// `EQUIV` (exit 0) — legitimate functional-cap equivalence is preserved.
 #[test]
 fn shape_equivalence_equiv_when_class_shape_carries_the_functional_cap() {
-    let root = tempdir();
+    let (_tmp, root) = tempdir();
     write_functional_credit_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
     Command::cargo_bin("gmeow-dev")
         .expect("gmeow-dev binary")
@@ -568,7 +563,6 @@ fn shape_equivalence_equiv_when_class_shape_carries_the_functional_cap() {
         .stdout(
             predicate::str::contains("[EQUIV]").and(predicate::str::contains("gmeow:FooShape")),
         );
-    std::fs::remove_dir_all(&root).ok();
 }
 
 /// LOSS (the R3 regression): the projected CLASS shape DROPPED the `sh:maxCount` on `bar` even
@@ -576,7 +570,7 @@ fn shape_equivalence_equiv_when_class_shape_carries_the_functional_cap() {
 /// credit must NOT rescue it — the block is `NOT-EQUIV` and reds the gate (exit non-zero).
 #[test]
 fn shape_equivalence_not_equiv_when_class_shape_drops_the_functional_cap() {
-    let root = tempdir();
+    let (_tmp, root) = tempdir();
     write_functional_credit_fixture(&root, "sh:minCount 1");
     Command::cargo_bin("gmeow-dev")
         .expect("gmeow-dev binary")
@@ -585,7 +579,6 @@ fn shape_equivalence_not_equiv_when_class_shape_drops_the_functional_cap() {
         .assert()
         .failure()
         .stdout(predicate::str::contains("[NOT-EQUIV"));
-    std::fs::remove_dir_all(&root).ok();
 }
 
 /// `shape-migrate`'s namespace guard must accept every authoring namespace
@@ -595,7 +588,7 @@ fn shape_equivalence_not_equiv_when_class_shape_drops_the_functional_cap() {
 /// of a stale local mirror of it.
 #[test]
 fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
-    let root = tempdir();
+    let (_tmp, root) = tempdir();
     // The shared projected surface (irrelevant `gmeow:Foo` shape) — `OracleCtx::load` requires
     // all three generated shape-union members to exist.
     write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
@@ -622,5 +615,4 @@ fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
                     "https://blackcatinformatics.ca/math/PointShape",
                 )),
         );
-    std::fs::remove_dir_all(&root).ok();
 }

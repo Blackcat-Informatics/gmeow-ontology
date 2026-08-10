@@ -49,7 +49,7 @@ use crate::error::Release;
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -918,6 +918,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit tiny snapshot")
     }
@@ -1010,9 +1011,11 @@ mod tests {
         );
     }
 
-    /// Release attestations are not folded into the dev `gmeow.gts` bundle that
-    /// `make validate-gts` checks, so guard the minted attestation graph against
-    /// the SAME structural-lint contract here: every typed attestation subject
+    /// Release attestations are not folded into the dev `gmeow.gts` bundle that the
+    /// authored-source `make validate` / stage-validate SHACL pass (and, for the
+    /// shipped norm-claims subset, the `norm_claims_shacl` test) checks, so guard
+    /// the minted attestation graph against the SAME structural-lint contract here:
+    /// every typed attestation subject
     /// must satisfy the assertional tier (type + label + named-graph provenance +
     /// valid `gmeow:boxABox` role). Without this the release-path annotations
     /// would be correctness no gate validates.
@@ -1214,6 +1217,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit snapshot with report blob")
     }
@@ -1314,6 +1318,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit fixture snapshot")
     }
@@ -1480,6 +1485,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit");
 
@@ -1556,6 +1562,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit docs snapshot")
     }
@@ -1674,6 +1681,7 @@ mod tests {
             Some("release-test-kid".to_string()),
             Some(armor),
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::dist_default(None),
         )
         .expect("emit signed phantom bundle");
 

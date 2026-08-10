@@ -29,11 +29,6 @@ gmeow:Finding
     rdfs:subClassOf gmeow:Observation ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:findingSeverity ;
-            owl:someValuesFrom gmeow:DiagnosticSeverity ;
-        ] ,
-        [
-            a owl:Restriction ;
             owl:onProperty gmeow:findingCode ;
             owl:someValuesFrom xsd:string ;
         ] ,
@@ -41,6 +36,12 @@ gmeow:Finding
             a owl:Restriction ;
             owl:onProperty gmeow:findingMessage ;
             owl:someValuesFrom xsd:string ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:findingSeverity ;
+            logic:allValuesFrom gmeow:DiagnosticSeverity ;
         ] ;
     skos:definition "A single diagnostic — a validation violation, lint warning, reasoning divergence, or external-tool failure — modelled as a specialization of gmeow:Observation, the universal claim construct. The producing tool is the gmeow:vantage (no diagnostic is privileged; a finding is one tool's perspectival claim, Principle 9), the offending statement or construct is the gmeow:observedFeature (reached via gmeow:findingLocation), and the verdict is a gmeow:DiagnosticSeverity reached via gmeow:findingSeverity. A Finding is the gmeow: RDF projection of one Rust gmeow_diagnostics::Finding; it is never the canonical source (that stays in Rust so it can report on an unparsable graph), only one projection beside SARIF, JSON, HTML, and CLI."@x-gmeow-english ;
     skos:example "ex:f1 a gmeow:Finding ; gmeow:findingSeverity gmeow:severityError ; gmeow:findingCode \"shacl.MinCount\" ; gmeow:vantage ex:shaclTool ."@x-gmeow-english ;
@@ -580,6 +581,92 @@ gmeow:findingRemediation
     gmeow:useWhen "Use to carry a finding's rule-level fix guidance on the occurrence so consumers render 'how to fix this' without re-resolving the rule."@x-gmeow-english .
 
 # ════════════════════════════════════════════════════════════════════════════
+# The advice-catalog projection: the recommendation tier.
+#
+# The advisory peer of gmeow:ValidationRule. Where a ValidationRule is the
+# standing definition of an ENFORCED (compliance) check, a gmeow:AdviceEntry is
+# the standing definition of a RECOMMENDATION harvested for one governed term:
+# the verbatim avoidWhen (prohibition) / useWhen (conditional permission) /
+# howToUse (positive directive) prose the term's realized advisory carriers
+# (a logic:Constraint at logic:severity "Info", plus a logic:AdviceGuidance)
+# formalize. Entries are a GENERATED projection of the reasoned/authored graph —
+# each carries the term's OWN prose verbatim (the logic:message is gate-bound to
+# the term's gmeow:avoidWhen by check_advice_message_prose_binding), never a
+# hand-authored or render-time-invented recommendation. Every entry hangs
+# beneath the gmeow: rule/family/advice ValidationRule via gmeow:documentedByRule,
+# so the single advice.* finding family resolves to the advice section that
+# documents it. The three prose predicates ARE the deontic-modality dimension
+# (avoid=prohibition, use=permission, how=directive); no separate modality node
+# is minted.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:AdviceEntry
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Advice Entry"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule. Where a ValidationRule is the standing definition of an enforced (binding-or-advisory-severity) check, an AdviceEntry is the standing definition of the harvested advice for one governed term: the verbatim gmeow:adviceAvoidWhen (prohibition), gmeow:adviceUseWhen (conditional permission), and gmeow:adviceHowToUse (positive directive) prose that the term's realized advisory carriers formalize, plus gmeow:appliesToTerm / logic:formalizes back to that term and gmeow:documentedByRule to the advice.* family rule. AdviceEntry individuals are the gmeow: RDF projection of the reasoned graph's realized advice carriers — generated, never authored by hand, so the advice catalog stays a projection of the axioms rather than a maintained list; a term with no realized carrier gets no entry."@x-gmeow-english ;
+    skos:example "ex:adviceEntity a gmeow:AdviceEntry ; gmeow:appliesToTerm gmeow:Entity ; gmeow:documentedByRule <https://blackcatinformatics.ca/gmeow/rule/family/advice> ; gmeow:adviceAvoidWhen \"Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies…\" ."@x-gmeow-english ;
+    skos:scopeNote "The recommendation sibling of gmeow:ValidationRule: both are catalog entries, but a ValidationRule is an enforced check (its findings gate or warn) while an AdviceEntry documents non-gating advice (the advice.* Note tier that only recommends). Distinct class so the two deontic tiers — compliance and advice — render as distinct catalog sections while sharing the anchor authority. Its ⊑ gmeow:InformationObject is grounded in logic: (logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection) rather than hand-authored — giving parity with gmeow:ValidationRule ⊑ gmeow:InformationObject in the derived graph while adding no hand-authored rdfs subsumption residue, since the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring AdviceEntry individuals by hand as the source of truth — they are generated from the reasoned graph's realized advice carriers — and avoid using one where a gmeow:ValidationRule (an enforced check) is meant; the AdviceEntry is a non-gating recommendation, not a check that fails the gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read it as the resolution target of the advice.* finding family: from a gmeow:Finding whose gmeow:findingCode begins 'advice.', land on the advice section (help URI anchor #advice-) and surface the AdviceEntry for the finding's governed term — its gmeow:adviceAvoidWhen / gmeow:adviceUseWhen / gmeow:adviceHowToUse prose as 'what this code recommends'."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the definition of a harvested recommendation as a first-class, queryable RDF entity — the machine-readable advice catalog that lets an advisory finding code resolve to the avoid/use/how-to prose it recommends for a governed term."@x-gmeow-english .
+
+gmeow:documentedByRule
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AdviceEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "documented by rule"@x-gmeow-english ;
+    rdfs:range gmeow:ValidationRule ;
+    skos:definition "A bridge from a gmeow:AdviceEntry to the gmeow:ValidationRule that owns its finding family — in practice the advice.* family rule (gmeow: rule/family/advice) beneath which the entry is rendered. It makes the advice catalog navigable rule ↔ entry: from the advice family rule a reader reaches every recommendation it documents, and from an entry the reader reaches the finding-family whose codes resolve to it. Resolved by the catalog generator, never authored by hand."@x-gmeow-english ;
+    skos:example "ex:adviceEntity gmeow:documentedByRule <https://blackcatinformatics.ca/gmeow/rule/family/advice> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a governed TERM (that is gmeow:appliesToTerm / logic:formalizes) or at a SHACL shape (that is gmeow:enforcedByShape); documentedByRule names the finding-family ValidationRule the recommendation hangs beneath, not the term it advises about."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each generated AdviceEntry at the advice.* family gmeow:ValidationRule; render the entry as a sub-entry beneath that family rule so the single #advice- anchor heads the advice section and every advice.* finding code resolves there."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a harvested recommendation to the finding-family rule that documents it, so the advice catalog can be read rule-down (all advice of the family) as well as term-up."@x-gmeow-english .
+
+gmeow:adviceAvoidWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AdviceEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "advice avoid when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The catalog-side PROHIBITION prose of a gmeow:AdviceEntry — the verbatim gmeow:avoidWhen recommendation of the entry's governed term, projected from the realized advisory carrier's logic:message (which check_advice_message_prose_binding binds equal to the term's authored gmeow:avoidWhen). The advice peer of gmeow:ruleRemediation: where ruleRemediation carries an enforced rule's fix prose, adviceAvoidWhen carries a recommendation's 'avoid this when…' prose. Multi-valued (a term may bear several avoidWhen constraints); rendered verbatim into the advice section and the MCP advise recommendation, NEVER fabricated at render time — a term with no avoidWhen carrier carries none."@x-gmeow-english ;
+    skos:example "ex:adviceEntity gmeow:adviceAvoidWhen \"Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's realized avoidWhen carrier; an entry with no avoidWhen carrier carries none) and avoid conflating it with gmeow:adviceHowToUse (the corrective directive) or gmeow:adviceUseWhen (the permission gate); adviceAvoidWhen is the prohibition leg."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it onto a gmeow:AdviceEntry from the logic:message of each Info-severity logic:Constraint that formalizes the entry's term; render it as the 'Avoid when' line of the advice section and as the violated-prohibition leg of the MCP advise recommendation."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the prohibition (avoid-when) recommendation of a harvested advice entry, projected verbatim from the governed term's realized advisory carrier."@x-gmeow-english .
+
+gmeow:adviceUseWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AdviceEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "advice use when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The catalog-side CONDITIONAL-PERMISSION prose of a gmeow:AdviceEntry — the verbatim gmeow:useWhen recommendation of the entry's governed term, projected from the term's realized logic:AdviceGuidance carrier (which formalizes the term and surfaces its verbatim useWhen prose). The permission-gate peer of gmeow:adviceAvoidWhen: it tells a reader WHEN the governed term is the right choice. Multi-valued; rendered verbatim into the advice section and the MCP advise recommendation, NEVER fabricated — a term with no useWhen guidance carrier carries none."@x-gmeow-english ;
+    skos:example "ex:adviceEntity gmeow:adviceUseWhen \"Use for a genuinely category-neutral resource where no more specific sortal applies…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's realized logic:AdviceGuidance carrier; an entry with no useWhen guidance carries none) and avoid conflating it with gmeow:adviceAvoidWhen (the prohibition) or gmeow:adviceHowToUse (the directive); adviceUseWhen is the conditional-permission leg."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it onto a gmeow:AdviceEntry from the useWhen prose of each logic:AdviceGuidance that formalizes the entry's term; render it as the 'Use when' line of the advice section and as the permission-gate leg of the MCP advise recommendation."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the conditional-permission (use-when) recommendation of a harvested advice entry, projected verbatim from the governed term's realized guidance carrier."@x-gmeow-english .
+
+gmeow:adviceHowToUse
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AdviceEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "advice how to use"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The catalog-side POSITIVE-DIRECTIVE prose of a gmeow:AdviceEntry — the verbatim gmeow:howToUse recommendation of the entry's governed term, projected from the term's own gmeow:howToUse annotation. The corrective-directive peer of gmeow:adviceAvoidWhen: where avoidWhen names the anti-pattern, howToUse names the correct enactment. In the MCP advise recommendation it is the sub-ideal repair (the secondary directive that becomes operative once the prohibition has been tripped — a contrary-to-duty shape). Multi-valued; rendered verbatim, NEVER fabricated — a term with no howToUse carries none."@x-gmeow-english ;
+    skos:example "ex:adviceEntity gmeow:adviceHowToUse \"Type the instance with the most specific applicable sortal; reserve the unqualified gmeow:Entity for category-neutral resources…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's gmeow:howToUse; an entry with no howToUse carries none) and avoid conflating it with gmeow:adviceAvoidWhen (the prohibition) or gmeow:adviceUseWhen (the permission gate); adviceHowToUse is the positive-directive leg."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it onto a gmeow:AdviceEntry from the gmeow:howToUse annotation of the entry's governed term; render it as the 'How to use' line of the advice section and as the sub-ideal-repair leg of the MCP advise recommendation."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the positive-directive (how-to-use) recommendation of a harvested advice entry, projected verbatim from the governed term's gmeow:howToUse annotation."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
 # The witness provenance DAG and the cross-code join anchor.
 #
 # gmeow:findingAntecedent is a provenance edge up the witness DAG (this finding
@@ -648,6 +735,29 @@ gmeow:findingDerivedFromQuad
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Project each cited quad-reifier IRI from the reasoner's explain skeleton onto the finding as gmeow:findingDerivedFromQuad; render the set beside the finding as the reasoned-derivation citation."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the reasoner's explain-skeleton cited quad-reifier IRIs on a reasoned-quad finding, distinct from the finding-to-finding gmeow:findingAntecedent provenance edge."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The typed conformance-failure class a finding instantiates.
+#
+# gmeow:findingCode names the generic MECHANISM that fired — every cardinality
+# gate in the ontology reports the same SHACL constraint component — while a law
+# names the SPECIFIC failure it raises through gmeow:enforcesFailureClass. This
+# is the occurrence projection of that annotation onto the finding, so a reader
+# of the diagnostics graph can query by which failure was raised rather than by
+# the shared mechanism name.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingFailureClass
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding failure class"@x-gmeow-english ;
+    skos:definition "The typed conformance-failure class a finding instantiates — the class IRI the violated law declares through gmeow:enforcesFailureClass, projected verbatim onto the occurrence. It is the occurrence twin of gmeow:enforcesFailureClass (which is carried by the LAW, a logic:Constraint or the shape derived from it) exactly as gmeow:findingRemediation is the occurrence twin of gmeow:ruleRemediation. Distinct from gmeow:findingCode, which names only the generic MECHANISM that fired and is shared by every gate of that shape: the code says a cardinality gate tripped, the failure class says WHICH authored failure that is. Projected verbatim from the law, never fabricated at render time; a finding whose law declares no failure class carries none. The range is left open (like gmeow:findingAnchor): the value is the slice-owned failure class the law minted, not a class this slice enumerates."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingFailureClass math:UntypedFreeVariable ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a class when the violated law declares none (honest absence is the contract) and avoid reading it as the diagnostic code — gmeow:findingCode is the mechanism, findingFailureClass is the authored failure that mechanism raised."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Resolve the finding's violated law (a SHACL result's sh:sourceShape, a logic:Constraint) to its gmeow:enforcesFailureClass and project that IRI onto the finding; render it beside the code on every output surface so a consumer never has to re-resolve the shape."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the typed failure a finding instantiates on the occurrence, so a consumer can name and query the specific authored failure instead of only the generic constraint-component code it shares with every other gate of that shape."@x-gmeow-english .
 
 gmeow:findingAntecedent
     a owl:ObjectProperty ;
@@ -1223,19 +1333,30 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:Finding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:findingSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DiagnosticSeverity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
 
-gmeow:CrossNodeGlutWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass gmeow:Finding ] .
+# gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf links.
+# A qualified-cardinality-2-onClass-<SpecificClass> restriction projects only
+# sh:qualifiedMinCount/MaxCount (never the legacy bare sh:minCount/maxCount) —
+# but onClass owl:Thing DEGRADES a qualified count of ANY N (not just 1) to the
+# bare sh:minCount/maxCount (frontend.rs derive_validation_shapes), exactly like
+# the CitationAct/Embedding min1/max1 idiom generalized to N=2. owl:cardinality 2
+# (unqualified) is out of EL and forbidden; this qualified-onClass-owl:Thing form
+# is EL-adjacent and already used throughout the corpus. The class component
+# (sh:class Finding) comes from the someValuesFrom restriction below. The
+# gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint further
+# down is additional procedural belt-and-suspenders backing for the same shape.
+gmeow:CrossNodeGlutWitness logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:glutWitnessOf ; logic:maxQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingSeverity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingCode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingMessage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Finding> ] .
+<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:Finding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/findingSeverity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
 # Gate-fatal up-set constraint (#1194): the procedural gmeow:GateFatalUpsetShape #
@@ -1264,7 +1385,7 @@ logic:gateFatalImpl a logic:Formula ; logic:antecedent logic:gateFatalTarget ; l
 logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
-    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> .
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/gmeow/Finding> .
     ?this <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> .
     ?this <https://blackcatinformatics.ca/gmeow/findingStandpoint> <https://blackcatinformatics.ca/gmeow/standpointBinding> .
     ?this <https://blackcatinformatics.ca/gmeow/findingCategory> ?cat .
@@ -1317,5 +1438,100 @@ logic:capabilityGapFragmentHasShape a logic:Formula ; logic:relation gmeow:gapSh
 logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeow:isReasonerFragmentGap ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gs" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
 
+# =========================================================================== #
+# Cross-node glut witness EXACT-count constraint: a procedural COUNT-aggregate #
+# additional to the declarative owl:min/maxQualifiedCardinality 2 (onClass     #
+# owl:Thing) restrictions above, which already project the bare               #
+# sh:minCount 2 / sh:maxCount 2 pair onto gmeow:CrossNodeGlutWitnessShape.     #
+# Additive: the OWL restriction stays; this is a second, procedural avenue     #
+# onto the same shape.                                                        #
+# =========================================================================== #
+
+gmeow:CrossNodeGlutWitnessCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "Cross-node glut witness count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world structural integrity constraint: a gmeow:CrossNodeGlutWitness carries EXACTLY two gmeow:glutWitnessOf links (one per conflicting Finding) — the reasoner-minted meta-finding's two-sided coherence-conflict record."@x-gmeow-english ;
+    logic:onClass gmeow:CrossNodeGlutWitness ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:glutWitnessOf ;
+    logic:aggComparator "=" ;
+    logic:aggCompareTo 2 ;
+    logic:formalizes gmeow:CrossNodeGlutWitnessShape ;
+    logic:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:existentialOrdinalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "existentialOrdinal is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:existentialOrdinal ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:existentialOrdinal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:existentialOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:existentialOrdinal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:existentialOrdinal and nothing else. It is not a definition of gmeow:existentialOrdinal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findingCodeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "findingCode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:findingCode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:findingCode ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:findingCode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingCode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:findingCode and nothing else. It is not a definition of gmeow:findingCode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findingMessageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "findingMessage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:findingMessage is functional: a gmeow:Finding carries exactly one human-readable message describing that occurrence, distinct from its single stable code."@x-gmeow-english ;
+    logic:characterizes gmeow:findingMessage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:findingMessage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:findingMessage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingMessage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:findingMessage and nothing else. It is not a definition of gmeow:findingMessage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findingSeverityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "findingSeverity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:findingSeverity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:findingSeverity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:findingSeverity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingSeverity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:findingSeverity and nothing else. It is not a definition of gmeow:findingSeverity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "16",
+  "version": "17",
   "slice_count": 85,
-  "term_count": 6402,
-  "dependency_edge_count": 1346,
+  "term_count": 6972,
+  "dependency_edge_count": 1383,
   "term_count_by_category": {
-    "Class": 1799,
+    "Class": 1920,
     "Datatype": 1,
-    "Individual": 1546,
-    "Property": 3056
+    "Individual": 1711,
+    "Property": 3340
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -81,7 +81,6 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
     "https://blackcatinformatics.ca/gmeow/slices/preference",
-    "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
     "https://blackcatinformatics.ca/gmeow/slices/provenance",
     "https://blackcatinformatics.ca/gmeow/slices/quality",
@@ -99,7 +98,8 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/teleology",
     "https://blackcatinformatics.ca/gmeow/slices/temporal",
     "https://blackcatinformatics.ca/gmeow/slices/trust",
-    "https://blackcatinformatics.ca/gmeow/slices/versions"
+    "https://blackcatinformatics.ca/gmeow/slices/versions",
+    "https://blackcatinformatics.ca/gmeow/slices/work-orchestration"
   ],
   "sample_slice": {
     "iri": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -116,7 +116,10 @@ expression: summary
     "profiles": [],
     "depends_on": [
       "https://blackcatinformatics.ca/gmeow/slices/kernel",
-      "https://blackcatinformatics.ca/gmeow/slices/places"
+      "https://blackcatinformatics.ca/gmeow/slices/logic",
+      "https://blackcatinformatics.ca/gmeow/slices/names",
+      "https://blackcatinformatics.ca/gmeow/slices/places",
+      "https://blackcatinformatics.ca/gmeow/slices/temporal"
     ],
     "artifacts": [
       {
@@ -134,25 +137,39 @@ expression: summary
         "semantic_digest": "87a52b5af427dc1ccacebe469cdcb5a192f47069d689a5aaa642c9b60101cc2e"
       },
       {
+        "role": "TranslationCatalog",
+        "logical_path": "i18n/fr.po",
+        "media_type": "application/octet-stream",
+        "raw_digest": "bf21c1270db1e162a2d9288b8ea27f1da67c48d31c45ff02f0469979db30eecd",
+        "semantic_digest": null
+      },
+      {
+        "role": "TranslationCatalog",
+        "logical_path": "i18n/zh.po",
+        "media_type": "application/octet-stream",
+        "raw_digest": "f8a4c280e53e0a86de12485e2d54c886e647d863a64afe0821699c1f854b0674",
+        "semantic_digest": null
+      },
+      {
         "role": "Manifest",
         "logical_path": "manifest.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "266cbc93bb4aea74310767bf20466d023c331ae3490c85cadd85308f39741541",
-        "semantic_digest": "1e58ec2a6358f4fc330a2ef751c73727fd8febc56f91c88c13a19b694ca6c198"
+        "raw_digest": "9b80c28a6ae4ebe1be8b58df5cbae6cb659ea26dba8b26119a403f04ae5033c6",
+        "semantic_digest": "c014edb06b8b1bfa60dc3666863fb5714b6c71e0fa92e269f94077183bb27001"
       },
       {
         "role": "Mapping",
         "logical_path": "mappings/equivalences.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "bf3738f943065d5bd7b7f0e655765808ba6640395ad5dbffa75f258bba35f03d",
-        "semantic_digest": "d0026ea697afd30a572cfdd2bd08e909ee6701fc0045398f6e17ba8fac51832a"
+        "raw_digest": "c3322f117e1e5bdd466869db6d190bff1e9567d6cce7b7d67711f917cefd8049",
+        "semantic_digest": "b1266ff6ac4d2e2c1f6ba84085784d6fe3cc3c0d076074bed682b88a58f2c3fc"
       },
       {
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "f16507ba35295331d9af45bbab99108caead1ad1e320d5de70057f71a7080a91",
-        "semantic_digest": "11f50c2a2992170914be4b588cc12970b10652f55dd29f4856a9f07263e3f0a2"
+        "raw_digest": "2ffd23a0c6899de722e639715ef8264d64d1bda099e6668c65109dae1faebbab",
+        "semantic_digest": "a95701fd11e58120728718c300fd499042fca737c0fd423dae5396b13e2a8bf3"
       },
       {
         "role": "TestDsl",
@@ -160,6 +177,16 @@ expression: summary
         "media_type": "text/turtle",
         "raw_digest": "7024bdab47ba22c73d99128cadd8b468891a7c66c51de876eca6f80a1290b59d",
         "semantic_digest": "ad849f1d8a4438cfdf099bcc6b595a717113e84da076dd881658569517b4dbb6"
+      }
+    ],
+    "documents": [
+      {
+        "slice_iri": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
+        "slice_slug": "accessibility",
+        "source_path": "docs.md",
+        "title": "Accessibility — features, barriers, and needs as co-equal facets",
+        "source_text": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->\n<!-- SPDX-License-Identifier: CC-BY-4.0 -->\n\n# Accessibility — features, barriers, and needs as co-equal facets\n\n> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/accessibility` · **tier: extension**\n> Whether an entity can reach or use a location under constraints — said honestly, per facet.\n\nMost vocabularies flatten accessibility to a boolean (`wheelchairAccessible true`). GMEOW\nrefuses the collapse: accessibility is a *family of orthogonal dimensions* — wheelchair,\nstep-free, visual, auditory, cognitive, clearance, life-support — and each dimension is an\nopen value facet (Principle 9: individuals, never subclasses; a new facet is data, not a\nschema change). Features, barriers, and needs are co-equal: there is no \"primary need\", and\na location may honestly carry *both* a feature and a barrier for the same facet (a ramp at\nthe front entrance, stairs at the side). The flat shortcuts cover the 80 % case; promote to\na reified `AccessibilityAssertion` when provenance, confidence, temporal scope, or\nsuppression matter (Principle 10: suppression is `displayable false`, never deletion).\nThe slice is part of the the design Location-as-reference-frame design.\n\nIts Principle-15 consumer, declared in the manifest: **accessibility facets over places and\nroutes, and the schema.org accessibility projection** — every term here either drives\naccessible-route solving or down-projects to `schema:accessibilityFeature` and kin.\n\n## The value vocabularies\n\n### gmeow:AccessibilityFacet\n\nThe dimension being asserted — the seeds are `facetWheelchair`, `facetStepFree`,\n`facetVisual`, `facetAuditory`, `facetCognitive`, `facetClearance`, `facetLifeSupport`.\nAn open vocabulary (Principle 9): a facet not among the seeds is a fresh individual with a\nlabel, never a subclass. Facets are the shared currency of all three shortcut properties\nand of the reified assertion.\n\n### gmeow:AccessibilityPolarity\n\nThe sign of a reified claim: `polarityFeature` (the subject provides the facet),\n`polarityBarrier` (it impedes it), or `polarityLimited` (it provides it under some\nconditions but not all). Polarity exists *only* on the reified form — the flat shortcuts\nencode polarity in the property name.\n\n## The flat shortcuts (the 80 % case)\n\n### gmeow:hasAccessibilityFeature\n\n`Location → AccessibilityFacet`: the location positively provides the facet.\nNon-functional — a location may support many facets, and may simultaneously carry\n`hasBarrier` for the *same* facet under different local conditions. The properties are\ndeliberately **not** disjoint; disambiguation belongs to the reified form, not to schema\nexclusions.\n\n### gmeow:hasBarrier\n\n`Location → AccessibilityFacet`: the location impedes the facet. The honest negative —\na barrier is asserted data, not the mere absence of a feature (open world: silence means\n*unknown*, `hasBarrier` means *known impediment*).\n\n### gmeow:hasAccessibilityNeed\n\n`Entity → AccessibilityFacet`: what an entity requires in order to reach or use a\nlocation. Needs are co-equal facets (Principle 9) — all asserted needs coexist. This is\nthe demand side that the solver matches against the supply side (features/barriers) when\ncomputing accessible routes.\n\n## The reified form (promote when metadata matters)\n\n### gmeow:AccessibilityAssertion\n\nA `gufo:Relator`-grounded claim that a location *or connection* (the connectivity slice's\n`Connection` is an admissible subject) has a feature, barrier, or limited status for a\nfacet. Bears vantage, confidence, temporal scope, and suppression (`displayable false` —\nPrinciple 10). Promote here whenever the claim itself must be a node — \"accessible\naccording to the 2024 city audit, disputed by the user survey\".\n\n### gmeow:assertionSubject · gmeow:assertionFacet · gmeow:assertionPolarity\n\nThe three functional role properties of the relator: one subject, one facet, one polarity\nper assertion. Relator mediation is axiomatized (`someValuesFrom` restrictions, EL-safe)\nso the EL reasoner sees the doctrine; closed-world cardinality is SHACL's job.\n\n## Solver layer & bridges\n\nAccessible *routes* are computed, never asserted (Principle 12): the connectivity slice\ndeclares the `routeKindAccessible` route kind, and the solver layer walks the connection\ngraph matching `hasAccessibilityNeed` against features and barriers to produce a path. The\nOWL core only models the inputs.\n\n## Dependencies\n\nDepends on `kernel` and `places` (the `Location` domain of the shortcuts). Sibling to\n`connectivity` — mutually independent extensions joined only at the solver layer and at\n`routeKindAccessible` (slice-dependency doctrine refactor keeps that value individual beside its value\nclass, in connectivity).\n",
+        "raw_digest": "e346485e9e9353c541bf72911ac601d8c4237544cfad223bee966f47a8f0c403"
       }
     ],
     "has_thesis_sentence": true,
@@ -305,15 +332,20 @@ expression: summary
       "content_digest": "blake3:2975cace510b2098d48653aebfe8f0a966ecaf8cce2f23d18799f36912fafb19",
       "profiles": [
         "claims",
-        "full"
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative",
+        "purremb"
       ]
     }
   ],
-  "mapping_set_count": 100,
-  "linkage_count": 2125,
-  "example_count": 188,
+  "mapping_set_count": 109,
+  "linkage_count": 2119,
+  "example_count": 206,
   "concern_count": 7,
-  "external_term_count": 1800,
+  "external_term_count": 1803,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -377,7 +409,7 @@ expression: summary
       "gmeow:strandForward"
     ],
     "via_predicate": [
-      "alignObject"
+      "matchObject"
     ]
   },
   "recipe_count": 6,
@@ -410,8 +442,8 @@ expression: summary
       "graph-rag-dataset-lineage"
     ],
     "example_paths": [
+      "slices/core/agentic/examples/agent-trajectory.ttl",
       "slices/core/ai/examples/grounded-claim.ttl",
-      "slices/extensions/agentic/examples/agent-trajectory.ttl",
       "slices/extensions/graphrag/examples/lillith-dataset.ttl",
       "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
     ],
@@ -428,16 +460,15 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 145,
-  "competency_count": 293,
+  "shape_count": 52,
+  "competency_count": 348,
   "sample_shape": {
-    "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
-    "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/AltPathShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AltPath",
     "messages": [
-      "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold).",
-      "An AdequacyAssessment must name exactly one gmeow:EpistemicStandard (gmeow:adequacyUnderStandard)."
+      "AltPath must have exactly one gmeow:pathAlts (rdf:List)"
     ],
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/epistemics"
+    "owner_slice": "root"
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",

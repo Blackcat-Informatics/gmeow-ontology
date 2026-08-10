@@ -42,7 +42,7 @@ jobs:
       # `cargo nextest run --no-run --workspace`, so the release runner needs
       # cargo-nextest just like the ci.yml jobs do.
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@16b05812d776ae1dfaabc8277e421fb6d2506419 # v2
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
         with:
           tool: cargo-nextest
 
@@ -75,6 +75,12 @@ jobs:
         run: |
           set -euo pipefail
           tmp=$(mktemp)
+          # Clean up on EVERY exit path, not just the happy one: under `set -o pipefail`
+          # a failure in the checksum pipeline below aborts before the `mv` consumes the
+          # file, which would otherwise leave it behind. Mirrors the `trap ... EXIT`
+          # idiom the Makefile's own mktemp sites use. `rm -f` after a successful `mv`
+          # is a no-op, so the trap is safe on the success path too.
+          trap 'rm -f "$tmp"' EXIT
           ( cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$tmp"
           mv "$tmp" dist/SHA256SUMS
           cat dist/SHA256SUMS

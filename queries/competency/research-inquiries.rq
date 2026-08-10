@@ -1,15 +1,15 @@
 # Competency question: "Open research inquiries by theme and status"
-# Expected: Procedures of type procedureTypeResearchPlan with inquiryStatus
-# pending or running, grouped by inquiryTheme.
+# Expected: questions being pursued as a research plan whose status is
+# non-terminal (pending or active), grouped by theme.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?inquiry ?theme ?status WHERE {
-    ?inquiry a gmeow:Procedure .
-    ?inquiry gmeow:procedureType gmeow:procedureTypeResearchPlan .
-    ?inquiry gmeow:inquiryStatus ?status .
-    ?inquiry gmeow:inquiryTheme ?theme .
-    FILTER(?status IN (gmeow:executionStatusPending, gmeow:executionStatusRunning))
+    ?inquiry a gmeow:Question ;
+             gmeow:inquiryKind gmeow:inquiryKindResearchPlan ;
+             gmeow:inquiryStatus ?status ;
+             gmeow:inquiryTheme ?theme .
+    FILTER(?status IN (gmeow:inquiryStatusPending, gmeow:inquiryStatusActive))
 }
 ORDER BY ?theme ?status

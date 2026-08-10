@@ -7,6 +7,7 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 
 # =============================================================================
 # GMEOW slice manifest vocabulary — the authoring source for slice metadata.
@@ -41,7 +42,17 @@
 gmeow:Slice a owl:Class ;
     rdfs:label "slice"@x-gmeow-english ;
     skos:definition "A self-contained unit of the GMEOW ontology: canonical terms, shapes, alignments, queries, tests, and documentation composed by the build into the fused package. Core and extension slices are structurally identical; tier is a manifest field (gmeow:sliceTier), never a directory property."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:sliceTier ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:tierCore gmeow:tierExtension gmeow:tierProfile ) ] ;
+    ] ,
+    [
+        a logic:Restriction ;
+        logic:onProperty dcterms:creator ;
+        logic:allValuesFrom xsd:string ;
+    ] .
 
 # --------------------------------------------------------------------------- #
 # Tier — an open value vocabulary of individuals (house style; no enum strings)
@@ -52,7 +63,8 @@ gmeow:SliceTier a owl:Class ;
     skos:definition "The loading/composition tier of a slice. Core slices reason as one union and may interlink; extension slices depend only on core (the dependency DAG gate) and load opt-in."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
-gmeow:sliceTier a owl:ObjectProperty ;
+gmeow:sliceTier a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "slice tier"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range gmeow:SliceTier ;
@@ -99,6 +111,97 @@ gmeow:sliceConsumer a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 # --------------------------------------------------------------------------- #
+# Grounding & seams — the peerage-aware cross-grounding flow policy (Principle
+# 19). gmeow:sliceCoFoundationalWith grants the mutual peerage relationship
+# between grounding slices; a gmeow:Seam is what actually authorizes specific
+# terms to cross a peered pair, so every peered cross-slice reference must
+# land on a registered seam rather than riding free on the peerage grant.
+# --------------------------------------------------------------------------- #
+
+gmeow:GroundingSlice a owl:Class ;
+    rdfs:subClassOf gmeow:Slice ;
+    rdfs:label "grounding slice"@x-gmeow-english ;
+    skos:definition "The marker category for a grounding slice: one of the co-foundational grounding layers (Principle 19). Grounding-ness is orthogonal to tier — every grounding slice is also gmeow:tierCore — so this is a typed marker, not a tier value; it is what the peerage and seam gates read, replacing the directory-path convention (slices/grounding/*) as the machine-checked signal."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:Seam a owl:Class ;
+    rdfs:label "seam"@x-gmeow-english ;
+    skos:definition "A sanctioned cross-grounding reference channel between grounding slices — one edge of the grounding-reference information-flow policy. A seam names one or more directed slice pairs (gmeow:seamDirection) and the exact terms permitted to cross them (gmeow:seamCarryingTerm). Peerage (gmeow:sliceCoFoundationalWith) grants the mutual relationship between grounding slices; a seam authorizes the specific terms that may actually cross it, and every peered cross-slice reference must land on one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:SeamDirection a owl:Class ;
+    rdfs:label "seam direction"@x-gmeow-english ;
+    skos:definition "One directed (from → to) leg of a seam. A seam may carry several directions — for example, a correspondence seam sanctioned to cross in both directions between a peered pair."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamDirection a owl:ObjectProperty ;
+    rdfs:label "seam direction"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range gmeow:SeamDirection ;
+    skos:definition "A directed leg this seam sanctions. Repeatable: a seam may sanction more than one direction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamFromSlice a owl:ObjectProperty ;
+    rdfs:label "seam from slice"@x-gmeow-english ;
+    rdfs:domain gmeow:SeamDirection ;
+    rdfs:range gmeow:GroundingSlice ;
+    skos:definition "The referencing (source) grounding slice of this directed seam leg."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamToSlice a owl:ObjectProperty ;
+    rdfs:label "seam to slice"@x-gmeow-english ;
+    rdfs:domain gmeow:SeamDirection ;
+    rdfs:range gmeow:GroundingSlice ;
+    skos:definition "The referenced (target) grounding slice of this directed seam leg."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamCarryingTerm a owl:ObjectProperty ;
+    rdfs:label "seam carrying term"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "An exact term IRI permitted to cross this seam — a declassification channel. Repeatable. Matching is by exact IRI identity, never by prefix or substring."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamOwningDoc a owl:DatatypeProperty ;
+    rdfs:label "seam owning doc"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range xsd:string ;
+    skos:definition "The design document that owns the theory of this seam."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Grounding concepts — the subject-matter judgment the tier rule turns on.
+#
+# docs/GROUNDING.md's tier rule is qualified: a grounding slice never depends
+# on a non-grounding slice FOR A GROUNDING CONCEPT, and where a grounding
+# concept is found split across a grounding and a non-grounding slice the
+# grounding slice owns it and the non-grounding slice consumes it. The
+# qualifier is load-bearing — a grounding slice may freely consume ordinary
+# domain vocabulary by reference — and whether a term's subject matter falls
+# in one of the three grounding domains is a judgment about MEANING that no
+# graph shape can decide. It is therefore authored here as data, on the term,
+# rather than inferred by a gate or hard-coded in a gate's source.
+# --------------------------------------------------------------------------- #
+
+gmeow:GroundingDomain a owl:Class ;
+    rdfs:label "grounding domain"@x-gmeow-english ;
+    skos:definition "One of the three external-grounding subject-matter domains of docs/GROUNDING.md's \"External grounding ownership\" table: linguistic/lexical/semiotic/serialization formalisms, mathematical structures/quantities/interchange languages, and upper ontologies/logical formalisms/rule languages/validation dialects. Each domain names exactly one owning grounding slice through gmeow:groundingDomainOwner, so a term marked with a domain also names the slice that must own it. The three domains are authored as individuals in the manifest of the grounding slice that owns each, alongside that slice's gmeow:Seam registrations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:groundingDomainOwner a owl:ObjectProperty ;
+    rdfs:label "grounding domain owner"@x-gmeow-english ;
+    rdfs:domain gmeow:GroundingDomain ;
+    rdfs:range gmeow:GroundingSlice ;
+    skos:definition "The single grounding slice that owns every grounding concept whose subject matter falls in this domain. Functional in intent and in effect: the reconciliation direction docs/GROUNDING.md fixes has exactly one answer per domain, so a domain naming two owners would leave the direction undetermined."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:groundingConceptDomain a owl:AnnotationProperty ;
+    rdfs:label "grounding concept domain"@x-gmeow-english ;
+    rdfs:range gmeow:GroundingDomain ;
+    skos:definition "Marks the subject term as a GROUNDING CONCEPT and names the grounding domain its subject matter falls in. This is the marker docs/GROUNDING.md's tier rule is keyed on: a reference from a grounding slice into a non-grounding slice is a tier violation exactly when the referenced term carries this marker, and the domain's gmeow:groundingDomainOwner is the grounding slice that must own it. Ownership is by rdfs:isDefinedBy and physical module, never by IRI namespace, so promoting a marked term is a re-homing of its block, not a re-minting of its IRI. An annotation property: it records a governance judgment about the term and carries no OWL logical semantics, exactly like gmeow:graphBoxRole."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Distribution & tooling provision (consumed by the GTS packager and the
 # CLI roll-up — specified in the CLI roll-up and profile doctrine; fields reserved here so the
 # manifest schema needs no re-architecture when those land)
@@ -118,12 +221,133 @@ gmeow:providesSubcommand a owl:DatatypeProperty ;
     skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (CLI roll-up design); this field is the declaration the loader will read."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
-gmeow:builtAgainstCore a owl:DatatypeProperty ;
+gmeow:builtAgainstCore a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "built against core version"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range xsd:string ;
     skos:definition "The GMEOW core version (owl:versionInfo) this slice was authored and tested against. Required for third-party slices; in-repo slices inherit the repository version and omit it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Migrated procedural + declarative constraints: the closed-world
+# gmeow:SliceManifestShape well-formedness shape from
+# shapes/slice-manifest-shapes.ttl, re-expressed as canonical logic: records
+# (Principle 17). The authored shape stays (additive); the sweep verifies.
+# --------------------------------------------------------------------------- #
+
+gmeow:SliceTierRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice tier requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must declare exactly one gmeow:sliceTier."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf gmeow:sliceTier ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice declares exactly one tier: gmeow:tierCore, gmeow:tierExtension, or gmeow:tierProfile (a pure-selection profile that mints nothing — Principle 16)."@x-gmeow-english .
+
+gmeow:SliceConsumerRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice consumer requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must name at least one gmeow:sliceConsumer (Principle 15)."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf gmeow:sliceConsumer ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)."@x-gmeow-english .
+
+gmeow:SliceDependsOnCreatorRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice creator requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must name at least one dcterms:creator (projected to its CITATION.cff)."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf dcterms:creator ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english .
+
+gmeow:SliceProvidesSubcommandPatternConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice provided-subcommand pattern constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:providesSubcommand value is a lowercase token the gmeow roll-up can dispatch on."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A provided subcommand is a lowercase token the gmeow roll-up can dispatch on (docs/cli-extensions.md)."@x-gmeow-english ;
+    logic:integrity logic:spscForall .
+logic:spscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cmd" ] ;
+    logic:forall logic:spscImpl .
+logic:spscImpl a logic:Formula ; logic:antecedent logic:spscGuard ; logic:consequent logic:spscMatch .
+logic:spscGuard a logic:Formula ; logic:and logic:spscType , logic:spscHas .
+logic:spscType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:spscHas a logic:Formula ; logic:relation gmeow:providesSubcommand ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cmd" ] .
+logic:spscMatch a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cmd" ] , [ logic:termIndex 1 ; logic:termLiteral "^[a-z][a-z0-9-]*$" ] .
+
+gmeow:SliceConsumerLangMinLengthConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice consumer language/length constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:sliceConsumer literal carries the @x-gmeow-english language tag and is at least 8 characters long (lang-tag discipline, the manifest datatype contract)."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15); the literal carries @x-gmeow-english (lang-tag discipline)."@x-gmeow-english ;
+    logic:integrity logic:sclForall .
+logic:sclForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:sclImpl .
+logic:sclImpl a logic:Formula ; logic:antecedent logic:sclGuard ; logic:consequent logic:sclReq .
+logic:sclGuard a logic:Formula ; logic:and logic:sclType , logic:sclHas .
+logic:sclType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:sclHas a logic:Formula ; logic:relation gmeow:sliceConsumer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:sclReq a logic:Formula ; logic:and logic:sclLang , logic:sclLen .
+logic:sclLang a logic:Formula ; logic:relation logic:termLangMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-english$" ] .
+logic:sclLen a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^.{8,}" ] .
+
+gmeow:SliceTitleUniqueLangConstraint
+    a logic:UniqueLangConstraint ;
+    rdfs:label "Slice title unique-language constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Slice's dcterms:title literals carry distinct language tags — at most one translation per language."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:valuePath dcterms:title ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice carries at most one dcterms:title literal per language tag."@x-gmeow-english .
+
+gmeow:SliceTitleCanonicalConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice canonical title constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Slice carries at least one dcterms:title literal tagged @x-gmeow-english — the canonical carrier the CITATION.cff projection requires; additional translations are freely permitted."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag."@x-gmeow-english ;
+    logic:integrity logic:stcForall .
+logic:stcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:stcImpl .
+logic:stcImpl a logic:Formula ; logic:antecedent logic:stcGuard ; logic:consequent logic:stcExists .
+logic:stcGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:stcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:stcBody .
+logic:stcBody a logic:Formula ; logic:and logic:stcHas , logic:stcLang .
+logic:stcHas a logic:Formula ; logic:relation dcterms:title ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:stcLang a logic:Formula ; logic:relation logic:termLangMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-english$" ] .
 
 # --------------------------------------------------------------------------- #
 # Citation — projected to the slice's CITATION.cff by the registry (so
@@ -154,6 +378,39 @@ gmeow:dependencyEvidence a owl:DatatypeProperty ;
     rdfs:domain gmeow:computedSliceDependency ;
     rdfs:range xsd:string ;
     skos:definition "A human-readable summary of the evidence that produced this computed dependency edge: the referenced terms and the artifact paths that triggered the cross-slice reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:crossingCoverage a owl:Class ;
+    rdfs:label "crossing coverage"@x-gmeow-english ;
+    skos:definition "A computed record that a specific peered cross-slice reference edge was sanctioned by a specific seam and carrying term — the shipped coverage verdict, so the sanctioning judgment ships in gmeow.gts rather than being discarded after the gate. Never authored; always in a computed named graph. Carries coveredEdgeFrom, coveredEdgeTo, coveringSeam, and coveredTerm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredEdgeFrom a owl:ObjectProperty ;
+    rdfs:label "covered edge from"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The referencing slice of the cross-slice reference edge this coverage record verdicts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredEdgeTo a owl:ObjectProperty ;
+    rdfs:label "covered edge to"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The referenced slice of the cross-slice reference edge this coverage record verdicts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveringSeam a owl:ObjectProperty ;
+    rdfs:label "covering seam"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Seam ;
+    skos:definition "The seam that sanctioned this cross-slice reference edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredTerm a owl:ObjectProperty ;
+    rdfs:label "covered term"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "The exact term IRI whose crossing this coverage record verdicts, matched by exact identity against the covering seam's gmeow:seamCarryingTerm declarations."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:computedProfileMembership a owl:DatatypeProperty ;
@@ -197,3 +454,19 @@ gmeow:computedProfileMembership gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:box
 gmeow:dependencyEvidence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:dependencyStatus gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:termCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:GroundingSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:Seam gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:SeamDirection gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:seamDirection gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamFromSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamToSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamCarryingTerm gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamOwningDoc gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:crossingCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:coveredEdgeFrom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveredEdgeTo gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveringSeam gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveredTerm gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:GroundingDomain gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:groundingDomainOwner gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:groundingConceptDomain gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

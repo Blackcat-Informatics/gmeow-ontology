@@ -38,8 +38,8 @@ use std::sync::Arc;
 use purrdf::{Namespaces, RdfDataset, parse_dataset};
 use serde_json::{Value, json};
 
-use crate::gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS};
 use crate::stages::export::{DEFAULT_SCOPE, FoldView};
+use gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS};
 
 /// The open-value-vocabulary metaclass: a class typed `logic:AbstractIndividualType`
 /// declares its members as `gmeow:` individuals (Principle 17).
@@ -408,8 +408,8 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gmeow_ns::gmeow_json_schema_namespaces;
     use crate::stages::export::FoldView;
+    use gmeow_ns::gmeow_json_schema_namespaces;
 
     /// A synthetic ontology store exercising the functional-vs-multivalued split:
     ///

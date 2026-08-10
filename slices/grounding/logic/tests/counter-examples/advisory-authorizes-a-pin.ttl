@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N8 - a model advisory occupying the pin-authority position. Model output is
+# attributed evidence and may never license an action.
+# MUST trip logic:AdvisoryNeverAuthorityConstraint.
+
+# The pin is otherwise IMPECCABLE — it freezes the exact ordered steps the method
+# it names yields, and addresses them with a digest — so the only thing wrong with
+# this scene is who authorized it. A fixture whose record broke several laws at
+# once would pass its "and no other finding" expectation only by accident.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:suggestedPlan a logic:Advisory ;
+    rdfs:label "a model suggestion presented as authorization"@en .
+
+ex:pinAuthorizedByAdvice a logic:PinnedExecutableSubgraph ;
+    logic:pinAuthority ex:suggestedPlan ;
+    logic:pinInstantiatesMethod ex:adviceMethod ;
+    logic:pinnedStepSequence ex:adviceCell1 ;
+    logic:pinDigest "b3:9c4a17e5d206b8f3c15a90e4d7b2638fa0c519e7d4b83206fa5c1e97d0b34825" ;
+    rdfs:label "a pin authorized by advice rather than by a proof"@en .
+
+ex:adviceMethod a logic:DecompositionMethod ;
+    logic:methodDecomposes ex:adviceTask ;
+    logic:methodYields ex:adviceCell1 .
+
+ex:adviceCell1 rdf:first ex:adviceStep ; rdf:rest rdf:nil .

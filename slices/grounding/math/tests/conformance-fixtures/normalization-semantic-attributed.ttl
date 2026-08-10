@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:NormalizationDeclaration held at math:semanticNormalization —
+# the COARSEST rung, whose own definition says "the strongest attribution obligation
+# applies here" — that carries its math:normalizationProcedure (naming the external
+# theorem that proves the two closed forms denote the same value), is named by a
+# gmeow:Observation (through gmeow:observationResult) that itself carries a
+# gmeow:vantage, and carries a logic:preservationKind.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:semanticSource a math:NumberLiteral ;
+    math:normalForm ex:semanticTarget ;
+    math:literalValue "10"^^xsd:integer .
+
+ex:semanticTarget a math:NumberLiteral ;
+    math:literalValue "10"^^xsd:integer .
+
+ex:semanticDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:semanticSource ;
+    math:normalizesTo ex:semanticTarget ;
+    math:normalizationStrength math:semanticNormalization ;
+    math:normalizationProcedure ex:externalTheoremEquivalence ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:externalTheoremEquivalence a math:NormalizationProcedure .
+
+ex:semanticDeclObservation a gmeow:Observation ;
+    gmeow:observationResult ex:semanticDecl ;
+    gmeow:observedFeature ex:semanticSource ;
+    gmeow:vantage ex:theoristStandpoint .
+
+ex:theoristStandpoint a gmeow:Standpoint , gmeow:Entity .

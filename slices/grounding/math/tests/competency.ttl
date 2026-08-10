@@ -40,6 +40,15 @@
 @prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
 # The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
 @prefix exccf: <http://example.org/math/chain-complex/> .
+# The EXECUTABLE-LIFT surface (tests/fixtures/lifted-{r,onnx,proof}.ttl): the producer
+# namespace the three shipped lifters mint into. Every IRI below this line is
+# content-addressed on the lifted artifact's bytes — nothing here is authorable by hand,
+# and a parser change moves the hash and reds these cells.
+@prefix lift:  <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+# The three run-scoped bases (a lifted node's IRI is <run>/<kind>-<hash>).
+@prefix liftr: <https://blackcatinformatics.ca/gmeow/examples/math/producers/r-run-ffd06aadf0ff76ac/> .
+@prefix lifto: <https://blackcatinformatics.ca/gmeow/examples/math/producers/onnx-run-7978a9f31743d3c2/> .
+@prefix liftp: <https://blackcatinformatics.ca/gmeow/examples/math/producers/proof-run-2351ded5a35cacd5/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -239,10 +248,10 @@ ex:cqSetCardinality a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-cardinality.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀}." ;
+    gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀, xsdByteValueSpace → finite (the grounded xsd:byte value-space pigeonhole bound)}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCardinalityShape ;
-    gmeow:cqExpectRow ex:rowPrimes , ex:rowAllNaturals .
+    gmeow:cqExpectRow ex:rowPrimes , ex:rowAllNaturals , ex:rowXsdByteValueSpace .
 
 ex:cqCardinalityShape a logic:ResultShape ;
     logic:declaresColumn
@@ -257,6 +266,10 @@ ex:rowPrimes a gmeow:ExpectedRow ;
 ex:rowAllNaturals a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:allNaturals ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:alephNull ] .
+
+ex:rowXsdByteValueSpace a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri math:xsdByteValueSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:cardinalityFinite ] .
 
 # === Q4b — an ordered interval's endpoints and endpoint inclusions ========== #
 
@@ -298,7 +311,7 @@ ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/named-constants-and-anchors.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A named constant reports the external anchor reached through its gmeow:TermEquivalence alignment; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
+    gmeow:cqRationale "A named constant reports the external anchor reached through its fixture-local anchor record; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqConstantsShape ;
     gmeow:cqExpectRow ex:rowPiAnchor .
@@ -1120,6 +1133,164 @@ ex:rowBridgeRoundtrip a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:rRun ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
+
+# ==========================================================================================
+# === EXECUTABLE-LIFT bridges — the SAME questions, asked of the LIFTER'S OWN OUTPUT ======
+# ==========================================================================================
+# Bridges Q1–Q6 above are answered by tests/fixtures/bridges.ttl, a HAND-AUTHORED scene
+# under <http://example.org/math/>. The four questions below are their producer-namespace
+# twins: each runs the analogous query over tests/fixtures/lifted-{r,onnx,proof}.ttl, which
+# are byte-for-byte the output of gmeow_math::producers::{r_lift,onnx_lift,proof_lift} (the
+# shipped gmeow_math_lift front-ends, run over real committed artifacts and pinned by
+# crates/math/tests/lift_fixture_drift.rs). They close the producer-without-a-consumer gap:
+# the bridge competency surface is now interrogated against what a parser actually derived,
+# not only against what an author wrote down.
+#
+# Every expected IRI below was READ OUT of the committed fixture. The local names are
+# content-addressed on the lifted bytes, so these rows are falsifiable in the strongest
+# available sense: a lifter regression that changes what is derived changes the hash, and
+# the cell reds without anyone having to notice.
+
+# === Lifted Q1 — the R lift's source, fidelity rung, and logic: routing ==================
+ex:cqLiftedRFidelity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/lifted-r-source-fidelity-and-loss.rq" ;
+    gmeow:cqDataFile "tests/fixtures/lifted-r.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The executable-lift surface for the R bridge: this is ex:cqBridgeRFidelity's question asked of the REAL lifter's output (gmeow_math::producers::r_lift over crates/math-lift/fixtures/mtcars.R) instead of a hand-authored scene. The recursive-descent R parser derived a math:RIngestRun that names its retained source witness (lift:r-src-ffd06aadf0ff76ac), declares an honest logic:LossyLens rung over a VAGUE source, and routed exactly four lifted computations to logic: through math:compilesToLogicFormula — the library call, the seed call, the loop, and the conditional. Four rows, exactly." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLiftedRFidelityShape ;
+    gmeow:cqExpectRow ex:rowLiftedR0 , ex:rowLiftedR1 , ex:rowLiftedR2 , ex:rowLiftedR3 , ex:rowLiftedR4 , ex:rowLiftedR5 , ex:rowLiftedR6 , ex:rowLiftedR7 , ex:rowLiftedR8 .
+ex:cqLiftedRFidelityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rung" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "logicTarget" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+# The lifted body of the `summarise <- function(...)` definition — a control-flow form
+# whose STATISTICAL content lifts even though the form itself routes to logic:.
+
+# Every computation the R lift routes to logic:. The set is machine-derived from the
+# committed producer output, so it is re-derived whenever the lift changes — which is
+# the point: a change in what routes to logic: must be seen here, not absorbed.
+ex:rowLiftedR0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-00d14d46406e887a ] .
+ex:rowLiftedR1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-2d8a59b523f89f2c ] .
+ex:rowLiftedR2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-40741029dcdb99a1 ] .
+ex:rowLiftedR3 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-53d6da68551d446f ] .
+ex:rowLiftedR4 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-5d91f95db5154462 ] .
+ex:rowLiftedR5 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-844e825674d69dc4 ] .
+ex:rowLiftedR6 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-8774656eda5f1e7d ] .
+ex:rowLiftedR7 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-e59ea07e35c52a0a ] .
+ex:rowLiftedR8 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-f8330670bec18f52 ] .
+
+# === Lifted Q2 — the ONNX lift's tensor computation graph and parameter space ============
+ex:cqLiftedOnnx a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/lifted-onnx-tensor-graph-and-parameter-space.rq" ;
+    gmeow:cqDataFile "tests/fixtures/lifted-onnx.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The executable-lift surface for the ONNX bridge: ex:cqBridgeOnnx's question asked of the REAL lifter's output (gmeow_math::producers::onnx_lift decoding the protobuf ModelProto at crates/math-lift/fixtures/mlp.onnx). The wire reader recovered the graph 'mlp' and its 15-dimensional parameter space from actual bytes, and both halves of the AI-self-structure frame — math:architectureOf and math:parameterSpaceOf — resolve to the same lifted model. One row, exactly." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLiftedOnnxShape ;
+    gmeow:cqExpectRow ex:rowLiftedOnnx .
+ex:cqLiftedOnnxShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "graph" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "parameterSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowLiftedOnnx a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:onnx-run-7978a9f31743d3c2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "graph" ; gmeow:cellValueIri lifto:graph-07fe5b19175ebdc4 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameterSpace" ; gmeow:cellValueIri lifto:parameter-space-07fe5b19175ebdc4 ] .
+
+# === Lifted Q3 — the proof lift's dependency DAG, sub-goal, and steps ====================
+ex:cqLiftedProof a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/lifted-proof-dependency-graph-and-subgoals.rq" ;
+    gmeow:cqDataFile "tests/fixtures/lifted-proof.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The executable-lift surface for the proof bridge: ex:cqBridgeProof's question asked of the REAL lifter's output (gmeow_math::producers::proof_lift over the TSTP derivation crates/math-lift/fixtures/theorem-subclass.tstp). The parser recovered a three-step, two-inference dependency DAG; the derivation's terminal proof carries both of its math:ProofStep members under one logic:GoalExpression sub-goal. Two rows, exactly — one per lifted step." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLiftedProofShape ;
+    gmeow:cqExpectRow ex:rowLiftedProofStepConclusion , ex:rowLiftedProofStepPremise .
+ex:cqLiftedProofShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dag" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "proof" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "goal" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "step" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+# The terminal inference step (its conclusion is the proof's own conclusion).
+ex:rowLiftedProofStepConclusion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:proof-run-2351ded5a35cacd5 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dag" ; gmeow:cellValueIri liftp:dag-f5c024f707112b10 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proof" ; gmeow:cellValueIri liftp:proof-f5c024f707112b10 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "goal" ; gmeow:cellValueIri liftp:goal-6d67ee11acfe3106 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "step" ; gmeow:cellValueIri liftp:step-6fc17e07bc9e190f ] .
+# The intermediate inference step the terminal one cites as a premise.
+ex:rowLiftedProofStepPremise a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:proof-run-2351ded5a35cacd5 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dag" ; gmeow:cellValueIri liftp:dag-f5c024f707112b10 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proof" ; gmeow:cellValueIri liftp:proof-f5c024f707112b10 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "goal" ; gmeow:cellValueIri liftp:goal-6d67ee11acfe3106 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "step" ; gmeow:cellValueIri liftp:step-e1976fc0dddd3c8e ] .
+
+# === Lifted Q4 — the lifted QED held as an observation, by activity and vantage ==========
+ex:cqLiftedProofQed a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/lifted-proof-qed-as-observation.rq" ;
+    gmeow:cqDataFile "tests/fixtures/lifted-proof.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The process / result / claim separation survives the executable lift: ex:cqBridgeResultsObserved's question asked of gmeow_math::producers::proof_lift's own output. The lifter does not assert QED as a bare truth bit — it mints a gmeow:Observation whose gmeow:observationResult is a math:FormalVerificationResult, generated by the math:ProofIngestRun and held from the derivation checker's gmeow:vantage (a checker that verifies well-foundedness and status(thm), and says so in its own label rather than overclaiming re-derivation). One row, exactly." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLiftedProofQedShape ;
+    gmeow:cqExpectRow ex:rowLiftedProofQed .
+ex:cqLiftedProofQedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "activity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowLiftedProofQed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "activity" ; gmeow:cellValueIri lift:proof-run-2351ded5a35cacd5 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri liftp:verification-f5c024f707112b10 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri liftp:checker-7bb8919841ce8bd2 ] .
 
 # === Statement-layer Q5 — theorem, theory, axioms, engine, and result ======= #
 ex:cqStatementProofTheoryEngine a gmeow:CompetencyQuestion ;
@@ -2879,3 +3050,11 @@ ex:rowDiscreteConnectionFlatness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exh:loopSheaf ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cochain" ; gmeow:cellValueIri exh:transportCocycle ] .
+
+# === Q — the coarser-normalization ladder's transitive closure is a LIVE entailment === #
+
+ex:cqCoarserNormalizationTransitive a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/coarser-normalization-transitive.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "module.ttl asserts ONLY the three adjacent links of the four-rung math:NormalizationStrength ladder (semantic->algebraic, algebraic->commutative, commutative->structural); the two-hop-plus link from the COARSEST rung directly to the FINEST is never asserted. math:coarserNormalizationThan is declared owl:TransitiveProperty, so the native logic: reasoner's transitive chase MUST derive math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization from the three adjacent facts alone — a genuine entailment, not a restated assertion." ;
+    gmeow:cqExpectAsk true .

@@ -26,21 +26,21 @@ ASK {
 }""" ;
     gmeow:saRationale "The five typed accessibility relations MUST exist as owl:ObjectProperty -- each typed context kind reasons over its own named accessibility relation rather than one undifferentiated relation." .
 
-# --- 2. No typed relation is rdfs:subPropertyOf accessibleFrom (MUST-NOT, keystone) ---
+# --- 2. No typed relation is a subproperty of accessibleFrom (MUST-NOT, keystone) ---
 ex:saTypedRelationsNotSubpropertyAccessibleFrom a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    ?r rdfs:subPropertyOf logic:accessibleFrom .
+    ?r (logic:subPropertyOf|rdfs:subPropertyOf) logic:accessibleFrom .
     FILTER (?r IN (
         logic:epistemicallyPossible, logic:doxasticallyAccessible,
         logic:deonticallyIdeal, logic:temporallySucceeds,
         logic:counterfactuallyCloser
     ))
 }""" ;
-    gmeow:saRationale "No typed accessibility relation MUST be rdfs:subPropertyOf logic:accessibleFrom -- the generic superproperty licenses NO cross-type entailment by itself; an asserted subproperty edge would re-enable the cross-type subproperty inference the context algebra forbids (believed leaking into true, fiction into actual, ideal into is). The superproperty relationship is documented in prose only." .
+    gmeow:saRationale "No typed accessibility relation MUST be a subproperty of logic:accessibleFrom -- the generic superproperty licenses NO cross-type entailment by itself; an asserted subproperty edge would re-enable the cross-type subproperty inference the context algebra forbids (believed leaking into true, fiction into actual, ideal into is). The superproperty relationship is documented in prose only." .
 
 # --- 3. No typed relation asserts an OWL property characteristic (MUST-NOT) ---
 ex:saTypedRelationsAssertNoCharacteristics a gmeow:StructuralAssertion ;
@@ -352,7 +352,7 @@ ex:saConflictRelationsNotSubproperty a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    ?r rdfs:subPropertyOf ?super .
+    ?r (logic:subPropertyOf|rdfs:subPropertyOf) ?super .
     FILTER (?r IN (
         logic:contradictoryGoal, logic:contraryGoal, logic:preventsGoal,
         logic:competesForResource, logic:temporallyIncompatible,
@@ -360,7 +360,7 @@ ASK {
     ))
     FILTER (?super IN (gmeow:counterGoal, gmeow:properPartOf))
 }""" ;
-    gmeow:saRationale "No logic: goal-conflict relation MUST be rdfs:subPropertyOf gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
+    gmeow:saRationale "No logic: goal-conflict relation MUST be a subproperty of gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
 
 # --- 22. The four factored GoalEvaluation status classes exist (MUST) --------
 ex:saGoalEvaluationStatusClasses a gmeow:StructuralAssertion ;
@@ -656,7 +656,7 @@ ex:saConcurrentCompositionDistinct a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    logic:ConcurrentComposition rdfs:subClassOf logic:SerializabilityCriterion .
+    logic:ConcurrentComposition (logic:subClassOf|rdfs:subClassOf) logic:SerializabilityCriterion .
 }""" ;
     gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .
 
@@ -823,12 +823,12 @@ ASK {
     logic:dataflowConsumes a owl:ObjectProperty .
     logic:dataflowProduces a owl:ObjectProperty ;
                            owl:inverseOf logic:dataflowConsumes .
-    logic:ControlFlowEdge  a owl:Class ; rdfs:subClassOf logic:Relator .
-    logic:DataFlowEdge     a owl:Class ; rdfs:subClassOf logic:Relator .
+    logic:ControlFlowEdge  a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:Relator .
+    logic:DataFlowEdge     a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:Relator .
     logic:flowFrom         a owl:ObjectProperty .
     logic:flowTo           a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) the procedures relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
+    gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) that a downstream slice's own relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
 
 # --- 43. A plan reaches its flow graph through logic:planFlowEdge (MUST) ------
 ex:saPlanFlowEdgeExists a gmeow:StructuralAssertion ;
@@ -910,7 +910,7 @@ ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    logic:UnwiredFlagshipScenario rdfs:subClassOf logic:LogicConformanceFailure .
+    logic:UnwiredFlagshipScenario (logic:subClassOf|rdfs:subClassOf) logic:LogicConformanceFailure .
 }""" ;
     gmeow:saRationale "The unwired-flagship failure MUST be a subclass of logic:LogicConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other logic: conformance failure. It subclasses ONLY the slice failure root, never the spec-layer gmeow:UnwiredFlagshipScenario marker." .
 
@@ -935,7 +935,7 @@ ASK {
                 gmeow:demonstratedByProducer ?prod ;
                 gmeow:guardedByCounterExample ?ce ;
                 gmeow:enforcesFailureClass ?fc .
-            ?fc rdfs:subClassOf+ logic:LogicConformanceFailure .
+            ?fc (logic:subClassOf|rdfs:subClassOf)+ logic:LogicConformanceFailure .
             FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
         }
     }
@@ -978,8 +978,8 @@ ASK {
             logic:CrossNodeConstraint logic:ForbiddenPatternConstraint logic:AggregateConstraint
         }
         FILTER NOT EXISTS {
-            ?sugar rdfs:subClassOf logic:ConstraintSugar .
-            FILTER NOT EXISTS { ?sugar rdfs:subClassOf logic:Formula }
+            ?sugar (logic:subClassOf|rdfs:subClassOf) logic:ConstraintSugar .
+            FILTER NOT EXISTS { ?sugar (logic:subClassOf|rdfs:subClassOf) logic:Formula }
         }
     }
     logic:FormulaConstructorConstraint a logic:ChoiceGroupConstraint ;
@@ -1012,9 +1012,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     logic:ConversionTarget a owl:Class .
     logic:ProjectionTarget a owl:Class .
-    logic:Dialect a owl:Class ; rdfs:subClassOf logic:ConversionTarget .
+    logic:Dialect a owl:Class ; (logic:subClassOf|rdfs:subClassOf) logic:ConversionTarget .
     logic:RelationalCore a logic:Dialect, logic:ConversionTarget .
-    FILTER NOT EXISTS { logic:Dialect rdfs:subClassOf logic:ProjectionTarget }
+    FILTER NOT EXISTS { logic:Dialect (logic:subClassOf|rdfs:subClassOf) logic:ProjectionTarget }
 }""" ;
     gmeow:saRationale "A compiler lowering MUST name a legality domain distinct from a reasoning contract's requested renderings: every Dialect is a ConversionTarget, and RelationalCore is the concrete conversion target of the native execution lowering. ProjectionTarget remains the separate presentation facet and is not a superclass of Dialect." .
 
@@ -1106,3 +1106,847 @@ ASK {
     )
 }""" ;
     gmeow:saRationale "The evaluable relational-core lowering MUST type one tuple reifier through instanceOf and preserve each fixed argument in a distinct zero-based positional predicate. FormulaShape remains a separate loss-ledger vocabulary: Disjunctive tags unsupported residue and is never confused with an emitted tuple edge. The production Rust adapter test proves the source ternary formula actually lowers through this contract." .
+
+# --- Enactment kernel signature guards (MUST) ---------------------------------
+#
+# One cell per roster chunk, each asserting the DECLARED SIGNATURE of the kernel
+# terms it covers: their type, and where declared their domain, range and
+# subsumption. These are ground triple patterns, so they are a single index
+# probe each rather than a join.
+#
+# They guard the thing the completeness constraints depend on. A constraint that
+# names a binding the module never declares is vacuous; a value individual that
+# lost its type stops being a member of its closed class while still looking
+# like one at the call site. Both failures are invisible to a term count and
+# both are caught here.
+
+ex:saEnactmentSignature1 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:ActionableFrontier a owl:Class .
+  logic:Advisory a owl:Class .
+  logic:AdvisoryNeverAuthorityConstraint a logic:Constraint .
+  logic:ApprovalBindingFault a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:ApprovalCancelled a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalCommitment a owl:Class .
+  logic:ApprovalCommitmentCompletenessConstraint a logic:Constraint .
+  logic:ApprovalCreated a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalDetached a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalDischarged a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalExpired a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalNull a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalReleased a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ApprovalState a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:ApprovalViolated a owl:NamedIndividual ;
+    a logic:ApprovalState .
+  logic:ArgumentNormalization a owl:Class .
+  logic:AuthorizationProof a owl:Class .
+  logic:AxisTransitionLaw a owl:Class .
+  logic:CapabilityGapProposal a owl:Class .
+  logic:CapabilityGapProposalCompletenessConstraint a logic:Constraint .
+  logic:ClockAttribution a owl:Class .
+  logic:CompensationAttempt a owl:Class .
+  logic:CompensationBindsExactForwardEffectConstraint a logic:Constraint .
+  logic:CompensationOutcome a owl:Class .
+  logic:CompensationSuccessRequiresReceiptConstraint a logic:Constraint .
+  logic:ContextAssembly a owl:Class .
+  logic:ContextAssemblyRecordsExclusionsConstraint a logic:Constraint .
+  logic:ContinuationKind a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "Signature guard 1 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature2 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:ContinuationRepeat a owl:NamedIndividual ;
+    a logic:ContinuationKind .
+  logic:ContinuationResume a owl:NamedIndividual ;
+    a logic:ContinuationKind .
+  logic:ContinuationRevise a owl:NamedIndividual ;
+    a logic:ContinuationKind .
+  logic:ContradictionAdjudication a owl:Class .
+  logic:DeadlineConsumption a owl:Class .
+  logic:DecompositionMethod a owl:Class .
+  logic:DeliveryAtLeastOnce a owl:NamedIndividual ;
+    a logic:DeliverySemantics .
+  logic:DeliveryAtMostOnce a owl:NamedIndividual ;
+    a logic:DeliverySemantics .
+  logic:DeliveryExactlyOnce a owl:NamedIndividual ;
+    a logic:DeliverySemantics .
+  logic:DeliverySemantics a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:Deviation a owl:Class .
+  logic:DispatchIntent a owl:Class .
+  logic:DispatchIntentCompletenessConstraint a logic:Constraint .
+  logic:EffectAbandoned a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectAttempt a owl:Class .
+  logic:EffectAttempted a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectCompensated a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectCompensating a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectIntended a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectProtocolPosition a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:EffectReceipted a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectReconciled a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectReconciling a owl:NamedIndividual ;
+    a logic:EffectProtocolPosition .
+  logic:EffectRecordsAreObservedNotDerivedConstraint a logic:Constraint .
+  logic:Enactment a owl:Class .
+  logic:EnactmentCancelled a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentCheckpoint a owl:Class .
+  logic:EnactmentCohort a owl:Class .
+}""" ;
+    gmeow:saRationale "Signature guard 2 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature3 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:EnactmentCompleted a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentFailed a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentPaused a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentPending a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentRunning a owl:NamedIndividual ;
+    a logic:EnactmentState .
+  logic:EnactmentState a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:ExternalEffectReceipt a owl:Class .
+  logic:ExternalOutcomeUnknown a owl:Class .
+  logic:FaultContentIntegrity a owl:NamedIndividual ;
+    a logic:IntegrityFault .
+  logic:FaultDataGeneration a owl:NamedIndividual ;
+    a logic:IntegrityFault .
+  logic:FaultDifferentEnactment a owl:NamedIndividual ;
+    a logic:ApprovalBindingFault .
+  logic:FaultDigestMismatch a owl:NamedIndividual ;
+    a logic:ApprovalBindingFault .
+  logic:FaultExpiredWindow a owl:NamedIndividual ;
+    a logic:ApprovalBindingFault .
+  logic:FaultIdentityMismatch a owl:NamedIndividual ;
+    a logic:IntegrityFault .
+  logic:FaultOperatorPolicyMismatch a owl:NamedIndividual ;
+    a logic:ApprovalBindingFault .
+  logic:FaultRematerialization a owl:NamedIndividual ;
+    a logic:IntegrityFault .
+  logic:FragmentAcyclicMethod a owl:NamedIndividual ;
+    a logic:SearchFragment .
+  logic:FragmentBoundedDepth a owl:NamedIndividual ;
+    a logic:SearchFragment .
+  logic:FragmentTotallyOrdered a owl:NamedIndividual ;
+    a logic:SearchFragment .
+  logic:FrontierBlockedCapabilityOrResource a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierBlockedPrecondition a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierCancelled a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierCancelledWithInFlightEffects a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierClosureRequiresSaturationConstraint a logic:Constraint .
+  logic:FrontierCompensationEligible a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierCompensationFailedForwardCommitted a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierCompensationRequired a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierCompleted a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+}""" ;
+    gmeow:saRationale "Signature guard 3 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature4 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:FrontierEntry a owl:Class .
+  logic:FrontierLabel a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:FrontierMutuallyExclusive a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierReadyApprovalRequired a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierReadyAuthorized a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierReconciliationImpossible a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierReconciliationRequired a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierSkippedWithTypedReason a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierTerminallyFailed a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:FrontierWaitingOnEventTimeOrInput a owl:NamedIndividual ;
+    a logic:FrontierLabel .
+  logic:IdempotencyContract a owl:Class .
+  logic:IdempotencyContractCompletenessConstraint a logic:Constraint .
+  logic:IncompleteCancellation a owl:NamedIndividual ;
+    a logic:IncompleteCause .
+  logic:IncompleteCause a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:IncompleteDeadline a owl:NamedIndividual ;
+    a logic:IncompleteCause .
+  logic:IncompletePageBudget a owl:NamedIndividual ;
+    a logic:IncompleteCause .
+  logic:IncompleteStepBudget a owl:NamedIndividual ;
+    a logic:IncompleteCause .
+  logic:InputSnapshot a owl:Class .
+  logic:IntegrityFault a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:JournalEntry a owl:Class .
+  logic:LeaseExclusivityConstraint a logic:Constraint .
+  logic:LivenessCertificate a owl:Class .
+  logic:OperationOutcome a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:OperationalCapabilityGap a owl:Class .
+  logic:OutcomeApplied a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+  logic:OutcomeEngineFailure a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+  logic:OutcomeIncomplete a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+  logic:OutcomeInvalid a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+}""" ;
+    gmeow:saRationale "Signature guard 4 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature5 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:OutcomeRequiresFullRebuild a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+  logic:OutcomeUnsupportedFragment a owl:NamedIndividual ;
+    a logic:OperationOutcome .
+  logic:PinStepsMatchInstantiatedMethodConstraint a logic:Constraint .
+  logic:PinnedExecutableSubgraph a owl:Class .
+  logic:PinnedSubgraphCompletenessConstraint a logic:Constraint .
+  logic:PreparationReceipt a owl:Class .
+  logic:PreparationStep a owl:Class .
+  logic:PrescriptionKind a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:PrescriptionVersion a owl:Class .
+  logic:PriorEnactmentRequirement a owl:Class .
+  logic:RebuildFragmentChanged a owl:NamedIndividual ;
+    a logic:RebuildReason .
+  logic:RebuildNonIncrementalRetraction a owl:NamedIndividual ;
+    a logic:RebuildReason .
+  logic:RebuildReason a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:RebuildRuleSetChanged a owl:NamedIndividual ;
+    a logic:RebuildReason .
+  logic:ReceiptRequiresAttemptConstraint a logic:Constraint .
+  logic:ReconciledCommitted a owl:NamedIndividual ;
+    a logic:ReconciliationVerdict .
+  logic:ReconciledNotCommitted a owl:NamedIndividual ;
+    a logic:ReconciliationVerdict .
+  logic:ReconciledStillUnknown a owl:NamedIndividual ;
+    a logic:ReconciliationVerdict .
+  logic:ReconciliationImpossible a owl:Class .
+  logic:ReconciliationProbe a owl:Class .
+  logic:ReconciliationResult a owl:Class .
+  logic:ReconciliationVerdict a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:RecurrenceActive a owl:NamedIndividual ;
+    a logic:RecurrenceState .
+  logic:RecurrenceEnded a owl:NamedIndividual ;
+    a logic:RecurrenceState .
+  logic:RecurrenceScheduled a owl:NamedIndividual ;
+    a logic:RecurrenceState .
+  logic:RecurrenceSkipped a owl:NamedIndividual ;
+    a logic:RecurrenceState .
+  logic:RecurrenceState a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:RecurrenceSuspended a owl:NamedIndividual ;
+    a logic:RecurrenceState .
+  logic:RefinementCandidateSet a owl:Class .
+  logic:RefinementEpisodeDeclaresSearchFragmentConstraint a logic:Constraint .
+}""" ;
+    gmeow:saRationale "Signature guard 5 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature6 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:RefinementEpisode a owl:Class .
+  logic:RefinementRejection a owl:Class .
+  logic:RejectedApproval a owl:NamedIndividual ;
+    a logic:RejectionKind .
+  logic:RejectedCapability a owl:NamedIndividual ;
+    a logic:RejectionKind .
+  logic:RejectedPrecondition a owl:NamedIndividual ;
+    a logic:RejectionKind .
+  logic:RejectedResource a owl:NamedIndividual ;
+    a logic:RejectionKind .
+  logic:RejectionKind a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:ResourceLease a owl:Class .
+  logic:RevisionLens a owl:Class .
+  logic:SaturationWitness a owl:Class ;
+    logic:subClassOf logic:ReasoningResult .
+  logic:SearchFragment a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:SkipAlreadySatisfied a owl:NamedIndividual ;
+    a logic:SkipReason .
+  logic:SkipNotApplicable a owl:NamedIndividual ;
+    a logic:SkipReason .
+  logic:SkipOperatorDeclined a owl:NamedIndividual ;
+    a logic:SkipReason .
+  logic:SkipPolicyExcluded a owl:NamedIndividual ;
+    a logic:SkipReason .
+  logic:SkipReason a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:SnapshotDelta a owl:Class .
+  logic:StepCancelled a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepCheckpoint a owl:Class .
+  logic:StepCompleted a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepFailed a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepPending a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepReady a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepRunning a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepSkipped a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:StepState a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:StepWaiting a owl:NamedIndividual ;
+    a logic:StepState .
+  logic:TransitionJournal a owl:Class .
+  logic:UnsupportedConstruct a owl:NamedIndividual ;
+    a logic:UnsupportedFragmentCondition .
+}""" ;
+    gmeow:saRationale "Signature guard 6 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature7 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:UnsupportedFragmentCondition a logic:AbstractIndividualType ;
+    a owl:Class ;
+    logic:subClassOf logic:QualityValue .
+  logic:UnsupportedMethodSet a owl:NamedIndividual ;
+    a logic:UnsupportedFragmentCondition .
+  logic:UnsupportedNonTerminating a owl:NamedIndividual ;
+    a logic:UnsupportedFragmentCondition .
+  logic:adjudicatesAttempt a owl:ObjectProperty ;
+    rdfs:domain logic:ContradictionAdjudication ;
+    rdfs:range logic:EffectAttempt .
+  logic:advisoryAbout a owl:ObjectProperty ;
+    rdfs:domain logic:Advisory .
+  logic:approvalBindingFault a owl:ObjectProperty ;
+    rdfs:range logic:ApprovalBindingFault .
+  logic:approvalDecision a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment .
+  logic:approvalEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:range logic:Enactment .
+  logic:approvalIntentDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:range rdfs:Literal .
+  logic:approvalOperator a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment .
+  logic:approvalPolicy a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment .
+  logic:approvalState a owl:ObjectProperty ;
+    rdfs:range logic:ApprovalState .
+  logic:approvalValidityWindow a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment .
+  logic:assemblyExcluded a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly .
+  logic:assemblyExclusionReason a owl:DatatypeProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:range rdfs:Literal .
+  logic:assemblyForEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:range logic:Enactment .
+  logic:assemblyGuidanceVersion a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly .
+  logic:assemblyIncluded a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly .
+  logic:attemptOfIntent a owl:ObjectProperty ;
+    rdfs:domain logic:EffectAttempt ;
+    rdfs:range logic:DispatchIntent .
+  logic:certifiesDeadlockFreedom a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean .
+  logic:certifiesNoOrphanIntent a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean .
+  logic:certifiesReachability a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean .
+  logic:checkpointAnnotationDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointContractDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointDataDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointDescriptorHash a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointEngineDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointFragmentDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+}""" ;
+    gmeow:saRationale "Signature guard 7 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature8 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:checkpointOfEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCheckpoint ;
+    rdfs:range logic:Enactment .
+  logic:checkpointOfStep a owl:ObjectProperty ;
+    rdfs:domain logic:StepCheckpoint .
+  logic:checkpointRulesDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:checkpointSliceDigest a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:clockObservedAt a owl:DatatypeProperty ;
+    rdfs:domain logic:ClockAttribution ;
+    rdfs:range xsd:dateTime .
+  logic:clockSource a owl:ObjectProperty ;
+    rdfs:domain logic:ClockAttribution .
+  logic:cohortMember a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCohort ;
+    rdfs:range logic:Enactment .
+  logic:compensatesEffect a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationAttempt ;
+    rdfs:range logic:ExternalEffectReceipt .
+  logic:compensationReceipt a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationOutcome ;
+    rdfs:range logic:ExternalEffectReceipt .
+  logic:continuationKind a owl:ObjectProperty ;
+    rdfs:range logic:ContinuationKind .
+  logic:deadlineExhausted a owl:DatatypeProperty ;
+    rdfs:domain logic:DeadlineConsumption ;
+    rdfs:range xsd:boolean .
+  logic:deadlineOfEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:DeadlineConsumption ;
+    rdfs:range logic:Enactment .
+  logic:deltaAddition a owl:ObjectProperty ;
+    rdfs:domain logic:SnapshotDelta .
+  logic:deltaSuppression a owl:ObjectProperty ;
+    rdfs:domain logic:SnapshotDelta .
+  logic:derivationIdentifier a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal .
+  logic:deviationFromStep a owl:ObjectProperty ;
+    rdfs:domain logic:Deviation .
+  logic:effectKnowledge a owl:ObjectProperty ;
+    rdfs:range logic:InformationState .
+  logic:effectProtocolPosition a owl:ObjectProperty ;
+    rdfs:range logic:EffectProtocolPosition .
+  logic:enactmentInputSnapshot a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:InputSnapshot .
+  logic:enactmentJournal a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:TransitionJournal .
+  logic:enactmentState a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:EnactmentState .
+  logic:enactsPrescriptionVersion a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:PrescriptionVersion .
+  logic:entryAction a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry .
+  logic:entryAxisWitness a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry .
+  logic:entryLabel a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:range logic:FrontierLabel .
+  logic:expectedJournalHead a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range rdfs:Literal .
+  logic:fencingIdentity a owl:DatatypeProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:range xsd:integer .
+  logic:frontierOfEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:Enactment .
+}""" ;
+    gmeow:saRationale "Signature guard 8 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature9 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:frontierSaturationWitness a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:SaturationWitness .
+  logic:frontierVantage a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry .
+  logic:gapBlockedStep a owl:ObjectProperty ;
+    rdfs:domain logic:OperationalCapabilityGap .
+  logic:hasFrontierEntry a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:FrontierEntry .
+  logic:hasRejection a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementCandidateSet ;
+    rdfs:range logic:RefinementRejection .
+  logic:idempotencyDuplicateSemantics a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range logic:DeliverySemantics .
+  logic:idempotencyKey a owl:DatatypeProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range rdfs:Literal .
+  logic:idempotencyProviderEvidence a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract .
+  logic:idempotencyRetention a owl:DatatypeProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range xsd:duration .
+  logic:idempotencyScope a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract .
+  logic:impossibleOfAttempt a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationImpossible ;
+    rdfs:range logic:EffectAttempt .
+  logic:incompleteCause a owl:ObjectProperty ;
+    rdfs:range logic:IncompleteCause .
+  logic:integrityFault a owl:ObjectProperty ;
+    rdfs:range logic:IntegrityFault .
+  logic:intentActionSchemaVersion a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent .
+  logic:intentApprovalRequired a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range xsd:boolean .
+  logic:intentDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range rdfs:Literal .
+  logic:intentIdempotency a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:IdempotencyContract .
+  logic:intentNormalizedArguments a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:ArgumentNormalization .
+  logic:intentOfEnactment a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:Enactment .
+  logic:intentOfStep a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent .
+  logic:intentPolicy a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent .
+  logic:intentTarget a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent .
+  logic:journalDeltaIdentity a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal .
+  logic:journalHead a owl:ObjectProperty ;
+    rdfs:domain logic:TransitionJournal ;
+    rdfs:range logic:JournalEntry .
+  logic:journalNewHead a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal .
+  logic:journalOutcomeTag a owl:ObjectProperty ;
+    rdfs:domain logic:JournalEntry .
+  logic:journalPrevHead a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal .
+  logic:knowledgePrecedes a owl:ObjectProperty ;
+    rdfs:domain logic:InformationState ;
+    rdfs:range logic:InformationState .
+}""" ;
+    gmeow:saRationale "Signature guard 9 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature10 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:lawAdmits a owl:ObjectProperty ;
+    rdfs:domain logic:AxisTransitionLaw ;
+    rdfs:range logic:Formula .
+  logic:lawGovernsAxis a owl:ObjectProperty ;
+    rdfs:domain logic:AxisTransitionLaw .
+  logic:leaseExpiry a owl:DatatypeProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:range xsd:dateTime .
+  logic:leaseOwner a owl:ObjectProperty ;
+    rdfs:domain logic:ResourceLease .
+  logic:leaseScope a owl:ObjectProperty ;
+    rdfs:domain logic:ResourceLease .
+  logic:lensGetPutHolds a owl:DatatypeProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range xsd:boolean .
+  logic:lensGoverns a owl:ObjectProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range logic:Plan .
+  logic:lensPutGetHolds a owl:DatatypeProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range xsd:boolean .
+  logic:methodApplicability a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:range logic:Formula .
+  logic:methodDecomposes a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod .
+  logic:methodDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:range rdfs:Literal .
+  logic:methodYields a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod .
+  logic:normalizationRecipe a owl:DatatypeProperty ;
+    rdfs:domain logic:ArgumentNormalization ;
+    rdfs:range rdfs:Literal .
+  logic:operationOutcome a owl:ObjectProperty ;
+    rdfs:range logic:OperationOutcome .
+  logic:outcomeOfCompensation a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationOutcome ;
+    rdfs:range logic:CompensationAttempt .
+  logic:pinAuthority a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph .
+  logic:pinDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:range rdfs:Literal .
+  logic:pinInstantiatesMethod a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:range logic:DecompositionMethod .
+  logic:pinnedStepSequence a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph .
+  logic:preparationOf a owl:ObjectProperty ;
+    rdfs:domain logic:PreparationStep .
+  logic:prescriptionDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:PrescriptionVersion ;
+    rdfs:range rdfs:Literal .
+  logic:prescriptionKind a owl:ObjectProperty ;
+    rdfs:domain logic:Plan ;
+    rdfs:range logic:PrescriptionKind .
+  logic:prescriptionKindAgentFlow a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindBusinessProcess a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindCiBuild a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindControlPlan a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindCurriculum a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindDataPipeline a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindIngestion a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+}""" ;
+    gmeow:saRationale "Signature guard 10 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature11 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:prescriptionKindLabProtocol a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindOrganizationalGuide a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindRecipe a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindRepeatableGuide a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionKindResearchPlan a owl:NamedIndividual ;
+    a logic:PrescriptionKind .
+  logic:prescriptionOf a owl:ObjectProperty ;
+    rdfs:domain logic:PrescriptionVersion ;
+    rdfs:range logic:Plan .
+  logic:probesAttempt a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationProbe ;
+    rdfs:range logic:EffectAttempt .
+  logic:producedCandidateSet a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:RefinementCandidateSet .
+  logic:proofEstablishes a owl:ObjectProperty ;
+    rdfs:domain logic:AuthorizationProof .
+  logic:proposalBlockedStep a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalExpectedEffects a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalExpectedInputs a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalExpectedOutputs a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalMissingCapability a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalRequiredContract a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalSecurityLifecycle a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:proposalVerificationMethod a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal .
+  logic:providerCorrelationId a owl:DatatypeProperty ;
+    rdfs:domain logic:EffectAttempt ;
+    rdfs:range rdfs:Literal .
+  logic:rebuildReason a owl:ObjectProperty ;
+    rdfs:range logic:RebuildReason .
+  logic:receiptEvidence a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalEffectReceipt .
+  logic:receiptOfAttempt a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalEffectReceipt ;
+    rdfs:range logic:EffectAttempt .
+  logic:receiptOfPreparation a owl:ObjectProperty ;
+    rdfs:domain logic:PreparationReceipt ;
+    rdfs:range logic:PreparationStep .
+  logic:reconciliationVerdict a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationResult ;
+    rdfs:range logic:ReconciliationVerdict .
+  logic:recoveryWitness a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCheckpoint .
+  logic:recurrenceState a owl:ObjectProperty ;
+    rdfs:range logic:RecurrenceState .
+  logic:refinementBudget a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:ResourcePolicy .
+  logic:refinementCandidate a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementCandidateSet .
+  logic:refinementServesGoal a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode .
+}""" ;
+    gmeow:saRationale "Signature guard 11 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+ex:saEnactmentSignature12 a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+  logic:refinementWorldSnapshot a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:InputSnapshot .
+  logic:refinesStep a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode .
+  logic:rejectedCandidate a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection .
+  logic:rejectionKind a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection ;
+    rdfs:range logic:RejectionKind .
+  logic:rejectionWitness a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection .
+  logic:requiredPriorPrescription a owl:ObjectProperty ;
+    rdfs:domain logic:PriorEnactmentRequirement ;
+    rdfs:range logic:Plan .
+  logic:requiredPriorState a owl:ObjectProperty ;
+    rdfs:domain logic:PriorEnactmentRequirement .
+  logic:resultOfProbe a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationResult ;
+    rdfs:range logic:ReconciliationProbe .
+  logic:searchFragment a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:SearchFragment .
+  logic:settledPredicate a owl:ObjectProperty ;
+    rdfs:domain logic:SaturationWitness .
+  logic:selectedPin a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:PinnedExecutableSubgraph .
+  logic:skipReason a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:range logic:SkipReason .
+  logic:snapshotDigest a owl:DatatypeProperty ;
+    rdfs:domain logic:InputSnapshot ;
+    rdfs:range rdfs:Literal .
+  logic:stepState a owl:ObjectProperty ;
+    rdfs:range logic:StepState .
+  logic:unknownOfAttempt a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalOutcomeUnknown ;
+    rdfs:range logic:EffectAttempt .
+  logic:unsupportedCondition a owl:ObjectProperty ;
+    rdfs:range logic:UnsupportedFragmentCondition .
+}""" ;
+    gmeow:saRationale "Signature guard 12 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .

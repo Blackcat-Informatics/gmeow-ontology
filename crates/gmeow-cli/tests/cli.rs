@@ -26,19 +26,18 @@ fn fixture(name: &str) -> PathBuf {
         .join(name)
 }
 
-/// A fresh, unique, empty scratch directory under the system temp dir.
-fn scratch(tag: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-cli-test-{tag}-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    std::fs::create_dir_all(&dir).expect("create scratch dir");
-    dir
+/// A fresh, empty scratch directory owned by the returned [`tempfile::TempDir`].
+///
+/// The guard must be bound to a live local (`let (_tmp, dir) = scratch("tag");`)
+/// for the duration of the test: dropping it removes the directory and its
+/// contents, on success, on early return, and on panic alike.
+fn scratch(tag: &str) -> (tempfile::TempDir, PathBuf) {
+    let tmp = tempfile::Builder::new()
+        .prefix(&format!("gmeow-cli-test-{tag}-"))
+        .tempdir()
+        .expect("create scratch dir");
+    let dir = tmp.path().to_path_buf();
+    (tmp, dir)
 }
 
 /// The built `gmeow` binary.
@@ -297,7 +296,7 @@ fn validate_fail_file_sarif_is_well_formed() {
 #[test]
 fn validate_unknown_extension_hard_fails() {
     // test_validate_unknown_extension_hard_fails.
-    let dir = scratch("badext");
+    let (_tmp, dir) = scratch("badext");
     let bogus = dir.join("data.csv");
     std::fs::write(&bogus, "a,b,c\n").unwrap();
     gmeow()
@@ -319,7 +318,7 @@ fn export_respects_language_selector() {
     // gmeow-terms.jsonl (the flattened Term surface still carries a
     // language-tag-keyed `labels`/`definitions` map) instead of the retired
     // gmeow-classes.csv.
-    let out = scratch("export");
+    let (_tmp, out) = scratch("export");
     gmeow()
         .arg("export")
         .arg("--out")
@@ -344,7 +343,7 @@ fn export_respects_language_selector() {
 fn project_schema_org_view_filter() {
     // Mirrors `gmeow project --profile schema.org`: the schema.org VIEW filter over
     // the bundle (the registry name is `schema-org`). Writes a Turtle projection.
-    let out = scratch("project");
+    let (_tmp, out) = scratch("project");
     gmeow()
         .args(["project", "--profile", "schema-org"])
         .arg("--out")
@@ -357,7 +356,7 @@ fn project_schema_org_view_filter() {
 
 #[test]
 fn project_unknown_view_fails() {
-    let out = scratch("project-bad");
+    let (_tmp, out) = scratch("project-bad");
     gmeow()
         .args(["project", "--profile", "definitely-not-a-view"])
         .arg("--out")
@@ -370,7 +369,7 @@ fn project_unknown_view_fails() {
 #[test]
 fn convert_turtle_to_ntriples() {
     // `gmeow convert --from turtle --to ntriples` round-trips a triple to stdout.
-    let dir = scratch("convert");
+    let (_tmp, dir) = scratch("convert");
     let src = dir.join("in.ttl");
     std::fs::write(
         &src,
@@ -390,7 +389,7 @@ fn convert_turtle_to_ntriples() {
 
 #[test]
 fn convert_unknown_codec_fails() {
-    let dir = scratch("convert-bad");
+    let (_tmp, dir) = scratch("convert-bad");
     let src = dir.join("in.ttl");
     std::fs::write(
         &src,
@@ -467,7 +466,9 @@ fn slice_path(relative: &str) -> PathBuf {
 /// the intensity-discriminating worked example. This exercises the shipped instance
 /// end to end, proving intensity is COMPUTED from the Gram matrix and appraisal
 /// vectors — not read from a hand-authored magnitude.
-fn affect_fixture_gts() -> PathBuf {
+/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
+/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
+fn affect_fixture_gts() -> (tempfile::TempDir, PathBuf) {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
 
@@ -491,18 +492,21 @@ fn affect_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
-    let dir = scratch("affect-fixture");
+    let (tmp, dir) = scratch("affect-fixture");
     let path = dir.join("affect.gts");
     std::fs::write(&path, bytes).expect("write fixture gts");
-    path
+    (tmp, path)
 }
 
 /// Build a fixture `.gts` from the canonical `module.ttl` (carries the core-affect
 /// axis indices) merged with the committed nearest-prototype worked example.
-fn affect_classify_fixture_gts() -> PathBuf {
+/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
+/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
+fn affect_classify_fixture_gts() -> (tempfile::TempDir, PathBuf) {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
 
@@ -524,13 +528,14 @@ fn affect_classify_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
-    let dir = scratch("affect-classify-fixture");
+    let (tmp, dir) = scratch("affect-classify-fixture");
     let path = dir.join("affect-classify.gts");
     std::fs::write(&path, bytes).expect("write fixture gts");
-    path
+    (tmp, path)
 }
 
 #[test]
@@ -539,7 +544,7 @@ fn affect_classify_finds_schadenfreude_prototype() {
     // core vector is classified against the FULL canonical prototype set and its nearest
     // labelled prototype is the schadenfreude prototype (exact squared distance 0) —
     // "is this vector a schadenfreude?" answered yes, as a derived vantage-relative view.
-    let fixture = affect_classify_fixture_gts();
+    let (_fixture_tmp, fixture) = affect_classify_fixture_gts();
     let gm = "https://blackcatinformatics.ca/gmeow/";
     gmeow()
         .args(["affect", "classify"])
@@ -569,7 +574,9 @@ fn affect_classify_missing_source_is_a_runtime_error() {
         .stderr(predicate::str::contains("Error:"));
 }
 
-fn affect_classify_worked_fixture_gts() -> PathBuf {
+/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
+/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
+fn affect_classify_worked_fixture_gts() -> (tempfile::TempDir, PathBuf) {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
 
@@ -596,13 +603,14 @@ fn affect_classify_worked_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
-    let dir = scratch("affect-classify-worked-fixture");
+    let (tmp, dir) = scratch("affect-classify-worked-fixture");
     let path = dir.join("affect-classify-worked.gts");
     std::fs::write(&path, bytes).expect("write fixture gts");
-    path
+    (tmp, path)
 }
 
 #[test]
@@ -612,7 +620,7 @@ fn affect_classify_vantage_swap_flips_the_winner() {
     // prototype depending on the vantage Gram — anger under coreAffectMetricPAD, disgust
     // under a valence-dominant vantage. Nearest-prototype is a vantage-relative claim, not
     // ground truth; swapping --metric-profile flips the winner.
-    let fixture = affect_classify_worked_fixture_gts();
+    let (_fixture_tmp, fixture) = affect_classify_worked_fixture_gts();
     let gm = "https://blackcatinformatics.ca/gmeow/";
     let state = format!("{gm}examples/affect/classify/contestedState");
     let valence_dominant = format!("{gm}examples/affect/classify/valenceDominantProfile");
@@ -645,7 +653,7 @@ fn affect_classify_vantage_swap_flips_the_winner() {
 fn affect_classify_top_k_zero_is_rejected() {
     // A top-0 ranking is meaningless — the empty ranking is a hard fail, not a silent
     // empty result.
-    let fixture = affect_classify_fixture_gts();
+    let (_fixture_tmp, fixture) = affect_classify_fixture_gts();
     let gm = "https://blackcatinformatics.ca/gmeow/";
     gmeow()
         .args(["affect", "classify"])
@@ -663,7 +671,7 @@ fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
     // (diagonal 1, valence–arousal coupling 1/4) for the schadenfreude vector
     // (valence 0.7, arousal 0.4): Q = 79/100, intensity 0.888819, dominant
     // valence. The metric-tensor norm is the load-bearing computation.
-    let fixture = affect_fixture_gts();
+    let (_fixture_tmp, fixture) = affect_fixture_gts();
     gmeow()
         .args(["affect", "intensity"])
         .arg(&fixture)
@@ -685,7 +693,7 @@ fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
     // The discriminating case: raw-max axis is arousal (0.6 > 0.5), but the
     // computed G-weighted dominant is valence (diag(2,1): 2·0.5² = 0.5 >
     // 1·0.6² = 0.36) — the compute is load-bearing, not a raw-max read.
-    let fixture = affect_fixture_gts();
+    let (_fixture_tmp, fixture) = affect_fixture_gts();
     gmeow()
         .args(["affect", "intensity"])
         .arg(&fixture)
@@ -788,7 +796,7 @@ fn music_render_missing_source_is_a_runtime_error() {
     // with an `Error:` prefix; the unsupported-format → exit 2 mapping is pinned by
     // the gmeow-music crate's own tests (it needs a valid piece to reach the format
     // check).
-    let dir = scratch("music");
+    let (_tmp, dir) = scratch("music");
     let missing = dir.join("nope.gts");
     gmeow()
         .args(["music", "render"])
@@ -845,7 +853,7 @@ fn refuting_kb_ttl() -> String {
 /// the append-only library; the standard (non-dry) run commits.
 #[test]
 fn conjecture_test_refutes_persists_and_grows_the_library() {
-    let dir = scratch("conjecture-commit");
+    let (_tmp, dir) = scratch("conjecture-commit");
     let formula = dir.join("candidate.ttl");
     let kb = dir.join("kb.ttl");
     let lib = dir.join("conjectures.gts");
@@ -876,13 +884,12 @@ fn conjecture_test_refutes_persists_and_grows_the_library() {
     // The append-only library was written and is non-empty.
     let grown = std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0);
     assert!(grown > 0, "the committed run must have grown the library");
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 /// A `--dry-run` computes the SAME verdict but WRITES NOTHING to the library.
 #[test]
 fn conjecture_test_dry_run_writes_nothing() {
-    let dir = scratch("conjecture-dry");
+    let (_tmp, dir) = scratch("conjecture-dry");
     let formula = dir.join("candidate.ttl");
     let kb = dir.join("kb.ttl");
     let lib = dir.join("conjectures.gts");
@@ -908,7 +915,6 @@ fn conjecture_test_dry_run_writes_nothing() {
     // Nothing written: the library does not exist / is zero bytes.
     let written = lib.exists() && std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0) > 0;
     assert!(!written, "a dry run must write nothing to the library");
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 /// A KB whose `ex:trigger` fires the candidate on SEVERAL individuals, so the
@@ -929,7 +935,7 @@ fn multi_trigger_kb_ttl() -> String {
 /// beyond the Open verdict.
 #[test]
 fn conjecture_test_max_steps_bound_forces_open() {
-    let dir = scratch("conjecture-budget");
+    let (_tmp, dir) = scratch("conjecture-budget");
     let formula = dir.join("candidate.ttl");
     let kb = dir.join("kb.ttl");
     let lib = dir.join("conjectures.gts");
@@ -953,7 +959,6 @@ fn conjecture_test_max_steps_bound_forces_open() {
                 .and(predicate::str::contains("evaluation budget-exhausted"))
                 .and(predicate::str::contains("discharge ObligationUnknown")),
         );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 // ── hybrid-query (Gap E2/E3: external-relation provider on the shipped CLI) ──
@@ -1001,7 +1006,7 @@ const HYBRID_QUERY_PROVIDER_IRI: &str = "https://example.org/hybrid-query-test/p
 /// outside `crates/logic`'s own test binary.
 #[test]
 fn hybrid_query_prints_answer_binding_and_provider_lineage_receipt() {
-    let dir = scratch("hybrid-query");
+    let (_tmp, dir) = scratch("hybrid-query");
     let facts = dir.join("facts.ttl");
     let program = dir.join("query.logic");
     let candidates = dir.join("candidates.txt");
@@ -1043,14 +1048,13 @@ fn hybrid_query_prints_answer_binding_and_provider_lineage_receipt() {
                 .and(predicate::str::contains("status=Complete"))
                 .and(predicate::str::contains("contributed=true")),
         );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 /// A malformed `--candidates` line (only 3 fields, missing the order-key) is a
 /// specific, honest parse failure — never a silently empty/degraded provider.
 #[test]
 fn hybrid_query_malformed_candidates_line_fails_with_a_specific_diagnostic() {
-    let dir = scratch("hybrid-query-bad-candidates");
+    let (_tmp, dir) = scratch("hybrid-query-bad-candidates");
     let facts = dir.join("facts.ttl");
     let program = dir.join("query.logic");
     let candidates = dir.join("candidates.txt");
@@ -1078,7 +1082,6 @@ fn hybrid_query_malformed_candidates_line_fails_with_a_specific_diagnostic() {
                 "expected 4 whitespace-separated fields",
             )),
         );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 /// A provider that is registered but never referenced by the program is
@@ -1089,7 +1092,7 @@ fn hybrid_query_malformed_candidates_line_fails_with_a_specific_diagnostic() {
 /// answer carries the multiplicative identity annotation (`1`).
 #[test]
 fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
-    let dir = scratch("hybrid-query-unused-provider");
+    let (_tmp, dir) = scratch("hybrid-query-unused-provider");
     let facts = dir.join("facts.ttl");
     let program = dir.join("query.logic");
     let candidates = dir.join("candidates.txt");
@@ -1124,7 +1127,6 @@ fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
             ))
             .and(predicate::str::contains("status Ok")),
         );
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 // ── logic backward (Task 8: interactive backward-engine CLI surface) ────────
@@ -1312,7 +1314,7 @@ fn logic_backward_unknown_program_iri_hard_fails() {
 /// never a silent empty success.
 #[test]
 fn logic_backward_program_free_cell_hard_fails() {
-    let dir = scratch("logic-backward-empty");
+    let (_tmp, dir) = scratch("logic-backward-empty");
     let empty = dir.join("empty.ttl");
     std::fs::write(&empty, "@prefix ex: <http://ex/> .\nex:a ex:knows ex:b .\n")
         .expect("write program-free cell");
@@ -1324,5 +1326,219 @@ fn logic_backward_program_free_cell_hard_fails() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("zero logic:ReasoningProgram"));
-    std::fs::remove_dir_all(&dir).ok();
+}
+
+// ── logic fragments (Task 8: the shipped decidability-surface query) ─────────
+
+/// The committed `logic` grounding slice `module.ttl`, which ships the
+/// `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
+/// decidability manifest (the projection of the kernel registry proven by
+/// `crates/logic`'s `module_ttl_projects_the_kernel_registry`). The default embedded
+/// bundle is materialized by `make check` and may not carry the manifest yet in this
+/// worktree, so the verb is driven against this authored Turtle graph source — the
+/// least-effort correct route that carries the real manifest.
+fn logic_module_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic/module.ttl")
+}
+
+/// `gmeow logic fragments --bundle <logic module.ttl>` reads the shipped
+/// decidability surface by graph queries and lists (1) every decided construct
+/// family with its `logic:RefutationPattern` and completeness bound and (2) their
+/// dual, the retained `logic:expressivenessBoundary` records with their technical
+/// reasons. The assertions pin representative real manifest content (falsifiable, not
+/// tautological): the eight decided families under their patterns and the FOUR
+/// retained boundaries with their reasons — three classical DL withholds and the
+/// residue of the RDF 1.2 statement-metadata lowering, which is the one an operator
+/// meeting a nested triple term needs the verb to name.
+#[test]
+fn logic_fragments_lists_decided_families_and_retained_boundaries() {
+    gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            // The two section headers with their exact counts (8 decided, 4 retained).
+            predicate::str::contains("decided-fragments 8")
+                .and(predicate::str::contains("retained-boundaries 4"))
+                // Decided families keyed to their patterns.
+                .and(predicate::str::contains("fragment complement-refutation"))
+                .and(predicate::str::contains("pattern complement-clash"))
+                .and(predicate::str::contains(
+                    "fragment number-cardinality-counting",
+                ))
+                .and(predicate::str::contains("pattern counting-pigeonhole"))
+                .and(predicate::str::contains("fragment datatype-value-space"))
+                .and(predicate::str::contains("pattern value-space-cardinality"))
+                .and(predicate::str::contains(
+                    "fragment inverse-functional-identity-collapse",
+                ))
+                .and(predicate::str::contains(
+                    "pattern arithmetic-equality-collapse",
+                ))
+                .and(predicate::str::contains("fragment malformed-rdf-list"))
+                .and(predicate::str::contains("pattern malformed-metamodel"))
+                // A representative completeness bound (real manifest text).
+                .and(predicate::str::contains(
+                    "math-grounded finite-cardinality table",
+                ))
+                // The four retained boundaries with their technical reasons.
+                .and(predicate::str::contains("boundary xsd-pattern-facet"))
+                .and(predicate::str::contains(
+                    "XML Schema regular-expression dialect",
+                ))
+                .and(predicate::str::contains(
+                    "boundary non-binary-property-chain",
+                ))
+                .and(predicate::str::contains(
+                    "boundary entangled-existential-cardinality",
+                ))
+                .and(predicate::str::contains(
+                    "couples witness generation with counting",
+                ))
+                .and(predicate::str::contains(
+                    "boundary rdf12-nested-triple-term",
+                ))
+                .and(predicate::str::contains(
+                    "has no non-term component to decompose into",
+                )),
+        );
+}
+
+/// `--format json` emits the same surface as a deterministic JSON document: the
+/// decided families and retained boundaries as arrays of id/pattern/bound and
+/// id/reason objects. Pins representative real content.
+#[test]
+fn logic_fragments_json_carries_the_manifest() {
+    gmeow()
+        .args(["logic", "fragments", "--format", "json"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("\"decided_fragments\"")
+                .and(predicate::str::contains("\"retained_boundaries\""))
+                .and(predicate::str::contains(
+                    "\"id\": \"complement-refutation\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"pattern\": \"complement-clash\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"xsd-pattern-facet\"")),
+        );
+}
+
+/// The output is DETERMINISTIC: two runs over the same graph source produce
+/// byte-identical stdout (the surface is sorted by id).
+#[test]
+fn logic_fragments_output_is_deterministic() {
+    let first = gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let second = gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    assert_eq!(
+        first, second,
+        "logic fragments output must be byte-identical across runs"
+    );
+}
+
+/// A graph source carrying NO decidability manifest is an honest HARD FAIL (never a
+/// silent empty success) — the no-optionality / no-fake-consumer guarantee.
+#[test]
+fn logic_fragments_empty_source_hard_fails() {
+    let (_tmp, dir) = scratch("logic-fragments-empty");
+    let bare = dir.join("bare.ttl");
+    std::fs::write(&bare, "@prefix ex: <http://ex/> .\nex:a ex:knows ex:b .\n")
+        .expect("write manifest-free graph source");
+
+    gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(&bare)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("no logic:DecidedFragment"));
+}
+
+/// `gmeow logic fragments --format json` with NO `--bundle` — the DEFAULT
+/// production path every real consumer of the shipped `gmeow` binary takes,
+/// exercising the embedded `BUNDLE_GTS` (`crates/gmeow-cli/src/lib.rs`'s
+/// `include_bytes!(env!("GMEOW_BUNDLE_PATH"))`) rather than the `--bundle
+/// <logic module.ttl>` override the other `logic_fragments_*` tests above use to
+/// reach the manifest independent of `make check`.
+///
+/// The other tests in this block prove the manifest is correctly SHAPED once a
+/// graph source carries it (driven against the authored `module.ttl` source); this
+/// test is the one that proves the manifest actually SHIPS in the artifact real
+/// users run against. It pins the same real, falsifiable content as
+/// `logic_fragments_json_carries_the_manifest`: all eight
+/// `logic:DecidedFragment` ids and all three retained-boundary ids (with their
+/// technical reasons), read back from `BUNDLE_GTS`.
+///
+/// A stale embedded bundle predating the manifest's addition to `module.ttl`
+/// hits the verb's "empty-surface" hard fail (`gmeow-cli.logic-fragments.empty-surface`
+/// in `commands.rs`) instead of emitting this content, so this test is red exactly
+/// when the embedded bundle has not yet been regenerated by `make check` — that
+/// staleness is the dark-feature gap this test exists to catch, not a flaw in the
+/// test itself.
+#[test]
+fn logic_fragments_default_embedded_bundle_ships_the_manifest() {
+    gmeow()
+        .args(["logic", "fragments", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("\"decided_fragments\"")
+                .and(predicate::str::contains("\"retained_boundaries\""))
+                // All eight certified-complete decided-fragment families.
+                .and(predicate::str::contains(
+                    "\"id\": \"complement-refutation\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"number-cardinality-counting\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"union-disjoint-case-split\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"nominal-enumeration-counting\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"datatype-value-space\""))
+                .and(predicate::str::contains(
+                    "\"id\": \"inverse-functional-identity-collapse\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"malformed-rdf-list\""))
+                .and(predicate::str::contains("\"id\": \"has-self-membership\""))
+                // All three retained-boundary reason records.
+                .and(predicate::str::contains("\"id\": \"xsd-pattern-facet\""))
+                .and(predicate::str::contains(
+                    "XML Schema regular-expression dialect",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"non-binary-property-chain\"",
+                ))
+                .and(predicate::str::contains("n-ary role composition"))
+                .and(predicate::str::contains(
+                    "\"id\": \"entangled-existential-cardinality\"",
+                ))
+                .and(predicate::str::contains(
+                    "couples witness generation with counting",
+                )),
+        );
 }

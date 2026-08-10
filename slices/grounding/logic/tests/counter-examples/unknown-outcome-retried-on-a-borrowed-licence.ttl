@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An undetermined outcome treated as an ordinary failure AND RETRIED — the move the
+# no-blind-retry discipline exists to forbid, and the one no fixture reached until
+# the kernel carried a retry record to forbid it ON.
+#
+# Every record here is individually well-formed. The unknown outcome names its
+# attempt. The retry names the attempt it re-sends AND names a licence, so the
+# presence law (logic:RetryRequiresLicenceConstraint) passes. The idempotency
+# contract binds all five of its fields, so its completeness law passes too. What is
+# wrong is a RELATION: the licence covers ex:invoice902Charge, and the retry re-sends
+# ex:invoice901Charge.
+#
+# What it costs in the world: the first charge's outcome was never established — the
+# provider timed out mid-commit — and the retry proceeds under the idempotency
+# contract issued for the NEXT invoice, whose key differs. The provider sees a fresh
+# key, and the customer is charged twice. A licence borrowed from a neighbouring
+# dispatch reads identically to a real one, which is why counting the licence was
+# never enough.
+#
+# It is the substitution case, not the absence case: the absence sibling
+# (unknown-outcome-without-attempt.ttl) reaches only
+# logic:UnknownOutcomeNamesItsAttemptConstraint and contains no retry at all.
+#
+# MUST trip logic:NoBlindRetryConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:invoice901Charge a logic:EffectAttempt ;
+    rdfs:label "the charge whose outcome the provider never confirmed"@en .
+
+ex:invoice901Unknown a logic:ExternalOutcomeUnknown ;
+    rdfs:label "an undetermined outcome, recorded honestly and then read as a failure"@en ;
+    logic:unknownOfAttempt ex:invoice901Charge .
+
+ex:invoice901Retry a logic:RetryDispatch ;
+    rdfs:label "a re-send of the undetermined charge, under someone else's licence"@en ;
+    logic:retryOfAttempt ex:invoice901Charge ;
+    logic:retryLicence ex:invoice902Idempotency .
+
+# The licence: complete, valid, and about a DIFFERENT attempt.
+ex:invoice902Idempotency a logic:IdempotencyContract ;
+    rdfs:label "the idempotency contract discharged for the following invoice"@en ;
+    logic:idempotencyScope ex:acmePayments ;
+    logic:idempotencyKey "invoice:902:charge" ;
+    logic:idempotencyRetention "PT24H" ;
+    logic:idempotencyDuplicateSemantics ex:collapseWithinWindow ;
+    logic:idempotencyProviderEvidence ex:acmeIdempotencySpec ;
+    logic:licenceCoversAttempt ex:invoice902Charge .
+
+ex:invoice902Charge a logic:EffectAttempt ;
+    rdfs:label "the charge the licence actually covers"@en .

@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs,
+# MathLoweringError::VariableExpressionMultipleOccurrences): a math:VariableExpression
+# root naming TWO math:variableOccurrence values — a variable-expression leaf denotes
+# exactly ONE use-site occurrence, so two is ambiguous about which occurrence the leaf
+# denotes. The authored math:structuralKey lets the reasoned-graph gate
+# (check_structural_key_on_rejected_expression) also reach it. The shared declaration
+# names a math:variableDomain so it does not incidentally also trip the unrelated
+# math:UntypedFreeVariable constraint — this fixture isolates the ambiguous-occurrence
+# violation alone.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:VariableExpression ;
+    math:variableOccurrence ex:occ1 , ex:occ2 ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:occ1 a math:VariableOccurrence ;
+    math:declaredVariable ex:xFree .
+ex:occ2 a math:VariableOccurrence ;
+    math:declaredVariable ex:xFree .
+
+ex:xFree a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers .

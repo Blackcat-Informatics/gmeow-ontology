@@ -44,6 +44,11 @@ RDF Data Cube, STATO, OBCS, SIO, and OBI terms and is validation-only; no target
 TBox enters the mathematical closure. The OBI data-transformation row is deliberately only
 `skos:relatedMatch`: OBI_0200000 denotes an executed planned process, whereas
 `math:DataTransformation` may denote a mathematical transformation specification.
+That single OBI row is also the catalog's one off-owner cell: OBI's backbone is a
+planned-process upper ontology, so its catalog owner is `logic:`, and the row is
+bounded by a projection ceiling of exactly one that may only fall. `math:` never
+authors a second OBI alignment — a new OBI target is authored on the `logic:` owner
+surface and consumed from there.
 
 By contrast, a cube document, MathML tree, OpenMath payload, D-SI certificate,
 or other consumer serialization is a generated codec/projection with an
@@ -71,9 +76,9 @@ The rule that governs every row:
 
 External vocabularies are aligned by reference and projected to, never copied into the canon. The
 mechanism is the repository's established one, not a bespoke predicate: an external link is a
-`gmeow:TermEquivalence` record in a canonical file under the slice's `mappings/`
-(`gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`, a `semapv:` justification, and a
-confidence), marked `logic:GroundingCorrespondence`, and lowered as a shipped
+native RDF-1.2 alignment cell — a reified `S skos:*Match O {| gmeow:sssomFile …; gmeow:justification
+…; gmeow:confidence … |}` statement — in a canonical file under the slice's `mappings/`,
+marked `logic:GroundingCorrespondence`, and lowered as a shipped
 `logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
 free-standing `authorityLink` property in the mathematics slice; a Wikidata QID, a QUDT unit IRI, or
 an OpenMath symbol is a `skos:exactMatch`/`skos:closeMatch` alignment carrying its preservation

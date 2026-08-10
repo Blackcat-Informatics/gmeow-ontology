@@ -71,8 +71,8 @@ Three consequences of taking sign systems seriously as individuals:
   referencing the `lang:Grammar` individual, per the manifesto's one-way razor.
 
 **Alignment is a mapping record, not a bespoke predicate.** External authority links follow the
-established repository pattern: `gmeow:TermEquivalence` reification records in the slice's
-`mappings/equivalences.ttl`, lowered as `logic:Correspondence`. The language slice introduces no
+established repository pattern: native RDF-1.2 alignment cells (reified `skos:*Match` statements)
+in the slice's `mappings/equivalences.ttl`, lowered as `logic:Correspondence`. The language slice introduces no
 free-standing `authorityLink` predicate; a Wikidata QID or an ISO 639-3 code is an alignment
 carrying its preservation judgment in the loss ledger, exactly as every other slice records its
 external links.

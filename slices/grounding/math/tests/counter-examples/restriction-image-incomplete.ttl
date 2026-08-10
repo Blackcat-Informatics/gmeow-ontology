@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:RestrictionImageShape (derived from the min-1 qualified
+# restrictions on math:RestrictionImage's math:imageSourceValue and
+# math:imageTargetValue): a math:RestrictionImage naming neither the exact-integer
+# input it records nor the exact-integer output the map sends it to. Validation MUST
+# emit shacl.MinCountConstraintComponent (math:IncompleteRestrictionImage).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareImage a math:RestrictionImage .

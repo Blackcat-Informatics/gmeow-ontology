@@ -1,59 +1,27 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Closed-world halves of the AI claim module's EL axioms (GraphRAG provenance design). The
-# ClaimNeedsEvidence WARNING (an ungrounded claim is a flagged hallucination)
-# ships with EvidenceSpan audit machinery's audit machinery, where its message can cite the cookbook.
+# Residual closed-world shapes of the AI claim module. Under equivalence-before-deletion
+# (design/LOGIC-VALIDATION.md), every fully-grounded shape formerly here (ContradictionNeedsTwoClaims,
+# ChunkLocation, MemoryItemOwner, ClaimNeedsEvidence, StaleSource) has been deleted once
+# `gmeow-dev shape-equivalence` proved the projection reproduces it. The two shapes below remain
+# hand-authored residues (a raw sh:SPARQLTarget select and a subjectsOf-target the projector cannot
+# yet synthesize a peer for) and carry `logic:formalizes` back-references where a backing
+# logic:Constraint exists.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-
-gmeow:ContradictionNeedsTwoClaimsShape
-    a sh:NodeShape ;
-    rdfs:label "Contradiction needs two claims shape"@x-gmeow-english ;
-    skos:definition "Closed-world half of the Contradiction relator's EL existential: a surfaced conflict relates at least two claim nodes — one claim cannot conflict with nothing (P9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    sh:targetClass gmeow:Contradiction ;
-    sh:property [
-        sh:path gmeow:contradictsClaim ;
-        sh:minCount 2 ;
-        sh:severity sh:Violation ;
-        sh:message "A Contradiction must relate at least two claim nodes (gmeow:contradictsClaim) — one claim cannot conflict with nothing (P9)." ;
-    ] .
-
-gmeow:ChunkLocationShape
-    a sh:NodeShape ;
-    rdfs:label "Chunk location shape"@x-gmeow-english ;
-    skos:definition "A Chunk segments exactly one source — re-chunking mints new individuals, never re-points one."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    sh:targetClass gmeow:Chunk ;
-    sh:property [
-        sh:path gmeow:chunkOf ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Chunk must segment exactly one source (gmeow:chunkOf)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:spanStart ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Chunk must carry exactly one gmeow:spanStart — an offset-less chunk is unlocatable, breaking the which-exact-bytes audit path." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:spanEnd ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Chunk must carry exactly one gmeow:spanEnd." ;
-    ] .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:SpanSanityShape
     a sh:NodeShape ;
     rdfs:label "Span sanity shape"@x-gmeow-english ;
     skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (EvidenceSpan audit machinery)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    logic:formalizes gmeow:SpanEndAfterStartConstraint, gmeow:SpanRequiresEndConstraint ;
     # Dogfoods the canonical importable prefix set (§2): the SPARQL
     # constraint's prefixes come from `gmeow:CorePrefixes` (resolved by the
     # SHACL reader's sh:prefixes → sh:declare path) instead of an inline
@@ -71,50 +39,16 @@ gmeow:SpanSanityShape
         """ ;
     ] .
 
-gmeow:MemoryItemOwnerShape
-    a sh:NodeShape ;
-    rdfs:label "Memory item owner shape"@x-gmeow-english ;
-    skos:definition "Closed-world half of the MemoryItem role's relational dependence: a memory belonging to nobody is not a memory."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    sh:targetClass gmeow:MemoryItem ;
-    sh:property [
-        sh:path gmeow:memoryOf ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A MemoryItem must name at least one remembering agent (gmeow:memoryOf) — a memory belonging to nobody is not a memory." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # The hallucination-resistant gates (EvidenceSpan audit machinery). Warnings flag; they never delete.
 # --------------------------------------------------------------------------- #
-
-gmeow:ClaimNeedsEvidenceShape
-    a sh:NodeShape ;
-    rdfs:label "Claim needs evidence shape"@x-gmeow-english ;
-    skos:definition "An LLM-extracted claim with no gmeow:groundedIn span is a FLAGGED HALLUCINATION — surfaced as a warning, retained, never deleted (P10). Targets only machine-extracted claims: a human assertion without pinned evidence is ordinary testimony, not a flag."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT ?this WHERE {
-                ?this a gmeow:StandpointClaim ;
-                      gmeow:observationMethod gmeow:methodLlmExtraction .
-            }
-        """ ;
-    ] ;
-    sh:property [
-        sh:path gmeow:groundedIn ;
-        sh:minCount 1 ;
-        sh:severity sh:Warning ;
-        sh:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
-    ] .
 
 gmeow:GroundingSpanShape
     a sh:NodeShape ;
     rdfs:label "Grounding span shape"@x-gmeow-english ;
     skos:definition "A span used for claim grounding must be mechanically checkable: pinned into a chunk, offset-located, and polarity-classified. Targets only spans referenced via gmeow:groundedIn — the citations slice's selectors are not chunk-pinned and are not targeted."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    logic:formalizes gmeow:GroundingSpanConstraint ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -145,27 +79,4 @@ gmeow:GroundingSpanShape
         sh:minCount 1 ; sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A grounding span must declare its polarity (supports/refutes/neutral) — the NLI verdict is data, not an assumption." ;
-    ] .
-
-gmeow:StaleSourceShape
-    a sh:NodeShape ;
-    rdfs:label "Stale source shape"@x-gmeow-english ;
-    skos:definition "A claim grounded in a chunk whose source was modified AFTER the claim's assertion time is flagged stale: the evidentiary bytes may no longer say what they said. A warning — staleness is a re-verification trigger, never an eviction (P10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    sh:targetSubjectsOf gmeow:groundedIn ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:message "This claim's source was modified after the claim was asserted — the evidence may have drifted; re-verify (stale-source-claims.rq)." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:groundedIn ?span ;
-                      gmeow:assertedAt ?assertedAt .
-                ?span gmeow:spanOfChunk ?chunk .
-                ?chunk gmeow:chunkOf ?source .
-                ?source gmeow:sourceModifiedAt ?sourceModifiedAt .
-                FILTER (?sourceModifiedAt > ?assertedAt)
-            }
-        """ ;
     ] .

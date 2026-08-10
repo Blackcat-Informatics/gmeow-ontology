@@ -20,152 +20,96 @@
 //!   examples are listed in [`NON_CONFORMANT`] with a one-line reason. The test
 //!   asserts the excluded set is EXACTLY the set that fails native SHACL — so an
 //!   exclusion can never silently mask a real schema bug.
+//!
+//!   SHACL conformance is decided over the example UNIONED WITH THE ONTOLOGY
+//!   TBox — the same merged-module graph `make validate` validates, one example
+//!   at a time. An example referencing a value individual whose `rdf:type` lives
+//!   in its slice's `module.ttl` is therefore CONFORMANT here: that graph carries
+//!   the module. Isolation is not a reason to be on the allowlist.
+//!   See [`union_with_tbox`].
 //! * If an example DOES conform to SHACL but the JSON Schema REJECTS it, that is
 //!   a soundness bug in the emitter/projector, surfaced as a test failure with a
 //!   readable per-example violation report.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gmeow_validate::instance::{InstanceFormat, validate_instance};
+use purrdf::shapes::engine::PreparedValidator;
+use purrdf::shapes::report::Severity;
 use purrdf::shapes::shapes::Shapes;
-use purrdf::shapes::{engine, instance, json_schema, shape_union};
+use purrdf::shapes::term::{NamedNode, Term};
+use purrdf::shapes::{instance, json_schema, shape_union};
 
-use purrdf::RdfDataset;
 use purrdf::parse_dataset;
+use purrdf::{RdfDataset, RdfQuad, RdfTerm, flat_dataset_from_quads, flat_rdf_quads_from_dataset};
 
-/// Examples that do NOT conform to the merged SHACL shapes and are therefore
-/// out of scope for the JSON-schema sweep (illustrative, not valid instance
-/// data). The sweep asserts this set is EXACTLY the SHACL-failing set, so this
-/// allowlist cannot hide a JSON-schema soundness bug.
+/// Examples that do NOT conform to the merged SHACL shapes and are therefore out
+/// of scope for the JSON-schema sweep (not valid instance data). The sweep asserts
+/// this set is EXACTLY the SHACL-failing set, so this allowlist cannot hide a
+/// JSON-schema soundness bug.
 ///
-/// Each entry is the repo-relative path; the trailing comment is the reason.
+/// Conformance is decided over the TBox union ([`union_with_tbox`]), so "the value
+/// individual is typed in `module.ttl`, not in the example" is NOT a reason to be
+/// here — that graph carries the module. Each trailing comment is the ACTUAL
+/// violation the engine reports over the union: constraint component, focus node
+/// (local name), and path, up to three distinct ones.
+///
+/// ONE cause is represented, and it is not a projection defect:
+///
+/// * A REAL GAP IN THE EXAMPLE — the scene never binds a property the ontology
+///   requires (a P11 reference frame, a `lang:Form`'s sign system, a frame
+///   profile's components, a bound variable on a binder expression, a span's
+///   offsets). The example is illustrative prose-with-triples, not instance data.
+///
+/// A shape DEFECT is never a reason to be here. The `gmeow:spanStart`/`gmeow:spanEnd`
+/// entries that once were — `gmeow:Chunk-shape` gave both offsets
+/// `sh:nodeKind sh:BlankNodeOrIRI` while `slices/core/ai/module.ttl` declares them
+/// `owl:DatatypeProperty` with `rdfs:range xsd:nonNegativeInteger`, so the projection
+/// rejected a CORRECT integer offset — were removed by fixing the OWL→SHACL projection
+/// (`crates/logic-compile/src/frontend.rs`, `classify_on`: an `owl:Thing` filler on a
+/// declared datatype property resolves to the DATA-domain top, `sh:nodeKind sh:Literal`),
+/// not by allowlisting the examples that the defect rejected.
 const NON_CONFORMANT: &[&str] = &[
-    // Bucket A — `sh:class` (ClassConstraintComponent): the example references a
-    // SHARED ontology individual (a method/status/kind/profile defined in the
-    // vocabulary, not redeclared in the standalone fixture), so the referenced
-    // node lacks its `rdf:type` when the file is loaded in isolation. The example
-    // is meant to be read alongside the full ontology; standalone it is
-    // illustrative, not valid instance data.
-    "slices/core/affect/examples/classify-canonical-prototype.ttl", // math:definiteness → math:positiveDefinite and gmeow:profilePolarity → gmeow:polarityBipolar are shared value individuals defined in module.ttl, untyped standalone; ex:analyst a gmeow:Person, the shared gmeow:dimension*/gmeow:coreAffectMetricPAD referents, and the math:GramMatrix/SymmetricBilinearForm/Basis nodes lack their subClassOf→Entity / shared-vocabulary typing when the fixture is loaded in isolation — illustrative alongside the ontology, conformant in the merged bundle (make validate passes)
-    "slices/core/ai/examples/grounded-claim.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/attestation/examples/release-evidence-bundle.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone (CreativeWork/SoftwareAgent); gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone
-    "slices/core/attestation/examples/software-release.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone; gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone
-    "slices/core/calendar/examples/recurring-meeting.ttl", // gmeow:invitationStatus → shared status individual untyped standalone
-    "slices/core/citations/examples/citation-act.ttl", // gmeow:citationIntent → shared CitationIntent individual untyped standalone; gmeow:citingEntity → Entity not typed standalone
-    "slices/core/cognition/examples/attention-interest-memory.ttl", // gmeow:memoryOf → Agent not typed standalone
-    "slices/core/cognition/examples/dunning-kruger.ttl", // gmeow:knowledgeProficiencyAgent/Subject → Agent/Entity not typed standalone; gmeow:knowledgeProficiencyLevel/Scale → shared KnowledgeLevel/ProficiencyScale individuals untyped standalone
-    "slices/core/cognition/examples/knowledge-proficiency.ttl", // gmeow:knowledgeProficiencyAgent/Subject → Agent/Entity not typed standalone; gmeow:knowledgeProficiencyLevel/Scale → shared KnowledgeLevel/ProficiencyScale individuals untyped standalone
-    "slices/core/deception/examples/blame-deflection.ttl", // gmeow:doxasticClaim → StandpointClaim not typed standalone
-    "slices/core/diagnostics/examples/shacl-violation-finding.ttl", // gmeow:findingSeverity → shared DiagnosticSeverity untyped standalone
-    "slices/core/documentation/examples/documented-term.ttl", // gmeow:docEvidenceKind → shared gmeow:DocEvidenceKind individual (docEvidenceKindCompetency/Provenance) typed in module.ttl, untyped standalone
-    "slices/core/epistemics/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/epistemics/examples/claim-token-split.ttl", // gmeow:observationMethod → shared method individual (methodExpertJudgement) untyped standalone
-    "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // gmeow:epistemicAgent → Agent not typed standalone
-    "slices/core/epistemics/examples/justification-and-defeat.ttl", // gmeow:hasDefeatStatus / supportUnderStandard → shared status/standard individuals untyped standalone
-    "slices/core/epistemics/examples/locally-factive-knowledge.ttl", // gmeow:underStandard → gmeow:standardScientific (shared EpistemicStandard) + gmeow:knowerAgent → Agent untyped standalone
-    "slices/core/events/examples/wedding.ttl", // gmeow:participationParticipant → Entity not typed standalone (the principals/officiant are gmeow:Person, standalone lacks the subClassOf→Entity chain)
-    "slices/core/evidence/examples/notability-assessment.ttl", // gmeow:citationIntent → shared CitationIntent individual untyped standalone; gmeow:citingEntity → Entity not typed standalone
-    "slices/core/expertise/examples/skill-proficiency.ttl", // gmeow:attestedSubject/attester/skillProficiencyAgent → Entity/Agent not typed standalone
-    "slices/core/gender/examples/self-asserted-facets.ttl", // gmeow:expressionValue/genderValue → shared GenderExpressionStyle/Gender individuals untyped standalone
-    "slices/core/gts/examples/dist-package.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
-    "slices/core/imagination/examples/reality-monitoring.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inference/examples/abduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inference/examples/analogy.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inference/examples/argumentation.ttl", // gmeow:observationMethod + gmeow:underSemantics → logic:GroundedArgumentation (shared) untyped standalone
-    "slices/core/inference/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inference/examples/deduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inference/examples/induction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inhabitation/examples/continuity-upgrade.ttl", // gmeow:observationMethod (methodExpertJudgement), gmeow:continuityVerdict (continuitySame/Different), gmeow:determinationForce (forceBinding) → shared method/value individuals untyped standalone; gmeow:stageBearer/observedFeature → Agent/Entity not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
-    "slices/core/inhabitation/examples/control.ttl", // gmeow:controlLevel (controlFull/controlPartial), gmeow:observationMethod (methodExpertJudgement) → shared value/method individuals untyped standalone; gmeow:controlOver → Entity not typed standalone (PhysicalObject⊑Entity chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
-    "slices/core/inhabitation/examples/inhabitation-tenure.ttl", // gmeow:inhabitationLocusKind (locusVessel), gmeow:eventType (eventTypeInhabitationTransition) → shared value/type individuals untyped standalone; gmeow:inhabitationSubject/inhabitedHost/assignmentSubject → Agent/Entity not typed standalone (SoftwareAgent⊑Agent, PhysicalObject⊑Entity chains); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
-    "slices/core/inhabitation/examples/subject-status.ttl", // gmeow:tenureSubjectAgent/tenureVantage → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
-    "slices/extensions/model-serving/examples/tool-usage.ttl", // the CQ5 discriminator fixture uses logic:ActionSchema (ex:sortSchema) illustratively as the passive-capability TARGET of gmeow:usedCapability; standalone it carries none of the required logic:precondition / logic:capability facets (logic:ActionSchemaShape), so it is illustrative-alongside-the-ontology, not standalone-valid instance data
-    "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/grounding/lang/examples/forms-and-sign-systems.ttl", // lang:partOfSpeech/slotRole/featureKey/featureValue/analysisLevel/compositionLevel/offsetSpace/signSystemKind/modality/grammarFormalism → shared inventory, role, level, and kind individuals (noun, subjectRole, featNumber, valPlur, parsedLevel, sentenceLevel, codepointOffset, naturalLanguageKind, writtenModality, ebnfFormalism) defined in module.ttl, untyped standalone
-    "slices/grounding/lang/examples/gmn-dialect.ttl", // lang:denotationKind/gmeow:gmnSecurityRing/gmeow:citationIntent → shared kind, ring, and intent individuals (denotesEntity, gmnRingTrusted, intentConformsTo) defined in module.ttl files, untyped standalone; gmeow:vantage/accordingTo/citingEntity sh:class Entity → the Agent/InformationObject-typed nodes lack the subClassOf→Entity chain standalone
-    "slices/grounding/lang/examples/flagship-acceptance.ttl", // lang:FlagshipScenarioShape's sh:sparql subclass check (?fc rdfs:subClassOf lang:LangConformanceFailure) needs module.ttl's failure-class subclass axioms, which are absent when the example is validated in closed-world isolation — so every scenario appears to name a non-failure class standalone; in the merged bundle it conforms (make validate passes)
-    "slices/grounding/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
-    "slices/grounding/logic/examples/conjectures.ttl", // logic:candidateCategory/candidateProjectionBehavior/conjectureLifecycleState/conjectureDischargeVerdict → shared governance and Belnap-lifecycle value individuals defined in module.ttl, untyped standalone; the bare logic:Formula/GoalExpression/ContradictionWitness AST leaves (the denotation seam) have no closed-world schema entry standalone
-    "slices/grounding/math/examples/measure-and-dimension.ttl", // math:exponentOfDimension → the shared SI base-dimension individuals (massDimension/lengthDimension/timeDimension) defined in module.ttl, untyped standalone; math:withRespectTo/hasDimension sh:class Measure/Dimension → the subclass-typed measure and dimension nodes (LebesgueMeasure/DerivedDimension) lack the subClassOf chain standalone
-    "slices/grounding/math/examples/gmn-dimension-roundtrip.ttl", // the force = ∫ a dm scene: math:exponentOfDimension → the shared SI base-dimension individuals (massDimension/lengthDimension/timeDimension) untyped standalone; math:hasDimension sh:class Dimension → the DerivedDimension nodes lack the subClassOf chain standalone; math:Quantity gmeow:hasReferenceFrame → the shared gmeow:referenceFrameSI frame's FrameProfile is carried against the module — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
-    "slices/grounding/math/examples/homomorphic-encryption.ttl", // math:encryptOperation/evaluateOperation/decryptOperation → gmeow:Activity process individuals, and the preservation law → a logic:Formula AST (the denotation seam), with no closed-world schema entry standalone
-    "slices/grounding/math/examples/analysis-and-geometry.ttl", // math:operator/manifoldStructureKind/complementSemantics/convergenceMode/limitMode → shared binder/structure-kind/semantics/mode individuals (differentiationBinder/lorentzianStructure/setTheoreticComplement/absoluteConvergence/limitTwoSided) defined in module.ttl, untyped standalone; the bare math:MathematicalObject/MathematicalExpression AST leaves (worldlineExpr, originPoint, seriesLimit) have no closed-world schema entry
-    "slices/grounding/math/examples/linear-algebra-and-learning.ttl", // math:complementSemantics/centeringPolicy/scalingPolicy/operator/tensorOperation → shared semantics/policy/operator individuals (orthogonalComplement/meanCentered/unitVariance/matrixProduct) defined in module.ttl, untyped standalone; the bare math:MathematicalExpression AST leaves (inputActivationExpr/layer1WeightExpr) and the logic:MetaLevelFormula reflection target (latentThemeFormula, the denotation seam) have no closed-world schema entry standalone
-    "slices/grounding/math/examples/closed-form-functions.ttl", // the expression-algebra AST leaves (math:ApplicationExpression/NumberLiteral/VariableExpression) and the shared arithmetic operator individuals (math:Addition/Multiplication) defined in module.ttl are untyped/schema-less standalone; math:ClosedFormFunction's math:domain/codomain sh:class math:Set resolves only through the module subclass chain (math:realNumbers is a math:Set under the module axioms) — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/signed-radial-field-qualitative.ttl", // shared value individuals (math:openEndpoint/closedEndpoint, math:PositiveInfinity/NegativeInfinity, math:divergesToPositiveInfinity/divergesToNegativeInfinity, math:strictlyDecreasing, math:nonAffinity, math:boundedness, math:lorentzianStructure) defined in module.ttl are untyped standalone; math:domain/codomain and the math:Interval/MeasurableSet ring bands' sh:class math:Set resolve through the module subclass tower (math:Interval/math:MeasurableSet ⊑ math:Set only under the module axioms) — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/signed-radial-field-closed-form.ttl", // same shared value individuals as the qualitative scene, plus the closed-form defining-expression AST leaves (math:ApplicationExpression/NumberLiteral/VariableExpression) and shared arithmetic operators (math:Addition/Subtraction/Multiplication/Exponentiation/Negation) with no closed-world schema entry standalone; math:ClosedFormFunction domain/codomain and the ring bands' sh:class math:Set resolve through the module subclass chain — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/bridges.ttl", // math:ingestCorrespondence → logic:Correspondence and logic:instantiatesSchema/instantiatesPlan → logic:ActionSchema/Plan process-witness nodes, math:provesGoal → a logic:GoalExpression (with logic:goalExpressionKind/boundSituationType → logic:Situation), and math:compilesToLogicFormula → a logic:Formula (the denotation seam) — cross-slice logic: nodes with no closed-world math schema entry standalone; the gmeow:Observation/Standpoint claim nodes and the bare math:MathematicalObject source-witness/result AST leaves (rSrcWitness/onnxSource/proofSource, rFitSummary) likewise have no closed-world schema entry standalone
-    "slices/grounding/math/examples/theorem-proof-claim.ttl", // math:statementRole/roleInTheory/verificationResult → shared value individuals (roleTheorem, verificationPassed) defined in module.ttl, untyped standalone; the gmeow:Observation/Standpoint held-claim nodes and the bare math:MathematicalObject/Axiom statement/theory/conclusion leaves have no closed-world schema entry standalone
-    "slices/grounding/math/examples/combinatorial-laplacian.ttl", // math:combinatorialLaplacianComplex → exl:triangle typed math:SimplicialComplex, a math:CellComplex only under the module subclass axiom (math:SimplicialComplex ⊑ math:CellComplex), so the math:CombinatorialLaplacian frame's onClass math:CellComplex is unsatisfied standalone; the bare math:BoundaryOperator (∂₂/∂₁) and shared math:naturalNumbers/orientation value individuals resolve against the module only — illustrative, validated unioned with the module by make validate
-    "slices/extensions/semantic-topology/examples/compilation-worked.ttl", // gmeow:observationMethod → gmeow:methodComputationalModel (shared ObservationMethod individual) and gmeow:findingSeverity → gmeow:severityInfo (shared DiagnosticSeverity individual) defined in the core modules, untyped standalone; gmeow:vantage/accordingTo → a gmeow:Standpoint and the math: carrier/sheaf/section objects (math:SimplicialComplex ⊑ math:CellComplex, math:GlobalSection/LocalSection/GluingObstruction frames) resolve through the module subclass chains only — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/flagship-acceptance.ttl", // math:FlagshipScenarioShape's sh:sparql subclass check (?fc rdfs:subClassOf math:MathConformanceFailure) needs module.ttl's failure-class subclass axioms, which are absent when the example is validated in closed-world isolation — so every scenario appears to name a non-failure class standalone; in the merged bundle it conforms (make validate passes)
-    "slices/grounding/math/examples/probability.ttl", // gmeow:vantage → an Agent (weatherModelV17) untyped standalone; gmeow:hasReferenceFrame → reference frames whose full gmeow:FrameProfile (frameKind/frameRealm/hasAxis/dimensionCount/determinacyModel/requiresHost) and the math:Quantity gmeow:unit of the probability/parameter values are carried against the module, not standalone; the math:ProbabilitySpace component qualified-cardinality (sampleSpace/eventSigmaAlgebra onClass math:SampleSpace/math:SigmaAlgebra) resolves through the module subclass tower (a math:SymbolicSampleSpace/math:BorelSigmaAlgebra is a math:SampleSpace/math:SigmaAlgebra only under the module axioms) — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/statistics-hypotheses-pvalues.ttl", // math:alternativeSidedness carries the six shared math:Sidedness NamedIndividuals (math:twoSidedAlternative/oneSidedAlternative/greaterAlternative/lessAlternative/exactTail/midPTail) defined in module.ttl — the closed-world JSON-Schema projection now enumerates that sh:in as {"@id": …} objects matching the instance projector, so those value nodes are not the isolation trigger; the actual SHACL-isolation trigger is its bare gmeow:ReferenceFrame (testFrame), whose full gmeow:FrameProfile (frameKind/frameRealm/hasAxis/dimensionCount/determinacyModel/requiresHost) is carried against the module, exactly like the sibling pvalue fixtures — illustrative, validated unioned with the module by make validate
-    "slices/grounding/math/examples/pvalue-tri-slice.ttl", // the lang: -> logic: -> math: round-trip references shared kind/role/level/value individuals defined across the three modules (lang:naturalLanguageKind/writtenModality/sentenceLevel/subjectRole/predicateRole/objectRole/parsedLevel/denotesLogicFormula/assertForce, math:twoSidedAlternative) untyped standalone; the denotation-seam logic:Formula/logic:Type AST leaves (pvalueFormula, pValueMagnitudeOfRelation) and the logic:ExactPreservation preservation-kind individual have no closed-world schema entry standalone; the cross-slice lang:/logic: nodes have no math closed-world schema entry standalone — illustrative, validated unioned with the module by make validate (conformance twin tests/conformance-fixtures/pvalue-tri-slice.ttl conforms in the merged bundle)
-    "slices/grounding/logic/examples/flagship-acceptance.ttl", // logic:FlagshipScenarioShape's sh:sparql subclass check (?fc rdfs:subClassOf logic:LogicConformanceFailure) needs module.ttl's failure-class subclass axioms, which are absent when the example is validated in closed-world isolation — so every scenario appears to name a non-failure class standalone; in the merged bundle it conforms (make validate passes)
-    "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone
-    "slices/core/observations/examples/blood-pressure.ttl", // gmeow:observationMethod (methodInstrumentalReading) + the reference frame's shared component individuals (determinacyCrisp, frameKindScalar, frameRealmMeasurement, axisScalar) untyped standalone
-    "slices/core/observations/examples/temperature-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/pipeline/examples/minimal-pipeline.ttl", // gmeow:hasCapability → shared gmeow:StageCapability untyped standalone
-    "slices/core/places/examples/located-place.ttl", // gmeow:vantage → Agent not typed standalone (the survey team is gmeow:Organization)
-    "slices/core/profiles/examples/named-profile-membership.ttl", // gmeow:profileAppliesTo → owl:Class target not typed standalone
-    "slices/core/quality/examples/dataset-completeness.ttl", // gmeow:assessedEntity → Entity not typed standalone (the dataset is gmeow:Dataset)
-    "slices/core/slice-quality-rubric/examples/rubric-assessment.ttl", // reuses the quality Observation stack exactly like dataset-completeness.ttl: gmeow:assessedEntity → Dataset not typed standalone, gmeow:observationMethod / gmeow:qualityDimension → shared value individuals defined in module.ttl, untyped standalone
-    "slices/core/rights/examples/licensed-dataset.ttl", // gmeow:licensedWork/copyrightWork/statementAbout → InformationObject/Entity not typed standalone; gmeow:licensor/copyrightHolder → Agent not typed standalone
-    "slices/core/sexuality/examples/split-attraction.ttl", // gmeow:romanticOrientationValue/sexualOrientationValue → shared RomanticOrientationValue/SexualOrientationValue individuals untyped standalone
-    "slices/core/standpoint/examples/contested-authorship.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/core/tags/examples/contested-tagging.ttl", // gmeow:taggingTagged/taggingTagger → Entity/Agent not typed standalone; gmeow:hasTemporalFrame → shared temporalFrameUTCGregorian individual untyped standalone
-    "slices/core/tags/examples/folksonomy.ttl", // gmeow:taggingTagged/taggingTagger → Entity/Agent not typed standalone
-    "slices/core/trust/examples/web-of-trust.ttl", // gmeow:certifier/certifiedIdentity/trustor/trustee → Agent not typed standalone
-    "slices/core/versions/examples/release-channels.ttl", // gmeow:membershipAuthority/versionMember → Agent/Entity not typed standalone
-    "slices/extensions/accessibility/examples/location-access.ttl", // gmeow:assertionFacet/assertionPolarity → shared AccessibilityFacet/AccessibilityPolarity individuals untyped standalone; gmeow:assertionSubject → Entity not typed standalone
-    "slices/extensions/aggregation/examples/spatial-bins.ttl", // gmeow:aggregationFunction → shared function individual untyped standalone
-    "slices/extensions/archaeological-evidence/examples/inscription-reading.ttl", // gmeow:vantage → Entity not typed standalone (the epigraphers are gmeow:Person)
-    "slices/extensions/dreaming/examples/ai-offline-replay.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
-    "slices/extensions/dreaming/examples/lucid-dream.ttl", // gmeow:vantage → Entity not typed standalone (the dreamer is gmeow:Person)
-    "slices/extensions/embedding-projection/examples/purremb-bookshelf.ttl", // gmeow:hasSensitivity → shared kernel gmeow:SensitivityLevel individuals (gmeow:sensitivityConfidential/sensitivityInternal), gmeow:vectorTargetKind → gmeow:VectorTargetKind, and gmeow:profileSurfaceKind → gmeow:ProfileSurfaceKind (open value-vocab individuals typed in module.ttl) — all untyped standalone; illustrative, validated unioned with the module by make validate
-    "slices/extensions/employment/examples/job.ttl", // gmeow:employmentType → shared EmploymentType individual untyped standalone; gmeow:membershipMember → Agent not typed standalone
-    "slices/extensions/finance/examples/double-entry.ttl", // gmeow:ledgerAccountHolder → Agent not typed standalone
-    "slices/extensions/graphrag/examples/lillith-dataset.ttl", // gmeow:licensedWork → InformationObject not typed standalone; gmeow:licensor → Agent not typed standalone
-    "slices/extensions/graphrag/examples/lillith-pipeline.ttl", // gmeow:chunkOf/embeddingOf → InformationObject not typed standalone; gmeow:distanceMetric → shared DistanceMetric individual untyped standalone
-    "slices/extensions/images/examples/photo-metadata.ttl", // gmeow:selectorType → shared selector-type individual untyped standalone
-    "slices/extensions/lexicon/examples/word-etymology.ttl", // gmeow:derivationKind → shared DerivationKind individual untyped standalone; gmeow:derivationTarget/etymonSource → InformationObject not typed standalone
-    "slices/extensions/music/examples/score-as-lossy-projection.ttl", // gmeow:realizes → Work not typed standalone
-    "slices/extensions/notes/examples/annotations-and-notes.ttl", // gmeow:commentParent → Entity not typed standalone
-    "slices/extensions/preference/examples/comparison-worked.ttl", // gmeow:vantage → a gmeow:Standpoint and the math: carrier objects (math:CellularSheaf/math:GlobalSection consensus frames) resolve through the module subclass chains only, and gmeow:confidence → a shared logic:QualityValue individual is untyped standalone — illustrative, validated unioned with the module by make validate
-    "slices/extensions/preference/examples/condorcet-cycle.ttl", // gmeow:vantage → a gmeow:Standpoint, gmeow:contextTask → a gmeow:Goal, and the math: cell-complex/sheaf/obstruction/holonomy/connection carrier objects resolve through module subclass chains only; gmeow:confidence → a shared logic:QualityValue individual untyped standalone — illustrative, conformant in the merged bundle
-    "slices/extensions/preference/examples/hard-fails-soft-high.ttl", // reuses the norms gmeow:Assessment and the shared gmeow:verdictNotHeld / gmeow:constraintHardnessHard value individuals (typed in the modules) plus gmeow:vantage → a gmeow:Standpoint — all untyped when the fixture is loaded in isolation, conformant unioned with the ontology
-    "slices/extensions/preference/examples/model-delta-worked.ttl", // reuses by reference the model-serving gmeow:ModelArtifact, norms gmeow:Rubric, ai gmeow:Prompt, gmeow:EvidenceSpan and the math:CliffordAlgebra/math:Multivector/math:MetricSignature geometry objects — shared vocabulary defined in the modules, untyped standalone; illustrative-alongside-the-ontology
-    "slices/extensions/preference/examples/multi-evaluator-no-winner.ttl", // gmeow:vantage → a gmeow:Standpoint, gmeow:contextTask → a gmeow:Goal, and the math: sheaf/obstruction carrier objects resolve through module subclass chains only — illustrative standalone, conformant in the merged bundle
-    "slices/extensions/preference/examples/pareto-incomparable.ttl", // gmeow:vantage → a gmeow:Standpoint and the math: carrier objects resolve through module subclass chains only; gmeow:onCriterion targets and gmeow:confidence → shared value individuals untyped standalone — illustrative, validated unioned with the module
-    "slices/extensions/preference/examples/promotion-worked.ttl", // reuses the shared gmeow:verdictHeld value individual, gmeow:EvidenceSpan, and gmeow:vantage → a gmeow:Standpoint — typed in the modules, untyped when loaded in isolation; illustrative-alongside-the-ontology, conformant unioned with the bundle
-    "slices/extensions/sensory/examples/sensor-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
-    "slices/extensions/sensory-environment/examples/measured-vs-perceived.ttl", // gmeow:environmentAtLocation → Location not typed standalone (the room is gmeow:Place)
-    "slices/profile/agent-runtime/examples/agent-runtime.ttl", // gmeow:inhabitationLocusKind → shared locusVessel individual untyped standalone; gmeow:inhabitationSubject/assignmentSubject → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:inhabitedHost → Entity not typed standalone (PhysicalObject⊑Entity chain); validates unioned with the modules by make validate
-    // Bucket B — `sh:minCount` (MinCountConstraintComponent): the example omits a
-    // P11-required reference / temporal frame on a value or interval. The frame
-    // lives in the full ontology context; standalone the fixture is illustrative.
-    "slices/core/creative-works/examples/wemi-novel.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
-    "slices/core/documents/examples/web-presence.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
-    "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
-    "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
-    "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
-    // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
-    // grounding individuals (rendering/denotation/preservation kinds, sign-system
-    // kinds, scripts, the seed lang:english) that are typed in the grounding slices
-    // but not standalone in the example's closed-world scope.
-    "slices/core/coreference/examples/authority-links.ttl", // lang:denotationKind → lang:denotesEntity + lang:inSignSystem → lang:english (shared grounding individuals) untyped standalone
-    "slices/core/language/examples/multilingual-document.ttl", // lang:renderingKind/transliterationScheme → shared rendering/transliteration individuals + lang:renderingPreservation → logic:PreservationKind (logic:ExactPreservation/SoundUnderApproximation) untyped standalone
-    "slices/core/notation/examples/notation-systems.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + lang:renderingPreservation → logic:PreservationKind untyped standalone
-    "slices/core/notation/examples/pydantic-projection-profile.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + gmeow:notationSystemKind → gmeow:symbolicKindEncoding + lang:renderingPreservation/logic:preservationKind → logic:ValidationOnly + the logic:Correspondence value individuals (logic:Overlaps/BridgeView/CommitmentShiftingBridge/Crisp) are shared individuals defined in module.ttl, untyped standalone
-    "slices/grounding/math/examples/expression-rendering.ttl", // lang:renderingKind → lang:renderingNotation + lang:renderingPreservation → logic:ExactPreservation (shared logic:PreservationKind) untyped standalone
+    "slices/grounding/lang/examples/forms-and-sign-systems.ttl", // still non-conformant unioned with the TBox — 11 violation(s): SPARQLConstraintComponent on formulaCatsChaseMice (-); MinCountConstraintComponent on swDe (lang:lexemeOf)
+    "slices/grounding/lang/examples/gmn-dialect.ttl", // still non-conformant unioned with the TBox — 12 violation(s): MinCountConstraintComponent on claimGateOpenMonday (gmeow:observationMethod); QualifiedMinCountConstraintComponent on claimGateOpenMonday (gmeow:observationMethod); SPARQLConstraintComponent on claimGateOpenMonday (-)
+    "slices/grounding/math/examples/measure-and-dimension.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on expectedEnergy (math:argumentSlot); MinCountConstraintComponent on expectedEnergy (math:boundVariable)
+    "slices/grounding/math/examples/gmn-dimension-roundtrip.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on netForce (math:argumentSlot); MinCountConstraintComponent on netForce (math:boundVariable)
+    "slices/grounding/math/examples/numbers-sets-functions.ttl", // still non-conformant unioned with the TBox — 1 violation(s): SPARQLConstraintComponent on evenCondition (-)
+    "slices/grounding/math/examples/homomorphic-encryption.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on ciphertextRing (math:satisfiesDistributivity)
+    "slices/grounding/math/examples/analysis-and-geometry.ttl", // still non-conformant unioned with the TBox — 20 violation(s): MinCountConstraintComponent on lorentzFactorLimit (math:argumentSlot); MinCountConstraintComponent on lorentzFactorLimit (math:boundVariable)
+    "slices/grounding/math/examples/linear-algebra-and-learning.ttl", // still non-conformant unioned with the TBox — 36 violation(s): MinCountConstraintComponent on complexSpace4096 (math:satisfiesAxiom); MinCountConstraintComponent on complexSpace4096 (math:structureOperation); MinCountConstraintComponent on complexSpace4096 (math:underlyingSet)
+    "slices/grounding/math/examples/bridges.ttl", // still non-conformant unioned with the TBox — 13 violation(s): SPARQLConstraintComponent on fitLogicFormula (-); MinCountConstraintComponent on onnxBridgePlan (logic:planGoal); MinCountConstraintComponent on onnxBridgePlan (logic:planSuccessMode)
+    "slices/grounding/math/examples/combinatorial-laplacian.ttl", // still non-conformant unioned with the TBox — 3 violation(s): ClassConstraintComponent on laplacian1 (math:combinatorialLaplacianComplex); QualifiedMinCountConstraintComponent on laplacian1 (math:combinatorialLaplacianComplex)
+    "slices/extensions/semantic-topology/examples/compilation-worked.ttl", // still non-conformant unioned with the TBox — 17 violation(s): MinCountConstraintComponent on filtration (math:hasFiltrationStage); MinCountConstraintComponent on finding (gmeow:findingCode); MinCountConstraintComponent on finding (gmeow:findingMessage)
+    "slices/grounding/math/examples/probability.ttl", // still non-conformant unioned with the TBox — 16 violation(s): MinCountConstraintComponent on utcFrame (gmeow:determinacyModel); MinCountConstraintComponent on utcFrame (gmeow:dimensionCount); MinCountConstraintComponent on utcFrame (gmeow:frameKind)
+    "slices/grounding/math/examples/statistics-hypotheses-pvalues.ttl", // still non-conformant unioned with the TBox — 8 violation(s): MinCountConstraintComponent on testFrame (gmeow:determinacyModel); MinCountConstraintComponent on testFrame (gmeow:dimensionCount); MinCountConstraintComponent on testFrame (gmeow:frameKind)
+    "slices/grounding/math/examples/pvalue-tri-slice.ttl", // still non-conformant unioned with the TBox — 12 violation(s): MinCountConstraintComponent on samplingFrame (gmeow:determinacyModel); MinCountConstraintComponent on samplingFrame (gmeow:dimensionCount); MinCountConstraintComponent on samplingFrame (gmeow:frameKind)
+    "slices/core/names/examples/person-names.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on chosenForm (lang:lexemeOf)
+    "slices/extensions/embedding-projection/examples/purremb-bookshelf.ttl", // still non-conformant unioned with the TBox — 4 violation(s): ClassConstraintComponent on embRowB (gmeow:embeddingOf); ClassConstraintComponent on retrievalEventOld (gmeow:againstIndex)
+    "slices/extensions/graphrag/examples/lillith-pipeline.ttl", // still non-conformant unioned with the TBox — 1 violation(s): ClassConstraintComponent on embedding-7 (gmeow:embeddingOf, value chunk-7) — the same gmeow:embeddingOf gap purremb-bookshelf carries: gmeow:Chunk reaches gmeow:InformationObject only through the canonical logic:subClassOf edge, which the SHACL engine (an rdfs:subClassOf reader) does not traverse over the AUTHORED TBox
+    "slices/extensions/images/examples/photo-metadata.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on photoExpression (gmeow:hasReferenceFrame)
+    "slices/core/preference/examples/comparison-worked.ttl", // still non-conformant unioned with the TBox — 3 violation(s): MinCountConstraintComponent on prefConnection (math:connectionOn); QualifiedMinCountConstraintComponent on sheaf (math:hasStalk); QualifiedMinCountConstraintComponent on sheaf (math:restrictionMap)
+    "slices/core/preference/examples/condorcet-cycle.ttl", // still non-conformant unioned with the TBox — 8 violation(s): QualifiedMinCountConstraintComponent on cellA (math:cellDimension); MinCountConstraintComponent on cycleHolonomy (math:holonomyLoop); QualifiedMinCountConstraintComponent on cycleHolonomy (math:holonomyOf)
+    "slices/core/preference/examples/hard-fails-soft-high.ttl", // still non-conformant unioned with the TBox — 9 violation(s): MinCountConstraintComponent on helpfulness (gmeow:penaltyPole); MinCountConstraintComponent on helpfulness (gmeow:rewardPole); QualifiedMinCountConstraintComponent on helpfulness (gmeow:penaltyPole)
+    "slices/core/preference/examples/model-delta-worked.ttl", // still non-conformant unioned with the TBox — 13 violation(s): DatatypeConstraintComponent on cl12 (math:spaceDimension); MinCountConstraintComponent on cl12 (math:pseudoscalarSquare); MinCountConstraintComponent on cl12 (math:scalarField)
+    "slices/core/preference/examples/multi-evaluator-no-winner.ttl", // still non-conformant unioned with the TBox — 5 violation(s): MinCountConstraintComponent on cycleHolonomy (math:holonomyLoop); QualifiedMinCountConstraintComponent on cycleHolonomy (math:holonomyOf); MinCountConstraintComponent on prefConnection (math:connectionOn)
+    "slices/core/preference/examples/pareto-incomparable.ttl", // still non-conformant unioned with the TBox — 16 violation(s): MinCountConstraintComponent on c1Latency (gmeow:penaltyPole); MinCountConstraintComponent on c1Latency (gmeow:rewardPole); QualifiedMinCountConstraintComponent on c1Latency (gmeow:penaltyPole)
+    "slices/core/preference/examples/promotion-worked.ttl", // still non-conformant unioned with the TBox — 4 violation(s): MinCountConstraintComponent on evalSpan (gmeow:spanEnd); MinCountConstraintComponent on evalSpan (gmeow:spanOfChunk); MinCountConstraintComponent on evalSpan (gmeow:spanStart)
+    "slices/profile/agent-runtime/examples/tool-usage.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on sortSchema (logic:capability); MinCountConstraintComponent on sortSchema (logic:precondition)
+    "slices/core/creative-works/examples/wemi-novel.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on englishText (gmeow:hasReferenceFrame)
+    "slices/core/documents/examples/web-presence.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on siteContent (gmeow:hasReferenceFrame)
+    "slices/core/affect/examples/two-critics.ttl", // still non-conformant unioned with the TBox — 1 violation(s): MinCountConstraintComponent on novelExpression (gmeow:hasReferenceFrame)
+    "slices/core/coreference/examples/authority-links.ttl", // still non-conformant unioned with the TBox — 2 violation(s): MinCountConstraintComponent on eveningStarForm (lang:lexemeOf)
+    "slices/core/notation/examples/notation-systems.ttl", // still non-conformant unioned with the TBox — 23 violation(s): MinCountConstraintComponent on melodyContent (lang:inSignSystem); QualifiedMinCountConstraintComponent on melodyContent (lang:inSignSystem); MinCountConstraintComponent on staffProfile (skos:definition)
+    "slices/core/notation/examples/pydantic-projection-profile.ttl", // still non-conformant unioned with the TBox — 23 violation(s): MinCountConstraintComponent on gmeowShapeSet (lang:inSignSystem); QualifiedMinCountConstraintComponent on gmeowShapeSet (lang:inSignSystem); MinCountConstraintComponent on pydanticProfile (skos:definition)
+    "slices/grounding/math/examples/expression-rendering.ttl", // still non-conformant unioned with the TBox — 5 violation(s): MinCountConstraintComponent on latexNotation (lang:grammarFor); MinCountConstraintComponent on sumLatexForm (lang:inSignSystem); QualifiedMinCountConstraintComponent on sumLatexForm (lang:inSignSystem)
 ];
+
+mod conformance_support;
 
 /// The repo root (two levels up from this crate's manifest dir).
 fn repo_root() -> PathBuf {
@@ -237,11 +181,122 @@ fn rel(repo: &Path, path: &Path) -> String {
         .replace('\\', "/")
 }
 
-/// Whether `dataset` conforms to the merged `shapes` per the native SHACL engine.
-fn conforms_to_shacl(dataset: &Arc<RdfDataset>, shapes: &Shapes) -> bool {
-    engine::validate_dataset(dataset.as_ref(), shapes)
-        .expect("validate_dataset over a frozen dataset is infallible")
-        .conforms
+/// Blank-label scope prefix applied to the example's own blank nodes when they are
+/// merged into the ontology TBox, so an example label (`b0`, `genid1`, …) can never
+/// collide with a TBox blank label and silently fuse two distinct nodes (which would
+/// corrupt `rdf:List` / `owl:Restriction` walks). The prefix also lets the merge
+/// hand the engine the EXACT blank focus nodes the example introduced.
+const EXAMPLE_BLANK_SCOPE: &str = "gmeow-example-sweep-";
+
+/// The example data graph UNIONED WITH THE ONTOLOGY TBox, plus the focus nodes the
+/// example introduces.
+///
+/// `make validate` (`gmeow-dev validate` → `ValidationRun::run`) validates the
+/// authored sources — `gmeow_pipeline::stages::source_load::authored_files`: the
+/// root ontology, every `slices/**/module.ttl`, and `imports/` — as ONE merged
+/// graph. `examples/` is NOT in that corpus, so the gate never reads an example at
+/// all, and an example validated in closed-world isolation is validated against a
+/// graph that exists nowhere in the system: every `rdf:type`, `rdfs:subClassOf`,
+/// and shared value individual its shapes resolve through is missing by
+/// construction. Neither reading is the example's own semantics.
+///
+/// So the sweep validates each example against the SAME merged-module TBox
+/// `make validate` builds, ONE example at a time — the TBox side is
+/// [`conformance_support::base_ontology_dataset`] (every `slices/**/module.ttl`,
+/// blank-standardized per source, flattened to the default graph), the crate's
+/// single merged-module union, reused rather than rebuilt. One example at a time
+/// matters: merging the whole corpus would let one example silently supply a
+/// triple another one is missing, and would expose every whole-graph `sh:sparql`
+/// constraint to 199 unrelated scenes at once.
+///
+/// The returned focus set is every IRI the example mentions in SUBJECT or OBJECT
+/// position (object position covers inverse-path shapes) plus every blank node the
+/// example contributes. A focus node outside that set is a pure-TBox node whose
+/// entire neighborhood is its TBox-only neighborhood — the example, being
+/// `ex:`-scoped, adds no quad with it in subject or object position — so it
+/// validates identically with or without the example and cannot change any verdict.
+fn union_with_tbox(example: &RdfDataset, tbox: &[RdfQuad]) -> (Arc<RdfDataset>, Vec<Term>) {
+    let mut iris: BTreeSet<String> = BTreeSet::new();
+    let mut blanks: BTreeSet<String> = BTreeSet::new();
+    // SHACL-project the example (flatten named graphs, expand RDF 1.2 reifiers and
+    // annotations into quads) BEFORE the merge, so the merged quad list is already
+    // the projection of the union: `tbox` is the pre-projected TBox, and projection
+    // is quad-wise, so `project(TBox ∪ example) = project(TBox) ∪ project(example)`.
+    let projected =
+        purrdf::shapes::engine::project_dataset(example).expect("SHACL projection of an example");
+    let mut example_quads = flat_rdf_quads_from_dataset(&projected);
+    for quad in &mut example_quads {
+        for slot in [&mut quad.subject, &mut quad.object] {
+            match slot {
+                RdfTerm::Iri(iri) => {
+                    iris.insert(iri.clone());
+                }
+                RdfTerm::BlankNode(label) => {
+                    let scoped = format!("{EXAMPLE_BLANK_SCOPE}{label}");
+                    *label = scoped.clone();
+                    blanks.insert(scoped);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let mut quads: Vec<RdfQuad> = Vec::with_capacity(tbox.len() + example_quads.len());
+    quads.extend_from_slice(tbox);
+    quads.extend(example_quads);
+    let merged = flat_dataset_from_quads(&quads).expect("merged TBox+example dataset must freeze");
+
+    let focus: Vec<Term> = iris
+        .into_iter()
+        .map(|iri| Term::NamedNode(NamedNode::new_unchecked(iri)))
+        .chain(blanks.into_iter().map(Term::BlankNode))
+        .collect();
+    (merged, focus)
+}
+
+/// Whether `example` conforms to the merged `shapes` per the native SHACL engine,
+/// validated UNIONED WITH THE ONTOLOGY TBox (see [`union_with_tbox`]) — the graph
+/// `make validate` actually validates, not the example in closed-world isolation.
+///
+/// SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/`Warning`
+/// results (e.g. the advisory-tier `logic:severity "Info"` constraints) are
+/// non-gating per spec, so the engine's own `conforms` flag (which flips false
+/// on ANY result) is not the right signal here. Recompute it the same way
+/// `gmeow_validate::advisory::split_advisory_results` does for its retained
+/// set: conforms iff no result carries `Severity::Violation`.
+///
+/// Returns the violation messages (empty ⇒ conformant) so a drifted allowlist entry
+/// can name the shape that actually fires.
+fn shacl_violations(example: &RdfDataset, tbox: &[RdfQuad], shapes: &Arc<Shapes>) -> Vec<String> {
+    let (merged, focus) = union_with_tbox(example, tbox);
+    // Prepare once per example (class closure + SHACL-SPARQL targets), then evaluate
+    // ONLY the example's own focus nodes: the prepared validator answers target
+    // membership by index probe instead of materializing every shape's target set
+    // over the ~120k-quad union.
+    let validator = PreparedValidator::from_projected_dataset(merged, Arc::clone(shapes))
+        .expect("prepare the merged TBox+example dataset for validation");
+    let report = validator
+        .validate_focus_nodes(&focus)
+        .expect("validation over a frozen dataset is infallible");
+    report
+        .results
+        .iter()
+        .filter(|r| matches!(r.severity, Severity::Violation))
+        .map(|r| {
+            format!(
+                "{} on {} (path {}, value {}): {}",
+                r.source_constraint_component,
+                r.focus_node,
+                r.result_path
+                    .as_ref()
+                    .map_or_else(|| "-".to_owned(), ToString::to_string),
+                r.value
+                    .as_ref()
+                    .map_or_else(|| "-".to_owned(), ToString::to_string),
+                r.message.clone().unwrap_or_default()
+            )
+        })
+        .collect()
 }
 
 fn gmeow_namespaces() -> json_schema::Namespaces {
@@ -269,6 +324,66 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
     .expect("gmeow namespaces")
 }
 
+/// One example's sweep verdict.
+struct Outcome {
+    /// Repo-relative path (the allowlist key).
+    relpath: String,
+    /// `sh:Violation`-severity results over the TBox-unioned graph (empty ⇒ conformant).
+    shacl_violations: Vec<String>,
+    /// Whether the example is on [`NON_CONFORMANT`] (so the schema phase is skipped).
+    excluded: bool,
+    /// Closed-world JSON Schema violations (empty ⇒ the schema accepted the projection).
+    schema_violations: Vec<String>,
+}
+
+/// Sweep ONE example: SHACL over the TBox union, then — when in scope — the
+/// closed-world JSON Schema over the example's own instance projection.
+fn sweep_one(
+    repo: &Path,
+    path: &Path,
+    tbox: &[RdfQuad],
+    shapes: &Arc<Shapes>,
+    schema_bytes: &[u8],
+    non_conformant: &BTreeSet<&str>,
+) -> Outcome {
+    let relpath = rel(repo, path);
+    let store = load_data_graph(path);
+
+    // (A) Does the example conform to its SHACL shapes when validated the way
+    //     `make validate` validates it — unioned with the ontology TBox? If not,
+    //     it is illustrative, not valid instance data → out of scope.
+    let shacl_violations = shacl_violations(store.as_ref(), tbox, shapes);
+    let excluded = non_conformant.contains(relpath.as_str());
+
+    // (B) Project the EXAMPLE ALONE to JSON-LD and validate against the
+    //     closed-world schema: the schema's claim is about the instance document
+    //     an emitter ships, which carries the example's data and nothing else.
+    let schema_violations = if excluded {
+        Vec::new()
+    } else {
+        let instance_value = instance::project_graph(&store, &gmeow_namespaces());
+        let instance_bytes = serde_json::to_vec(&instance_value).expect("serialize instance");
+        validate_instance(&instance_bytes, InstanceFormat::Json, schema_bytes)
+            .unwrap_or_else(|e| panic!("validate_instance hard error for {relpath}: {e}"))
+    };
+
+    Outcome {
+        relpath,
+        shacl_violations,
+        excluded,
+        schema_violations,
+    }
+}
+
+/// Workers for the corpus sweep. Each per-example validation is single-threaded
+/// (one merged TBox+example graph, prepared and evaluated by one worker), so the
+/// corpus — not the individual example — is what scales across cores.
+fn sweep_workers() -> usize {
+    std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1)
+}
+
 #[test]
 fn example_corpus_validates_against_closed_world_schema() {
     let repo = repo_root();
@@ -278,8 +393,16 @@ fn example_corpus_validates_against_closed_world_schema() {
         shape_union::load_shapes(&repo).expect("load merged SHACL shapes");
     let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
     let schema_bytes = compiled.schema_json.as_bytes();
+    let shapes = Arc::new(shapes);
 
-    let non_conformant: std::collections::BTreeSet<&str> = NON_CONFORMANT.iter().copied().collect();
+    // The ontology TBox every example is unioned with (the merged `module.ttl`
+    // corpus), SHACL-projected once for the whole sweep.
+    let tbox = flat_rdf_quads_from_dataset(
+        &purrdf::shapes::engine::project_dataset(conformance_support::base_ontology_dataset())
+            .expect("SHACL projection of the merged module TBox"),
+    );
+
+    let non_conformant: BTreeSet<&str> = NON_CONFORMANT.iter().copied().collect();
 
     let examples = example_files(&repo);
     assert!(
@@ -287,38 +410,63 @@ fn example_corpus_validates_against_closed_world_schema() {
         "no example fixtures found under slices/*/*/examples/*.ttl"
     );
 
-    // Per-example outcomes.
+    // Per-example outcomes, computed by a fixed worker pool over a shared cursor
+    // (each example is claimed by exactly one worker) and re-sorted by path, so the
+    // reported order is independent of scheduling.
+    let cursor = AtomicUsize::new(0);
+    let mut outcomes: Vec<Outcome> = std::thread::scope(|scope| {
+        let (cursor, examples, tbox, shapes, non_conformant, repo) = (
+            &cursor,
+            &examples,
+            &tbox,
+            &shapes,
+            &non_conformant,
+            repo.as_path(),
+        );
+        let handles: Vec<_> = (0..sweep_workers())
+            .map(|_| {
+                scope.spawn(move || {
+                    let mut mine: Vec<Outcome> = Vec::new();
+                    loop {
+                        let index = cursor.fetch_add(1, Ordering::Relaxed);
+                        let Some(path) = examples.get(index) else {
+                            return mine;
+                        };
+                        mine.push(sweep_one(
+                            repo,
+                            path,
+                            tbox,
+                            shapes,
+                            schema_bytes,
+                            non_conformant,
+                        ));
+                    }
+                })
+            })
+            .collect();
+        handles
+            .into_iter()
+            .flat_map(|h| h.join().expect("example sweep worker joins"))
+            .collect()
+    });
+    outcomes.sort_by(|a, b| a.relpath.cmp(&b.relpath));
+
     let mut schema_failures: Vec<(String, Vec<String>)> = Vec::new();
-    let mut shacl_failing: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut shacl_failing: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
     let mut excluded_count = 0usize;
     let mut passed_count = 0usize;
 
-    for path in &examples {
-        let relpath = rel(&repo, path);
-        let store = load_data_graph(path);
-
-        // (A) Does the example conform to its SHACL shapes? If not, it is
-        //     illustrative, not valid instance data → out of scope.
-        let shacl_ok = conforms_to_shacl(&store, &shapes);
-        if !shacl_ok {
-            shacl_failing.insert(relpath.clone());
+    for outcome in outcomes {
+        if !outcome.shacl_violations.is_empty() {
+            shacl_failing.insert(outcome.relpath.clone(), outcome.shacl_violations);
         }
-
-        if non_conformant.contains(relpath.as_str()) {
+        if outcome.excluded {
             excluded_count += 1;
-            continue;
-        }
-
-        // (B) Project to JSON-LD and validate against the closed-world schema.
-        let instance_value = instance::project_graph(&store, &gmeow_namespaces());
-        let instance_bytes = serde_json::to_vec(&instance_value).expect("serialize instance");
-        let violations = validate_instance(&instance_bytes, InstanceFormat::Json, schema_bytes)
-            .unwrap_or_else(|e| panic!("validate_instance hard error for {relpath}: {e}"));
-
-        if violations.is_empty() {
+        } else if outcome.schema_violations.is_empty() {
             passed_count += 1;
         } else {
-            schema_failures.push((relpath, violations));
+            schema_failures.push((outcome.relpath, outcome.schema_violations));
         }
     }
 
@@ -332,37 +480,49 @@ fn example_corpus_validates_against_closed_world_schema() {
         examples.len(),
     );
 
+    // Both invariants are reported TOGETHER: a drifted allowlist and a rejected
+    // projection are independent findings, and failing on the first would hide the
+    // second behind a second run.
+    let mut failures = String::new();
+
     // Invariant 1: the allowlist must be EXACTLY the SHACL-failing set, so an
     // exclusion can never silently mask a JSON-schema soundness bug.
-    let allowlisted: std::collections::BTreeSet<String> =
-        non_conformant.iter().map(|s| (*s).to_owned()).collect();
-    if allowlisted != shacl_failing {
-        let only_allowlist: Vec<&String> = allowlisted.difference(&shacl_failing).collect();
-        let only_shacl: Vec<&String> = shacl_failing.difference(&allowlisted).collect();
-        panic!(
+    let allowlisted: BTreeSet<String> = non_conformant.iter().map(|s| (*s).to_owned()).collect();
+    let failing: BTreeSet<String> = shacl_failing.keys().cloned().collect();
+    if allowlisted != failing {
+        let only_allowlist: Vec<&String> = allowlisted.difference(&failing).collect();
+        let mut only_shacl = String::new();
+        for path in failing.difference(&allowlisted) {
+            only_shacl.push_str(&format!("\n{path}:\n"));
+            for violation in &shacl_failing[path] {
+                only_shacl.push_str(&format!("  - {violation}\n"));
+            }
+        }
+        failures.push_str(&format!(
             "NON_CONFORMANT allowlist drifted from the SHACL-failing set.\n\
              listed but actually SHACL-CONFORMANT (remove from allowlist): {only_allowlist:#?}\n\
-             SHACL-NON-CONFORMANT but not listed (add to allowlist with a reason, \
-             or fix the example): {only_shacl:#?}"
-        );
+             SHACL-NON-CONFORMANT but not listed (fix the example, or list it with a \
+             reason): {only_shacl}\n"
+        ));
     }
 
     // Invariant 2: every in-scope (SHACL-conformant, non-excluded) example must
     // validate against the closed-world JSON Schema.
     if !schema_failures.is_empty() {
-        let mut report = String::from(
+        failures.push_str(
             "closed-world JSON Schema REJECTED SHACL-conformant example data \
              (soundness bug in emitter/projector):\n",
         );
         for (path, violations) in &schema_failures {
-            report.push_str(&format!("\n{path}:\n"));
+            failures.push_str(&format!("\n{path}:\n"));
             for v in violations.iter().take(5) {
-                report.push_str(&format!("  - {v}\n"));
+                failures.push_str(&format!("  - {v}\n"));
             }
             if violations.len() > 5 {
-                report.push_str(&format!("  … and {} more\n", violations.len() - 5));
+                failures.push_str(&format!("  … and {} more\n", violations.len() - 5));
             }
         }
-        panic!("{report}");
     }
+
+    assert!(failures.is_empty(), "{failures}");
 }

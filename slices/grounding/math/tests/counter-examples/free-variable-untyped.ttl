@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: the free variable declaration names no math:variableDomain, so
+# the exact-one typed-minimum restriction on math:FreeVariableDeclaration fails
+# (math:UntypedFreeVariable).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:untypedFreeVariable a math:FreeVariableDeclaration .

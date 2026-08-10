@@ -39,8 +39,8 @@ bundle at full fidelity, and trimmed only at the exit a consumer asks for.
 ## 2. The carrier is the spine
 
 There is **one** internal transport: an in-memory bundle value (the
-`PipelineBundle` carrier, `crates/rdf-core`) threaded through the whole run. It
-holds:
+`PipelineBundle` carrier, defined by the `purrdf` substrate) threaded through the
+whole run. It holds:
 
 - the **dataset** — every named graph the build accumulates (authored default,
   statement layer, import closure, alignments, the reasoned closure, diagnostics,
@@ -82,9 +82,32 @@ blobs. Three rules bind every stage:
    the dependency order is derivable and the superset gate (§7) can map every output
    to its producer.
 
+4. **Read only what you declared.** The scheduler hands a stage exactly the products
+   of the ids in its `dataflowConsumes`. There is no ambient access to a sibling's or
+   an ancestor's carrier; an undeclared read is not "unsupported", it is
+   *unreachable*.
+
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
+
+**The carrier's lifetime is bounded (drop-after-last-consumer).** Rule 4 is what
+makes a stage's carrier *provably dead* once the last stage declaring it has run:
+nothing can still read it. The whole-repository build therefore **releases** it at
+that point — the dataset, the typed handles, the blob records, the provenance, and
+the internal `pipeline/`-prefixed byte artifacts are freed — keeping only the
+committed byte artifacts the post-run reconcile still owes, and the product's
+`digest` verbatim. Peak residency is then the live frontier plus the run's outputs,
+not the **sum** of every stage's cumulative carrier snapshot over the DAG; the
+latter grows with both the corpus and the stage count, and is a build that dies as
+the ontology grows rather than one that scales with it.
+
+The release is invisible: it never changes a produced byte, and the run's
+order-independent `combined_digest` is identical with or without it. A reader that
+reaches for a released carrier — necessarily an out-of-band whole-run consumer, never
+a stage — HARD-fails on the released marker rather than seeing an empty dataset. Such
+a consumer selects full retention explicitly; that selection is a profile, not a
+degradation, because both profiles produce the identical products.
 
 ## 4. One terminal
 
@@ -139,6 +162,36 @@ consumer views, and the GTS structural verbs (`fold` for named graphs, `extract`
 for a blob by digest, `unpack` for a files-profile archive). No output requires a
 bespoke generator at fanout time; an output that cannot be produced by extraction
 alone signals a §5 violation upstream, not a need for computation downstream.
+
+### 6.1 Worked instance — the GMN-1 ecosystem projections
+
+The GMN-1 (Grounded Model Notation) ecosystem is the two-halves law at work over a
+family of related outputs, every one a projection of `gmeow.gts` (§5) and none
+authored on disk. Two producers contribute to the carrier:
+
+- **The lang projection producer** (inside `stage-mappings`) attaches the
+  graph-derived GMN notation surfaces. Fanout extracts them under
+  `generated/projections/lang/`: the formalism grammars `ebnf/gmn.ebnf` and
+  `abnf/gmn.abnf`, and — keyed by the graph-resolved dialect major under
+  `gmn1/v<major>/` — the constrained-decode grammars `gbnf/gmn.gbnf` and
+  `lark/gmn.lark`, the math-grounded `token-metrics.ttl` (a `gmeow:Measurement`
+  7-vector with a byte-fallback compression gate), the `verbalizations.ttl`
+  GMN↔controlled-NL `lang:translationCorrespondence` pairs, and the per-example
+  `*.gmn` witnesses.
+- **`stage-gmn-training-corpus`** — a **new registered generator stage**, the
+  first dedicated `lang:` generator stage (the `lang:` sibling of
+  `stage-math-producers`) — consumes `stage-compile-logic` (the typecheck/prover
+  lane) and `stage-mappings` (the glyph registry), enumerates well-typed GMN terms,
+  rejection-samples each through five deterministic verifiers, and attaches the
+  proof-carrying corpus (plus its typed rejections) as the bundle-internal named
+  graph `graph/gmn-training-corpus` (dual-carriage, exactly like
+  `graph/goal-directed`).
+
+The ~500-token GMN-1 teachability primer is not a separate file: `stage-docs-render`
+folds it into the `llms.txt` / `llms-full.txt` surfaces, and the MCP server serves
+the identical bytes off the bundle alone as the `gmeow://ontology/gmn1-primer`
+resource. Whole-ecosystem tamper-evidence is folded into `pack_root`; the superset
+gate (§7) keeps every one of these paths byte-reconstructible from the bundle.
 
 ## 7. The conformance gate
 

@@ -125,6 +125,8 @@ pub mod codes {
     pub const LANG_EXACT_PRESERVATION_VIOLATED: &str =
         "validate.lint.lang.exact-preservation-violated";
     pub const MATH_UNLIFTABLE_INGEST: &str = "validate.lint.math.unliftable-ingest";
+    pub const MATH_STRING_ONLY_COMPUTABLE_EXPRESSION: &str =
+        "validate.lint.math.string-only-computable-expression";
     pub const MATH_PROBABILITY_OUT_OF_BOUNDS: &str = "validate.lint.math.probability-out-of-bounds";
     pub const MATH_PROBABILITY_PARAMETER_CONSTRAINT: &str =
         "validate.lint.math.probability-distribution-parameter-constraint";
@@ -138,6 +140,12 @@ pub mod codes {
         "validate.lint.math.projection-confidence-as-probability";
     pub const MATH_PROJECTION_DROPPED_PARAMETERIZATION: &str =
         "validate.lint.math.projection-dropped-parameterization";
+    pub const MATH_MISSING_PRESERVATION_KIND: &str = "validate.lint.math.missing-preservation-kind";
+    pub const MATH_UNDECLARED_UNSUPPORTED_CONSTRUCT: &str =
+        "validate.lint.math.undeclared-unsupported-construct";
+    pub const MATH_UNRECORDED_PROJECTION_LOSS: &str =
+        "validate.lint.math.unrecorded-projection-loss";
+    pub const MATH_UNGROUNDED_RESULT_CLAIM: &str = "validate.lint.math.ungrounded-result-claim";
     pub const NAMING_SELECTOR_TOKEN: &str = "validate.lint.naming.selector-token";
 }
 
@@ -229,6 +237,34 @@ impl LintReport {
 /// (mirrors `_is_gmeow_term`).
 fn is_gmeow_term(iri: &str, cfg: &LintConfig) -> bool {
     iri.starts_with(&cfg.namespace) || iri == cfg.ontology_iri
+}
+
+/// Whether a named graph is an **external-publication / lowering fanout graph** — a
+/// commitment-shifted external view that DELIBERATELY carries public BCP-47 language
+/// tags for external consumers, so the internal `x-gmeow-` carrier-tag discipline does
+/// not apply to it. Three families qualify:
+///
+/// * the `research-objects` RO-Crate / DCAT export (`graph/fanout/research-objects/…`),
+///   whose serializer retags each authored A-Box `x-gmeow-*` literal to its public
+///   BCP-47 form — a published RO-Crate MUST NOT ship a private-use tag its consumers
+///   cannot read;
+/// * the **FnO** function lowering (`…/*.fno.ttl`) and the **EDOAL** alignment lowering
+///   (`…/*.edoal`) — the "generated lowerings" of Principle 17 (with SSSOM), external
+///   interchange surfaces described in a foreign standard vocabulary for foreign tools.
+///
+/// The exemption is keyed on the **containing named graph**, never the subject: the same
+/// GMEOW term legitimately appears carrier-tagged in its internal slice graph and public-
+/// tagged in its external projection here, and only the projection is exempt — so this
+/// never masks an internal-graph violation. It exempts ONLY the language-tag discipline;
+/// the structural-annotation contract (label / definition / isDefinedBy / graphBoxRole)
+/// still applies, because these graphs ride in the linted bundle.
+fn is_external_publication_graph(graph_iri: &str, cfg: &LintConfig) -> bool {
+    let Some(rest) = graph_iri.strip_prefix(&format!("{}graph/", cfg.namespace)) else {
+        return false;
+    };
+    rest.starts_with("fanout/research-objects/")
+        || rest.ends_with(".fno.ttl")
+        || rest.ends_with(".edoal")
 }
 
 /// Return the primary structural kind of a GMEOW term from its `rdf:type` set
@@ -655,8 +691,13 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 3. Dangling GMEOW subclass/subproperty targets.
-    for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
+    // 3. Dangling GMEOW subclass/subproperty targets — both the canonical
+    // `logic:subClassOf`/`logic:subPropertyOf` edges and their `rdfs:` projection
+    // (gmeow_ns::subsumption_predicates doctrine; crates/ns/src/lib.rs:106-166).
+    for predicate in gmeow_ns::SUB_CLASS_OF
+        .into_iter()
+        .chain(gmeow_ns::SUB_PROPERTY_OF)
+    {
         let Some(p_id) = ds_iri_id(ds, predicate) else {
             continue;
         };
@@ -677,9 +718,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 4. Comprehensiveness heuristic.
-    let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    if let Some(p_id) = ds_iri_id(ds, rdfs::SUB_CLASS_OF) {
+    // 4. Comprehensiveness heuristic — scan both class-subsumption spellings
+    // (canonical `logic:subClassOf` + projected `rdfs:subClassOf`) into ONE
+    // `parent_to_children` map so a re-authored taxonomy stays visible.
+    let mut parent_to_children: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for predicate in gmeow_ns::SUB_CLASS_OF {
+        let Some(p_id) = ds_iri_id(ds, predicate) else {
+            continue;
+        };
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
             let TermRef::Iri(child) = ds.resolve(q.s) else {
                 continue;
@@ -691,7 +737,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
                 parent_to_children
                     .entry(parent.to_owned())
                     .or_default()
-                    .push(child.to_owned());
+                    .insert(child.to_owned());
             }
         }
     }
@@ -729,6 +775,18 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         else {
             continue;
         };
+
+        // Exemption: external-publication fanout graphs (RO-Crate / research-object
+        // exports) are commitment-shifted external views that DELIBERATELY carry
+        // public BCP-47 tags for external consumers — the internal `x-gmeow-` carrier
+        // discipline does not police them. Keyed on the containing named graph, so an
+        // internal-graph violation of the same term is still caught.
+        if let Some(g_id) = q.g
+            && let TermRef::Iri(graph_iri) = ds.resolve(g_id)
+            && is_external_publication_graph(graph_iri, cfg)
+        {
+            continue;
+        }
 
         // Check 1: literal on a GMEOW-namespace predicate.
         if predicate_iri.starts_with(&cfg.namespace)
@@ -801,6 +859,23 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // producing no structured math: codomain has silently dropped its content.
     check_math_ingest_invariants(ds, &mut report);
 
+    // math: expression-AST source-lint gate — the native Rust twin of the SHACL-Core-
+    // derived math:StringOnlyComputableExpressionConstraint: a math:MathematicalExpression
+    // claiming to be computable (math:normalForm, math:compilesToLogicFormula, or
+    // math:expressionType) must carry at least one structured-child edge
+    // (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or
+    // math:literalValue) or it is represented only by a string.
+    check_math_expression_invariants(ds, &mut report);
+
+    // math: mathematical-core native cardinality/framing gate — the native Rust twin of
+    // several SHACL-Core-derived class restrictions, run over the LIVE dataset rather
+    // than a generated shape surface: an extended-real slot's malformed value, an
+    // unbacked analytic property, an unbound closed form, an underspecified
+    // compactification/interval/limit-result/measure-evaluation/piecewise function, an
+    // unframed arithmetic operator, and an ungrounded statistical/probabilistic result
+    // claim.
+    check_math_core_invariants(ds, cfg, &mut report);
+
     // math: probability-layer reasoned gate — the closed-unit-interval bound, the
     // role-carried positivity/dimension constraints on distribution parameters, the
     // mandatory logic: lowering of a referenced probability model, the structural
@@ -821,8 +896,8 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
 }
 
 /// Namespace roots for the `lang:`/`logic:` meaning-stratum invariants.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 
 /// The document-scale threshold, in bytes, for the `lang:InlineBlobPayload` gate: a
 /// `lang:SurfaceForm` whose inline `lang:surfaceText` exceeds this holds document-scale
@@ -1471,7 +1546,7 @@ fn check_exact_preservation_violated(ds: &RdfDataset, report: &mut LintReport) {
 }
 
 /// Namespace root for the `math:` measure-and-dimension invariants.
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 
 fn math_iri(term: &str) -> String {
     format!("{MATH_NS}{term}")
@@ -1571,7 +1646,7 @@ fn check_math_ingest_invariants(ds: &RdfDataset, report: &mut LintReport) {
 /// enumerating the residue — is the correspondence Overclaim gate's job in the `logic:` layer. This
 /// native twin catches the produced-nothing case bundle-wide.)
 fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
     let parse_source = math_iri("parseSource");
     let was_generated_by = format!("{GMEOW_NS}wasGeneratedBy");
     let wgb_pid = ds_iri_id(ds, &was_generated_by);
@@ -1610,6 +1685,111 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
                      structured math: codomain (nothing is gmeow:wasGeneratedBy it) — the lift is \
                      unsupported and silently dropped its content; a bridge lifts fully or hard-fails, \
                      never emitting a degraded or empty lift"
+                ),
+            );
+        }
+    }
+}
+
+/// The `math:` expression-AST invariants the charter designates as native
+/// Rust-validator primary gates over `math:MathematicalExpression`. Currently the
+/// source-lint half of `math:StringOnlyComputableExpression` (the SHACL-Core-derived
+/// half is `math:StringOnlyComputableExpressionConstraint` in `module.ttl`).
+fn check_math_expression_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_string_only_computable_expression(ds, report);
+}
+
+/// `math:StringOnlyComputableExpression` — a `math:MathematicalExpression` carrying at
+/// least one of the three "computable" trigger edges (`math:normalForm`,
+/// `math:compilesToLogicFormula`, `math:expressionType`) claims to be more than an
+/// opaque string: it claims a computable normal form, a logic:Formula compilation, or a
+/// classified expression type. That claim is only warranted if the expression ALSO
+/// carries at least one structured-child edge (`math:argumentSlot`, `math:boundVariable`,
+/// `math:hasMathematicalSymbol`, `math:literalValue`) — an actual AST structure to back
+/// it. An expression with a trigger edge but none of the four structured-child edges is
+/// represented only by a string: the computable claim is unwarranted. Mirrors
+/// `math:StringOnlyComputableExpressionConstraint`'s guard/or-of-exists shape exactly
+/// (same trigger set, same structured-child set), authored here as its native-Rust twin
+/// because the source-lint charter tier for this failure class is "source-lint + SHACL
+/// Core", not a SHACL-only shape.
+fn check_string_only_computable_expression(ds: &RdfDataset, report: &mut LintReport) {
+    let triggers = [
+        math_iri("normalForm"),
+        math_iri("compilesToLogicFormula"),
+        math_iri("expressionType"),
+    ];
+    let structured_children = [
+        math_iri("argumentSlot"),
+        math_iri("boundVariable"),
+        math_iri("hasMathematicalSymbol"),
+        math_iri("literalValue"),
+    ];
+    for expr in ds_subjects_of_type(ds, &math_iri("MathematicalExpression")) {
+        let has_trigger = triggers.iter().any(|p| ds_has_predicate(ds, &expr, p));
+        if !has_trigger {
+            continue;
+        }
+        let has_structured_child = structured_children
+            .iter()
+            .any(|p| ds_has_predicate(ds, &expr, p));
+        if has_structured_child {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_STRING_ONLY_COMPUTABLE_EXPRESSION,
+            expr.clone(),
+            format!(
+                "math:StringOnlyComputableExpression: expression {expr} carries a \
+                 math:normalForm, math:compilesToLogicFormula, or math:expressionType edge but \
+                 none of math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or \
+                 math:literalValue — it is represented only by a string"
+            ),
+        );
+    }
+}
+
+/// The `math:` mathematical-core native invariant that genuinely needs Rust execution
+/// rather than a declarative axiom: the statistical-result-claim vantage-grounding guard
+/// ([`check_ungrounded_result_claim`]). The extended-real-slot value guard
+/// (`math:ExtendedRealValueConstraint`), the analytic-property law/boundary guard
+/// (`math:AnalyticPropertyBackedConstraint`), the closed-form-function body/argument
+/// guard, the compactification four-role (and conformal-factor) guard, the interval
+/// four-field guard, the limit-result outcome/value-agreement guard
+/// (`math:LimitResultOutcomeValueConstraint`), the measure-evaluation three-role (and
+/// `math:MeasureResultNonNegativeConstraint` non-negativity) guard, the
+/// piecewise-function at-least-one-piece guard, and the arithmetic-operation
+/// domain/codomain guard are each fully owned by an EL-safe OWL/RDFS exact-one
+/// restriction (paired `owl:maxQualifiedCardinality`/`owl:minQualifiedCardinality`
+/// restrictions on the class in `module.ttl`, the derive-source for the generated SHACL)
+/// or a `logic:Constraint` SHACL-SPARQL twin already authored in `module.ttl` — the
+/// declarative tier decides them outright, so no Rust side-channel exists for them here.
+fn check_math_core_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_ungrounded_result_claim(ds, cfg, report);
+}
+
+/// `math:UngroundedResultClaim` — a `gmeow:Observation` naming a result through
+/// `gmeow:observationResult` must itself carry a `gmeow:vantage`; a held statistical or
+/// probabilistic result claim is an Observation with a vantage, never an unconditional
+/// property of the result object. Purely native (no SHACL target shape, no module.ttl
+/// SHACL-deriving axiom) — the "Rust validator" tier, mirroring
+/// [`check_unliftable_ingest`]'s architecture: a genuine cross-node obligation over
+/// `gmeow:Observation`/`gmeow:observationResult`/`gmeow:vantage`, none of which is
+/// `math:`-specific.
+fn check_ungrounded_result_claim(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let observation_result = format!("{}observationResult", cfg.namespace);
+    let vantage = format!("{}vantage", cfg.namespace);
+    let observation = format!("{}Observation", cfg.namespace);
+    for obs in ds_subjects_of_type(ds, &observation) {
+        if ds_has_predicate(ds, &obs, &observation_result) && !ds_has_predicate(ds, &obs, &vantage)
+        {
+            report.push_error(
+                codes::MATH_UNGROUNDED_RESULT_CLAIM,
+                obs.clone(),
+                format!(
+                    "math:UngroundedResultClaim: observation {obs} names a result through \
+                     gmeow:observationResult but carries no gmeow:vantage; a held statistical or \
+                     probabilistic result claim is an Observation with a vantage, never an \
+                     unconditional property of the result object"
                 ),
             );
         }
@@ -2085,13 +2265,120 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
-/// The `math:` projection-side invariants: the two join-requiring native gates over
+/// The `math:` projection-side invariants: the join-requiring native gates over
 /// `math:ProjectionRecord` loss-ledger carriers. Kept purely native (no SHACL target
 /// shape) exactly like the four `lang:` projection gates, because each requires a join
 /// the closed-world shape language cannot express. Runs bundle-wide (`GraphMatch::Any`).
 fn check_math_projection_invariants(ds: &RdfDataset, report: &mut LintReport) {
     check_math_projection_confidence_as_probability(ds, report);
     check_math_projection_dropped_parameterization(ds, report);
+    check_math_missing_preservation_kind(ds, report);
+    check_math_undeclared_unsupported_construct(ds, report);
+    check_math_unrecorded_projection_loss(ds, report);
+}
+
+/// `math:MissingPreservationKind` — every `math:ProjectionRecord` declares a
+/// `logic:preservationKind` (the `logic:` loss-ledger vocabulary, reused verbatim); a
+/// record with none has entered the loss ledger carrying an undeclared preservation
+/// judgment. Mirrors `lang:MissingPreservationKind`'s architecture one stratum over.
+fn check_math_missing_preservation_kind(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        if !ds_has_predicate(ds, &r, &preservation_kind) {
+            report.push_error(
+                codes::MATH_MISSING_PRESERVATION_KIND,
+                r.clone(),
+                format!(
+                    "math:MissingPreservationKind: projection record {r} declares no \
+                     logic:preservationKind; every projection declares its preservation kind (the \
+                     logic: loss-ledger vocabulary, reused verbatim)"
+                ),
+            );
+        }
+    }
+}
+
+/// `math:UndeclaredUnsupportedConstruct` — a LOSSY `math:ProjectionRecord` (a declared
+/// `logic:preservationKind` other than `logic:ExactPreservation`) must enumerate every
+/// construct it drops through `logic:unsupportedConstruct`; a lossy record naming none
+/// has claimed a completeness its own preservation kind denies. Mirrors
+/// `lang:UndeclaredUnsupportedConstruct` one stratum over.
+fn check_math_undeclared_unsupported_construct(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let unsupported = logic_iri("unsupportedConstruct");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        let kinds = ds_object_iris(ds, &r, &preservation_kind);
+        let lossy = !kinds.is_empty() && !kinds.contains(&exact);
+        if lossy && !ds_has_predicate(ds, &r, &unsupported) {
+            report.push_error(
+                codes::MATH_UNDECLARED_UNSUPPORTED_CONSTRUCT,
+                r.clone(),
+                format!(
+                    "math:UndeclaredUnsupportedConstruct: lossy projection record {r} (a \
+                     logic:preservationKind other than logic:ExactPreservation) enumerates no \
+                     logic:unsupportedConstruct; a lossy projection drops nothing or names \
+                     everything it drops"
+                ),
+            );
+        }
+    }
+}
+
+/// `math:UnrecordedProjectionLoss` — a LOSSY `math:ProjectionRecord` whose
+/// `math:projectionSource` is a `math:MathematicalExpression` (a structured AST, not a
+/// bare display string) must name that flattening among its `logic:unsupportedConstruct`
+/// entries — collapsing a structured expression tree to `math:projectionTargetName`'s
+/// string-only external target is exactly the loss the ledger exists to record.
+fn check_math_unrecorded_projection_loss(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let projection_source = math_iri("projectionSource");
+    let unsupported = logic_iri("unsupportedConstruct");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        let kinds = ds_object_iris(ds, &r, &preservation_kind);
+        if kinds.is_empty() || kinds.contains(&exact) {
+            continue;
+        }
+        let drop_iris = ds_object_iris(ds, &r, &unsupported);
+        let drop_literals: Vec<String> = ds_object_literals(ds, &r, &unsupported)
+            .into_iter()
+            .map(|d| d.to_lowercase())
+            .collect();
+        for src in ds_object_iris_sorted(ds, &r, &projection_source) {
+            if !ds_has_type(ds, &src, &math_iri("MathematicalExpression")) {
+                continue;
+            }
+            let local = src
+                .rsplit(['/', '#'])
+                .next()
+                .unwrap_or(src.as_str())
+                .to_lowercase();
+            let recorded = drop_iris.contains(&src)
+                || (!local.is_empty()
+                    && drop_literals.iter().any(|d| {
+                        d.split(|c: char| !c.is_alphanumeric())
+                            .any(|tok| tok == local)
+                    }))
+                || drop_literals.iter().any(|d| {
+                    d.split(|c: char| !c.is_alphanumeric())
+                        .any(|tok| tok == "expression" || tok == "ast" || tok == "structural")
+                });
+            if !recorded {
+                report.push_error(
+                    codes::MATH_UNRECORDED_PROJECTION_LOSS,
+                    format!("{r}\t{src}"),
+                    format!(
+                        "math:UnrecordedProjectionLoss: lossy projection record {r} flattens its \
+                         expression-AST source {src} without recording the structural loss among \
+                         its logic:unsupportedConstruct entries — collapsing a structured AST to a \
+                         string-only external target is exactly the loss the ledger exists to \
+                         record"
+                    ),
+                );
+            }
+        }
+    }
 }
 
 /// `math:ProjectionConfidenceAsProbability` — a `math:ProjectionRecord` that declares it
@@ -2362,6 +2649,7 @@ mod tests {
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
@@ -2384,6 +2672,54 @@ mod tests {
                 .errors()
                 .iter()
                 .any(|e| e.contains("skos:definition"))
+        );
+    }
+
+    /// G9 canonical-subsumption sweep: a typo'd target reached ONLY over the
+    /// canonical `logic:subClassOf` edge must still be reported dangling — scanning
+    /// `rdfs:subClassOf` alone would silently miss it (crates/ns/src/lib.rs:106-166).
+    #[test]
+    fn dangling_target_seen_via_canonical_logic_subclass_of() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Documented a owl:Class ;\n\
+               rdfs:label \"Documented\" ;\n\
+               skos:definition \"A well-formed term.\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> ;\n\
+               logic:subClassOf gmeow:MissingParent .\n"
+        ));
+        let report = structural_lint_dataset(&store, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("dangling") && e.contains("/gmeow/MissingParent")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    /// G9: the comprehensiveness heuristic's `parent_to_children` map must also see
+    /// subclasses re-authored under the canonical `logic:subClassOf` edge, not only
+    /// the `rdfs:subClassOf` projection.
+    #[test]
+    fn comprehensiveness_heuristic_sees_canonical_logic_subclass_of() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Parent a owl:Class ; rdfs:label \"Parent\" ; skos:definition \"p\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n\
+             gmeow:ChildA a owl:Class ; logic:subClassOf gmeow:Parent .\n\
+             gmeow:ChildB a owl:Class ; logic:subClassOf gmeow:Parent .\n\
+             gmeow:ChildC a owl:Class ; logic:subClassOf gmeow:Parent .\n"
+        ));
+        let report = structural_lint_dataset(&store, &cfg());
+        assert!(
+            report
+                .warnings()
+                .iter()
+                .any(|w| w.contains("/gmeow/Parent") && w.contains("systematic documentation gap")),
+            "warnings: {:?}",
+            report.warnings()
         );
     }
 
@@ -2663,6 +2999,67 @@ mod tests {
         ));
         let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
+    }
+
+    #[test]
+    fn lang_tag_exempts_external_publication_fanout_graph_but_not_internal() {
+        use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+
+        // The identical offending triple — a GMEOW-subject rdfs:label carrying a bare
+        // public `@en` tag — in an external-publication RO-Crate fanout graph vs an
+        // internal fanout graph. The RO-Crate export deliberately retags to public
+        // BCP-47 for its consumers, so the external copy is exempt; the internal copy
+        // is not. A single label triple keeps the subject untyped, so only the
+        // lang-tag check is in play (no missing-* structural findings).
+        let label = "http://www.w3.org/2000/01/rdf-schema#label";
+        let subject = format!("{NS}evals/corpus/readme");
+        let en = RdfTerm::literal(RdfLiteral::language_tagged("README.md", "en"));
+        let external_graph =
+            format!("{NS}graph/fanout/research-objects/lillith/ro-crate/corpus.ttl");
+        let internal_graph = format!("{NS}graph/fanout/evals/scores.ttl");
+
+        let build = |graph: &str| -> Arc<RdfDataset> {
+            let mut b = RdfDatasetBuilder::new();
+            b.push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(subject.clone()), label, en.clone())
+                    .in_graph(RdfTerm::iri(graph.to_owned())),
+            );
+            b.freeze().expect("valid dataset")
+        };
+
+        // External-publication graph: exempt — no lang-tag finding.
+        let external = structural_lint_dataset(&build(&external_graph), &cfg());
+        assert!(
+            !external
+                .errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'")),
+            "external-publication RO-Crate fanout graph must be exempt from the \
+             carrier-tag discipline: {:?}",
+            external.errors()
+        );
+
+        // FnO lowering graph (Principle 17): also exempt.
+        let fno_graph = format!("{NS}graph/fanout/projections/functions.fno.ttl");
+        let fno = structural_lint_dataset(&build(&fno_graph), &cfg());
+        assert!(
+            !fno.errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'")),
+            "FnO lowering graph must be exempt from the carrier-tag discipline: {:?}",
+            fno.errors()
+        );
+
+        // Internal fanout graph: the same triple is still flagged.
+        let internal = structural_lint_dataset(&build(&internal_graph), &cfg());
+        assert!(
+            internal
+                .errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'") && e.contains("label")),
+            "an internal graph's bare @en must still be flagged: {:?}",
+            internal.errors()
+        );
     }
 
     #[test]
@@ -3729,6 +4126,114 @@ mod tests {
         }
     }
 
+    /// Prefixes for inline math: projection-loss unit fixtures (tokenization regression: the
+    /// discharge-by-mention check over `logic:unsupportedConstruct` must tokenize the
+    /// literal, never `str::contains` it — "ast" is a substring of many ordinary words).
+    const MATH_PROJECTION_LOSS_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix ex: <http://example.org/math/> .\n";
+
+    /// A lossy `math:ProjectionRecord` whose `math:projectionSource` is a
+    /// `math:MathematicalExpression`, with `unsupported_literal` as its ONLY
+    /// `logic:unsupportedConstruct` entry.
+    fn math_projection_loss_fixture(unsupported_literal: &str) -> String {
+        format!(
+            "{MATH_PROJECTION_LOSS_PREFIXES}\
+             ex:src a math:MathematicalExpression .\n\
+             ex:proj a math:ProjectionRecord ;\n\
+               math:projectionSource ex:src ;\n\
+               logic:preservationKind logic:Unsupported ;\n\
+               logic:unsupportedConstruct \"{unsupported_literal}\" .\n"
+        )
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_last_writer_wins() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("last-writer-wins")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"last-writer-wins\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_broadcast_fanout() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("broadcast-fanout")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"broadcast-fanout\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_forecast_dropped() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("forecast-dropped")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"forecast-dropped\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_drastic_simplification() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("drastic-simplification")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"drastic-simplification\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_discharged_by_genuine_ast_mention() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture(
+                "flattened the AST to a string",
+            )),
+            &cfg(),
+        );
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "a genuine whole-word AST mention must discharge the loss ledger: {:?}",
+            report.errors()
+        );
+    }
+
     /// Prefixes for inline math: probability unit fixtures.
     const MATH_PROB_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
          @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -4146,10 +4651,13 @@ mod tests {
          @prefix ex: <https://example.org/> .\n";
 
     /// Removal check: the validate-time sweep no longer enforces dimensional
-    /// homogeneity — that enforcement was relocated to the reason-verify native gate
-    /// (`gmeow_logic::math_dimension::check_math_dimension_findings`), which is now the
-    /// SOLE homogeneity enforcement path. An inhomogeneous expression must therefore
-    /// pass `structural_lint_dataset` clean while the reason-verify gate flags it.
+    /// homogeneity — that enforcement is now the reasoner-materialized
+    /// `math:DimensionalInhomogeneity` marker surfaced through the production
+    /// `gmeow_logic::verify::verify()` entrypoint (the native `logic:` reasoner
+    /// derives it directly from the authored `math:dimensionalHomogeneityLaw`
+    /// `logic:Formula` AST), which is now the SOLE homogeneity enforcement path. An
+    /// inhomogeneous expression must therefore pass `structural_lint_dataset` clean
+    /// while `verify()` flags it.
     #[test]
     fn dimensional_homogeneity_is_no_longer_a_validate_lint() {
         let turtle = format!(
@@ -4169,13 +4677,24 @@ mod tests {
             "the dimensional-homogeneity sweep must be retired from validate: {:?}",
             report.errors()
         );
-        // The reason-verify native gate is where it now lives.
-        let findings = gmeow_logic::math_dimension::check_math_dimension_findings(&ds);
+        // The reasoner-materialized reason-verify gate is where it now lives: the
+        // production verify() entrypoint surfaces the marker the native `logic:`
+        // reasoner derives from the authored `math:dimensionalHomogeneityLaw`
+        // `logic:Formula` AST, never a Rust sweep.
+        let report =
+            gmeow_logic::verify::verify(&ds, &gmeow_logic::verify::embedded_verify_queries())
+                .expect("verify() must not error");
         assert!(
-            findings
+            report
+                .findings
                 .iter()
-                .any(|f| f.message.contains("math:DimensionalInhomogeneity")),
-            "the reason-verify gate must be the sole homogeneity enforcement path: {findings:?}"
+                .any(|f| f.code == "verify.dimensional-inhomogeneity"),
+            "the reasoner-derived reason-verify gate must now be the sole homogeneity enforcement path: {:?}",
+            report
+                .findings
+                .iter()
+                .map(|f| f.code.as_str())
+                .collect::<Vec<_>>()
         );
     }
 
@@ -4233,6 +4752,155 @@ mod tests {
                 .any(|e| e.contains("math:UnliftableIngest")),
             "an ingest run that lifts a structured math: codomain must NOT raise \
              math:UnliftableIngest; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_fires_when_trigger_has_no_structured_child() {
+        // A math:MathematicalExpression claiming a computable normal form
+        // (math:normalForm) but carrying none of the four structured-child edges is
+        // represented only by a string: the claim is unwarranted.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression ;\n\
+               math:normalForm ex:nf .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")
+                    && e.contains("https://example.org/expr")),
+            "a math:MathematicalExpression with a trigger edge and no structured-child edge \
+             must raise math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_clean_when_trigger_has_structured_child() {
+        // The same trigger edge (math:normalForm), but this time backed by a
+        // structured-child edge (math:argumentSlot): the computable claim is warranted,
+        // so the gate must stay clean.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression ;\n\
+               math:normalForm ex:nf ;\n\
+               math:argumentSlot ex:arg0 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")),
+            "a math:MathematicalExpression with a trigger edge AND a structured-child edge \
+             must NOT raise math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_clean_when_no_trigger_edge() {
+        // No trigger edge at all: the expression makes no computable claim, so the gate
+        // is out of scope regardless of structured-child edges (none here either).
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")),
+            "a math:MathematicalExpression with no trigger edge must NOT raise \
+             math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_fires_when_observation_names_a_result_with_no_vantage() {
+        // A gmeow:Observation naming a result through gmeow:observationResult but
+        // carrying no gmeow:vantage is an unconditional property claim, never a held
+        // observation: math:UngroundedResultClaim. This is a genuine cross-node
+        // obligation over gmeow:Observation/gmeow:observationResult/gmeow:vantage, none
+        // of which is math:-specific, so it carries no generated/-dependent SHACL twin
+        // (the sole gate is this native Rust check).
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")
+                    && e.contains("https://example.org/obs")),
+            "an Observation naming a result with no vantage must raise \
+             math:UngroundedResultClaim; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_clean_when_observation_carries_a_vantage() {
+        // The same result claim, but this time the Observation carries a gmeow:vantage:
+        // the claim is held BY that vantage, so the gate must stay clean.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result ;\n\
+               gmeow:vantage ex:analyst .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")),
+            "an Observation naming a result AND carrying a vantage must NOT raise \
+             math:UngroundedResultClaim; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_fires_under_a_non_default_namespace() {
+        // Namespace-derivation regression: `check_ungrounded_result_claim` must derive its
+        // gmeow:observationResult / gmeow:vantage / gmeow:Observation terms from
+        // `cfg.namespace`, exactly like every sibling lookup in
+        // `structural_lint_dataset` — never a hardcoded
+        // `https://blackcatinformatics.ca/gmeow/` constant. `cfg()`'s default
+        // namespace IS that constant, so a test built only against `cfg()` cannot
+        // distinguish "derived from cfg" from "hardcoded" — this test uses a
+        // DIFFERENT namespace for both the config and the data to prove the gate
+        // still fires.
+        let other_ns = "https://example.org/other-gmeow/";
+        let other_cfg = LintConfig {
+            namespace: other_ns.to_owned(),
+            ontology_iri: "https://example.org/other-gmeow".to_owned(),
+            ..cfg()
+        };
+        let ds = dataset_from(&format!(
+            "@prefix gmeow: <{other_ns}> .\n\
+             @prefix ex: <http://example.org/math/> .\n\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &other_cfg);
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")),
+            "an Observation naming a result with no vantage under a NON-default \
+             namespace must still raise math:UngroundedResultClaim; errors: {:?}",
             report.errors()
         );
     }

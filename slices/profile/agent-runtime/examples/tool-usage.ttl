@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ5 fixture — passive capability use versus delegation, discriminated
+# structurally with no wrapper class (INHABITED-RUNTIME-STACK.md §CQ5). The
+# invocation exercises a PASSIVE capability (a gmeow:usedCapability edge to a
+# logic:ActionSchema — an internal sort routine), while a separate gmeow:ToolCall
+# DELEGATES to a distinct gmeow:SoftwareAgent (a web-search service) via
+# gmeow:usedTool. The two halves are owned by two different extensions —
+# gmeow:usedCapability by extensions/model-serving, gmeow:ToolCall /
+# gmeow:usedTool by extensions/agentic — which is why the scene lives in the
+# PROFILE that selects both (Principle 16: neither extension may depend on the
+# other, and the profile mints nothing).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/> .
+
+# Passive capability: an invocation exercises an internal ActionSchema, no agent.
+ex:invSort a gmeow:ModelInvocation ;
+    gmeow:usedCapability ex:sortSchema .
+ex:sortSchema a logic:ActionSchema .
+
+# Delegation: a tool call hands off to a distinct SoftwareAgent.
+ex:tcSearch a gmeow:ToolCall ;
+    gmeow:usedTool ex:webSearchAgent .
+ex:webSearchAgent a gmeow:SoftwareAgent .

@@ -284,7 +284,7 @@ fn render_every_format(
 /// sourced ENTIRELY from THIS run's in-memory upstream products — never a
 /// disk read of `generated/catalog/*.nq` or `generated/schemas/*.json`
 /// (the stale-disk-fold class; those files do not exist at all until a prior
-/// `make sync` has materialized them, and this module never writes to disk).
+/// `make check` has materialized them, and this module never writes to disk).
 /// The one on-disk-adjacent call, [`crate::stages::constraint_catalog::render_constraint_catalog`],
 /// is a pure function of the AUTHORED sources (root ontology + slice
 /// modules), not a read of the generated projection, so it needs no upstream
@@ -457,7 +457,7 @@ fn source_snippets(site: &BTreeMap<String, Vec<u8>>) -> Result<BTreeMap<String, 
 /// The rendered Pydantic model package — THIS run's in-memory
 /// `stage-export-pydantic` product artifacts, never a disk read (that
 /// producer's committed-tree sibling, `pydantic::render_models_python_package`,
-/// is documented as "the standalone `make sync SYNC_OUTPUTS=docs` entry" that
+/// is documented as "the standalone `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` entry" that
 /// requires an already-materialized `generated/shapes` tree; this module has
 /// the fresher, in-memory bytes already, from the same run that fed Design C).
 fn pydantic_docs_tree(
@@ -492,6 +492,12 @@ fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, St
     let registry = crate::registry::default_registry();
     let bound = crate::loader::bind(&spec, &graph, &registry)?;
     let mut ctx = crate::scheduler::RunContext::open_uncached(root, jobs);
+    // This module reads INTERMEDIATE carriers after the DAG finishes — the terminal
+    // dataset comes off `stage-snapshot`'s bundle, and `stage-snapshot` has declared
+    // consumers — so it explicitly retains every carrier. `run_full` selects
+    // `DropAfterLastConsumer` instead; both produce the identical products, they differ
+    // only in what stays resident once the last consumer has run.
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::RetainAll;
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
     Ok(result.products)
 }

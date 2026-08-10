@@ -478,14 +478,133 @@ fn declares_node_shape(path: &Path) -> bool {
         .is_some()
 }
 
+/// `gmeow:saFailWitness` — a `gmeow:StructuralAssertion`'s registered slice-relative
+/// fail-witness fixture: the file that must TRIP the ban, proving it is not vacuous.
+const GMEOW_SA_FAIL_WITNESS: &str = "https://blackcatinformatics.ca/gmeow/saFailWitness";
+/// `gmeow:exampleFile` — a `gmeow:ExampleConformance` cell's slice-relative fixture.
+const GMEOW_EXAMPLE_FILE: &str = "https://blackcatinformatics.ca/gmeow/exampleFile";
+/// `gmeow:expectedOutcome` — the cell's expected verdict.
+const GMEOW_EXPECTED_OUTCOME: &str = "https://blackcatinformatics.ca/gmeow/expectedOutcome";
+/// `gmeow:violates` — the fail expectation. A cell expecting this IS a fail-witness.
+const GMEOW_VIOLATES: &str = "https://blackcatinformatics.ca/gmeow/violates";
+/// `gmeow:ExampleConformance` — the declarative example-conformance cell class.
+const GMEOW_EXAMPLE_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/ExampleConformance";
+
+/// Every fixture `slice_dir` REGISTERS as a fail-witness, as absolute paths.
+///
+/// Two registrations count, because the repo has two declarative ways to say "this file is
+/// evidence that a rule has teeth":
+///
+/// * a `gmeow:StructuralAssertion` with `gmeow:saFailWitness "<slice-relative path>"` — the
+///   registration the hand-authored-shape ban itself uses; and
+/// * a `gmeow:ExampleConformance` cell with `gmeow:expectedOutcome gmeow:violates` and
+///   `gmeow:exampleFile "<slice-relative path>"`.
+///
+/// A cell expecting `gmeow:conforms` is NOT a fail-witness and confers no exemption.
+fn registered_fail_witnesses(slice_dir: &Path) -> std::collections::BTreeSet<PathBuf> {
+    let mut out = std::collections::BTreeSet::new();
+    let Ok(entries) = std::fs::read_dir(slice_dir.join("tests")) else {
+        return out;
+    };
+    let mut cells: Vec<PathBuf> = entries
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("ttl"))
+        .collect();
+    cells.sort();
+    for cell in cells {
+        let Ok(bytes) = std::fs::read(&cell) else {
+            continue;
+        };
+        let Ok(ds) = parse_dataset(&bytes, "text/turtle", None) else {
+            continue;
+        };
+        if let Some(p) = ds.term_id_by_value(&TermValue::iri(GMEOW_SA_FAIL_WITNESS)) {
+            for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
+                if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                    out.insert(slice_dir.join(lexical));
+                }
+            }
+        }
+        let (Some(ty), Some(cls), Some(outcome), Some(violates), Some(file)) = (
+            ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
+            ds.term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_CONFORMANCE)),
+            ds.term_id_by_value(&TermValue::iri(GMEOW_EXPECTED_OUTCOME)),
+            ds.term_id_by_value(&TermValue::iri(GMEOW_VIOLATES)),
+            ds.term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_FILE)),
+        ) else {
+            continue;
+        };
+        for cell_quad in ds.quads_for_pattern(None, Some(ty), Some(cls), GraphMatch::Any) {
+            let expects_violation = ds
+                .quads_for_pattern(
+                    Some(cell_quad.s),
+                    Some(outcome),
+                    Some(violates),
+                    GraphMatch::Any,
+                )
+                .next()
+                .is_some();
+            if !expects_violation {
+                continue;
+            }
+            for q in ds.quads_for_pattern(Some(cell_quad.s), Some(file), None, GraphMatch::Any) {
+                if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                    out.insert(slice_dir.join(lexical));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// The enclosing slice directory of `start` (the nearest ancestor carrying a
+/// `manifest.ttl`), or `None` when the path is outside any slice.
+fn enclosing_slice_dir(start: &Path) -> Option<PathBuf> {
+    let mut cursor = if start.is_dir() {
+        Some(start.to_path_buf())
+    } else {
+        start.parent().map(Path::to_path_buf)
+    };
+    while let Some(dir) = cursor {
+        if dir.join("manifest.ttl").is_file() {
+            return Some(dir);
+        }
+        cursor = dir.parent().map(Path::to_path_buf);
+    }
+    None
+}
+
 /// Recursively collect every AUTHORED `.ttl` file under `dir` that declares at least one
 /// `sh:NodeShape` — the legacy-shape scan universe. Generated projections (`generated/`),
 /// build artifacts (`target/`), and hidden directories (`.git`, `.worktrees`, …) are never
 /// authored surfaces and are excluded. A `dir` that is itself a single `.ttl` file scopes the
 /// scan to exactly that file.
+///
+/// A `counter-examples/` file is exempt ONLY when the slice REGISTERS it as a fail-witness
+/// (see [`registered_fail_witnesses`]). The reason for any exemption at all is sound — a
+/// slice proves its no-hand-authored-shapes ban is non-vacuous by committing a fixture that
+/// DOES hand-author a node shape, and sweeping that fixture into the live universe would
+/// mean the only way to keep the scan clean is to leave the ban unwitnessed. But a blanket
+/// directory exclusion buys that at the price of a hole: ANY hand-authored shape parked in
+/// ANY slice's `counter-examples/` becomes invisible to the projection-purity gate,
+/// registered or not. Keying on the registration keeps the evidence and closes the hole.
 fn collect_legacy_shape_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    let witnesses = enclosing_slice_dir(dir)
+        .map(|slice| registered_fail_witnesses(&slice))
+        .unwrap_or_default();
+    walk_legacy_shape_files(dir, &witnesses, out);
+}
+
+fn walk_legacy_shape_files(
+    dir: &Path,
+    witnesses: &std::collections::BTreeSet<PathBuf>,
+    out: &mut Vec<PathBuf>,
+) {
     if dir.is_file() {
-        if dir.extension().and_then(|e| e.to_str()) == Some("ttl") && declares_node_shape(dir) {
+        if dir.extension().and_then(|e| e.to_str()) == Some("ttl")
+            && !witnesses.contains(dir)
+            && declares_node_shape(dir)
+        {
             out.push(dir.to_path_buf());
         }
         return;
@@ -495,14 +614,23 @@ fn collect_legacy_shape_files(dir: &Path, out: &mut Vec<PathBuf>) {
     };
     let mut entries: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     entries.sort();
+    // Entering a slice re-seeds the registry: a scan rooted at `slices/` must judge each
+    // slice's fixtures against THAT slice's own registrations, never against the first
+    // slice it happened to reach.
+    let slice_witnesses = dir
+        .join("manifest.ttl")
+        .is_file()
+        .then(|| registered_fail_witnesses(dir));
+    let witnesses = slice_witnesses.as_ref().unwrap_or(witnesses);
     for path in entries {
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
         if path.is_dir() {
             if name == "generated" || name == "target" || name.starts_with('.') {
                 continue;
             }
-            collect_legacy_shape_files(&path, out);
+            walk_legacy_shape_files(&path, witnesses, out);
         } else if path.extension().and_then(|e| e.to_str()) == Some("ttl")
+            && !witnesses.contains(&path)
             && declares_node_shape(&path)
         {
             out.push(path);
@@ -1266,12 +1394,16 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
 
 // ─── Block classification + subsumption-lattice pre-analysis (the shape-lift report tail) ───
 
-const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-/// The merged authored `rdfs:subClassOf` hierarchy: the DIRECT named-class superclass edges
+/// The merged authored class-subsumption hierarchy: the DIRECT named-class superclass edges
 /// read from the root ontology plus every slice `module.ttl` (the same authored surfaces the
 /// sibling loaders [`class_owner_modules`] / [`object_property_iris`] parse), and its
 /// transitive closure. Blank-node class expressions (restrictions) are never hierarchy edges.
+///
+/// An edge counts under EITHER spelling of the subsumption predicate
+/// ([`gmeow_ns::SUB_CLASS_OF`]) — the canonical `logic:subClassOf` and its `rdfs:`
+/// projection. A slice re-authored onto the canonical spelling carries no `rdfs:`
+/// edge at all, so an `rdfs:`-only read would silently report a FLAT hierarchy for
+/// it and the lattice pre-analysis would miss every real target overlap.
 struct ClassHierarchy {
     /// class IRI → its DIRECT named superclasses.
     direct: BTreeMap<String, std::collections::BTreeSet<String>>,
@@ -1323,12 +1455,14 @@ impl ClassHierarchy {
         let mut direct: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
         for m in modules {
             let Ok(ds) = parse_ttl_file(&m) else { continue };
-            let Some(sco) = ds.term_id_by_value(&TermValue::iri(RDFS_SUBCLASSOF)) else {
-                continue;
-            };
-            for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
-                if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
-                    direct.entry(s.to_owned()).or_default().insert(o.to_owned());
+            for predicate in gmeow_ns::SUB_CLASS_OF {
+                let Some(sco) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
+                    continue;
+                };
+                for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
+                    if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                        direct.entry(s.to_owned()).or_default().insert(o.to_owned());
+                    }
                 }
             }
         }
@@ -2551,7 +2685,7 @@ fn splice_out_spans(text: &mut String, mut spans: Vec<(usize, usize)>) {
 /// text); the default is a dry-run report. Injection is class-target only — domain/range and
 /// value-keyed grounding need a closure/SPARQL-target authoring step this phase leaves to review.
 ///
-/// After an `--apply` run the caller regenerates (`make sync`) and prunes the now-equivalent
+/// After an `--apply` run the caller regenerates (`make check`) and prunes the now-equivalent
 /// blocks (`shape-migrate --prune`); equivalence is proven by the oracle, never trusted.
 pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
     let root = project_root();
@@ -3245,7 +3379,8 @@ mod tests {
 
         // A synthetic tree: an authored declarer is found; a generated/ declarer and a
         // non-declaring .ttl are not.
-        let tmp = std::env::temp_dir().join(format!("gmeow-shape-scan-{}", std::process::id()));
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
         let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
              <https://ex/S> a sh:NodeShape ; sh:targetClass <https://ex/C> .\n";
         std::fs::create_dir_all(tmp.join("generated")).expect("mkdir");
@@ -3257,8 +3392,7 @@ mod tests {
         )
         .expect("write");
         let mut found = Vec::new();
-        collect_legacy_shape_files(&tmp, &mut found);
-        let _ = std::fs::remove_dir_all(&tmp);
+        collect_legacy_shape_files(tmp, &mut found);
         assert_eq!(found, vec![tmp.join("a.ttl")], "{found:?}");
     }
 
@@ -3308,6 +3442,115 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn only_a_registered_fail_witness_is_exempt_from_the_counter_example_scan() {
+        // Two hand-authored node shapes in the SAME `counter-examples/` directory. One is
+        // registered as a `gmeow:saFailWitness`, one is not. The registration is the whole
+        // difference: a witness that proves the ban has teeth must not be punished by the
+        // scan, and a shape nobody registered must not hide behind that fact.
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
+        let ce = tmp.join("tests/counter-examples");
+        std::fs::create_dir_all(&ce).expect("mkdir");
+        std::fs::write(
+            tmp.join("manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://ex/slice> a gmeow:Slice .\n",
+        )
+        .expect("write manifest");
+        std::fs::write(
+            tmp.join("tests/structural.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://ex/saNoShapes> a gmeow:StructuralAssertion ;\n\
+             \x20\x20gmeow:saFailWitness \"tests/counter-examples/registered.ttl\" .\n",
+        )
+        .expect("write structural");
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/S> a sh:NodeShape ; sh:targetClass <https://ex/C> .\n";
+        std::fs::write(ce.join("registered.ttl"), declarer).expect("write");
+        std::fs::write(ce.join("smuggled.ttl"), declarer).expect("write");
+
+        let mut found = Vec::new();
+        collect_legacy_shape_files(tmp, &mut found);
+
+        assert!(
+            found.contains(&ce.join("smuggled.ttl")),
+            "an UNREGISTERED hand-authored shape in counter-examples/ must be scanned — the \
+             blanket directory exclusion is exactly the hole this closes: {found:?}"
+        );
+        assert!(
+            !found.contains(&ce.join("registered.ttl")),
+            "a REGISTERED gmeow:saFailWitness must stay exempt, or keeping the scan clean \
+             would require leaving the ban unwitnessed: {found:?}"
+        );
+    }
+
+    #[test]
+    fn a_conforming_example_conformance_fixture_confers_no_exemption() {
+        // `gmeow:expectedOutcome gmeow:conforms` is not a fail-witness: the fixture is
+        // supposed to VALIDATE, so it has no reason to hand-author a shape and registering
+        // it must not buy one an exemption.
+        let tmp_dir = tempfile::tempdir().expect("create temp dir");
+        let tmp = tmp_dir.path();
+        let ce = tmp.join("tests/counter-examples");
+        std::fs::create_dir_all(&ce).expect("mkdir");
+        std::fs::write(
+            tmp.join("manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://ex/slice> a gmeow:Slice .\n",
+        )
+        .expect("write manifest");
+        std::fs::write(
+            tmp.join("tests/example-conformance.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://ex/ecOk> a gmeow:ExampleConformance ;\n\
+             \x20\x20gmeow:exampleFile \"tests/counter-examples/conforming.ttl\" ;\n\
+             \x20\x20gmeow:expectedOutcome gmeow:conforms .\n\
+             <https://ex/ecBad> a gmeow:ExampleConformance ;\n\
+             \x20\x20gmeow:exampleFile \"tests/counter-examples/violating.ttl\" ;\n\
+             \x20\x20gmeow:expectedOutcome gmeow:violates .\n",
+        )
+        .expect("write cells");
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/S> a sh:NodeShape ; sh:targetClass <https://ex/C> .\n";
+        std::fs::write(ce.join("conforming.ttl"), declarer).expect("write");
+        std::fs::write(ce.join("violating.ttl"), declarer).expect("write");
+
+        let mut found = Vec::new();
+        collect_legacy_shape_files(tmp, &mut found);
+
+        assert!(
+            found.contains(&ce.join("conforming.ttl")),
+            "a cell expecting gmeow:conforms is not a fail-witness and confers no \
+             exemption: {found:?}"
+        );
+        assert!(
+            !found.contains(&ce.join("violating.ttl")),
+            "a cell expecting gmeow:violates IS a fail-witness: {found:?}"
+        );
+    }
+
+    #[test]
+    fn the_shipped_hand_authored_shape_witness_is_registered_and_exempt() {
+        // The one real fixture the exemption exists for, proved against the shipped tree
+        // rather than a synthetic one: a rename or a dropped `gmeow:saFailWitness` line
+        // must make this fail rather than quietly re-including the witness.
+        let slice = repo_root().join("slices/core/work-orchestration");
+        let witness = slice.join("tests/counter-examples/hand-authored-shape.ttl");
+        assert!(
+            declares_node_shape(&witness),
+            "the witness must actually hand-author a shape, or it proves nothing"
+        );
+        assert!(
+            registered_fail_witnesses(&slice).contains(&witness),
+            "the shipped hand-authored-shape witness must be REGISTERED, not exempted by \
+             the directory it sits in"
+        );
+        let mut found = Vec::new();
+        collect_legacy_shape_files(&slice, &mut found);
+        assert!(!found.contains(&witness), "{found:?}");
     }
 
     // ── Semantic clearance matrix: sh:xone beside a projected declarative peer ──
@@ -3840,6 +4083,62 @@ mod tests {
                 .insert((*sup).to_owned());
         }
         ClassHierarchy::from_direct(direct)
+    }
+
+    /// `ClassHierarchy::load` reads BOTH spellings of the subsumption predicate,
+    /// so a slice re-authored onto the canonical `logic:subClassOf` is not seen as
+    /// a FLAT hierarchy.
+    ///
+    /// The blinding regression this pins: an `rdfs:`-only read returned no edges
+    /// at all for a converted slice, so `focus_overlaps` / `target_covers` found
+    /// no class-target overlap and the lattice pre-analysis reported a clean
+    /// lattice over a hierarchy it simply could not see.
+    #[test]
+    fn class_hierarchy_load_reads_both_subsumption_spellings() {
+        let tmp_dir = tempfile::Builder::new()
+            .prefix("gmeow-class-hierarchy-")
+            .tempdir()
+            .expect("create temp dir");
+        let tmp = tmp_dir.path();
+        let canonical = tmp.join("slices").join("canonical");
+        let projected = tmp.join("slices").join("projected");
+        std::fs::create_dir_all(&canonical).expect("mkdir");
+        std::fs::create_dir_all(&projected).expect("mkdir");
+
+        // A slice authored entirely in the CANONICAL spelling — no `rdfs:` edge.
+        std::fs::write(
+            canonical.join("module.ttl"),
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             <https://ex/Cat> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Animal> .\n\
+             <https://ex/Animal> logic:subClassOf <https://ex/Organism> .\n\
+             <https://ex/Blank> logic:subClassOf [ <https://ex/p> <https://ex/v> ] .\n",
+        )
+        .expect("write");
+        // A slice still authored in the projected spelling — must keep working.
+        std::fs::write(
+            projected.join("module.ttl"),
+            "<https://ex/Rock> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://ex/Mineral> .\n",
+        )
+        .expect("write");
+
+        let hier = ClassHierarchy::load(tmp);
+
+        assert!(
+            hier.class_covers("https://ex/Animal", "https://ex/Cat"),
+            "a direct `logic:subClassOf` edge is a hierarchy edge"
+        );
+        assert!(
+            hier.class_covers("https://ex/Organism", "https://ex/Cat"),
+            "the canonical edges saturate transitively"
+        );
+        assert!(
+            hier.class_covers("https://ex/Mineral", "https://ex/Rock"),
+            "the projected spelling still loads"
+        );
+        assert!(
+            !hier.direct.contains_key("https://ex/Blank"),
+            "a blank-node class expression is never a hierarchy edge"
+        );
     }
 
     #[test]

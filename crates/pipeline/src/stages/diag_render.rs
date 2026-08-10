@@ -108,6 +108,99 @@ fn text_artifact(mut text: String) -> Vec<u8> {
     text.into_bytes()
 }
 
+/// The CANONICAL form of a diagnostics report for self-attestation: exactly the value
+/// [`gmeow_errors::render::to_json`] serializes into the committed JSON artifact
+/// ([`Report::normalized`]), with the self-referential digest entry `key` removed.
+///
+/// This function exists so the fold has ONE definition of "the record's content", and so
+/// that definition is the RENDERED one. A digest taken over the pre-render report is a
+/// digest of a value no consumer ever sees: `to_json` writes `report.normalized()`, which
+/// sorts findings by [`gmeow_errors::Finding::sort_key`], sorts each finding's inner
+/// vectors, and sorts + DEDUPLICATES rules. A producer that pushes one rule per firing
+/// therefore writes fewer rules than it folded, and a producer that appends findings in
+/// arrival order writes them in a different order than it folded — either alone makes the
+/// writer's digest disagree with every reader's.
+fn canonical_record(report: &Report, key: &str) -> Report {
+    let mut canonical = report.normalized();
+    canonical.metadata.remove(key);
+    canonical
+}
+
+/// The digest a diagnostics report carries over its OWN recorded content, under the
+/// metadata `key` that carries it.
+///
+/// Folded over the serialized [`canonical_record`] rather than the raw file bytes, so it
+/// is invariant to JSON whitespace and key-order rendering while remaining sensitive to
+/// every value a consumer reads. `key`'s own entry is excluded for the obvious reason
+/// that it cannot digest itself.
+///
+/// This is the SINGLE fold: [`render_diagnostics_artifacts`] stamps it as the last
+/// mutation before the renderers run, and [`verify_record_digest`] recomputes it on the
+/// consumer side. Neither has a private copy.
+///
+/// # Errors
+/// If the canonical record fails to serialize — a serde regression, never a data
+/// condition.
+pub fn record_digest(report: &Report, key: &str) -> Result<String, gmeow_errors::Diag> {
+    let canonical = canonical_record(report, key);
+    let bytes = serde_json::to_vec(&canonical).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("digesting the recorded {} verdict: {e}", canonical.tool),
+        })
+    })?;
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-diagnostics-record-v1\x1e");
+    hasher.update(key.as_bytes());
+    hasher.update(b"\x1e");
+    hasher.update(&bytes);
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+/// Admit `recorded` only if it carries a `key` metadata entry AND its content folds to
+/// that value — the integrity half of the recorded-verdict contract, paired with the
+/// freshness half a caller checks against an input digest.
+///
+/// `origin` names the record in the diagnostic (its path, for a disk read). It lives
+/// beside [`record_digest`] and [`render_diagnostics_artifacts`] so the fold that WRITES
+/// the digest and the fold that CHECKS it are literally the same call and cannot drift.
+///
+/// # Errors
+/// If the record carries no `key` metadata (unattestable content), or if its content does
+/// not fold to the declared value (edited after production). Neither is a skip and
+/// neither is a pass.
+pub fn verify_record_digest(
+    recorded: &Report,
+    key: &str,
+    origin: &str,
+) -> Result<(), gmeow_errors::Diag> {
+    let declared = recorded
+        .metadata
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "the recorded diagnostics verdict at {origin} carries no {key} metadata, so \
+                     its own content cannot be attested — an edited verdict would be \
+                     indistinguishable from a produced one. Regenerate it (`make check`)"
+                ),
+            })
+        })?
+        .to_owned();
+    let live = record_digest(recorded, key)?;
+    if live != declared {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "the recorded diagnostics verdict at {origin} does not match its own {key}: it \
+                 declares {declared} but its recorded findings and metadata fold to {live}. The \
+                 record has been edited after it was produced — regenerate it (`make check`); an \
+                 edited verdict is never accepted"
+            ),
+        }));
+    }
+    Ok(())
+}
+
 /// Render the four committed diagnostics projections for `report`, keyed by the
 /// supplied `paths`. `stage` names the producing stage for error attribution.
 ///
@@ -119,12 +212,22 @@ fn text_artifact(mut text: String) -> Vec<u8> {
 /// graph. json / sarif / html / nq all then render from the ENRICHED report + the
 /// derived meta N-Quads. A producer with no meta-rules passes `None` and the
 /// projection stays byte-unchanged.
+///
+/// `seal` names the metadata key under which the report's SELF-digest
+/// ([`record_digest`]) is stamped, for a producer whose record a consumer reads back
+/// instead of re-running the pass. The stamp is applied HERE — after enrichment, as the
+/// last mutation before any renderer runs — because the digest must attest the content
+/// that is actually written. A producer whose record nobody reads back passes `None` and
+/// its projections are byte-unchanged. Only the JSON projection is affected when it IS
+/// stamped: `to_gmeow_rdf` projects findings and ignores metadata entirely, and the SARIF
+/// surface reads only the `category` metadata key.
 pub fn render_diagnostics_artifacts(
     stage: &str,
     report: &Report,
     paths: &DiagnosticsPaths<'_>,
     gate: Option<&crate::stages::gate_verdict::GateProgram>,
     meta: Option<&crate::stages::meta_findings::MetaProgram>,
+    seal: Option<&str>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let stage_err = |what: &str, detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -155,6 +258,24 @@ pub fn render_diagnostics_artifacts(
     });
     let report = enriched.as_ref().unwrap_or(report);
 
+    // SEAL the verdict: the last mutation before the renderers run. Everything above —
+    // the caller's own span enrichment and advisory wings, plus the meta-fold enrichment
+    // just applied — is already in the report, so the stamped digest attests EXACTLY the
+    // content the committed JSON carries. Folded through `record_digest`, which digests
+    // the RENDERED (normalized) form, so the value a consumer recomputes off the parsed
+    // file is the value written here.
+    let sealed = seal
+        .map(|key| -> Result<Report, gmeow_errors::Diag> {
+            let mut sealed = report.clone();
+            let digest = record_digest(&sealed, key)?;
+            sealed
+                .metadata
+                .insert(key.to_owned(), serde_json::Value::String(digest));
+            Ok(sealed)
+        })
+        .transpose()?;
+    let report = sealed.as_ref().unwrap_or(report);
+
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(
         paths.json.to_owned(),
@@ -182,9 +303,11 @@ pub fn render_diagnostics_artifacts(
     // gate() morphism) over the projected finding grades and fold the derived
     // gmeow:findingGateVerdict gmeow:gateFatal triples in BEFORE canonicalization, so
     // both the byte artifact and the carrier graph carry the entailment and the
-    // gmeow:GateFatalUpsetShape passes under validate-gts. Producers whose findings can
-    // never join the up-set (e.g. the logic-compiler's Note-severity lossy drops) pass
-    // `None` and the projection is byte-unchanged.
+    // gmeow:GateFatalUpsetShape passes under the authored-source `make validate` /
+    // stage-validate SHACL pass (the shipped-bundle subset is independently covered by
+    // the `norm_claims_shacl` test). Producers whose findings can never join the up-set
+    // (e.g. the logic-compiler's Note-severity lossy drops) pass `None` and the
+    // projection is byte-unchanged.
     if let Some(gate) = gate {
         let derived = gate
             .derived_verdict_nquads(&nq, crate::stages::carrier::GRAPH_DIAGNOSTICS)

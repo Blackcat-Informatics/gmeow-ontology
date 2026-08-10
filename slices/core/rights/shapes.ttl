@@ -1,140 +1,25 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Rights slice SHACL shapes. These mirror the current OWL/prose authoring
-# contracts as the executable data-shape projection. When the logic: authoring
-# layer becomes the sole source for validation projections, this file should be
-# derived from those logic: contracts rather than hand-maintained.
+# Residual closed-world shapes of the rights slice. Under equivalence-before-deletion
+# (design/LOGIC-VALIDATION.md), every fully-grounded shape formerly here (RightsStatement, Rule,
+# LogicalConstraint, Copyright, Trademark, Mark) has been deleted once `gmeow-dev
+# shape-equivalence` proved the projection reproduces it. The two shapes below remain
+# hand-authored residues and carry `logic:formalizes` back-references to their backing
+# logic:Constraint where one exists.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-
-gmeow:RightsStatementShape
-    a sh:NodeShape ;
-    rdfs:label "RightsStatement well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:RightsStatement: every promoted rights statement names the governed asset exactly once, and any attached permissions, prohibitions, duties, conflict strategy, or rights-type values use the rights slice's deontic value classes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:RightsStatement ;
-    sh:property [
-        sh:path gmeow:statementAbout ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A RightsStatement must name exactly one governed asset via gmeow:statementAbout." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasPermission ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Permission ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasPermission values on a RightsStatement must be gmeow:Permission nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasProhibition ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Prohibition ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasProhibition values on a RightsStatement must be gmeow:Prohibition nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasDuty ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Duty ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasDuty values on a RightsStatement must be gmeow:Duty nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:conflictStrategy ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:ConflictStrategy ;
-        sh:severity sh:Violation ;
-        sh:message "A RightsStatement may carry at most one gmeow:conflictStrategy value, and it must be a gmeow:ConflictStrategy." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:rightsType ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:RightsType ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:rightsType values must be gmeow:RightsType individuals." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasDataController ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasDataController values must be gmeow:Agent nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasDataSubject ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasDataSubject values must be gmeow:Agent nodes." ;
-    ] .
-
-gmeow:RuleShape
-    a sh:NodeShape ;
-    rdfs:label "Rule well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for the rights-rule spine: every Permission, Prohibition, or Duty names exactly one regulated gmeow:RightsAction; optional targets, assignees, consequences, constraints, and permission duties stay in the corresponding rights classes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:Rule,
-        gmeow:Permission,
-        gmeow:Prohibition,
-        gmeow:Duty ;
-    sh:property [
-        sh:path gmeow:ruleAction ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:RightsAction ;
-        sh:severity sh:Violation ;
-        sh:message "A rights rule must name exactly one regulated gmeow:RightsAction via gmeow:ruleAction." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:ruleTarget ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A rights rule may override its inherited target at most once via gmeow:ruleTarget." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:ruleAssignee ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:ruleAssignee values must be gmeow:Agent nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:ruleConsequence ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Duty ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:ruleConsequence values must be gmeow:Duty nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:ruleConstraint ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Constraint ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:ruleConstraint values must be gmeow:Constraint nodes." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasDuty ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Duty ;
-        sh:severity sh:Violation ;
-        sh:message "A permission's gmeow:hasDuty values must be gmeow:Duty nodes." ;
-    ] .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:AtomicConstraintShape
     a sh:NodeShape ;
     rdfs:label "AtomicConstraint well-formedness shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for gmeow:AtomicConstraint: each atomic comparison has one left operand, one comparison operator, and exactly one right-hand value, carried either as a literal rightOperand or an IRI rightOperandReference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    logic:formalizes gmeow:AtomicConstraintOperandChoiceConstraint ;
     sh:targetClass gmeow:AtomicConstraint ;
     sh:property [
         sh:path gmeow:leftOperand ;
@@ -185,81 +70,12 @@ gmeow:AtomicConstraintShape
         ]
     ) .
 
-gmeow:LogicalConstraintShape
-    a sh:NodeShape ;
-    rdfs:label "LogicalConstraint well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:LogicalConstraint: a logical constraint has one boolean constraint logic value and combines at least two member constraints."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:LogicalConstraint ;
-    sh:property [
-        sh:path gmeow:constraintLogic ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:ConstraintLogic ;
-        sh:severity sh:Violation ;
-        sh:message "A LogicalConstraint must carry exactly one gmeow:constraintLogic value." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:logicConstraintMember ;
-        sh:minCount 2 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Constraint ;
-        sh:severity sh:Violation ;
-        sh:message "A LogicalConstraint must combine at least two gmeow:Constraint members." ;
-    ] .
-
-gmeow:CopyrightShape
-    a sh:NodeShape ;
-    rdfs:label "Copyright well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:Copyright: every copyright relator binds one protected work and at least one holder, with optional status, year, and notice kept single-valued where the ontology declares them functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:Copyright ;
-    sh:property [
-        sh:path gmeow:copyrightWork ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:InformationObject ;
-        sh:severity sh:Violation ;
-        sh:message "A Copyright must bind exactly one protected gmeow:InformationObject via gmeow:copyrightWork." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:copyrightHolder ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A Copyright must name at least one gmeow:Agent holder via gmeow:copyrightHolder." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:copyrightStatus ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:CopyrightStatus ;
-        sh:severity sh:Violation ;
-        sh:message "A Copyright may carry at most one gmeow:CopyrightStatus value." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:copyrightYear ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:Literal ;
-        sh:severity sh:Violation ;
-        sh:message "A Copyright may carry at most one literal gmeow:copyrightYear value." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:copyrightNotice ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:Literal ;
-        sh:severity sh:Violation ;
-        sh:message "A Copyright may carry at most one literal gmeow:copyrightNotice value." ;
-    ] .
-
 gmeow:LicenseShape
     a sh:NodeShape ;
     rdfs:label "License well-formedness shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for gmeow:License: each license agreement binds one licensed work and at least one licensor, while license-family and SPDX identifier fields remain single-valued when present."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    logic:formalizes gmeow:LicenseLicensorConstraint ;
     sh:targetClass gmeow:License ;
     sh:property [
         sh:path gmeow:licensedWork ;
@@ -306,57 +122,4 @@ gmeow:LicenseShape
         sh:nodeKind sh:Literal ;
         sh:severity sh:Violation ;
         sh:message "A License may carry at most one literal gmeow:spdxLicenseName value." ;
-    ] .
-
-gmeow:TrademarkShape
-    a sh:NodeShape ;
-    rdfs:label "Trademark well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:Trademark: every trademark relator binds one protected mark and at least one holder, while status and registration number remain single-valued when present."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:Trademark ;
-    sh:property [
-        sh:path gmeow:trademarkMark ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Mark ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark must bind exactly one protected gmeow:Mark via gmeow:trademarkMark." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:trademarkHolder ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark must name at least one gmeow:Agent holder via gmeow:trademarkHolder." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:trademarkStatus ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:TrademarkStatus ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark may carry at most one gmeow:TrademarkStatus value." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:registrationNumber ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:Literal ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark may carry at most one literal gmeow:registrationNumber value." ;
-    ] .
-
-gmeow:MarkShape
-    a sh:NodeShape ;
-    rdfs:label "Mark well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:Mark: a word mark's text is optional, but when present it is a single literal attached to the mark rather than the trademark relator."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    sh:targetClass gmeow:Mark ;
-    sh:property [
-        sh:path gmeow:markText ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:Literal ;
-        sh:severity sh:Violation ;
-        sh:message "A Mark may carry at most one literal gmeow:markText value." ;
     ] .

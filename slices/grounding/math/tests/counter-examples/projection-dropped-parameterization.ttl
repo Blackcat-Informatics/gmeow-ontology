@@ -9,6 +9,9 @@
 # projection failure class): a lossy projection declares such a drop as recorded loss
 # rather than performing it silently.
 # Single violation: the dropped parameterization is not enumerated in logic:unsupportedConstruct.
+# The record DOES enumerate an unrelated drop, so math:UndeclaredUnsupportedConstruct — the
+# coarser obligation that a lossy record name SOMETHING — is satisfied, and what remains is
+# exactly the finer claim under test: the parameterization specifically went unrecorded.
 # Back-reference: math:distributionParameterization / math:ProjectionDroppedParameterization (slices/grounding/math/module.ttl).
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -24,4 +27,5 @@ ex:meanStddev a math:DistributionParameterization .
 ex:droppedProjection a math:ProjectionRecord ;
     math:projectionSource ex:normalDistribution ;
     math:projectionTargetName "SciPy stats (family label only)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "dropped the declared support bounds" .

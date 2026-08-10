@@ -52,21 +52,26 @@ Useful lanes:
 make bench           # criterion hot-path benchmark suite, report-only
 make bench-compare   # live criterion run compared to bench/baseline.json
 make rust-test       # always-on Rust correctness gate
-make check           # synchronize outputs, then run the evidence-complete impact gate
-make check-full      # synchronize outputs, then physically run every local gate task
+make check           # synchronize outputs, then run the local gate DAG (every task)
+make heavy           # CI-ONLY breadth lane (wasm parity, transpile acceptance, golden soak)
 ```
 
-Impact selection is proof reuse, not capability degradation. A reused task must
-come from a GitHub-attested successful `main`-push receipt matching the exact base
-commit/tree, current task registry, and toolchain contract. The complete local diff
-is then classified conservatively; unknown paths and Rust/tooling changes select
-the full registry. If receipt discovery, signature verification, or any contract
-check fails, `make check` automatically executes `make check-full` semantics.
-`--explain` and `--timings-json` are observational surfaces only and never enter
-artifacts, cache keys, or correctness decisions.
+`make check` runs every task in its DAG on every invocation; the gate's wall time
+comes from scheduling, not from selection. Each task declares `sync` as a
+prerequisite only when it genuinely reads a `generated/` artifact, so the gates over
+authored sources start in the first wave, and the Rust surface runs as four
+concurrent siblings under one `rust-build` instead of one serial node. `--explain`
+prints that wave plan without running anything (and without taking the host gate
+lock); `--timings-json` records per-task wall time. Both are observational surfaces
+only and never enter artifacts, cache keys, or correctness decisions.
+
+`make heavy` carries the lanes whose cost is set by breadth or by repetition rather
+than by the change under test. It is CI-only by construction (it hard-fails without
+`CI=true` plus a CI-vendor marker) and runs on every PR, so moving a task there is a
+scheduling decision and never a coverage cut.
 
 Local `make check` owns update-mode synchronization, so a developer does not need
-to run `make sync` first. The whole-run manifest makes a clean fixed point a fast
+to run `make check` first. The whole-run manifest makes a clean fixed point a fast
 no-op; after relevant source changes, check pays the one required regeneration.
 CI invokes the internal `make check-sync` target in read-only mode so committed
 drift remains a hard failure.
@@ -210,7 +215,7 @@ Performance changes must not change output order accidentally.
   boundary or using a fixed-seed deterministic hasher where appropriate.
 - Keep first-wins rules explicit. If an optimized join changes first-wins behavior,
   it is a semantic change and needs a golden/parity update with explanation.
-- Keep generated artifact diffs reproducible through `make sync`.
+- Keep generated artifact diffs reproducible through `make check`.
 
 ## Build Profile Doctrine
 
@@ -238,7 +243,8 @@ gate:
   needed from one closure; use `make reason` or `make verify` to isolate one side.
 - Validation behavior: focused `gmeow-validate` / `gmeow-shacl` tests, then
   `make validate`.
-- Generated-output behavior: `make sync` followed by `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`.
+- Generated-output behavior: `make check` (it materializes through the single
+  producer and then gates the result — never a separate regenerate pass first).
 - Final branch confidence: `make check`.
 
 If the change is intentionally performance-only, the semantic output should be

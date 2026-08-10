@@ -1,0 +1,18 @@
+# Competency question: "Which norms classes are open VALUE vocabularies a
+# consumer attaches, rather than sortals to specialize?"
+#
+# The deontic machinery is only interoperable if its axes are values: a
+# consumer who subclasses gmeow:DeonticModality instead of attaching one of its
+# individuals forks the obligation vocabulary and breaks every downstream join.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?vocabulary WHERE {
+    VALUES ?vocabulary {
+        gmeow:AuthorityLevel
+        gmeow:DeonticModality
+    }
+    ?vocabulary a logic:AbstractIndividualType .
+}
+ORDER BY ?vocabulary

@@ -16,7 +16,7 @@
 //! read off disk"); this module extends the SAME law to the shape-union consumers —
 //! `stage-export-json-schema`, `stage-export-pydantic`, and `stage-validate` — through
 //! ONE fresh-union implementation, so a shape-source edit reaches every derived
-//! surface in a single `make sync`.
+//! surface in a single `make check`.
 //!
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
 //! the ordered `shape_files` file list, per-file Turtle parse via
@@ -35,6 +35,7 @@ use purrdf::shapes::text_ingest::extract_prefixes;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::node::StageProduct;
+use crate::stages::validate::ShaclInputMember;
 
 /// The repo-relative prefix of the produced shape-union members.
 const GENERATED_SHAPES_PREFIX: &str = "generated/shapes/";
@@ -232,6 +233,47 @@ pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeo
     let mut files = authored_base_shape_files(root)?;
     files.extend(authored_slice_shape_files(root)?);
     Ok(files)
+}
+
+/// The EFFECTIVE shape-union member set as `(repo-relative path, member)` — exactly the
+/// bytes [`load_shapes_fresh`] parses, in the same order: authored `shapes/*.ttl` and
+/// `slices/*/*/shapes.ttl` named as on-disk members, generated members BORROWED from
+/// THIS run's product bytes. No member's bytes are read or copied here; the digest fold
+/// resolves each one in turn and releases it (see [`ShaclInputMember`]).
+///
+/// This is the shape half of `stage-validate`'s recorded input digest
+/// ([`crate::stages::validate::shacl_input_digest`]). Because the generated members
+/// come from the product and not from `generated/shapes/*.ttl` on disk, a consumer
+/// that recomputes the digest over its own DISK view detects committed-shape drift —
+/// the one capability the removed duplicate whole-corpus SHACL run uniquely had.
+///
+/// # Errors
+/// If the authored member list cannot be built, or a `fresh` key does not lie under
+/// `generated/shapes/`.
+pub fn effective_union_members<'a>(
+    root: &Path,
+    fresh: &'a BTreeMap<String, Vec<u8>>,
+) -> Result<Vec<(String, ShaclInputMember<'a>)>, gmeow_errors::Diag> {
+    for key in fresh.keys() {
+        if !key.starts_with(GENERATED_SHAPES_PREFIX) {
+            return Err(parse_err(format!(
+                "fresh shape-union member {key} does not lie under \
+                 {GENERATED_SHAPES_PREFIX} — only produced generated members may be \
+                 byte-overridden"
+            )));
+        }
+    }
+    let mut out: Vec<(String, ShaclInputMember<'a>)> = Vec::new();
+    for path in authored_shape_files(root)? {
+        let rel = crate::stages::validate::digest_member_path(root, &path);
+        out.push((rel, ShaclInputMember::OnDisk(path)));
+    }
+    out.extend(
+        fresh
+            .iter()
+            .map(|(rel, bytes)| (rel.clone(), ShaclInputMember::Resident(bytes.as_slice()))),
+    );
+    Ok(out)
 }
 
 /// Parse the full shape union into ONE frozen [`RdfDataset`] + typed [`Shapes`],

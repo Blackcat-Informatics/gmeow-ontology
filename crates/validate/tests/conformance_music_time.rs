@@ -8,6 +8,12 @@
 //! graphs the Python assembled via `g.add(...)` and validate them against the
 //! whole shapes corpus (`Case::inline`), reproducing the honest in-graph ABox
 //! completion of the referenced canonical `musicalTimeFrameCommon` individual.
+//! Two guards (the start-denominator and meter-carrier cardinality bounds) exercise
+//! a PROJECTED SHACL shape that carries no `sh:message` and is deliberately excluded
+//! from that whole-shapes fixture corpus (`generated/shapes/validation-shapes.ttl`;
+//! see its doc comment on `collect_generated_shapes`), so those two use
+//! `Case::shape_union` (the live production shape union) and assert by path +
+//! constraint component instead of message text.
 
 mod conformance_support;
 use conformance_support::*;
@@ -206,7 +212,13 @@ ex:spanNoFrame gmeow:timeStartDenominator \"1\"^^xsd:integer .
 ex:spanNoFrame gmeow:timeDurationNumerator \"5\"^^xsd:integer .
 ex:spanNoFrame gmeow:timeDurationDenominator \"8\"^^xsd:integer .
 "
-)).fails().violations(&["exactly one MusicalTimeFrame"]))]
+// The generated frame-requirement shape (crates/pipeline/src/stages/frame_shapes.rs,
+// driven by gmeow:requiresFrame/gmeow:frameCardinality on MusicalTimeSpan) emits a
+// generic "must carry exactly one reference frame (<property>)" message for every
+// framed class — not a MusicalTimeSpan-specific "MusicalTimeFrame" phrasing; that
+// exact wording is pinned by its own dedicated test
+// (crates/pipeline/src/stages/frame_shapes.rs, the CharacterArc case).
+)).fails().violations(&["must carry exactly one reference frame (gmeow:hasMusicalTimeFrame)"]))]
 #[case::musical_time_span_zero_denominator_fails(Case::inline(format!(
     "{PREFIXES}\
 ex:spanZeroDenom a gmeow:MusicalTimeSpan .
@@ -216,7 +228,24 @@ ex:spanZeroDenom gmeow:timeStartDenominator \"0\"^^xsd:integer .
 ex:spanZeroDenom gmeow:timeDurationNumerator \"5\"^^xsd:integer .
 ex:spanZeroDenom gmeow:timeDurationDenominator \"8\"^^xsd:integer .
 {FRAME_COMMON}"
-)).fails().violations(&["positive start denominator"]))]
+))
+// `MusicalTimeSpan`'s positive-start-denominator bound is now projected SHACL
+// derived from the EL-safe `logic:Restriction`/`logic:ValueRangeConstraint` axioms
+// in module.ttl (`generated/shapes/validation-shapes.ttl`), which — like every
+// OWL-restriction-derived cardinality/range shape — carries no `sh:message` (the
+// prose-message convention was retired with the shapes-to-logic migration; see
+// docs/MIGRATING-SHAPES-TO-LOGIC.md). `whole_shapes()` deliberately excludes that
+// file from this fixture corpus (an open-world someValuesFrom reading would
+// over-flag ABox-incomplete fixtures elsewhere in this suite), so exercising this
+// PROJECTED bound requires the live production shape union instead, and the
+// message-less result is asserted by path + constraint component rather than by
+// text (see `Case::fails_on_path`'s doc comment).
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/timeStartDenominator",
+    "MinExclusiveConstraintComponent",
+))]
 #[case::time_mapping_rational_passes(Case::inline(format!(
     "{PREFIXES}\
 ex:tupletValid a gmeow:TimeMapping .
@@ -297,7 +326,18 @@ ex:meterBad a gmeow:MeterAssignment .
 ex:meterBad gmeow:assignedMeter gmeow:metricStructure44 .
 ex:meterBad gmeow:assignmentSpan gmeow:musicalTimeSpanWholeSection .
 "
-)).fails().violations(&["exactly one carrier"]))]
+))
+// `MeterAssignment`'s exactly-one-carrier bound is the same kind of projected,
+// message-less SHACL as the start-denominator bound above (derived from the
+// `owl:Restriction`/`owl:someValuesFrom gmeow:Entity` + qualified-cardinality
+// axioms on `gmeow:meterCarrier` in module.ttl, surfaced only via
+// `generated/shapes/validation-shapes.ttl`) — same fix, same rationale.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/meterCarrier",
+    "MinCountConstraintComponent",
+))]
 #[case::metric_modulation_pivot_format_fails(Case::inline(format!(
     "{PREFIXES}\
 ex:modulationBad a gmeow:MetricModulation .

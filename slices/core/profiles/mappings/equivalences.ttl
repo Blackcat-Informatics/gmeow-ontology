@@ -7,11 +7,9 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Profile ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prof:Profile ;
+gmeow:Profile skos:relatedMatch prof:Profile {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary." ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary."
+|} .

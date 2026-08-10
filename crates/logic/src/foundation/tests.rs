@@ -576,7 +576,9 @@ fn modal_frame_nq(op: &str, atom_worlds: &[&str]) -> String {
          <{base}/w0> <{epi}> <{base}/w2> <{frame}> .\n"
     );
     for w in atom_worlds {
-        nq.push_str(&format!("<{base}/a> <{base}/knows> <{base}/b> <{base}/{w}> .\n"));
+        nq.push_str(&format!(
+            "<{base}/a> <{base}/knows> <{base}/b> <{base}/{w}> .\n"
+        ));
     }
     nq
 }

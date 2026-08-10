@@ -42,9 +42,16 @@ use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, parse_data
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
+/// The grounding namespace. Alignment cells keyed on a `logic:` property are checked
+/// exactly like `gmeow:`-keyed ones: when a domain term is superseded by a grounding
+/// term, its alignments are RE-KEYED onto the grounding spine rather than dropped, and
+/// scoping the check to `gmeow:` subjects would silently stop checking them at precisely
+/// the moment they moved. The `is_property` guard below still applies, so this admits
+/// only cells whose subject is a declared object/datatype property.
+const LOGIC_PREFIX: &str = "logic:";
+
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
@@ -286,7 +293,7 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
 fn referenced_prefixes(mappings: &[Mapping], onto: &DslView<'_>) -> BTreeSet<String> {
     let mut referenced: BTreeSet<String> = BTreeSet::new();
     for m in mappings {
-        if !m.subject_id.starts_with(GMEOW_PREFIX) {
+        if !m.subject_id.starts_with(GMEOW_PREFIX) && !m.subject_id.starts_with(LOGIC_PREFIX) {
             continue;
         }
         let Some(prefix) = prefix_of(&m.object_id) else {
@@ -498,6 +505,13 @@ fn intern_object(
 }
 
 /// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
+///
+/// Only called from [`fetch_target_axioms`], which filters an EXTERNALLY fetched
+/// dataset (BFO/SUMO/…) to quads whose subject is in the *target*'s own namespace —
+/// never GMEOW's authored surface. Those vocabularies only ever speak `rdfs:`, so
+/// the projected spelling alone is correct here; there is no canonical
+/// `logic:subClassOf` to miss (gmeow_ns doctrine + terminal-condition note;
+/// crates/ns/src/lib.rs:106-166).
 fn is_axiom_or_property_type(pred: &str, obj: &TermRef<'_>) -> bool {
     if matches!(
         pred,
@@ -507,11 +521,11 @@ fn is_axiom_or_property_type(pred: &str, obj: &TermRef<'_>) -> bool {
             | SCHEMA_INVERSE_OF
             | SCHEMA_DOMAIN_INCLUDES
             | SCHEMA_RANGE_INCLUDES
-            | RDFS_SUB_CLASS_OF
             | OWL_EQUIVALENT_CLASS
             | OWL_EQUIVALENT_PROPERTY
             | SKOS_EXACT_MATCH
-    ) {
+    ) || pred == gmeow_ns::RDFS_SUB_CLASS_OF
+    {
         return true;
     }
     if pred == RDF_TYPE
@@ -585,7 +599,7 @@ pub fn lint_correspondence_soundness(
     let catalog = if slices_dir.is_dir() {
         Some(SliceCatalog::discover(
             &slices_dir,
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )?)
     } else {
         None

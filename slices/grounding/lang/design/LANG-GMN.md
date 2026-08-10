@@ -481,6 +481,45 @@ vocabulary, cross-checked so an authored value can never drift from the measurem
   `lang:GmnUncostedScriptGlyph`. The two coverage rules close both the feature-value plane and the
   glyph plane against silent gaps.
 
+## The mathematical symbology plane
+
+The `math:` plane of the same shared inventory, scoped by the `@μ` sigil (`gmeow:gmnSigilMath`) so
+a familiar mathematical reading never escapes into an unscoped global alias. It is the one place
+`lang:` names `math:` vocabulary in bulk, and it is registered as the **GMN mathematical-plane
+seam** (`lang:` → `math:`) in the seam registry of
+[`../../logic/manifest.ttl`](../../logic/manifest.ttl); the governing contract is
+[`GROUNDING.md`](../../../../docs/GROUNDING.md).
+
+The plane names `math:` terms; it never re-mints them. `math:` remains the sole authority for what
+a constant, an operation, a number system, an interval endpoint, an order relation, or an SI base
+dimension *is*; GMN decides only how each is **written and priced**. Three predicates carry the
+crossing, and each names the same kind of thing — a `math:` term with an audited symbology ruling:
+
+- **`gmeow:gmnCandidateTarget`** — the audit record. Every `gmeow:GmnSymbolCandidate` on this plane
+  proposes a rendering for exactly one `math:` term and records its measured token cost and its
+  `gmeow:gmnSymbolDisposition`. This is the widest of the three sets, because a rejected or
+  named-key ruling is retained as evidence rather than deleted.
+- **`lang:denotationTarget`** — the executable meaning. Where the ruling adopted a glyph, the
+  `lang:Grapheme` carries a `lang:Denotation` whose target is that `math:` term, pinned to the `@μ`
+  record scope. `π ↦ math:pi`, `+ ↦ math:Addition`, `× ↦ math:Multiplication`, `^ ↦
+  math:Exponentiation`.
+- **`gmeow:gmnDictionaryEntryTerm`** — the named-key binding. Where the measurement rejected the
+  display sign as too expensive under the pinned BPE, the versioned dictionary binds an ASCII alias
+  to the `math:` term instead (`math:Division ↦ div`, `math:HodgeLaplacian ↦ hlap`).
+
+Above the individual signs sits the record-level lens: a well-formed `@μ` record is a **notation
+of** the canonical `math:MathematicalExpression` AST, declared as the grounding correspondence
+`gmeow:eqLangGmnMathNotationAst` in
+[`../mappings/lexical-bridges.ttl`](../mappings/lexical-bridges.ttl) — get = parse, put = render,
+`logic:SubsumedBy` at the honest `logic:SoundUnderApproximation` floor until the executable
+parser/writer discharges the lens laws. The AST is the richer canon and the record its scoped view,
+so `math:MathematicalExpression` rides the same seam as the terms its operators denote.
+
+Magnitudes are the one thing this plane does **not** carry. The codebook's declared rate and the
+per-glyph token costs are dimensioned `math:Quantity` individuals and cross on the separate
+**quantity seam**; keeping them apart is what stops either seam from becoming a general licence to
+name anything in the peer.
+
 ## Decodability is a property of the grammar object
 
 `gmeow:gmnGrammar` carries `gmeow:gmnDeterminismClass "LL(1)"`: the grammar is prefix-stable and

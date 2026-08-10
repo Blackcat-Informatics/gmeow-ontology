@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: graphrag, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexAlgorithm is functional"
+msgstr "indexAlgorithm 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:indexAlgorithm 是函数性的:一个向量索引恰好以一种近似最近邻结构构建,这是构建时确定的单一承诺,决定了该索引的检索方式。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipSource is functional"
+msgstr "relationshipSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relationshipSource 是函数性的:一个抽取出的关系在其尾部恰好有一个实体描述——即该有向边唯一的源端点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipTarget is functional"
+msgstr "relationshipTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relationshipTarget 是函数性的:一个抽取出的关系在其头部恰好有一个实体描述——即该有向边唯一的目标端点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summarizesCommunity is functional"
+msgstr "summarizesCommunity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:summarizesCommunity 是函数性的:一份社区摘要恰好浓缩自一个社区,即该摘要据以生成的那唯一一个簇的成员与分块。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:indexAlgorithm names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:indexAlgorithm 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexAlgorithm, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:indexAlgorithm, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."
+msgstr "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:relationshipSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:relationshipSource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:relationshipSource, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."
+msgstr "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:relationshipTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:relationshipTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relationshipTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:relationshipTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."
+msgstr "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:summarizesCommunity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:summarizesCommunity 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:summarizesCommunity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:summarizesCommunity, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."
+msgstr "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:indexAlgorithm and nothing else. It is not a definition of gmeow:indexAlgorithm (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:indexAlgorithm 的一项完整性义务，别无其他。它不是 gmeow:indexAlgorithm 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relationshipSource and nothing else. It is not a definition of gmeow:relationshipSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relationshipSource 的一项完整性义务，别无其他。它不是 gmeow:relationshipSource 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relationshipTarget and nothing else. It is not a definition of gmeow:relationshipTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relationshipTarget 的一项完整性义务，别无其他。它不是 gmeow:relationshipTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:summarizesCommunity 的一项完整性义务，别无其他。它不是 gmeow:summarizesCommunity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record which algorithm built a vector index."
+msgstr "用于记录构建向量索引所用的算法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring it from the parameters or omitting it on a rebuilt index."
+msgstr "避免从参数推断，或在重建索引后省略它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one gmeow:IndexAlgorithm value to the index; it is functional."
+msgstr "为索引关联一个 gmeow:IndexAlgorithm 取值；该属性是函数性的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+msgstr "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points FROM."
+msgstr "用于命名抽取关系的起始实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipTarget on a symmetric-looking relation — direction is asserted, not inferred."
+msgstr "在看似对称的关系上避免与 gmeow:relationshipTarget 互换——方向是被断言的，而非推断的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the tail of the relationship; it is functional."
+msgstr "将恰好一个 gmeow:ExtractedEntity 作为该关系的尾端关联；该属性是函数性的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+msgstr "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points TO."
+msgstr "用于命名抽取关系所指向的实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipSource — direction is asserted, not inferred."
+msgstr "避免与 gmeow:relationshipSource 互换——方向是被断言的，而非推断的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the head of the relationship; it is functional."
+msgstr "将恰好一个 gmeow:ExtractedEntity 作为该关系的头端关联；该属性是函数性的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+msgstr "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which community a summary condenses."
+msgstr "用于说明某摘要所浓缩的社区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing one summary at several communities — that is several summaries."
+msgstr "避免让一个摘要指向多个社区——那应是多个摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:Community; it is functional."
+msgstr "恰好关联一个 gmeow:Community；该属性是函数性的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."
+msgstr "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."

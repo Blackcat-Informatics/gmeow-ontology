@@ -1,0 +1,488 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: recommendation RELATIVE TO A COMPARISON CONTEXT, with ties and
+# incomparability preserved rather than broken.
+#
+# The same three remediation options are ranked under three policies. Under
+# "restore service fastest" they order strictly. Under "minimise customer
+# impact" two of them TIE — genuinely equal on every criterion that policy
+# cares about. Under "minimise regulatory exposure" two are INCOMPARABLE: one is
+# better on exposure, the other better on reversibility, and that policy names
+# no rule for trading those against each other.
+#
+# A tie and an incomparability are different facts and must not be collapsed:
+#
+#   Tie             -> "these are equally good; pick either."
+#   Incomparable    -> "this policy does not tell you how to choose; a human
+#                       must decide, and should know that is what they are doing."
+#
+# Flattening either into a total order manufactures a winner the policy never
+# licensed. There is deliberately NO global winner asserted in this file: a
+# recommendation detached from the context that produced it is exactly the kind
+# of advice that later gets cited as authority.
+#
+# All three verdicts are DATA, expressed in the shipped preference apparatus
+# rather than in this comment — no second recommendation model is minted here:
+#
+#   strict order  -> reified gmeow:PreferenceEdge nodes under ONE cell's
+#                    gmeow:PreferenceOrder, plus their bare gmeow:strictlyOver
+#                    reading. Only the two COVERING edges are asserted; the
+#                    third pair is reached by transitivity at read time.
+#   tie           -> gmeow:preferentiallyEquivalentWith, and an observation that
+#                    names no winner because a tie has none.
+#   incomparable  -> gmeow:incomparableWith, standing over two criterion-indexed
+#                    observations under one context that prefer opposite sides.
+#
+# The three slice competency questions cq-context-strict-order, cq-context-tie
+# and cq-context-incomparable read exactly those three shapes back out over this
+# file, so each context's distinct outcome is queryable rather than narrated.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:incidentRemediation a logic:Enactment ;
+    rdfs:label "Incident 4412 remediation"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:remediationRunbookV3 ;
+    logic:enactmentInputSnapshot ex:incident4412State ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:remediationRunbook a logic:Plan ;
+    rdfs:label "Incident remediation runbook"@x-gmeow-english ;
+    logic:planGoal ex:serviceRestored ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+
+ex:serviceRestored a gmeow:Goal ;
+    rdfs:label "Service is restored to normal operation"@x-gmeow-english .
+
+ex:remediationRunbookV3 a logic:PrescriptionVersion ;
+    rdfs:label "Incident remediation runbook, revision 3"@x-gmeow-english ;
+    logic:prescriptionOf ex:remediationRunbook ;
+    logic:prescriptionDigest "b3:71ac05b93e2d846f015c7a90be3d247f186a0c53be9d1740fa26c85b39e0d217" .
+
+ex:incident4412State a logic:InputSnapshot ;
+    rdfs:label "Incident 4412 state at the point of decision"@x-gmeow-english ;
+    logic:snapshotDigest "b3:2fd80a95c17be643019a5c38be0d724f6c1a05397be2d840f5a6c19b37e0d248" .
+
+# --- The three candidates.
+ex:rollback a gmeow:InformationObject ;
+    rdfs:label "Roll back to the previous release"@x-gmeow-english .
+
+ex:hotfix a gmeow:InformationObject ;
+    rdfs:label "Ship a targeted hotfix"@x-gmeow-english .
+
+ex:featureFlag a gmeow:InformationObject ;
+    rdfs:label "Disable the feature by flag"@x-gmeow-english .
+
+ex:remediationCandidates a gmeow:CandidateSet ;
+    rdfs:label "Remediation options for incident 4412"@x-gmeow-english ;
+    gmeow:hasCandidate ex:rollback, ex:hotfix, ex:featureFlag .
+
+# =========================================================================== #
+# === Three contexts, three frames                                        === #
+# =========================================================================== #
+#
+# A comparison context is the whole task / standpoint / time / policy frame the
+# comparison is made under, content-addressed so "which exact context?" is
+# answerable, and it REGISTERS the observations made under it as a closed
+# vantage base. The three below differ in every leg that matters: three
+# standpoints, three governing norms, three criteria sets — which is why they
+# reach three different verdicts over one candidate field, and why none of them
+# is privileged.
+#
+# All three share the incident's interval: these are three readings of the SAME
+# decision moment, not a decision revisited later under new information, and the
+# shared time-scoped relation is what says so.
+ex:incident4412Window a gmeow:TimeScopedRelation ;
+    rdfs:label "The decision window of incident 4412"@x-gmeow-english ;
+    gmeow:duringInterval ex:incident4412Interval .
+
+ex:incident4412Interval a gmeow:TimeInterval ;
+    rdfs:label "2026-04-11T02:14Z to 2026-04-11T02:31Z"@x-gmeow-english ;
+    gmeow:startedAtTime "2026-04-11T02:14:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-04-11T02:31:00Z"^^xsd:dateTime .
+
+# --- Context 1: restore service fastest. A STRICT order.
+ex:fastestRestore a gmeow:ComparisonContext ;
+    rdfs:label "Policy: restore service fastest"@x-gmeow-english ;
+    gmeow:contextTask ex:serviceRestored ;
+    gmeow:contextStandpoint ex:incidentCommanderStandpoint ;
+    gmeow:contextTime ex:incident4412Window ;
+    gmeow:contextPolicy ex:fastestRestoreNorm ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:registersObservation ex:frOverRollback, ex:rollbackOverHotfix .
+
+ex:incidentCommanderStandpoint a gmeow:Standpoint ;
+    rdfs:label "The incident commander's standpoint"@x-gmeow-english .
+
+ex:fastestRestoreNorm a gmeow:Norm ;
+    rdfs:label "Severity-1 norm: shortest time to restored service wins"@x-gmeow-english .
+
+# --- Context 2: minimise customer impact. Rollback and feature-flag TIE — under
+#     this policy's criteria they are equally good, and saying so is more useful
+#     than inventing a tiebreak the policy does not authorize.
+ex:minimiseImpact a gmeow:ComparisonContext ;
+    rdfs:label "Policy: minimise customer impact"@x-gmeow-english ;
+    gmeow:contextTask ex:serviceRestored ;
+    gmeow:contextStandpoint ex:supportLeadStandpoint ;
+    gmeow:contextTime ex:incident4412Window ;
+    gmeow:contextPolicy ex:minimiseImpactNorm ;
+    gmeow:contentDigest "blake3:2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a" ;
+    gmeow:registersObservation ex:rollbackTiesFeatureFlag .
+
+ex:supportLeadStandpoint a gmeow:Standpoint ;
+    rdfs:label "The customer-support lead's standpoint"@x-gmeow-english .
+
+ex:minimiseImpactNorm a gmeow:Norm ;
+    rdfs:label "Support norm: fewest customer-visible failed requests wins"@x-gmeow-english .
+
+# --- Context 3: minimise regulatory exposure. Hotfix and rollback are
+#     INCOMPARABLE: better exposure versus better reversibility, with no
+#     exchange rate between them in this policy.
+ex:minimiseExposure a gmeow:ComparisonContext ;
+    rdfs:label "Policy: minimise regulatory exposure"@x-gmeow-english ;
+    gmeow:contextTask ex:serviceRestored ;
+    gmeow:contextStandpoint ex:complianceOfficerStandpoint ;
+    gmeow:contextTime ex:incident4412Window ;
+    gmeow:contextPolicy ex:minimiseExposureNorm ;
+    gmeow:contentDigest "blake3:3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b" ;
+    gmeow:registersObservation ex:hotfixOverRollbackOnExposure,
+                               ex:rollbackOverHotfixOnReversibility .
+
+ex:complianceOfficerStandpoint a gmeow:Standpoint ;
+    rdfs:label "The compliance officer's standpoint"@x-gmeow-english .
+
+ex:minimiseExposureNorm a gmeow:Norm ;
+    rdfs:label "Compliance norm: minimise reportable exposure, and keep the action reversible"@x-gmeow-english .
+
+# =========================================================================== #
+# === The criteria the three policies actually trade on                   === #
+# =========================================================================== #
+#
+# A criterion's poles are mandatory and are what make it an ORIENTED axis rather
+# than a label: without them "customer minutes lost" does not say which
+# direction is better, and a comparison over it means nothing.
+ex:customerMinutesLost a gmeow:Criterion ;
+    rdfs:label "Customer-visible failed requests"@x-gmeow-english ;
+    gmeow:rewardPole ex:impactLow ;
+    gmeow:penaltyPole ex:impactHigh .
+ex:impactLow a gmeow:CriterionPole ;
+    rdfs:label "Fewer customers see a failure"@x-gmeow-english .
+ex:impactHigh a gmeow:CriterionPole ;
+    rdfs:label "More customers see a failure"@x-gmeow-english .
+
+ex:regulatoryExposure a gmeow:Criterion ;
+    rdfs:label "Reportable regulatory exposure"@x-gmeow-english ;
+    gmeow:rewardPole ex:exposureLow ;
+    gmeow:penaltyPole ex:exposureHigh .
+ex:exposureLow a gmeow:CriterionPole ;
+    rdfs:label "Nothing becomes reportable"@x-gmeow-english .
+ex:exposureHigh a gmeow:CriterionPole ;
+    rdfs:label "A reportable event is created"@x-gmeow-english .
+
+ex:reversibility a gmeow:Criterion ;
+    rdfs:label "Reversibility of the remediation"@x-gmeow-english ;
+    gmeow:rewardPole ex:reversibleEasily ;
+    gmeow:penaltyPole ex:reversibleHardly .
+ex:reversibleEasily a gmeow:CriterionPole ;
+    rdfs:label "The action can be undone in place"@x-gmeow-english .
+ex:reversibleHardly a gmeow:CriterionPole ;
+    rdfs:label "Undoing the action needs a further change"@x-gmeow-english .
+
+# =========================================================================== #
+# === Context 1's verdict: a STRICT order, only partly asserted           === #
+# =========================================================================== #
+#
+# The cell is one vantage's LOCAL order — the scope within which gmeow:strictly-
+# Over is genuinely irreflexive, asymmetric and transitive. Only the COVERING
+# edges are recorded (feature-flag ≻ rollback, rollback ≻ hotfix); the third
+# pair, feature-flag ≻ hotfix, is DERIVED by transitivity at read time rather
+# than asserted, which is what makes this an order rather than a list of three
+# opinions that happen to agree.
+#
+# Each edge is carried twice and deliberately: as a reified gmeow:PreferenceEdge
+# hung under THIS cell's order, which is what makes the strict-order coherence
+# check cell-scoped, and as the bare candidate→candidate gmeow:strictlyOver
+# reading of the same edge. The bare relation is unambiguous here because this is
+# the only cell in the file carrying a strict order at all.
+ex:fastestRestoreCell a gmeow:PreferenceProjection ;
+    rdfs:label "The incident commander's local order under the fastest-restore policy"@x-gmeow-english ;
+    gmeow:vantage ex:incidentCommanderStandpoint ;
+    gmeow:projectionOrder ex:fastestRestoreOrder .
+
+ex:fastestRestoreOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The fastest-restore order (references its raw relation, never IS it)"@x-gmeow-english ;
+    gmeow:orderRelation ex:fastestRestoreRelation ;
+    gmeow:orderEdge ex:edgeFlagOverRollback, ex:edgeRollbackOverHotfix .
+
+ex:fastestRestoreRelation a math:Relation ;
+    rdfs:label "The raw strict-order relation over the remediation candidates"@x-gmeow-english .
+
+ex:edgeFlagOverRollback a gmeow:PreferenceEdge ;
+    rdfs:label "feature flag ≻ rollback (seconds versus minutes)"@x-gmeow-english ;
+    gmeow:edgeWinner ex:featureFlag ;
+    gmeow:edgeLoser ex:rollback .
+
+ex:edgeRollbackOverHotfix a gmeow:PreferenceEdge ;
+    rdfs:label "rollback ≻ hotfix (minutes versus a build and a deploy)"@x-gmeow-english ;
+    gmeow:edgeWinner ex:rollback ;
+    gmeow:edgeLoser ex:hotfix .
+
+ex:featureFlag gmeow:strictlyOver ex:rollback .
+ex:rollback gmeow:strictlyOver ex:hotfix .
+
+# The two reified, vantage-indexed observations behind those edges. The
+# observation — not the bare edge — is what carries the direction, the vantage
+# and the context, which is why two policies disagreeing is two coexisting cells
+# rather than a contradiction.
+ex:frOverRollbackPair a gmeow:InformationObject ;
+    rdfs:label "feature flag versus rollback, on time to restore"@x-gmeow-english ;
+    gmeow:hasPart ex:featureFlag, ex:rollback .
+
+ex:frOverRollback a gmeow:PreferenceObservation ;
+    rdfs:label "feature flag ≻ rollback, per the incident commander"@x-gmeow-english ;
+    gmeow:vantage ex:incidentCommanderStandpoint ;
+    gmeow:comparisonContext ex:fastestRestore ;
+    gmeow:onCriterion ex:timeToRestore ;
+    gmeow:observedFeature ex:frOverRollbackPair ;
+    gmeow:observationPrefers ex:featureFlag ;
+    gmeow:observationDisprefers ex:rollback .
+
+ex:rollbackOverHotfixPair a gmeow:InformationObject ;
+    rdfs:label "rollback versus hotfix, on time to restore"@x-gmeow-english ;
+    gmeow:hasPart ex:rollback, ex:hotfix .
+
+ex:rollbackOverHotfix a gmeow:PreferenceObservation ;
+    rdfs:label "rollback ≻ hotfix, per the incident commander"@x-gmeow-english ;
+    gmeow:vantage ex:incidentCommanderStandpoint ;
+    gmeow:comparisonContext ex:fastestRestore ;
+    gmeow:onCriterion ex:timeToRestore ;
+    gmeow:observedFeature ex:rollbackOverHotfixPair ;
+    gmeow:observationPrefers ex:rollback ;
+    gmeow:observationDisprefers ex:hotfix .
+
+# =========================================================================== #
+# === Context 2's verdict: a TIE, recorded positively                     === #
+# =========================================================================== #
+#
+# Under the support lead's policy, rolling back and flipping the flag cost the
+# same number of customers the same failed requests. That is a comparable
+# INDIFFERENCE — the two are comparable and neither is preferred — which is a
+# different fact from incomparability and a different fact again from "not yet
+# compared". The observation names NO winner, because a tie has none, and the
+# cell carries an order with no strict edges for the same reason.
+ex:minimiseImpactCell a gmeow:PreferenceProjection ;
+    rdfs:label "The support lead's local order under the minimise-impact policy"@x-gmeow-english ;
+    gmeow:vantage ex:supportLeadStandpoint ;
+    gmeow:projectionOrder ex:minimiseImpactOrder .
+
+ex:minimiseImpactOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The minimise-impact order — no strict edge between the tied pair"@x-gmeow-english ;
+    gmeow:orderRelation ex:minimiseImpactRelation .
+
+ex:minimiseImpactRelation a math:Relation ;
+    rdfs:label "The raw relation the minimise-impact order references"@x-gmeow-english .
+
+ex:tiedPair a gmeow:InformationObject ;
+    rdfs:label "rollback versus feature flag, on customer-visible failures"@x-gmeow-english ;
+    gmeow:hasPart ex:rollback, ex:featureFlag .
+
+ex:rollbackTiesFeatureFlag a gmeow:PreferenceObservation ;
+    rdfs:label "rollback ~ feature flag, per the support lead — equally good, pick either"@x-gmeow-english ;
+    gmeow:vantage ex:supportLeadStandpoint ;
+    gmeow:comparisonContext ex:minimiseImpact ;
+    gmeow:onCriterion ex:customerMinutesLost ;
+    gmeow:observedFeature ex:tiedPair .
+
+ex:rollback gmeow:preferentiallyEquivalentWith ex:featureFlag .
+
+# =========================================================================== #
+# === Context 3's verdict: a positive INCOMPARABILITY                     === #
+# =========================================================================== #
+#
+# The compliance officer's two criteria point opposite ways: the hotfix creates
+# less reportable exposure, the rollback is the more reversible action, and the
+# policy names no exchange rate between them. Neither dominates, so the verdict
+# is the POSITIVE incomparability relation — a queryable, disclosed Pareto void —
+# and emphatically not a tie and not an absent edge. Flattening it would
+# manufacture a winner the policy never licensed.
+ex:minimiseExposureCell a gmeow:PreferenceProjection ;
+    rdfs:label "The compliance officer's local order under the minimise-exposure policy"@x-gmeow-english ;
+    gmeow:vantage ex:complianceOfficerStandpoint ;
+    gmeow:projectionOrder ex:minimiseExposureOrder .
+
+ex:minimiseExposureOrder a gmeow:PreferenceOrder ;
+    rdfs:label "The minimise-exposure order — no strict edge across the Pareto void"@x-gmeow-english ;
+    gmeow:orderRelation ex:minimiseExposureRelation .
+
+ex:minimiseExposureRelation a math:Relation ;
+    rdfs:label "The raw relation the minimise-exposure order references"@x-gmeow-english .
+
+ex:exposurePair a gmeow:InformationObject ;
+    rdfs:label "hotfix versus rollback, under the compliance policy"@x-gmeow-english ;
+    gmeow:hasPart ex:hotfix, ex:rollback .
+
+ex:hotfixOverRollbackOnExposure a gmeow:PreferenceObservation ;
+    rdfs:label "hotfix ≻ rollback on reportable exposure"@x-gmeow-english ;
+    gmeow:vantage ex:complianceOfficerStandpoint ;
+    gmeow:comparisonContext ex:minimiseExposure ;
+    gmeow:onCriterion ex:regulatoryExposure ;
+    gmeow:observedFeature ex:exposurePair ;
+    gmeow:observationPrefers ex:hotfix ;
+    gmeow:observationDisprefers ex:rollback .
+
+ex:rollbackOverHotfixOnReversibility a gmeow:PreferenceObservation ;
+    rdfs:label "rollback ≻ hotfix on reversibility"@x-gmeow-english ;
+    gmeow:vantage ex:complianceOfficerStandpoint ;
+    gmeow:comparisonContext ex:minimiseExposure ;
+    gmeow:onCriterion ex:reversibility ;
+    gmeow:observedFeature ex:exposurePair ;
+    gmeow:observationPrefers ex:rollback ;
+    gmeow:observationDisprefers ex:hotfix .
+
+ex:hotfix gmeow:incomparableWith ex:rollback .
+
+# --- The frontier under context 1, with its explanation. The explanation is
+#     what makes the recommendation reviewable rather than merely stated: the
+#     proof it rests on, the evidence, the governing policy, the criteria
+#     traded, and any recorded dissent.
+#
+#     The frontier reaches the preference apparatus rather than re-minting one:
+#     it names the candidate set the comparison ranges over and the ONE context
+#     its recommendation is relative to. That binding is what makes the roster
+#     below a recommendation under the fastest-restore policy specifically,
+#     rather than a context-free winner the other two contexts contradict.
+ex:remediationFrontier a logic:ActionableFrontier ;
+    rdfs:label "Remediation frontier under the fastest-restore policy"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:remediationSaturation ;
+    logic:frontierOfEnactment ex:incidentRemediation ;
+    gmeow:frontierCandidateSet ex:remediationCandidates ;
+    gmeow:frontierComparisonContext ex:fastestRestore ;
+    logic:hasFrontierEntry ex:rollbackEntry .
+
+ex:rollbackEntry a logic:FrontierEntry ;
+    rdfs:label "Roll back — ready, authorized"@x-gmeow-english ;
+    # The entry names the ACTION it positions. Without it the entry is a label about
+    # nothing an operator can act on, and — the reason it is bound here specifically —
+    # nothing joins the recommendation to the preference edge the two vantages below
+    # disagree about, so the derived contestation over `rollback ≻ hotfix` could never
+    # be attributed to the recommendation that rests on it.
+    logic:entryAction ex:rollback ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# Dissent is retained as an attributed observation, not averaged away. A
+# recommendation that has quietly discarded the objection to it is not a
+# recommendation an operator can properly weigh.
+ex:rollbackExplanation a gmeow:FrontierExplanation ;
+    rdfs:label "Why roll back is recommended under the fastest-restore policy"@x-gmeow-english ;
+    gmeow:explainsEntry ex:rollbackEntry ;
+    gmeow:explanationProof logic:ruleFrontierReadyAuthorized ;
+    gmeow:explanationEvidence ex:incidentTimeline ;
+    gmeow:explanationCriterion ex:timeToRestore ;
+    gmeow:explanationPolicy ex:fastestRestoreNorm ;
+    gmeow:explanationDissent ex:onCallObjection .
+
+# The proof is the shipped derivation rule that concluded this entry's label from
+# its axis witnesses, not a restatement of the recommendation in prose. That is
+# the whole point of the position: an operator can re-run it. A narrative here
+# would be a model's account of a conclusion rather than the conclusion's
+# warrant, which is why the law refuses one.
+ex:incidentTimeline a gmeow:InformationObject ;
+    rdfs:label "Incident 4412 timeline: error-rate onset, deploy correlation, blast radius"@x-gmeow-english .
+
+# The criterion is what the policy actually traded on, kept separate from the
+# policy itself so a reader can see WHICH measure ranked the candidates rather
+# than only that some policy did. Its poles are mandatory and are what make it
+# an oriented axis rather than a label: without them "time to restore" does not
+# say which direction is better, and a comparison over it means nothing.
+ex:timeToRestore a gmeow:Criterion ;
+    rdfs:label "Time to restore service"@x-gmeow-english ;
+    gmeow:rewardPole ex:restoreFast ;
+    gmeow:penaltyPole ex:restoreSlow .
+
+ex:restoreFast a gmeow:CriterionPole ;
+    rdfs:label "Service restored sooner"@x-gmeow-english .
+
+ex:restoreSlow a gmeow:CriterionPole ;
+    rdfs:label "Service restored later"@x-gmeow-english .
+
+ex:onCallObjection a gmeow:Observation ;
+    rdfs:label "On-call engineer: rollback reintroduces the data-export defect fixed last week"@x-gmeow-english ;
+    gmeow:observedFeature ex:rollbackRegressionRisk ;
+    gmeow:vantage ex:onCallEngineerVantage ;
+    gmeow:contributionKind gmeow:contributionOperator .
+
+ex:rollbackRegressionRisk a gmeow:Entity ;
+    rdfs:label "Regression risk introduced by rolling back"@x-gmeow-english .
+
+# The vantage is what makes dissent weighable rather than merely recorded: a
+# competing view from a different standpoint is a different claim, not noise.
+ex:onCallEngineerVantage a gmeow:Entity ;
+    rdfs:label "On-call engineer, incident 4412"@x-gmeow-english .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+#
+# A single-entry roster is exactly where an unwitnessed closure claim does its
+# damage: "roll back is the recommendation" and "roll back is the only option the
+# search got to" are indistinguishable without the witness, and the second is not
+# a recommendation at all. So the witness names the explanation predicate too —
+# the roster's one entry is closed AND fully explained, or neither claim holds.
+ex:remediationSaturation a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, gmeow:explainsEntry ;
+    logic:consumedBudget "48"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+# =========================================================================== #
+# === Statement metadata: two vantages on ONE statement                   === #
+# =========================================================================== #
+#
+# `ex:rollback gmeow:strictlyOver ex:hotfix` is the covering edge the whole
+# recommendation stands on. The incident commander asserts it. The on-call
+# engineer OPPOSES it — not the candidate, not the order as a whole, and not the
+# other covering edge in the same cell, but THAT ONE STATEMENT, on the ground
+# recorded in ex:onCallObjection.
+#
+# This is what RDF 1.2 statement metadata is for, and what a plain triple cannot
+# do. A plain triple can say the engineer dissents and can say rollback ≻ hotfix,
+# but it cannot bind the first to the second: to attach a stance to a statement
+# without a reifier you must re-spell that statement's subject, predicate and
+# object on a second node and hope the copy stays in step with the original.
+# The reifier NAMES the occurrence, so the stance travels with it and the
+# correspondence cannot drift.
+#
+# Two reifiers over the same triple, not one carrying both stances: the two
+# vantages are CO-EQUAL (Principle 9). One reifier holding an affirm and an
+# oppose would be a contradiction on a single node, which is exactly the
+# collapse the standpoint axis exists to prevent. Two named occurrences, each
+# indexed to its own vantage, is the shape that keeps both readable — and it is
+# the same discipline the three comparison contexts above follow for orders.
+ex:cmdrOnRollbackOverHotfix
+    rdf:reifies <<( ex:rollback gmeow:strictlyOver ex:hotfix )>> ;
+    rdfs:label "The incident commander asserts rollback ≻ hotfix"@x-gmeow-english ;
+    gmeow:accordingTo ex:incidentCommanderStandpoint ;
+    gmeow:standpointPolarity gmeow:polarityAffirm ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssert ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+# The engineer does not deny that rollback restores service faster. They SUSPEND
+# on the edge as a preference claim, because the criterion the edge is scored on
+# ignores the regression the rollback reintroduces. Suspension and denial are
+# different stances and the polarity axis keeps them apart; folding this into a
+# denial would put a claim in the engineer's mouth they did not make.
+ex:onCallOnRollbackOverHotfix
+    rdf:reifies <<( ex:rollback gmeow:strictlyOver ex:hotfix )>> ;
+    rdfs:label "The on-call engineer opposes rollback ≻ hotfix"@x-gmeow-english ;
+    gmeow:accordingTo ex:onCallEngineerVantage ;
+    gmeow:standpointPolarity gmeow:polaritySuspend ;
+    gmeow:standpointAssertoricForce gmeow:assertoricConjecture ;
+    gmeow:standpointSupportStatus gmeow:supportOpposed .

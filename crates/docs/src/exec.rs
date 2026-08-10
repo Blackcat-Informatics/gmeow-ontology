@@ -68,6 +68,14 @@ pub struct ExecutableDocsData {
     /// Term/slice export both flow through the playground's `DESCRIBE` (client-side,
     /// all RDF formats via purrdf), so this asset is the single export substrate too.
     pub playground_trig: Vec<u8>,
+    /// The full `gmeow.gts` bundle bytes — the browser Tier-1 validate surface reads
+    /// its `shapes-archive` (a small container read; it does NOT extract the whole
+    /// dataset), and the bundle-explorer surface loads the WHOLE bundle client-side
+    /// (`Dataset.fromGts`, see `crates/docs/assets/gmeow-docs.js`) to answer
+    /// `info`/`describe` over the same authored ontology the pipeline shipped. Empty
+    /// ⇒ no in-browser validation and no explorer. Shipped as an EXTERNAL site asset,
+    /// never re-embedded into `gmeow.gts`.
+    pub full_bundle_gts: Vec<u8>,
     /// Per-term reasoner "why" panels (B3): every derivation whose `gmeow:concludes`
     /// or `gmeow:hasPremise` quoted triple mentions the term's IRI (in subject,
     /// predicate, or object position), keyed by the exact term IRI. Parsed by the
@@ -77,6 +85,14 @@ pub struct ExecutableDocsData {
     /// "unsatisfiable because" derivation lines render only when this map carries an
     /// entry for the term, never a fabricated "no entailments" claim.
     pub term_entailments: BTreeMap<String, Vec<Entailment>>,
+    /// The **conjecture demo library** — the curated `logic:Conjecture` corpus
+    /// (`slices/grounding/logic/examples/conjectures.ttl`) shipped verbatim as a site
+    /// sub-asset. The W4 conjecture playground fetches + byte-verifies it, presents its
+    /// six curated conjectures (every Belnap-to-lifecycle branch, with witnesses and
+    /// anti-legs), and runs the live wasm symmetric conjecture engine over the built-in
+    /// runnable demos. Empty ⇒ no conjecture playground. Read deterministically from the
+    /// committed slice example by the pipeline (hard-fail if absent).
+    pub conjectures_ttl: Vec<u8>,
 }
 
 impl ExecutableDocsData {
@@ -85,6 +101,23 @@ impl ExecutableDocsData {
     #[must_use]
     pub fn has_playground(&self) -> bool {
         !self.playground_trig.is_empty()
+    }
+
+    /// Whether the browser bundle asset (the full `gmeow.gts`, loaded client-side via
+    /// `Dataset.fromGts` for both the explorer and in-browser validation) was
+    /// supplied — i.e. the interactive validate/explore surfaces can be rendered.
+    #[must_use]
+    pub fn has_bundle(&self) -> bool {
+        !self.full_bundle_gts.is_empty()
+    }
+
+    /// Whether the conjecture demo library was supplied — i.e. the W4 conjecture
+    /// playground surface can be rendered. Requires the bundle too (the playground
+    /// runs the live wasm engine, so it reuses the vendored reason asset the bundle
+    /// surfaces ship).
+    #[must_use]
+    pub fn has_conjectures(&self) -> bool {
+        !self.conjectures_ttl.is_empty() && self.has_bundle()
     }
 
     /// The inference diff for one example, if any was computed.

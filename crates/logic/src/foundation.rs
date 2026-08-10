@@ -2120,6 +2120,7 @@ fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
                     .map(|&(a, b)| (a.to_owned(), b.to_owned()))
                     .collect(),
                 builtins: Vec::new(),
+                constraint_tag: None,
             });
         }
     }
@@ -2627,8 +2628,7 @@ fn evaluate_modal_formulas(quads: &[FoundationQuad]) -> gmeow_errors::Result<Vec
                         MODAL_NECESSITY_HOLDS
                     };
                     push_verdict(predicate, n3(&frame.body), &[body_reifier.as_str()]);
-                } else if let Some(witness) =
-                    accessible.iter().find(|w| !atom_present(w.as_str()))
+                } else if let Some(witness) = accessible.iter().find(|w| !atom_present(w.as_str()))
                 {
                     push_verdict(
                         MODAL_NECESSITY_FAILS,

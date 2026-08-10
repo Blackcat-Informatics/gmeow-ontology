@@ -53,6 +53,9 @@ fn xml_escape(text: &str) -> String {
 // of `skos:related` / `gmeow:pairsWith` / `rdfs:seeAlso` in the model, of which
 // `skos:related` is the representative label.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+// BENIGN: labels an edge over the already-resolved `term.parents` (describe.rs
+// already merged both subsumption spellings before this renders) — not a second
+// authored-surface scan, so the `rdfs:` label alone is correct here.
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";

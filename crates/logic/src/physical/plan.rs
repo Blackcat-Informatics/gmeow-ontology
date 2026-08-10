@@ -308,6 +308,14 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             hasher.update(&[2]);
             hasher.update(&value.to_le_bytes());
         }
+        // A ground quoted-triple term hashes its components recursively under a distinct
+        // tag, so a triple-bearing goal's compiled plan is content-keyed without collision.
+        QTerm::Triple { s, p, o } => {
+            hasher.update(&[3]);
+            hash_qterm(hasher, s);
+            hash_qterm(hasher, p);
+            hash_qterm(hasher, o);
+        }
         QTerm::Struct(_) => {
             // G13: hashing an arena-local `NodeId::index()` into the compiled-plan cache
             // key would risk cross-arena collisions (two DIFFERENT structured terms from
@@ -317,7 +325,7 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             // exclusively `Var`/`Num` — arithmetic never carries a compound
             // (function-symbol) term. No `TermDag` is threaded through
             // `canonical_rule_hash`/`EvalRule`/`EvalTerm` at all (that pipeline is the
-            // flat rule-IR, distinct from the structured-term `physical::term_dag`
+            // flat rule-IR, distinct from the structured-term `gmeow_term_arena` term DAG
             // arena), so there is no content key (`TermDag::key`) available here to hash
             // instead — a genuinely-reachable `Struct` would need the caller to plumb a
             // `dag` through this entire module. Provably dead under every current
@@ -360,6 +368,17 @@ fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
             hash_qterm(hasher, x);
             hash_qterm(hasher, y);
         }
+        QBuiltin::DimEqual { d1, d2 } => {
+            hasher.update(&[3]);
+            hash_qterm(hasher, d1);
+            hash_qterm(hasher, d2);
+        }
+        QBuiltin::DimProduct { d_f, d_m, d_r } => {
+            hasher.update(&[4]);
+            hash_qterm(hasher, d_f);
+            hash_qterm(hasher, d_m);
+            hash_qterm(hasher, d_r);
+        }
     }
 }
 
@@ -387,6 +406,20 @@ pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
         hasher.update(&(rule.builtins.len() as u64).to_le_bytes());
         for builtin in &rule.builtins {
             hash_builtin(&mut hasher, builtin);
+        }
+        // `constraint_tag` is execution-relevant (it licenses a builtin in the forward
+        // chase and inverts its Filter semantics to violation-emitting), so two rule
+        // sets differing ONLY in this tag must never collide in the process-wide plan
+        // cache. `Some`/`None` get distinct tag bytes so an empty-string tag can never
+        // be confused with an absent one.
+        match &rule.constraint_tag {
+            Some(tag) => {
+                hasher.update(&[1]);
+                frame_str(&mut hasher, tag);
+            }
+            None => {
+                hasher.update(&[0]);
+            }
         }
     }
     *hasher.finalize().as_bytes()
@@ -1144,8 +1177,9 @@ impl Executable {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::physical::term_dag::TermDag;
     use crate::query_ir::StructNode;
+    use gmeow_term_arena::engine::StructNodeParts;
+    use gmeow_term_arena::engine::TermDag;
 
     /// A minimal single-fact `EvalRule` (`rule_iri` "r") carrying one `QBuiltin::Compare`
     /// whose `lhs` operand is `term` — the shape `canonical_rule_hash`'s `hash_qterm`
@@ -1169,7 +1203,7 @@ mod tests {
     }
 
     /// G13 lock: `canonical_rule_hash`'s flat rule-IR pipeline never threads a `TermDag` (it
-    /// is a distinct, arena-free pipeline from the structured-term `physical::term_dag`
+    /// is a distinct, arena-free pipeline from the structured-term `gmeow_term_arena` term DAG
     /// world), so a `QTerm::Struct` reaching `hash_qterm` cannot be content-hashed by
     /// `TermDag::key` here — hashing its arena-local `NodeId::index()` instead would risk a
     /// false collision between two DIFFERENT structured terms from unrelated arenas that
@@ -1199,8 +1233,8 @@ mod tests {
              — exactly the collision NodeId::index() hashing would silently forge"
         );
 
-        let struct_a = QTerm::Struct(StructNode::new(leaf_a, dag_a.arena()));
-        let struct_b = QTerm::Struct(StructNode::new(leaf_b, dag_b.arena()));
+        let struct_a = QTerm::Struct(StructNode::wrap(leaf_a, dag_a.arena()));
+        let struct_b = QTerm::Struct(StructNode::wrap(leaf_b, dag_b.arena()));
 
         let rule_a = rule_with_builtin_operand(struct_a);
         let rule_b = rule_with_builtin_operand(struct_b);

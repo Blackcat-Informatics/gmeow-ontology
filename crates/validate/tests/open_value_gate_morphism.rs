@@ -22,11 +22,11 @@
 //! shape's severity.
 
 use gmeow_errors::grade::{FindingCategory, GateVerdict, Grade, Severity, Standpoint, gate};
-use gmeow_validate::findings::diag_from_shacl;
+use gmeow_validate::findings::{FailureClassIndex, diag_from_shacl};
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
 use purrdf::shapes::term::{NamedNode, Term};
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const SHACL_SPARQL_CONSTRAINT: &str = "http://www.w3.org/ns/shacl#SPARQLConstraintComponent";
 
 /// A `ProfileOpenValueUse` `ValidationResult` at the given severity — the exact shape
@@ -70,7 +70,10 @@ fn violation_open_value_finding_grades_gate_fatal_through_production_lowering() 
     // Drive the PRODUCTION intern+gate path: the real `diag_from_shacl` lowering derives
     // the grade from the ValidationResult (severity_from_shacl → Error, the honest SHACL
     // DataShapeViolation category, standpoint_from_shacl → Binding). No hand-built Grade.
-    let diag = diag_from_shacl(&open_value_use_result(ShaclSeverity::Violation));
+    let diag = diag_from_shacl(
+        &open_value_use_result(ShaclSeverity::Violation),
+        &FailureClassIndex::empty(),
+    );
     let grade = diag.grade();
 
     // The explicit three-axis witness: the derived grade is exactly the gate-fatal corner.
@@ -100,7 +103,10 @@ fn violation_open_value_finding_grades_gate_fatal_through_production_lowering() 
 /// it is what moves the standpoint into the gate-fatal up-set.
 #[test]
 fn warning_open_value_finding_does_not_gate_fatal_through_production_lowering() {
-    let diag = diag_from_shacl(&open_value_use_result(ShaclSeverity::Warning));
+    let diag = diag_from_shacl(
+        &open_value_use_result(ShaclSeverity::Warning),
+        &FailureClassIndex::empty(),
+    );
     let grade = diag.grade();
 
     assert_eq!(

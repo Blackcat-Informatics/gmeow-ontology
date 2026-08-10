@@ -17,21 +17,17 @@ gmeow:mapsetConnectivity a gmeow:MappingSet ;
     gmeow:setComment "Connectivity and routing alignments — GTFS, schema.org, and network vocabularies." .
 
 # GTFS alignments
-gmeow:eqConn001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Route ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gtfs:Route ;
+gmeow:Route skos:closeMatch gtfs:Route {|
+    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "gtfs:Route is a transit-specific route; gmeow:Route is domain-generic." ;
-    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" .
+    gmeow:comment "gtfs:Route is a transit-specific route; gmeow:Route is domain-generic."
+|} .
 
 # schema.org alignments
-gmeow:eqConn003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Route ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Trip ;
+gmeow:Route skos:closeMatch schema:Trip {|
+    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema:Trip is travel-specific; gmeow:Route is domain-generic. Lossy directional projection." ;
-    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" .
+    gmeow:comment "schema:Trip is travel-specific; gmeow:Route is domain-generic. Lossy directional projection."
+|} .

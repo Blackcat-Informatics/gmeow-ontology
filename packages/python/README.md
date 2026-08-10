@@ -41,7 +41,7 @@ drops relative to the canonical `logic:` core.
 The wheel version is the ontology's `owl:versionInfo` (`ontology/gmeow.ttl`),
 stamped verbatim into the generated `gmeow_models/__about__.py` and read by
 `pyproject.toml`'s `[tool.hatch.version]`. To release a new version, bump
-`owl:versionInfo` and run `make sync` — never hand-edit `__about__.py` or
+`owl:versionInfo` and run `make check` — never hand-edit `__about__.py` or
 set `version` in `pyproject.toml` directly.
 
 ## Do not edit by hand

@@ -14,14 +14,22 @@ manifest points Cargo at that README.
 
 ## Layers
 
+The RDF 1.2 kernel itself is **not** in this workspace. It lives in the sibling
+`purrdf` package and is consumed through one exact-pinned umbrella dependency
+(`purrdf` in the root `[workspace.dependencies]`), which owns the data model,
+codecs, canonicalization, SHACL, SPARQL, the C ABI, and its own wasm build.
+Crates here compose over it; none re-implements it.
+
 | Area | Crates | Purpose |
 | --- | --- | --- |
-| Foundation values | `gmeow-iri`, `gmeow-xsd`, `gmeow-rdf-events`, `gmeow-sparql-algebra`, `gmeow-sparql-results` | Small reusable value types, event streams, parsers, and result encoders. |
-| RDF kernel and adapters | `gmeow-rdf-core`, `gmeow-rdf`, `gmeow-rdf-capi`, `gmeow-rdf-wasm` | The native RDF 1.2 data model, codecs, loss ledgers, C ABI, and wasm packaging. |
-| Ontology and validation engines | `gmeow-slice`, `gmeow-slicetest`, `gmeow-shacl`, `gmeow-validate`, `gmeow-diagnostics` | Slice discovery, slice-local test execution, SHACL, validation lints, and diagnostic rendering. |
-| Logic engines | `gmeow-logic-compile`, `gmeow-logic`, `gmeow-conformance`, `gmeow-sparql-eval`, `gmeow-sparql-conformance` | Logic IR, projections, reasoning, conformance suites, and native SPARQL evaluation. |
-| Build and release | `gmeow-pipeline`, `gmeow-docs`, `gmeow-native`, `gmeow-foundation-corpus` | The dogfooded build DAG, ontology docs model/renderers, unified PyO3 module, and foundation corpus bridge. |
-| User tools | `gmeow-lsp`, `gmeow-music` | Local editor diagnostics/SARIF and experimental domain tools. |
+| Foundation values | `gmeow-errors`, `gmeow-ns`, `gmeow-term-arena`, `gmeow-license` | The diagnostics substrate, the registered term namespaces, the hash-consed structured-term arena, and the license/axiom-copy policy classifier. |
+| Ontology and validation engines | `gmeow-validate`, `gmeow-slicetest`, `gmeow-slice-quality`, `gmeow-slice-brief`, `gmeow-conformance` | The wasm-clean repo-free Tier-1 conformance core, slice-resident test-DSL execution, per-slice quality reports, authoring packets, and the logic-conformance harness. |
+| Logic engines | `gmeow-logic-compile`, `gmeow-logic` | The pure wasm-able parse→IR→project compiler, and the world-indexed reasoning engine core. |
+| Build and release | `gmeow-pipeline`, `gmeow-docs`, `gmeow-gts-profile`, `gmeow-foundation-corpus`, `docs-print`, `xtask` | The dogfooded build DAG, the typed documentation model, the single mandated GTS authorship entry, the corpus importer, the Typst/PDF renderer, and worktree-local workflow orchestration. |
+| Command-line surfaces | `gmeow-cli`, `gmeow-cli-core`, `gmeow-dev-cli` | The shippable consumer `gmeow` command, the shared CLI foundation, and the repo-maintenance `gmeow-dev` command. |
+| Browser engines (wasm32) | `gmeow-query-wasm`, `gmeow-validate-wasm`, `gmeow-reason-wasm`, `gmeow-gmn-wasm` | The four engines the documentation site ships: the SPARQL playground / bundle-explorer query engine, the repo-free validator, the structured-DL reasoner, and the GMN codec. |
+| Domain and lifting | `gmeow-math`, `gmeow-math-lift`, `gmeow-affect`, `gmeow-affect-ingest`, `gmeow-music`, `gmeow-lang-bridge`, `gmeow-lang-form`, `gmeow-gmn-cost-matrix` | Exact-rational geometry, executable-math ingestion, affect-intensity geometry and classifier ingestion, the music toolchain, and the linguistic surfaces. |
+| Developer tools and measurement | `gmeow-lsp`, `gmeow-bench-engines`, `gmeow-cost-measure` | Local editor diagnostics/SARIF, the engine benchmark harness, and the deterministic allocation-measurement allocator. |
 
 ## Documentation Hot Spots
 
@@ -37,7 +45,6 @@ orientation:
 | [`pipeline/src/stages/`](pipeline/src/stages/README.md) | Each file is a production build-DAG stage with source/output ownership rules. |
 | [`logic/src/`](logic/src/README.md) | Several reasoning engines, result contracts, Python-facing seams, and certifiers share one crate. |
 | [`validate/src/`](validate/src/README.md) | Validation lints mix PyO3 surfaces with PyO3-free engine modules. |
-| [`rdf-core/src/ir/`](rdf-core/src/ir/README.md) | The frozen RDF 1.2 IR is the data kernel other crates depend on. |
 | [`logic-compile/src/projections/`](logic-compile/src/projections/README.md) | Projection targets encode explicit preservation and loss behavior. |
 
 ## Local Checks
@@ -48,6 +55,5 @@ Use Make targets from the repository root:
 make rust-docs       # Build public Rust API docs; fail on broken/redundant links.
 make rust-test       # Run nextest and doctests.
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs.
-make rdf-core-hygiene # Prove the RDF core leaves do not regain oxigraph-family dependencies.
 make wasm            # Build the wasm package lane.
 ```

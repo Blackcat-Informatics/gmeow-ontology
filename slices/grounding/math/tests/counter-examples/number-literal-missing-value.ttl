@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::NumberLiteralMissingValue): a
+# math:NumberLiteral root with no math:literalValue at all. The lowering dispatches
+# ex:root as a NumberLiteral leaf and demands exactly one math:literalValue to carry as
+# the leaf's value; finding none is a HARD FAIL distinct from the (unrelated)
+# StringOnlyComputableExpression source-lint rule. The authored math:structuralKey lets
+# the reasoned-graph gate (crates/logic/src/math_expression.rs,
+# check_structural_key_on_rejected_expression) also reach this fixture, so it registers
+# on the native rust-validator channel alongside driving the in-crate variant-liveness
+# test directly against the real production lowering entry point.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:NumberLiteral ;
+    math:structuralKey "not-a-real-digest" .

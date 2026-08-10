@@ -25,6 +25,7 @@ pub mod error;
 pub mod exec;
 pub mod fixture;
 pub mod formats;
+pub mod gmn1_primer;
 pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;
@@ -32,10 +33,13 @@ pub mod llms;
 pub mod maturity;
 pub mod mdbook;
 pub mod model;
+pub mod prose;
 pub mod rdf;
 pub mod render;
+pub mod source_map;
 mod store;
 pub mod svg;
+pub mod vendored_asset;
 
 pub use describe::{
     DescribeGraph, DescribeStatus, Resolution, build_card, describe, describe_dataset, resolve_term,
@@ -48,11 +52,15 @@ pub use model::{
     ConstraintRule, DiagnosticsDigest, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge,
     DocDiagFinding, DocExample, DocExpectedCell, DocExpectedRow, DocExternalTerm, DocFixture,
     DocFixtureKind, DocFlowEdge, DocLearningPath, DocLinkage, DocLossTarget, DocMappingSet,
-    DocPipeline, DocRecipe, DocShape, DocSlice, DocStage, DocTerm, DocTermCategory, DocsError,
-    DocsModel, TermLossDigest, TermLossRow,
+    DocMarkdownDocument, DocPipeline, DocRecipe, DocSeam, DocSeamDirection, DocShape, DocSlice,
+    DocStage, DocTerm, DocTermCategory, DocsError, DocsModel, TermLossDigest, TermLossRow,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{
     Page, Site, okf_doc_reference, render_purrdf_diagrams, render_site, render_site_lang,
     render_site_lang_exec, render_site_lang_exec_with_diagrams, to_html, to_markdown,
+};
+pub use source_map::{
+    DocLinkResolution, DocumentEntry, HeadingAnchor, LinkResolution, SourceToPageMap,
+    TargetLocation,
 };

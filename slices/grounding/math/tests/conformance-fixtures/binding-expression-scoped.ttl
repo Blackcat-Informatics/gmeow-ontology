@@ -17,7 +17,11 @@ ex:sumBinderSlot0 a math:ArgumentSlot ;
     math:slotIndex 0 ;
     math:slotExpression ex:summand .
 
-ex:summand a math:MathematicalExpression .
+# The summand is named, not decomposed: a math:SymbolReference resolving to a SYMBOL is the
+# concrete form for that, and the only one carrying real content. The abstract
+# math:MathematicalExpression base names no form (math:UnrecognizedExpressionType).
+ex:summand a math:SymbolReference ; math:hasMathematicalSymbol ex:summandSymbol .
+ex:summandSymbol a math:MathematicalSymbol .
 ex:iDecl a math:VariableDeclaration .
 ex:iOccurrence a math:VariableOccurrence ;
     math:declaredVariable ex:iDecl ;

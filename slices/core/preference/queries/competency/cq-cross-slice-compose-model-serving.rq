@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — the externally-supplied base model artifact): the preference
+# gmeow:deltaBaseArtifact leg composes a gmeow:ModelConfigDelta with a served model checkpoint
+# minted by whatever slice owns the serving stack (in the worked scene, model-serving's
+# gmeow:ModelArtifact) — reused BY REFERENCE, never by a range axiom (Principle 16).
+#
+# The join is on the CORE seam that reuse actually rides: gmeow:contentDigest. That is not a
+# weaker proxy for "is it a gmeow:ModelArtifact" — it is what the leg is FOR. The delta's identity
+# is its digest over the whole eleven-leg tuple (AC5), so a base checkpoint that carries no content
+# digest cannot make the delta reproducible, whatever it is typed. Naming model-serving's class
+# here instead would make this query a semantic dependency edge on a sibling extension (purrdf
+# EdgeKind::Query), which Principle 16 forbids; the instance-level typing is demonstrated where the
+# tier model allows it, in examples/model-delta-worked.ttl.
+#
+# Over the model-delta-worked pass scene this returns exactly one row: the delta joined to the
+# content-digested base checkpoint its gmeow:deltaBaseArtifact leg names.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?baseArtifact WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:deltaBaseArtifact ?baseArtifact .
+    ?baseArtifact gmeow:contentDigest ?baseDigest .
+}
+ORDER BY ?delta
