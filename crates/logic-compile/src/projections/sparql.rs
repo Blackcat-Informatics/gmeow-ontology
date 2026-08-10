@@ -339,18 +339,7 @@ fn emit_sparql(
         .map(|t| format!("    {t}"))
         .collect::<Vec<_>>()
         .join("\n");
-    let where_clause = branches
-        .iter()
-        .enumerate()
-        .map(|(i, b)| {
-            if i == 0 {
-                b.clone()
-            } else {
-                format!("UNION {b}")
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n    ");
+    let where_clause = balanced_union(&branches);
     let body = format!("CONSTRUCT {{\n{construct}\n}}\nWHERE {{\n    {where_clause}\n}}\n");
     let drops_part = if drops.is_empty() {
         ".".to_owned()
@@ -365,6 +354,32 @@ fn emit_sparql(
         query: format!("{header}{prefixes}\n\n{body}"),
         ledger,
     })
+}
+
+/// Combine the emitted UNION branches into a **balanced** binary tree instead of a flat
+/// left-associative chain.
+///
+/// Each branch is already a `{ … }` group graph pattern. A flat
+/// `{b0} UNION {b1} UNION … {bN}` lowers to a left-nested `Union` algebra tree whose depth
+/// grows linearly with the branch count, and the evaluator refuses a graph-pattern nesting
+/// deeper than `purrdf_sparql_algebra::MAX_GRAPH_PATTERN_DEPTH` (128) — a large profile
+/// (schema.org emits well over a hundred branches) trips that ceiling. Splitting at the
+/// midpoint makes the depth `⌈log2 N⌉`, so even the largest profile stays far inside the
+/// bound. `UNION` is associative and commutative under SPARQL's bag semantics, so the
+/// result multiset is identical; only the parenthesisation the parser sees changes.
+pub(super) fn balanced_union(branches: &[String]) -> String {
+    match branches.len() {
+        0 => String::new(),
+        1 => branches[0].clone(),
+        n => {
+            let mid = n / 2;
+            format!(
+                "{{ {} }} UNION {{ {} }}",
+                balanced_union(&branches[..mid]),
+                balanced_union(&branches[mid..]),
+            )
+        }
+    }
 }
 
 /// The local name of a cell IRI (after the last `#`/`/`) — the per-correspondence key

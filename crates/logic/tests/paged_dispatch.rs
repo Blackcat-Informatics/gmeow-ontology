@@ -23,6 +23,7 @@ use gmeow_logic::seam::{
 };
 use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::ir::{CountingDemandProvider, InMemoryPageProvider};
+use purrdf::sparql::StopCause;
 use purrdf::{
     PackBuilder, PackView, PageFault, PageGeneration, PageId, PageMaterialization, PageProvider,
     PagedDataset, PagedQueryError, PagedQueryLimits, RdfAnnotation, RdfDataset, RdfDatasetBuilder,
@@ -583,8 +584,9 @@ fn provider_and_cancellation_failures_preserve_their_typed_root_causes() {
     ));
     assert!(matches!(
         switching_error(2).operational_error(),
-        Some(PagedQueryError::Cancelled {
+        Some(PagedQueryError::Stopped {
             page: PageId(0),
+            cause: StopCause::Cancelled,
             ..
         })
     ));
