@@ -5605,6 +5605,21 @@ logic:observationFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:observation and nothing else. It is not a definition of logic:observation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "logic:observationFunctionality logic:characterizes logic:observation ."@x-gmeow-english .
 
+logic:overAccessibilityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "overAccessibility is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:overAccessibility is functional: a modal formula pins exactly one typed accessibility relation — the single world set its standard translation quantifies over — so a box or diamond can never be read against two accessibility relations at once. Presence is required of a modal node by the two guarded modal constraints; this assertion supplies the at-most-one half. A non-modal formula carries none, which the characteristic permits."@x-gmeow-english ;
+    logic:characterizes logic:overAccessibility ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:overAccessibility ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:overAccessibility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:overAccessibility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "logic:overAccessibilityFunctionality logic:characterizes logic:overAccessibility ."@x-gmeow-english .
+
 logic:planGoalFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -16672,7 +16687,7 @@ logic:ModalNecessityAccessibilityConstraint
     logic:trigger logic:necessarily ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Modal Necessity Accessibility Constraint"@x-gmeow-english ;
-    skos:definition "Requires a logic:Formula carrying logic:necessarily (a box modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the box has no world set to quantify over, so the necessity claim is undefined; this structural integrity condition forbids the untyped box. Paired with logic:ModalPossibilityAccessibilityConstraint for the diamond, and bounded above by the at-most-one logic:overAccessibility restriction on logic:Formula so a modal node pins EXACTLY one; the value-set (one of the six typed accessibility relations, never the blurred logic:accessibleFrom union or a modal-force value) is enforced by the modal-accessibility-typed verify gate."@x-gmeow-english ;
+    skos:definition "Requires a logic:Formula carrying logic:necessarily (a box modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the box has no world set to quantify over, so the necessity claim is undefined; this structural integrity condition forbids the untyped box. Paired with logic:ModalPossibilityAccessibilityConstraint for the diamond, and bounded above by the at-most-one characteristic logic:overAccessibilityFunctionality so a modal node pins EXACTLY one; the value-set (one of the six typed accessibility relations, never the blurred logic:accessibleFrom union or a modal-force value) is enforced by the modal-accessibility-typed verify gate."@x-gmeow-english ;
     skos:example "A logic:necessarily node carrying no logic:overAccessibility violates this constraint."@x-gmeow-english ;
     gmeow:avoidWhen "Do not read the required edge as evaluating the modal; it only completes the typed-modal constructor."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ;
@@ -16695,10 +16710,11 @@ logic:ModalPossibilityAccessibilityConstraint
     gmeow:useWhen "Use when validating that a diamond modal node is typed by an accessibility relation."@x-gmeow-english .
 
 # A modal logic:Formula pins EXACTLY one typed accessibility relation: presence is
-# required by the two guarded modal constraints above, and this restriction caps it at
-# one. A non-modal formula carries zero logic:overAccessibility, which satisfies the bound.
-logic:Formula logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:overAccessibility ; logic:maxCardinality 1 ] .
+# required of a modal node by the two guarded modal constraints above, and the
+# at-most-one half is carried by logic:overAccessibilityFunctionality — a property
+# characteristic the native reasoner decides, NOT an unqualified cardinality
+# restriction, which is out of the decided fragment. A non-modal formula carries zero
+# logic:overAccessibility, which the characteristic permits.
 
 logic:TermCarrierValueConstraint
     a logic:ChoiceGroupConstraint ;

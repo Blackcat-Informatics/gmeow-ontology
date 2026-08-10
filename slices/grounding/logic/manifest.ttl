@@ -49,10 +49,15 @@
 # gmeow:seamFromSlice/gmeow:seamToSlice is not a semantic dependency edge, so
 # naming `lang:`/`math:` term IRIs here does not trip the cross-slice grounding
 # gate. Every peered cross-slice reference among the grounding slices must land
-# on one of these eight seams rather than riding free on the
-# gmeow:sliceCoFoundationalWith peerage grant. Seven of the eight are outbound
-# from `lang:` or `math:`; `logic:` makes exactly ONE structural reference into
-# a peer, the quantity-boundary seam, and its narrowness is the point.
+# on one of these nine seams rather than riding free on the
+# gmeow:sliceCoFoundationalWith peerage grant. Seven of the nine are outbound
+# from `lang:` or `math:`; `logic:` reaches into a peer on exactly TWO, and the
+# narrowness of each is the point. The quantity-boundary seam is one term wide
+# and structural: it lets a bridge row name the peer-owned quantity authority.
+# The GMN logical-plane verification seam is read-only and carries no meaning:
+# logic:'s own verify queries read the lang-owned sign inventory to GRADE the
+# @ℒ glyph plane against the operators it renders, so no logic: term's semantics
+# depend on it.
 # --------------------------------------------------------------------------- #
 
 <https://blackcatinformatics.ca/gmeow/seam/denotation>
@@ -167,13 +172,36 @@
 <https://blackcatinformatics.ca/gmeow/seam/quantity-boundary>
     a gmeow:Seam ;
     rdfs:label "Quantity boundary seam"@x-gmeow-english ;
-    skos:definition "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer."@x-gmeow-english ;
+    skos:definition "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the only STRUCTURAL reference logic: makes into a grounding peer — the sibling GMN logical-plane verification seam is read-only grading traffic that no logic: term's meaning depends on."@x-gmeow-english ;
     gmeow:seamDirection [
         gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ;
         gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
     ] ;
     gmeow:seamCarryingTerm math:Quantity ;
     gmeow:seamOwningDoc "LOGIC-CORRESPONDENCE.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/gmn-logical-plane-verification>
+    a gmeow:Seam ;
+    rdfs:label "GMN logical-plane verification seam"@x-gmeow-english ;
+    skos:definition "The logic → lang seam through which the @ℒ-scoped logical plane of the GMN glyph inventory is VERIFIED against the operators it renders. The logic-owned verify queries read the lang-owned sign inventory — the sign chain (lang:denotedForm, lang:denotationTarget, lang:denotationContext, lang:inSignSystem, gmeow:gmnDenotationGrapheme) and the operator signature it carries (gmeow:gmnFixity, gmeow:gmnArity, gmeow:gmnArityKind, gmeow:gmnPrecedence, gmeow:gmnAssociativity, gmeow:gmnOperandSorts, gmeow:gmnResultSort, gmeow:gmnArgRole and its four role individuals) — so that a logic: operator's authored sort signature, precedence fibring, and single binding can be checked against the glyph actually bound to it. The audited symbology ruling (gmeow:GmnSymbolCandidate and its gmeow:gmnCandidateTarget / gmeow:gmnCandidateGlyph / gmeow:gmnCandidateDenotation / gmeow:gmnSymbolDisposition record, the adopted-glyph and named-key dispositions, gmeow:gmnCodepoints, gmeow:gmnAsciiFallback, gmeow:gmnDictionaryEntryTerm) rides the same seam because a coverage gate must see the ruling to tell a deliberate named key from a missing glyph. logic: reads these terms to GRADE its own plane; it never mints or re-authors them, and lang: remains their sole authority. The direction is verification only: no logic: term's meaning depends on this seam, which is why the operators themselves are marked in scope with gmeow:gmnGlyphInScope rather than by importing the sign records."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/lang>
+    ] ;
+    gmeow:seamCarryingTerm gmeow:GmnSymbolCandidate ,
+        gmeow:gmnArgIndex , gmeow:gmnArgRole , gmeow:gmnArgRoleAntecedent ,
+        gmeow:gmnArgRoleContext , gmeow:gmnArgRoleOverAccessibility , gmeow:gmnArgRoleSuccedent ,
+        gmeow:gmnArity , gmeow:gmnArityKind , gmeow:gmnAsciiFallback , gmeow:gmnAssociativity ,
+        gmeow:gmnCandidateDenotation , gmeow:gmnCandidateGlyph , gmeow:gmnCandidateTarget ,
+        gmeow:gmnCodepoints , gmeow:gmnDenotationGrapheme , gmeow:gmnDictionaryEntryTerm ,
+        gmeow:gmnDispositionAdoptedGlyph , gmeow:gmnDispositionNamedKey ,
+        gmeow:gmnFixity , gmeow:gmnFixityInfix , gmeow:gmnGlyphInScope ,
+        gmeow:gmnGlyphNamedKeyRuled , gmeow:gmnLogicGlyphContext , gmeow:gmnModelNotation ,
+        gmeow:gmnOperandSorts , gmeow:gmnPrecedence , gmeow:gmnResultSort ,
+        gmeow:gmnSymbolDisposition ,
+        lang:denotationContext , lang:denotationTarget , lang:denotedForm , lang:inSignSystem ;
+    gmeow:seamOwningDoc "LANG-GMN.md" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #

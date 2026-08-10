@@ -82,7 +82,16 @@ const GLYPH_TOKEN_COSTS: &[(&str, usize)] = &[
     ("γ", 1),
     ("π", 1),
     ("→", 1),
+    ("≡", 2),
     ("⊑", 3),
+    ("▲", 2),
+    ("△", 2),
+    ("▼", 2),
+    ("▽", 2),
+    ("◉", 2),
+    ("○", 2),
+    ("◌", 2),
+    ("●", 1),
 ];
 
 /// The pinned token cost of `glyph`, or a hard error if the glyph is not pinned. A
