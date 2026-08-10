@@ -3,17 +3,17 @@ source: crates/docs/tests/lint_regression.rs
 expression: coverage
 ---
 {
-  "docs/missing-annotation-coat": 3817,
-  "docs/missing-competency-rationale": 6140,
+  "docs/missing-annotation-coat": 3875,
+  "docs/missing-competency-rationale": 6208,
   "docs/missing-definition": 1,
-  "docs/missing-example": 3746,
-  "docs/missing-fixture-pair": 6215,
+  "docs/missing-example": 3803,
+  "docs/missing-fixture-pair": 6287,
   "docs/missing-label": 1,
-  "docs/missing-prose-quality": 6403,
+  "docs/missing-prose-quality": 6476,
   "docs/missing-realized-state": 79,
-  "docs/missing-scope-note": 5557,
-  "docs/missing-test-reach": 5686,
-  "docs/missing-translation-coverage": 4202,
-  "docs/missing-usage-advice": 3749,
-  "docs/missing-worked-instance": 5704
+  "docs/missing-scope-note": 5629,
+  "docs/missing-test-reach": 5754,
+  "docs/missing-translation-coverage": 4207,
+  "docs/missing-usage-advice": 3806,
+  "docs/missing-worked-instance": 5773
 }
