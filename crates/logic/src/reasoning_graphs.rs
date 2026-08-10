@@ -6,7 +6,7 @@
 //! The pipeline assembles these named worlds plus the authored default world; bundle
 //! readers and lower-layer coherence tests consume the same set. Keeping the identifiers in
 //! the reasoning crate prevents the producer and its gate-teeth proof from silently drifting.
-//! [`project_object_level_edb`] is the executable twin of that boundary: given a FULL
+//! [`crate::reasoning_graphs::project_object_level_edb`] is the executable twin of that boundary: given a FULL
 //! shipped bundle/snapshot dataset (every named graph GMEOW ships), it projects out
 //! exactly the object-level EDB shape — the single authority `crates/pipeline` (build
 //! time) and `crates/validate` (the `validate --deep` / `verify --deep` CLI deep-semantic
