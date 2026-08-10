@@ -121,15 +121,41 @@ pub fn validate(
                 Ok(paths) => paths.iter().map(|p| p.display().to_string()).collect(),
                 Err(e) => return fail(format!("cannot list authored sources: {e}")),
             };
+        // Wire the committed central-DSL SHACL surfaces onto the live `make
+        // validate` gate. Per-phase check/heavy placement (recorded in
+        // docs/DSL-VALIDATION-COVERAGE.md and the VALIDATE_PHASE_COVERAGE
+        // registry): mapping/statement/test-central DSL SHACL run HERE on `make
+        // check` (fast, standalone-merge, P6); per-example SHACL is owned by the
+        // `example_sweep` rust-test and slice-local test DSL by the `slicetest`
+        // crate, so `slices_dir` is deliberately left UNSET here to avoid
+        // re-running either as a duplicate whole-corpus pass. A missing DSL input
+        // is a HARD FAIL (no-optionality), never a silent skip.
+        let dsl = match gmeow_validate::dsl_coverage::authored_dsl_shacl_inputs(&root) {
+            Ok(dsl) => dsl,
+            Err(e) => return fail(format!("cannot resolve DSL SHACL inputs: {e}")),
+        };
+        let mapping_dsl_dir = dsl.mapping_dir;
+        let statement_dsl_dir = dsl.statement_dir;
         let options = ValidateOptions {
             timings,
             project_root: Some(root.clone()),
             deep,
             shape_union_root: Some(root.clone()),
             merged_shacl,
+            mapping_shapes_ttl: Some(dsl.mapping_shapes),
+            statement_shapes_ttl: Some(dsl.statement_shapes),
+            test_dsl_shapes_ttl: Some(dsl.test_shapes),
+            test_dsl_dir: Some(dsl.test_dir),
             ..ValidateOptions::default()
         };
-        ValidationRun::run(&source_paths, "", "", "", &lint_config, &options)
+        ValidationRun::run(
+            &source_paths,
+            "",
+            &mapping_dsl_dir,
+            &statement_dsl_dir,
+            &lint_config,
+            &options,
+        )
     };
     let run = match run {
         Ok(r) => r,
