@@ -18825,3 +18825,47 @@ msgstr "Exige qu'une logic:Formula portant logic:possibly (un nœud modal diaman
 msgctxt "https://blackcatinformatics.ca/logic/ModalPossibilityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "A logic:possibly node carrying no logic:overAccessibility violates this constraint."
 msgstr "Un nœud logic:possibly ne portant aucun logic:overAccessibility viole cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity holds"
+msgstr "la nécessité modale est vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity holds — the body atom is present in every world accessible from w0 over the pinned typed relation (or the accessible set is empty under a non-serial relation, a vacuous hold). Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "Arête de verdict dérivée par le raisonneur, allant d'une logic:Formula modale □ vers son corps : la nécessité est vérifiée — l'atome du corps est présent dans tout monde accessible depuis w0 par la relation typée fixée (ou l'ensemble accessible est vide sous une relation non sérielle, une vérification à vide). Émise par la post-passe native d'évaluation modale, non rédigée à la main."
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity undetermined"
+msgstr "la nécessité modale est indéterminée"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity is undetermined — the pinned typed relation is the SERIAL logic:deonticallyIdeal and its accessible set is empty, so the 'holds in every ideal world' condition is not vacuously true but undetermined. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "Arête de verdict dérivée par le raisonneur, allant d'une logic:Formula modale □ vers son corps : la nécessité est indéterminée — la relation typée fixée est la relation SÉRIELLE logic:deonticallyIdeal et son ensemble accessible est vide, de sorte que la condition « vérifiée dans tout monde idéal » n'est pas vraie à vide mais indéterminée. Émise par la post-passe native d'évaluation modale, non rédigée à la main."
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility holds"
+msgstr "la possibilité modale est vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility holds — the body atom is present in at least one world accessible from w0 over the pinned typed relation. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "Arête de verdict dérivée par le raisonneur, allant d'une logic:Formula modale ◇ vers son corps : la possibilité est vérifiée — l'atome du corps est présent dans au moins un monde accessible depuis w0 par la relation typée fixée. Émise par la post-passe native d'évaluation modale, non rédigée à la main."
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility fails"
+msgstr "la possibilité modale échoue"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility fails — no world accessible from w0 over the pinned typed relation carries the body atom. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "Arête de verdict dérivée par le raisonneur, allant d'une logic:Formula modale ◇ vers son corps : la possibilité échoue — aucun monde accessible depuis w0 par la relation typée fixée ne porte l'atome du corps. Émise par la post-passe native d'évaluation modale, non rédigée à la main."
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overAccessibility is functional"
+msgstr "overAccessibility est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that logic:overAccessibility is functional: a modal formula pins exactly one typed accessibility relation — the single world set its standard translation quantifies over — so a box or diamond can never be read against two accessibility relations at once. Presence is required of a modal node by the two guarded modal constraints; this assertion supplies the at-most-one half. A non-modal formula carries none, which the characteristic permits."
+msgstr "Affirme sur le porteur canonique que logic:overAccessibility est fonctionnelle : une formule modale fixe exactement une relation d'accessibilité typée — l'unique ensemble de mondes sur lequel quantifie sa traduction standard — de sorte qu'une boîte ou un diamant ne peut jamais être lu contre deux relations d'accessibilité à la fois. La présence est exigée d'un nœud modal par les deux contraintes modales gardées ; cette affirmation fournit la moitié « au plus un ». Une formule non modale n'en porte aucune, ce que la caractéristique autorise."
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE obligation d'intégrité concernant logic:overAccessibility et rien d'autre. Ce n'est pas une définition de logic:overAccessibility (celle-ci réside sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

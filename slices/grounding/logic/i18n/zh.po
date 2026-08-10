@@ -18825,3 +18825,47 @@ msgstr "要求携带 logic:possibly 的 logic:Formula（菱形模态节点）将
 msgctxt "https://blackcatinformatics.ca/logic/ModalPossibilityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "A logic:possibly node carrying no logic:overAccessibility violates this constraint."
 msgstr "不携带任何 logic:overAccessibility 的 logic:possibly 节点违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity holds"
+msgstr "模态必然性成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity holds — the body atom is present in every world accessible from w0 over the pinned typed relation (or the accessible set is empty under a non-serial relation, a vacuous hold). Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 □ 模态 logic:Formula 指向其体的推理器派生裁决边：必然性成立——体原子出现在经所固定的带类型关系自 w0 可及的每一个世界中（或在非序列关系下可及集合为空，属空洞成立）。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity undetermined"
+msgstr "模态必然性未定"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity is undetermined — the pinned typed relation is the SERIAL logic:deonticallyIdeal and its accessible set is empty, so the 'holds in every ideal world' condition is not vacuously true but undetermined. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 □ 模态 logic:Formula 指向其体的推理器派生裁决边：必然性未定——所固定的带类型关系是序列性的 logic:deonticallyIdeal 且其可及集合为空，故「在每个理想世界中成立」这一条件并非空洞为真，而是未定。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility holds"
+msgstr "模态可能性成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility holds — the body atom is present in at least one world accessible from w0 over the pinned typed relation. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 ◇ 模态 logic:Formula 指向其体的推理器派生裁决边：可能性成立——体原子至少出现在经所固定的带类型关系自 w0 可及的一个世界中。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility fails"
+msgstr "模态可能性不成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility fails — no world accessible from w0 over the pinned typed relation carries the body atom. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 ◇ 模态 logic:Formula 指向其体的推理器派生裁决边：可能性不成立——经所固定的带类型关系自 w0 可及的世界中没有任何一个携带该体原子。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overAccessibility is functional"
+msgstr "overAccessibility 是函数性的"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that logic:overAccessibility is functional: a modal formula pins exactly one typed accessibility relation — the single world set its standard translation quantifies over — so a box or diamond can never be read against two accessibility relations at once. Presence is required of a modal node by the two guarded modal constraints; this assertion supplies the at-most-one half. A non-modal formula carries none, which the characteristic permits."
+msgstr "在规范载体上断言 logic:overAccessibility 是函数性的：模态公式恰好固定一个带类型的可及关系——其标准翻译所量化的唯一世界集合——因此方框或菱形绝不可能同时依两个可及关系来读取。模态节点须具备该关系，这由两条受保护的模态约束要求；本断言提供「至多一个」的那一半。非模态公式不携带任何该关系，此特征允许如此。"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：本记录仅承载关于 logic:overAccessibility 的一项完整性义务，别无其他。它不是 logic:overAccessibility 的定义（定义位于该术语本身），不是形状，也不是陈述该术语含义的第二处——应停用该记录，而非扩大其范围。"
