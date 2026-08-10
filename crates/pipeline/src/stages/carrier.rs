@@ -4624,12 +4624,12 @@ mod grounding_seams_turtle_tests {
     }
 
     /// NON-VACUITY, over the REAL repository: the shipped `graph/grounding-seams` payload
-    /// built from the real slice catalog carries ALL EIGHT authored seams, each with its
+    /// built from the real slice catalog carries ALL NINE authored seams, each with its
     /// real `rdfs:label`, its real owning design doc, and at least one direction leg.
     /// This is the test that fails if the registry ever stops reaching the bundle — a
     /// fixture-only suite would pass while `gmeow.gts` shipped nothing.
     #[test]
-    fn the_real_registry_ships_all_eight_authored_seams() {
+    fn the_real_registry_ships_all_nine_authored_seams() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")
             .join("..")
@@ -4640,7 +4640,7 @@ mod grounding_seams_turtle_tests {
         let text = String::from_utf8(nq).expect("utf8");
 
         // (seam IRI local name, authored rdfs:label, an authored owning doc)
-        const AUTHORED: [(&str, &str, &str); 8] = [
+        const AUTHORED: [(&str, &str, &str); 9] = [
             ("denotation", "Denotation seam", "LANG-MEANING.md"),
             (
                 "compilation",
@@ -4673,6 +4673,11 @@ mod grounding_seams_turtle_tests {
                 "Quantity boundary seam",
                 "LOGIC-CORRESPONDENCE.md",
             ),
+            (
+                "gmn-logical-plane-verification",
+                "GMN logical-plane verification seam",
+                "LANG-GMN.md",
+            ),
         ];
         for (local, label, doc) in AUTHORED {
             let iri = format!("https://blackcatinformatics.ca/gmeow/seam/{local}");
@@ -4693,14 +4698,14 @@ mod grounding_seams_turtle_tests {
                 "seam \"{label}\" must carry at least one direction leg"
             );
         }
-        // The registry is CLOSED at eight: an added or dropped seam is a governance change
+        // The registry is CLOSED at nine: an added or dropped seam is a governance change
         // that must be made deliberately, not discovered by drift.
         let seam_types = text
             .matches(&format!("<{RDF_TYPE}> <{GMEOW_NS}Seam>"))
             .count();
         assert_eq!(
-            seam_types, 8,
-            "the authored registry is the CLOSED set of eight sanctioned seams; got {seam_types}"
+            seam_types, 9,
+            "the authored registry is the CLOSED set of nine sanctioned seams; got {seam_types}"
         );
         // Every leg is fully paired: as many seamToSlice as seamFromSlice assertions.
         assert_eq!(
