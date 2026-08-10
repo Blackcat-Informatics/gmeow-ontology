@@ -87,7 +87,6 @@ rustc-ice-*.txt
 # content: the local memory index, the Gemini extension payload, and the local
 # skill mirrors. The repo's own .agents/skills/gmeow-*/ and deficiency-cleanup
 # skills are real gmeow content and stay tracked (not matched below).
-.coding-ethos/memories/
 .gemini/extensions/
 .agents/skills/agent-operating-discipline/
 .agents/skills/coding-ethos-agent-workflow/

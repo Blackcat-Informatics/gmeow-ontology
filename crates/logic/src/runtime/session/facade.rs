@@ -13,6 +13,10 @@ use purrdf::{
     FallibleDatasetView, PagedDataset, PagedQueryError, PagedQueryEvidence, PagedQueryLimits,
     RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, ViewOperationStatus,
 };
+// `PagedQueryError` surfaces at the `purrdf` root, but its `StopCause` — the shared
+// cancellation/deadline vocabulary of the governor merge — is re-exported by the umbrella
+// only through the sparql-eval module (`purrdf::sparql`), so it is imported from there.
+use purrdf::sparql::StopCause;
 
 use crate::annotation::AnnotationContract;
 use crate::cost::{
@@ -771,8 +775,13 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
         cause,
     };
     match error {
-        PagedQueryError::Cancelled { .. } => incomplete(IncompleteCause::Cancelled),
-        PagedQueryError::DeadlineExceeded { .. } => incomplete(IncompleteCause::Deadline),
+        // The governor merge unified cancellation and deadlines into one host-supplied stop
+        // primitive; the reported `StopCause` is what distinguishes them, so the two former
+        // arms collapse into one that dispatches on the cause — preserving the exact outcome.
+        PagedQueryError::Stopped { cause, .. } => match cause {
+            StopCause::Cancelled => incomplete(IncompleteCause::Cancelled),
+            StopCause::Deadline => incomplete(IncompleteCause::Deadline),
+        },
         PagedQueryError::PageBudgetExceeded { .. }
         | PagedQueryError::ByteBudgetExceeded { .. }
         | PagedQueryError::StaleGeneration { .. }
