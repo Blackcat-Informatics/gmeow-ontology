@@ -4,9 +4,11 @@
 //! Shared native DSL SHACL validation engine.
 //!
 //! This module is the single Rust authority for validating merged Turtle DSL
-//! sources against a SHACL shapes graph. It is called from both the standalone
-//! Python extension seam and the full validation orchestration, so merge,
-//! validation, and focus-to-source provenance cannot drift.
+//! sources against a SHACL shapes graph. Its sole caller is the validation
+//! orchestration (`validate_all::check_dsl`), which the live `gmeow-dev validate`
+//! gate drives with the committed central-DSL surfaces resolved by
+//! [`crate::dsl_coverage::authored_dsl_shacl_inputs`], so merge, validation, and
+//! focus-to-source provenance cannot drift.
 
 use std::collections::HashMap;
 use std::path::PathBuf;
