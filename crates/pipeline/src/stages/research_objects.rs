@@ -4,10 +4,11 @@
 //! The `research-objects` export leaf (P4): Croissant / RO-Crate / DataCite
 //! Frictionless / DCAT research-object projections.
 //!
-//! A genuine Rust port of `src/gmeow_tools/research_objects.py` (#58): the flagship
-//! Lillith GraphRAG worked example is rendered into `generated/research-objects/
-//! lillith/` — the no-drift gate. Each artifact is a GENERATED lossy projection of
-//! canonical GMEOW instance data, declaring its drops in the format's native slot.
+//! The flagship Lillith GraphRAG worked example is rendered into
+//! `generated/research-objects/lillith/` — the no-drift gate. Each artifact is a
+//! GENERATED lossy projection of canonical GMEOW instance data, declaring its drops in
+//! the format's native slot; the purrdf codecs additionally carry a soundness-checked
+//! structural loss ledger, surfaced via `report_projection_losses`.
 //!
 //! The Croissant / DataCite / Frictionless / RO-Crate projections are cut onto the
 //! purrdf research-object codecs (`project_croissant` / `project_datacite` /
@@ -63,7 +64,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 
-const CROISSANT_CONFORMS_TO: &str = "http://mlcommons.org/croissant/1.0";
+const CROISSANT_CONFORMS_TO: &str = "http://mlcommons.org/croissant/1.1";
 /// The `@context` value emitted by the RO-Crate 1.3 codec (an opaque profile IRI; the
 /// caller supplies the full offline expansion table alongside it).
 const RO_CRATE_CONTEXT: &str = "https://w3id.org/ro/crate/1.3/context";
@@ -349,7 +350,24 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
     Ok(DatasetMeta {
         iri: ds.clone(),
         title,
-        description: text(store, &ds, &g("description")),
+        // P5: every projection is lossy and declares its drops in the format's own native
+        // description slot (Croissant/Frictionless/RO-Crate `description`, DataCite abstract).
+        // The purrdf codecs additionally carry a soundness-checked structural loss ledger,
+        // surfaced via `report_projection_losses`; this caller-authored note states the
+        // gmeow-domain reductions the flat research-object formats cannot themselves ledger.
+        description: {
+            let base = text(store, &ds, &g("description"));
+            let drops = "Declared drops (P5): reified relators (copyright, roles, memberships) \
+                flatten; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) \
+                are dropped; standpoint indexing is dropped — contested claims appear without \
+                their vantage; blake3 remains the internal canonical content digest while \
+                sha256/md5 are projected where supplied and the format allows.";
+            if base.is_empty() {
+                drops.to_string()
+            } else {
+                format!("{base} {drops}")
+            }
+        },
         date_published,
         landing_page: landing,
         version,
@@ -1543,10 +1561,12 @@ impl Stage for ResearchObjectsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v3: `generated/evals/scores.ttl` rides in from the consumed stage-export-evals
-        // product (never a disk read of the git-ignored generated tree); the DCAT CONSTRUCT
-        // query rides in from the consumed stage-mappings product.
-        "research_objects.v3"
+        // v4: croissant/datacite/frictionless/ro-crate are projected by the purrdf 0.12.0
+        // research-object codecs (RO-Crate is Attached, payloads carried as RoCrateAssets); the
+        // rdflib-parity serializers are gone and the goldens are re-blessed. DCAT stays on its
+        // whole-ontology `dcat.rq` CONSTRUCT. `scores.ttl`/`dcat.rq` still ride in from the
+        // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
+        "research_objects.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
@@ -1678,8 +1698,37 @@ mod tests {
             .get(crate::stages::evals::SCORES_PATH)
             .expect("evals product carries scores.ttl");
         let arts = render_research_objects(&root, &dcat_rq, scores_ttl).expect("render");
+
+        // Pin the family by its member-name SET, not a bare count: a count of 13 cannot catch a
+        // silent membership swap (a top-level artifact migrating under `ro-crate/` while a new
+        // member appears leaves the count unchanged). The four purrdf codecs + the untouched DCAT
+        // CONSTRUCT project exactly these 13 logical paths.
+        let base = RESEARCH_OBJECTS_DIR;
+        let expected: BTreeSet<String> = [
+            "lillith.croissant.jsonld",
+            "lillith.datacite.xml",
+            "datapackage.json",
+            "lillith.dcat.ttl",
+            "ro-crate/ro-crate-metadata.json",
+            "ro-crate/ro-crate-preview.html",
+            "ro-crate/corpus.ttl",
+            "ro-crate/grounded-claim.ttl",
+            "ro-crate/lillith-dataset.ttl",
+            "ro-crate/lillith-pipeline.ttl",
+            "ro-crate/rubric.ttl",
+            "ro-crate/scores.ttl",
+            "ro-crate/lillith.croissant.jsonld",
+        ]
+        .into_iter()
+        .map(|member| format!("{base}/{member}"))
+        .collect();
+        let actual: BTreeSet<String> = arts.keys().cloned().collect();
+        assert_eq!(
+            actual, expected,
+            "research-objects family membership drifted"
+        );
+
         let mut failures: Vec<String> = Vec::new();
-        let mut checked = 0;
         for (path, bytes) in &arts {
             let committed = std::fs::read(root.join(path))
                 .unwrap_or_else(|_| panic!("committed missing: {path}"));
@@ -1699,9 +1748,7 @@ mod tests {
                 }
                 failures.push(format!("{path}: {detail}"));
             }
-            checked += 1;
         }
-        assert_eq!(checked, 13, "expected 13 committed files, got {checked}");
         assert!(
             failures.is_empty(),
             "research-objects byte-parity drift:\n{}",
