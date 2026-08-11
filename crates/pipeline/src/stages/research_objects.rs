@@ -80,7 +80,6 @@ const PROCESS_RUN_PROFILE: &str = "https://w3id.org/ro/wfrun/process/0.5";
 const WORKFLOW_RUN_PROFILE: &str = "https://w3id.org/ro/wfrun/workflow/0.5";
 const DATACITE_NS: &str = "http://datacite.org/schema/kernel-4";
 const XSI_NS: &str = "http://www.w3.org/2001/XMLSchema-instance";
-const PLACEHOLDER_DOI_PREFIX: &str = "10.5072";
 
 /// The worked example's AUTHORED instance Turtle inputs, in generator order.
 /// `(repo-relative path, crate file name)`. These are pure authored-source reads
@@ -320,12 +319,6 @@ struct DatasetMeta {
     cite_as: Option<String>,
 }
 
-impl DatasetMeta {
-    fn publication_year(&self) -> String {
-        self.date_published.chars().take(4).collect()
-    }
-}
-
 fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
     let mut candidates: Vec<String> = subjects_of_type(store, &g("Dataset"))
         .into_iter()
@@ -446,7 +439,6 @@ struct AgentInfo {
     iri: String,
     name: String,
     version: String,
-    provider: String,
 }
 
 fn agents(store: &Store) -> Vec<AgentInfo> {
@@ -459,17 +451,13 @@ fn agents(store: &Store) -> Vec<AgentInfo> {
             let card = subjects_with(store, &g("describesModel"), &agent)
                 .into_iter()
                 .next();
-            let (version, provider) = match card {
-                Some(c) => (
-                    text(store, &c, &g("modelVersionTag")),
-                    text(store, &c, &g("modelProvider")),
-                ),
-                None => (String::new(), String::new()),
+            let version = match card {
+                Some(c) => text(store, &c, &g("modelVersionTag")),
+                None => String::new(),
             };
             AgentInfo {
                 name: label(store, &agent),
                 version,
-                provider,
                 iri: agent,
             }
         })
@@ -534,10 +522,6 @@ fn activities(store: &Store) -> Vec<Action> {
 // ── JSON value model (byte-exact Python json.dumps, indent=2, ensure_ascii=False) ──
 
 enum Json {
-    Bool(bool),
-    Int(i64),
-    /// A pre-formatted numeric token (e.g. `1.0`, `0.66`) rendered verbatim.
-    Num(String),
     Str(String),
     Arr(Vec<Json>),
     /// Insertion-ordered object (Python dict order preserved).
@@ -549,9 +533,6 @@ impl Json {
         let pad = "  ".repeat(indent);
         let pad1 = "  ".repeat(indent + 1);
         match self {
-            Json::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-            Json::Int(i) => out.push_str(&i.to_string()),
-            Json::Num(s) => out.push_str(s),
             Json::Str(s) => out.push_str(&json_str(s)),
             Json::Arr(items) => {
                 if items.is_empty() {
@@ -631,272 +612,568 @@ fn s(v: &str) -> Json {
     Json::Str(v.to_string())
 }
 
-/// A score float rendered the way Python's `json.dumps(float(x))` would: trailing
-/// `.0` for integral values, else the shortest decimal of `float(lexical)`. A
-/// non-numeric score lexical HARD-fails — invalid source data is never silently
-/// coerced to `0.0` (no-optionality).
-fn json_float(lexical: &str) -> Result<Json, gmeow_errors::Diag> {
-    let f: f64 = lexical.trim().parse().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("assessmentScoreValue {lexical:?} is not a valid float: {e}"),
-        })
-    })?;
-    if !f.is_finite() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("assessmentScoreValue {lexical:?} is not finite"),
-        }));
-    }
-    if f == f.trunc() {
-        Ok(Json::Num(format!("{f:.1}")))
-    } else {
-        Ok(Json::Num(format!("{f}")))
-    }
+// ── research-object codec configuration (purrdf project_croissant / _datacite / _frictionless) ──
+
+/// Wrap a projection failure as a pipeline parse diagnostic.
+fn ro_err(message: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Parse { message })
 }
 
-// ── Croissant ──────────────────────────────────────────────────────────────────
-
-fn croissant_context() -> Json {
-    obj(vec![
-        ("@language", s("en")),
-        ("@vocab", s("https://schema.org/")),
-        ("sc", s("https://schema.org/")),
-        ("cr", s("http://mlcommons.org/croissant/")),
-        ("rai", s("http://mlcommons.org/croissant/RAI/")),
-        ("dct", s("http://purl.org/dc/terms/")),
-        ("citeAs", s("cr:citeAs")),
-        ("conformsTo", s("dct:conformsTo")),
-        (
-            "data",
-            obj(vec![("@id", s("cr:data")), ("@type", s("@json"))]),
-        ),
-        (
-            "dataType",
-            obj(vec![("@id", s("cr:dataType")), ("@type", s("@vocab"))]),
-        ),
-        ("field", s("cr:field")),
-        ("fileObject", s("cr:fileObject")),
-        ("recordSet", s("cr:recordSet")),
-        ("sha256", s("cr:sha256")),
-        ("md5", s("cr:md5")),
-    ])
+/// Right-sized [`purrdf::ProjectionLimits`] for the tiny Lillith worked example — a
+/// handful of small artifacts and shallow JSON, NOT the 128 MB SKOS/OBO bounds.
+fn research_limits() -> Result<purrdf::ProjectionLimits, gmeow_errors::Diag> {
+    purrdf::ProjectionLimits::new(8, 4_000_000, 8_000_000, 16_000_000, 12)
+        .map_err(|e| ro_err(format!("research-object ProjectionLimits: {e}")))
 }
 
-fn croissant_field(rs: &str, name: &str, data_type: &str) -> Json {
-    obj(vec![
-        ("@type", s("cr:Field")),
-        ("@id", s(&format!("{rs}/{name}"))),
-        ("name", s(name)),
-        ("dataType", s(data_type)),
-    ])
+/// The complete caller-owned RDF vocabulary binding: how the source research-object
+/// A-Box built by [`build_research_source`] expresses each semantic role. gmeow
+/// predicates/classes for the concepts the worked example carries; the real rdf:/xsd:
+/// datatype IRIs the pivot compares literal datatypes against; a distinct absolute
+/// gmeow IRI for every remaining role (purrdf rejects any missing, relative, or
+/// duplicate binding). Because [`build_research_source`] emits triples keyed off THIS
+/// same map, source and reader can never drift.
+fn research_roles() -> Result<purrdf::ResearchObjectRoles, gmeow_errors::Diag> {
+    use purrdf::ResearchRole as RR;
+    const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    let iri = |role: purrdf::ResearchRole| -> String {
+        match role {
+            RR::RdfType => RDF_TYPE.to_string(),
+            RR::DatasetClass => g("Dataset"),
+            RR::Title => g("title"),
+            RR::Description => g("description"),
+            RR::Identifier => g("citeAs"),
+            RR::Version => g("version"),
+            RR::Issued => g("datePublished"),
+            RR::Modified => g("dateModified"),
+            RR::LandingPage => g("sourceLocation"),
+            RR::Keyword => g("keyword"),
+            RR::License => g("hasLicense"),
+            RR::Creator => g("wasAttributedTo"),
+            RR::Publisher => g("researchPublisher"),
+            RR::HasResource => g("hasResource"),
+            RR::HasActivity => g("hasActivity"),
+            RR::HasRecordSet => g("hasRecordSet"),
+            RR::AgentClass => g("Organization"),
+            RR::AgentName => RDFS_LABEL.to_string(),
+            RR::ResourceClass => g("Document"),
+            RR::ResourceName => g("resourceName"),
+            RR::ResourceDescription => g("resourceDescription"),
+            RR::ResourcePath => g("resourcePath"),
+            RR::ResourceUrl => g("contentUrl"),
+            RR::MediaType => g("mediaType"),
+            RR::Format => g("resourceFormat"),
+            RR::ByteSize => g("byteSize"),
+            RR::Checksum => g("hasChecksum"),
+            RR::ChecksumClass => g("Checksum"),
+            RR::ChecksumAlgorithm => g("checksumAlgorithm"),
+            RR::ChecksumValue => g("checksumValue"),
+            RR::ActivityClass => g("Activity"),
+            RR::ActivityName => g("activityName"),
+            RR::Instrument => g("instrument"),
+            RR::Actor => g("actor"),
+            RR::Object => g("activityObject"),
+            RR::Result => g("activityResult"),
+            RR::EndTime => g("endTime"),
+            RR::Workflow => g("workflow"),
+            RR::RecordSetClass => g("RecordSet"),
+            RR::RecordSetName => g("recordSetName"),
+            RR::RecordSetDescription => g("recordSetDescription"),
+            RR::HasField => g("hasField"),
+            RR::HasRow => g("hasRow"),
+            RR::FieldClass => g("Field"),
+            RR::FieldName => g("fieldName"),
+            RR::FieldDataType => g("fieldDataType"),
+            RR::JsonDatatype => format!("{RDF}JSON"),
+            RR::RdfLangString => format!("{RDF}langString"),
+            RR::RdfDirLangString => format!("{RDF}dirLangString"),
+            RR::XsdString => format!("{XSD}string"),
+            RR::XsdNonNegativeInteger => format!("{XSD}nonNegativeInteger"),
+            RR::XsdDateTime => format!("{XSD}dateTime"),
+        }
+    };
+    let map: BTreeMap<purrdf::ResearchRole, String> = purrdf::RESEARCH_ROLES
+        .iter()
+        .copied()
+        .map(|role| (role, iri(role)))
+        .collect();
+    purrdf::ResearchObjectRoles::new(map)
+        .map_err(|e| ro_err(format!("research-object ResearchObjectRoles: {e}")))
 }
 
-fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, gmeow_errors::Diag> {
-    let mut record_sets: Vec<Json> = Vec::new();
+/// The shared research-object config (roles + identity + policy) every codec consumes.
+/// The dataset identity is the canonical `gmeow:Dataset` IRI; the entity base is the
+/// gmeow namespace (ends in `/`, so minted resource/checksum/record-set IRIs resolve).
+fn research_common_config(
+    dataset_iri: &str,
+) -> Result<purrdf::ResearchObjectConfig, gmeow_errors::Diag> {
+    let roles = research_roles()?;
+    let identity = purrdf::ResearchObjectIdentity::new(dataset_iri, NS)
+        .map_err(|e| ro_err(format!("research-object ResearchObjectIdentity: {e}")))?;
+    let policy =
+        purrdf::ResearchObjectPolicy::new(research_limits()?, 100_000, 100_000, 100_000, 12)
+            .map_err(|e| ro_err(format!("research-object ResearchObjectPolicy: {e}")))?;
+    Ok(purrdf::ResearchObjectConfig::new(roles, identity, policy))
+}
 
-    let chunk_rows: Vec<Json> = subjects_of_type(store, &g("Chunk"))
-        .into_iter()
-        .map(|chunk| {
-            obj(vec![
-                ("chunks/id", s(&chunk)),
-                ("chunks/source", s(&text(store, &chunk, &g("chunkOf")))),
-                (
-                    "chunks/spanStart",
-                    Json::Int(text(store, &chunk, &g("spanStart")).parse().unwrap_or(0)),
-                ),
-                (
-                    "chunks/spanEnd",
-                    Json::Int(text(store, &chunk, &g("spanEnd")).parse().unwrap_or(0)),
-                ),
-                (
-                    "chunks/digest",
-                    s(&text(store, &chunk, &g("contentDigest"))),
-                ),
-            ])
+/// The gmeow-owned [`purrdf::CroissantConfig`]: a complete compact-term vocabulary,
+/// its offline JSON-LD expansion table (one distinct absolute IRI per term), and the
+/// Croissant conformance profile emitted through `conformsTo`.
+fn croissant_config(
+    common: purrdf::ResearchObjectConfig,
+) -> Result<purrdf::CroissantConfig, gmeow_errors::Diag> {
+    use purrdf::CroissantRole as CR;
+    let term = |role: purrdf::CroissantRole| -> &'static str {
+        match role {
+            CR::DatasetClass => "sc:Dataset",
+            CR::FileObjectClass => "cr:FileObject",
+            CR::RecordSetClass => "cr:RecordSet",
+            CR::FieldClass => "cr:Field",
+            CR::AgentClass => "sc:Organization",
+            CR::ActivityClass => "sc:CreateAction",
+            CR::Name => "name",
+            CR::Description => "description",
+            CR::Identifier => "identifier",
+            CR::Version => "version",
+            CR::DatePublished => "datePublished",
+            CR::DateModified => "dateModified",
+            CR::Url => "url",
+            CR::Keywords => "keywords",
+            CR::License => "license",
+            CR::Creator => "creator",
+            CR::Publisher => "publisher",
+            CR::Distribution => "distribution",
+            CR::Activity => "recordActivity",
+            CR::RecordSet => "recordSet",
+            CR::ConformsTo => "conformsTo",
+            CR::Path => "contentPath",
+            CR::ContentUrl => "contentUrl",
+            CR::EncodingFormat => "encodingFormat",
+            CR::Format => "fileFormat",
+            CR::ContentSize => "contentSize",
+            CR::Sha256 => "sha256",
+            CR::InlineContent => "inlineData",
+            CR::Field => "field",
+            CR::DataType => "dataType",
+            CR::Records => "data",
+            CR::Instrument => "instrument",
+            CR::Agent => "actionAgent",
+            CR::Object => "object",
+            CR::Result => "result",
+            CR::EndTime => "endTime",
+            CR::Workflow => "workflow",
+        }
+    };
+    let expand = |t: &str| -> String {
+        format!(
+            "https://blackcatinformatics.ca/gmeow/croissant#{}",
+            t.replace(':', "_")
+        )
+    };
+    let vocabulary_map: BTreeMap<purrdf::CroissantRole, String> = purrdf::CROISSANT_ROLES
+        .iter()
+        .copied()
+        .map(|role| (role, term(role).to_string()))
+        .collect();
+    let definitions: BTreeMap<String, String> = purrdf::CROISSANT_ROLES
+        .iter()
+        .copied()
+        .map(|role| {
+            let t = term(role);
+            (t.to_string(), expand(t))
         })
         .collect();
-    if !chunk_rows.is_empty() {
-        record_sets.push(obj(vec![
-            ("@type", s("cr:RecordSet")),
-            ("@id", s("chunks")),
-            ("name", s("chunks")),
-            ("description", s("Content-addressed retrieval segments with typed offsets into their source documents.")),
-            ("field", Json::Arr(vec![
-                croissant_field("chunks", "id", "sc:Text"),
-                croissant_field("chunks", "source", "sc:Text"),
-                croissant_field("chunks", "spanStart", "sc:Integer"),
-                croissant_field("chunks", "spanEnd", "sc:Integer"),
-                croissant_field("chunks", "digest", "sc:Text"),
-            ])),
-            ("data", Json::Arr(chunk_rows)),
-        ]));
+    let vocabulary = purrdf::CroissantVocabulary::new(vocabulary_map)
+        .map_err(|e| ro_err(format!("CroissantVocabulary: {e}")))?;
+    let context = purrdf::OfflineJsonLdContext::new(
+        serde_json::Value::String(CROISSANT_CONFORMS_TO.to_string()),
+        definitions,
+    )
+    .map_err(|e| ro_err(format!("Croissant OfflineJsonLdContext: {e}")))?;
+    purrdf::CroissantConfig::new(common, context, vocabulary, CROISSANT_CONFORMS_TO)
+        .map_err(|e| ro_err(format!("CroissantConfig: {e}")))
+}
+
+/// The gmeow-owned [`purrdf::DataCiteConfig`]: the DataCite 4.6 element namespace,
+/// XML-Schema-instance namespace, schema location, and the selected controlled values.
+fn datacite_config(
+    common: purrdf::ResearchObjectConfig,
+) -> Result<purrdf::DataCiteConfig, gmeow_errors::Diag> {
+    let controlled = purrdf::DataCiteControlledValues::new(
+        "DOI",
+        "Dataset",
+        "Organizational",
+        "gmeow-agent",
+        g("agentIdentifierScheme"),
+        "URL",
+        "IsDescribedBy",
+        "HasPart",
+        "IsProducedBy",
+        "References",
+        "Issued",
+        "Updated",
+        "Abstract",
+    )
+    .map_err(|e| ro_err(format!("DataCiteControlledValues: {e}")))?;
+    purrdf::DataCiteConfig::new(
+        common,
+        DATACITE_NS,
+        XSI_NS,
+        "https://schema.datacite.org/meta/kernel-4.5/metadata.xsd",
+        controlled,
+    )
+    .map_err(|e| ro_err(format!("DataCiteConfig: {e}")))
+}
+
+/// The gmeow-owned [`purrdf::FrictionlessConfig`]: the Data Package v1 profile and the
+/// caller-selected package name.
+fn frictionless_config(
+    common: purrdf::ResearchObjectConfig,
+    package_name: &str,
+) -> Result<purrdf::FrictionlessConfig, gmeow_errors::Diag> {
+    purrdf::FrictionlessConfig::new(common, purrdf::FRICTIONLESS_PROFILE, package_name)
+        .map_err(|e| ro_err(format!("FrictionlessConfig: {e}")))
+}
+
+/// Intern `(subject, predicate, object)` IRIs and push the default-graph relation.
+fn push_rel(builder: &mut purrdf::RdfDatasetBuilder, subject: &str, predicate: &str, object: &str) {
+    let subject = builder.intern_iri(subject);
+    let predicate = builder.intern_iri(predicate);
+    let object = builder.intern_iri(object);
+    builder.push_quad(subject, predicate, object, None);
+}
+
+/// Push a typed-literal `(subject, predicate, value^^datatype)` default-graph statement.
+fn push_lit(
+    builder: &mut purrdf::RdfDatasetBuilder,
+    subject: &str,
+    predicate: &str,
+    value: &str,
+    datatype: &str,
+) {
+    let subject = builder.intern_iri(subject);
+    let predicate = builder.intern_iri(predicate);
+    let object = builder.intern_literal(purrdf::RdfLiteral {
+        lexical_form: value.to_string(),
+        datatype: Some(datatype.to_string()),
+        language: None,
+        direction: None,
+    });
+    builder.push_quad(subject, predicate, object, None);
+}
+
+/// True when `url` is an absolute HTTP(S) IRI (safe to emit as an RDF IRI object).
+fn is_http_iri(url: &str) -> bool {
+    url.starts_with("http://") || url.starts_with("https://")
+}
+
+/// Build the single research-object source [`RdfDataset`] every codec projects from,
+/// mirroring the reads of the retired hand-rolled builders but re-expressed in the
+/// caller role vocabulary of [`research_roles`]: the licensed `gmeow:Dataset` and its
+/// catalog metadata, the attributed organisation as both creator and publisher, each
+/// `gmeow:Document` as a resource with its content-address checksums, and the
+/// chunk/claim/eval-score record sets with typed fields and canonical JSON rows.
+fn build_research_source(
+    common: &purrdf::ResearchObjectConfig,
+    store: &Store,
+    ds: &DatasetMeta,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    use purrdf::ResearchRole as RR;
+    let roles = common.roles();
+    let xsd_string = roles.iri(RR::XsdString).to_string();
+    let json_dt = roles.iri(RR::JsonDatatype).to_string();
+    let dsi = ds.iri.as_str();
+    let mut b = purrdf::RdfDatasetBuilder::new();
+
+    // ── the dataset descriptor ──────────────────────────────────────────────────
+    push_rel(
+        &mut b,
+        dsi,
+        roles.iri(RR::RdfType),
+        roles.iri(RR::DatasetClass),
+    );
+    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string);
+    if !ds.description.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::Description),
+            &ds.description,
+            &xsd_string,
+        );
+    }
+    if !ds.date_published.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::Issued),
+            &ds.date_published,
+            &xsd_string,
+        );
+    }
+    if let Some(v) = &ds.version {
+        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string);
+    }
+    if let Some(c) = &ds.cite_as {
+        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string);
+    }
+    if is_http_iri(&ds.landing_page) {
+        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page);
+    } else if !ds.landing_page.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::LandingPage),
+            &ds.landing_page,
+            &xsd_string,
+        );
+    }
+    if let Some(license) = value_node(store, dsi, &g("hasLicense")) {
+        push_rel(&mut b, dsi, roles.iri(RR::License), &license);
+    }
+    // The attributed organisation is projected as BOTH creator and publisher (the
+    // catalog projections carried the same org into each slot); DataCite/Frictionless
+    // require a named agent in both roles.
+    if let Some(org) = value_node(store, dsi, &g("wasAttributedTo")) {
+        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org);
+        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org);
+        push_rel(
+            &mut b,
+            &org,
+            roles.iri(RR::RdfType),
+            roles.iri(RR::AgentClass),
+        );
+        let name = label(store, &org);
+        if !name.is_empty() {
+            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string);
+        }
     }
 
-    let claim_rows: Vec<Json> = subjects_of_type(store, &g("StandpointClaim"))
-        .into_iter()
-        .map(|claim| {
-            obj(vec![
-                ("claims/id", s(&claim)),
-                ("claims/vantage", s(&text(store, &claim, &g("vantage")))),
-                (
-                    "claims/modality",
-                    s(&slug(&text(store, &claim, &g("claimModality")))),
-                ),
-                (
-                    "claims/grounded",
-                    Json::Bool(value_node(store, &claim, &g("groundedIn")).is_some()),
-                ),
-            ])
-        })
-        .collect();
-    if !claim_rows.is_empty() {
-        record_sets.push(obj(vec![
-            ("@type", s("cr:RecordSet")),
-            ("@id", s("claims")),
-            ("name", s("claims")),
-            ("description", s("Model-extracted claims: vantage-attributed, modality-tagged, grounded flag from evidence spans. (Standpoint nuance beyond the flag is a declared drop.)")),
-            ("field", Json::Arr(vec![
-                croissant_field("claims", "id", "sc:Text"),
-                croissant_field("claims", "vantage", "sc:Text"),
-                croissant_field("claims", "modality", "sc:Text"),
-                croissant_field("claims", "grounded", "sc:Boolean"),
-            ])),
-            ("data", Json::Arr(claim_rows)),
-        ]));
+    // ── resources: each gmeow:Document, minted under the entity base ────────────
+    let mut seen_resource: BTreeSet<String> = BTreeSet::new();
+    for doc in documents(store) {
+        let base = slug(&doc.iri).to_lowercase().replace('_', "-");
+        let mut name = base.clone();
+        let mut disambiguate = 2;
+        while !seen_resource.insert(name.clone()) {
+            name = format!("{base}-{disambiguate}");
+            disambiguate += 1;
+        }
+        let rid = format!("{NS}{name}");
+        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid);
+        push_rel(
+            &mut b,
+            &rid,
+            roles.iri(RR::RdfType),
+            roles.iri(RR::ResourceClass),
+        );
+        if !doc.name.is_empty() {
+            push_lit(
+                &mut b,
+                &rid,
+                roles.iri(RR::ResourceName),
+                &doc.name,
+                &xsd_string,
+            );
+        }
+        if is_http_iri(&doc.content_url) {
+            push_rel(&mut b, &rid, roles.iri(RR::ResourceUrl), &doc.content_url);
+        } else if !doc.content_url.is_empty() {
+            push_lit(
+                &mut b,
+                &rid,
+                roles.iri(RR::ResourcePath),
+                &doc.content_url,
+                &xsd_string,
+            );
+        }
+        for (algo, hex) in &doc.digests {
+            let cid = format!("{NS}checksum/{name}/{algo}");
+            push_rel(&mut b, &rid, roles.iri(RR::Checksum), &cid);
+            push_rel(
+                &mut b,
+                &cid,
+                roles.iri(RR::RdfType),
+                roles.iri(RR::ChecksumClass),
+            );
+            push_lit(
+                &mut b,
+                &cid,
+                roles.iri(RR::ChecksumAlgorithm),
+                algo,
+                &xsd_string,
+            );
+            push_lit(&mut b, &cid, roles.iri(RR::ChecksumValue), hex, &xsd_string);
+        }
     }
 
-    let mut score_rows: Vec<Json> = Vec::new();
-    for a in subjects_of_type(store, &g("Assessment")) {
-        let lexical = text(store, &a, &g("assessmentScoreValue"));
+    // ── record sets: chunks, claims, eval scores ────────────────────────────────
+    let emit_record_set = |b: &mut purrdf::RdfDatasetBuilder,
+                           id: &str,
+                           name: &str,
+                           description: &str,
+                           fields: &[(&str, &str)],
+                           rows: &[String]| {
+        push_rel(b, dsi, roles.iri(RR::HasRecordSet), id);
+        push_rel(b, id, roles.iri(RR::RdfType), roles.iri(RR::RecordSetClass));
+        push_lit(b, id, roles.iri(RR::RecordSetName), name, &xsd_string);
+        push_lit(
+            b,
+            id,
+            roles.iri(RR::RecordSetDescription),
+            description,
+            &xsd_string,
+        );
+        for (fname, dtype) in fields {
+            let fid = format!("{NS}field/{name}/{fname}");
+            push_rel(b, id, roles.iri(RR::HasField), &fid);
+            push_rel(b, &fid, roles.iri(RR::RdfType), roles.iri(RR::FieldClass));
+            push_lit(b, &fid, roles.iri(RR::FieldName), fname, &xsd_string);
+            push_lit(b, &fid, roles.iri(RR::FieldDataType), dtype, &xsd_string);
+        }
+        for row in rows {
+            push_lit(b, id, roles.iri(RR::HasRow), row, &json_dt);
+        }
+    };
+    let row_json = |value: &serde_json::Value| -> Result<String, gmeow_errors::Diag> {
+        serde_json::to_string(value).map_err(|e| ro_err(format!("record-set row JSON: {e}")))
+    };
+
+    let chunks = subjects_of_type(store, &g("Chunk"));
+    if !chunks.is_empty() {
+        let mut rows = Vec::with_capacity(chunks.len());
+        for chunk in &chunks {
+            rows.push(row_json(&serde_json::json!({
+                "chunks/id": chunk,
+                "chunks/source": text(store, chunk, &g("chunkOf")),
+                "chunks/spanStart": text(store, chunk, &g("spanStart")).parse::<i64>().unwrap_or(0),
+                "chunks/spanEnd": text(store, chunk, &g("spanEnd")).parse::<i64>().unwrap_or(0),
+                "chunks/digest": text(store, chunk, &g("contentDigest")),
+            }))?);
+        }
+        emit_record_set(
+            &mut b,
+            &format!("{NS}recordset/chunks"),
+            "chunks",
+            "Content-addressed retrieval segments with typed offsets into their source documents.",
+            &[
+                ("id", "sc:Text"),
+                ("source", "sc:Text"),
+                ("spanStart", "sc:Integer"),
+                ("spanEnd", "sc:Integer"),
+                ("digest", "sc:Text"),
+            ],
+            &rows,
+        );
+    }
+
+    let claims = subjects_of_type(store, &g("StandpointClaim"));
+    if !claims.is_empty() {
+        let mut rows = Vec::with_capacity(claims.len());
+        for claim in &claims {
+            rows.push(row_json(&serde_json::json!({
+                "claims/id": claim,
+                "claims/vantage": text(store, claim, &g("vantage")),
+                "claims/modality": slug(&text(store, claim, &g("claimModality"))),
+                "claims/grounded": value_node(store, claim, &g("groundedIn")).is_some(),
+            }))?);
+        }
+        emit_record_set(
+            &mut b,
+            &format!("{NS}recordset/claims"),
+            "claims",
+            "Model-extracted claims: vantage-attributed, modality-tagged, grounded flag from evidence spans. (Standpoint nuance beyond the flag is a declared drop.)",
+            &[
+                ("id", "sc:Text"),
+                ("vantage", "sc:Text"),
+                ("modality", "sc:Text"),
+                ("grounded", "sc:Boolean"),
+            ],
+            &rows,
+        );
+    }
+
+    let mut score_rows: Vec<String> = Vec::new();
+    for assessment in subjects_of_type(store, &g("Assessment")) {
+        let lexical = text(store, &assessment, &g("assessmentScoreValue"));
         if lexical.is_empty() {
             continue;
         }
-        score_rows.push(obj(vec![
-            (
-                "evalScores/model",
-                s(&text(store, &a, &g("assessmentTarget"))),
-            ),
-            (
-                "evalScores/criterion",
-                s(&slug(&text(store, &a, &g("assessmentCriterion")))),
-            ),
-            ("evalScores/score", json_float(&lexical)?),
-        ]));
+        let parsed: f64 = lexical.trim().parse().map_err(|e| {
+            ro_err(format!(
+                "assessmentScoreValue {lexical:?} is not a valid float: {e}"
+            ))
+        })?;
+        let number = serde_json::Number::from_f64(parsed).ok_or_else(|| {
+            ro_err(format!(
+                "assessmentScoreValue {lexical:?} is not a finite JSON number"
+            ))
+        })?;
+        score_rows.push(row_json(&serde_json::json!({
+            "evalScores/model": text(store, &assessment, &g("assessmentTarget")),
+            "evalScores/criterion": slug(&text(store, &assessment, &g("assessmentCriterion"))),
+            "evalScores/score": number,
+        }))?);
     }
     if !score_rows.is_empty() {
-        record_sets.push(obj(vec![
-            ("@type", s("cr:RecordSet")),
-            ("@id", s("evalScores")),
-            ("name", s("evalScores")),
-            (
-                "description",
-                s("Vantage-indexed rubric assessments from the gmeow-evals harness."),
-            ),
-            (
-                "field",
-                Json::Arr(vec![
-                    croissant_field("evalScores", "model", "sc:Text"),
-                    croissant_field("evalScores", "criterion", "sc:Text"),
-                    croissant_field("evalScores", "score", "sc:Float"),
-                ]),
-            ),
-            ("data", Json::Arr(score_rows)),
-        ]));
+        emit_record_set(
+            &mut b,
+            &format!("{NS}recordset/evalScores"),
+            "evalScores",
+            "Vantage-indexed rubric assessments from the gmeow-evals harness.",
+            &[
+                ("model", "sc:Text"),
+                ("criterion", "sc:Text"),
+                ("score", "sc:Float"),
+            ],
+            &score_rows,
+        );
     }
-    Ok(record_sets)
+
+    b.freeze()
+        .map_err(|e| ro_err(format!("research-object source dataset freeze: {e}")))
 }
 
-fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, gmeow_errors::Diag> {
-    let mut distributions: Vec<Json> = Vec::new();
-    for doc in documents(store) {
-        if doc.content_url.is_empty() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("build_croissant: missing contentUrl for {}", doc.iri),
-            }));
-        }
-        let mut fields: Vec<(String, Json)> = vec![
-            ("@type".into(), s("cr:FileObject")),
-            ("@id".into(), s(&doc.iri)),
-            ("name".into(), s(&doc.name)),
-            ("encodingFormat".into(), s("text/plain")),
-            ("contentUrl".into(), s(&doc.content_url)),
-        ];
-        if let Some(v) = doc.digests.get("sha256") {
-            fields.push(("sha256".into(), s(v)));
-        }
-        if let Some(v) = doc.digests.get("md5") {
-            fields.push(("md5".into(), s(v)));
-        }
-        let extra: Vec<String> = doc
-            .digests
+/// Group a purrdf [`purrdf::LossLedger`] by `(code, note)` and trace it — no RDF →
+/// (Croissant | DataCite | Frictionless) lowering loss is silently dropped. Mirrors
+/// `export.rs`'s `report_projection_losses`.
+fn report_projection_losses(surface: &str, ledger: &purrdf::LossLedger) {
+    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    for loss in ledger.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
+        grouped
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
+            .or_default()
+            .push(subject);
+    }
+    for ((construct, reason), mut subjects) in grouped {
+        subjects.sort_unstable();
+        subjects.dedup();
+        let examples = subjects
             .iter()
-            .filter(|(algo, _)| algo.as_str() != "sha256" && algo.as_str() != "md5")
-            .map(|(algo, v)| {
-                if algo == "digest" {
-                    v.clone()
-                } else {
-                    format!("{algo}:{v}")
-                }
-            })
-            .collect();
-        if !extra.is_empty() {
-            fields.push((
-                "description".into(),
-                s(&format!("content digest: {}", extra.join(", "))),
-            ));
-        }
-        distributions.push(Json::Obj(fields));
+            .take(5)
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ");
+        let suffix = if subjects.len() > 5 {
+            format!(" (+{} more)", subjects.len() - 5)
+        } else {
+            String::new()
+        };
+        tracing::info!(
+            target: "export_projection_loss",
+            surface = surface,
+            construct = construct,
+            subjects = subjects.len(),
+            reason = reason,
+            examples = %format!("{examples}{suffix}"),
+            "lossy drop projecting the research-object source A-Box",
+        );
     }
-
-    let tools: Vec<Json> = agents(store)
-        .into_iter()
-        .map(|a| {
-            let name = if a.version.is_empty() {
-                a.name.clone()
-            } else {
-                let suffix = format!(" ({} {})", a.provider, a.version);
-                format!("{}{}", a.name, suffix.trim_end())
-            };
-            Json::Str(name)
-        })
-        .collect();
-
-    let limitations: Vec<Json> = DECLARED_DROPS.iter().map(|d| s(d)).collect();
-
-    let mut entries: Vec<(String, Json)> = vec![
-        ("@context".into(), croissant_context()),
-        ("@type".into(), s("sc:Dataset")),
-        ("@id".into(), s(&ds.iri)),
-        ("name".into(), s(&ds.title)),
-        ("description".into(), s(&ds.description)),
-        ("conformsTo".into(), s(CROISSANT_CONFORMS_TO)),
-        ("license".into(), s(&ds.license_url)),
-        (
-            "creator".into(),
-            obj(vec![
-                ("@type", s("sc:Organization")),
-                ("name", s(&ds.creator)),
-            ]),
-        ),
-        ("datePublished".into(), s(&ds.date_published)),
-        ("url".into(), s(&ds.landing_page)),
-        ("distribution".into(), Json::Arr(distributions)),
-        ("recordSet".into(), Json::Arr(croissant_record_sets(store)?)),
-        (
-            "rai:dataCollection".into(),
-            s(
-                "Sources are content-addressed (blake3) and ingested through attributed gmeow:ImportActivity records; every derived artifact carries wasGeneratedBy/wasDerivedFrom lineage.",
-            ),
-        ),
-        ("rai:machineAnnotationTools".into(), Json::Arr(tools)),
-        ("rai:dataLimitation".into(), Json::Arr(limitations)),
-    ];
-    if let Some(v) = &ds.version {
-        entries.push(("version".into(), s(v)));
-    }
-    if let Some(v) = &ds.cite_as {
-        entries.push(("citeAs".into(), s(v)));
-    }
-    Ok(Json::Obj(entries))
 }
 
 // ── RO-Crate metadata ──────────────────────────────────────────────────────────
@@ -1146,15 +1423,6 @@ fn python_str(v: &Json) -> String {
                 .collect();
             format!("[{}]", inner.join(", "))
         }
-        Json::Int(i) => i.to_string(),
-        Json::Num(n) => n.clone(),
-        Json::Bool(b) => {
-            if *b {
-                "True".to_string()
-            } else {
-                "False".to_string()
-            }
-        }
         Json::Obj(_) => String::new(),
     }
 }
@@ -1203,190 +1471,6 @@ fn build_ro_crate_preview(metadata: &Json) -> Vec<u8> {
         rows
     );
     html.into_bytes()
-}
-
-// ── Frictionless datapackage.json ──────────────────────────────────────────────
-
-fn build_frictionless(store: &Store, ds: &DatasetMeta) -> Json {
-    let mut resources: Vec<Json> = Vec::new();
-    for doc in documents(store) {
-        let name = slug(&doc.iri).to_lowercase().replace('_', "-");
-        let path = if doc.content_url.is_empty() {
-            doc.iri.clone()
-        } else {
-            doc.content_url.clone()
-        };
-        let mut fields: Vec<(String, Json)> = vec![
-            ("name".into(), s(&name)),
-            ("path".into(), s(&path)),
-            ("title".into(), s(&doc.name)),
-        ];
-        let primary = primary_digest(&doc.digests);
-        if !primary.is_empty() {
-            fields.push(("hash".into(), s(&primary)));
-        }
-        resources.push(Json::Obj(fields));
-    }
-    let mut entries: Vec<(String, Json)> = vec![
-        (
-            "name".into(),
-            s(&slug(&ds.iri).to_lowercase().replace('_', "-")),
-        ),
-        ("title".into(), s(&ds.title)),
-        ("description".into(), s(&ds.description)),
-        ("homepage".into(), s(&ds.landing_page)),
-        ("created".into(), s(&ds.date_published)),
-        (
-            "licenses".into(),
-            Json::Arr(vec![obj(vec![
-                ("name", s(&ds.license_id)),
-                ("path", s(&ds.license_url)),
-                ("title", s(&ds.license_id)),
-            ])]),
-        ),
-        (
-            "contributors".into(),
-            Json::Arr(vec![obj(vec![("title", s(&ds.creator))])]),
-        ),
-        ("resources".into(), Json::Arr(resources)),
-        (
-            "notes".into(),
-            s(&format!(
-                "Generated lossy projection of canonical GMEOW data; drops: {}.",
-                DECLARED_DROPS.join("; ")
-            )),
-        ),
-    ];
-    if let Some(v) = &ds.version {
-        entries.push(("version".into(), s(v)));
-    }
-    Json::Obj(entries)
-}
-
-// ── DataCite XML (ElementTree) ─────────────────────────────────────────────────
-
-/// ElementTree text escaping: `& < >` (attribute values also escape `"`).
-fn xml_text(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-}
-fn xml_attr(s: &str) -> String {
-    xml_text(s).replace('"', "&quot;")
-}
-
-struct Xml {
-    out: String,
-}
-
-impl Xml {
-    fn open(&mut self, indent: usize, tag: &str, attrs: &[(&str, &str)]) {
-        self.out.push_str(&"  ".repeat(indent));
-        self.out.push('<');
-        self.out.push_str(tag);
-        for (k, v) in attrs {
-            self.out.push_str(&format!(" {}=\"{}\"", k, xml_attr(v)));
-        }
-        self.out.push_str(">\n");
-    }
-    fn close(&mut self, indent: usize, tag: &str) {
-        self.out.push_str(&"  ".repeat(indent));
-        self.out.push_str(&format!("</{tag}>\n"));
-    }
-    fn leaf(&mut self, indent: usize, tag: &str, text: &str, attrs: &[(&str, &str)]) {
-        self.out.push_str(&"  ".repeat(indent));
-        self.out.push('<');
-        self.out.push_str(tag);
-        for (k, v) in attrs {
-            self.out.push_str(&format!(" {}=\"{}\"", k, xml_attr(v)));
-        }
-        self.out.push('>');
-        self.out.push_str(&xml_text(text));
-        self.out.push_str(&format!("</{tag}>\n"));
-    }
-}
-
-fn build_datacite_xml(ds: &DatasetMeta) -> Vec<u8> {
-    let doi = format!(
-        "{PLACEHOLDER_DOI_PREFIX}/gmeow-{}",
-        slug(&ds.iri).to_lowercase()
-    );
-    let mut x = Xml { out: String::new() };
-    x.out.push_str("<?xml version='1.0' encoding='utf-8'?>\n");
-    let schema_location =
-        format!("{DATACITE_NS} https://schema.datacite.org/meta/kernel-4.5/metadata.xsd");
-    x.out.push_str(&format!(
-        "<resource xmlns=\"{DATACITE_NS}\" xmlns:xsi=\"{XSI_NS}\" xsi:schemaLocation=\"{}\">\n",
-        xml_attr(&schema_location)
-    ));
-    x.leaf(1, "identifier", &doi, &[("identifierType", "DOI")]);
-    x.open(1, "creators", &[]);
-    x.open(2, "creator", &[]);
-    x.leaf(
-        3,
-        "creatorName",
-        &ds.creator,
-        &[("nameType", "Organizational")],
-    );
-    x.close(2, "creator");
-    x.close(1, "creators");
-    x.open(1, "titles", &[]);
-    x.leaf(2, "title", &ds.title, &[]);
-    x.close(1, "titles");
-    x.leaf(1, "publisher", &ds.creator, &[]);
-    x.leaf(1, "publicationYear", &ds.publication_year(), &[]);
-    x.leaf(
-        1,
-        "resourceType",
-        "Research-object benchmark dataset",
-        &[("resourceTypeGeneral", "Dataset")],
-    );
-    x.open(1, "dates", &[]);
-    x.leaf(2, "date", &ds.date_published, &[("dateType", "Issued")]);
-    x.close(1, "dates");
-    x.open(1, "rightsList", &[]);
-    x.leaf(
-        2,
-        "rights",
-        &ds.license_id,
-        &[
-            ("rightsURI", &ds.license_url),
-            ("rightsIdentifier", &ds.license_id),
-            ("rightsIdentifierScheme", "SPDX"),
-        ],
-    );
-    x.close(1, "rightsList");
-    x.open(1, "descriptions", &[]);
-    x.leaf(
-        2,
-        "description",
-        &ds.description,
-        &[("descriptionType", "Abstract")],
-    );
-    x.leaf(
-        2,
-        "description",
-        &format!(
-            "Generated lossy projection of canonical GMEOW instance data. Drops: {}.",
-            DECLARED_DROPS.join("; ")
-        ),
-        &[("descriptionType", "TechnicalInfo")],
-    );
-    x.close(1, "descriptions");
-    x.open(1, "relatedIdentifiers", &[]);
-    x.leaf(
-        2,
-        "relatedIdentifier",
-        &ds.landing_page,
-        &[
-            ("relatedIdentifierType", "URL"),
-            ("relationType", "IsDescribedBy"),
-        ],
-    );
-    x.close(1, "relatedIdentifiers");
-    // ET.tostring has no trailing newline; the caller adds the single "\n".
-    x.out.push_str("</resource>");
-    x.out.into_bytes()
 }
 
 // ── source-Turtle → rdflib-Turtle (with x-gmeow language retag) ────────────────
@@ -1574,9 +1658,20 @@ pub fn render_research_objects(
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let p = |rel: &str| format!("{RESEARCH_OBJECTS_DIR}/{rel}");
 
-    // Croissant (top-level).
-    let croissant = build_croissant(&store, &ds)?;
-    let croissant_bytes = dump_json(&croissant);
+    // The shared research-object config + the single caller-vocabulary source A-Box
+    // that Croissant, DataCite, and Frictionless all project from.
+    let common = research_common_config(&ds.iri)?;
+    let source = build_research_source(&common, &store, &ds)?;
+
+    // Croissant (top-level) — purrdf project_croissant.
+    let croissant = purrdf::project_croissant(source.as_ref(), &croissant_config(common.clone())?)
+        .map_err(|e| ro_err(format!("project_croissant: {e}")))?;
+    report_projection_losses("croissant", &croissant.loss_ledger);
+    let croissant_bytes = croissant
+        .package
+        .get(purrdf::CROISSANT_ARTIFACT)
+        .ok_or_else(|| ro_err("Croissant package is missing its artifact".into()))?
+        .to_vec();
     out.insert(p("lillith.croissant.jsonld"), croissant_bytes.clone());
 
     // RO-Crate: retag+serialize each .ttl input, copy the croissant, build metadata.
@@ -1604,16 +1699,31 @@ pub fn render_research_objects(
     let dcat = render_dcat(root, dcat_rq, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
-    // DataCite XML.
-    let mut datacite = build_datacite_xml(&ds);
-    datacite.push(b'\n');
-    out.insert(p("lillith.datacite.xml"), datacite);
+    // DataCite XML — purrdf project_datacite.
+    let datacite = purrdf::project_datacite(source.as_ref(), &datacite_config(common.clone())?)
+        .map_err(|e| ro_err(format!("project_datacite: {e}")))?;
+    report_projection_losses("datacite", &datacite.loss_ledger);
+    let datacite_bytes = datacite
+        .package
+        .get(purrdf::DATACITE_ARTIFACT)
+        .ok_or_else(|| ro_err("DataCite package is missing its artifact".into()))?
+        .to_vec();
+    out.insert(p("lillith.datacite.xml"), datacite_bytes);
 
-    // Frictionless datapackage.json.
-    out.insert(
-        p("datapackage.json"),
-        dump_json(&build_frictionless(&store, &ds)),
-    );
+    // Frictionless datapackage.json — purrdf project_frictionless.
+    let package_name = slug(&ds.iri).to_lowercase().replace('_', "-");
+    let frictionless = purrdf::project_frictionless(
+        source.as_ref(),
+        &frictionless_config(common, &package_name)?,
+    )
+    .map_err(|e| ro_err(format!("project_frictionless: {e}")))?;
+    report_projection_losses("frictionless", &frictionless.loss_ledger);
+    let frictionless_bytes = frictionless
+        .package
+        .get(purrdf::FRICTIONLESS_ARTIFACT)
+        .ok_or_else(|| ro_err("Frictionless package is missing its artifact".into()))?
+        .to_vec();
+    out.insert(p("datapackage.json"), frictionless_bytes);
 
     Ok(out)
 }
