@@ -1755,4 +1755,348 @@ mod tests {
             failures.join("\n")
         );
     }
+
+    /// One four-codec projection outcome (DCAT excluded): the four purrdf projections
+    /// plus the sorted RO-Crate asset payloads and the shared config, enough to re-drive
+    /// the reader (round-trip) and asset-recovery paths.
+    struct FourCodecProjection {
+        croissant: purrdf::ResearchObjectPackageProjection,
+        datacite: purrdf::ResearchObjectPackageProjection,
+        frictionless: purrdf::ResearchObjectPackageProjection,
+        ro_crate: purrdf::ResearchObjectPackageProjection,
+        /// The seven RO-Crate payloads: six retagged A-Box `.ttl` files + the Croissant copy.
+        assets: Vec<(String, Vec<u8>)>,
+        common: purrdf::ResearchObjectConfig,
+        package_name: String,
+    }
+
+    /// Reproduce the FOUR-codec portion of [`render_research_objects`] directly (DCAT is
+    /// deliberately excluded — it needs the generated `dcat.rq` product). This is the exact
+    /// codec-invocation sequence `render_research_objects` uses, minus the logical-path
+    /// bookkeeping, so it exercises the codecs with no materialized `generated/` disk read.
+    fn project_four_codecs(root: &Path, scores_ttl: &[u8]) -> FourCodecProjection {
+        let store = load_instance_graph(root, scores_ttl).expect("instance graph");
+        let ds = dataset_meta(&store).expect("dataset meta");
+        let common = research_common_config(&ds.iri).expect("common config");
+        let source = build_research_source(&common, &store, &ds).expect("research source");
+
+        // Assertion 1: each project_* returns Ok (its internal `ensure_sound` passed).
+        let croissant_cfg = croissant_config(common.clone()).expect("croissant config");
+        let croissant = purrdf::project_croissant(source.as_ref(), &croissant_cfg);
+        assert!(
+            croissant.is_ok(),
+            "project_croissant: {:?}",
+            croissant.err()
+        );
+        let croissant = croissant.unwrap();
+
+        let datacite_cfg = datacite_config(common.clone()).expect("datacite config");
+        let datacite = purrdf::project_datacite(source.as_ref(), &datacite_cfg);
+        assert!(datacite.is_ok(), "project_datacite: {:?}", datacite.err());
+        let datacite = datacite.unwrap();
+
+        let package_name = slug(&ds.iri).to_lowercase().replace('_', "-");
+        let frictionless_cfg =
+            frictionless_config(common.clone(), &package_name).expect("frictionless config");
+        let frictionless = purrdf::project_frictionless(source.as_ref(), &frictionless_cfg);
+        assert!(
+            frictionless.is_ok(),
+            "project_frictionless: {:?}",
+            frictionless.err()
+        );
+        let frictionless = frictionless.unwrap();
+
+        // RO-Crate assets: six retagged A-Box `.ttl` payloads + the Croissant copy, sorted to
+        // match the ProjectionPackage's lexical member order (same as render).
+        let tag_map = load_tag_map(root).expect("tag map");
+        let mut assets: Vec<(String, Vec<u8>)> = Vec::new();
+        for (label, name, bytes) in example_inputs(root, scores_ttl).expect("example inputs") {
+            let payload = render_source_turtle_payload(&bytes, label, &tag_map).expect("payload");
+            assets.push((name.to_string(), payload));
+        }
+        let croissant_bytes = croissant
+            .package
+            .get(purrdf::CROISSANT_ARTIFACT)
+            .expect("croissant artifact")
+            .to_vec();
+        assets.push(("lillith.croissant.jsonld".to_string(), croissant_bytes));
+        assets.sort();
+        let files: Vec<(String, usize)> = assets
+            .iter()
+            .map(|(name, body)| (name.clone(), body.len()))
+            .collect();
+        let ro_source =
+            build_ro_crate_source(&common, &store, &ds, &files).expect("ro-crate source");
+        let ro_assets = purrdf::RoCrateAssets::from_artifacts(
+            research_limits().expect("limits"),
+            assets
+                .iter()
+                .map(|(name, body)| (name.clone(), body.clone())),
+        )
+        .expect("ro-crate assets");
+        let ro_crate_cfg = ro_crate_config(common.clone()).expect("ro-crate config");
+        let ro_crate =
+            purrdf::project_ro_crate_with_assets(ro_source.as_ref(), &ro_crate_cfg, &ro_assets);
+        assert!(
+            ro_crate.is_ok(),
+            "project_ro_crate_with_assets: {:?}",
+            ro_crate.err()
+        );
+        let ro_crate = ro_crate.unwrap();
+
+        FourCodecProjection {
+            croissant,
+            datacite,
+            frictionless,
+            ro_crate,
+            assets,
+            common,
+            package_name,
+        }
+    }
+
+    /// Stage-1-runnable proof that the FOUR purrdf research-object codecs (Croissant,
+    /// DataCite, Frictionless, RO-Crate) are correct WITHOUT a materialized `generated/`
+    /// tree — it drives them directly, sourcing `scores.ttl` from the evals product rather
+    /// than a disk read. DCAT is excluded (it needs the generated `dcat.rq` product; the
+    /// byte-parity gate above covers it once Stage 2/3 has materialized the tree).
+    #[test]
+    fn research_object_codecs_project_soundly_stage_one() {
+        let root = repo_root();
+        // scores.ttl rides the (consumed) evals product, not the git-ignored generated file.
+        let evals = crate::stages::evals::render_evals(&root).expect("render evals");
+        let scores_ttl = evals
+            .get(crate::stages::evals::SCORES_PATH)
+            .expect("evals product carries scores.ttl")
+            .clone();
+
+        let out = project_four_codecs(&root, &scores_ttl);
+
+        let croissant_bytes = out
+            .croissant
+            .package
+            .get(purrdf::CROISSANT_ARTIFACT)
+            .expect("croissant.json present")
+            .to_vec();
+        let datacite_bytes = out
+            .datacite
+            .package
+            .get(purrdf::DATACITE_ARTIFACT)
+            .expect("datacite.xml present")
+            .to_vec();
+        let frictionless_bytes = out
+            .frictionless
+            .package
+            .get(purrdf::FRICTIONLESS_ARTIFACT)
+            .expect("datapackage.json present")
+            .to_vec();
+        let ro_meta_bytes = out
+            .ro_crate
+            .package
+            .get(purrdf::RO_CRATE_ARTIFACT)
+            .expect("ro-crate-metadata.json present")
+            .to_vec();
+
+        // ── Assertion 2: package member sets ────────────────────────────────────────
+        assert_eq!(purrdf::CROISSANT_ARTIFACT, "croissant.json");
+        assert_eq!(purrdf::FRICTIONLESS_ARTIFACT, "datapackage.json");
+        assert!(out.frictionless.package.get("datapackage.json").is_some());
+        // datacite exposes purrdf::DATACITE_ARTIFACT (asserted present above).
+        let ro_members: BTreeSet<String> = out
+            .ro_crate
+            .package
+            .artifacts()
+            .map(|(path, _)| path.to_string())
+            .collect();
+        let expected_ro: BTreeSet<String> = [
+            "ro-crate-metadata.json",
+            "ro-crate-preview.html",
+            "corpus.ttl",
+            "grounded-claim.ttl",
+            "lillith-dataset.ttl",
+            "lillith-pipeline.ttl",
+            "rubric.ttl",
+            "scores.ttl",
+            "lillith.croissant.jsonld",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect();
+        assert_eq!(ro_members, expected_ro, "ro-crate package membership");
+        assert_eq!(ro_members.len(), 9, "ro-crate has 9 members");
+
+        // ── Assertion 3: R2 identity presence in emitted bytes ──────────────────────
+        let croissant_text = String::from_utf8(croissant_bytes.clone()).expect("croissant utf8");
+        assert!(
+            croissant_text.contains(CROISSANT_CONFORMS_TO),
+            "croissant conformsTo identity"
+        );
+        let datacite_text = String::from_utf8(datacite_bytes.clone()).expect("datacite utf8");
+        assert!(
+            datacite_text.contains(DATACITE_NS),
+            "datacite kernel-4 namespace"
+        );
+        let frictionless_text =
+            String::from_utf8(frictionless_bytes.clone()).expect("frictionless utf8");
+        assert!(
+            frictionless_text.contains(purrdf::FRICTIONLESS_PROFILE),
+            "frictionless profile identity"
+        );
+        assert_eq!(purrdf::FRICTIONLESS_PROFILE, "frictionless-data-package-1");
+        let ro_meta_text = String::from_utf8(ro_meta_bytes.clone()).expect("ro-crate utf8");
+        assert!(
+            ro_meta_text.contains("w3id.org/ro/crate/1.3"),
+            "ro-crate 1.3 profile identity"
+        );
+
+        // ── Assertion 4: P5 native-slot declared-drop note ──────────────────────────
+        // The dataset description carries the caller-authored P5 note ("Declared drops
+        // (P5): …") into each codec's native description slot (Croissant/Frictionless/
+        // RO-Crate `description`, DataCite abstract). "Declared drops" is the literal that
+        // actually appears verbatim in all four (ASCII, unescaped by JSON/XML canonicalization).
+        const DROP_MARKER: &str = "Declared drops";
+        assert!(croissant_text.contains(DROP_MARKER), "croissant P5 note");
+        assert!(datacite_text.contains(DROP_MARKER), "datacite P5 note");
+        assert!(
+            frictionless_text.contains(DROP_MARKER),
+            "frictionless P5 note"
+        );
+        assert!(ro_meta_text.contains(DROP_MARKER), "ro-crate P5 note");
+
+        // ── Assertion 5: R2 reserved-prefix rule ────────────────────────────────────
+        assert!(
+            ro_members
+                .iter()
+                .all(|path| !path.starts_with("ro-crate-preview_files/")),
+            "no ro-crate member may claim the reserved preview-files prefix"
+        );
+
+        // ── Assertion 7: impl_version ───────────────────────────────────────────────
+        assert_eq!(
+            ResearchObjectsStage::new().impl_version(),
+            "research_objects.v4"
+        );
+
+        // ── Assertion 6: determinism — a second full run is byte-identical ───────────
+        let again = project_four_codecs(&root, &scores_ttl);
+        let members = |package: &purrdf::ProjectionPackage| -> BTreeMap<String, Vec<u8>> {
+            package
+                .artifacts()
+                .map(|(path, body)| (path.to_string(), body.to_vec()))
+                .collect()
+        };
+        assert_eq!(
+            members(&out.croissant.package),
+            members(&again.croissant.package),
+            "croissant determinism"
+        );
+        assert_eq!(
+            members(&out.datacite.package),
+            members(&again.datacite.package),
+            "datacite determinism"
+        );
+        assert_eq!(
+            members(&out.frictionless.package),
+            members(&again.frictionless.package),
+            "frictionless determinism"
+        );
+        assert_eq!(
+            members(&out.ro_crate.package),
+            members(&again.ro_crate.package),
+            "ro-crate determinism"
+        );
+        assert_eq!(out.assets, again.assets, "ro-crate asset determinism");
+
+        // ── Assertion 8: round-trip lift-invariance (T1) ────────────────────────────
+        // Every codec has an inverse reader; each `read_*` succeeds on the codec's own
+        // canonical bytes (its full re-parse + `ensure_sound` strictness passes), lifting
+        // caller-vocabulary RDF 1.2 back out. The invariant asserted is byte-level canonical
+        // idempotence: re-projecting the reader's lifted dataset reproduces the identical
+        // canonical bytes — the codec's output is a fixed point of `project ∘ lift ∘ read`.
+        //
+        // NOTE — deviation from a strict `projected.model == reread.model` equality: that
+        // does NOT hold for the real gmeow worked-example data because these projections are
+        // genuinely lossy over it. Each resource carries three `gmeow:contentDigest`s
+        // (blake3, md5, sha256); Croissant/RO-Crate keep only the format's single `sha256`
+        // slot, so blake3+md5 are a declared P5 drop and the reread model has fewer checksums
+        // than the projected model. (The purrdf unit tests assert model equality only against
+        // single-checksum fixtures.) Byte-level idempotence is the honest, stronger T1
+        // statement for canonical output and is what is asserted here. See the task report.
+        let croissant_cfg = croissant_config(out.common.clone()).expect("croissant read config");
+        let croissant_read =
+            purrdf::read_croissant(&out.croissant.package, &croissant_cfg).expect("read_croissant");
+        let croissant_reproj =
+            purrdf::project_croissant(croissant_read.dataset.as_ref(), &croissant_cfg)
+                .expect("re-project croissant from lifted dataset");
+        assert_eq!(
+            croissant_reproj.package.get(purrdf::CROISSANT_ARTIFACT),
+            out.croissant.package.get(purrdf::CROISSANT_ARTIFACT),
+            "croissant canonical idempotence (project ∘ lift ∘ read)"
+        );
+
+        let datacite_cfg = datacite_config(out.common.clone()).expect("datacite read config");
+        let datacite_read =
+            purrdf::read_datacite(&out.datacite.package, &datacite_cfg).expect("read_datacite");
+        let datacite_reproj =
+            purrdf::project_datacite(datacite_read.dataset.as_ref(), &datacite_cfg)
+                .expect("re-project datacite from lifted dataset");
+        assert_eq!(
+            datacite_reproj.package.get(purrdf::DATACITE_ARTIFACT),
+            out.datacite.package.get(purrdf::DATACITE_ARTIFACT),
+            "datacite canonical idempotence (project ∘ lift ∘ read)"
+        );
+
+        let frictionless_cfg = frictionless_config(out.common.clone(), &out.package_name)
+            .expect("frictionless read config");
+        let frictionless_read =
+            purrdf::read_frictionless(&out.frictionless.package, &frictionless_cfg)
+                .expect("read_frictionless");
+        let frictionless_reproj =
+            purrdf::project_frictionless(frictionless_read.dataset.as_ref(), &frictionless_cfg)
+                .expect("re-project frictionless from lifted dataset");
+        assert_eq!(
+            frictionless_reproj
+                .package
+                .get(purrdf::FRICTIONLESS_ARTIFACT),
+            out.frictionless.package.get(purrdf::FRICTIONLESS_ARTIFACT),
+            "frictionless canonical idempotence (project ∘ lift ∘ read)"
+        );
+
+        let ro_crate_cfg = ro_crate_config(out.common.clone()).expect("ro-crate read config");
+        let ro_crate_read =
+            purrdf::read_ro_crate(&out.ro_crate.package, &ro_crate_cfg).expect("read_ro_crate");
+        let ro_assets_again = purrdf::RoCrateAssets::from_artifacts(
+            research_limits().expect("limits"),
+            out.assets
+                .iter()
+                .map(|(name, body)| (name.clone(), body.clone())),
+        )
+        .expect("ro-crate assets");
+        let ro_crate_reproj = purrdf::project_ro_crate_with_assets(
+            ro_crate_read.dataset.as_ref(),
+            &ro_crate_cfg,
+            &ro_assets_again,
+        )
+        .expect("re-project ro-crate from lifted dataset");
+        assert_eq!(
+            ro_crate_reproj.package.get(purrdf::RO_CRATE_ARTIFACT),
+            out.ro_crate.package.get(purrdf::RO_CRATE_ARTIFACT),
+            "ro-crate canonical idempotence (project ∘ lift ∘ read)"
+        );
+
+        // ── Assertion 9: RoCrateAssets payload round-trip (U2) ───────────────────────
+        // The attached RO-Crate package's seven payloads recover byte-for-byte.
+        let recovered = purrdf::RoCrateAssets::from_attached_package(&out.ro_crate.package)
+            .expect("from_attached_package");
+        let recovered_map: BTreeMap<String, Vec<u8>> = recovered
+            .artifacts()
+            .map(|(path, body)| (path.to_string(), body.to_vec()))
+            .collect();
+        let expected_map: BTreeMap<String, Vec<u8>> = out.assets.iter().cloned().collect();
+        assert_eq!(recovered.len(), 7, "ro-crate carries seven payloads");
+        assert_eq!(
+            recovered_map, expected_map,
+            "ro-crate asset payloads round-trip byte-for-byte"
+        );
+    }
 }
