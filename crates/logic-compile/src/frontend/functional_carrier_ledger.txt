@@ -724,6 +724,7 @@ https://blackcatinformatics.ca/logic/not
 https://blackcatinformatics.ca/logic/objectiveValue
 https://blackcatinformatics.ca/logic/obligationForbiddenPredicate
 https://blackcatinformatics.ca/logic/observation
+https://blackcatinformatics.ca/logic/overAccessibility
 https://blackcatinformatics.ca/logic/planGoal
 https://blackcatinformatics.ca/logic/planSuccessMode
 https://blackcatinformatics.ca/logic/programQuery

@@ -2192,12 +2192,16 @@ impl McpServer {
                 "Explain a GMN operator glyph: resolve `glyph` to its lang:Denotation and its \
                  graph-authored gmeow:gmnFixity / gmeow:gmnPrecedence / gmeow:gmnArity signature, \
                  plus its controlled-NL gloss (the deterministic GMN⇄NL verbalizer rendering), \
-                 checkout-free off the bundle. Returns {ok, found, glyph, denotation, \
+                 checkout-free off the bundle. Returns {ok, found, glyph, sigil, denotation, \
                  denotation_target, label, fixity, fixity_local_name, precedence, arity, \
-                 gmn_surface, gloss}. An input that is not a covered operator glyph returns an \
-                 honest typed miss (found:false + lang:GmnUncoveredTerm), never a fabricated \
-                 answer.",
-                &[("glyph", "string")],
+                 gmn_surface, gloss}. A glyph the codebook lawfully binds in more than one sigil \
+                 scope (one codepoint reused across planes — → is material implication under @ℒ \
+                 and the morphism arrow under @μ) instead returns {ok, found, ambiguous:true, \
+                 glyph, sigil_scopes, readings:[…]} carrying EVERY reading; pass the optional \
+                 `sigil` to select one scope and get the flat single-reading shape. An input \
+                 that is not a covered operator glyph returns an honest typed miss (found:false \
+                 + lang:GmnUncoveredTerm), never a fabricated answer.",
+                &[("glyph", "string"), ("sigil", "string")],
             ),
             tool(
                 "advise",
@@ -2943,8 +2947,17 @@ impl McpServer {
     /// signature, plus its controlled-NL gloss (the SAME Task 8 verbalizer rendering).
     /// An input that is not a covered operator glyph returns an HONEST typed miss
     /// (`found:false` + `lang:GmnUncoveredTerm`), never a fabricated answer.
+    ///
+    /// A glyph may be lawfully bound in MORE THAN ONE sigil scope — the codebook reuses one
+    /// codepoint across planes (`→` is material implication under `@ℒ` and the morphism arrow
+    /// under `@μ`), with sigil scope as the primary disambiguation boundary. Answering such a
+    /// glyph with whichever reading happened to sort first would be a silent capability
+    /// degradation: the caller would never learn the other plane exists. So an ambiguous glyph
+    /// returns EVERY reading under `readings` with `ambiguous:true`, and the optional `sigil`
+    /// argument selects one scope to get the flat single-reading shape.
     fn tool_gmn_explain(&self, args: &Value) -> gmeow_errors::Result<String> {
         let glyph = required_str(args, "glyph")?;
+        let want_sigil = optional_str(args, "sigil");
         let dataset = self.view.dataset.as_ref();
         let dict = self.gmn_dictionary()?;
         let labels = harvest_dataset_labels(dataset);
@@ -2955,7 +2968,15 @@ impl McpServer {
                 ),
             })
         })?;
-        let Some(form) = forms.iter().find(|f| f.gmn_glyph == glyph) else {
+        // Every reading of this glyph, narrowed to one plane when the caller named a sigil.
+        let matches: Vec<_> = forms
+            .iter()
+            .filter(|f| f.gmn_glyph == glyph && want_sigil.is_none_or(|s| f.sigil == s))
+            .collect();
+        if matches.is_empty() {
+            let scoped = want_sigil
+                .map(|s| format!(" in sigil scope {s:?}"))
+                .unwrap_or_default();
             return Ok(json!({
                 "ok": true,
                 "found": false,
@@ -2963,11 +2984,11 @@ impl McpServer {
                 "failure_class": LANG_GMN_UNCOVERED_TERM,
                 "failure_local_name": iri_local_name(LANG_GMN_UNCOVERED_TERM),
                 "message": format!(
-                    "glyph {glyph:?} is not a covered GMN operator in the current codebook"
+                    "glyph {glyph:?} is not a covered GMN operator{scoped} in the current codebook"
                 ),
             })
             .to_string());
-        };
+        }
         // The controlled-NL gloss is Task 8's verbalizer rendering VERBATIM: build the whole
         // (injective, disambiguated) corpus and read off this form's rendered pair, so the
         // gloss the LLM sees is the exact GMN⇄NL training-pair surface, not a re-derivation.
@@ -2976,29 +2997,54 @@ impl McpServer {
                 message: format!("gmn_explain: render the verbalizer gloss corpus: {error}"),
             })
         })?;
-        let rendered = pairs.iter().find(|p| &p.form == form).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_explain: no verbalizer pair for glyph {glyph:?}"),
-            })
-        })?;
-        // Precedence + the lang:Denotation IRI are NOT carried by the glyph registry (it keys
-        // on fixity/arity only), so join them from the dataset by the (target, fixity, arity)
-        // signature the operator's denoted Form authors.
-        let (precedence, denotation) =
-            gmn_signature_join(dataset, &form.term_iri, &form.fixity, form.arity);
+        let mut readings = Vec::with_capacity(matches.len());
+        for form in matches {
+            let rendered = pairs.iter().find(|p| &p.form == form).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("gmn_explain: no verbalizer pair for glyph {glyph:?}"),
+                })
+            })?;
+            // Precedence + the lang:Denotation IRI are NOT carried by the glyph registry (it
+            // keys on fixity/arity only), so join them from the dataset by the (target, fixity,
+            // arity) signature the operator's denoted Form authors.
+            let (precedence, denotation) =
+                gmn_signature_join(dataset, &form.term_iri, &form.fixity, form.arity);
+            readings.push(json!({
+                "ok": true,
+                "found": true,
+                "glyph": form.gmn_glyph,
+                "sigil": form.sigil,
+                "denotation": denotation,
+                "denotation_target": form.term_iri,
+                "label": form.term_label,
+                "fixity": form.fixity,
+                "fixity_local_name": iri_local_name(&form.fixity),
+                "precedence": precedence,
+                "arity": form.arity,
+                "gmn_surface": rendered.gmn_surface,
+                "gloss": rendered.nl,
+            }));
+        }
+        // Exactly one reading answers flat. Several answer with ALL of them — never a silent
+        // pick of whichever sorted first, which would hide a whole plane from the caller.
+        if readings.len() == 1 {
+            return Ok(readings.remove(0).to_string());
+        }
+        let scopes: Vec<&str> = readings
+            .iter()
+            .filter_map(|r| r["sigil"].as_str())
+            .collect();
         Ok(json!({
             "ok": true,
             "found": true,
-            "glyph": form.gmn_glyph,
-            "denotation": denotation,
-            "denotation_target": form.term_iri,
-            "label": form.term_label,
-            "fixity": form.fixity,
-            "fixity_local_name": iri_local_name(&form.fixity),
-            "precedence": precedence,
-            "arity": form.arity,
-            "gmn_surface": rendered.gmn_surface,
-            "gloss": rendered.nl,
+            "ambiguous": true,
+            "glyph": glyph,
+            "sigil_scopes": scopes,
+            "message": format!(
+                "glyph {glyph:?} is lawfully bound in {} sigil scopes; pass `sigil` to select one",
+                readings.len()
+            ),
+            "readings": readings,
         })
         .to_string())
     }
@@ -12629,9 +12675,65 @@ mod tests {
             "the controlled-NL gloss is the prefix verbalizer rendering: {hit}"
         );
         assert_eq!(
-            hit["gmn_surface"], "¬ arg1",
-            "the GMN operator surface arranges the glyph in prefix position: {hit}"
+            hit["gmn_surface"], "@ℒ ¬ arg1",
+            "the GMN operator surface arranges the glyph in prefix position, stating the sigil \
+             scope it reads in: {hit}"
         );
+        assert_eq!(
+            hit["sigil"], "@ℒ",
+            "the scope is surfaced in its own right: {hit}"
+        );
+
+        // ── The sigil argument selects a scope; it never invents or drops a reading ──
+        // Naming the scope the glyph IS bound in returns the same flat reading.
+        let scoped = text_payload(
+            server.call_tool_result("gmn_explain", &json!({ "glyph": "¬", "sigil": "@ℒ" })),
+        );
+        assert_eq!(scoped["found"], true, "{scoped}");
+        assert!(
+            scoped["ambiguous"].is_null(),
+            "a single reading answers flat, not as a list: {scoped}"
+        );
+        assert_eq!(scoped["sigil"], "@ℒ", "{scoped}");
+        assert_eq!(scoped["gmn_surface"], "@ℒ ¬ arg1", "{scoped}");
+
+        // A real glyph in a scope it is NOT bound in is an honest typed miss naming the scope,
+        // never the other plane's reading silently substituted.
+        let wrong = text_payload(
+            server.call_tool_result("gmn_explain", &json!({ "glyph": "¬", "sigil": "@μ" })),
+        );
+        assert_eq!(wrong["found"], false, "¬ is not bound under @μ: {wrong}");
+        assert_eq!(wrong["failure_local_name"], "GmnUncoveredTerm", "{wrong}");
+        assert!(
+            wrong["message"].as_str().is_some_and(|m| m.contains("@μ")),
+            "the miss names the scope that was asked for: {wrong}"
+        );
+
+        // Whatever the codebook currently binds, EVERY reported reading states its own scope
+        // and carries it in the surface — the property that keeps a scope-polysemous glyph
+        // (one codepoint reused across planes) from collapsing onto one answer.
+        for probe in ["¬", "→", "⊑"] {
+            let r =
+                text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": probe })));
+            if r["found"] != true {
+                continue;
+            }
+            let readings = r["readings"]
+                .as_array()
+                .cloned()
+                .unwrap_or_else(|| vec![r.clone()]);
+            if r["ambiguous"] == true {
+                assert!(readings.len() > 1, "ambiguous implies >1 reading: {r}");
+            }
+            for reading in &readings {
+                let sigil = reading["sigil"].as_str().unwrap_or_default();
+                let surface = reading["gmn_surface"].as_str().unwrap_or_default();
+                assert!(
+                    sigil.is_empty() || surface.starts_with(sigil),
+                    "reading of {probe:?} must carry its scope in the surface: {reading}"
+                );
+            }
+        }
 
         // An unknown glyph returns the honest typed miss, never a fabricated answer.
         let miss = text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": "☃" })));

@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: two distinct LOGIC-plane turnstile graphemes of the GMN script related by
+# gmeow:gmnConfusableWith — the forcing turnstile ⊩ (U+22A9) and the double-bar turnstile ⊫
+# (U+22AB), a look-alike @ℒ pair admitted into one inventory (fires lang:GmnConfusableGlyph
+# via the sh:sparql of lang:GmnConfusableGlyphShape). Both graphemes are otherwise well-formed:
+# grounded in the repertoire (lang:hasGrapheme), canonical codepoints, DISTINCT codepoint
+# values (so lang:GmnGlyphCollisionShape stays quiet), and each carries its measured
+# gmeow:gmnGlyphTokenCost feed (so lang:GmnScriptGlyphCoverageShape's total glyph-cost coverage
+# stays satisfied and lang:GmnUncostedScriptGlyph stays quiet) — exactly the one confusable-pair
+# finding fires. It is the logic-plane sibling of tests/counter-examples/gmn-confusable-glyph.ttl.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/logic/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gForcesTurnstile , ex:gDoubleBarTurnstile .
+
+ex:gForcesTurnstile a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+22A9" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne ;
+    gmeow:gmnConfusableWith ex:gDoubleBarTurnstile .
+
+ex:gDoubleBarTurnstile a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+22AB" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .

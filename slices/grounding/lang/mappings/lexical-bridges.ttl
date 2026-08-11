@@ -79,6 +79,54 @@ gmeow:eqLangGmnMathNotationAst a logic:GroundingCorrespondence ;
     logic:preservationKind logic:SoundUnderApproximation ;
     gmeow:comment "get = parse (GMN math record to math:MathematicalExpression); put = render (math:MathematicalExpression to canonical GMN math record). The operator forms carry the checked fixity/precedence/arity signature the GMN signature-coherence verify gates enforce, so the lens legs read a complete signature rather than free-floating notation." .
 
+# GMN logic notation <-> logic: Formula AST ---------------------------------
+# The declared grounding law that a GMN logic record (the @ℒ-scoped surface of
+# gmeow:gmnModelNotation) is a notation of the canonical logic: Formula AST, never a
+# rival identity. It is an asymmetric lens: get = parse (a well-formed GMN logic record is
+# read INTO a logic:Formula) and put = render (a logic: Formula is written BACK to its
+# canonical GMN record). The notation is subsumed by the AST — the AST is the richer canon
+# and the record its scoped view — so the relation is logic:SubsumedBy and the rung is
+# logic:WellBehavedLens (the lens rung whose claimable laws are logic:GetPut and
+# logic:PutGet). This record is a DECLARATION and law-status only: the executable parser and
+# writer (the get/put legs themselves) are a separate downstream deliverable, so the
+# preservation judgment is the honest floor logic:SoundUnderApproximation — the covered glyph
+# fragment round-trips faithfully, the full notation is under-approximated until the executor
+# discharges the lens laws.
+
+gmeow:eqLangGmnLogicNotationAst a logic:GroundingCorrespondence ;
+    rdfs:label "GMN logic notation to logic: Formula-AST grounding lens"@x-gmeow-english ;
+    skos:definition "The grounding correspondence declaring that the @ℒ-scoped GMN logic notation (gmeow:gmnModelNotation) renders the canonical logic: Formula AST (logic:Formula, the AST root — the constructed connective, quantifier, modal, and atomic-predication nodes): a GMN logic glyph is a lang:Rendering/lang:Denotation of the AST term, never a second identity. The target is the constructed-formula fragment; the two nullary truth constants ⊤/⊥ are a distinct SIBLING sentential kind (logic:TruthConstant — logic:Top/logic:Bottom), not logic:Formula nodes, so they appear inside a formula tree only as referenced leaves and a standalone truth constant is rendered by its own direct ⊤/⊥ denotation, outside this constructed-formula lens's target. An asymmetric lens with get = parse (notation into AST) and put = render (AST back to canonical notation). Declaration and law status only; the executable parser/writer is a separate deliverable, so the preservation judgment is the honest floor logic:SoundUnderApproximation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:sourceEndpoint gmeow:gmnModelNotation ;
+    logic:targetEndpoint logic:Formula ;
+    logic:correspondenceRelation logic:SubsumedBy ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    gmeow:comment "get = parse (GMN logic record to logic:Formula); put = render (logic:Formula to canonical GMN logic record). The lens legs read a complete checked signature — the result and operand sorts (gmeow:gmnResultSort / gmeow:gmnOperandSorts), the arity kind (gmeow:gmnArityKind), the associativity (gmeow:gmnAssociativity), and the argument roles (gmeow:gmnArgRole) the GMN signature-coherence verify gate enforces — so the fragment on which the logic:GetPut / logic:PutGet lens laws hold is exactly the sort-well-formed operator terms, not free-floating notation." .
+
+# GMN cross-plane composition-glyph coherence -------------------------------
+# The audited coherence that the shared ring-operator glyph ∘ across the @μ math plane
+# (math:functionComposition) and the @ℒ logic plane (logic:compose) is a licensed pun, not an
+# accidental collision. The two operators are DISTINCT concepts — function composition versus
+# lens / correspondence composition (the u ∘ d = id family) — related, never identical, so the
+# relation is the weakest positive rung logic:RelatedMatch (curatorial relatedness, no OWL
+# alignment axiom emitted) rather than logic:Equiv. The record-initial sigil scope (@μ vs @ℒ)
+# and the distinct ASCII fallbacks (math `compose` vs logic `after`) keep the two keys apart so
+# the fallback-uniqueness gate stays green; the coherence is validation-only.
+
+gmeow:eqLangGmnComposeCoherence a logic:GroundingCorrespondence ;
+    rdfs:label "GMN composition-glyph cross-plane coherence"@x-gmeow-english ;
+    skos:definition "The audited coherence declaring that the ∘ glyph is a licensed cross-plane pun disambiguated by sigil scope (@μ math versus @ℒ logic): math:functionComposition (function composition) and logic:compose (lens / correspondence composition, the u ∘ d = id family) are distinct concepts that share the ring-operator notation and cohere associatively, related but never identical. The distinct ASCII fallbacks (math `compose` versus logic `after`) keep the fallback-uniqueness gate green."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:sourceEndpoint logic:compose ;
+    logic:targetEndpoint math:functionComposition ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly ;
+    gmeow:comment "A coherence-not-identity link: the two composition operators are curatorially related through the shared ∘ notation but neither subsumes the other — a lens leg is a logic:TransactionProgram over path semantics, not a bare function — so logic:RelatedMatch is the honest rung and no OWL equivalence is emitted." .
+
 # OntoLex-Lemon --------------------------------------------------------------
 
 lang:Lexeme skos:closeMatch ontolex:LexicalEntry {|
