@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): the REFERENCE GRAPH a reader walks — which declared class does
+# each medium-axis object reference resolve into? A reader that holds a frame must get from
+# it to the dictionary, the schema, the medium, the corpus, and the losslessness judgment; an
+# unresolvable hop is the point at which "decode this" stops being answerable.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?reference ?resolvesTo WHERE {
+    ?reference a owl:ObjectProperty ;
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+               gmeow:docsConcern gmeow:concernGTSPackaging ;
+               rdfs:range ?resolvesTo .
+}
+ORDER BY ?reference
