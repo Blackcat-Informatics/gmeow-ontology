@@ -9,19 +9,17 @@
 //! lillith/` — the no-drift gate. Each artifact is a GENERATED lossy projection of
 //! canonical GMEOW instance data, declaring its drops in the format's native slot.
 //!
-//! Byte-parity target = the COMMITTED bytes, which were produced by **rdflib 7.6
-//! Turtle serialization** (the `.ttl` files), Python `json.dumps(indent=2,
-//! ensure_ascii=False) + "\n"` (the JSON/JSON-LD), and `ElementTree` (the DataCite
-//! XML). The git-ignored crate `.zip` is intentionally NOT produced here.
-//!
-//! The eight `.ttl` outputs require a faithful re-implementation of rdflib's
-//! recursive Turtle serializer (`turtle` below): subjects ordered by
-//! `(is_bnode, ref_count, iri)`, predicates `a`/`rdfs:label`-first then sorted,
-//! objects sorted, literals canonicalized exactly as rdflib's `_literal_n3`
-//! (notably xsd:dateTime `Z` → `+00:00`). The `dcat.ttl` additionally runs the
-//! generated `dcat.rq` CONSTRUCT over the WHOLE composed ontology (every slice
-//! source) plus the worked-example A-Box, so it is fold-derived and drifts with the
-//! ontology — regenerated through the committed bytes here.
+//! The Croissant / DataCite / Frictionless / RO-Crate projections are cut onto the
+//! purrdf research-object codecs (`project_croissant` / `project_datacite` /
+//! `project_frictionless` / `project_ro_crate_with_assets`): a single caller-vocabulary
+//! source A-Box per codec, projected to the format's canonical bytes. The RO-Crate
+//! export uses the Attached codec — its `ro-crate-metadata.json` + `ro-crate-preview.html`
+//! are engine-emitted, and the six worked-example A-Box `.ttl` files plus the Croissant
+//! copy ride as caller-supplied `RoCrateAssets` payloads (each `.ttl` retagged
+//! `x-gmeow`→BCP-47 and re-serialized through the canonical Turtle path). The `dcat.ttl`
+//! runs the generated `dcat.rq` CONSTRUCT over the WHOLE composed ontology (every slice
+//! source) plus the worked-example A-Box, canonicalized through the same purrdf Turtle
+//! fold, so it drifts with the ontology. The git-ignored crate `.zip` is NOT produced.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -65,19 +63,12 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 
-// The P5 declared losses every research-object export shares.
-const DECLARED_DROPS: [&str; 4] = [
-    "reified relators (Copyright, roles, memberships) flatten or vanish",
-    "RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped",
-    "standpoint indexing is dropped — contested claims appear without their vantage",
-    "blake3 remains the internal canonical content digest; sha256/md5 are projected where supplied and the format allows",
-];
-
 const CROISSANT_CONFORMS_TO: &str = "http://mlcommons.org/croissant/1.0";
-const RO_CRATE_CONTEXT: &str = "https://w3id.org/ro/crate/1.1/context";
-const RO_CRATE_SPEC: &str = "https://w3id.org/ro/crate/1.1";
-const PROCESS_RUN_PROFILE: &str = "https://w3id.org/ro/wfrun/process/0.5";
-const WORKFLOW_RUN_PROFILE: &str = "https://w3id.org/ro/wfrun/workflow/0.5";
+/// The `@context` value emitted by the RO-Crate 1.3 codec (an opaque profile IRI; the
+/// caller supplies the full offline expansion table alongside it).
+const RO_CRATE_CONTEXT: &str = "https://w3id.org/ro/crate/1.3/context";
+/// The absolute RO-Crate 1.3 profile IRI the metadata descriptor `conformsTo`.
+const RO_CRATE_PROFILE: &str = "https://w3id.org/ro/crate/1.3";
 const DATACITE_NS: &str = "http://datacite.org/schema/kernel-4";
 const XSI_NS: &str = "http://www.w3.org/2001/XMLSchema-instance";
 
@@ -244,20 +235,6 @@ fn objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
     set.into_iter().collect()
 }
 
-/// Subjects `s` with `(s, predicate, object)`, sorted by IRI.
-fn subjects_with(store: &Store, predicate: &str, object: &str) -> Vec<String> {
-    let mut set: BTreeSet<String> = BTreeSet::new();
-    for q in store.triples() {
-        if q.predicate == predicate
-            && iri_is(&q.object, object)
-            && let RdfTerm::Iri(n) = &q.subject
-        {
-            set.insert(n.clone());
-        }
-    }
-    set.into_iter().collect()
-}
-
 fn slug(iri: &str) -> String {
     let trimmed = iri.trim_end_matches('/');
     let tail = trimmed.rsplit('/').next().unwrap_or(trimmed);
@@ -269,10 +246,11 @@ fn slug(iri: &str) -> String {
     }
 }
 
-// ── literal canonicalization (rdflib `Literal._literal_n3(use_plain=True)`) ────
+// ── literal canonicalization (instance-read lexical forms) ─────────────────────
 
-/// rdflib's `str(Literal)` / lexical value after parse: xsd:dateTime with a `Z`
-/// offset re-isoformats to `+00:00`; everything else keeps its lexical form.
+/// Lexical value used by the instance-graph reads (`text`/`objects`): an xsd:dateTime
+/// with a trailing `Z` offset re-isoformats to `+00:00`; everything else keeps its
+/// lexical form.
 fn canonical_lexical(l: &RdfLiteral) -> String {
     let lex = l.lexical_form.clone();
     if l.datatype.as_deref() == Some(&format!("{XSD}dateTime")[..]) {
@@ -310,9 +288,6 @@ struct DatasetMeta {
     iri: String,
     title: String,
     description: String,
-    license_id: String,
-    license_url: String,
-    creator: String,
     date_published: String,
     landing_page: String,
     version: Option<String>,
@@ -330,24 +305,23 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
             message: "no licensed gmeow:Dataset node found".into(),
         })
     })?;
+    // The licensed dataset must carry a resolvable SPDX license id (a hard precondition
+    // the codecs rely on); validate it here even though the codec sources the license IRI
+    // straight off the A-Box rather than this descriptor.
     let license_node = value_node(store, &ds, &g("hasLicense")).unwrap();
-    let license_id = text(store, &license_node, &g("spdxLicenseId"));
-    if license_id.is_empty() {
+    if text(store, &license_node, &g("spdxLicenseId")).is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!(
                 "dataset descriptor {ds} has a gmeow:License without a gmeow:spdxLicenseId"
             ),
         }));
     }
-    // Canonicalize the UTC offset to `Z` for the JSON / JSON-LD / XML / HTML
-    // emitters (datapackage `created`, croissant/ro-crate `datePublished`,
-    // datacite `<date>`, ro-crate-preview HTML). The fold may carry the lexical
-    // dateTime as either `…+00:00` (local Python isoformat) or `…Z` (the
-    // CI-canonical form); collapsing `+00:00` → `Z` here makes these text
-    // outputs byte-identical to the committed artifacts regardless of which
-    // form the input `gmeow.gts` happens to use. The `.ttl` outputs are
-    // serialized through the rdflib-faithful path (which uses the raw lexical
-    // form via `canonical_lexical`) and are unaffected by this field.
+    // Canonicalize the UTC offset to `Z` for the JSON / JSON-LD / XML emitters
+    // (datapackage `created`, croissant/ro-crate `datePublished`, datacite `<date>`).
+    // The fold may carry the lexical dateTime as either `…+00:00` or `…Z`; collapsing
+    // `+00:00` → `Z` here keeps these text outputs stable regardless of which form the
+    // input `gmeow.gts` happens to use. The `.ttl` payloads are serialized through the
+    // canonical Turtle fold (raw lexical form) and are unaffected by this field.
     let date_published = json_datetime(&text(store, &ds, &g("datePublished")));
     let year_ok =
         date_published.len() >= 4 && date_published.chars().take(4).all(|c| c.is_ascii_digit());
@@ -356,7 +330,6 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
             message: format!("dataset descriptor {ds} needs a valid gmeow:datePublished"),
         }));
     }
-    let creator_node = value_node(store, &ds, &g("wasAttributedTo"));
     let version = {
         let v = text(store, &ds, &g("version"));
         if v.is_empty() { None } else { Some(v) }
@@ -377,9 +350,6 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
         iri: ds.clone(),
         title,
         description: text(store, &ds, &g("description")),
-        license_url: format!("https://spdx.org/licenses/{license_id}"),
-        license_id,
-        creator: creator_node.map(|c| label(store, &c)).unwrap_or_default(),
         date_published,
         landing_page: landing,
         version,
@@ -402,20 +372,6 @@ fn digest_map(store: &Store, doc: &str) -> BTreeMap<String, String> {
     digests
 }
 
-/// rdflib insertion order isn't observable here; prefer blake3, then sha256, md5.
-fn primary_digest(digests: &BTreeMap<String, String>) -> String {
-    for algo in ["blake3", "sha256", "md5"] {
-        if let Some(v) = digests.get(algo) {
-            return format!("{algo}:{v}");
-        }
-    }
-    match digests.iter().next() {
-        Some((algo, value)) if algo == "digest" => value.clone(),
-        Some((algo, value)) => format!("{algo}:{value}"),
-        None => String::new(),
-    }
-}
-
 struct DocInfo {
     iri: String,
     name: String,
@@ -435,183 +391,6 @@ fn documents(store: &Store) -> Vec<DocInfo> {
         .collect()
 }
 
-struct AgentInfo {
-    iri: String,
-    name: String,
-    version: String,
-}
-
-fn agents(store: &Store) -> Vec<AgentInfo> {
-    let mut nodes: BTreeSet<String> = BTreeSet::new();
-    nodes.extend(subjects_of_type(store, &g("SoftwareAgent")));
-    nodes.extend(subjects_of_type(store, &g("Builder")));
-    nodes
-        .into_iter()
-        .map(|agent| {
-            let card = subjects_with(store, &g("describesModel"), &agent)
-                .into_iter()
-                .next();
-            let version = match card {
-                Some(c) => text(store, &c, &g("modelVersionTag")),
-                None => String::new(),
-            };
-            AgentInfo {
-                name: label(store, &agent),
-                version,
-                iri: agent,
-            }
-        })
-        .collect()
-}
-
-struct Action {
-    iri: String,
-    name: String,
-    instrument: String,
-    objects: Vec<String>,
-    results: Vec<String>,
-    end_time: String,
-    workflow: String,
-    agent: String,
-}
-
-fn activities(store: &Store) -> Vec<Action> {
-    let mut nodes: BTreeSet<String> = BTreeSet::new();
-    for t in ["ModelInvocation", "ImportActivity", "BuildActivity"] {
-        nodes.extend(subjects_of_type(store, &g(t)));
-    }
-    nodes
-        .into_iter()
-        .map(|act| {
-            let generated = subjects_with(store, &g("wasGeneratedBy"), &act);
-            let mut results: BTreeSet<String> = generated.iter().cloned().collect();
-            results.extend(objects(store, &act, &g("buildOutput")));
-            let mut objs: BTreeSet<String> = BTreeSet::new();
-            for result in &generated {
-                objs.extend(objects(store, result, &g("wasDerivedFrom")));
-            }
-            objs.extend(objects(store, &act, &g("buildSource")));
-            let instrument = value_node(store, &act, &g("usedModel")).unwrap_or_default();
-            let participant = value_node(store, &act, &g("hasParticipant")).unwrap_or_default();
-            let end_time = {
-                let t = text(store, &act, &g("ingestedAt"));
-                let raw = if t.is_empty() {
-                    text(store, &act, &g("eventTime"))
-                } else {
-                    t
-                };
-                // Emitted as JSON `endTime`; canonicalize the UTC offset to `Z`
-                // (see `json_datetime`) so the text output matches the committed
-                // artifact regardless of the fold's `+00:00`/`Z` lexical form.
-                json_datetime(&raw)
-            };
-            Action {
-                name: label(store, &act),
-                instrument,
-                objects: objs.into_iter().collect(),
-                results: results.into_iter().collect(),
-                end_time,
-                workflow: text(store, &act, &g("buildConfigUri")),
-                agent: participant,
-                iri: act,
-            }
-        })
-        .collect()
-}
-
-// ── JSON value model (byte-exact Python json.dumps, indent=2, ensure_ascii=False) ──
-
-enum Json {
-    Str(String),
-    Arr(Vec<Json>),
-    /// Insertion-ordered object (Python dict order preserved).
-    Obj(Vec<(String, Json)>),
-}
-
-impl Json {
-    fn render(&self, indent: usize, out: &mut String) {
-        let pad = "  ".repeat(indent);
-        let pad1 = "  ".repeat(indent + 1);
-        match self {
-            Json::Str(s) => out.push_str(&json_str(s)),
-            Json::Arr(items) => {
-                if items.is_empty() {
-                    out.push_str("[]");
-                    return;
-                }
-                out.push_str("[\n");
-                for (i, it) in items.iter().enumerate() {
-                    out.push_str(&pad1);
-                    it.render(indent + 1, out);
-                    if i + 1 < items.len() {
-                        out.push(',');
-                    }
-                    out.push('\n');
-                }
-                out.push_str(&pad);
-                out.push(']');
-            }
-            Json::Obj(entries) => {
-                if entries.is_empty() {
-                    out.push_str("{}");
-                    return;
-                }
-                out.push_str("{\n");
-                for (i, (k, v)) in entries.iter().enumerate() {
-                    out.push_str(&pad1);
-                    out.push_str(&json_str(k));
-                    out.push_str(": ");
-                    v.render(indent + 1, out);
-                    if i + 1 < entries.len() {
-                        out.push(',');
-                    }
-                    out.push('\n');
-                }
-                out.push_str(&pad);
-                out.push('}');
-            }
-        }
-    }
-}
-
-/// `json.dumps(s, ensure_ascii=False)` of a string (raw UTF-8, minimal escapes).
-fn json_str(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 2);
-    out.push('"');
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-    out
-}
-
-fn dump_json(doc: &Json) -> Vec<u8> {
-    let mut s = String::new();
-    doc.render(0, &mut s);
-    s.push('\n');
-    s.into_bytes()
-}
-
-fn obj(entries: Vec<(&str, Json)>) -> Json {
-    Json::Obj(
-        entries
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), v))
-            .collect(),
-    )
-}
-fn s(v: &str) -> Json {
-    Json::Str(v.to_string())
-}
-
 // ── research-object codec configuration (purrdf project_croissant / _datacite / _frictionless) ──
 
 /// Wrap a projection failure as a pipeline parse diagnostic.
@@ -620,9 +399,11 @@ fn ro_err(message: String) -> gmeow_errors::Diag {
 }
 
 /// Right-sized [`purrdf::ProjectionLimits`] for the tiny Lillith worked example — a
-/// handful of small artifacts and shallow JSON, NOT the 128 MB SKOS/OBO bounds.
+/// handful of small artifacts and shallow JSON, NOT the 128 MB SKOS/OBO bounds. The
+/// 12-artifact ceiling covers the attached RO-Crate package's widest member set
+/// (`ro-crate-metadata.json` + `ro-crate-preview.html` + the seven payload assets).
 fn research_limits() -> Result<purrdf::ProjectionLimits, gmeow_errors::Diag> {
-    purrdf::ProjectionLimits::new(8, 4_000_000, 8_000_000, 16_000_000, 12)
+    purrdf::ProjectionLimits::new(12, 4_000_000, 8_000_000, 16_000_000, 12)
         .map_err(|e| ro_err(format!("research-object ProjectionLimits: {e}")))
 }
 
@@ -833,6 +614,94 @@ fn frictionless_config(
 ) -> Result<purrdf::FrictionlessConfig, gmeow_errors::Diag> {
     purrdf::FrictionlessConfig::new(common, purrdf::FRICTIONLESS_PROFILE, package_name)
         .map_err(|e| ro_err(format!("FrictionlessConfig: {e}")))
+}
+
+/// The gmeow-owned attached [`purrdf::RoCrateConfig`]: a complete RO-Crate 1.3
+/// compact-term vocabulary, its offline JSON-LD expansion table (one distinct absolute
+/// IRI per term), the absolute 1.3 profile IRI, and the reserved attached-crate
+/// identities (`ro-crate-metadata.json` descriptor, `./` root). The `Attached` packaging
+/// makes the codec emit `ro-crate-metadata.json` + `ro-crate-preview.html` and carry the
+/// caller-supplied [`purrdf::RoCrateAssets`] payloads alongside them.
+fn ro_crate_config(
+    common: purrdf::ResearchObjectConfig,
+) -> Result<purrdf::RoCrateConfig, gmeow_errors::Diag> {
+    use purrdf::RoCrateRole as CR;
+    let term = |role: purrdf::RoCrateRole| -> &'static str {
+        match role {
+            CR::RootDatasetClass => "Dataset",
+            CR::MetadataDescriptorClass => "CreativeWork",
+            CR::FileClass => "File",
+            CR::AgentClass => "Organization",
+            CR::ActivityClass => "CreateAction",
+            CR::RecordSetClass => "RecordSet",
+            CR::FieldClass => "Field",
+            CR::Name => "name",
+            CR::Description => "description",
+            CR::Identifier => "identifier",
+            CR::Version => "version",
+            CR::DatePublished => "datePublished",
+            CR::DateModified => "dateModified",
+            CR::Url => "url",
+            CR::Keywords => "keywords",
+            CR::License => "license",
+            CR::Creator => "creator",
+            CR::Publisher => "publisher",
+            CR::HasPart => "hasPart",
+            CR::Mentions => "mentions",
+            CR::ConformsTo => "conformsTo",
+            CR::About => "about",
+            CR::Path => "contentPath",
+            CR::ContentUrl => "contentUrl",
+            CR::EncodingFormat => "encodingFormat",
+            CR::Format => "fileFormat",
+            CR::ContentSize => "contentSize",
+            CR::Checksum => "checksum",
+            CR::ChecksumAlgorithm => "checksumAlgorithm",
+            CR::ChecksumValue => "checksumValue",
+            CR::InlineContent => "inlineData",
+            CR::Field => "field",
+            CR::DataType => "dataType",
+            CR::Records => "data",
+            CR::Instrument => "instrument",
+            CR::Agent => "actionAgent",
+            CR::Object => "object",
+            CR::Result => "result",
+            CR::EndTime => "endTime",
+            CR::Workflow => "workflow",
+        }
+    };
+    let expand =
+        |t: &str| -> String { format!("https://blackcatinformatics.ca/gmeow/ro-crate#{t}") };
+    let vocabulary_map: BTreeMap<purrdf::RoCrateRole, String> = purrdf::RO_CRATE_ROLES
+        .iter()
+        .copied()
+        .map(|role| (role, term(role).to_string()))
+        .collect();
+    let definitions: BTreeMap<String, String> = purrdf::RO_CRATE_ROLES
+        .iter()
+        .copied()
+        .map(|role| {
+            let t = term(role);
+            (t.to_string(), expand(t))
+        })
+        .collect();
+    let vocabulary = purrdf::RoCrateVocabulary::new(vocabulary_map)
+        .map_err(|e| ro_err(format!("RoCrateVocabulary: {e}")))?;
+    let context = purrdf::OfflineJsonLdContext::new(
+        serde_json::Value::String(RO_CRATE_CONTEXT.to_string()),
+        definitions,
+    )
+    .map_err(|e| ro_err(format!("RO-Crate OfflineJsonLdContext: {e}")))?;
+    purrdf::RoCrateConfig::new(
+        common,
+        context,
+        vocabulary,
+        RO_CRATE_PROFILE,
+        purrdf::RO_CRATE_ARTIFACT,
+        "./",
+        purrdf::RoCratePackaging::Attached,
+    )
+    .map_err(|e| ro_err(format!("RoCrateConfig: {e}")))
 }
 
 /// Intern `(subject, predicate, object)` IRIs and push the default-graph relation.
@@ -1134,6 +1003,119 @@ fn build_research_source(
         .map_err(|e| ro_err(format!("research-object source dataset freeze: {e}")))
 }
 
+/// Build the RO-Crate source [`RdfDataset`] the attached codec projects from. Unlike
+/// [`build_research_source`] (whose resources are the worked example's `gmeow:Document`
+/// content-addressed sources), the RO-Crate source's RESOURCES ARE THE PACKAGED FILES:
+/// the six retagged A-Box `.ttl` payloads plus the Croissant copy. Each packaged file
+/// becomes a `ResourceClass` node minted under the entity base (so its native id strips
+/// to the bare `<filename>`), linked into the root dataset via `HasResource`, declaring
+/// its `ResourcePath = <filename>` and `ByteSize = <exact payload byte length>`. This is
+/// exactly what `validate_attached_assets` cross-checks against the supplied
+/// [`purrdf::RoCrateAssets`]: every local File resource is in the root `hasPart`, its
+/// single path equals its native id, an asset exists at that path, and the declared byte
+/// size matches the asset body one-to-one. `files` carries `(<filename>, byte-len)` for
+/// all seven payloads in the SAME order/identity the assets are built from.
+fn build_ro_crate_source(
+    common: &purrdf::ResearchObjectConfig,
+    store: &Store,
+    ds: &DatasetMeta,
+    files: &[(String, usize)],
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    use purrdf::ResearchRole as RR;
+    let roles = common.roles();
+    let xsd_string = roles.iri(RR::XsdString).to_string();
+    let xsd_nn = roles.iri(RR::XsdNonNegativeInteger).to_string();
+    let dsi = ds.iri.as_str();
+    let mut b = purrdf::RdfDatasetBuilder::new();
+
+    // ── the root dataset descriptor (mirrors the catalog metadata) ──────────────
+    push_rel(
+        &mut b,
+        dsi,
+        roles.iri(RR::RdfType),
+        roles.iri(RR::DatasetClass),
+    );
+    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string);
+    if !ds.description.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::Description),
+            &ds.description,
+            &xsd_string,
+        );
+    }
+    if !ds.date_published.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::Issued),
+            &ds.date_published,
+            &xsd_string,
+        );
+    }
+    if let Some(v) = &ds.version {
+        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string);
+    }
+    if let Some(c) = &ds.cite_as {
+        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string);
+    }
+    if is_http_iri(&ds.landing_page) {
+        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page);
+    } else if !ds.landing_page.is_empty() {
+        push_lit(
+            &mut b,
+            dsi,
+            roles.iri(RR::LandingPage),
+            &ds.landing_page,
+            &xsd_string,
+        );
+    }
+    if let Some(license) = value_node(store, dsi, &g("hasLicense")) {
+        push_rel(&mut b, dsi, roles.iri(RR::License), &license);
+    }
+    if let Some(org) = value_node(store, dsi, &g("wasAttributedTo")) {
+        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org);
+        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org);
+        push_rel(
+            &mut b,
+            &org,
+            roles.iri(RR::RdfType),
+            roles.iri(RR::AgentClass),
+        );
+        let name = label(store, &org);
+        if !name.is_empty() {
+            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string);
+        }
+    }
+
+    // ── resources: the packaged crate files, one File per payload ───────────────
+    for (name, len) in files {
+        // Mint under the entity base so `config.native_id` strips the prefix back to
+        // the bare `<filename>` — the crate-relative path the asset is keyed by.
+        let rid = format!("{NS}{name}");
+        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid);
+        push_rel(
+            &mut b,
+            &rid,
+            roles.iri(RR::RdfType),
+            roles.iri(RR::ResourceClass),
+        );
+        push_lit(&mut b, &rid, roles.iri(RR::ResourceName), name, &xsd_string);
+        push_lit(&mut b, &rid, roles.iri(RR::ResourcePath), name, &xsd_string);
+        push_lit(
+            &mut b,
+            &rid,
+            roles.iri(RR::ByteSize),
+            &len.to_string(),
+            &xsd_nn,
+        );
+    }
+
+    b.freeze()
+        .map_err(|e| ro_err(format!("RO-Crate source dataset freeze: {e}")))
+}
+
 /// Group a purrdf [`purrdf::LossLedger`] by `(code, note)` and trace it — no RDF →
 /// (Croissant | DataCite | Frictionless) lowering loss is silently dropped. Mirrors
 /// `export.rs`'s `report_projection_losses`.
@@ -1176,304 +1158,7 @@ fn report_projection_losses(surface: &str, ledger: &purrdf::LossLedger) {
     }
 }
 
-// ── RO-Crate metadata ──────────────────────────────────────────────────────────
-
-fn json_ref(iri: &str) -> Json {
-    obj(vec![("@id", s(iri))])
-}
-
-fn build_ro_crate_metadata(store: &Store, ds: &DatasetMeta, payload: &[String]) -> Json {
-    let actions = activities(store);
-    let workflows: Vec<String> = actions
-        .iter()
-        .filter(|a| !a.workflow.is_empty())
-        .map(|a| a.workflow.clone())
-        .collect::<BTreeSet<String>>()
-        .into_iter()
-        .collect();
-    let has_workflow = !workflows.is_empty();
-
-    let mut conforms = vec![json_ref(RO_CRATE_SPEC), json_ref(PROCESS_RUN_PROFILE)];
-    if has_workflow {
-        conforms.push(json_ref(WORKFLOW_RUN_PROFILE));
-    }
-
-    let mut root: Vec<(String, Json)> = vec![
-        ("@id".into(), s("./")),
-        ("@type".into(), s("Dataset")),
-        ("name".into(), s(&ds.title)),
-        ("description".into(), s(&ds.description)),
-        ("datePublished".into(), s(&ds.date_published)),
-        ("license".into(), json_ref(&ds.license_url)),
-        (
-            "publisher".into(),
-            json_ref(&format!("{NS}ro-crate/publisher")),
-        ),
-        (
-            "hasPart".into(),
-            Json::Arr(payload.iter().map(|n| json_ref(n)).collect()),
-        ),
-    ];
-    if has_workflow {
-        root.push(("mainEntity".into(), json_ref(&workflows[0])));
-    }
-
-    let mut entities: Vec<Json> = vec![
-        obj(vec![
-            ("@id", s("ro-crate-metadata.json")),
-            ("@type", s("CreativeWork")),
-            ("conformsTo", Json::Arr(conforms)),
-            ("about", json_ref("./")),
-            (
-                "description",
-                s(&format!(
-                    "Generated from canonical GMEOW instance data; declared drops: {}.",
-                    DECLARED_DROPS.join("; ")
-                )),
-            ),
-        ]),
-        Json::Obj(root),
-        obj(vec![
-            ("@id", s(&ds.license_url)),
-            ("@type", s("CreativeWork")),
-            ("name", s(&ds.license_id)),
-        ]),
-        obj(vec![
-            ("@id", s(&format!("{NS}ro-crate/publisher"))),
-            ("@type", s("Organization")),
-            ("name", s(&ds.creator)),
-        ]),
-    ];
-
-    for name in payload {
-        let fmt = if name.ends_with(".ttl") {
-            "text/turtle"
-        } else {
-            "application/ld+json"
-        };
-        entities.push(obj(vec![
-            ("@id", s(name)),
-            ("@type", s("File")),
-            ("name", s(name)),
-            ("encodingFormat", s(fmt)),
-        ]));
-    }
-
-    for doc in documents(store) {
-        let mut fields: Vec<(String, Json)> = vec![
-            ("@id".into(), s(&doc.iri)),
-            ("@type".into(), s("File")),
-            ("name".into(), s(&doc.name)),
-        ];
-        let primary = primary_digest(&doc.digests);
-        if !primary.is_empty() {
-            fields.push(("identifier".into(), s(&primary)));
-        }
-        if !doc.content_url.is_empty() {
-            fields.push(("contentUrl".into(), s(&doc.content_url)));
-        }
-        entities.push(Json::Obj(fields));
-    }
-
-    for agent in agents(store) {
-        let mut fields: Vec<(String, Json)> = vec![
-            ("@id".into(), s(&agent.iri)),
-            ("@type".into(), s("SoftwareApplication")),
-            ("name".into(), s(&agent.name)),
-        ];
-        if !agent.version.is_empty() {
-            fields.push(("softwareVersion".into(), s(&agent.version)));
-        }
-        entities.push(Json::Obj(fields));
-    }
-
-    for workflow in &workflows {
-        let wname = workflow.rsplit('/').next().unwrap_or(workflow).to_string();
-        entities.push(obj(vec![
-            ("@id", s(workflow)),
-            (
-                "@type",
-                Json::Arr(vec![
-                    s("File"),
-                    s("SoftwareSourceCode"),
-                    s("ComputationalWorkflow"),
-                ]),
-            ),
-            ("name", s(&wname)),
-        ]));
-    }
-
-    for act in &actions {
-        let mut fields: Vec<(String, Json)> = vec![
-            ("@id".into(), s(&act.iri)),
-            ("@type".into(), s("CreateAction")),
-            ("name".into(), s(&act.name)),
-        ];
-        let instrument = if !act.workflow.is_empty() {
-            act.workflow.clone()
-        } else {
-            act.instrument.clone()
-        };
-        if !instrument.is_empty() {
-            fields.push(("instrument".into(), json_ref(&instrument)));
-        }
-        if !act.agent.is_empty() {
-            fields.push(("agent".into(), json_ref(&act.agent)));
-        }
-        if !act.objects.is_empty() {
-            fields.push((
-                "object".into(),
-                Json::Arr(act.objects.iter().map(|o| json_ref(o)).collect()),
-            ));
-        }
-        if !act.results.is_empty() {
-            fields.push((
-                "result".into(),
-                Json::Arr(act.results.iter().map(|r| json_ref(r)).collect()),
-            ));
-        }
-        if !act.end_time.is_empty() {
-            fields.push(("endTime".into(), s(&act.end_time)));
-        }
-        entities.push(Json::Obj(fields));
-    }
-
-    // Backfill action object/result IRIs not yet present as entities.
-    let mut present: BTreeSet<String> = BTreeSet::new();
-    for e in &entities {
-        if let Json::Obj(fields) = e {
-            for (k, v) in fields {
-                if k == "@id"
-                    && let Json::Str(id) = v
-                {
-                    present.insert(id.clone());
-                }
-            }
-        }
-    }
-    let mut referenced: BTreeSet<String> = BTreeSet::new();
-    for act in &actions {
-        for iri in act.objects.iter().chain(act.results.iter()) {
-            if !present.contains(iri) {
-                referenced.insert(iri.clone());
-            }
-        }
-    }
-    for iri in referenced {
-        let mut fields: Vec<(String, Json)> = vec![
-            ("@id".into(), s(&iri)),
-            ("@type".into(), s("Thing")),
-            ("name".into(), s(&label(store, &iri))),
-        ];
-        let digest = text(store, &iri, &g("contentDigest"));
-        if !digest.is_empty() {
-            fields.push(("identifier".into(), s(&digest)));
-        }
-        entities.push(Json::Obj(fields));
-    }
-
-    obj(vec![
-        ("@context", s(RO_CRATE_CONTEXT)),
-        ("@graph", Json::Arr(entities)),
-    ])
-}
-
-// ── RO-Crate preview HTML (Python `html.escape`) ───────────────────────────────
-
-/// Python `html.escape(s, quote=True)`: `& < > " '`.
-fn html_escape(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '"' => out.push_str("&quot;"),
-            '\'' => out.push_str("&#x27;"),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
-/// `str(entity[key])` Python-style: a JSON string → its value, a JSON list →
-/// Python `repr` of the list (`['a', 'b']`), missing → default.
-fn entity_str(e: &Json, key: &str, default: &str) -> String {
-    if let Json::Obj(fields) = e {
-        for (k, v) in fields {
-            if k == key {
-                return python_str(v);
-            }
-        }
-    }
-    default.to_string()
-}
-
-/// Python `str(value)` for the values that appear in the @graph (str or list-of-str).
-fn python_str(v: &Json) -> String {
-    match v {
-        Json::Str(s) => s.clone(),
-        Json::Arr(items) => {
-            let inner: Vec<String> = items
-                .iter()
-                .map(|it| match it {
-                    Json::Str(s) => format!("'{s}'"),
-                    other => python_str(other),
-                })
-                .collect();
-            format!("[{}]", inner.join(", "))
-        }
-        Json::Obj(_) => String::new(),
-    }
-}
-
-fn build_ro_crate_preview(metadata: &Json) -> Vec<u8> {
-    let graph =
-        match metadata {
-            Json::Obj(fields) => fields
-                .iter()
-                .find(|(k, _)| k == "@graph")
-                .and_then(|(_, v)| match v {
-                    Json::Arr(items) => Some(items),
-                    _ => None,
-                }),
-            _ => None,
-        };
-    let empty: Vec<Json> = Vec::new();
-    let graph = graph.unwrap_or(&empty);
-    let root = graph
-        .iter()
-        .find(|e| matches!(e, Json::Obj(fields) if fields.iter().any(|(k, v)| k == "@id" && matches!(v, Json::Str(id) if id == "./"))));
-
-    let esc = |e: &Json, key: &str, default: &str| html_escape(&entity_str(e, key, default));
-    let blank = obj(vec![]);
-    let root = root.unwrap_or(&blank);
-
-    let mut rows = String::new();
-    for (i, e) in graph.iter().enumerate() {
-        if i > 0 {
-            rows.push('\n');
-        }
-        rows.push_str(&format!(
-            "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
-            esc(e, "@id", ""),
-            esc(e, "@type", ""),
-            esc(e, "name", "")
-        ));
-    }
-
-    let html = format!(
-        "<!DOCTYPE html>\n<html lang=\"en\">\n<head><meta charset=\"utf-8\"><title>{}</title></head>\n<body>\n<h1>{}</h1>\n<p>{}</p>\n<p>Published: {}</p>\n<table border=\"1\">\n<tr><th>@id</th><th>@type</th><th>name</th></tr>\n{}\n</table>\n</body>\n</html>\n",
-        esc(root, "name", "RO-Crate"),
-        esc(root, "name", ""),
-        esc(root, "description", ""),
-        esc(root, "datePublished", ""),
-        rows
-    );
-    html.into_bytes()
-}
-
-// ── source-Turtle → rdflib-Turtle (with x-gmeow language retag) ────────────────
+// ── source-Turtle payload → canonical Turtle (with x-gmeow language retag) ─────
 
 /// Load the internal→BCP-47 language-tag map from the carrier varieties in the
 /// module surfaces. The internal `x-gmeow-*` tag rides `lang:carrierTag` on a
@@ -1536,21 +1221,18 @@ fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, gmeow_errors::D
     Ok(map)
 }
 
-/// Parse a source Turtle file, retag `@x-gmeow-*` literal language tags to their
-/// public BCP-47 form, and re-serialize through the canonical Turtle serializer.
-///
-/// This is the byte-for-byte mirror of the canonical Python path
-/// (`research_objects.export_research_objects`): the source A-Box is parsed with
-/// the native store (oxigraph — which canonicalizes literals exactly as the
-/// published artifacts require, e.g. decimal `1.0` → `"1"^^xsd:decimal`), its
-/// `@x-gmeow-*` literal language tags retag to public BCP-47, and the result is
-/// rendered with an EMPTY prefix set: fully-expanded full IRIs, no `@prefix`
-/// header (matching the committed RO-Crate A-Box copies).
-fn serialize_source_turtle(
+/// Render one worked-example A-Box `.ttl` as an RO-Crate payload body: parse the source
+/// Turtle, retag its `@x-gmeow-*` literal language tags to their public BCP-47 form at the
+/// term level, canonicalize every typed literal to the W3C XSD mapping, and re-serialize
+/// through the canonical Turtle fold (`serialize_dataset` → N-Triples →
+/// `canonical_turtle`, the exact path `render_dcat` uses). The returned bytes are the
+/// caller-supplied [`purrdf::RoCrateAssets`] payload AND the source of the resource's
+/// declared `ByteSize`, so the two can never drift.
+fn render_source_turtle_payload(
     bytes: &[u8],
     path: &str,
     tag_map: &BTreeMap<String, String>,
-) -> Result<String, gmeow_errors::Diag> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let dataset = parse_into(bytes, path)?;
 
     // Re-emit each triple, retagging `@x-gmeow-*` literal language tags to their public
@@ -1592,6 +1274,7 @@ fn serialize_source_turtle(
     // the file IS `render(graph)`, the same bytes the superset gate reconstructs.
     // `nt` is already bytes from the native serializer, so pass it by reference.
     purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+        .map(String::into_bytes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
 }
 
@@ -1674,26 +1357,47 @@ pub fn render_research_objects(
         .to_vec();
     out.insert(p("lillith.croissant.jsonld"), croissant_bytes.clone());
 
-    // RO-Crate: retag+serialize each .ttl input, copy the croissant, build metadata.
+    // RO-Crate (Attached codec): render the seven payload bodies (six retagged A-Box
+    // `.ttl` files + the Croissant copy), declare them as sized File resources in a
+    // dedicated source A-Box, and project through `project_ro_crate_with_assets`. The
+    // codec emits `ro-crate-metadata.json` + `ro-crate-preview.html` and carries the seven
+    // payloads; `validate_attached_assets` cross-checks every File resource against its
+    // asset (path == native id, declared byte size == asset length, one-to-one).
     let tag_map = load_tag_map(root)?;
-    let mut payload: Vec<String> = Vec::new();
+    let mut assets: Vec<(String, Vec<u8>)> = Vec::new();
     for (label, name, bytes) in example_inputs(root, scores_ttl)? {
-        let ttl = serialize_source_turtle(&bytes, label, &tag_map)?;
-        out.insert(p(&format!("ro-crate/{name}")), ttl.into_bytes());
-        payload.push(name.to_string());
+        let payload = render_source_turtle_payload(&bytes, label, &tag_map)?;
+        assets.push((name.to_string(), payload));
     }
-    out.insert(
-        p("ro-crate/lillith.croissant.jsonld"),
+    assets.push((
+        "lillith.croissant.jsonld".to_string(),
         croissant_bytes.clone(),
-    );
-    payload.push("lillith.croissant.jsonld".to_string());
-    payload.sort();
-    let metadata = build_ro_crate_metadata(&store, &ds, &payload);
-    out.insert(p("ro-crate/ro-crate-metadata.json"), dump_json(&metadata));
-    out.insert(
-        p("ro-crate/ro-crate-preview.html"),
-        build_ro_crate_preview(&metadata),
-    );
+    ));
+    // Deterministic member order: the ProjectionPackage stores paths in lexical order, so
+    // sort the caller list to match (and to keep the source resource order stable).
+    assets.sort();
+    let files: Vec<(String, usize)> = assets
+        .iter()
+        .map(|(name, body)| (name.clone(), body.len()))
+        .collect();
+    let ro_source = build_ro_crate_source(&common, &store, &ds, &files)?;
+    let ro_assets = purrdf::RoCrateAssets::from_artifacts(
+        research_limits()?,
+        assets
+            .iter()
+            .map(|(name, body)| (name.clone(), body.clone())),
+    )
+    .map_err(|e| ro_err(format!("RoCrateAssets: {e}")))?;
+    let ro_crate = purrdf::project_ro_crate_with_assets(
+        ro_source.as_ref(),
+        &ro_crate_config(common.clone())?,
+        &ro_assets,
+    )
+    .map_err(|e| ro_err(format!("project_ro_crate_with_assets: {e}")))?;
+    report_projection_losses("ro-crate", &ro_crate.loss_ledger);
+    for (path, body) in ro_crate.package.artifacts() {
+        out.insert(p(&format!("ro-crate/{path}")), body.to_vec());
+    }
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
     let dcat = render_dcat(root, dcat_rq, scores_ttl)?;
