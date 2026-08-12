@@ -42,7 +42,7 @@ jobs:
       # `cargo nextest run --no-run --workspace`, so the release runner needs
       # cargo-nextest just like the ci.yml jobs do.
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: cargo-nextest
 

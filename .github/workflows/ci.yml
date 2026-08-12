@@ -235,7 +235,7 @@ jobs:
       # `make lint` runs scripts/lint-issue-refs.sh, which hard-requires ripgrep;
       # it is not present on the runner image by default.
       - name: Install ripgrep
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: ripgrep
 
@@ -296,7 +296,7 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: cargo-nextest
 
@@ -307,7 +307,7 @@ jobs:
       # the exit code rather than on what it is asserting. The test runs in the nextest
       # shards, so the tool has to be here too; a gate that cannot run is not a gate.
       - name: Install ripgrep
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: ripgrep
 
@@ -533,7 +533,7 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: cargo-nextest
 
@@ -660,7 +660,7 @@ jobs:
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@cb33e69fad06166ca28a42b2575e4dadabf62ee8 # v2
         with:
           tool: wasm-bindgen-cli@0.2.125
 
