@@ -2199,7 +2199,7 @@ gmeow:dictGmeowClaimsV1
     gmeow:dictionaryId "gmeow-claims-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
+    gmeow:dictionaryTargetLength "4096"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowClaimsV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -2247,11 +2247,11 @@ gmeow:dictGmeowMemoryCompactV1
     a gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gmeow-memory-compact-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped SMALL-STORE memory dictionary, built as a term table rather than a trained sample because a compact store offers too few bytes for the COVER trainer to beat the ontology's own term vocabulary. Trained ONLY on bundle-shipped claim material (see gmeow:corpusGmeowMemoryCompactV1) — never on a user's runtime store."@x-gmeow-english ;
+    skos:definition "The shipped SMALL-STORE memory dictionary, built by the COVER trainer at the smallest gridded target length. The training point is the MEASURED two-part-code argmin over the committed sweep, not a prior about what a compact store can support: the earlier term-table declaration rested on the expectation that too few bytes are available for the trainer to beat the ontology's own term vocabulary, and the sweep falsified it — the trained dictionary codes the same runtime-store population in fewer total bytes, its own in-band bytes included. Trained ONLY on bundle-shipped claim material (see gmeow:corpusGmeowMemoryCompactV1) — never on a user's runtime store."@x-gmeow-english ;
     gmeow:dictionaryId "gmeow-memory-compact-v1" ;
     gmeow:dictionaryVersion "1" ;
-    gmeow:dictionaryStrategy gmeow:dictStrategyTermTable ;
-    gmeow:dictionaryTargetLength "16384"^^xsd:nonNegativeInteger ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength "4096"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryCompactV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .

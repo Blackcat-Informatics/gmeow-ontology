@@ -866,7 +866,14 @@ pub fn sweep_dictionary_runtime_store(
             let Ok(dict) = super::train::build(strategy, &cell_corpus, target) else {
                 continue;
             };
-            let cell_dir = dir.join(format!("{strategy}-{target}"));
+            // Keyed by the DICTIONARY as well as the cell: one replay root is shared by
+            // every measurable dictionary, and a store file is APPEND-ONLY. Naming the
+            // directory by `(strategy, target)` alone made dictionary N+1 reopen
+            // dictionary N's `primed-memory.gts`, whose header pins N — so the writer
+            // refused a frame naming N+1 as a dictionary the pack does not pin. Both arms
+            // must be a fresh store per dictionary, or the measurement is of a corpus that
+            // accumulated every prior dictionary's records rather than the one it declares.
+            let cell_dir = dir.join(format!("{id}-{strategy}-{target}"));
             std::fs::create_dir_all(&cell_dir).map_err(|err| {
                 invalid_declaration(format!(
                     "cannot open the population-B replay directory {}: {err}",
